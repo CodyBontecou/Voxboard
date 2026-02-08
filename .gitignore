@@ -1,0 +1,13 @@
+# Xcode
+*.xcuserstate
+*.xcworkspace
+xcuserdata/
+DerivedData/
+build/
+
+# Whisper models (too large for git — download with: curl -L -o VoxVault/ggml-base.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin)
+*.bin
+
+# SPM
+.build/
+Packages/VoxVaultShared/.build/
