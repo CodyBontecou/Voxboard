@@ -11,9 +11,14 @@ import whisper
 public final class WhisperContext: @unchecked Sendable {
     private var context: OpaquePointer
 
-    public init?(modelPath: String) {
+    /// - Parameters:
+    ///   - modelPath: Path to the ggml model file
+    ///   - useGPU: Enable Metal acceleration (set `false` in keyboard extensions to reduce memory)
+    ///   - flashAttn: Use flash attention (lower memory for attention computation)
+    public init?(modelPath: String, useGPU: Bool = true, flashAttn: Bool = false) {
         var cparams = whisper_context_default_params()
-        cparams.use_gpu = true
+        cparams.use_gpu = useGPU
+        cparams.flash_attn = flashAttn
 
         guard let ctx = whisper_init_from_file_with_params(modelPath, cparams) else {
             print("[WhisperContext] Failed to load model at: \(modelPath)")
@@ -32,8 +37,9 @@ public final class WhisperContext: @unchecked Sendable {
     /// - Parameters:
     ///   - audioURL: Path to the .wav recording
     ///   - language: ISO 639-1 code ("en", "es", etc.) or "auto" for detection
+    ///   - maxThreads: Cap on compute threads (use 2 in extensions to reduce memory)
     /// - Returns: The transcribed text, or nil on failure
-    public func transcribe(audioURL: URL, language: String = "auto") -> String? {
+    public func transcribe(audioURL: URL, language: String = "auto", maxThreads: Int? = nil) -> String? {
         guard let samples = loadAudioSamples(from: audioURL) else {
             print("[WhisperContext] Failed to load audio from: \(audioURL.path)")
             return nil
@@ -45,7 +51,8 @@ public final class WhisperContext: @unchecked Sendable {
         }
 
         var params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY)
-        params.n_threads = Int32(max(1, ProcessInfo.processInfo.activeProcessorCount - 1))
+        let cpuThreads = max(1, ProcessInfo.processInfo.activeProcessorCount - 1)
+        params.n_threads = Int32(min(maxThreads ?? cpuThreads, cpuThreads))
         params.translate = false
         params.no_timestamps = true
         params.single_segment = false

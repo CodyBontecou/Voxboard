@@ -5,6 +5,7 @@ import VoxVaultShared
 struct SettingsView: View {
     @Environment(ModelManager.self) private var modelManager
     @Environment(\.dismiss) private var dismiss
+    @State private var showDebugLog = false
 
     var body: some View {
         @Bindable var mm = modelManager
@@ -13,6 +14,7 @@ struct SettingsView: View {
             List {
                 modelSection
                 languageSection
+                debugSection
                 aboutSection
             }
             .navigationTitle("Settings")
@@ -21,6 +23,9 @@ struct SettingsView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .sheet(isPresented: $showDebugLog) {
+                KeyboardDebugLogView()
             }
         }
         .preferredColorScheme(.dark)
@@ -119,6 +124,18 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Debug
+
+    private var debugSection: some View {
+        Section("Keyboard Debug") {
+            Button {
+                showDebugLog = true
+            } label: {
+                Label("View Keyboard Log", systemImage: "doc.text.magnifyingglass")
+            }
+        }
+    }
+
     // MARK: - About
 
     private var aboutSection: some View {
@@ -126,6 +143,57 @@ struct SettingsView: View {
             LabeledContent("Engine", value: "whisper.cpp")
             LabeledContent("Processing", value: "On-device")
             LabeledContent("Privacy", value: "No data leaves your device")
+        }
+    }
+}
+
+// MARK: - Debug Log Viewer
+
+private struct KeyboardDebugLogView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var logText = ""
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                Text(logText)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundColor(.green)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+                    .textSelection(.enabled)
+            }
+            .background(Color.black)
+            .navigationTitle("Keyboard Debug Log")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Clear") {
+                        KeyboardDebugLog.shared.clear()
+                        logText = "(cleared)"
+                    }
+                    .foregroundColor(.red)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 16) {
+                        Button {
+                            logText = KeyboardDebugLog.shared.read()
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        Button {
+                            UIPasteboard.general.string = logText
+                        } label: {
+                            Image(systemName: "doc.on.doc")
+                        }
+                        Button("Done") { dismiss() }
+                    }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+        .onAppear {
+            logText = KeyboardDebugLog.shared.read()
         }
     }
 }

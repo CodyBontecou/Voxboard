@@ -537,6 +537,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		AA0000012F394000AABBCC01 /* XCLocalSwiftPackageReference "Packages/VoxVaultShared" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/VoxVaultShared;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		62C952832F393BB1001F79DF /* XCRemoteSwiftPackageReference "KeyboardKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -547,13 +554,6 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		AA0000012F394000AABBCC01 /* XCLocalSwiftPackageReference "Packages/VoxVaultShared" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = Packages/VoxVaultShared;
-		};
-/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		62C952842F393BB1001F79DF /* KeyboardKit */ = {
