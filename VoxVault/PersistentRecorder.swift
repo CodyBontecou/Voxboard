@@ -1,9 +1,11 @@
 import AVFoundation
 import Foundation
+import os.log
 import UIKit
 import VoxVaultShared
 
 private let log = KeyboardDebugLog.shared
+private let osLog = Logger(subsystem: "bontecou.VoxVault", category: "PersistentRecorder")
 
 /// Always-on audio recorder that captures microphone input into a circular buffer.
 ///
@@ -33,6 +35,13 @@ final class PersistentRecorder {
 
     /// Target sample rate for whisper.cpp
     private let whisperSampleRate: Double = 16_000
+
+    // MARK: - Cached Model
+
+    /// Pre-loaded whisper context — avoids cold model load on the first transcription.
+    private var cachedWhisperContext: WhisperContext?
+    private var cachedModelId: String?
+    private var isPreloadingModel: Bool = false
 
     // MARK: - Segment Tracking
 
@@ -187,8 +196,48 @@ final class PersistentRecorder {
         // Persist preference
         AppConstants.sharedDefaults?.set(true, forKey: "autoListenEnabled")
 
+        // Pre-load the default whisper model so the first transcription is fast
+        preloadModel()
+
         log.log("[PersistentRecorder] ✅ Listening started, waiting for keyboard commands")
         return true
+    }
+
+    /// Pre-load the whisper model in the background so it's ready for the first transcription.
+    private func preloadModel() {
+        guard !isPreloadingModel else { return }
+
+        let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+            ?? AppConstants.defaultModelName
+
+        // Skip if already cached with the right model
+        if cachedModelId == modelId, cachedWhisperContext != nil { return }
+
+        isPreloadingModel = true
+        log.log("[PersistentRecorder] Pre-loading model: \(modelId)…")
+
+        Task.detached(priority: .utility) { [weak self] in
+            guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
+                  let modelPath = model.localURL?.path,
+                  FileManager.default.fileExists(atPath: modelPath) else {
+                log.log("[PersistentRecorder] ⚠️ Pre-load skipped — model not found: \(modelId)")
+                await MainActor.run { self?.isPreloadingModel = false }
+                return
+            }
+
+            let ctx = WhisperContext(modelPath: modelPath, useGPU: false)
+
+            await MainActor.run {
+                self?.isPreloadingModel = false
+                if let ctx {
+                    self?.cachedWhisperContext = ctx
+                    self?.cachedModelId = modelId
+                    log.log("[PersistentRecorder] ✅ Model pre-loaded: \(model.name)")
+                } else {
+                    log.log("[PersistentRecorder] ⚠️ Model pre-load failed")
+                }
+            }
+        }
     }
 
     /// Stop the always-on capture.
@@ -232,15 +281,18 @@ final class PersistentRecorder {
     private func handleStartSegmentFast(_ command: RecordingCommand) {
         guard isListening else {
             log.log("[PersistentRecorder] ❌ startSegment but not listening")
+            osLog.error("❌ startSegment but not listening!")
             return
         }
 
         guard !isSegmentActive else {
             log.log("[PersistentRecorder] ⚠️ startSegment but segment already active")
+            osLog.warning("⚠️ startSegment but segment already active")
             return
         }
 
         log.log("[PersistentRecorder] 🎙 Starting segment (fast path): \(command.requestId)")
+        osLog.notice("🎙 Starting segment: \(command.requestId)")
 
         // CRITICAL: Mark buffer position immediately — this is the time-sensitive part.
         // The circular buffer is thread-safe, so reading indices off-main is safe.
@@ -316,13 +368,19 @@ final class PersistentRecorder {
 
     /// Mark the end of a segment — extract audio and transcribe.
     private func handleStopSegment(_ command: RecordingCommand) {
+        osLog.notice("⏹ handleStopSegment called — isSegmentActive=\(self.isSegmentActive) segmentRequestId=\(self.segmentRequestId ?? "nil") command.requestId=\(command.requestId)")
         guard isSegmentActive else {
             log.log("[PersistentRecorder] ⚠️ stopSegment but no active segment")
+            osLog.error("❌ stopSegment but isSegmentActive=false! Writing error response.")
+            // Write an error response so the keyboard doesn't get stuck in "Transcribing…" forever
+            let requestId = segmentRequestId ?? command.requestId
+            writeErrorResponse(requestId: requestId, message: "Recording session expired — please try again")
             return
         }
 
         let requestId = segmentRequestId ?? command.requestId
         log.log("[PersistentRecorder] ⏹ Stopping segment: \(requestId)")
+        osLog.notice("⏹ Stopping segment: \(requestId)")
 
         stopDurationTimer()
         isSegmentActive = false
@@ -431,24 +489,45 @@ final class PersistentRecorder {
             return
         }
 
-        log.log("[PersistentRecorder] Loading model: \(model.name) (CPU-only)…")
-
-        // Always CPU — app may be backgrounded when keyboard triggers this
-        guard let ctx = WhisperContext(modelPath: modelPath, useGPU: false) else {
-            log.log("[PersistentRecorder] ❌ Model load failed")
-            await MainActor.run { writeErrorResponse(requestId: requestId, message: "Model load failed") }
-            return
+        // Use cached context if available and model matches, otherwise load fresh
+        let ctx: WhisperContext
+        let cachedCtx = await MainActor.run { () -> WhisperContext? in
+            if self.cachedModelId == modelId, let c = self.cachedWhisperContext {
+                log.log("[PersistentRecorder] ♻️ Reusing cached model: \(model.name)")
+                return c
+            }
+            return nil
         }
 
+        if let cachedCtx {
+            ctx = cachedCtx
+        } else {
+            log.log("[PersistentRecorder] Loading model: \(model.name) (CPU-only)…")
+            guard let freshCtx = WhisperContext(modelPath: modelPath, useGPU: false) else {
+                log.log("[PersistentRecorder] ❌ Model load failed")
+                await MainActor.run { writeErrorResponse(requestId: requestId, message: "Model load failed") }
+                return
+            }
+            ctx = freshCtx
+            // Cache for next time
+            await MainActor.run {
+                self.cachedWhisperContext = freshCtx
+                self.cachedModelId = modelId
+            }
+        }
+
+        osLog.notice("🔄 Transcribing audio: \(audioURL.lastPathComponent) model=\(modelId)")
         log.log("[PersistentRecorder] Transcribing…")
         let text = ctx.transcribe(audioURL: audioURL, language: language)
         log.log("[PersistentRecorder] Result: \(text?.count ?? 0) chars")
+        osLog.notice("✅ Transcription result: \(text?.count ?? 0) chars")
 
         await MainActor.run {
             if let text, !text.isEmpty {
                 let response = TranscriptionResponse(requestId: requestId, text: text)
                 try? TranscriptionIPC.writeResponse(response)
                 TranscriptionIPC.postResponseNotification()
+                osLog.notice("📤 Response written and notification posted for \(requestId)")
 
                 TranscriptionIPC.writeStatus(RecordingStatus(
                     requestId: requestId,
@@ -586,9 +665,13 @@ final class PersistentRecorder {
     /// Reads the IPC command and marks the buffer position immediately,
     /// then dispatches UI state updates to main thread.
     private func handleCommandFromBackground() {
-        guard let command = TranscriptionIPC.readCommand() else { return }
+        guard let command = TranscriptionIPC.readCommand() else {
+            osLog.warning("⚠️ Command notification received but no command file found")
+            return
+        }
 
         log.log("[PersistentRecorder] Received command: \(command.action.rawValue) (requestId=\(command.requestId))")
+        osLog.notice("📩 Received command: \(command.action.rawValue) requestId=\(command.requestId)")
         TranscriptionIPC.clearCommand()
 
         switch command.action {

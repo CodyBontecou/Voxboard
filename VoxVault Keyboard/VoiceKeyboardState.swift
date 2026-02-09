@@ -57,6 +57,10 @@ final class VoiceKeyboardState {
     private var pollTimer: Timer?
     private var durationTimer: Timer?
     private var recordingStartedAt: TimeInterval?
+    private var transcribingStartedAt: TimeInterval?
+
+    /// Maximum time to wait for transcription before showing an error (seconds).
+    private let transcriptionTimeout: TimeInterval = 90
 
     init() {
         // Ensure IPC directory exists once upfront (avoids repeated checks on every write)
@@ -208,6 +212,7 @@ final class VoiceKeyboardState {
 
         // Update UI immediately
         status = .transcribing
+        transcribingStartedAt = Date().timeIntervalSince1970
         stopDurationTimer()
     }
 
@@ -282,6 +287,22 @@ final class VoiceKeyboardState {
             pendingTranscription = text
         }
 
+        // Check for orphaned response (transcription completed but keyboard was terminated before receiving it)
+        if let response = TranscriptionIPC.readResponse() {
+            if let text = response.text, !text.isEmpty {
+                log.log("♻️ Recovered orphaned transcription response (\(text.count) chars)")
+                pendingTranscription = text
+                TranscriptionIPC.clearResponse()
+                TranscriptionIPC.clearStatus()
+                return
+            } else {
+                // Stale error response — clear it
+                log.log("♻️ Clearing stale error response: \(response.error ?? "unknown")")
+                TranscriptionIPC.clearResponse()
+                TranscriptionIPC.clearStatus()
+            }
+        }
+
         guard let ipcStatus = TranscriptionIPC.readStatus() else { return }
 
         switch ipcStatus.phase {
@@ -294,16 +315,28 @@ final class VoiceKeyboardState {
             startDurationTimer()
 
         case .transcribing:
-            log.log("♻️ Reconnecting to existing transcription: \(ipcStatus.requestId)")
-            pendingRequestId = ipcStatus.requestId
-            status = .transcribing
-            startPolling()
+            // Check if the transcription is stale (> 2 minutes old)
+            if let startedAt = ipcStatus.recordingStartedAt,
+               Date().timeIntervalSince1970 - startedAt > 120 {
+                log.log("♻️ Clearing stale transcription session (>2 min old)")
+                TranscriptionIPC.clearStatus()
+            } else {
+                log.log("♻️ Reconnecting to existing transcription: \(ipcStatus.requestId)")
+                pendingRequestId = ipcStatus.requestId
+                status = .transcribing
+                startPolling()
+            }
+
+        case .done:
+            log.log("♻️ Clearing completed session status")
+            TranscriptionIPC.clearStatus()
+
+        case .error:
+            log.log("♻️ Clearing error session status: \(ipcStatus.message ?? "unknown")")
+            TranscriptionIPC.clearStatus()
 
         case .listening:
             status = .idle
-
-        default:
-            break
         }
     }
 
@@ -330,6 +363,19 @@ final class VoiceKeyboardState {
     private func checkForUpdates() {
         guard let requestId = pendingRequestId else { return }
 
+        // Check for transcription timeout
+        if status == .transcribing,
+           let startedAt = transcribingStartedAt,
+           Date().timeIntervalSince1970 - startedAt > transcriptionTimeout {
+            log.log("⏰ Transcription timed out after \(Int(transcriptionTimeout))s")
+            cleanupPending()
+            TranscriptionIPC.clearResponse()
+            TranscriptionIPC.clearStatus()
+            status = .error("Transcription timed out — try again")
+            resetErrorAfterDelay()
+            return
+        }
+
         // Check for status updates
         if let ipcStatus = TranscriptionIPC.readStatus(), ipcStatus.requestId == requestId {
             switch ipcStatus.phase {
@@ -344,6 +390,7 @@ final class VoiceKeyboardState {
             case .transcribing:
                 if status != .transcribing {
                     status = .transcribing
+                    transcribingStartedAt = Date().timeIntervalSince1970
                     stopDurationTimer()
                     log.log("⏳ App is transcribing")
                 }
@@ -409,6 +456,7 @@ final class VoiceKeyboardState {
         stopDurationTimer()
         pendingRequestId = nil
         recordingStartedAt = nil
+        transcribingStartedAt = nil
         recordingDuration = 0
     }
 
