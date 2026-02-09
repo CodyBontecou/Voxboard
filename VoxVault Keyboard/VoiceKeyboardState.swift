@@ -1,20 +1,28 @@
 import Foundation
+import UIKit
 import VoxVaultShared
 
 private let log = KeyboardDebugLog.shared
 
-/// Manages recording + transcription state for the keyboard extension.
+/// Manages voice transcription state for the keyboard extension.
 ///
-/// Recording happens in-process (the extension has mic access with Full Access).
-/// Transcription is offloaded to the main app via file-based IPC so there are
-/// no memory-limit constraints on model size.
+/// Recording and transcription happen in the main app (opened via URL scheme).
+/// The app records in the background while the user stays in the keyboard.
+///
+/// Flow:
+/// 1. User taps mic → keyboard opens voxvault://record → app starts recording
+/// 2. User switches back → keyboard shows "Recording…" with timer + Stop button
+/// 3. User taps Stop → keyboard sends stop command via IPC
+/// 4. App stops recording, transcribes, writes response
+/// 5. Keyboard picks up result and inserts text
 @Observable
 final class VoiceKeyboardState {
 
     enum Status: Equatable {
         case idle
-        case recording
-        case transcribing
+        case openingApp          // Briefly shown while app is opening
+        case recording           // App is recording in background
+        case transcribing        // App is transcribing
         case error(String)
         case noModel
         case needsFullAccess
@@ -24,22 +32,25 @@ final class VoiceKeyboardState {
     var recordingDuration: TimeInterval = 0
     var selectedModelIndex: Int = 0
 
-    private var recorder = AudioRecorder()
-    private var recordingTimer: Timer?
-    private var recordStartTime: Date?
+    /// Set when a transcription result arrives. The view layer should observe this,
+    /// call `textDocumentProxy.insertText`, then clear it via `consumeTranscription()`.
+    var pendingTranscription: String?
+
+    /// Closure provided by KeyboardViewController to open URLs via the responder chain.
+    var urlOpener: ((URL) -> Void)?
 
     // IPC state
     private var pendingRequestId: String?
-    private var pendingCallback: (@MainActor (String) -> Void)?
-    private var pendingDuration: TimeInterval = 0
-    private var pendingModelName: String = ""
-    private var pendingLanguage: String = ""
     private var pollTimer: Timer?
-    private var timeoutTimer: Timer?
+    private var durationTimer: Timer?
+    private var recordingStartedAt: TimeInterval?
 
     init() {
         registerResponseObserver()
-        log.log("VoiceKeyboardState init — IPC mode")
+        log.log("VoiceKeyboardState init — app-recording mode")
+
+        // Check if we had a pending recording session (e.g. keyboard was reloaded)
+        checkForExistingRecording()
     }
 
     deinit {
@@ -48,7 +59,6 @@ final class VoiceKeyboardState {
 
     // MARK: - Available Models
 
-    /// All downloaded models are available — the main app does the heavy lifting.
     var downloadedModels: [WhisperModelInfo] {
         WhisperModelInfo.availableModels.filter { $0.isDownloaded }
     }
@@ -64,7 +74,7 @@ final class VoiceKeyboardState {
         currentModel?.name ?? "No Model"
     }
 
-    // MARK: - Model Navigation (< > arrows)
+    // MARK: - Model Navigation
 
     func previousModel() {
         let count = downloadedModels.count
@@ -80,13 +90,16 @@ final class VoiceKeyboardState {
         log.log("Model switched to: \(currentModelName)")
     }
 
-    // MARK: - Toggle Recording
+    // MARK: - Consume Transcription
 
-    func toggleRecording(
-        hasFullAccess: Bool,
-        onTranscription: @escaping @MainActor (String) -> Void
-    ) {
-        log.log("toggleRecording — hasFullAccess=\(hasFullAccess), status=\(status)")
+    func consumeTranscription() {
+        pendingTranscription = nil
+    }
+
+    // MARK: - Start Recording (opens main app)
+
+    func startRecording(hasFullAccess: Bool) {
+        log.log("startRecording — hasFullAccess=\(hasFullAccess), status=\(status)")
 
         guard hasFullAccess else {
             status = .needsFullAccess
@@ -94,141 +107,159 @@ final class VoiceKeyboardState {
             return
         }
 
-        guard currentModel != nil else {
+        guard let model = currentModel else {
             status = .noModel
             log.log("❌ No model available. Downloaded: \(downloadedModels.map(\.id))")
             return
         }
 
-        switch status {
-        case .recording:
-            stopAndTranscribe(onTranscription: onTranscription)
-        default:
-            startRecording()
-        }
-    }
-
-    // MARK: - Recording
-
-    private func startRecording() {
-        log.log("startRecording — requesting mic…")
-
-        guard recorder.startRecording() else {
-            status = .error("Mic unavailable")
-            log.log("❌ Mic unavailable")
-            resetErrorAfterDelay()
-            return
-        }
-
-        status = .recording
-        recordingDuration = 0
-        recordStartTime = Date()
-        log.log("✅ Recording started")
-
-        recordingTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                guard let self, let start = self.recordStartTime else { return }
-                self.recordingDuration = Date().timeIntervalSince(start)
-            }
-        }
-    }
-
-    // MARK: - Stop & Send to App for Transcription
-
-    private func stopAndTranscribe(onTranscription: @escaping @MainActor (String) -> Void) {
-        log.log("stopAndTranscribe — stopping recorder…")
-        recordingTimer?.invalidate()
-        recordingTimer = nil
-
-        guard let audioURL = recorder.stopRecording() else {
-            status = .idle
-            log.log("❌ stopRecording returned nil")
-            return
-        }
-
-        let fileSize = (try? FileManager.default.attributesOfItem(atPath: audioURL.path)[.size] as? Int) ?? -1
-        log.log("Recording stopped — file: \(audioURL.lastPathComponent), size: \(fileSize) bytes, duration: \(String(format: "%.1f", recordingDuration))s")
-
-        status = .transcribing
-
-        let modelId = currentModel?.id ?? "ggml-base"
+        let requestId = UUID().uuidString
         let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey) ?? "auto"
-        let modelName = currentModel?.name ?? "Unknown"
 
-        // Build IPC request
-        let request = TranscriptionRequest(
-            audioFileName: audioURL.lastPathComponent,
-            modelId: modelId,
-            language: language
-        )
-
-        do {
-            try TranscriptionIPC.writeRequest(request)
-        } catch {
-            log.log("❌ Failed to write IPC request: \(error)")
-            status = .error("IPC error")
+        guard let url = AppConstants.recordURL(
+            modelId: model.id,
+            language: language,
+            requestId: requestId
+        ) else {
+            log.log("❌ Could not build record URL")
+            status = .error("Internal error")
             resetErrorAfterDelay()
             return
         }
 
-        // Store pending state for when the response arrives
-        pendingRequestId = request.id
-        pendingCallback = onTranscription
-        pendingDuration = recordingDuration
-        pendingModelName = modelName
-        pendingLanguage = language
+        // Clear stale IPC data
+        TranscriptionIPC.clearResponse()
+        TranscriptionIPC.clearStatus()
+        TranscriptionIPC.clearCommand()
 
-        // Wake the main app
-        log.log("📤 Request \(request.id) sent — model: \(modelId), lang: \(language)")
-        TranscriptionIPC.postRequestNotification()
+        pendingRequestId = requestId
+        status = .openingApp
+        recordingDuration = 0
 
-        // Poll for response file as a reliable fallback
+        log.log("📤 Opening app: \(url.absoluteString)")
+
+        if let urlOpener {
+            urlOpener(url)
+        } else {
+            log.log("❌ No URL opener available — was urlOpener set by KeyboardViewController?")
+            status = .error("Internal error")
+            resetErrorAfterDelay()
+            return
+        }
+
+        // Start polling — we'll detect when the app actually starts recording
+        startPolling()
+    }
+
+    // MARK: - Stop Recording (sends command to app)
+
+    func stopRecording() {
+        guard let requestId = pendingRequestId else {
+            log.log("stopRecording — no pending request")
+            return
+        }
+
+        log.log("⏹ Sending stop command for \(requestId)")
+
+        // Write stop command + post notification
+        let command = RecordingCommand(requestId: requestId, action: .stop)
+        TranscriptionIPC.writeCommand(command)
+        TranscriptionIPC.postStopCommandNotification()
+
+        // Update UI immediately — don't wait for the poll
+        status = .transcribing
+        stopDurationTimer()
+    }
+
+    // MARK: - Cancel
+
+    func cancelRecording() {
+        log.log("Cancelling pending recording")
+        // Send stop to clean up the app side too
+        if let requestId = pendingRequestId {
+            let command = RecordingCommand(requestId: requestId, action: .stop)
+            TranscriptionIPC.writeCommand(command)
+            TranscriptionIPC.postStopCommandNotification()
+        }
+        cleanupPending()
+        status = .idle
+    }
+
+    // MARK: - Check for Existing Recording
+
+    /// If the keyboard extension was reloaded while a recording was in progress,
+    /// reconnect to it.
+    private func checkForExistingRecording() {
+        guard let ipcStatus = TranscriptionIPC.readStatus() else { return }
+
+        switch ipcStatus.phase {
+        case .recording:
+            log.log("♻️ Reconnecting to existing recording: \(ipcStatus.requestId)")
+            pendingRequestId = ipcStatus.requestId
+            recordingStartedAt = ipcStatus.recordingStartedAt
+            status = .recording
+            startPolling()
+            startDurationTimer()
+
+        case .transcribing:
+            log.log("♻️ Reconnecting to existing transcription: \(ipcStatus.requestId)")
+            pendingRequestId = ipcStatus.requestId
+            status = .transcribing
+            startPolling()
+
+        default:
+            break
+        }
+    }
+
+    // MARK: - Polling for Status & Response
+
+    private func startPolling() {
         pollTimer?.invalidate()
         pollTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.checkForResponse() }
-        }
-
-        // Timeout after 30 seconds — the app may not be running
-        timeoutTimer?.invalidate()
-        timeoutTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
-            Task { @MainActor in self?.handleTimeout() }
+            Task { @MainActor in self?.checkForUpdates() }
         }
     }
 
-    // MARK: - Response Handling
-
-    /// Called by Darwin notification or poll timer.
     @MainActor
-    private func checkForResponse() {
+    private func checkForUpdates() {
         guard let requestId = pendingRequestId else { return }
 
+        // Check for status updates from the app
+        if let ipcStatus = TranscriptionIPC.readStatus(), ipcStatus.requestId == requestId {
+            switch ipcStatus.phase {
+            case .recording:
+                if status == .openingApp || status != .recording {
+                    status = .recording
+                    recordingStartedAt = ipcStatus.recordingStartedAt
+                    startDurationTimer()
+                    log.log("🎙 App confirmed recording started")
+                }
+
+            case .transcribing:
+                if status != .transcribing {
+                    status = .transcribing
+                    stopDurationTimer()
+                    log.log("⏳ App is transcribing")
+                }
+
+            case .done, .error:
+                break // Handled by response check below
+            }
+        }
+
+        // Check for completed response
         guard let response = TranscriptionIPC.readResponse(),
               response.requestId == requestId else { return }
 
         log.log("📥 Response received for \(requestId)")
-
-        // Capture pending state before cleanup
-        let callback = pendingCallback
-        let duration = pendingDuration
-        let modelName = pendingModelName
-        let language = pendingLanguage
-
         cleanupPending()
         TranscriptionIPC.clearResponse()
+        TranscriptionIPC.clearStatus()
 
         if let text = response.text, !text.isEmpty {
-            log.log("✅ Inserting text (\(text.count) chars)")
-            callback?(text)
-
-            // Save to shared transcript history
-            let transcript = Transcript(
-                text: text,
-                duration: duration,
-                modelUsed: modelName,
-                language: language
-            )
-            TranscriptStore().add(transcript)
-
+            log.log("✅ Transcription ready (\(text.count) chars)")
+            pendingTranscription = text
             status = .idle
         } else {
             let msg = response.error ?? "No speech detected"
@@ -238,22 +269,32 @@ final class VoiceKeyboardState {
         }
     }
 
-    @MainActor
-    private func handleTimeout() {
-        guard pendingRequestId != nil else { return }
-        log.log("⏰ Timeout — no response from app")
-        cleanupPending()
-        status = .error("Open VoxVault app")
-        resetErrorAfterDelay()
+    // MARK: - Duration Timer
+
+    private func startDurationTimer() {
+        stopDurationTimer()
+        durationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                guard let self, let startedAt = self.recordingStartedAt else { return }
+                self.recordingDuration = Date().timeIntervalSince1970 - startedAt
+            }
+        }
     }
+
+    private func stopDurationTimer() {
+        durationTimer?.invalidate()
+        durationTimer = nil
+    }
+
+    // MARK: - Cleanup
 
     private func cleanupPending() {
         pollTimer?.invalidate()
         pollTimer = nil
-        timeoutTimer?.invalidate()
-        timeoutTimer = nil
+        stopDurationTimer()
         pendingRequestId = nil
-        pendingCallback = nil
+        recordingStartedAt = nil
+        recordingDuration = 0
     }
 
     // MARK: - Darwin Notification Observer (response from app)
@@ -269,7 +310,7 @@ final class VoiceKeyboardState {
                 guard let observer else { return }
                 let state = Unmanaged<VoiceKeyboardState>
                     .fromOpaque(observer).takeUnretainedValue()
-                Task { @MainActor in state.checkForResponse() }
+                Task { @MainActor in state.checkForUpdates() }
             },
             TranscriptionIPC.responseNotificationName,
             nil,
@@ -290,9 +331,7 @@ final class VoiceKeyboardState {
     // MARK: - Memory Warning
 
     func handleMemoryWarning() {
-        log.log("⚠️⚠️⚠️ didReceiveMemoryWarning")
-        // No heavy resources to free anymore — transcription runs in the app.
-        // Just log it for diagnostics.
+        log.log("⚠️ didReceiveMemoryWarning — no heavy resources in extension")
     }
 
     // MARK: - Helpers

@@ -10,6 +10,22 @@ public enum AppConstants: Sendable {
     public static let selectedLanguageKey = "selectedLanguage"
     public static let defaultModelName = "ggml-base"
 
+    /// URL scheme used by the keyboard extension to open the main app for recording.
+    public static let urlScheme = "voxvault"
+
+    /// Build a URL to open the main app's recording flow from the keyboard.
+    public static func recordURL(modelId: String, language: String, requestId: String) -> URL? {
+        var components = URLComponents()
+        components.scheme = urlScheme
+        components.host = "record"
+        components.queryItems = [
+            URLQueryItem(name: "model", value: modelId),
+            URLQueryItem(name: "lang", value: language),
+            URLQueryItem(name: "requestId", value: requestId),
+        ]
+        return components.url
+    }
+
     public static var sharedContainerURL: URL? {
         FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)
     }

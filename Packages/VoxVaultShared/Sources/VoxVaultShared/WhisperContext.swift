@@ -85,19 +85,130 @@ public final class WhisperContext: @unchecked Sendable {
         }
 
         let trimmed = transcription.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? nil : trimmed
+        print("[WhisperContext] Raw transcription (\(nSegments) segments): \"\(trimmed)\"")
+
+        guard !trimmed.isEmpty else { return nil }
+
+        // Filter out common whisper hallucinations on silent/noisy audio
+        if Self.isHallucination(trimmed) {
+            print("[WhisperContext] Filtered hallucination: \"\(trimmed)\"")
+            return nil
+        }
+
+        return trimmed
+    }
+
+    // MARK: - Hallucination Filtering
+
+    /// Whisper commonly hallucinates these phrases when given silent or near-silent audio.
+    private static let hallucinationPatterns: [String] = [
+        "(silence)",
+        "[silence]",
+        "(silent)",
+        "[silent]",
+        "(blank audio)",
+        "[blank_audio]",
+        "[blank audio]",
+        "(no speech)",
+        "[no speech]",
+        "(music)",
+        "[music]",
+        "(music playing)",
+        "[music playing]",
+        "(background noise)",
+        "(white noise)",
+        "(static)",
+        "(inaudible)",
+        "[inaudible]",
+        "thank you.",
+        "thanks for watching.",
+        "thanks for watching!",
+        "thank you for watching.",
+        "thank you for watching!",
+        "subscribe",
+        "you",
+        "...",
+    ]
+
+    private static func isHallucination(_ text: String) -> Bool {
+        let lower = text.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        // Exact match against known hallucinations
+        if hallucinationPatterns.contains(lower) { return true }
+        // Bracketed/parenthesized text only (e.g., "[Music]", "(Silence)")
+        if lower.hasPrefix("(") && lower.hasSuffix(")") && lower.count < 40 { return true }
+        if lower.hasPrefix("[") && lower.hasSuffix("]") && lower.count < 40 { return true }
+        return false
     }
 
     // MARK: - Audio Loading
 
     /// Reads a 16-bit PCM WAV file and converts to Float32 samples normalized to [-1, 1].
+    /// Properly parses RIFF/WAV chunks to find the "data" chunk instead of assuming a
+    /// fixed header size, since AVAudioRecorder may insert extra chunks (fact, LIST, etc.).
     private func loadAudioSamples(from url: URL) -> [Float]? {
-        guard let data = try? Data(contentsOf: url) else { return nil }
+        guard let data = try? Data(contentsOf: url) else {
+            print("[WhisperContext] Could not read file: \(url.path)")
+            return nil
+        }
 
-        // WAV header is 44 bytes for standard PCM
-        guard data.count > 44 else { return nil }
-        let audioData = data.subdata(in: 44..<data.count)
+        print("[WhisperContext] WAV file size: \(data.count) bytes")
 
+        // Minimum RIFF header: 12 bytes (RIFF + size + WAVE)
+        guard data.count > 12 else {
+            print("[WhisperContext] File too small for WAV header")
+            return nil
+        }
+
+        // Find the "data" chunk by walking RIFF chunks
+        guard let dataRange = findDataChunk(in: data) else {
+            print("[WhisperContext] Could not find 'data' chunk in WAV — falling back to offset 44")
+            // Fallback to legacy behavior
+            guard data.count > 44 else { return nil }
+            return parsePCMSamples(from: data.subdata(in: 44..<data.count))
+        }
+
+        print("[WhisperContext] Found 'data' chunk at offset \(dataRange.lowerBound), length \(dataRange.count) bytes")
+        let audioData = data.subdata(in: dataRange)
+        return parsePCMSamples(from: audioData)
+    }
+
+    /// Walk RIFF/WAV chunks to locate the "data" chunk.
+    /// Returns the byte range of the raw PCM data (excluding the chunk header).
+    private func findDataChunk(in data: Data) -> Range<Int>? {
+        // Verify RIFF header
+        guard data.count >= 12,
+              String(data: data[0..<4], encoding: .ascii) == "RIFF",
+              String(data: data[8..<12], encoding: .ascii) == "WAVE" else {
+            return nil
+        }
+
+        var offset = 12 // Skip past "RIFF" + size + "WAVE"
+
+        while offset + 8 <= data.count {
+            let chunkID = String(data: data[offset..<offset+4], encoding: .ascii) ?? "????"
+            let chunkSize = data.withUnsafeBytes { buf in
+                buf.load(fromByteOffset: offset + 4, as: UInt32.self)
+            }
+            let size = Int(chunkSize)
+
+            print("[WhisperContext] WAV chunk: '\(chunkID)' size=\(size) at offset \(offset)")
+
+            if chunkID == "data" {
+                let dataStart = offset + 8
+                let dataEnd = min(dataStart + size, data.count)
+                return dataStart..<dataEnd
+            }
+
+            // Advance to next chunk (chunks are word-aligned)
+            offset += 8 + size
+            if offset % 2 != 0 { offset += 1 } // pad byte
+        }
+
+        return nil
+    }
+
+    /// Convert raw 16-bit little-endian PCM bytes to Float32 samples in [-1, 1].
+    private func parsePCMSamples(from audioData: Data) -> [Float] {
         let sampleCount = audioData.count / 2
         var samples = [Float](repeating: 0, count: sampleCount)
 
@@ -105,6 +216,17 @@ public final class WhisperContext: @unchecked Sendable {
             let int16Buffer = rawBuffer.bindMemory(to: Int16.self)
             for i in 0..<sampleCount {
                 samples[i] = Float(int16Buffer[i]) / 32768.0
+            }
+        }
+
+        // Log audio diagnostics
+        if !samples.isEmpty {
+            let maxAmp = samples.map { abs($0) }.max() ?? 0
+            let rms = sqrt(samples.map { $0 * $0 }.reduce(0, +) / Float(samples.count))
+            let durationSec = Float(samples.count) / 16000.0
+            print("[WhisperContext] Audio: \(samples.count) samples, \(String(format: "%.1f", durationSec))s, maxAmp=\(String(format: "%.4f", maxAmp)), RMS=\(String(format: "%.4f", rms))")
+            if maxAmp < 0.01 {
+                print("[WhisperContext] ⚠️ Audio appears SILENT (maxAmp < 0.01) — mic may not be capturing")
             }
         }
 

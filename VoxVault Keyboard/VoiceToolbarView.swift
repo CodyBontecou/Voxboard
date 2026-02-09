@@ -2,11 +2,10 @@ import SwiftUI
 import VoxVaultShared
 
 /// The custom toolbar that sits above the KeyboardKit keyboard.
-/// Layout matches the design: [< 🎤 >] ModelName ... [▶ Start]
+/// Shows model selector, status, and Start/Stop button.
 struct VoiceToolbarView: View {
     @Bindable var voiceState: VoiceKeyboardState
     let hasFullAccess: Bool
-    var onTranscription: @MainActor (String) -> Void
 
     var body: some View {
         HStack(spacing: 10) {
@@ -51,6 +50,11 @@ struct VoiceToolbarView: View {
                 .font(.system(size: 15))
                 .foregroundColor(.red)
                 .symbolEffect(.pulse, isActive: true)
+        case .openingApp:
+            Image(systemName: "mic.fill")
+                .font(.system(size: 15))
+                .foregroundColor(.orange)
+                .symbolEffect(.pulse, isActive: true)
         case .transcribing:
             ProgressView()
                 .scaleEffect(0.7)
@@ -68,11 +72,13 @@ struct VoiceToolbarView: View {
             switch voiceState.status {
             case .idle:
                 Text(voiceState.currentModelName)
+            case .openingApp:
+                Text("Opening VoxVault…")
             case .recording:
                 Text(formatDuration(voiceState.recordingDuration))
                     .monospacedDigit()
             case .transcribing:
-                Text("Transcribing...")
+                Text("Transcribing…")
             case .error(let msg):
                 Text(msg)
                     .foregroundColor(.red)
@@ -89,38 +95,68 @@ struct VoiceToolbarView: View {
         .lineLimit(1)
     }
 
-    // MARK: - Action Button: [▶ Start] / [■ Stop]
+    // MARK: - Action Button
 
+    @ViewBuilder
     private var actionButton: some View {
-        Button(action: {
-            voiceState.toggleRecording(
-                hasFullAccess: hasFullAccess,
-                onTranscription: onTranscription
-            )
-        }) {
-            HStack(spacing: 5) {
-                switch voiceState.status {
-                case .recording:
+        switch voiceState.status {
+        case .recording:
+            // Stop button — sends stop command to the app
+            Button(action: { voiceState.stopRecording() }) {
+                HStack(spacing: 5) {
                     Image(systemName: "stop.fill")
                         .font(.system(size: 10))
                     Text("Stop")
                         .font(.system(size: 14, weight: .medium))
-                case .transcribing:
-                    ProgressView()
-                        .scaleEffect(0.6)
-                default:
-                    Image(systemName: "triangle.fill")
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(Color.red.opacity(0.15))
+                .foregroundColor(.red)
+                .clipShape(Capsule())
+            }
+
+        case .openingApp:
+            // Cancel button
+            Button(action: { voiceState.cancelRecording() }) {
+                HStack(spacing: 5) {
+                    Image(systemName: "xmark")
                         .font(.system(size: 10))
-                    Text("Start")
+                    Text("Cancel")
                         .font(.system(size: 14, weight: .medium))
                 }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(Color(.systemGray5))
+                .clipShape(Capsule())
+            }
+
+        case .transcribing:
+            // Disabled spinner
+            HStack(spacing: 5) {
+                ProgressView()
+                    .scaleEffect(0.6)
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 7)
             .background(Color(.systemGray5))
             .clipShape(Capsule())
+
+        default:
+            // Start button — opens the app to record
+            Button(action: { voiceState.startRecording(hasFullAccess: hasFullAccess) }) {
+                HStack(spacing: 5) {
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 10))
+                    Text("Record")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(Color(.systemGray5))
+                .clipShape(Capsule())
+            }
         }
-        .disabled(voiceState.status == .transcribing)
     }
 
     // MARK: - Helpers

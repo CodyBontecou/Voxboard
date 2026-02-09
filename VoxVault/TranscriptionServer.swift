@@ -116,9 +116,11 @@ final class TranscriptionServer {
             return
         }
 
-        // Load model — full app memory budget, GPU enabled
-        log("Loading model: \(model.name)…")
-        guard let ctx = WhisperContext(modelPath: modelPath) else {
+        // Load model — full app memory budget, but GPU disabled because the main
+        // app is in the background when the keyboard is active and iOS forbids
+        // Metal/GPU work from background processes (kIOGPUCommandBufferCallbackErrorBackgroundExecutionNotPermitted).
+        log("Loading model: \(model.name) (CPU-only, background mode)…")
+        guard let ctx = WhisperContext(modelPath: modelPath, useGPU: false) else {
             log("❌ Model load failed")
             writeResponse(.init(requestId: request.id, error: "Model load failed"))
             return
