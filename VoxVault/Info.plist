@@ -18,6 +18,6 @@
 		<string>audio</string>
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>VoxVault needs microphone access to transcribe your voice into text.</string>
+	<string>Voxboard needs microphone access to transcribe your voice into text.</string>
 </dict>
 </plist>

@@ -69,7 +69,7 @@ struct VoiceToolbarView: View {
     private var statusLabel: some View {
         Group {
             switch voiceState.status {
-            case .idle:
+            case .idle, .appNotListening:
                 Text(voiceState.currentModelName)
             case .recording:
                 Text(formatDuration(voiceState.recordingDuration))
@@ -80,13 +80,10 @@ struct VoiceToolbarView: View {
                 Text(msg)
                     .foregroundColor(.red)
             case .noModel:
-                Text("Open VoxVault to set up")
+                Text("Open Voxboard to set up")
                     .foregroundColor(.orange)
             case .needsFullAccess:
                 Text("Enable Full Access in Settings")
-                    .foregroundColor(.orange)
-            case .appNotListening:
-                Text("Open VoxVault to start")
                     .foregroundColor(.orange)
             }
         }
@@ -101,61 +98,44 @@ struct VoiceToolbarView: View {
     private var actionButton: some View {
         switch voiceState.status {
         case .recording:
-            // Stop button — sends stopSegment command to the app (no app switch)
+            // Red stop button — tapping stops the recording
             Button(action: { voiceState.stopRecording() }) {
-                HStack(spacing: 5) {
-                    Image(systemName: "stop.fill")
-                        .font(.system(size: 10))
-                    Text("Stop")
-                        .font(.system(size: 14, weight: .medium))
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(Color.red.opacity(0.15))
-                .foregroundColor(.red)
-                .clipShape(Capsule())
+                Image(systemName: "stop.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.white)
+                    .frame(width: 36, height: 36)
+                    .background(Color.red)
+                    .clipShape(Circle())
             }
 
         case .transcribing:
-            // Disabled spinner
-            HStack(spacing: 5) {
-                ProgressView()
-                    .scaleEffect(0.6)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 7)
-            .background(Color(.systemGray5))
-            .clipShape(Capsule())
+            // Spinner in a circle while transcribing
+            ProgressView()
+                .scaleEffect(0.7)
+                .frame(width: 36, height: 36)
+                .background(Color(.systemGray5))
+                .clipShape(Circle())
 
         case .appNotListening:
-            // Open app button — one-time setup
-            Button(action: { voiceState.openApp() }) {
-                HStack(spacing: 5) {
-                    Image(systemName: "arrow.up.forward.app")
-                        .font(.system(size: 10))
-                    Text("Open")
-                        .font(.system(size: 14, weight: .medium))
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(Color.orange.opacity(0.15))
-                .foregroundColor(.orange)
-                .clipShape(Capsule())
+            // Blue mic — opens app when tapped, auto-starts recording once app is ready
+            Button(action: { voiceState.openApp(hasFullAccess: hasFullAccess) }) {
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.white)
+                    .frame(width: 36, height: 36)
+                    .background(Color.blue)
+                    .clipShape(Circle())
             }
 
         default:
-            // Record button — sends startSegment command (no app switch!)
+            // Blue mic — starts recording when tapped
             Button(action: { voiceState.startRecording(hasFullAccess: hasFullAccess) }) {
-                HStack(spacing: 5) {
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 10))
-                    Text("Record")
-                        .font(.system(size: 14, weight: .medium))
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(Color(.systemGray5))
-                .clipShape(Capsule())
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(.white)
+                    .frame(width: 36, height: 36)
+                    .background(Color.blue)
+                    .clipShape(Circle())
             }
         }
     }

@@ -83,7 +83,7 @@ struct HomeView: View {
             HStack(spacing: 6) {
                 Image(systemName: "mic.fill")
                     .font(.system(size: 14))
-                Text("VoxVault")
+                Text("Voxboard")
                     .font(.system(size: 17, weight: .medium))
             }
             .foregroundColor(.white)

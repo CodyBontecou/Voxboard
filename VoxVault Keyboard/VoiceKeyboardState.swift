@@ -46,6 +46,12 @@ final class VoiceKeyboardState {
     // Cached model list — avoids filesystem checks on every Record tap
     private var cachedDownloadedModels: [WhisperModelInfo] = []
 
+    // When the user taps the mic button while app isn't listening,
+    // we open the app and set this flag so recording auto-starts
+    // once the app signals it's listening.
+    private var pendingAutoRecord = false
+    private var cachedHasFullAccess = false
+
     // IPC state
     private var pendingRequestId: String?
     private var pollTimer: Timer?
@@ -223,9 +229,11 @@ final class VoiceKeyboardState {
 
     // MARK: - Open App (one-time prompt)
 
-    func openApp() {
+    func openApp(hasFullAccess: Bool = true) {
         guard let url = URL(string: "\(AppConstants.urlScheme)://listen") else { return }
-        log.log("Opening app to start listening: \(url.absoluteString)")
+        log.log("Opening app to start listening: \(url.absoluteString) (pendingAutoRecord=true)")
+        cachedHasFullAccess = hasFullAccess
+        pendingAutoRecord = true
         urlOpener?(url)
     }
 
@@ -253,6 +261,13 @@ final class VoiceKeyboardState {
             // App is listening
             if status == .appNotListening {
                 status = .idle
+
+                // Auto-start recording if the user tapped the mic button to open the app
+                if pendingAutoRecord {
+                    pendingAutoRecord = false
+                    log.log("🎙 Auto-starting recording after app became available")
+                    startRecording(hasFullAccess: cachedHasFullAccess)
+                }
             }
         }
         log.log("refreshListeningState — isListening=\(state?.isListening ?? false), status=\(status)")
