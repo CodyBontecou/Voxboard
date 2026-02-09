@@ -50,9 +50,13 @@ final class PersistentRecorder {
 
     private var durationTimer: Timer?
 
+    /// Shared transcript store — injected so saved transcripts appear in the UI immediately.
+    private let transcriptStore: TranscriptStore
+
     // MARK: - Init
 
-    init() {
+    init(transcriptStore: TranscriptStore) {
+        self.transcriptStore = transcriptStore
         ensureRecordingsDirectory()
     }
 
@@ -403,14 +407,14 @@ final class PersistentRecorder {
                     phase: .done
                 ))
 
-                // Save to history
+                // Save to history (uses shared store so UI updates immediately)
                 let transcript = Transcript(
                     text: text,
                     duration: duration,
                     modelUsed: model.name,
                     language: language
                 )
-                TranscriptStore().add(transcript)
+                self.transcriptStore.add(transcript)
 
                 log.log("[PersistentRecorder] ✅ Transcription complete: \(text.count) chars")
             } else {

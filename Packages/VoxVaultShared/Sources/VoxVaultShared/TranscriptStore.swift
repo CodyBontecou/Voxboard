@@ -31,6 +31,11 @@ public final class TranscriptStore {
         save()
     }
 
+    /// Re-read transcripts from disk (e.g. after another process wrote new data).
+    public func reload() {
+        load()
+    }
+
     // MARK: - Persistence
 
     private func save() {

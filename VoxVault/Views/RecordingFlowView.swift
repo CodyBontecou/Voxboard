@@ -25,6 +25,7 @@ final class RecordingFlowController {
 
     private let recorder = AudioRecorder()
     private var commandPollTimer: Timer?
+    private let transcriptStore: TranscriptStore
 
     /// Timestamp when recording started — shared with keyboard via IPC.
     private var recordingStartedAt: TimeInterval = 0
@@ -33,10 +34,11 @@ final class RecordingFlowController {
         recorder.recordingDuration
     }
 
-    init(modelId: String, language: String, requestId: String) {
+    init(modelId: String, language: String, requestId: String, transcriptStore: TranscriptStore) {
         self.modelId = modelId
         self.language = language
         self.requestId = requestId
+        self.transcriptStore = transcriptStore
     }
 
     deinit {
@@ -181,7 +183,7 @@ final class RecordingFlowController {
                         modelUsed: modelName,
                         language: lang
                     )
-                    TranscriptStore().add(transcript)
+                    self.transcriptStore.add(transcript)
 
                     log.log("[App:RecFlow] ✅ Done — \(text.count) chars, phase → done")
                     self.phase = .done

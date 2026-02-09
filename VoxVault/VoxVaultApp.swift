@@ -5,7 +5,13 @@ import VoxVaultShared
 struct VoxVaultApp: App {
     @State private var modelManager = ModelManager()
     @State private var transcriptStore = TranscriptStore()
-    @State private var persistentRecorder = PersistentRecorder()
+    @State private var persistentRecorder: PersistentRecorder
+
+    init() {
+        let store = TranscriptStore()
+        _transcriptStore = State(initialValue: store)
+        _persistentRecorder = State(initialValue: PersistentRecorder(transcriptStore: store))
+    }
     @Environment(\.scenePhase) private var scenePhase
 
     /// Handles transcription requests from the keyboard extension (legacy IPC flow).

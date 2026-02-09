@@ -32,6 +32,9 @@ struct HistoryView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            store.reload()
+        }
     }
 
     // MARK: - Empty State
