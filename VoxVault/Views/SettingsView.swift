@@ -182,7 +182,7 @@ private struct KeyboardDebugLogView: View {
                             Image(systemName: "arrow.clockwise")
                         }
                         Button {
-                            UIPasteboard.general.string = logText
+                            UIPasteboard.general.string = KeyboardDebugLog.shared.read()
                         } label: {
                             Image(systemName: "doc.on.doc")
                         }
