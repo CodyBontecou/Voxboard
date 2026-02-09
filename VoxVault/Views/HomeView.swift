@@ -288,8 +288,8 @@ struct HomeView: View {
                 keyboardLaunchPhase = persistentRecorder.isListening ? .ready : .error
             }
 
-            // Auto-dismiss after a few seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            // Auto-dismiss shortly after
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                 withAnimation {
                     keyboardLaunchPhase = nil
                 }
