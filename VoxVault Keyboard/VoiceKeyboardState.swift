@@ -90,7 +90,17 @@ final class VoiceKeyboardState {
     /// Called once at init and when model selection changes.
     func refreshModelCache() {
         cachedDownloadedModels = WhisperModelInfo.availableModels.filter { $0.isDownloaded }
-        log.log("refreshModelCache — \(cachedDownloadedModels.count) models cached")
+
+        // Restore the persisted model selection from shared UserDefaults
+        let persistedId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+            ?? AppConstants.defaultModelName
+        if let idx = cachedDownloadedModels.firstIndex(where: { $0.id == persistedId }) {
+            selectedModelIndex = idx
+        } else {
+            selectedModelIndex = 0
+        }
+
+        log.log("refreshModelCache — \(cachedDownloadedModels.count) models cached, selected: \(currentModelName)")
     }
 
     var downloadedModels: [WhisperModelInfo] {
@@ -114,6 +124,7 @@ final class VoiceKeyboardState {
         let count = cachedDownloadedModels.count
         guard count > 0 else { return }
         selectedModelIndex = (selectedModelIndex - 1 + count) % count
+        persistSelectedModel()
         log.log("Model switched to: \(currentModelName)")
     }
 
@@ -121,7 +132,15 @@ final class VoiceKeyboardState {
         let count = cachedDownloadedModels.count
         guard count > 0 else { return }
         selectedModelIndex = (selectedModelIndex + 1) % count
+        persistSelectedModel()
         log.log("Model switched to: \(currentModelName)")
+    }
+
+    /// Save the current model selection to shared UserDefaults so it survives
+    /// keyboard restarts and stays in sync with the main app's settings.
+    private func persistSelectedModel() {
+        guard let model = currentModel else { return }
+        AppConstants.sharedDefaults?.set(model.id, forKey: AppConstants.selectedModelKey)
     }
 
     // MARK: - Consume Transcription
