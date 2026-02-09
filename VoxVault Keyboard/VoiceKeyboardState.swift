@@ -43,6 +43,9 @@ final class VoiceKeyboardState {
     /// Closure provided by KeyboardViewController to insert text via textDocumentProxy.
     var textInserter: ((String) -> Void)?
 
+    // Cached model list — avoids filesystem checks on every Record tap
+    private var cachedDownloadedModels: [WhisperModelInfo] = []
+
     // IPC state
     private var pendingRequestId: String?
     private var pollTimer: Timer?
@@ -50,6 +53,12 @@ final class VoiceKeyboardState {
     private var recordingStartedAt: TimeInterval?
 
     init() {
+        // Ensure IPC directory exists once upfront (avoids repeated checks on every write)
+        TranscriptionIPC.ensureDirectory()
+
+        // Cache downloaded models so Record tap doesn't hit the filesystem
+        refreshModelCache()
+
         registerResponseObserver()
         registerListeningStateObserver()
         log.log("VoiceKeyboardState init — always-on mode")
@@ -67,12 +76,19 @@ final class VoiceKeyboardState {
 
     // MARK: - Available Models
 
+    /// Refresh the cached list of downloaded models (filesystem check).
+    /// Called once at init and when model selection changes.
+    func refreshModelCache() {
+        cachedDownloadedModels = WhisperModelInfo.availableModels.filter { $0.isDownloaded }
+        log.log("refreshModelCache — \(cachedDownloadedModels.count) models cached")
+    }
+
     var downloadedModels: [WhisperModelInfo] {
-        WhisperModelInfo.availableModels.filter { $0.isDownloaded }
+        cachedDownloadedModels
     }
 
     var currentModel: WhisperModelInfo? {
-        let models = downloadedModels
+        let models = cachedDownloadedModels
         guard !models.isEmpty else { return nil }
         let idx = min(selectedModelIndex, models.count - 1)
         return models[max(0, idx)]
@@ -85,14 +101,14 @@ final class VoiceKeyboardState {
     // MARK: - Model Navigation
 
     func previousModel() {
-        let count = downloadedModels.count
+        let count = cachedDownloadedModels.count
         guard count > 0 else { return }
         selectedModelIndex = (selectedModelIndex - 1 + count) % count
         log.log("Model switched to: \(currentModelName)")
     }
 
     func nextModel() {
-        let count = downloadedModels.count
+        let count = cachedDownloadedModels.count
         guard count > 0 else { return }
         selectedModelIndex = (selectedModelIndex + 1) % count
         log.log("Model switched to: \(currentModelName)")
@@ -117,12 +133,19 @@ final class VoiceKeyboardState {
         }
 
         guard let model = currentModel else {
-            status = .noModel
-            log.log("❌ No model available. Downloaded: \(downloadedModels.map(\.id))")
+            // Refresh cache in case models were downloaded since last check
+            refreshModelCache()
+            if currentModel == nil {
+                status = .noModel
+                log.log("❌ No model available. Downloaded: \(downloadedModels.map(\.id))")
+                return
+            }
+            // Fall through with the refreshed model
+            startRecording(hasFullAccess: hasFullAccess)
             return
         }
 
-        // Check if app is listening
+        // Check if app is listening (cached — fast read)
         let listeningState = TranscriptionIPC.readListeningState()
         guard listeningState?.isListening == true else {
             status = .appNotListening
@@ -133,16 +156,14 @@ final class VoiceKeyboardState {
         let requestId = UUID().uuidString
         let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey) ?? "auto"
 
-        // Clear stale IPC data
-        TranscriptionIPC.clearResponse()
-        TranscriptionIPC.clearStatus()
-
+        // Update UI immediately — don't wait for IPC round-trip
         pendingRequestId = requestId
         recordingStartedAt = Date().timeIntervalSince1970
         recordingDuration = 0
         status = .recording
 
-        // Write startSegment command
+        // Write startSegment command and post notification immediately
+        // Skip clearing stale response/status — requestId filtering handles it
         let command = RecordingCommand(
             requestId: requestId,
             action: .startSegment,
@@ -209,6 +230,11 @@ final class VoiceKeyboardState {
     }
 
     // MARK: - Listening State
+
+    /// Public entry point for refreshing listening state (called from viewDidAppear).
+    func refreshListeningStatePublic() {
+        refreshListeningState()
+    }
 
     private func refreshListeningState() {
         let state = TranscriptionIPC.readListeningState()
@@ -280,7 +306,7 @@ final class VoiceKeyboardState {
 
     private func startPolling() {
         pollTimer?.invalidate()
-        pollTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] _ in
+        pollTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.checkForUpdates() }
         }
     }

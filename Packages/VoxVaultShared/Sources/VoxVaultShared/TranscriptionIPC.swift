@@ -159,9 +159,14 @@ public enum TranscriptionIPC {
         ipcDirectory?.appendingPathComponent("listening_state.json")
     }
 
+    /// Whether the IPC directory has already been verified to exist this session.
+    private static var directoryEnsured = false
+
     public static func ensureDirectory() {
+        guard !directoryEnsured else { return }
         guard let dir = ipcDirectory else { return }
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        directoryEnsured = true
     }
 
     // MARK: - Write / Read: Request

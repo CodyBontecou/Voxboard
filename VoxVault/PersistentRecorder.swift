@@ -226,7 +226,55 @@ final class PersistentRecorder {
 
     // MARK: - Segment Control
 
-    /// Mark the start of a transcription segment.
+    /// Fast start segment handler — runs on the high-priority command queue.
+    /// Marks the buffer position and writes IPC status immediately, then
+    /// dispatches UI state updates to main thread.
+    private func handleStartSegmentFast(_ command: RecordingCommand) {
+        guard isListening else {
+            log.log("[PersistentRecorder] ❌ startSegment but not listening")
+            return
+        }
+
+        guard !isSegmentActive else {
+            log.log("[PersistentRecorder] ⚠️ startSegment but segment already active")
+            return
+        }
+
+        log.log("[PersistentRecorder] 🎙 Starting segment (fast path): \(command.requestId)")
+
+        // CRITICAL: Mark buffer position immediately — this is the time-sensitive part.
+        // The circular buffer is thread-safe, so reading indices off-main is safe.
+        let preRollSamples = Int64(preRollSeconds * whisperSampleRate)
+        let currentIndex = circularBuffer.totalSamplesWritten
+        let earliest = circularBuffer.earliestAvailableIndex
+        let startIdx = max(currentIndex - preRollSamples, earliest)
+        let startedAt = Date().timeIntervalSince1970
+
+        // Write IPC status immediately so the keyboard sees confirmation fast
+        TranscriptionIPC.writeStatus(RecordingStatus(
+            requestId: command.requestId,
+            phase: .recording,
+            recordingStartedAt: startedAt
+        ))
+
+        log.log("[PersistentRecorder] ✅ Buffer position marked at index \(startIdx) (pre-roll: \(preRollSamples) samples)")
+
+        // Update observable state on main thread
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.segmentStartIndex = startIdx
+            self.segmentRequestId = command.requestId
+            self.segmentModelId = command.modelId
+            self.segmentLanguage = command.language
+            self.segmentStartedAt = startedAt
+            self.isSegmentActive = true
+            self.segmentDuration = 0
+            self.startDurationTimer()
+            log.log("[PersistentRecorder] ✅ Segment UI state updated on main thread")
+        }
+    }
+
+    /// Mark the start of a transcription segment (main-thread path, kept for direct calls).
     private func handleStartSegment(_ command: RecordingCommand) {
         guard isListening else {
             log.log("[PersistentRecorder] ❌ startSegment but not listening")
@@ -476,6 +524,10 @@ final class PersistentRecorder {
 
     // MARK: - IPC Command Listener
 
+    /// High-priority queue for processing IPC commands with minimal latency.
+    /// Avoids waiting for the main thread run loop when the app is backgrounded.
+    private static let commandQueue = DispatchQueue(label: "com.voxvault.commandProcessing", qos: .userInteractive)
+
     private func registerCommandObserver() {
         let center = CFNotificationCenterGetDarwinNotifyCenter()
         let observer = Unmanaged.passUnretained(self).toOpaque()
@@ -488,7 +540,8 @@ final class PersistentRecorder {
                 guard let observer else { return }
                 let recorder = Unmanaged<PersistentRecorder>
                     .fromOpaque(observer).takeUnretainedValue()
-                DispatchQueue.main.async { recorder.handleCommandIfNeeded() }
+                // Use high-priority queue to avoid main thread latency when backgrounded
+                PersistentRecorder.commandQueue.async { recorder.handleCommandFromBackground() }
             },
             TranscriptionIPC.commandNotificationName,
             nil,
@@ -503,7 +556,7 @@ final class PersistentRecorder {
                 guard let observer else { return }
                 let recorder = Unmanaged<PersistentRecorder>
                     .fromOpaque(observer).takeUnretainedValue()
-                DispatchQueue.main.async { recorder.handleCommandIfNeeded() }
+                PersistentRecorder.commandQueue.async { recorder.handleCommandFromBackground() }
             },
             TranscriptionIPC.stopCommandNotificationName,
             nil,
@@ -527,6 +580,29 @@ final class PersistentRecorder {
             CFNotificationName(TranscriptionIPC.stopCommandNotificationName),
             nil
         )
+    }
+
+    /// Process command on the high-priority background queue.
+    /// Reads the IPC command and marks the buffer position immediately,
+    /// then dispatches UI state updates to main thread.
+    private func handleCommandFromBackground() {
+        guard let command = TranscriptionIPC.readCommand() else { return }
+
+        log.log("[PersistentRecorder] Received command: \(command.action.rawValue) (requestId=\(command.requestId))")
+        TranscriptionIPC.clearCommand()
+
+        switch command.action {
+        case .startSegment:
+            // Mark the buffer position immediately on this high-priority thread
+            // The circular buffer is thread-safe, so this is safe to do off-main
+            handleStartSegmentFast(command)
+
+        case .stopSegment, .stop:
+            // Stop and extract need main thread for UI + transcription kickoff
+            DispatchQueue.main.async { [weak self] in
+                self?.handleStopSegment(command)
+            }
+        }
     }
 
     @MainActor

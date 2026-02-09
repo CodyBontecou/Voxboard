@@ -50,6 +50,13 @@ class KeyboardViewController: KeyboardInputViewController {
         super.viewDidAppear(animated)
         log.log("viewDidAppear")
 
+        // Re-check listening state immediately — catches cases where the user
+        // opened the app, started listening, and came back to the keyboard.
+        voiceState.refreshListeningStatePublic()
+
+        // Refresh model cache in case models were downloaded while keyboard was hidden
+        voiceState.refreshModelCache()
+
         // Try to insert any pending text recovered from a previous session
         voiceState.tryInsertPendingText()
     }
