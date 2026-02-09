@@ -55,6 +55,12 @@ final class PersistentRecorder {
     /// Pre-roll: capture this many seconds before the user tapped Start.
     private let preRollSeconds: TimeInterval = 2.0
 
+    // MARK: - Audio Level Metering
+
+    /// Throttle audio level writes to ~12 times per second max.
+    private var lastLevelWriteTime: TimeInterval = 0
+    private let levelWriteInterval: TimeInterval = 1.0 / 12.0
+
     // MARK: - Timers
 
     private var durationTimer: Timer?
@@ -159,12 +165,14 @@ final class PersistentRecorder {
                 if let floatData = outputBuffer.floatChannelData?[0], outputBuffer.frameLength > 0 {
                     let ptr = UnsafeBufferPointer(start: floatData, count: Int(outputBuffer.frameLength))
                     self.circularBuffer.append(ptr)
+                    self.writeAudioLevelIfNeeded(floatData, frameCount: Int(outputBuffer.frameLength))
                 }
             } else {
                 // Already 16kHz mono — direct append
                 if let floatData = buffer.floatChannelData?[0], buffer.frameLength > 0 {
                     let ptr = UnsafeBufferPointer(start: floatData, count: Int(buffer.frameLength))
                     self.circularBuffer.append(ptr)
+                    self.writeAudioLevelIfNeeded(floatData, frameCount: Int(buffer.frameLength))
                 }
             }
         }
@@ -309,6 +317,10 @@ final class PersistentRecorder {
             recordingStartedAt: startedAt
         ))
 
+        // Clear stale audio level and reset throttle
+        TranscriptionIPC.clearAudioLevel()
+        lastLevelWriteTime = 0
+
         log.log("[PersistentRecorder] ✅ Buffer position marked at index \(startIdx) (pre-roll: \(preRollSamples) samples)")
 
         // Update observable state on main thread
@@ -384,6 +396,7 @@ final class PersistentRecorder {
 
         stopDurationTimer()
         isSegmentActive = false
+        TranscriptionIPC.clearAudioLevel()
 
         // Extract audio from the circular buffer
         let endIndex = circularBuffer.totalSamplesWritten
@@ -469,6 +482,7 @@ final class PersistentRecorder {
 
         stopDurationTimer()
         isSegmentActive = false
+        TranscriptionIPC.clearAudioLevel()
         segmentRequestId = nil
         segmentModelId = nil
         segmentLanguage = nil
@@ -702,6 +716,33 @@ final class PersistentRecorder {
         case .stopSegment, .stop:
             handleStopSegment(command)
         }
+    }
+
+    // MARK: - Audio Level Computation
+
+    /// Compute RMS level from raw float samples and write to IPC (throttled).
+    /// Called from the audio tap callback — must be fast.
+    private func writeAudioLevelIfNeeded(_ samples: UnsafePointer<Float>, frameCount: Int) {
+        // Only write levels when a segment is actively recording
+        guard isSegmentActive else { return }
+
+        let now = CACurrentMediaTime()
+        guard now - lastLevelWriteTime >= levelWriteInterval else { return }
+        lastLevelWriteTime = now
+
+        // Compute RMS
+        var sumSquares: Float = 0
+        let buf = UnsafeBufferPointer(start: samples, count: frameCount)
+        for sample in buf {
+            sumSquares += sample * sample
+        }
+        let rms = sqrt(sumSquares / Float(frameCount))
+
+        // Normalize: typical speech RMS is 0.01–0.15, scale to 0–1 range
+        // Use a gentle curve so quiet speech still shows movement
+        let normalized = min(1.0, rms * 6.0)
+
+        TranscriptionIPC.writeAudioLevel(normalized)
     }
 
     // MARK: - Duration Timer

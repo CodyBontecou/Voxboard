@@ -159,6 +159,10 @@ public enum TranscriptionIPC {
         ipcDirectory?.appendingPathComponent("listening_state.json")
     }
 
+    public static var audioLevelURL: URL? {
+        ipcDirectory?.appendingPathComponent("audio_level.bin")
+    }
+
     /// Whether the IPC directory has already been verified to exist this session.
     private static var directoryEnsured = false
 
@@ -250,6 +254,29 @@ public enum TranscriptionIPC {
 
     public static func clearListeningState() {
         guard let url = listeningStateURL else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    // MARK: - Write / Read: Audio Level
+
+    /// Write the current audio RMS level (0.0–1.0) as a raw 4-byte Float for minimal overhead.
+    public static func writeAudioLevel(_ level: Float) {
+        guard let url = audioLevelURL else { return }
+        var value = level
+        let data = Data(bytes: &value, count: MemoryLayout<Float>.size)
+        try? data.write(to: url, options: .atomic)
+    }
+
+    /// Read the current audio RMS level. Returns nil if the file doesn't exist.
+    public static func readAudioLevel() -> Float? {
+        guard let url = audioLevelURL,
+              let data = try? Data(contentsOf: url),
+              data.count == MemoryLayout<Float>.size else { return nil }
+        return data.withUnsafeBytes { $0.load(as: Float.self) }
+    }
+
+    public static func clearAudioLevel() {
+        guard let url = audioLevelURL else { return }
         try? FileManager.default.removeItem(at: url)
     }
 

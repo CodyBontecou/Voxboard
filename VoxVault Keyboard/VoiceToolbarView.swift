@@ -15,6 +15,10 @@ struct VoiceToolbarView: View {
             modelNavigator
             statusLabel
             Spacer()
+            if voiceState.status == .recording {
+                SoundWaveView(levels: voiceState.audioLevels)
+                    .transition(.opacity)
+            }
             actionButton
         }
         .padding(.horizontal, 12)

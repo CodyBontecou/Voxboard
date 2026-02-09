@@ -32,6 +32,10 @@ final class VoiceKeyboardState {
     var recordingDuration: TimeInterval = 0
     var selectedModelIndex: Int = 0
 
+    /// Rolling audio levels for the waveform animation (most recent last).
+    /// Updated from the poll timer during recording.
+    var audioLevels: [Float] = Array(repeating: 0, count: 7)
+
     /// Set when a transcription result arrives. The view layer should observe this,
     /// call `textDocumentProxy.insertText`, then clear it via `consumeTranscription()`.
     var pendingTranscription: String?
@@ -382,6 +386,15 @@ final class VoiceKeyboardState {
     private func checkForUpdates() {
         guard let requestId = pendingRequestId else { return }
 
+        // Read audio levels during recording for waveform animation
+        if status == .recording {
+            if let level = TranscriptionIPC.readAudioLevel() {
+                // Shift levels left and append the new one
+                audioLevels.removeFirst()
+                audioLevels.append(level)
+            }
+        }
+
         // Check for transcription timeout
         if status == .transcribing,
            let startedAt = transcribingStartedAt,
@@ -477,6 +490,7 @@ final class VoiceKeyboardState {
         recordingStartedAt = nil
         transcribingStartedAt = nil
         recordingDuration = 0
+        audioLevels = Array(repeating: 0, count: 7)
     }
 
     // MARK: - Darwin Notification Observers
