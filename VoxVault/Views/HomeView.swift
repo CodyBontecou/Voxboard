@@ -278,20 +278,18 @@ struct HomeView: View {
     func handleKeyboardLaunch() {
         keyboardLaunchPhase = .starting
 
-        // Small delay so the overlay is visible before we do audio setup
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+        // Kick to next run loop so the overlay renders before blocking on audio setup
+        DispatchQueue.main.async {
             if !persistentRecorder.isListening {
                 persistentRecorder.startListening()
             }
 
+            // Dismiss immediately once setup finishes
             withAnimation {
-                keyboardLaunchPhase = persistentRecorder.isListening ? .ready : .error
-            }
-
-            // Auto-dismiss shortly after
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                withAnimation {
+                if persistentRecorder.isListening {
                     keyboardLaunchPhase = nil
+                } else {
+                    keyboardLaunchPhase = .error
                 }
             }
         }
