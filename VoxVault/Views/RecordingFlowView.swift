@@ -79,15 +79,24 @@ final class RecordingFlowController {
     // MARK: - Stop & Transcribe
 
     func stopAndTranscribe() {
-        guard phase == .recording, recorder.isRecording else { return }
+        let log = KeyboardDebugLog.shared
+        guard phase == .recording, recorder.isRecording else {
+            log.log("[App:RecFlow] stopAndTranscribe — skipped (phase=\(phase), isRecording=\(recorder.isRecording))")
+            return
+        }
         stopListeningForCommand()
 
+        log.log("[App:RecFlow] Stopping recording…")
+
         guard let audioURL = recorder.stopRecording() else {
+            log.log("[App:RecFlow] ❌ No audio captured")
             phase = .error
             errorMessage = "No audio was captured"
             writeErrorResponse("No audio captured")
             return
         }
+
+        log.log("[App:RecFlow] Audio saved: \(audioURL.lastPathComponent)")
 
         phase = .transcribing
         TranscriptionIPC.writeStatus(RecordingStatus(
@@ -100,11 +109,14 @@ final class RecordingFlowController {
         guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
               let modelPath = model.localURL?.path,
               FileManager.default.fileExists(atPath: modelPath) else {
+            log.log("[App:RecFlow] ❌ Model not found: \(modelId)")
             phase = .error
             errorMessage = "Model not found: \(modelId)"
             writeErrorResponse("Model not found")
             return
         }
+
+        log.log("[App:RecFlow] Model found: \(model.name) at \(modelPath)")
 
         let modelName = model.name
         let lang = language
@@ -113,15 +125,24 @@ final class RecordingFlowController {
         // Request background time in case app is backgrounded
         var bgTask: UIBackgroundTaskIdentifier = .invalid
         bgTask = UIApplication.shared.beginBackgroundTask {
+            log.log("[App:RecFlow] ⚠️ Background task expired")
             UIApplication.shared.endBackgroundTask(bgTask)
             bgTask = .invalid
         }
 
+        log.log("[App:RecFlow] Starting transcription task (model=\(modelName), lang=\(lang))…")
+
         Task.detached(priority: .userInitiated) {
             let isBackground = await UIApplication.shared.applicationState != .active
-            let useGPU = !isBackground
+            // Always use CPU to avoid Metal/GPU hangs — matches TranscriptionServer behaviour.
+            // Metal compute from a backgrounded process is forbidden by iOS, and even in
+            // foreground some devices stall during shader compilation on first run.
+            let useGPU = false
+
+            log.log("[App:RecFlow] Task started — isBackground=\(isBackground), useGPU=\(useGPU)")
 
             guard let ctx = WhisperContext(modelPath: modelPath, useGPU: useGPU) else {
+                log.log("[App:RecFlow] ❌ WhisperContext init failed")
                 await MainActor.run { [weak self] in
                     self?.phase = .error
                     self?.errorMessage = "Failed to load model"
@@ -131,10 +152,13 @@ final class RecordingFlowController {
                 return
             }
 
+            log.log("[App:RecFlow] WhisperContext ready, starting transcription…")
             let text = ctx.transcribe(audioURL: audioURL, language: lang)
+            log.log("[App:RecFlow] Transcription complete — result: \(text.map { String($0.prefix(100)) } ?? "nil")")
 
             await MainActor.run { [weak self] in
                 guard let self else {
+                    log.log("[App:RecFlow] ⚠️ self deallocated before result could be applied")
                     if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
                     return
                 }
@@ -159,8 +183,10 @@ final class RecordingFlowController {
                     )
                     TranscriptStore().add(transcript)
 
+                    log.log("[App:RecFlow] ✅ Done — \(text.count) chars, phase → done")
                     self.phase = .done
                 } else {
+                    log.log("[App:RecFlow] ⚠️ No speech detected")
                     self.phase = .error
                     self.errorMessage = "No speech detected"
                     self.writeErrorResponse("No speech detected")

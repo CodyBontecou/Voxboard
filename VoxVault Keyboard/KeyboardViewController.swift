@@ -19,6 +19,16 @@ class KeyboardViewController: KeyboardInputViewController {
         voiceState.urlOpener = { [weak self] url in
             self?.openAppURL(url)
         }
+
+        // Give the voice state a way to insert text directly via textDocumentProxy
+        voiceState.textInserter = { [weak self] text in
+            guard let self else {
+                log.log("❌ textInserter — self is nil")
+                return
+            }
+            log.log("textInserter — inserting \(text.count) chars into textDocumentProxy")
+            self.textDocumentProxy.insertText(text)
+        }
     }
 
     override func viewWillSetupKeyboardView() {
@@ -38,6 +48,9 @@ class KeyboardViewController: KeyboardInputViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         log.log("viewDidAppear")
+
+        // Try to insert any pending text recovered from a previous session
+        voiceState.tryInsertPendingText()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
@@ -108,6 +121,7 @@ private struct VoxVaultKeyboardView: View {
         }
         .onChange(of: voiceState.pendingTranscription) { _, newValue in
             if let text = newValue {
+                log.log("onChange(pendingTranscription) — inserting \(text.count) chars (fallback path)")
                 controller.textDocumentProxy.insertText(text)
                 voiceState.consumeTranscription()
             }

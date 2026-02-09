@@ -39,6 +39,10 @@ final class VoiceKeyboardState {
     /// Closure provided by KeyboardViewController to open URLs via the responder chain.
     var urlOpener: ((URL) -> Void)?
 
+    /// Closure provided by KeyboardViewController to insert text via textDocumentProxy.
+    /// Called directly when a transcription result arrives — avoids relying on SwiftUI onChange.
+    var textInserter: ((String) -> Void)?
+
     // IPC state
     private var pendingRequestId: String?
     private var pollTimer: Timer?
@@ -94,6 +98,7 @@ final class VoiceKeyboardState {
 
     func consumeTranscription() {
         pendingTranscription = nil
+        clearPendingText()
     }
 
     // MARK: - Start Recording (opens main app)
@@ -190,6 +195,13 @@ final class VoiceKeyboardState {
     /// If the keyboard extension was reloaded while a recording was in progress,
     /// reconnect to it.
     private func checkForExistingRecording() {
+        // Check for pending text that wasn't inserted before a reload
+        if let text = readPendingText() {
+            log.log("♻️ Found pending text from previous session (\(text.count) chars)")
+            pendingTranscription = text
+            // Will be inserted once textInserter is set — see tryInsertPendingText()
+        }
+
         guard let ipcStatus = TranscriptionIPC.readStatus() else { return }
 
         switch ipcStatus.phase {
@@ -210,6 +222,16 @@ final class VoiceKeyboardState {
         default:
             break
         }
+    }
+
+    /// Try to insert any pending transcription text. Called after textInserter is set.
+    func tryInsertPendingText() {
+        guard let text = pendingTranscription, let textInserter else { return }
+        log.log("📝 Inserting recovered pending text (\(text.count) chars)")
+        textInserter(text)
+        pendingTranscription = nil
+        clearPendingText()
+        log.log("📝 Recovered text inserted and cleared")
     }
 
     // MARK: - Polling for Status & Response
@@ -261,6 +283,19 @@ final class VoiceKeyboardState {
             log.log("✅ Transcription ready (\(text.count) chars)")
             pendingTranscription = text
             status = .idle
+
+            // Insert text directly via textDocumentProxy callback — more reliable
+            // than relying on SwiftUI onChange with @Observable.
+            if let textInserter {
+                log.log("📝 Inserting text via textInserter")
+                textInserter(text)
+                pendingTranscription = nil
+                log.log("📝 Text inserted and consumed")
+            } else {
+                // Persist to IPC so a keyboard reload can recover the text
+                log.log("⚠️ No textInserter — persisting to IPC for recovery")
+                writePendingText(text)
+            }
         } else {
             let msg = response.error ?? "No speech detected"
             log.log("⚠️ \(msg)")
@@ -341,5 +376,29 @@ final class VoiceKeyboardState {
             try? await Task.sleep(for: .seconds(3))
             if case .error = status { status = .idle }
         }
+    }
+
+    // MARK: - Pending Text Persistence
+
+    /// Persist pending transcription text to the shared container so it survives keyboard reloads.
+    private func writePendingText(_ text: String) {
+        guard let dir = AppConstants.sharedContainerURL else { return }
+        let url = dir.appendingPathComponent("TranscriptionIPC").appendingPathComponent("pending_text.txt")
+        try? text.write(to: url, atomically: true, encoding: .utf8)
+    }
+
+    /// Read pending text that was persisted before a keyboard reload.
+    private func readPendingText() -> String? {
+        guard let dir = AppConstants.sharedContainerURL else { return nil }
+        let url = dir.appendingPathComponent("TranscriptionIPC").appendingPathComponent("pending_text.txt")
+        guard let text = try? String(contentsOf: url, encoding: .utf8), !text.isEmpty else { return nil }
+        return text
+    }
+
+    /// Clear persisted pending text after it has been inserted.
+    private func clearPendingText() {
+        guard let dir = AppConstants.sharedContainerURL else { return }
+        let url = dir.appendingPathComponent("TranscriptionIPC").appendingPathComponent("pending_text.txt")
+        try? FileManager.default.removeItem(at: url)
     }
 }
