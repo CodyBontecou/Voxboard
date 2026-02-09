@@ -15,7 +15,8 @@ class KeyboardViewController: KeyboardInputViewController {
         super.viewDidLoad()
         log.log("viewDidLoad — keyboard extension loaded")
 
-        // Give the voice state a way to open URLs via our responder chain
+        // Give the voice state a way to open URLs via our responder chain.
+        // Only used for the one-time "Open VoxVault to start listening" prompt.
         voiceState.urlOpener = { [weak self] url in
             self?.openAppURL(url)
         }
@@ -67,11 +68,7 @@ class KeyboardViewController: KeyboardInputViewController {
     // MARK: - Open URL via Responder Chain
 
     /// Walk the responder chain to find a responder that can open URLs.
-    ///
-    /// In keyboard extensions the chain typically ends at `_UIScreenBasedWindowScene`
-    /// (a UIWindowScene subclass) which responds to `openURL:options:completionHandler:`.
-    /// We pass `nil` for options since UIWindowScene expects `UIScene.OpenExternalURLOptions?`
-    /// while UIApplication expects `[OpenExternalURLOptionsKey: Any]` — nil is valid for both.
+    /// Used only for the one-time "open app to start listening" prompt.
     private func openAppURL(_ url: URL) {
         log.log("openAppURL — walking responder chain for: \(url.absoluteString)")
 
@@ -82,8 +79,6 @@ class KeyboardViewController: KeyboardInputViewController {
             if current.responds(to: selector) {
                 log.log("openAppURL — found responder: \(type(of: current))")
 
-                // Call the 3-arg method via IMP cast.
-                // Use Any? for options so nil works for both UIApplication and UIWindowScene.
                 let imp = current.method(for: selector)
                 typealias OpenURLFunc = @convention(c) (
                     AnyObject, Selector, URL, Any?, ((Bool) -> Void)?

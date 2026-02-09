@@ -1,16 +1,17 @@
 import SwiftUI
 import VoxVaultShared
 
-/// The main app screen — dark, minimal, centered record button.
-/// Matches the design: muted mic (top-left), "Voice >" title (center), gear (top-right),
-/// big triangle record button (bottom), "swipe up for history" hint.
+/// The main app screen — centered around the always-on listening mode.
+///
+/// The user taps "Start Listening" once. After that, the microphone stays active
+/// in the background and the keyboard controls everything. The user only needs
+/// to return here to stop listening, view history, or change settings.
 struct HomeView: View {
     @Environment(ModelManager.self) private var modelManager
     @Environment(TranscriptStore.self) private var transcriptStore
 
-    @State private var recorder = AudioRecorder()
-    @State private var isTranscribing = false
-    @State private var lastTranscription: String?
+    @Bindable var persistentRecorder: PersistentRecorder
+
     @State private var showHistory = false
     @State private var showSettings = false
     @State private var micPermissionGranted = false
@@ -26,7 +27,7 @@ struct HomeView: View {
                 centerContent
                 Spacer()
                 historyHint
-                recordButton
+                listenButton
             }
         }
         .sheet(isPresented: $showHistory) {
@@ -46,15 +47,8 @@ struct HomeView: View {
 
     private var topBar: some View {
         HStack {
-            // Mic status indicator
-            Button(action: { toggleRecording() }) {
-                Image(systemName: recorder.isRecording ? "mic.fill" : "mic.slash.fill")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white.opacity(0.7))
-                    .padding(10)
-                    .background(Color.white.opacity(0.12))
-                    .clipShape(Capsule())
-            }
+            // Listening status indicator
+            listeningBadge
 
             Spacer()
 
@@ -62,10 +56,8 @@ struct HomeView: View {
             HStack(spacing: 6) {
                 Image(systemName: "mic.fill")
                     .font(.system(size: 14))
-                Text("Voice")
+                Text("VoxVault")
                     .font(.system(size: 17, weight: .medium))
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
             }
             .foregroundColor(.white)
 
@@ -82,56 +74,116 @@ struct HomeView: View {
         .padding(.top, 12)
     }
 
+    private var listeningBadge: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(persistentRecorder.isListening ? Color.green : Color.gray)
+                .frame(width: 8, height: 8)
+
+            Text(persistentRecorder.isListening ? "Listening" : "Off")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(persistentRecorder.isListening ? .green : .gray)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color.white.opacity(0.08))
+        .clipShape(Capsule())
+    }
+
     // MARK: - Center Content
 
     @ViewBuilder
     private var centerContent: some View {
-        if isTranscribing {
-            VStack(spacing: 16) {
-                ProgressView()
-                    .scaleEffect(1.2)
-                    .tint(.white)
-                Text("Transcribing...")
-                    .font(.system(size: 15))
-                    .foregroundColor(.white.opacity(0.5))
-            }
-        } else if recorder.isRecording {
-            VStack(spacing: 16) {
-                Circle()
-                    .fill(.red)
-                    .frame(width: 12, height: 12)
-                    .opacity(pulseAnimation ? 0.3 : 1.0)
-                    .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulseAnimation)
-                    .onAppear { pulseAnimation = true }
-                    .onDisappear { pulseAnimation = false }
+        if persistentRecorder.isListening {
+            listeningActiveView
+        } else if !micPermissionGranted {
+            micPermissionView
+        } else {
+            readyToListenView
+        }
+    }
 
-                Text(formatDuration(recorder.recordingDuration))
-                    .font(.system(size: 48, weight: .light, design: .monospaced))
+    private var listeningActiveView: some View {
+        VStack(spacing: 24) {
+            // Pulsing waveform icon
+            ZStack {
+                Circle()
+                    .fill(Color.green.opacity(0.08))
+                    .frame(width: 140, height: 140)
+                    .scaleEffect(pulseAnimation ? 1.15 : 1.0)
+                    .opacity(pulseAnimation ? 0.4 : 0.8)
+                    .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: pulseAnimation)
+
+                Circle()
+                    .fill(Color.green.opacity(0.12))
+                    .frame(width: 100, height: 100)
+
+                Image(systemName: "waveform")
+                    .font(.system(size: 36, weight: .medium))
+                    .foregroundColor(.green)
+            }
+            .onAppear { pulseAnimation = true }
+            .onDisappear { pulseAnimation = false }
+
+            VStack(spacing: 12) {
+                Text("Listening")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundColor(.white)
+
+                if persistentRecorder.isSegmentActive {
+                    Text("Recording segment…")
+                        .font(.system(size: 15))
+                        .foregroundColor(.orange)
+                } else if persistentRecorder.isTranscribing {
+                    Text("Transcribing…")
+                        .font(.system(size: 15))
+                        .foregroundColor(.blue)
+                } else {
+                    Text("Switch to any app and use the keyboard\nto record and transcribe your voice.")
+                        .font(.system(size: 15))
+                        .foregroundColor(.white.opacity(0.4))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                }
+            }
+
+            // Inline status for active operations
+            if persistentRecorder.isSegmentActive {
+                Text(formatDuration(persistentRecorder.segmentDuration))
+                    .font(.system(size: 36, weight: .light, design: .monospaced))
                     .foregroundColor(.white)
             }
-        } else if let text = lastTranscription {
-            VStack(spacing: 12) {
-                Text(text)
-                    .font(.system(size: 17))
-                    .foregroundColor(.white.opacity(0.8))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+        }
+    }
 
-                Button("Copy") {
-                    UIPasteboard.general.string = text
-                }
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.white.opacity(0.5))
-            }
-        } else if !micPermissionGranted {
-            VStack(spacing: 12) {
-                Image(systemName: "mic.slash")
-                    .font(.system(size: 40))
-                    .foregroundColor(.white.opacity(0.3))
-                Text("Microphone access required")
+    private var readyToListenView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "mic.badge.plus")
+                .font(.system(size: 48))
+                .foregroundColor(.white.opacity(0.3))
+
+            VStack(spacing: 8) {
+                Text("Ready to Listen")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.white)
+
+                Text("Tap below to start always-on listening.\nThen use the keyboard to record anytime.")
                     .font(.system(size: 15))
                     .foregroundColor(.white.opacity(0.4))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
             }
+        }
+    }
+
+    private var micPermissionView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "mic.slash")
+                .font(.system(size: 40))
+                .foregroundColor(.white.opacity(0.3))
+            Text("Microphone access required")
+                .font(.system(size: 15))
+                .foregroundColor(.white.opacity(0.4))
         }
     }
 
@@ -150,22 +202,33 @@ struct HomeView: View {
         .padding(.bottom, 24)
     }
 
-    // MARK: - Record Button
+    // MARK: - Listen Button
 
-    private var recordButton: some View {
-        Button(action: { toggleRecording() }) {
+    private var listenButton: some View {
+        Button(action: { toggleListening() }) {
             ZStack {
                 RoundedRectangle(cornerRadius: 28)
-                    .fill(Color.white.opacity(recorder.isRecording ? 0.2 : 0.08))
-                    .frame(width: 140, height: 56)
+                    .fill(persistentRecorder.isListening
+                          ? Color.red.opacity(0.15)
+                          : Color.green.opacity(0.15))
+                    .frame(width: 200, height: 56)
                     .overlay(
                         RoundedRectangle(cornerRadius: 28)
-                            .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
+                            .strokeBorder(
+                                persistentRecorder.isListening
+                                    ? Color.red.opacity(0.3)
+                                    : Color.green.opacity(0.3),
+                                lineWidth: 1
+                            )
                     )
 
-                Image(systemName: recorder.isRecording ? "stop.fill" : "triangle.fill")
-                    .font(.system(size: 22))
-                    .foregroundColor(recorder.isRecording ? .red : .white)
+                HStack(spacing: 10) {
+                    Image(systemName: persistentRecorder.isListening ? "stop.fill" : "play.fill")
+                        .font(.system(size: 16))
+                    Text(persistentRecorder.isListening ? "Stop Listening" : "Start Listening")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(persistentRecorder.isListening ? .red : .green)
             }
         }
         .padding(.bottom, 48)
@@ -173,44 +236,13 @@ struct HomeView: View {
 
     // MARK: - Actions
 
-    private func toggleRecording() {
-        if recorder.isRecording {
-            guard let audioURL = recorder.stopRecording() else { return }
-            isTranscribing = true
-            lastTranscription = nil
-
-            let modelPath = modelManager.selectedModel?.localURL?.path
-            let language = modelManager.selectedLanguage
-            let modelName = modelManager.selectedModel?.name ?? "Unknown"
-            let duration = recorder.recordingDuration
-
-            Task.detached(priority: .userInitiated) {
-                var result: String?
-
-                if let modelPath {
-                    let ctx = WhisperContext(modelPath: modelPath)
-                    result = ctx?.transcribe(audioURL: audioURL, language: language)
-                }
-
-                let transcribedText = result
-                await MainActor.run {
-                    isTranscribing = false
-                    lastTranscription = transcribedText
-
-                    if let transcribedText {
-                        let transcript = Transcript(
-                            text: transcribedText,
-                            duration: duration,
-                            modelUsed: modelName,
-                            language: language
-                        )
-                        transcriptStore.add(transcript)
-                    }
-                }
-            }
+    private func toggleListening() {
+        if persistentRecorder.isListening {
+            persistentRecorder.stopListening()
+            AppConstants.sharedDefaults?.set(false, forKey: "autoListenEnabled")
+            pulseAnimation = false
         } else {
-            lastTranscription = nil
-            _ = recorder.startRecording()
+            persistentRecorder.startListening()
         }
     }
 

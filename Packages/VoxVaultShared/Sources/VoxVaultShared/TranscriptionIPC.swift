@@ -35,7 +35,8 @@ public struct TranscriptionResponse: Codable, Sendable {
 /// Status file written by the main app so the keyboard can show live progress.
 public struct RecordingStatus: Codable, Sendable {
     public enum Phase: String, Codable, Sendable {
-        case recording
+        case listening     // Always-on mode — waiting for segment commands
+        case recording     // A segment is being captured
         case transcribing
         case done
         case error
@@ -56,18 +57,36 @@ public struct RecordingStatus: Codable, Sendable {
     }
 }
 
-/// Command file written by the keyboard extension to tell the app to stop recording.
+/// Command file written by the keyboard extension to control the main app.
 public struct RecordingCommand: Codable, Sendable {
     public enum Action: String, Codable, Sendable {
-        case stop
+        case stop          // Legacy: stop recording (kept for compat)
+        case startSegment  // Mark the beginning of a transcription segment
+        case stopSegment   // Mark the end — extract audio and transcribe
     }
 
     public let requestId: String
     public let action: Action
+    public let modelId: String?
+    public let language: String?
 
-    public init(requestId: String, action: Action) {
+    public init(requestId: String, action: Action, modelId: String? = nil, language: String? = nil) {
         self.requestId = requestId
         self.action = action
+        self.modelId = modelId
+        self.language = language
+    }
+}
+
+/// Persistent state written by the main app so the keyboard knows if the
+/// always-on recorder is active. Survives app backgrounding.
+public struct ListeningState: Codable, Sendable {
+    public let isListening: Bool
+    public let startedAt: TimeInterval
+
+    public init(isListening: Bool, startedAt: TimeInterval = 0) {
+        self.isListening = isListening
+        self.startedAt = startedAt
     }
 }
 
@@ -75,19 +94,26 @@ public struct RecordingCommand: Codable, Sendable {
 
 /// File-based IPC between the keyboard extension and the main app.
 ///
-/// Flow (recording in the main app, keyboard stays in focus):
+/// **Always-on flow** (primary):
+/// 1. User opens VoxVault once → taps "Start Listening" → app starts persistent recording
+/// 2. App writes listeningState.json (isListening=true)
+/// 3. User switches to any app, brings up the keyboard
+/// 4. Keyboard reads listeningState → shows "Ready" with Record button
+/// 5. User taps Record → keyboard writes command.json (startSegment) + posts notification
+/// 6. App marks segment start in circular buffer, writes status.json (recording)
+/// 7. User taps Stop → keyboard writes command.json (stopSegment) + posts notification
+/// 8. App extracts audio segment, transcribes, writes response.json
+/// 9. Keyboard reads response, inserts text
+///
+/// **Legacy flow** (kept for backward compatibility):
 /// 1. Keyboard opens main app via URL scheme: voxvault://record?model=X&lang=Y&requestId=Z
 /// 2. Main app starts recording, writes status.json (phase=recording)
-/// 3. User switches back to their app — keyboard shows "Recording…" with a Stop button
-/// 4. Main app continues recording in background (UIBackgroundModes: audio)
-/// 5. User taps Stop in keyboard → writes command.json (action=stop), posts Darwin notification
-/// 6. Main app stops recording, transcribes, writes response.json
-/// 7. Keyboard reads response, inserts text
+/// 3. User switches back → keyboard sends stop command → app transcribes → keyboard inserts
 public enum TranscriptionIPC {
 
     // MARK: - Darwin notification names
 
-    /// Keyboard → App: "I have a new transcription request"
+    /// Keyboard → App: "I have a new transcription request" (legacy)
     public static let requestNotificationName =
         "group.bontecou.VoxVault.transcribeRequest" as CFString
 
@@ -95,9 +121,17 @@ public enum TranscriptionIPC {
     public static let responseNotificationName =
         "group.bontecou.VoxVault.transcribeResponse" as CFString
 
-    /// Keyboard → App: "Stop recording now"
+    /// Keyboard → App: "Stop recording now" (legacy)
     public static let stopCommandNotificationName =
         "group.bontecou.VoxVault.stopRecording" as CFString
+
+    /// Keyboard → App: general command notification (startSegment, stopSegment)
+    public static let commandNotificationName =
+        "group.bontecou.VoxVault.command" as CFString
+
+    /// App → Keyboard: listening state changed
+    public static let listeningStateNotificationName =
+        "group.bontecou.VoxVault.listeningState" as CFString
 
     // MARK: - File URLs
 
@@ -121,12 +155,16 @@ public enum TranscriptionIPC {
         ipcDirectory?.appendingPathComponent("command.json")
     }
 
+    public static var listeningStateURL: URL? {
+        ipcDirectory?.appendingPathComponent("listening_state.json")
+    }
+
     public static func ensureDirectory() {
         guard let dir = ipcDirectory else { return }
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
     }
 
-    // MARK: - Write / Read
+    // MARK: - Write / Read: Request
 
     public static func writeRequest(_ request: TranscriptionRequest) throws {
         ensureDirectory()
@@ -145,6 +183,8 @@ public enum TranscriptionIPC {
         return try? JSONDecoder().decode(TranscriptionRequest.self, from: data)
     }
 
+    // MARK: - Write / Read: Response
+
     public static func writeResponse(_ response: TranscriptionResponse) throws {
         ensureDirectory()
         guard let url = responseURL else { throw IPCError.noContainer }
@@ -157,6 +197,8 @@ public enum TranscriptionIPC {
               let data = try? Data(contentsOf: url) else { return nil }
         return try? JSONDecoder().decode(TranscriptionResponse.self, from: data)
     }
+
+    // MARK: - Write / Read: Status
 
     public static func writeStatus(_ status: RecordingStatus) {
         ensureDirectory()
@@ -171,6 +213,8 @@ public enum TranscriptionIPC {
         return try? JSONDecoder().decode(RecordingStatus.self, from: data)
     }
 
+    // MARK: - Write / Read: Command
+
     public static func writeCommand(_ command: RecordingCommand) {
         ensureDirectory()
         guard let url = commandURL,
@@ -183,6 +227,28 @@ public enum TranscriptionIPC {
               let data = try? Data(contentsOf: url) else { return nil }
         return try? JSONDecoder().decode(RecordingCommand.self, from: data)
     }
+
+    // MARK: - Write / Read: ListeningState
+
+    public static func writeListeningState(_ state: ListeningState) {
+        ensureDirectory()
+        guard let url = listeningStateURL,
+              let data = try? JSONEncoder().encode(state) else { return }
+        try? data.write(to: url, options: .atomic)
+    }
+
+    public static func readListeningState() -> ListeningState? {
+        guard let url = listeningStateURL,
+              let data = try? Data(contentsOf: url) else { return nil }
+        return try? JSONDecoder().decode(ListeningState.self, from: data)
+    }
+
+    public static func clearListeningState() {
+        guard let url = listeningStateURL else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    // MARK: - Clear
 
     public static func clearRequest() {
         guard let url = requestURL else { return }
@@ -226,6 +292,22 @@ public enum TranscriptionIPC {
         CFNotificationCenterPostNotification(
             CFNotificationCenterGetDarwinNotifyCenter(),
             CFNotificationName(stopCommandNotificationName),
+            nil, nil, true
+        )
+    }
+
+    public static func postCommandNotification() {
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(commandNotificationName),
+            nil, nil, true
+        )
+    }
+
+    public static func postListeningStateNotification() {
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(listeningStateNotificationName),
             nil, nil, true
         )
     }

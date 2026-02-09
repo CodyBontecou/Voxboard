@@ -6,26 +6,26 @@ private let log = KeyboardDebugLog.shared
 
 /// Manages voice transcription state for the keyboard extension.
 ///
-/// Recording and transcription happen in the main app (opened via URL scheme).
-/// The app records in the background while the user stays in the keyboard.
+/// **Always-on flow** (primary — no app switching):
+/// The main app runs a persistent recorder in the background. The keyboard
+/// controls transcription segments entirely via IPC:
 ///
-/// Flow:
-/// 1. User taps mic → keyboard opens voxvault://record → app starts recording
-/// 2. User switches back → keyboard shows "Recording…" with timer + Stop button
-/// 3. User taps Stop → keyboard sends stop command via IPC
-/// 4. App stops recording, transcribes, writes response
-/// 5. Keyboard picks up result and inserts text
+/// 1. User taps Record → keyboard writes `startSegment` command → app marks buffer position
+/// 2. User taps Stop → keyboard writes `stopSegment` command → app extracts audio + transcribes
+/// 3. App writes response → keyboard inserts text
+///
+/// If the app isn't listening yet, the keyboard prompts the user to open VoxVault once.
 @Observable
 final class VoiceKeyboardState {
 
     enum Status: Equatable {
-        case idle
-        case openingApp          // Briefly shown while app is opening
-        case recording           // App is recording in background
-        case transcribing        // App is transcribing
+        case idle               // App is listening, ready for user to tap Record
+        case recording          // Segment is active — audio being captured
+        case transcribing       // App is transcribing the segment
         case error(String)
         case noModel
         case needsFullAccess
+        case appNotListening    // App isn't running the persistent recorder
     }
 
     var status: Status = .idle
@@ -37,10 +37,10 @@ final class VoiceKeyboardState {
     var pendingTranscription: String?
 
     /// Closure provided by KeyboardViewController to open URLs via the responder chain.
+    /// Used only to prompt opening the app when it's not listening.
     var urlOpener: ((URL) -> Void)?
 
     /// Closure provided by KeyboardViewController to insert text via textDocumentProxy.
-    /// Called directly when a transcription result arrives — avoids relying on SwiftUI onChange.
     var textInserter: ((String) -> Void)?
 
     // IPC state
@@ -51,14 +51,18 @@ final class VoiceKeyboardState {
 
     init() {
         registerResponseObserver()
-        log.log("VoiceKeyboardState init — app-recording mode")
+        registerListeningStateObserver()
+        log.log("VoiceKeyboardState init — always-on mode")
+
+        // Check if app is currently listening
+        refreshListeningState()
 
         // Check if we had a pending recording session (e.g. keyboard was reloaded)
-        checkForExistingRecording()
+        checkForExistingSession()
     }
 
     deinit {
-        unregisterResponseObserver()
+        unregisterObservers()
     }
 
     // MARK: - Available Models
@@ -101,7 +105,7 @@ final class VoiceKeyboardState {
         clearPendingText()
     }
 
-    // MARK: - Start Recording (opens main app)
+    // MARK: - Start Recording (send IPC command — no app switch!)
 
     func startRecording(hasFullAccess: Bool) {
         log.log("startRecording — hasFullAccess=\(hasFullAccess), status=\(status)")
@@ -118,45 +122,46 @@ final class VoiceKeyboardState {
             return
         }
 
-        let requestId = UUID().uuidString
-        let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey) ?? "auto"
-
-        guard let url = AppConstants.recordURL(
-            modelId: model.id,
-            language: language,
-            requestId: requestId
-        ) else {
-            log.log("❌ Could not build record URL")
-            status = .error("Internal error")
-            resetErrorAfterDelay()
+        // Check if app is listening
+        let listeningState = TranscriptionIPC.readListeningState()
+        guard listeningState?.isListening == true else {
+            status = .appNotListening
+            log.log("❌ App is not listening — user needs to open VoxVault once")
             return
         }
+
+        let requestId = UUID().uuidString
+        let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey) ?? "auto"
 
         // Clear stale IPC data
         TranscriptionIPC.clearResponse()
         TranscriptionIPC.clearStatus()
-        TranscriptionIPC.clearCommand()
 
         pendingRequestId = requestId
-        status = .openingApp
+        recordingStartedAt = Date().timeIntervalSince1970
         recordingDuration = 0
+        status = .recording
 
-        log.log("📤 Opening app: \(url.absoluteString)")
+        // Write startSegment command
+        let command = RecordingCommand(
+            requestId: requestId,
+            action: .startSegment,
+            modelId: model.id,
+            language: language
+        )
+        TranscriptionIPC.writeCommand(command)
+        TranscriptionIPC.postCommandNotification()
 
-        if let urlOpener {
-            urlOpener(url)
-        } else {
-            log.log("❌ No URL opener available — was urlOpener set by KeyboardViewController?")
-            status = .error("Internal error")
-            resetErrorAfterDelay()
-            return
-        }
+        log.log("📤 Sent startSegment command (requestId=\(requestId), model=\(model.id))")
 
-        // Start polling — we'll detect when the app actually starts recording
+        // Start local duration timer
+        startDurationTimer()
+
+        // Start polling for status updates
         startPolling()
     }
 
-    // MARK: - Stop Recording (sends command to app)
+    // MARK: - Stop Recording (send IPC command — no app switch!)
 
     func stopRecording() {
         guard let requestId = pendingRequestId else {
@@ -164,14 +169,17 @@ final class VoiceKeyboardState {
             return
         }
 
-        log.log("⏹ Sending stop command for \(requestId)")
+        log.log("⏹ Sending stopSegment command for \(requestId)")
 
-        // Write stop command + post notification
-        let command = RecordingCommand(requestId: requestId, action: .stop)
+        // Write stop command
+        let command = RecordingCommand(
+            requestId: requestId,
+            action: .stopSegment
+        )
         TranscriptionIPC.writeCommand(command)
-        TranscriptionIPC.postStopCommandNotification()
+        TranscriptionIPC.postCommandNotification()
 
-        // Update UI immediately — don't wait for the poll
+        // Update UI immediately
         status = .transcribing
         stopDurationTimer()
     }
@@ -179,34 +187,65 @@ final class VoiceKeyboardState {
     // MARK: - Cancel
 
     func cancelRecording() {
-        log.log("Cancelling pending recording")
-        // Send stop to clean up the app side too
+        log.log("Cancelling segment")
+
         if let requestId = pendingRequestId {
-            let command = RecordingCommand(requestId: requestId, action: .stop)
+            // Send stop to clean up the app side
+            let command = RecordingCommand(requestId: requestId, action: .stopSegment)
             TranscriptionIPC.writeCommand(command)
-            TranscriptionIPC.postStopCommandNotification()
+            TranscriptionIPC.postCommandNotification()
         }
+
         cleanupPending()
         status = .idle
     }
 
-    // MARK: - Check for Existing Recording
+    // MARK: - Open App (one-time prompt)
 
-    /// If the keyboard extension was reloaded while a recording was in progress,
-    /// reconnect to it.
-    private func checkForExistingRecording() {
+    func openApp() {
+        guard let url = URL(string: "\(AppConstants.urlScheme)://listen") else { return }
+        log.log("Opening app to start listening: \(url.absoluteString)")
+        urlOpener?(url)
+    }
+
+    // MARK: - Listening State
+
+    private func refreshListeningState() {
+        let state = TranscriptionIPC.readListeningState()
+        if state?.isListening != true {
+            // Only show appNotListening if we're idle (don't interrupt active operations)
+            if case .idle = status {
+                // Do nothing — leave idle, the toolbar will check
+            } else if case .appNotListening = status {
+                // Already showing
+            }
+            // Check and potentially update to appNotListening
+            if status == .idle || status == .appNotListening {
+                status = .appNotListening
+            }
+        } else {
+            // App is listening
+            if status == .appNotListening {
+                status = .idle
+            }
+        }
+        log.log("refreshListeningState — isListening=\(state?.isListening ?? false), status=\(status)")
+    }
+
+    // MARK: - Check for Existing Session
+
+    private func checkForExistingSession() {
         // Check for pending text that wasn't inserted before a reload
         if let text = readPendingText() {
             log.log("♻️ Found pending text from previous session (\(text.count) chars)")
             pendingTranscription = text
-            // Will be inserted once textInserter is set — see tryInsertPendingText()
         }
 
         guard let ipcStatus = TranscriptionIPC.readStatus() else { return }
 
         switch ipcStatus.phase {
         case .recording:
-            log.log("♻️ Reconnecting to existing recording: \(ipcStatus.requestId)")
+            log.log("♻️ Reconnecting to existing segment: \(ipcStatus.requestId)")
             pendingRequestId = ipcStatus.requestId
             recordingStartedAt = ipcStatus.recordingStartedAt
             status = .recording
@@ -218,6 +257,9 @@ final class VoiceKeyboardState {
             pendingRequestId = ipcStatus.requestId
             status = .transcribing
             startPolling()
+
+        case .listening:
+            status = .idle
 
         default:
             break
@@ -247,15 +289,15 @@ final class VoiceKeyboardState {
     private func checkForUpdates() {
         guard let requestId = pendingRequestId else { return }
 
-        // Check for status updates from the app
+        // Check for status updates
         if let ipcStatus = TranscriptionIPC.readStatus(), ipcStatus.requestId == requestId {
             switch ipcStatus.phase {
             case .recording:
-                if status == .openingApp || status != .recording {
+                if status != .recording {
                     status = .recording
                     recordingStartedAt = ipcStatus.recordingStartedAt
                     startDurationTimer()
-                    log.log("🎙 App confirmed recording started")
+                    log.log("🎙 App confirmed segment recording")
                 }
 
             case .transcribing:
@@ -265,7 +307,7 @@ final class VoiceKeyboardState {
                     log.log("⏳ App is transcribing")
                 }
 
-            case .done, .error:
+            case .done, .error, .listening:
                 break // Handled by response check below
             }
         }
@@ -284,15 +326,12 @@ final class VoiceKeyboardState {
             pendingTranscription = text
             status = .idle
 
-            // Insert text directly via textDocumentProxy callback — more reliable
-            // than relying on SwiftUI onChange with @Observable.
             if let textInserter {
                 log.log("📝 Inserting text via textInserter")
                 textInserter(text)
                 pendingTranscription = nil
                 log.log("📝 Text inserted and consumed")
             } else {
-                // Persist to IPC so a keyboard reload can recover the text
                 log.log("⚠️ No textInserter — persisting to IPC for recovery")
                 writePendingText(text)
             }
@@ -332,7 +371,7 @@ final class VoiceKeyboardState {
         recordingDuration = 0
     }
 
-    // MARK: - Darwin Notification Observer (response from app)
+    // MARK: - Darwin Notification Observers
 
     private func registerResponseObserver() {
         let center = CFNotificationCenterGetDarwinNotifyCenter()
@@ -353,12 +392,36 @@ final class VoiceKeyboardState {
         )
     }
 
-    private func unregisterResponseObserver() {
+    private func registerListeningStateObserver() {
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        let observer = Unmanaged.passUnretained(self).toOpaque()
+
+        CFNotificationCenterAddObserver(
+            center,
+            observer,
+            { _, observer, _, _, _ in
+                guard let observer else { return }
+                let state = Unmanaged<VoiceKeyboardState>
+                    .fromOpaque(observer).takeUnretainedValue()
+                Task { @MainActor in state.refreshListeningState() }
+            },
+            TranscriptionIPC.listeningStateNotificationName,
+            nil,
+            .deliverImmediately
+        )
+    }
+
+    private func unregisterObservers() {
         let center = CFNotificationCenterGetDarwinNotifyCenter()
         let observer = Unmanaged.passUnretained(self).toOpaque()
         CFNotificationCenterRemoveObserver(
             center, observer,
             CFNotificationName(TranscriptionIPC.responseNotificationName),
+            nil
+        )
+        CFNotificationCenterRemoveObserver(
+            center, observer,
+            CFNotificationName(TranscriptionIPC.listeningStateNotificationName),
             nil
         )
     }
@@ -374,20 +437,20 @@ final class VoiceKeyboardState {
     private func resetErrorAfterDelay() {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(3))
-            if case .error = status { status = .idle }
+            if case .error = status {
+                refreshListeningState()
+            }
         }
     }
 
     // MARK: - Pending Text Persistence
 
-    /// Persist pending transcription text to the shared container so it survives keyboard reloads.
     private func writePendingText(_ text: String) {
         guard let dir = AppConstants.sharedContainerURL else { return }
         let url = dir.appendingPathComponent("TranscriptionIPC").appendingPathComponent("pending_text.txt")
         try? text.write(to: url, atomically: true, encoding: .utf8)
     }
 
-    /// Read pending text that was persisted before a keyboard reload.
     private func readPendingText() -> String? {
         guard let dir = AppConstants.sharedContainerURL else { return nil }
         let url = dir.appendingPathComponent("TranscriptionIPC").appendingPathComponent("pending_text.txt")
@@ -395,7 +458,6 @@ final class VoiceKeyboardState {
         return text
     }
 
-    /// Clear persisted pending text after it has been inserted.
     private func clearPendingText() {
         guard let dir = AppConstants.sharedContainerURL else { return }
         let url = dir.appendingPathComponent("TranscriptionIPC").appendingPathComponent("pending_text.txt")

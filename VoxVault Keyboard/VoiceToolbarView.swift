@@ -3,6 +3,9 @@ import VoxVaultShared
 
 /// The custom toolbar that sits above the KeyboardKit keyboard.
 /// Shows model selector, status, and Start/Stop button.
+///
+/// In always-on mode, the Record/Stop buttons control transcription segments
+/// entirely via IPC — no app switching required.
 struct VoiceToolbarView: View {
     @Bindable var voiceState: VoiceKeyboardState
     let hasFullAccess: Bool
@@ -50,11 +53,6 @@ struct VoiceToolbarView: View {
                 .font(.system(size: 15))
                 .foregroundColor(.red)
                 .symbolEffect(.pulse, isActive: true)
-        case .openingApp:
-            Image(systemName: "mic.fill")
-                .font(.system(size: 15))
-                .foregroundColor(.orange)
-                .symbolEffect(.pulse, isActive: true)
         case .transcribing:
             ProgressView()
                 .scaleEffect(0.7)
@@ -72,8 +70,6 @@ struct VoiceToolbarView: View {
             switch voiceState.status {
             case .idle:
                 Text(voiceState.currentModelName)
-            case .openingApp:
-                Text("Opening VoxVault…")
             case .recording:
                 Text(formatDuration(voiceState.recordingDuration))
                     .monospacedDigit()
@@ -88,6 +84,9 @@ struct VoiceToolbarView: View {
             case .needsFullAccess:
                 Text("Enable Full Access in Settings")
                     .foregroundColor(.orange)
+            case .appNotListening:
+                Text("Open VoxVault to start")
+                    .foregroundColor(.orange)
             }
         }
         .font(.system(size: 14))
@@ -101,7 +100,7 @@ struct VoiceToolbarView: View {
     private var actionButton: some View {
         switch voiceState.status {
         case .recording:
-            // Stop button — sends stop command to the app
+            // Stop button — sends stopSegment command to the app (no app switch)
             Button(action: { voiceState.stopRecording() }) {
                 HStack(spacing: 5) {
                     Image(systemName: "stop.fill")
@@ -116,21 +115,6 @@ struct VoiceToolbarView: View {
                 .clipShape(Capsule())
             }
 
-        case .openingApp:
-            // Cancel button
-            Button(action: { voiceState.cancelRecording() }) {
-                HStack(spacing: 5) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10))
-                    Text("Cancel")
-                        .font(.system(size: 14, weight: .medium))
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .background(Color(.systemGray5))
-                .clipShape(Capsule())
-            }
-
         case .transcribing:
             // Disabled spinner
             HStack(spacing: 5) {
@@ -142,8 +126,24 @@ struct VoiceToolbarView: View {
             .background(Color(.systemGray5))
             .clipShape(Capsule())
 
+        case .appNotListening:
+            // Open app button — one-time setup
+            Button(action: { voiceState.openApp() }) {
+                HStack(spacing: 5) {
+                    Image(systemName: "arrow.up.forward.app")
+                        .font(.system(size: 10))
+                    Text("Open")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
+                .background(Color.orange.opacity(0.15))
+                .foregroundColor(.orange)
+                .clipShape(Capsule())
+            }
+
         default:
-            // Start button — opens the app to record
+            // Record button — sends startSegment command (no app switch!)
             Button(action: { voiceState.startRecording(hasFullAccess: hasFullAccess) }) {
                 HStack(spacing: 5) {
                     Image(systemName: "mic.fill")
