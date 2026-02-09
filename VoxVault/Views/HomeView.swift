@@ -30,6 +30,16 @@ struct HomeView: View {
                 listenButton
             }
         }
+        .gesture(
+            DragGesture(minimumDistance: 40, coordinateSpace: .local)
+                .onEnded { value in
+                    // Swipe up: negative vertical translation, more vertical than horizontal
+                    if value.translation.height < -40,
+                       abs(value.translation.height) > abs(value.translation.width) {
+                        showHistory = true
+                    }
+                }
+        )
         .sheet(isPresented: $showHistory) {
             HistoryView()
                 .environment(transcriptStore)
@@ -190,16 +200,15 @@ struct HomeView: View {
     // MARK: - History Hint
 
     private var historyHint: some View {
-        Button(action: { showHistory = true }) {
-            HStack(spacing: 8) {
-                Image(systemName: "chevron.up")
-                Text("Swipe up to see your history")
-                Image(systemName: "chevron.up")
-            }
-            .font(.system(size: 14))
-            .foregroundColor(.white.opacity(0.35))
+        HStack(spacing: 8) {
+            Image(systemName: "chevron.up")
+            Text("Swipe up to see your history")
+            Image(systemName: "chevron.up")
         }
+        .font(.system(size: 14))
+        .foregroundColor(.white.opacity(0.35))
         .padding(.bottom, 24)
+        .onTapGesture { showHistory = true }
     }
 
     // MARK: - Listen Button
