@@ -11,11 +11,15 @@ struct HomeView: View {
     @Environment(TranscriptStore.self) private var transcriptStore
 
     @Bindable var persistentRecorder: PersistentRecorder
+    @Binding var pendingKeyboardLaunch: Bool
 
     @State private var showHistory = false
     @State private var showSettings = false
     @State private var micPermissionGranted = false
     @State private var pulseAnimation = false
+
+    /// Tracks the keyboard-launch flow: nil = normal launch, .starting/.ready = overlay shown.
+    @State private var keyboardLaunchPhase: KeyboardLaunchPhase? = nil
 
     var body: some View {
         ZStack {
@@ -29,7 +33,14 @@ struct HomeView: View {
                 historyHint
                 listenButton
             }
+
+            // Keyboard-launch overlay
+            if let phase = keyboardLaunchPhase {
+                KeyboardLaunchOverlay(phase: phase)
+                    .transition(.opacity)
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: keyboardLaunchPhase)
         .gesture(
             DragGesture(minimumDistance: 40, coordinateSpace: .local)
                 .onEnded { value in
@@ -50,6 +61,12 @@ struct HomeView: View {
         }
         .task {
             micPermissionGranted = await AudioRecorder.requestMicrophonePermission()
+        }
+        .onChange(of: pendingKeyboardLaunch) { _, isPending in
+            if isPending {
+                pendingKeyboardLaunch = false
+                handleKeyboardLaunch()
+            }
         }
     }
 
@@ -255,6 +272,31 @@ struct HomeView: View {
         }
     }
 
+    // MARK: - Keyboard Launch Flow
+
+    /// Called by VoxVaultApp when opened via `voxvault://listen`.
+    func handleKeyboardLaunch() {
+        keyboardLaunchPhase = .starting
+
+        // Small delay so the overlay is visible before we do audio setup
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            if !persistentRecorder.isListening {
+                persistentRecorder.startListening()
+            }
+
+            withAnimation {
+                keyboardLaunchPhase = persistentRecorder.isListening ? .ready : .error
+            }
+
+            // Auto-dismiss after a few seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                withAnimation {
+                    keyboardLaunchPhase = nil
+                }
+            }
+        }
+    }
+
     // MARK: - Helpers
 
     private func formatDuration(_ d: TimeInterval) -> String {
@@ -262,5 +304,127 @@ struct HomeView: View {
         let s = Int(d) % 60
         let t = Int((d * 10).truncatingRemainder(dividingBy: 10))
         return String(format: "%d:%02d.%d", m, s, t)
+    }
+}
+
+// MARK: - Keyboard Launch Phase
+
+enum KeyboardLaunchPhase: Equatable {
+    case starting
+    case ready
+    case error
+}
+
+// MARK: - Keyboard Launch Overlay
+
+/// Full-screen overlay shown when the app is opened from the keyboard.
+/// Shows a brief loading state, then a "Ready" confirmation before auto-dismissing.
+private struct KeyboardLaunchOverlay: View {
+    let phase: KeyboardLaunchPhase
+
+    @State private var checkmarkScale: CGFloat = 0.3
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.92)
+                .ignoresSafeArea()
+
+            VStack(spacing: 28) {
+                Spacer()
+
+                icon
+                text
+
+                Spacer()
+                Spacer()
+            }
+            .padding(32)
+        }
+    }
+
+    @ViewBuilder
+    private var icon: some View {
+        switch phase {
+        case .starting:
+            ZStack {
+                Circle()
+                    .stroke(Color.green.opacity(0.15), lineWidth: 4)
+                    .frame(width: 100, height: 100)
+
+                ProgressView()
+                    .scaleEffect(1.8)
+                    .tint(.green)
+            }
+
+        case .ready:
+            ZStack {
+                Circle()
+                    .fill(Color.green.opacity(0.12))
+                    .frame(width: 100, height: 100)
+
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 56))
+                    .foregroundColor(.green)
+                    .scaleEffect(checkmarkScale)
+            }
+            .onAppear {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                    checkmarkScale = 1.0
+                }
+            }
+
+        case .error:
+            ZStack {
+                Circle()
+                    .fill(Color.red.opacity(0.12))
+                    .frame(width: 100, height: 100)
+
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 48))
+                    .foregroundColor(.red)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var text: some View {
+        switch phase {
+        case .starting:
+            VStack(spacing: 10) {
+                Text("Starting Microphone…")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.white)
+
+                Text("Setting up always-on listening")
+                    .font(.system(size: 15))
+                    .foregroundColor(.white.opacity(0.4))
+            }
+
+        case .ready:
+            VStack(spacing: 10) {
+                Text("Ready!")
+                    .font(.system(size: 28, weight: .bold))
+                    .foregroundColor(.white)
+
+                Text("Go back to your app and\ntap Record on the keyboard.")
+                    .font(.system(size: 15))
+                    .foregroundColor(.white.opacity(0.45))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+
+        case .error:
+            VStack(spacing: 10) {
+                Text("Could Not Start")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(.white)
+
+                Text("Check microphone permissions\nin Settings.")
+                    .font(.system(size: 15))
+                    .foregroundColor(.white.opacity(0.45))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+            }
+        }
     }
 }
