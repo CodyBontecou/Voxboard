@@ -19,7 +19,7 @@ struct VoiceToolbarView: View {
         }
         .padding(.horizontal, 12)
         .padding(.top, 6)
-        .padding(.bottom, 0)
+        .padding(.bottom, 6)
     }
 
     // MARK: - Model Navigator: [< 🎤 >]
