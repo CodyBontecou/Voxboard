@@ -50,7 +50,7 @@ struct VoiceToolbarView: View {
     private var micIcon: some View {
         switch voiceState.status {
         case .recording:
-            Image(systemName: "mic.fill")
+            Image(systemName: "brain.head.profile")
                 .font(.system(size: 15))
                 .foregroundColor(.red)
                 .symbolEffect(.pulse, isActive: true)
@@ -58,7 +58,7 @@ struct VoiceToolbarView: View {
             ProgressView()
                 .scaleEffect(0.7)
         default:
-            Image(systemName: "mic")
+            Image(systemName: "brain")
                 .font(.system(size: 15))
                 .foregroundColor(.primary)
         }
