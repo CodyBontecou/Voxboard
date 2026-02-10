@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Voxboard</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ─── RESET ─── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f0f0ec;
+      --gray-1: #1a1a1a;
+      --gray-2: #2a2a2a;
+      --gray-3: #888;
+      --gray-4: #555;
+      --green: #3ddc84;
+      --green-dim: #2a9d5e;
+      --green-glow: rgba(61, 220, 132, 0.12);
+      --orange: #ff6b35;
+      --font-display: 'Outfit', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-display);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    body { position: relative; }
+
+    /* ─── GRID LINES ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent calc(100% / 12 - 1px),
+          rgba(255,255,255,0.02) calc(100% / 12 - 1px),
+          rgba(255,255,255,0.02) calc(100% / 12)
+        );
+    }
+
+    /* ─── NOISE TEXTURE ─── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ─── LAYOUT ─── */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 clamp(20px, 4vw, 80px);
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 20px 0;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(10, 10, 10, 0.7);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-logo-mark {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--green);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--green);
+    }
+
+    .nav-logo-text {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--gray-3);
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--white); }
+
+    .nav-cta {
+      font-family: var(--font-mono) !important;
+      font-size: 12px !important;
+      letter-spacing: 0.06em !important;
+      padding: 8px 20px;
+      border: 1px solid var(--green);
+      border-radius: 4px;
+      color: var(--green) !important;
+      transition: all 0.2s;
+    }
+
+    .nav-cta:hover {
+      background: var(--green);
+      color: var(--black) !important;
+    }
+
+    /* ─── LEGAL PAGE ─── */
+    .legal-hero {
+      padding: 160px 0 80px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .legal-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .legal-label::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--green);
+    }
+
+    .legal-title {
+      font-size: clamp(36px, 5vw, 64px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .legal-meta {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--gray-4);
+      letter-spacing: 0.04em;
+    }
+
+    .legal-body {
+      padding: 80px 0 160px;
+      max-width: 760px;
+    }
+
+    .legal-body h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 64px;
+      margin-bottom: 20px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+    }
+
+    .legal-body h2::before {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 0;
+      width: 48px;
+      height: 2px;
+      background: var(--green);
+    }
+
+    .legal-body h2:first-child {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .legal-body h2:first-child::before {
+      display: none;
+    }
+
+    .legal-body p {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.9;
+      color: var(--gray-3);
+      margin-bottom: 20px;
+    }
+
+    .legal-body ul {
+      list-style: none;
+      margin-bottom: 20px;
+      padding-left: 0;
+    }
+
+    .legal-body li {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.9;
+      color: var(--gray-3);
+      padding-left: 20px;
+      position: relative;
+      margin-bottom: 8px;
+    }
+
+    .legal-body li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--green);
+    }
+
+    .legal-body strong {
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    .legal-body a {
+      color: var(--green);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: color 0.2s;
+    }
+
+    .legal-body a:hover {
+      color: #4aeea0;
+    }
+
+    .legal-callout {
+      margin: 32px 0;
+      padding: 24px 32px;
+      background: rgba(61, 220, 132, 0.04);
+      border-left: 3px solid var(--green);
+      border-radius: 0 4px 4px 0;
+    }
+
+    .legal-callout p {
+      color: var(--white);
+      margin-bottom: 0;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    footer .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-left {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--gray-4);
+      letter-spacing: 0.06em;
+    }
+
+    .footer-right {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--gray-4);
+      letter-spacing: 0.06em;
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer-right a {
+      color: var(--gray-4);
+      transition: color 0.2s;
+    }
+
+    .footer-right a:hover {
+      color: var(--white);
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .anim-fade-up {
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    .anim-delay-1 { animation-delay: 0.1s; }
+    .anim-delay-2 { animation-delay: 0.2s; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 640px) {
+      .nav-links a:not(.nav-cta) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAV ─── -->
+  <nav>
+    <div class="container">
+      <a href="index.html" class="nav-logo">
+        <div class="nav-logo-mark">V</div>
+        <span class="nav-logo-text">Voxboard</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="terms.html">Terms</a>
+        <a href="index.html#download" class="nav-cta">Download</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ─── -->
+  <section class="legal-hero">
+    <div class="container">
+      <div class="legal-label anim-fade-up">Legal · VXB-01</div>
+      <h1 class="legal-title anim-fade-up anim-delay-1">Privacy Policy</h1>
+      <p class="legal-meta anim-fade-up anim-delay-2">Effective date: February 9, 2026 · Last updated: February 9, 2026</p>
+    </div>
+  </section>
+
+  <!-- ─── BODY ─── -->
+  <section class="legal-body">
+    <div class="container">
+
+      <h2>Overview</h2>
+      <div class="legal-callout">
+        <p>Voxboard is built on a simple principle: your voice data never leaves your device. We do not collect, transmit, or store any personal information on external servers. Period.</p>
+      </div>
+      <p>
+        This Privacy Policy describes how Voxboard ("we," "our," or "the app") handles information when you use our iOS application and keyboard extension. We are committed to transparency and want you to understand exactly what happens with your data — which is nothing, because it stays on your device.
+      </p>
+
+      <h2>Information We Do Not Collect</h2>
+      <p>Voxboard does not collect, transmit, or have access to any of the following:</p>
+      <ul>
+        <li>Audio recordings or voice data</li>
+        <li>Transcribed text or transcription history</li>
+        <li>Keystrokes, typed text, or keyboard input</li>
+        <li>Personal information such as your name, email, or phone number</li>
+        <li>Device identifiers, IP addresses, or location data</li>
+        <li>Usage analytics, crash reports, or telemetry</li>
+        <li>Contacts, photos, or any other on-device data</li>
+      </ul>
+
+      <h2>On-Device Processing</h2>
+      <p>
+        All voice-to-text transcription is performed entirely on your device using the <strong>whisper.cpp</strong> engine — a local implementation of OpenAI's Whisper model optimized for Apple Silicon. Audio captured by the microphone is processed in real-time by the on-device model and is never transmitted over a network connection.
+      </p>
+      <p>
+        Transcription results are stored locally on your device within the app's sandboxed container and shared App Group. This data is accessible only to the Voxboard app and its keyboard extension. No external service, server, or third party can access this data.
+      </p>
+
+      <h2>Keyboard Extension</h2>
+      <p>
+        Voxboard includes a custom keyboard extension that enables voice-to-text input across all apps on your device. Apple requires us to disclose the following about keyboard extensions:
+      </p>
+      <ul>
+        <li><strong>Full Access is not required.</strong> Voxboard's keyboard extension does not request or require "Full Access" (open network access). It operates without any network connectivity.</li>
+        <li>The keyboard extension does not log, store, or transmit any keystrokes or text input beyond the active transcription session.</li>
+        <li>The keyboard extension communicates with the main Voxboard app only through the shared App Group container to access whisper models and transcription data — all on-device.</li>
+      </ul>
+
+      <h2>Microphone Usage</h2>
+      <p>
+        Voxboard requests microphone access to capture audio for voice transcription. Microphone audio is:
+      </p>
+      <ul>
+        <li>Processed locally by the whisper.cpp engine on your device</li>
+        <li>Never recorded to persistent storage as raw audio files</li>
+        <li>Never transmitted to any server, API, or third-party service</li>
+        <li>Discarded immediately after transcription is complete</li>
+      </ul>
+
+      <h2>Whisper Models</h2>
+      <p>
+        Voxboard ships with a bundled Base model and allows you to download additional Whisper models of varying sizes. These model files are downloaded from their original open-source distribution sources and stored locally on your device. No account or personal information is required to download models.
+      </p>
+
+      <h2>Third-Party Services</h2>
+      <p>
+        Voxboard does not integrate with any third-party analytics, advertising, crash reporting, or tracking services. We do not use any SDKs or frameworks that collect user data. The app has no server-side component.
+      </p>
+
+      <h2>Data Storage &amp; Deletion</h2>
+      <p>
+        All data — including transcription history, downloaded models, and settings — is stored locally on your device. You can delete this data at any time by:
+      </p>
+      <ul>
+        <li>Deleting individual transcriptions from the history view within the app</li>
+        <li>Removing downloaded models from Settings</li>
+        <li>Uninstalling the Voxboard app, which removes all associated data from your device</li>
+      </ul>
+
+      <h2>Children's Privacy</h2>
+      <p>
+        Voxboard does not knowingly collect any personal information from anyone, including children under the age of 13. Since no data is collected or transmitted, there is no risk of children's data being stored or shared.
+      </p>
+
+      <h2>Changes to This Policy</h2>
+      <p>
+        We may update this Privacy Policy from time to time. Any changes will be reflected on this page with an updated "Last updated" date. Since Voxboard collects no data, changes are likely to be minimal and clarifying in nature.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        If you have questions or concerns about this Privacy Policy, please contact us at:
+      </p>
+      <p>
+        <strong>Email:</strong> <a href="mailto:codybontecou@gmail.com">codybontecou@gmail.com</a>
+      </p>
+
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="container">
+      <div class="footer-left">
+        © 2026 Voxboard · VXB-01
+      </div>
+      <div class="footer-right">
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
+        <a href="index.html">Home</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
