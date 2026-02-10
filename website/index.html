@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voxboard — On-device voice transcription keyboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ─── RESET ─── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f0f0ec;
+      --gray-1: #1a1a1a;
+      --gray-2: #2a2a2a;
+      --gray-3: #888;
+      --gray-4: #555;
+      --green: #3ddc84;
+      --green-dim: #2a9d5e;
+      --green-glow: rgba(61, 220, 132, 0.12);
+      --orange: #ff6b35;
+      --font-display: 'Outfit', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-display);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    body {
+      position: relative;
+    }
+
+    /* ─── GRID LINES (TE aesthetic) ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent calc(100% / 12 - 1px),
+          rgba(255,255,255,0.02) calc(100% / 12 - 1px),
+          rgba(255,255,255,0.02) calc(100% / 12)
+        );
+    }
+
+    /* ─── NOISE TEXTURE ─── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9998;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ─── LAYOUT ─── */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 clamp(20px, 4vw, 80px);
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 20px 0;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(10, 10, 10, 0.7);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    nav .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-logo-mark {
+      width: 32px;
+      height: 32px;
+      border: 2px solid var(--green);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--green);
+    }
+
+    .nav-logo-text {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--gray-3);
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--white); }
+
+    .nav-cta {
+      font-family: var(--font-mono) !important;
+      font-size: 12px !important;
+      letter-spacing: 0.06em !important;
+      padding: 8px 20px;
+      border: 1px solid var(--green);
+      border-radius: 4px;
+      color: var(--green) !important;
+      transition: all 0.2s;
+    }
+
+    .nav-cta:hover {
+      background: var(--green);
+      color: var(--black) !important;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-top: 100px;
+      position: relative;
+    }
+
+    .hero-label {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-label::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--green);
+    }
+
+    .hero-title {
+      font-size: clamp(48px, 7vw, 96px);
+      font-weight: 800;
+      line-height: 0.92;
+      letter-spacing: -0.03em;
+      margin-bottom: 40px;
+    }
+
+    .hero-title .thin {
+      font-weight: 200;
+      color: var(--gray-3);
+    }
+
+    .hero-subtitle {
+      font-family: var(--font-mono);
+      font-size: clamp(13px, 1.4vw, 16px);
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--gray-3);
+      max-width: 380px;
+      margin-bottom: 48px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 3;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 32px;
+      background: var(--green);
+      color: var(--black);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: #4aeea0;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary svg { width: 16px; height: 16px; }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 32px;
+      background: transparent;
+      color: var(--gray-3);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: 1px solid var(--gray-2);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--gray-3);
+      color: var(--white);
+    }
+
+    /* ─── HERO GRID ─── */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: clamp(40px, 6vw, 100px);
+      align-items: center;
+    }
+
+    .hero-content {
+      min-width: 0;
+    }
+
+    .hero-phone-side {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-height: 70vh;
+      overflow: hidden;
+      border-radius: 28px;
+    }
+
+    .phone-frame {
+      position: relative;
+      width: clamp(220px, 20vw, 280px);
+    }
+
+    .phone-frame img {
+      width: 100%;
+      height: auto;
+      border-radius: 28px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06),
+        0 40px 80px rgba(0,0,0,0.6),
+        0 0 120px var(--green-glow);
+    }
+
+    .phone-frame::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 30px;
+      background: linear-gradient(135deg, rgba(61,220,132,0.15), transparent 50%);
+      z-index: -1;
+    }
+
+    /* ─── PRODUCT ID STRIP ─── */
+    .product-strip {
+      padding: 24px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-top: -1px;
+    }
+
+    .product-strip .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .product-strip-item {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-4);
+    }
+
+    .product-strip-item span {
+      color: var(--gray-3);
+    }
+
+    /* ─── SECTION TITLES ─── */
+    .section-number {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(32px, 5vw, 64px);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+
+    .section-desc {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--gray-3);
+      max-width: 520px;
+    }
+
+    /* ─── HOW IT WORKS ─── */
+    .how-section {
+      padding: 160px 0 120px;
+    }
+
+    .how-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      margin-top: 80px;
+      align-items: start;
+    }
+
+    .how-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .how-step {
+      padding: 40px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: 24px;
+      cursor: default;
+      transition: all 0.3s;
+    }
+
+    .how-step:first-child {
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .how-step:hover {
+      padding-left: 12px;
+    }
+
+    .step-number {
+      font-family: var(--font-mono);
+      font-size: 32px;
+      font-weight: 300;
+      color: var(--green);
+      line-height: 1;
+    }
+
+    .step-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 300;
+      line-height: 1.7;
+      color: var(--gray-3);
+    }
+
+    .how-phone-stack {
+      position: sticky;
+      top: 120px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .how-phone-stack .phone-frame {
+      width: 260px;
+    }
+
+    /* ─── FEATURES ─── */
+    .features-section {
+      padding: 160px 0;
+      background: var(--gray-1);
+      border-top: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .features-header {
+      margin-bottom: 80px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .feature-card {
+      padding: 48px 40px;
+      background: var(--gray-1);
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .feature-card:hover {
+      background: rgba(61, 220, 132, 0.03);
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--green);
+      transition: width 0.4s ease;
+    }
+
+    .feature-card:hover::before {
+      width: 100%;
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      font-size: 22px;
+      color: var(--green);
+      background: rgba(61, 220, 132, 0.05);
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 300;
+      line-height: 1.7;
+      color: var(--gray-3);
+    }
+
+    /* ─── SHOWCASE (TE-style phone gallery) ─── */
+    .showcase-section {
+      padding: 160px 0;
+      overflow: hidden;
+    }
+
+    .showcase-header {
+      margin-bottom: 80px;
+    }
+
+    .showcase-scroll {
+      display: flex;
+      gap: 40px;
+      padding: 0 clamp(20px, 4vw, 80px);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .showcase-scroll::-webkit-scrollbar { display: none; }
+
+    .showcase-item {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .showcase-phone {
+      width: 280px;
+      position: relative;
+    }
+
+    .showcase-phone img {
+      width: 100%;
+      height: auto;
+      border-radius: 24px;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.06),
+        0 20px 60px rgba(0,0,0,0.5);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .showcase-item:hover .showcase-phone img {
+      transform: translateY(-8px);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.08),
+        0 40px 80px rgba(0,0,0,0.6),
+        0 0 80px var(--green-glow);
+    }
+
+    .showcase-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gray-4);
+      padding-left: 4px;
+    }
+
+    .showcase-label span {
+      color: var(--white);
+      font-weight: 500;
+    }
+
+    /* ─── SPECS (TE product spec table) ─── */
+    .specs-section {
+      padding: 160px 0;
+      background: var(--gray-1);
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .specs-header {
+      margin-bottom: 80px;
+    }
+
+    .specs-table {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      max-width: 900px;
+    }
+
+    .spec-row {
+      display: contents;
+    }
+
+    .spec-key {
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--gray-3);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .spec-val {
+      padding: 20px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--white);
+      text-align: right;
+    }
+
+    .spec-val.green { color: var(--green); }
+
+    /* ─── MODELS ─── */
+    .models-section {
+      padding: 160px 0;
+    }
+
+    .models-header {
+      margin-bottom: 80px;
+    }
+
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .model-card {
+      padding: 40px 24px;
+      background: var(--black);
+      text-align: center;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .model-card:hover {
+      background: rgba(61, 220, 132, 0.03);
+    }
+
+    .model-card.recommended::after {
+      content: 'BUNDLED';
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      padding: 3px 8px;
+      background: var(--green);
+      color: var(--black);
+      border-radius: 2px;
+    }
+
+    .model-name {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .model-size {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--gray-3);
+      margin-bottom: 24px;
+    }
+
+    .model-bar {
+      height: 3px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .model-bar-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+
+    .model-accuracy {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--gray-4);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* ─── PRIVACY BANNER ─── */
+    .privacy-section {
+      padding: 160px 0;
+      text-align: center;
+      position: relative;
+    }
+
+    .privacy-section::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--green-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .privacy-icon {
+      width: 80px;
+      height: 80px;
+      border: 2px solid var(--green);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 40px;
+      font-size: 36px;
+    }
+
+    .privacy-title {
+      font-size: clamp(36px, 5vw, 72px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+
+    .privacy-title .green { color: var(--green); }
+
+    .privacy-desc {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 1.8;
+      color: var(--gray-3);
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* ─── CTA ─── */
+    .cta-section {
+      padding: 120px 0 160px;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .cta-section .section-title {
+      margin-bottom: 40px;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: 40px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    footer .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-left {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--gray-4);
+      letter-spacing: 0.06em;
+    }
+
+    .footer-right {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--gray-4);
+      letter-spacing: 0.06em;
+      display: flex;
+      gap: 24px;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .anim-fade-up {
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards;
+    }
+
+    .anim-delay-1 { animation-delay: 0.1s; }
+    .anim-delay-2 { animation-delay: 0.2s; }
+    .anim-delay-3 { animation-delay: 0.3s; }
+    .anim-delay-4 { animation-delay: 0.4s; }
+    .anim-delay-5 { animation-delay: 0.5s; }
+
+    /* Scroll-triggered reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1100px) {
+      .hero-phone-side { display: none; }
+      .hero-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 900px) {
+      .how-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .how-phone-stack { position: relative; top: 0; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .models-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .models-grid { grid-template-columns: 1fr 1fr; }
+      .specs-table { grid-template-columns: 1fr 1fr; }
+      .nav-links a:not(.nav-cta) { display: none; }
+    }
+
+    /* ─── WAVEFORM DECORATION ─── */
+    .waveform-deco {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 32px;
+    }
+
+    .waveform-deco span {
+      width: 3px;
+      background: var(--green);
+      border-radius: 2px;
+      animation: wave 1.2s ease-in-out infinite;
+    }
+
+    .waveform-deco span:nth-child(1) { height: 30%; animation-delay: 0s; }
+    .waveform-deco span:nth-child(2) { height: 60%; animation-delay: 0.1s; }
+    .waveform-deco span:nth-child(3) { height: 100%; animation-delay: 0.2s; }
+    .waveform-deco span:nth-child(4) { height: 50%; animation-delay: 0.3s; }
+    .waveform-deco span:nth-child(5) { height: 80%; animation-delay: 0.4s; }
+    .waveform-deco span:nth-child(6) { height: 40%; animation-delay: 0.5s; }
+    .waveform-deco span:nth-child(7) { height: 70%; animation-delay: 0.15s; }
+
+    @keyframes wave {
+      0%, 100% { transform: scaleY(0.4); }
+      50% { transform: scaleY(1); }
+    }
+
+    /* ─── FLOATING LABEL ─── */
+    .float-label {
+      position: absolute;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gray-4);
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAV ─── -->
+  <nav>
+    <div class="container">
+      <div class="nav-logo">
+        <div class="nav-logo-mark">V</div>
+        <span class="nav-logo-text">Voxboard</span>
+      </div>
+      <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#specs">Specs</a>
+        <a href="#download" class="nav-cta">Download</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ─── -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <div class="hero-label anim-fade-up">Voice → Text · On-device</div>
+
+          <h1 class="hero-title anim-fade-up anim-delay-1">
+            Your voice.<br>
+            <span class="thin">Your keyboard.</span>
+          </h1>
+
+          <p class="hero-subtitle anim-fade-up anim-delay-2">
+            On-device voice transcription that works as your keyboard. Powered by whisper.cpp. No cloud. No latency. No compromise.
+          </p>
+
+          <div class="hero-actions anim-fade-up anim-delay-3">
+            <a href="#download" class="btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              App Store
+            </a>
+            <a href="#how" class="btn-ghost">Learn more ↓</a>
+          </div>
+        </div>
+
+        <div class="hero-phone-side anim-fade-up anim-delay-4">
+          <div class="phone-frame">
+            <img src="screenshots/04-listening.png" alt="Voxboard listening state">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PRODUCT ID STRIP ─── -->
+  <div class="product-strip">
+    <div class="container">
+      <div class="product-strip-item">Product <span>VXB-01</span></div>
+      <div class="product-strip-item">Engine <span>whisper.cpp</span></div>
+      <div class="product-strip-item">Processing <span>On-device</span></div>
+      <div class="product-strip-item">Privacy <span>Zero data sent</span></div>
+      <div class="product-strip-item">Platform <span>iOS 17+</span></div>
+    </div>
+  </div>
+
+  <!-- ─── HOW IT WORKS ─── -->
+  <section class="how-section" id="how">
+    <div class="container">
+      <div class="reveal">
+        <div class="section-number">01 — How it works</div>
+        <h2 class="section-title">Three steps.<br>Zero friction.</h2>
+        <p class="section-desc">
+          Voxboard replaces your iOS keyboard with a voice-first interface. Tap, speak, done. Works in every app.
+        </p>
+      </div>
+
+      <div class="how-grid">
+        <div class="how-steps">
+          <div class="how-step reveal">
+            <div class="step-number">01</div>
+            <div>
+              <div class="step-title">Start listening</div>
+              <div class="step-desc">Open the app and tap Start Listening. The microphone activates in the background, ready when you are.</div>
+            </div>
+          </div>
+          <div class="how-step reveal">
+            <div class="step-number">02</div>
+            <div>
+              <div class="step-title">Switch to any app</div>
+              <div class="step-desc">Open Safari, Notes, Messages — anywhere with a text field. The Voxboard keyboard is always ready.</div>
+            </div>
+          </div>
+          <div class="how-step reveal">
+            <div class="step-number">03</div>
+            <div>
+              <div class="step-title">Tap the mic, speak</div>
+              <div class="step-desc">Hit the microphone button on the keyboard. Speak naturally. Your words appear as text — instantly, privately, on-device.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="how-phone-stack reveal">
+          <div class="phone-frame">
+            <img src="screenshots/06-keyboard-safari.png" alt="Voxboard keyboard in Safari">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FEATURES ─── -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="features-header reveal">
+        <div class="section-number">02 — Features</div>
+        <h2 class="section-title">Built for the<br>real world.</h2>
+      </div>
+
+      <div class="features-grid reveal">
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Fully Private</h3>
+          <p>All processing happens on your device. No audio is uploaded. No transcripts are shared. Your voice stays yours.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⌨️</div>
+          <h3>Custom Keyboard</h3>
+          <p>Works as a system-wide keyboard extension. Use voice-to-text in any app — Messages, Notes, Safari, Slack, anywhere.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧠</div>
+          <h3>whisper.cpp Engine</h3>
+          <p>Powered by OpenAI's Whisper model, optimized for Apple Silicon with whisper.cpp. State-of-the-art accuracy, locally.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌍</div>
+          <h3>Auto Language</h3>
+          <p>Automatic language detection across 99+ languages. Or lock to your preferred language for faster results.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📋</div>
+          <h3>Transcript History</h3>
+          <p>Every transcription is saved locally. Swipe up to browse, copy, or reference past recordings anytime.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🎛️</div>
+          <h3>Choose Your Model</h3>
+          <p>Pick from Tiny (75 MB) to Large v3 Turbo (1.6 GB). Balance speed and accuracy for your needs.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SHOWCASE ─── -->
+  <section class="showcase-section" id="showcase">
+    <div class="container">
+      <div class="showcase-header reveal">
+        <div class="section-number">03 — Interface</div>
+        <h2 class="section-title">Designed to<br>disappear.</h2>
+        <p class="section-desc">Minimal. Dark. Focused. The interface stays out of your way so your voice can do the work.</p>
+      </div>
+    </div>
+
+    <div class="showcase-scroll reveal">
+      <div class="showcase-item">
+        <div class="showcase-phone">
+          <img src="screenshots/01-home.png" alt="Home — Ready state">
+        </div>
+        <div class="showcase-label"><span>01</span> — Ready to listen</div>
+      </div>
+      <div class="showcase-item">
+        <div class="showcase-phone">
+          <img src="screenshots/04-listening.png" alt="Listening — Active">
+        </div>
+        <div class="showcase-label"><span>02</span> — Listening active</div>
+      </div>
+      <div class="showcase-item">
+        <div class="showcase-phone">
+          <img src="screenshots/06-keyboard-safari.png" alt="Keyboard in Safari">
+        </div>
+        <div class="showcase-label"><span>03</span> — Keyboard in Safari</div>
+      </div>
+      <div class="showcase-item">
+        <div class="showcase-phone">
+          <img src="screenshots/02-settings.png" alt="Model settings">
+        </div>
+        <div class="showcase-label"><span>04</span> — Model selection</div>
+      </div>
+      <div class="showcase-item">
+        <div class="showcase-phone">
+          <img src="screenshots/03-history.png" alt="Transcript history">
+        </div>
+        <div class="showcase-label"><span>05</span> — Transcript history</div>
+      </div>
+      <div class="showcase-item">
+        <div class="showcase-phone">
+          <img src="screenshots/05-settings-scrolled.png" alt="Settings — Privacy info">
+        </div>
+        <div class="showcase-label"><span>06</span> — Privacy &amp; specs</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── MODELS ─── -->
+  <section class="models-section" id="models">
+    <div class="container">
+      <div class="models-header reveal">
+        <div class="section-number">04 — Models</div>
+        <h2 class="section-title">Pick your<br>engine.</h2>
+        <p class="section-desc">Five Whisper models from ultralight to maximum accuracy. All run entirely on your device.</p>
+      </div>
+
+      <div class="models-grid reveal">
+        <div class="model-card">
+          <div class="model-name">Tiny</div>
+          <div class="model-size">75 MB</div>
+          <div class="model-bar"><div class="model-bar-fill" style="width: 20%"></div></div>
+          <div class="model-accuracy">Fastest</div>
+        </div>
+        <div class="model-card recommended">
+          <div class="model-name">Base</div>
+          <div class="model-size">142 MB</div>
+          <div class="model-bar"><div class="model-bar-fill" style="width: 35%"></div></div>
+          <div class="model-accuracy">Balanced</div>
+        </div>
+        <div class="model-card">
+          <div class="model-name">Small</div>
+          <div class="model-size">466 MB</div>
+          <div class="model-bar"><div class="model-bar-fill" style="width: 55%"></div></div>
+          <div class="model-accuracy">Accurate</div>
+        </div>
+        <div class="model-card">
+          <div class="model-name">Medium</div>
+          <div class="model-size">1.5 GB</div>
+          <div class="model-bar"><div class="model-bar-fill" style="width: 78%"></div></div>
+          <div class="model-accuracy">High accuracy</div>
+        </div>
+        <div class="model-card">
+          <div class="model-name">Large v3 Turbo</div>
+          <div class="model-size">1.6 GB</div>
+          <div class="model-bar"><div class="model-bar-fill" style="width: 100%"></div></div>
+          <div class="model-accuracy">Maximum</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SPECS ─── -->
+  <section class="specs-section" id="specs">
+    <div class="container">
+      <div class="specs-header reveal">
+        <div class="section-number">05 — Technical specs</div>
+        <h2 class="section-title">Under the hood.</h2>
+      </div>
+
+      <div class="specs-table reveal">
+        <div class="spec-row">
+          <div class="spec-key">Engine</div>
+          <div class="spec-val">whisper.cpp</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">AI Model</div>
+          <div class="spec-val">OpenAI Whisper (GGML)</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">Processing</div>
+          <div class="spec-val green">100% On-device</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">Acceleration</div>
+          <div class="spec-val">Apple Neural Engine + Metal</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">Languages</div>
+          <div class="spec-val">99+ with auto-detect</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">Model sizes</div>
+          <div class="spec-val">75 MB — 1.6 GB</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">Keyboard Extension</div>
+          <div class="spec-val green">System-wide</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">Always-on mode</div>
+          <div class="spec-val green">Background listening</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">Transcript storage</div>
+          <div class="spec-val">Local only</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">Data sent to cloud</div>
+          <div class="spec-val green">None — zero</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">Platform</div>
+          <div class="spec-val">iOS 17+</div>
+        </div>
+        <div class="spec-row">
+          <div class="spec-key">Framework</div>
+          <div class="spec-val">SwiftUI + KeyboardKit</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PRIVACY ─── -->
+  <section class="privacy-section">
+    <div class="container reveal">
+      <div class="privacy-icon">🔐</div>
+      <h2 class="privacy-title">Your voice<br><span class="green">never leaves.</span></h2>
+      <p class="privacy-desc">
+        No servers. No accounts. No analytics. Every syllable is processed by the Whisper model running directly on your iPhone's Neural Engine. We couldn't access your data even if we wanted to.
+      </p>
+    </div>
+  </section>
+
+  <!-- ─── CTA ─── -->
+  <section class="cta-section" id="download">
+    <div class="container reveal">
+      <div class="waveform-deco" style="justify-content: center; margin-bottom: 32px; height: 40px;">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <h2 class="section-title">Start speaking.</h2>
+      <p class="section-desc" style="margin: 0 auto 40px; text-align: center;">
+        Download Voxboard and turn your voice into text — privately, instantly, everywhere.
+      </p>
+      <a href="#" class="btn-primary" style="margin: 0 auto;">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        Download on the App Store
+      </a>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="container">
+      <div class="footer-left">
+        © 2026 Voxboard · VXB-01
+      </div>
+      <div class="footer-right">
+        <span>On-device AI</span>
+        <span>whisper.cpp</span>
+        <span>Privacy-first</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── SCROLL REVEAL ─── -->
+  <script>
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -60px 0px'
+    });
+
+    reveals.forEach(el => observer.observe(el));
+
+    // Smooth scroll for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
