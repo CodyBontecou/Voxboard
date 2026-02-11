@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1242, initial-scale=1">
+<title>App Store Slides</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000000; overflow: hidden; }
+
+  .slide {
+    width: 1242px;
+    height: 2688px;
+    background: #000000;
+    position: relative;
+    overflow: hidden;
+    display: none;
+  }
+  .slide.active { display: block; }
+
+  .text-block {
+    position: absolute;
+    left: 80px;
+    right: 80px;
+    z-index: 2;
+  }
+  .headline {
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 100px;
+    font-weight: 700;
+    color: #f5f5f7;
+    line-height: 1.1;
+    letter-spacing: -1px;
+  }
+  .headline .accent { color: #F28C38; }
+  .subtitle {
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 36px;
+    font-weight: 400;
+    color: #86868b;
+    line-height: 1.5;
+    margin-top: 20px;
+  }
+
+  .phone {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5));
+  }
+  .phone-body {
+    background: linear-gradient(160deg, #5a5a5c 0%, #48484a 4%, #3a3a3c 12%, #2c2c2e 40%, #1c1c1e 60%, #2c2c2e 85%, #48484a 96%, #5a5a5c 100%);
+    border-radius: 58px;
+    padding: 10px;
+    position: relative;
+  }
+  .phone-body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 58px;
+    border: 1px solid rgba(255,255,255,0.1);
+    pointer-events: none;
+  }
+  .phone-screen {
+    background: #000;
+    border-radius: 48px;
+    overflow: hidden;
+  }
+  .phone-screen img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .btn-power {
+    position: absolute; right: -4px; top: 240px;
+    width: 4px; height: 100px;
+    background: linear-gradient(90deg, #3a3a3c, #555, #3a3a3c);
+    border-radius: 0 3px 3px 0;
+  }
+  .btn-silence {
+    position: absolute; left: -4px; top: 175px;
+    width: 4px; height: 35px;
+    background: linear-gradient(270deg, #3a3a3c, #555, #3a3a3c);
+    border-radius: 3px 0 0 3px;
+  }
+  .btn-vol-up {
+    position: absolute; left: -4px; top: 250px;
+    width: 4px; height: 68px;
+    background: linear-gradient(270deg, #3a3a3c, #555, #3a3a3c);
+    border-radius: 3px 0 0 3px;
+  }
+  .btn-vol-down {
+    position: absolute; left: -4px; top: 338px;
+    width: 4px; height: 68px;
+    background: linear-gradient(270deg, #3a3a3c, #555, #3a3a3c);
+    border-radius: 3px 0 0 3px;
+  }
+
+  #slide-1 .text-block { top: 70px; }
+  #slide-1 .headline { font-size: 112px; }
+  #slide-1 .subtitle { font-size: 36px; }
+  #slide-1 .phone { width: 1080px; top: 540px; }
+
+  #slide-2 .phone { width: 1000px; top: -120px; }
+  #slide-2 .text-block { bottom: 80px; }
+  #slide-2 .headline { font-size: 100px; }
+  #slide-2 .subtitle { font-size: 36px; }
+
+  #slide-3 .text-block { top: 70px; }
+  #slide-3 .headline { font-size: 100px; }
+  #slide-3 .subtitle { font-size: 36px; }
+  #slide-3 .phone { width: 1080px; top: 480px; }
+
+  #slide-4 .phone { width: 1000px; top: -120px; }
+  #slide-4 .text-block { bottom: 80px; }
+  #slide-4 .headline { font-size: 100px; }
+  #slide-4 .subtitle { font-size: 36px; }
+
+  #slide-5 .text-block { top: 70px; }
+  #slide-5 .headline { font-size: 100px; }
+  #slide-5 .subtitle { font-size: 36px; }
+  #slide-5 .phone { width: 1080px; top: 480px; }
+
+</style>
+</head>
+<body>
+
+<div class="slide" id="slide-1">
+  <div class="text-block">
+    <div class="headline"><span class="accent">Voice</span> to<br>Text</div>
+    <div class="subtitle">On-device transcription<br>powered by Whisper AI.<br>No internet required.</div>
+  </div>
+  <div class="phone">
+    <div class="phone-body">
+      <div class="btn-power"></div><div class="btn-silence"></div>
+      <div class="btn-vol-up"></div><div class="btn-vol-down"></div>
+      <div class="phone-screen"><img src="screenshots/01-home.png" alt=""></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-2">
+  <div class="phone">
+    <div class="phone-body">
+      <div class="btn-power"></div><div class="btn-silence"></div>
+      <div class="btn-vol-up"></div><div class="btn-vol-down"></div>
+      <div class="phone-screen"><img src="screenshots/04-listening.png" alt=""></div>
+    </div>
+  </div>
+  <div class="text-block">
+    <div class="headline">Always<br><span class="accent">Listening</span></div>
+    <div class="subtitle">Tap once and transcribe<br>in any app. Switch freely<br>while recording continues.</div>
+  </div>
+</div>
+
+<div class="slide" id="slide-3">
+  <div class="text-block">
+    <div class="headline">Type with<br>Your <span class="accent">Voice</span></div>
+    <div class="subtitle">Custom keyboard works<br>in Safari, Notes, Messages —<br>everywhere you type.</div>
+  </div>
+  <div class="phone">
+    <div class="phone-body">
+      <div class="btn-power"></div><div class="btn-silence"></div>
+      <div class="btn-vol-up"></div><div class="btn-vol-down"></div>
+      <div class="phone-screen"><img src="screenshots/06-keyboard-safari.png" alt=""></div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="slide-4">
+  <div class="phone">
+    <div class="phone-body">
+      <div class="btn-power"></div><div class="btn-silence"></div>
+      <div class="btn-vol-up"></div><div class="btn-vol-down"></div>
+      <div class="phone-screen"><img src="screenshots/02-settings.png" alt=""></div>
+    </div>
+  </div>
+  <div class="text-block">
+    <div class="headline">Choose Your<br><span class="accent">Model</span></div>
+    <div class="subtitle">5 Whisper models from<br>75 MB to 1.6 GB.<br>Accuracy when you need it.</div>
+  </div>
+</div>
+
+<div class="slide" id="slide-5">
+  <div class="text-block">
+    <div class="headline">Fully<br><span class="accent">Private</span></div>
+    <div class="subtitle">Powered by whisper.cpp.<br>All processing on-device.<br>No data leaves your phone.</div>
+  </div>
+  <div class="phone">
+    <div class="phone-body">
+      <div class="btn-power"></div><div class="btn-silence"></div>
+      <div class="btn-vol-up"></div><div class="btn-vol-down"></div>
+      <div class="phone-screen"><img src="screenshots/05-settings-scrolled.png" alt=""></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showSlide() {
+    const num = parseInt(location.hash.replace('#', '')) || 1;
+    document.querySelectorAll('.slide').forEach((s, i) => {
+      s.classList.toggle('active', i === num - 1);
+    });
+  }
+  window.addEventListener('hashchange', showSlide);
+  showSlide();
+</script>
+</body>
+</html>

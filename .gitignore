@@ -5,9 +5,24 @@ xcuserdata/
 DerivedData/
 build/
 
-# Whisper models (too large for git — download with: curl -L -o VoxVault/ggml-base.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin)
+# Whisper models (too large for git — download with: curl -L -o Voxboard/ggml-base.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin)
 *.bin
 
 # SPM
 .build/
-Packages/VoxVaultShared/.build/
+Packages/VoxboardShared/.build/
+
+# Secrets
+api_key.json
+
+# OS files
+.DS_Store
+
+# Node
+node_modules/
+
+# Generated output
+output/
+
+# Whisper framework (large binary)
+whisper.xcframework/

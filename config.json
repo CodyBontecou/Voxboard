@@ -1,0 +1,50 @@
+{
+  "theme": {
+    "accentColor": "#F28C38",
+    "font": "JetBrains Mono",
+    "fontUrl": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap",
+    "backgroundColor": "#000000",
+    "textColor": "#f5f5f7",
+    "subtitleColor": "#86868b",
+    "frameColor": "dark"
+  },
+  "output": {
+    "width": 1242,
+    "height": 2688,
+    "prefix": "appstore-slide"
+  },
+  "slides": [
+    {
+      "layout": "text-top",
+      "headline": "{Voice} to\nText",
+      "subtitle": "On-device transcription\npowered by Whisper AI.\nNo internet required.",
+      "screenshot": "screenshots/01-home.png",
+      "headlineSize": 112,
+      "phoneTop": 540
+    },
+    {
+      "layout": "text-bottom",
+      "headline": "Always\n{Listening}",
+      "subtitle": "Tap once and transcribe\nin any app. Switch freely\nwhile recording continues.",
+      "screenshot": "screenshots/04-listening.png"
+    },
+    {
+      "layout": "text-top",
+      "headline": "Type with\nYour {Voice}",
+      "subtitle": "Custom keyboard works\nin Safari, Notes, Messages —\neverywhere you type.",
+      "screenshot": "screenshots/06-keyboard-safari.png"
+    },
+    {
+      "layout": "text-bottom",
+      "headline": "Choose Your\n{Model}",
+      "subtitle": "5 Whisper models from\n75 MB to 1.6 GB.\nAccuracy when you need it.",
+      "screenshot": "screenshots/02-settings.png"
+    },
+    {
+      "layout": "text-top",
+      "headline": "Fully\n{Private}",
+      "subtitle": "Powered by whisper.cpp.\nAll processing on-device.\nNo data leaves your phone.",
+      "screenshot": "screenshots/05-settings-scrolled.png"
+    }
+  ]
+}

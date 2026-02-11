@@ -1,0 +1,40 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Create app in App Store Connect"
+  lane :create_app do
+    api_key = app_store_connect_api_key(
+      key_id: "7ZLQ98Z2PK",
+      issuer_id: "6c3b3640-c6bf-40a9-b6e5-57cda2c7776e",
+      key_filepath: "/Users/codybontecou/.appstoreconnect/private_keys/AuthKey_7ZLQ98Z2PK.p8"
+    )
+
+    create_app_online(
+      app_identifier: "bontecou.Voxboard",
+      app_name: "Voxboard",
+      language: "English",
+      app_version: "1.0",
+      sku: "bontecou.Voxboard",
+      team_id: "67KC823C9A",
+      skip_devcenter: true
+    )
+  end
+
+  desc "Upload to App Store Connect"
+  lane :upload do
+    api_key = app_store_connect_api_key(
+      key_id: "7ZLQ98Z2PK",
+      issuer_id: "6c3b3640-c6bf-40a9-b6e5-57cda2c7776e",
+      key_filepath: "/Users/codybontecou/.appstoreconnect/private_keys/AuthKey_7ZLQ98Z2PK.p8"
+    )
+
+    upload_to_app_store(
+      api_key: api_key,
+      ipa: "build/export/Voxboard.ipa",
+      skip_metadata: true,
+      skip_screenshots: true,
+      force: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+end

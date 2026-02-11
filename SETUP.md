@@ -1,4 +1,4 @@
-# VoxVault — Setup Guide
+# Voxboard — Setup Guide
 
 Voice-to-text iOS keyboard powered by whisper.cpp (on-device transcription).
 
@@ -8,12 +8,12 @@ Voice-to-text iOS keyboard powered by whisper.cpp (on-device transcription).
 
 The following has been set up via CLI:
 
-- ✅ **Keyboard extension target** ("VoxVault Keyboard") — added in Xcode
-- ✅ **SPM dependencies** in pbxproj — KeyboardKit (keyboard target), VoxVaultShared local package (both targets)
-- ✅ **VoxVaultShared** local Swift package — shared code between app + extension, depends on whisper.cpp
-- ✅ **App Group entitlements** — `group.bontecou.VoxVault` on both targets
+- ✅ **Keyboard extension target** ("Voxboard Keyboard") — added in Xcode
+- ✅ **SPM dependencies** in pbxproj — KeyboardKit (keyboard target), VoxboardShared local package (both targets)
+- ✅ **VoxboardShared** local Swift package — shared code between app + extension, depends on whisper.cpp
+- ✅ **App Group entitlements** — `group.bontecou.Voxboard` on both targets
 - ✅ **Info.plist** — mic permission, `RequestsOpenAccess`, keyboard extension config
-- ✅ **Base whisper model** — `ggml-base.bin` (141MB) downloaded and placed in `VoxVault/`
+- ✅ **Base whisper model** — `ggml-base.bin` (141MB) downloaded and placed in `Voxboard/`
 - ✅ **All source files** — app views, keyboard extension, shared whisper wrapper
 
 ## What You Need To Do in Xcode
@@ -22,11 +22,11 @@ The following has been set up via CLI:
 
 This must be done via Xcode's UI (creates the provisioning profile entitlement):
 
-1. Select **VoxVault** target → **Signing & Capabilities** → **+ Capability** → **App Groups**
-   - Add: `group.bontecou.VoxVault`
+1. Select **Voxboard** target → **Signing & Capabilities** → **+ Capability** → **App Groups**
+   - Add: `group.bontecou.Voxboard`
 
-2. Select **VoxVault Keyboard** target → **Signing & Capabilities** → **+ Capability** → **App Groups**
-   - Add: `group.bontecou.VoxVault`
+2. Select **Voxboard Keyboard** target → **Signing & Capabilities** → **+ Capability** → **App Groups**
+   - Add: `group.bontecou.Voxboard`
 
 ### 2. Resolve Packages
 
@@ -36,32 +36,32 @@ After opening the project, Xcode should auto-resolve SPM packages. If not:
 
 This will download:
 - KeyboardKit (for the keyboard extension)
-- whisper.cpp (via VoxVaultShared local package)
+- whisper.cpp (via VoxboardShared local package)
 
 ### 3. Verify Model Is Bundled
 
 Check that `ggml-base.bin` appears in:
-- **VoxVault target → Build Phases → Copy Bundle Resources**
+- **Voxboard target → Build Phases → Copy Bundle Resources**
 
-With file-system sync, it should be auto-included since it's in the `VoxVault/` directory.
+With file-system sync, it should be auto-included since it's in the `Voxboard/` directory.
 
 ---
 
 ## Running & Testing
 
 ### First Run
-1. Build and run the **VoxVault** scheme on a physical device
+1. Build and run the **Voxboard** scheme on a physical device
 2. The app copies the bundled base model to the shared App Group container
 3. Grant microphone permission when prompted
 
 ### Enable the Keyboard
 1. **Settings → General → Keyboard → Keyboards → Add New Keyboard**
-2. Select **VoxVault Keyboard**
+2. Select **Voxboard Keyboard**
 3. Tap it → **Allow Full Access** (required for microphone in keyboard)
 
 ### Test the Keyboard
 1. Open any text field (Notes, Messages, etc.)
-2. Switch to VoxVault keyboard (globe icon)
+2. Switch to Voxboard keyboard (globe icon)
 3. Use `<` `>` arrows to select a model
 4. Tap **Start** → speak → tap **Stop**
 5. Text appears in the input field
@@ -71,17 +71,17 @@ With file-system sync, it should be auto-included since it's in the `VoxVault/` 
 ## Architecture
 
 ```
-VoxVault (Main App)
+Voxboard (Main App)
 ├── HomeView          — dark minimal UI, big record button
 ├── HistoryView       — scrollable transcript history
 ├── SettingsView      — model download/select, language
 
-VoxVault Keyboard (Extension)
+Voxboard Keyboard (Extension)
 ├── KeyboardViewController  — KeyboardKit standard keyboard
 ├── VoiceToolbarView        — [< 🎤 >] Model  [▶ Start]
 ├── VoiceKeyboardState      — recording + transcription state
 
-Packages/VoxVaultShared (Local SPM)
+Packages/VoxboardShared (Local SPM)
 ├── AppConstants      — App Group IDs, shared paths
 ├── AudioRecorder     — 16kHz mono PCM recording
 ├── WhisperContext    — whisper.cpp C API wrapper
@@ -120,18 +120,18 @@ If the keyboard crashes during transcription, switch to Tiny in Settings.
 If you need to re-download `ggml-base.bin` (e.g., after git clone):
 
 ```bash
-curl -L -o VoxVault/ggml-base.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+curl -L -o Voxboard/ggml-base.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
 ```
 
 ---
 
 ## Troubleshooting
 
-**"Open VoxVault to set up"** in keyboard toolbar:
+**"Open Voxboard to set up"** in keyboard toolbar:
 → Launch the main app at least once so it copies the model to the shared container.
 
 **"Enable Full Access in Settings"**:
-→ Settings → General → Keyboard → Keyboards → VoxVault Keyboard → Allow Full Access.
+→ Settings → General → Keyboard → Keyboards → Voxboard Keyboard → Allow Full Access.
 
 **Keyboard crashes on transcription**:
 → Switch to Tiny model in the app's Settings. Base model may exceed memory limits on older devices.

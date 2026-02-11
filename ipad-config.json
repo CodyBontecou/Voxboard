@@ -1,0 +1,78 @@
+{
+  "theme": {
+    "accentColor": "#F28C38",
+    "font": "JetBrains Mono",
+    "fontUrl": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap",
+    "backgroundColor": "#000000",
+    "textColor": "#f5f5f7",
+    "subtitleColor": "#86868b",
+    "frameColor": "dark"
+  },
+  "output": {
+    "width": 2048,
+    "height": 2732,
+    "prefix": "ipad-slide"
+  },
+  "slides": [
+    {
+      "layout": "text-top",
+      "headline": "{Voice} to\nText",
+      "subtitle": "On-device transcription\npowered by Whisper AI.\nNo internet required.",
+      "screenshot": "screenshots/ipad/01-home.png",
+      "headlineSize": 140,
+      "subtitleSize": 46,
+      "phoneWidth": 1650,
+      "phoneTop": 680,
+      "textTop": 80,
+      "css": "#slide-1 .phone-body { border-radius: 36px; padding: 8px; } #slide-1 .phone-screen { border-radius: 28px; } #slide-1 .btn-silence { display: none; }"
+    },
+    {
+      "layout": "text-bottom",
+      "headline": "Always\n{Listening}",
+      "subtitle": "Tap once and transcribe\nin any app. Switch freely\nwhile recording continues.",
+      "screenshot": "screenshots/ipad/04-listening.png",
+      "headlineSize": 140,
+      "subtitleSize": 46,
+      "phoneWidth": 1600,
+      "phoneTop": -100,
+      "textBottom": 90,
+      "css": "#slide-2 .phone-body { border-radius: 36px; padding: 8px; } #slide-2 .phone-screen { border-radius: 28px; } #slide-2 .btn-silence { display: none; }"
+    },
+    {
+      "layout": "text-top",
+      "headline": "Choose Your\n{Model}",
+      "subtitle": "5 Whisper models from\n75 MB to 1.6 GB.\nAccuracy when you need it.",
+      "screenshot": "screenshots/ipad/02-settings.png",
+      "headlineSize": 140,
+      "subtitleSize": 46,
+      "phoneWidth": 1650,
+      "phoneTop": 680,
+      "textTop": 80,
+      "css": "#slide-3 .phone-body { border-radius: 36px; padding: 8px; } #slide-3 .phone-screen { border-radius: 28px; } #slide-3 .btn-silence { display: none; }"
+    },
+    {
+      "layout": "text-bottom",
+      "headline": "Fully\n{Private}",
+      "subtitle": "Powered by whisper.cpp.\nAll processing on-device.\nNo data leaves your iPad.",
+      "screenshot": "screenshots/ipad/03-settings-scrolled.png",
+      "headlineSize": 140,
+      "subtitleSize": 46,
+      "phoneWidth": 1600,
+      "phoneTop": -100,
+      "textBottom": 90,
+      "css": "#slide-4 .phone-body { border-radius: 36px; padding: 8px; } #slide-4 .phone-screen { border-radius: 28px; } #slide-4 .btn-silence { display: none; }"
+    },
+    {
+      "layout": "text-top",
+      "headline": "Transcript\n{History}",
+      "subtitle": "Review past transcriptions\nanytime. Your voice notes\nsaved locally on device.",
+      "screenshot": "screenshots/ipad/05-history.png",
+      "headlineSize": 140,
+      "subtitleSize": 46,
+      "phoneWidth": 1650,
+      "phoneTop": 680,
+      "textTop": 80,
+      "css": "#slide-5 .phone-body { border-radius: 36px; padding: 8px; } #slide-5 .phone-screen { border-radius: 28px; } #slide-5 .btn-silence { display: none; }"
+    }
+  ]
+}
