@@ -132,41 +132,91 @@ struct HomeView: View {
 
     private var listeningActiveView: some View {
         VStack(spacing: 24) {
-            // Pulsing waveform icon
+            // Pulsing icon — changes based on state
             ZStack {
-                Circle()
-                    .fill(Color.green.opacity(0.08))
-                    .frame(width: 140, height: 140)
-                    .scaleEffect(pulseAnimation ? 1.15 : 1.0)
-                    .opacity(pulseAnimation ? 0.4 : 0.8)
-                    .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: pulseAnimation)
+                if persistentRecorder.isSegmentActive {
+                    // Recording pulse (red)
+                    Circle()
+                        .fill(Color.red.opacity(0.1))
+                        .frame(width: 140, height: 140)
+                        .scaleEffect(pulseAnimation ? 1.2 : 1.0)
+                        .opacity(pulseAnimation ? 0.3 : 0.8)
+                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulseAnimation)
 
-                Circle()
-                    .fill(Color.green.opacity(0.12))
-                    .frame(width: 100, height: 100)
+                    Circle()
+                        .fill(Color.red.opacity(0.15))
+                        .frame(width: 100, height: 100)
 
-                Image(systemName: "waveform")
-                    .font(.system(size: 36, weight: .medium))
-                    .foregroundColor(.green)
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 36, weight: .medium))
+                        .foregroundColor(.red)
+                } else if persistentRecorder.isTranscribing {
+                    Circle()
+                        .fill(Color.blue.opacity(0.1))
+                        .frame(width: 100, height: 100)
+
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(.blue)
+                } else {
+                    // Idle listening pulse (green)
+                    Circle()
+                        .fill(Color.green.opacity(0.08))
+                        .frame(width: 140, height: 140)
+                        .scaleEffect(pulseAnimation ? 1.15 : 1.0)
+                        .opacity(pulseAnimation ? 0.4 : 0.8)
+                        .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: pulseAnimation)
+
+                    Circle()
+                        .fill(Color.green.opacity(0.12))
+                        .frame(width: 100, height: 100)
+
+                    Image(systemName: "waveform")
+                        .font(.system(size: 36, weight: .medium))
+                        .foregroundColor(.green)
+                }
             }
             .onAppear { pulseAnimation = true }
             .onDisappear { pulseAnimation = false }
 
             VStack(spacing: 12) {
-                Text("Listening")
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundColor(.white)
-
                 if persistentRecorder.isSegmentActive {
-                    Text("Recording segment…")
-                        .font(.system(size: 15))
-                        .foregroundColor(.orange)
+                    Text("Recording")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.white)
+
+                    Text(formatDuration(persistentRecorder.segmentDuration))
+                        .font(.system(size: 48, weight: .light, design: .monospaced))
+                        .foregroundColor(.white)
+
                 } else if persistentRecorder.isTranscribing {
                     Text("Transcribing…")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.white)
+
+                    Text("Processing your audio")
                         .font(.system(size: 15))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.white.opacity(0.4))
+
+                } else if let result = persistentRecorder.lastTranscriptionResult {
+                    Text("Transcription")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(.white)
+
+                    Text(result)
+                        .font(.system(size: 17))
+                        .foregroundColor(.white.opacity(0.75))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                        .padding(.horizontal, 16)
+                        .fixedSize(horizontal: false, vertical: true)
+
                 } else {
-                    Text("Switch to any app and use the keyboard\nto record and transcribe your voice.")
+                    Text("Listening")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.white)
+
+                    Text("Tap record below, or use the\nkeyboard from any app.")
                         .font(.system(size: 15))
                         .foregroundColor(.white.opacity(0.4))
                         .multilineTextAlignment(.center)
@@ -174,12 +224,49 @@ struct HomeView: View {
                 }
             }
 
-            // Inline status for active operations
-            if persistentRecorder.isSegmentActive {
-                Text(formatDuration(persistentRecorder.segmentDuration))
-                    .font(.system(size: 36, weight: .light, design: .monospaced))
-                    .foregroundColor(.white)
+            // In-app record/stop button
+            inAppRecordButton
+        }
+    }
+
+    @ViewBuilder
+    private var inAppRecordButton: some View {
+        if persistentRecorder.isSegmentActive {
+            Button(action: { persistentRecorder.stopInAppSegment() }) {
+                HStack(spacing: 10) {
+                    Image(systemName: "stop.fill")
+                        .font(.system(size: 16))
+                    Text("Stop & Transcribe")
+                        .font(.system(size: 18, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(Color.red)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
             }
+            .padding(.horizontal, 40)
+        } else if persistentRecorder.isTranscribing {
+            // No button during transcription — just show the spinner in the icon area
+            EmptyView()
+        } else {
+            Button(action: {
+                persistentRecorder.lastTranscriptionResult = nil
+                persistentRecorder.startInAppSegment()
+            }) {
+                HStack(spacing: 10) {
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 16))
+                    Text("Record")
+                        .font(.system(size: 18, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(Color.blue)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+            }
+            .padding(.horizontal, 40)
         }
     }
 
