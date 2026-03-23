@@ -26,6 +26,9 @@ final class PersistentRecorder {
     var segmentDuration: TimeInterval = 0
     var lastError: String?
 
+    /// Last transcription result from an in-app recording. Observable for UI display.
+    var lastTranscriptionResult: String?
+
     // MARK: - Audio Engine
 
     private var audioEngine: AVAudioEngine?
@@ -207,6 +210,9 @@ final class PersistentRecorder {
         // Pre-load the default whisper model so the first transcription is fast
         preloadModel()
 
+        // Observe audio session interruptions so we can auto-restart the engine
+        registerInterruptionObserver()
+
         log.log("[PersistentRecorder] ✅ Listening started, waiting for keyboard commands")
         return true
     }
@@ -248,6 +254,64 @@ final class PersistentRecorder {
         }
     }
 
+    // MARK: - Audio Interruption Handling
+
+    private func registerInterruptionObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioInterruption(_:)),
+            name: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance()
+        )
+    }
+
+    private func removeInterruptionObserver() {
+        NotificationCenter.default.removeObserver(
+            self,
+            name: AVAudioSession.interruptionNotification,
+            object: nil
+        )
+    }
+
+    @objc private func handleAudioInterruption(_ notification: Notification) {
+        guard let info = notification.userInfo,
+              let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+            return
+        }
+
+        switch type {
+        case .began:
+            log.log("[PersistentRecorder] ⚠️ Audio interruption began")
+            if isSegmentActive {
+                cancelSegment()
+            }
+
+        case .ended:
+            log.log("[PersistentRecorder] Audio interruption ended — restarting engine")
+            let options = (notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt)
+                .flatMap { AVAudioSession.InterruptionOptions(rawValue: $0) }
+
+            if options?.contains(.shouldResume) ?? true {
+                // Restart the audio engine
+                if let engine = audioEngine {
+                    do {
+                        try AVAudioSession.sharedInstance().setActive(true)
+                        try engine.start()
+                        log.log("[PersistentRecorder] ✅ Audio engine restarted after interruption")
+                    } catch {
+                        log.log("[PersistentRecorder] ❌ Engine restart failed: \(error) — full restart")
+                        stopListening()
+                        startListening()
+                    }
+                }
+            }
+
+        @unknown default:
+            break
+        }
+    }
+
     /// Stop the always-on capture.
     func stopListening() {
         guard isListening else { return }
@@ -258,6 +322,9 @@ final class PersistentRecorder {
         if isSegmentActive {
             cancelSegment()
         }
+
+        // Remove interruption observer
+        removeInterruptionObserver()
 
         // Stop engine
         if let engine = audioEngine {
@@ -279,6 +346,54 @@ final class PersistentRecorder {
         unregisterCommandObserver()
 
         log.log("[PersistentRecorder] ✅ Listening stopped")
+    }
+
+    // MARK: - In-App Recording
+
+    /// Start a recording segment directly from the app UI (no IPC needed).
+    func startInAppSegment() {
+        guard isListening else {
+            lastError = "Start listening first"
+            log.log("[PersistentRecorder] ❌ startInAppSegment but not listening")
+            return
+        }
+        guard !isSegmentActive, !isTranscribing else {
+            log.log("[PersistentRecorder] ⚠️ startInAppSegment skipped — segment active or transcribing")
+            return
+        }
+
+        lastTranscriptionResult = nil
+        lastError = nil
+
+        let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+            ?? AppConstants.defaultModelName
+        let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
+            ?? "auto"
+        let requestId = "inapp-\(UUID().uuidString)"
+
+        let command = RecordingCommand(
+            requestId: requestId,
+            action: .startSegment,
+            modelId: modelId,
+            language: language
+        )
+
+        log.log("[PersistentRecorder] 🎙 In-app segment start: \(requestId)")
+        handleStartSegment(command)
+    }
+
+    /// Stop the current in-app recording segment and transcribe.
+    func stopInAppSegment() {
+        guard isSegmentActive else {
+            log.log("[PersistentRecorder] ⚠️ stopInAppSegment but no active segment")
+            return
+        }
+
+        let requestId = segmentRequestId ?? "inapp-\(UUID().uuidString)"
+        let command = RecordingCommand(requestId: requestId, action: .stopSegment)
+
+        log.log("[PersistentRecorder] ⏹ In-app segment stop: \(requestId)")
+        handleStopSegment(command)
     }
 
     // MARK: - Segment Control
@@ -391,7 +506,7 @@ final class PersistentRecorder {
         }
 
         let requestId = segmentRequestId ?? command.requestId
-        log.log("[PersistentRecorder] ⏹ Stopping segment: \(requestId)")
+        log.log("[PersistentRecorder] ⏹ Stopping segment: \(requestId.prefix(8)) (segmentRequestId=\(segmentRequestId?.prefix(8) ?? "nil"), command.requestId=\(command.requestId.prefix(8)))")
         osLog.notice("⏹ Stopping segment: \(requestId)")
 
         stopDurationTimer()
@@ -539,7 +654,12 @@ final class PersistentRecorder {
         await MainActor.run {
             if let text, !text.isEmpty {
                 let response = TranscriptionResponse(requestId: requestId, text: text)
-                try? TranscriptionIPC.writeResponse(response)
+                do {
+                    try TranscriptionIPC.writeResponse(response)
+                    log.log("[PersistentRecorder] 📤 Response written (requestId=\(requestId.prefix(8)), chars=\(text.count))")
+                } catch {
+                    log.log("[PersistentRecorder] ❌ writeResponse FAILED: \(error) — keyboard will not receive transcription!")
+                }
                 TranscriptionIPC.postResponseNotification()
                 osLog.notice("📤 Response written and notification posted for \(requestId)")
 
@@ -557,8 +677,12 @@ final class PersistentRecorder {
                 )
                 self.transcriptStore.add(transcript)
 
+                // Surface result for in-app recording UI
+                self.lastTranscriptionResult = text
+
                 log.log("[PersistentRecorder] ✅ Transcription complete: \(text.count) chars")
             } else {
+                self.lastTranscriptionResult = nil
                 writeErrorResponse(requestId: requestId, message: "No speech detected")
             }
         }
@@ -690,9 +814,22 @@ final class PersistentRecorder {
 
         switch command.action {
         case .startSegment:
-            // Mark the buffer position immediately on this high-priority thread
-            // The circular buffer is thread-safe, so this is safe to do off-main
-            handleStartSegmentFast(command)
+            // Dispatch to main so we can safely check & cancel any stale active segment
+            // before marking the new buffer position. The 2-second pre-roll makes the
+            // extra ~few-ms dispatch latency negligible.
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                // Force-cancel any lingering segment from a previous session.
+                // This is the root cause of requestId mismatches: if the keyboard
+                // extension was killed mid-session, isSegmentActive stays true and
+                // new recordings silently reuse the old segmentRequestId.
+                if self.isSegmentActive {
+                    let age = Date().timeIntervalSince1970 - self.segmentStartedAt
+                    log.log("[PersistentRecorder] ⚠️ Force-cancelling stale segment (age=\(Int(age))s) before new start")
+                    self.cancelSegment()
+                }
+                self.handleStartSegment(command)
+            }
 
         case .stopSegment, .stop:
             // Stop and extract need main thread for UI + transcription kickoff

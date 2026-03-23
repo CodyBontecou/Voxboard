@@ -10,6 +10,9 @@ struct VoiceToolbarView: View {
     @Bindable var voiceState: VoiceKeyboardState
     let hasFullAccess: Bool
 
+    /// Incremented each time the user switches models — drives the selection haptic.
+    @State private var modelChangeCount = 0
+
     var body: some View {
         HStack(spacing: 10) {
             modelNavigator
@@ -24,13 +27,28 @@ struct VoiceToolbarView: View {
         .padding(.horizontal, 12)
         .padding(.top, 6)
         .padding(.bottom, 6)
+        // .sensoryFeedback with conditional closures causes "unable to type-check"
+        // errors on this SDK due to the enum with associated value. Use onChange +
+        // UIFeedbackGenerator instead — equivalent behavior.
+        .onChange(of: voiceState.status) { old, new in
+            if new == .recording || new == .transcribing {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            } else if old == .transcribing && new == .idle {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            } else if case .error = new {
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
+            }
+        }
+        .onChange(of: modelChangeCount) {
+            UISelectionFeedbackGenerator().selectionChanged()
+        }
     }
 
     // MARK: - Model Navigator: [< 🎤 >]
 
     private var modelNavigator: some View {
         HStack(spacing: 8) {
-            Button(action: { voiceState.previousModel() }) {
+            Button(action: { voiceState.previousModel(); modelChangeCount += 1 }) {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.primary.opacity(0.7))
@@ -38,7 +56,7 @@ struct VoiceToolbarView: View {
 
             micIcon
 
-            Button(action: { voiceState.nextModel() }) {
+            Button(action: { voiceState.nextModel(); modelChangeCount += 1 }) {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.primary.opacity(0.7))

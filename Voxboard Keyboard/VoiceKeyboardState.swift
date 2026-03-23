@@ -62,9 +62,12 @@ final class VoiceKeyboardState {
     private var durationTimer: Timer?
     private var recordingStartedAt: TimeInterval?
     private var transcribingStartedAt: TimeInterval?
+    /// Wall-clock time when the user tapped Stop — used by the transcript-store fallback.
+    private var segmentStopTime: Date?
 
     /// Maximum time to wait for transcription before showing an error (seconds).
-    private let transcriptionTimeout: TimeInterval = 90
+    /// Reduced from 90 → 30 so the "timed out" error appears sooner if all else fails.
+    private let transcriptionTimeout: TimeInterval = 30
 
     init() {
         // Ensure IPC directory exists once upfront (avoids repeated checks on every write)
@@ -236,6 +239,7 @@ final class VoiceKeyboardState {
         // Update UI immediately
         status = .transcribing
         transcribingStartedAt = Date().timeIntervalSince1970
+        segmentStopTime = Date()
         stopDurationTimer()
     }
 
@@ -373,18 +377,57 @@ final class VoiceKeyboardState {
         log.log("📝 Recovered text inserted and cleared")
     }
 
+    // MARK: - Suspension Recovery
+
+    // MARK: - Suspension Recovery
+
+    /// Called from viewDidAppear to recover from extension suspension.
+    ///
+    /// When the keyboard extension is suspended (e.g. user briefly switches to
+    /// another app while transcribing), the poll timer stops and Darwin
+    /// notifications may not be delivered. On resume, we need to:
+    ///  1. Immediately check the shared container for a completed response.
+    ///  2. Restart the poll timer so we catch it if it hasn't arrived yet.
+    func resumeAfterSuspension() {
+        guard pendingRequestId != nil else { return }
+        log.log("resumeAfterSuspension — pending request found, status=\(status)")
+
+        // Restart poll timer if it was killed by suspension
+        if pollTimer == nil {
+            startPolling()
+        }
+
+        // Immediately check — the response may already be in the shared container.
+        // Use DispatchQueue.main.async + assumeIsolated for the same reliability
+        // reason as the poll timer and Darwin notification callbacks.
+        DispatchQueue.main.async {
+            MainActor.assumeIsolated { self.checkForUpdates() }
+        }
+    }
+
     // MARK: - Polling for Status & Response
 
     private func startPolling() {
         pollTimer?.invalidate()
+        // Use DispatchQueue.main.async + MainActor.assumeIsolated so the callback always
+        // runs on the main thread regardless of which thread the timer fires on.
         pollTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.checkForUpdates() }
+            guard let self else { return }
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                MainActor.assumeIsolated { self.checkForUpdates() }
+            }
         }
     }
+
+    /// Throttle counter so we don't spam the log on every poll.
+    private var pollCount: Int = 0
 
     @MainActor
     private func checkForUpdates() {
         guard let requestId = pendingRequestId else { return }
+
+        pollCount += 1
 
         // Read audio levels during recording for waveform animation
         if status == .recording {
@@ -433,10 +476,69 @@ final class VoiceKeyboardState {
         }
 
         // Check for completed response
-        guard let response = TranscriptionIPC.readResponse(),
-              response.requestId == requestId else { return }
+        if let response = TranscriptionIPC.readResponse() {
+            if response.requestId == requestId {
+                // ── Happy path ───────────────────────────────────────────────
+                log.log("📥 Response received for \(requestId.prefix(8))")
+                pollCount = 0
+                finishWithResponse(response)
+            } else {
+                // ── RequestId mismatch ───────────────────────────────────────
+                // A response exists in the container but its requestId differs from
+                // what the keyboard expects. This happens when PersistentRecorder had
+                // stale `isSegmentActive = true` from a previous session — the start
+                // command was dropped and the stop command used the old segmentRequestId.
+                // Accept it immediately since we know the transcription just completed.
+                log.log("⚠️ requestId mismatch — expected=\(requestId.prefix(8)) got=\(response.requestId.prefix(8)) — accepting anyway")
+                pollCount = 0
+                finishWithResponse(response)
+            }
+        } else {
+            // ── No response file ────────────────────────────────────────────
+            // Log every ~3 seconds while waiting.
+            if status == .transcribing, pollCount % 30 == 0 {
+                let elapsed = transcribingStartedAt.map { Date().timeIntervalSince1970 - $0 } ?? 0
+                log.log("⏳ Waiting for response… poll=\(pollCount) elapsed=\(Int(elapsed))s pendingId=\(requestId.prefix(8))")
+            }
 
-        log.log("📥 Response received for \(requestId)")
+            // ── Transcript-store fallback ────────────────────────────────────
+            // The app ALWAYS writes to transcripts.json when transcription completes
+            // (verified: user sees result in History). After 5 seconds with no IPC
+            // response file, read transcripts.json directly and use the latest entry
+            // if it's newer than when the user tapped Stop. This bypasses any IPC
+            // response write failure entirely.
+            if status == .transcribing,
+               let stopTime = segmentStopTime,
+               let startedAt = transcribingStartedAt,
+               Date().timeIntervalSince1970 - startedAt > 5,
+               pollCount % 10 == 0,  // check ~once per second, not every 0.1s
+               let text = latestTranscriptSince(stopTime) {
+                log.log("🔄 Transcript-store fallback triggered — using latest entry (\(text.count) chars)")
+                pollCount = 0
+                let syntheticResponse = TranscriptionResponse(requestId: requestId, text: text)
+                finishWithResponse(syntheticResponse)
+            }
+        }
+    }
+
+    /// Read transcripts.json from the shared container and return the text of the
+    /// most recent entry if it was created after `since`. Returns nil if the store
+    /// is empty, unreadable, or no transcript is newer than `since`.
+    private func latestTranscriptSince(_ since: Date) -> String? {
+        guard let dir = AppConstants.sharedContainerURL else { return nil }
+        let url = dir.appendingPathComponent("transcripts.json")
+        guard let data = try? Data(contentsOf: url),
+              let transcripts = try? JSONDecoder().decode([Transcript].self, from: data),
+              let latest = transcripts.first  // newest is always at index 0
+        else { return nil }
+        // Only use it if it was created after the user tapped Stop
+        guard latest.date > since else { return nil }
+        return latest.text
+    }
+
+    /// Process a completed transcription response (happy path or fallback).
+    @MainActor
+    private func finishWithResponse(_ response: TranscriptionResponse) {
         cleanupPending()
         TranscriptionIPC.clearResponse()
         TranscriptionIPC.clearStatus()
@@ -489,8 +591,10 @@ final class VoiceKeyboardState {
         pendingRequestId = nil
         recordingStartedAt = nil
         transcribingStartedAt = nil
+        segmentStopTime = nil
         recordingDuration = 0
         audioLevels = Array(repeating: 0, count: 7)
+        pollCount = 0
     }
 
     // MARK: - Darwin Notification Observers
@@ -506,7 +610,13 @@ final class VoiceKeyboardState {
                 guard let observer else { return }
                 let state = Unmanaged<VoiceKeyboardState>
                     .fromOpaque(observer).takeUnretainedValue()
-                Task { @MainActor in state.checkForUpdates() }
+                // Use DispatchQueue.main.async + MainActor.assumeIsolated instead of
+                // Task { @MainActor in ... } — Tasks in keyboard extensions can be
+                // silently delayed or dropped under memory pressure. This path is
+                // synchronous on the main thread, which is always what we want.
+                DispatchQueue.main.async {
+                    MainActor.assumeIsolated { state.checkForUpdates() }
+                }
             },
             TranscriptionIPC.responseNotificationName,
             nil,
@@ -525,7 +635,9 @@ final class VoiceKeyboardState {
                 guard let observer else { return }
                 let state = Unmanaged<VoiceKeyboardState>
                     .fromOpaque(observer).takeUnretainedValue()
-                Task { @MainActor in state.refreshListeningState() }
+                DispatchQueue.main.async {
+                    MainActor.assumeIsolated { state.refreshListeningState() }
+                }
             },
             TranscriptionIPC.listeningStateNotificationName,
             nil,

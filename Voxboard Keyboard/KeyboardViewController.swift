@@ -59,6 +59,10 @@ class KeyboardViewController: KeyboardInputViewController {
 
         // Try to insert any pending text recovered from a previous session
         voiceState.tryInsertPendingText()
+
+        // If we were transcribing when the extension was suspended, the poll timer
+        // is dead and any Darwin notification may have been missed. Check now.
+        voiceState.resumeAfterSuspension()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
