@@ -1,96 +1,151 @@
 import SwiftUI
 import VoxboardShared
 
-/// Shows previous transcriptions in a scrollable list.
-/// Supports copy to clipboard, swipe-to-delete, and clear all.
 struct HistoryView: View {
     @Environment(TranscriptStore.self) private var store
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
-            Group {
+            ZStack {
+                Brutal.bg.ignoresSafeArea()
+
                 if store.transcripts.isEmpty {
                     emptyState
                 } else {
                     transcriptList
                 }
             }
-            .navigationTitle("History")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("HISTORY")
+                        .font(Brutal.label(13))
+                        .foregroundColor(Brutal.text)
+                }
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Close") { dismiss() }
+                    Button("CLOSE") { dismiss() }
+                        .font(Brutal.label(11))
+                        .foregroundColor(Brutal.muted)
+                        .buttonStyle(.plain)
                 }
                 if !store.transcripts.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Clear All", role: .destructive) {
-                            store.clear()
-                        }
+                        Button("CLEAR ALL") { store.clear() }
+                            .font(Brutal.label(11))
+                            .foregroundColor(Brutal.error)
+                            .buttonStyle(.plain)
                     }
                 }
             }
+            .toolbarBackground(Brutal.bg, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .preferredColorScheme(.dark)
-        .onAppear {
-            store.reload()
-        }
+        .onAppear { store.reload() }
     }
 
     // MARK: - Empty State
 
     private var emptyState: some View {
-        ContentUnavailableView(
-            "No Transcripts Yet",
-            systemImage: "waveform",
-            description: Text("Your voice transcriptions will appear here")
-        )
+        VStack(spacing: 24) {
+            BrutalSectionLabel(number: "—", title: "Empty")
+            Text("NO TRANSCRIPTS.")
+                .font(Brutal.display(32))
+                .foregroundColor(Brutal.faint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.35)
+            Text("Use the keyboard mic in any app\nto see transcripts here.")
+                .font(Brutal.body(12))
+                .foregroundColor(Brutal.faint)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+        }
+        .padding(.horizontal, 24)
     }
 
-    // MARK: - Transcript List
+    // MARK: - List
 
     private var transcriptList: some View {
         List {
             ForEach(store.transcripts) { transcript in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(transcript.text)
-                        .font(.body)
-                        .lineLimit(4)
-
-                    HStack(spacing: 4) {
-                        Text(transcript.date, style: .relative)
-                        Text("·")
-                        Text(transcript.modelUsed)
-                        Text("·")
-                        Text(formatDuration(transcript.duration))
-                        if transcript.language != "auto" {
-                            Text("·")
-                            Text(transcript.language.uppercased())
-                        }
-                    }
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                }
-                .padding(.vertical, 4)
-                .contextMenu {
-                    Button {
-                        UIPasteboard.general.string = transcript.text
-                    } label: {
-                        Label("Copy", systemImage: "doc.on.doc")
-                    }
-                }
+                transcriptRow(transcript)
+                    .listRowBackground(Brutal.bg)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
             }
-            .onDelete { offsets in
-                store.delete(at: offsets)
-            }
+            .onDelete { store.delete(at: $0) }
         }
+        .listStyle(.plain)
+        .background(Brutal.bg)
+        .scrollContentBackground(.hidden)
+    }
+
+    private func transcriptRow(_ transcript: Transcript) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            BrutalDivider()
+
+            VStack(alignment: .leading, spacing: 12) {
+                // Metadata row
+                HStack(spacing: 6) {
+                    Text(relativeDate(transcript.date))
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.faint)
+                    Text("·").font(Brutal.caption()).foregroundColor(Brutal.faint)
+                    Text(transcript.modelUsed.uppercased())
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.faint)
+                    Text("·").font(Brutal.caption()).foregroundColor(Brutal.faint)
+                    Text(formatDuration(transcript.duration).uppercased())
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.faint)
+                    if transcript.language != "auto" {
+                        Text("·").font(Brutal.caption()).foregroundColor(Brutal.faint)
+                        Text(transcript.language.uppercased())
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.faint)
+                    }
+                    Spacer()
+                    Button(action: { UIPasteboard.general.string = transcript.text }) {
+                        Text("COPY")
+                            .font(Brutal.caption(10))
+                            .foregroundColor(Brutal.muted)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                // Transcript text
+                Text(transcript.text)
+                    .font(Brutal.body(14))
+                    .foregroundColor(Brutal.text)
+                    .lineSpacing(4)
+                    .lineLimit(5)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+        }
+        .contentShape(Rectangle())
     }
 
     // MARK: - Helpers
 
+    private func relativeDate(_ date: Date) -> String {
+        let diff = Date().timeIntervalSince(date)
+        if diff < 60 { return "just now" }
+        if diff < 3600 { return "\(Int(diff / 60))m ago" }
+        if diff < 86400 { return "\(Int(diff / 3600))h ago" }
+        let f = DateFormatter()
+        f.dateStyle = .short
+        f.timeStyle = .none
+        return f.string(from: date)
+    }
+
     private func formatDuration(_ d: TimeInterval) -> String {
         let s = Int(d)
-        if s < 60 { return "\(s)s" }
-        return "\(s / 60)m \(s % 60)s"
+        return s < 60 ? "\(s)s" : "\(s / 60)m \(s % 60)s"
     }
 }

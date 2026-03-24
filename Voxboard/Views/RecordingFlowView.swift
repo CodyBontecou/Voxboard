@@ -1,18 +1,12 @@
 import SwiftUI
 import VoxboardShared
 
-// MARK: - Controller (handles recording, stop commands, transcription)
+// MARK: - Controller (unchanged — only view layer is redesigned)
 
-/// Manages the full record → stop → transcribe lifecycle.
-/// Listens for stop commands from the keyboard extension via Darwin notifications.
 @Observable
 final class RecordingFlowController {
     enum Phase {
-        case starting
-        case recording
-        case transcribing
-        case done
-        case error
+        case starting, recording, transcribing, done, error
     }
 
     var phase: Phase = .starting
@@ -26,13 +20,9 @@ final class RecordingFlowController {
     private let recorder = AudioRecorder()
     private var commandPollTimer: Timer?
     private let transcriptStore: TranscriptStore
-
-    /// Timestamp when recording started — shared with keyboard via IPC.
     private var recordingStartedAt: TimeInterval = 0
 
-    var recordingDuration: TimeInterval {
-        recorder.recordingDuration
-    }
+    var recordingDuration: TimeInterval { recorder.recordingDuration }
 
     init(modelId: String, language: String, requestId: String, transcriptStore: TranscriptStore) {
         self.modelId = modelId
@@ -41,186 +31,99 @@ final class RecordingFlowController {
         self.transcriptStore = transcriptStore
     }
 
-    deinit {
-        stopListeningForCommand()
-    }
-
-    // MARK: - Start
+    deinit { stopListeningForCommand() }
 
     func start() {
         let log = KeyboardDebugLog.shared
         log.log("[App:RecFlow] start() — model=\(modelId), requestId=\(requestId)")
-
         phase = .starting
         TranscriptionIPC.clearCommand()
 
         guard recorder.startRecording() else {
             phase = .error
             errorMessage = "Could not access microphone"
-            TranscriptionIPC.writeStatus(RecordingStatus(
-                requestId: requestId,
-                phase: .error,
-                message: "Mic unavailable"
-            ))
+            TranscriptionIPC.writeStatus(RecordingStatus(requestId: requestId, phase: .error, message: "Mic unavailable"))
             return
         }
 
         recordingStartedAt = Date().timeIntervalSince1970
         phase = .recording
-
-        TranscriptionIPC.writeStatus(RecordingStatus(
-            requestId: requestId,
-            phase: .recording,
-            recordingStartedAt: recordingStartedAt
-        ))
-
-        log.log("[App:RecFlow] ✅ Recording started, listening for stop command")
+        TranscriptionIPC.writeStatus(RecordingStatus(requestId: requestId, phase: .recording, recordingStartedAt: recordingStartedAt))
         listenForStopCommand()
     }
 
-    // MARK: - Stop & Transcribe
-
     func stopAndTranscribe() {
         let log = KeyboardDebugLog.shared
-        guard phase == .recording, recorder.isRecording else {
-            log.log("[App:RecFlow] stopAndTranscribe — skipped (phase=\(phase), isRecording=\(recorder.isRecording))")
-            return
-        }
+        guard phase == .recording, recorder.isRecording else { return }
         stopListeningForCommand()
 
-        log.log("[App:RecFlow] Stopping recording…")
-
         guard let audioURL = recorder.stopRecording() else {
-            log.log("[App:RecFlow] ❌ No audio captured")
-            phase = .error
-            errorMessage = "No audio was captured"
-            writeErrorResponse("No audio captured")
-            return
+            phase = .error; errorMessage = "No audio was captured"
+            writeErrorResponse("No audio captured"); return
         }
 
-        log.log("[App:RecFlow] Audio saved: \(audioURL.lastPathComponent)")
-
         phase = .transcribing
-        TranscriptionIPC.writeStatus(RecordingStatus(
-            requestId: requestId,
-            phase: .transcribing
-        ))
-
+        TranscriptionIPC.writeStatus(RecordingStatus(requestId: requestId, phase: .transcribing))
         let duration = recorder.recordingDuration
 
         guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
               let modelPath = model.localURL?.path,
               FileManager.default.fileExists(atPath: modelPath) else {
-            log.log("[App:RecFlow] ❌ Model not found: \(modelId)")
-            phase = .error
-            errorMessage = "Model not found: \(modelId)"
-            writeErrorResponse("Model not found")
-            return
+            phase = .error; errorMessage = "Model not found: \(modelId)"
+            writeErrorResponse("Model not found"); return
         }
-
-        log.log("[App:RecFlow] Model found: \(model.name) at \(modelPath)")
 
         let modelName = model.name
         let lang = language
         let reqId = requestId
 
-        // Request background time in case app is backgrounded
         var bgTask: UIBackgroundTaskIdentifier = .invalid
         bgTask = UIApplication.shared.beginBackgroundTask {
-            log.log("[App:RecFlow] ⚠️ Background task expired")
-            UIApplication.shared.endBackgroundTask(bgTask)
-            bgTask = .invalid
+            UIApplication.shared.endBackgroundTask(bgTask); bgTask = .invalid
         }
 
-        log.log("[App:RecFlow] Starting transcription task (model=\(modelName), lang=\(lang))…")
-
         Task.detached(priority: .userInitiated) {
-            let isBackground = await UIApplication.shared.applicationState != .active
-            // Always use CPU to avoid Metal/GPU hangs — matches TranscriptionServer behaviour.
-            // Metal compute from a backgrounded process is forbidden by iOS, and even in
-            // foreground some devices stall during shader compilation on first run.
-            let useGPU = false
-
-            log.log("[App:RecFlow] Task started — isBackground=\(isBackground), useGPU=\(useGPU)")
-
-            guard let ctx = WhisperContext(modelPath: modelPath, useGPU: useGPU) else {
-                log.log("[App:RecFlow] ❌ WhisperContext init failed")
+            guard let ctx = WhisperContext(modelPath: modelPath, useGPU: false) else {
                 await MainActor.run { [weak self] in
-                    self?.phase = .error
-                    self?.errorMessage = "Failed to load model"
+                    self?.phase = .error; self?.errorMessage = "Failed to load model"
                     self?.writeErrorResponse("Model load failed")
                     if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
-                }
-                return
+                }; return
             }
 
-            log.log("[App:RecFlow] WhisperContext ready, starting transcription…")
             let text = ctx.transcribe(audioURL: audioURL, language: lang)
-            log.log("[App:RecFlow] Transcription complete — result: \(text.map { String($0.prefix(100)) } ?? "nil")")
+            log.log("[App:RecFlow] Transcription complete")
 
             await MainActor.run { [weak self] in
                 guard let self else {
-                    log.log("[App:RecFlow] ⚠️ self deallocated before result could be applied")
-                    if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
-                    return
+                    if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }; return
                 }
-
                 if let text, !text.isEmpty {
                     self.transcriptionResult = text
-
                     let response = TranscriptionResponse(requestId: reqId, text: text)
                     try? TranscriptionIPC.writeResponse(response)
                     TranscriptionIPC.postResponseNotification()
-
-                    TranscriptionIPC.writeStatus(RecordingStatus(
-                        requestId: reqId,
-                        phase: .done
-                    ))
-
-                    let transcript = Transcript(
-                        text: text,
-                        duration: duration,
-                        modelUsed: modelName,
-                        language: lang
-                    )
-                    self.transcriptStore.add(transcript)
-
-                    log.log("[App:RecFlow] ✅ Done — \(text.count) chars, phase → done")
+                    TranscriptionIPC.writeStatus(RecordingStatus(requestId: reqId, phase: .done))
+                    self.transcriptStore.add(Transcript(text: text, duration: duration, modelUsed: modelName, language: lang))
                     self.phase = .done
                 } else {
-                    log.log("[App:RecFlow] ⚠️ No speech detected")
-                    self.phase = .error
-                    self.errorMessage = "No speech detected"
+                    self.phase = .error; self.errorMessage = "No speech detected"
                     self.writeErrorResponse("No speech detected")
                 }
-
                 if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
             }
         }
     }
 
-    // MARK: - Stop Command Listening
-
     private func listenForStopCommand() {
-        // Darwin notification
         let center = CFNotificationCenterGetDarwinNotifyCenter()
         let observer = Unmanaged.passUnretained(self).toOpaque()
+        CFNotificationCenterAddObserver(center, observer, { _, observer, _, _, _ in
+            guard let observer else { return }
+            let ctrl = Unmanaged<RecordingFlowController>.fromOpaque(observer).takeUnretainedValue()
+            DispatchQueue.main.async { ctrl.handleStopCommandIfNeeded() }
+        }, TranscriptionIPC.stopCommandNotificationName, nil, .deliverImmediately)
 
-        CFNotificationCenterAddObserver(
-            center,
-            observer,
-            { _, observer, _, _, _ in
-                guard let observer else { return }
-                let ctrl = Unmanaged<RecordingFlowController>
-                    .fromOpaque(observer).takeUnretainedValue()
-                DispatchQueue.main.async { ctrl.handleStopCommandIfNeeded() }
-            },
-            TranscriptionIPC.stopCommandNotificationName,
-            nil,
-            .deliverImmediately
-        )
-
-        // Also poll as fallback
         commandPollTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             self?.handleStopCommandIfNeeded()
         }
@@ -228,221 +131,185 @@ final class RecordingFlowController {
 
     private func stopListeningForCommand() {
         let center = CFNotificationCenterGetDarwinNotifyCenter()
-        let observer = Unmanaged.passUnretained(self).toOpaque()
         CFNotificationCenterRemoveObserver(
-            center, observer,
-            CFNotificationName(TranscriptionIPC.stopCommandNotificationName),
-            nil
+            center, Unmanaged.passUnretained(self).toOpaque(),
+            CFNotificationName(TranscriptionIPC.stopCommandNotificationName), nil
         )
-
-        commandPollTimer?.invalidate()
-        commandPollTimer = nil
+        commandPollTimer?.invalidate(); commandPollTimer = nil
     }
 
     private func handleStopCommandIfNeeded() {
-        guard phase == .recording else { return }
-
-        guard let command = TranscriptionIPC.readCommand(),
+        guard phase == .recording,
+              let command = TranscriptionIPC.readCommand(),
               command.requestId == requestId,
               command.action == .stop else { return }
-
         TranscriptionIPC.clearCommand()
         stopAndTranscribe()
     }
-
-    // MARK: - Helpers
 
     private func writeErrorResponse(_ message: String) {
         let response = TranscriptionResponse(requestId: requestId, error: message)
         try? TranscriptionIPC.writeResponse(response)
         TranscriptionIPC.postResponseNotification()
-
-        TranscriptionIPC.writeStatus(RecordingStatus(
-            requestId: requestId,
-            phase: .error,
-            message: message
-        ))
+        TranscriptionIPC.writeStatus(RecordingStatus(requestId: requestId, phase: .error, message: message))
     }
 }
 
-// MARK: - View
+// MARK: - View (fully redesigned — brutal aesthetic)
 
-/// Recording + transcription UI shown when the keyboard opens the app via URL scheme.
-///
-/// The user is prompted to switch back to their app. Recording continues in the
-/// background. The keyboard sends a stop command when the user taps Stop.
 struct RecordingFlowView: View {
     let controller: RecordingFlowController
     let onDismiss: () -> Void
 
-    @State private var pulseAnimation = false
-
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Brutal.bg.ignoresSafeArea()
+            BrutalGridBackground().ignoresSafeArea().allowsHitTesting(false)
 
+            VStack(spacing: 0) {
+                // Top rule
+                BrutalDivider()
+
+                Spacer()
+                phaseContent
+                Spacer()
+
+                BrutalDivider()
+                actionBar
+            }
+            .padding(.horizontal, 24)
+        }
+        .onAppear { controller.start() }
+    }
+
+    // MARK: - Phase Content
+
+    @ViewBuilder
+    private var phaseContent: some View {
+        switch controller.phase {
+        case .starting:
+            VStack(spacing: 20) {
+                BrutalSectionLabel(number: "01", title: "Status")
+                Text("STARTING.")
+                    .font(Brutal.display(52))
+                    .foregroundColor(Brutal.muted)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.3)
+                ProgressView()
+                    .scaleEffect(1.2)
+                    .tint(Brutal.text)
+            }
+
+        case .recording:
             VStack(spacing: 24) {
-                Spacer()
+                BrutalSectionLabel(number: "01", title: "Status")
+                VStack(spacing: 12) {
+                    Text("RECORDING.")
+                        .font(Brutal.display(48))
+                        .foregroundColor(Brutal.text)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.3)
+                    Text(formatDuration(controller.recordingDuration))
+                        .font(.system(size: 54, weight: .heavy, design: .monospaced))
+                        .foregroundColor(Brutal.text)
+                        .monospacedDigit()
+                }
 
-                phaseIcon
-                phaseText
-                durationOrStatus
-
-                Spacer()
-
-                actionArea
-            }
-            .padding(24)
-        }
-        .onAppear {
-            controller.start()
-        }
-    }
-
-    // MARK: - Phase Icon
-
-    @ViewBuilder
-    private var phaseIcon: some View {
-        switch controller.phase {
-        case .starting:
-            ProgressView()
-                .scaleEffect(1.5)
-                .tint(.white)
-
-        case .recording:
-            ZStack {
-                Circle()
-                    .fill(.red.opacity(0.15))
-                    .frame(width: 120, height: 120)
-                    .scaleEffect(pulseAnimation ? 1.2 : 1.0)
-                    .opacity(pulseAnimation ? 0.3 : 0.8)
-                    .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: pulseAnimation)
-
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.red)
-            }
-            .onAppear { pulseAnimation = true }
-            .onDisappear { pulseAnimation = false }
-
-        case .transcribing:
-            ProgressView()
-                .scaleEffect(1.5)
-                .tint(.white)
-
-        case .done:
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 64))
-                .foregroundColor(.green)
-
-        case .error:
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 64))
-                .foregroundColor(.orange)
-        }
-    }
-
-    // MARK: - Phase Text
-
-    @ViewBuilder
-    private var phaseText: some View {
-        switch controller.phase {
-        case .starting:
-            Text("Starting microphone…")
-                .font(.system(size: 20, weight: .medium))
-                .foregroundColor(.white.opacity(0.6))
-
-        case .recording:
-            VStack(spacing: 16) {
-                Text("Recording")
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundColor(.white)
-
-                Text("Switch back to your app.\nRecording continues in the background.\nTap Stop in the keyboard when done.")
-                    .font(.system(size: 15))
-                    .foregroundColor(.white.opacity(0.45))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-            }
-
-        case .transcribing:
-            Text("Transcribing…")
-                .font(.system(size: 20, weight: .medium))
-                .foregroundColor(.white.opacity(0.6))
-
-        case .done:
-            VStack(spacing: 12) {
-                Text("Done!")
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundColor(.white)
-
-                if let text = controller.transcriptionResult {
-                    Text(text)
-                        .font(.system(size: 16))
-                        .foregroundColor(.white.opacity(0.7))
+                // Swipe-back prompt
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Text("←")
+                            .font(Brutal.label(16))
+                        Text("SWIPE BACK TO YOUR APP")
+                            .font(Brutal.label(13))
+                    }
+                    .foregroundColor(Brutal.text)
+                    Text("Recording continues. Tap Stop on the keyboard when done.")
+                        .font(Brutal.body(12))
+                        .foregroundColor(Brutal.faint)
                         .multilineTextAlignment(.center)
-                        .lineLimit(4)
-                        .padding(.horizontal, 16)
+                        .lineSpacing(3)
+                }
+                .padding(16)
+                .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+            }
+
+        case .transcribing:
+            VStack(spacing: 24) {
+                BrutalSectionLabel(number: "01", title: "Status")
+                TranscribingDotsView()
+                Text("Processing audio on-device")
+                    .font(Brutal.body(12))
+                    .foregroundColor(Brutal.faint)
+            }
+
+        case .done:
+            VStack(spacing: 24) {
+                BrutalSectionLabel(number: "01", title: "Status")
+                Text("DONE.")
+                    .font(Brutal.display(52))
+                    .foregroundColor(Brutal.text)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.3)
+                if let result = controller.transcriptionResult {
+                    Text(result)
+                        .font(Brutal.body(14))
+                        .foregroundColor(Brutal.text)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(4)
+                        .lineLimit(5)
+                        .padding(16)
+                        .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
                 }
             }
 
         case .error:
-            VStack(spacing: 8) {
-                Text("Error")
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundColor(.white)
-
+            VStack(spacing: 20) {
+                BrutalSectionLabel(number: "01", title: "Status")
+                Text("ERROR.")
+                    .font(Brutal.display(52))
+                    .foregroundColor(Brutal.error)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.3)
                 Text(controller.errorMessage ?? "Something went wrong")
-                    .font(.system(size: 15))
-                    .foregroundColor(.white.opacity(0.5))
+                    .font(Brutal.body(12))
+                    .foregroundColor(Brutal.muted)
                     .multilineTextAlignment(.center)
+                    .padding(16)
+                    .overlay(Rectangle().stroke(Brutal.error.opacity(0.4), lineWidth: 1))
             }
         }
     }
 
-    // MARK: - Duration
+    // MARK: - Action Bar
 
     @ViewBuilder
-    private var durationOrStatus: some View {
-        if controller.phase == .recording {
-            Text(formatDuration(controller.recordingDuration))
-                .font(.system(size: 48, weight: .light, design: .monospaced))
-                .foregroundColor(.white)
-        }
-    }
-
-    // MARK: - Action Area
-
-    @ViewBuilder
-    private var actionArea: some View {
-        switch controller.phase {
-        case .recording:
-            Button(action: { controller.stopAndTranscribe() }) {
-                HStack(spacing: 10) {
-                    Image(systemName: "stop.fill")
-                        .font(.system(size: 16))
-                    Text("Stop & Transcribe")
-                        .font(.system(size: 18, weight: .semibold))
+    private var actionBar: some View {
+        Group {
+            switch controller.phase {
+            case .recording:
+                Button(action: { controller.stopAndTranscribe() }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "stop.fill").font(.system(size: 11))
+                        Text("STOP + TRANSCRIBE")
+                    }
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(Color.red)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-            }
-            .padding(.bottom, 48)
+                .buttonStyle(BrutalButtonStyle(variant: .destructive))
 
-        case .done, .error:
-            Button(action: { onDismiss() }) {
-                Text("Close")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white.opacity(0.6))
-            }
-            .padding(.bottom, 48)
+            case .done, .error:
+                Button(action: { onDismiss() }) {
+                    Text("CLOSE")
+                }
+                .buttonStyle(BrutalButtonStyle(variant: .secondary))
 
-        default:
-            Spacer().frame(height: 48)
+            default:
+                Rectangle()
+                    .fill(Color.clear)
+                    .frame(height: 54)
+            }
         }
+        .padding(.horizontal, 0)
+        .padding(.vertical, 16)
     }
 
     // MARK: - Helpers

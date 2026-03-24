@@ -1,11 +1,7 @@
 import SwiftUI
 import VoxboardShared
 
-/// The main app screen — centered around the always-on listening mode.
-///
-/// The user taps "Start Listening" once. After that, the microphone stays active
-/// in the background and the keyboard controls everything. The user only needs
-/// to return here to stop listening, view history, or change settings.
+/// Main screen — brutal black/white aesthetic matching imghost.isolated.tech.
 struct HomeView: View {
     @Environment(ModelManager.self) private var modelManager
     @Environment(TranscriptStore.self) private var transcriptStore
@@ -16,25 +12,26 @@ struct HomeView: View {
     @State private var showHistory = false
     @State private var showSettings = false
     @State private var micPermissionGranted = false
-    @State private var pulseAnimation = false
-
-    /// Tracks the keyboard-launch flow: nil = normal launch, .starting/.ready = overlay shown.
     @State private var keyboardLaunchPhase: KeyboardLaunchPhase? = nil
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Brutal.bg.ignoresSafeArea()
+
+            BrutalGridBackground()
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
 
             VStack(spacing: 0) {
                 topBar
+                BrutalDivider()
                 Spacer()
                 centerContent
                 Spacer()
-                historyHint
-                listenButton
+                BrutalDivider()
+                bottomArea
             }
 
-            // Keyboard-launch overlay
             if let phase = keyboardLaunchPhase {
                 KeyboardLaunchOverlay(phase: phase)
                     .transition(.opacity)
@@ -43,21 +40,18 @@ struct HomeView: View {
         .animation(.easeInOut(duration: 0.25), value: keyboardLaunchPhase)
         .gesture(
             DragGesture(minimumDistance: 40, coordinateSpace: .local)
-                .onEnded { value in
-                    // Swipe up: negative vertical translation, more vertical than horizontal
-                    if value.translation.height < -40,
-                       abs(value.translation.height) > abs(value.translation.width) {
+                .onEnded { val in
+                    if val.translation.height < -40,
+                       abs(val.translation.height) > abs(val.translation.width) {
                         showHistory = true
                     }
                 }
         )
         .sheet(isPresented: $showHistory) {
-            HistoryView()
-                .environment(transcriptStore)
+            HistoryView().environment(transcriptStore)
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView()
-                .environment(modelManager)
+            SettingsView().environment(modelManager)
         }
         .task {
             micPermissionGranted = await AudioRecorder.requestMicrophonePermission()
@@ -74,277 +68,252 @@ struct HomeView: View {
 
     private var topBar: some View {
         HStack {
-            // Listening status indicator
-            listeningBadge
-
+            BrutalStatusBadge(
+                label: persistentRecorder.isListening ? "Listening" : "Off",
+                isActive: persistentRecorder.isListening
+            )
             Spacer()
-
-            // Title
-            HStack(spacing: 6) {
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 14))
-                Text("Voxboard")
-                    .font(.system(size: 17, weight: .medium))
-            }
-            .foregroundColor(.white)
-
+            Text("VOXBOARD")
+                .font(Brutal.label(13))
+                .foregroundColor(Brutal.text)
             Spacer()
-
-            // Settings
             Button(action: { showSettings = true }) {
                 Image(systemName: "gearshape")
-                    .font(.system(size: 20))
-                    .foregroundColor(.white.opacity(0.4))
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Brutal.faint)
+                    .frame(width: 34, height: 34)
+                    .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
             }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
-        .padding(.top, 12)
-    }
-
-    private var listeningBadge: some View {
-        HStack(spacing: 6) {
-            Circle()
-                .fill(persistentRecorder.isListening ? Color.green : Color.gray)
-                .frame(width: 8, height: 8)
-
-            Text(persistentRecorder.isListening ? "Listening" : "Off")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(persistentRecorder.isListening ? .green : .gray)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color.white.opacity(0.08))
-        .clipShape(Capsule())
+        .padding(.vertical, 14)
     }
 
     // MARK: - Center Content
 
     @ViewBuilder
     private var centerContent: some View {
-        if persistentRecorder.isListening {
-            listeningActiveView
-        } else if !micPermissionGranted {
-            micPermissionView
+        if !micPermissionGranted {
+            noMicView
+        } else if persistentRecorder.isListening {
+            listeningContent
         } else {
-            readyToListenView
+            standbyView
         }
     }
 
-    private var listeningActiveView: some View {
-        VStack(spacing: 24) {
-            // Pulsing icon — changes based on state
-            ZStack {
-                if persistentRecorder.isSegmentActive {
-                    // Recording pulse (red)
-                    Circle()
-                        .fill(Color.red.opacity(0.1))
-                        .frame(width: 140, height: 140)
-                        .scaleEffect(pulseAnimation ? 1.2 : 1.0)
-                        .opacity(pulseAnimation ? 0.3 : 0.8)
-                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: pulseAnimation)
+    // MARK: Standby
 
-                    Circle()
-                        .fill(Color.red.opacity(0.15))
-                        .frame(width: 100, height: 100)
-
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 36, weight: .medium))
-                        .foregroundColor(.red)
-                } else if persistentRecorder.isTranscribing {
-                    Circle()
-                        .fill(Color.blue.opacity(0.1))
-                        .frame(width: 100, height: 100)
-
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .tint(.blue)
-                } else {
-                    // Idle listening pulse (green)
-                    Circle()
-                        .fill(Color.green.opacity(0.08))
-                        .frame(width: 140, height: 140)
-                        .scaleEffect(pulseAnimation ? 1.15 : 1.0)
-                        .opacity(pulseAnimation ? 0.4 : 0.8)
-                        .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: pulseAnimation)
-
-                    Circle()
-                        .fill(Color.green.opacity(0.12))
-                        .frame(width: 100, height: 100)
-
-                    Image(systemName: "waveform")
-                        .font(.system(size: 36, weight: .medium))
-                        .foregroundColor(.green)
-                }
+    private var standbyView: some View {
+        VStack(spacing: 28) {
+            BrutalSectionLabel(number: "01", title: "Status")
+            VStack(spacing: 8) {
+                Text("STANDBY.")
+                    .font(Brutal.display(60))
+                    .foregroundColor(Brutal.muted)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.3)
+                Text("Tap START LISTENING below")
+                    .font(Brutal.body(12))
+                    .foregroundColor(Brutal.faint)
             }
-            .onAppear { pulseAnimation = true }
-            .onDisappear { pulseAnimation = false }
-
-            VStack(spacing: 12) {
-                if persistentRecorder.isSegmentActive {
-                    Text("Recording")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundColor(.white)
-
-                    Text(formatDuration(persistentRecorder.segmentDuration))
-                        .font(.system(size: 48, weight: .light, design: .monospaced))
-                        .foregroundColor(.white)
-
-                } else if persistentRecorder.isTranscribing {
-                    Text("Transcribing…")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundColor(.white)
-
-                    Text("Processing your audio")
-                        .font(.system(size: 15))
-                        .foregroundColor(.white.opacity(0.4))
-
-                } else if let result = persistentRecorder.lastTranscriptionResult {
-                    Text("Transcription")
-                        .font(.system(size: 22, weight: .semibold))
-                        .foregroundColor(.white)
-
-                    Text(result)
-                        .font(.system(size: 17))
-                        .foregroundColor(.white.opacity(0.75))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                        .padding(.horizontal, 16)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                } else {
-                    Text("Listening")
-                        .font(.system(size: 28, weight: .semibold))
-                        .foregroundColor(.white)
-
-                    Text("Tap record below, or use the\nkeyboard from any app.")
-                        .font(.system(size: 15))
-                        .foregroundColor(.white.opacity(0.4))
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                }
-            }
-
-            // In-app record/stop button
-            inAppRecordButton
         }
+        .padding(.horizontal, 24)
     }
+
+    // MARK: No Mic
+
+    private var noMicView: some View {
+        VStack(spacing: 20) {
+            BrutalSectionLabel(number: "01", title: "Status")
+            VStack(spacing: 8) {
+                Text("NO MIC.")
+                    .font(Brutal.display(52))
+                    .foregroundColor(Brutal.faint)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.3)
+                Text("Enable microphone access in Settings")
+                    .font(Brutal.body(12))
+                    .foregroundColor(Brutal.faint)
+            }
+        }
+        .padding(.horizontal, 24)
+    }
+
+    // MARK: Listening states
 
     @ViewBuilder
-    private var inAppRecordButton: some View {
+    private var listeningContent: some View {
         if persistentRecorder.isSegmentActive {
-            Button(action: { persistentRecorder.stopInAppSegment() }) {
-                HStack(spacing: 10) {
-                    Image(systemName: "stop.fill")
-                        .font(.system(size: 16))
-                    Text("Stop & Transcribe")
-                        .font(.system(size: 18, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(Color.red)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-            }
-            .padding(.horizontal, 40)
+            recordingView
         } else if persistentRecorder.isTranscribing {
-            // No button during transcription — just show the spinner in the icon area
-            EmptyView()
+            transcribingView
+        } else if let result = persistentRecorder.lastTranscriptionResult {
+            resultView(result)
         } else {
+            listeningIdleView
+        }
+    }
+
+    private var listeningIdleView: some View {
+        VStack(spacing: 28) {
+            BrutalSectionLabel(number: "01", title: "Status")
+            VStack(spacing: 16) {
+                Text("LISTENING.")
+                    .font(Brutal.display(52))
+                    .foregroundColor(Brutal.text)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.3)
+                IdleWaveformView()
+                Text("Keyboard mic ready in any app")
+                    .font(Brutal.body(12))
+                    .foregroundColor(Brutal.faint)
+            }
             Button(action: {
                 persistentRecorder.lastTranscriptionResult = nil
                 persistentRecorder.startInAppSegment()
             }) {
-                HStack(spacing: 10) {
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 16))
-                    Text("Record")
-                        .font(.system(size: 18, weight: .semibold))
+                HStack(spacing: 8) {
+                    Image(systemName: "mic.fill").font(.system(size: 11))
+                    Text("RECORD IN APP")
                 }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(Color.blue)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
             }
-            .padding(.horizontal, 40)
+            .buttonStyle(BrutalButtonStyle(variant: .secondary))
+            .frame(maxWidth: 280)
         }
+        .padding(.horizontal, 24)
     }
 
-    private var readyToListenView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "mic.badge.plus")
-                .font(.system(size: 48))
-                .foregroundColor(.white.opacity(0.3))
+    private var recordingView: some View {
+        VStack(spacing: 24) {
+            BrutalSectionLabel(number: "01", title: "Status")
+            VStack(spacing: 10) {
+                Text("RECORDING.")
+                    .font(Brutal.display(48))
+                    .foregroundColor(Brutal.text)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.3)
+                Text(formatDuration(persistentRecorder.segmentDuration))
+                    .font(.system(size: 54, weight: .heavy, design: .monospaced))
+                    .foregroundColor(Brutal.text)
+                    .monospacedDigit()
+            }
+            Text("Return to your app — recording continues")
+                .font(Brutal.body(11))
+                .foregroundColor(Brutal.faint)
+                .multilineTextAlignment(.center)
+            Button(action: { persistentRecorder.stopInAppSegment() }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "stop.fill").font(.system(size: 11))
+                    Text("STOP + TRANSCRIBE")
+                }
+            }
+            .buttonStyle(BrutalButtonStyle(variant: .destructive))
+            .frame(maxWidth: 280)
+        }
+        .padding(.horizontal, 24)
+    }
 
-            VStack(spacing: 8) {
-                Text("Ready to Listen")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(.white)
+    private var transcribingView: some View {
+        VStack(spacing: 24) {
+            BrutalSectionLabel(number: "01", title: "Status")
+            TranscribingDotsView()
+            Text("Processing audio on-device")
+                .font(Brutal.body(12))
+                .foregroundColor(Brutal.faint)
+        }
+        .padding(.horizontal, 24)
+    }
 
-                Text("Tap below to start always-on listening.\nThen use the keyboard to record anytime.")
-                    .font(.system(size: 15))
-                    .foregroundColor(.white.opacity(0.4))
-                    .multilineTextAlignment(.center)
+    private func resultView(_ result: String) -> some View {
+        VStack(spacing: 24) {
+            BrutalSectionLabel(number: "01", title: "Status")
+            Text("DONE.")
+                .font(Brutal.display(52))
+                .foregroundColor(Brutal.text)
+                .lineLimit(1)
+                .minimumScaleFactor(0.3)
+
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("TRANSCRIPT")
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.faint)
+                    Spacer()
+                    Button(action: {
+                        UIPasteboard.general.string = result
+                        persistentRecorder.lastTranscriptionResult = nil
+                    }) {
+                        Text("COPY + CLEAR")
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.text)
+                    }
+                    .buttonStyle(.plain)
+                }
+                Text(result)
+                    .font(Brutal.body(14))
+                    .foregroundColor(Brutal.text)
                     .lineSpacing(4)
             }
-        }
-    }
+            .padding(16)
+            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
 
-    private var micPermissionView: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "mic.slash")
-                .font(.system(size: 40))
-                .foregroundColor(.white.opacity(0.3))
-            Text("Microphone access required")
-                .font(.system(size: 15))
-                .foregroundColor(.white.opacity(0.4))
-        }
-    }
-
-    // MARK: - History Hint
-
-    private var historyHint: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "chevron.up")
-            Text("Swipe up to see your history")
-            Image(systemName: "chevron.up")
-        }
-        .font(.system(size: 14))
-        .foregroundColor(.white.opacity(0.35))
-        .padding(.bottom, 24)
-        .onTapGesture { showHistory = true }
-    }
-
-    // MARK: - Listen Button
-
-    private var listenButton: some View {
-        Button(action: { toggleListening() }) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 28)
-                    .fill(persistentRecorder.isListening
-                          ? Color.red.opacity(0.15)
-                          : Color.green.opacity(0.15))
-                    .frame(width: 200, height: 56)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 28)
-                            .strokeBorder(
-                                persistentRecorder.isListening
-                                    ? Color.red.opacity(0.3)
-                                    : Color.green.opacity(0.3),
-                                lineWidth: 1
-                            )
-                    )
-
-                HStack(spacing: 10) {
-                    Image(systemName: persistentRecorder.isListening ? "stop.fill" : "play.fill")
-                        .font(.system(size: 16))
-                    Text(persistentRecorder.isListening ? "Stop Listening" : "Start Listening")
-                        .font(.system(size: 16, weight: .semibold))
+            Button(action: {
+                persistentRecorder.lastTranscriptionResult = nil
+                persistentRecorder.startInAppSegment()
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "mic.fill").font(.system(size: 11))
+                    Text("RECORD AGAIN")
                 }
-                .foregroundColor(persistentRecorder.isListening ? .red : .green)
             }
+            .buttonStyle(BrutalButtonStyle(variant: .secondary))
+            .frame(maxWidth: 280)
         }
-        .padding(.bottom, 48)
+        .padding(.horizontal, 24)
+    }
+
+    // MARK: - Bottom Area
+
+    private var bottomArea: some View {
+        VStack(spacing: 0) {
+            Button(action: { showHistory = true }) {
+                HStack(spacing: 5) {
+                    Text("↑")
+                    Text("HISTORY")
+                }
+                .font(Brutal.caption(11))
+                .foregroundColor(Brutal.faint)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(.plain)
+
+            BrutalDivider()
+
+            Group {
+                if persistentRecorder.isListening {
+                    Button(action: { toggleListening() }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "stop.fill").font(.system(size: 11))
+                            Text("STOP LISTENING")
+                        }
+                    }
+                    .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                } else {
+                    Button(action: { toggleListening() }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "play.fill").font(.system(size: 11))
+                            Text("START LISTENING")
+                        }
+                    }
+                    .buttonStyle(BrutalButtonStyle(variant: .primary))
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
+        }
     }
 
     // MARK: - Actions
@@ -353,36 +322,22 @@ struct HomeView: View {
         if persistentRecorder.isListening {
             persistentRecorder.stopListening()
             AppConstants.sharedDefaults?.set(false, forKey: "autoListenEnabled")
-            pulseAnimation = false
         } else {
             persistentRecorder.startListening()
         }
     }
 
-    // MARK: - Keyboard Launch Flow
-
-    /// Called by VoxboardApp when opened via `voxboard://listen`.
     func handleKeyboardLaunch() {
         keyboardLaunchPhase = .starting
-
-        // Kick to next run loop so the overlay renders before blocking on audio setup
         DispatchQueue.main.async {
             if !persistentRecorder.isListening {
                 persistentRecorder.startListening()
             }
-
-            // Dismiss immediately once setup finishes
             withAnimation {
-                if persistentRecorder.isListening {
-                    keyboardLaunchPhase = nil
-                } else {
-                    keyboardLaunchPhase = .error
-                }
+                keyboardLaunchPhase = persistentRecorder.isListening ? nil : .error
             }
         }
     }
-
-    // MARK: - Helpers
 
     private func formatDuration(_ d: TimeInterval) -> String {
         let m = Int(d) / 60
@@ -395,31 +350,21 @@ struct HomeView: View {
 // MARK: - Keyboard Launch Phase
 
 enum KeyboardLaunchPhase: Equatable {
-    case starting
-    case ready
-    case error
+    case starting, ready, error
 }
 
 // MARK: - Keyboard Launch Overlay
 
-/// Full-screen overlay shown when the app is opened from the keyboard.
-/// Shows a brief loading state, then a "Ready" confirmation before auto-dismissing.
 private struct KeyboardLaunchOverlay: View {
     let phase: KeyboardLaunchPhase
 
-    @State private var checkmarkScale: CGFloat = 0.3
-
     var body: some View {
         ZStack {
-            Color.black.opacity(0.92)
-                .ignoresSafeArea()
-
-            VStack(spacing: 28) {
+            Brutal.bg.opacity(0.95).ignoresSafeArea()
+            VStack(spacing: 32) {
                 Spacer()
-
-                icon
-                text
-
+                phaseIcon
+                phaseText
                 Spacer()
                 Spacer()
             }
@@ -428,85 +373,72 @@ private struct KeyboardLaunchOverlay: View {
     }
 
     @ViewBuilder
-    private var icon: some View {
+    private var phaseIcon: some View {
         switch phase {
         case .starting:
             ZStack {
-                Circle()
-                    .stroke(Color.green.opacity(0.15), lineWidth: 4)
-                    .frame(width: 100, height: 100)
-
+                Rectangle()
+                    .fill(Brutal.surface)
+                    .frame(width: 80, height: 80)
+                    .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
                 ProgressView()
-                    .scaleEffect(1.8)
-                    .tint(.green)
+                    .scaleEffect(1.5)
+                    .tint(Brutal.text)
             }
-
         case .ready:
-            ZStack {
-                Circle()
-                    .fill(Color.green.opacity(0.12))
-                    .frame(width: 100, height: 100)
-
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 56))
-                    .foregroundColor(.green)
-                    .scaleEffect(checkmarkScale)
-            }
-            .onAppear {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                    checkmarkScale = 1.0
-                }
-            }
-
+            Rectangle()
+                .fill(Brutal.surface)
+                .frame(width: 80, height: 80)
+                .overlay(
+                    Text("✓")
+                        .font(Brutal.heading(40))
+                        .foregroundColor(Brutal.text)
+                )
+                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
         case .error:
-            ZStack {
-                Circle()
-                    .fill(Color.red.opacity(0.12))
-                    .frame(width: 100, height: 100)
-
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 48))
-                    .foregroundColor(.red)
-            }
+            Rectangle()
+                .fill(Brutal.surface)
+                .frame(width: 80, height: 80)
+                .overlay(
+                    Text("!")
+                        .font(Brutal.heading(40))
+                        .foregroundColor(Brutal.error)
+                )
+                .overlay(Rectangle().stroke(Brutal.error, lineWidth: 1))
         }
     }
 
     @ViewBuilder
-    private var text: some View {
+    private var phaseText: some View {
         switch phase {
         case .starting:
             VStack(spacing: 10) {
-                Text("Starting Microphone…")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(.white)
-
-                Text("Setting up always-on listening")
-                    .font(.system(size: 15))
-                    .foregroundColor(.white.opacity(0.4))
+                Text("STARTING MIC")
+                    .font(Brutal.heading(20))
+                    .foregroundColor(Brutal.text)
+                Text("Setting up always-on listening...")
+                    .font(Brutal.body(12))
+                    .foregroundColor(Brutal.muted)
             }
-
         case .ready:
             VStack(spacing: 10) {
-                Text("Ready!")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
-
-                Text("Go back to your app and\ntap Record on the keyboard.")
-                    .font(.system(size: 15))
-                    .foregroundColor(.white.opacity(0.45))
+                Text("READY.")
+                    .font(Brutal.heading(28))
+                    .foregroundColor(Brutal.text)
+                Text("Return to your app\nand tap Record on the keyboard.")
+                    .font(Brutal.body(12))
+                    .foregroundColor(Brutal.muted)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }
-
         case .error:
             VStack(spacing: 10) {
-                Text("Could Not Start")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(.white)
-
+                Text("MIC ERROR.")
+                    .font(Brutal.heading(24))
+                    .foregroundColor(Brutal.error)
                 Text("Check microphone permissions\nin Settings.")
-                    .font(.system(size: 15))
-                    .foregroundColor(.white.opacity(0.45))
+                    .font(Brutal.body(12))
+                    .foregroundColor(Brutal.muted)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }

@@ -5,525 +5,185 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Terms of Service — Voxboard</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Outfit:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    /* ─── RESET ─── */
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
     :root {
-      --black: #0a0a0a;
-      --white: #f0f0ec;
-      --gray-1: #1a1a1a;
-      --gray-2: #2a2a2a;
-      --gray-3: #888;
-      --gray-4: #555;
-      --green: #3ddc84;
-      --green-dim: #2a9d5e;
-      --green-glow: rgba(61, 220, 132, 0.12);
-      --orange: #ff6b35;
-      --font-display: 'Outfit', sans-serif;
-      --font-mono: 'DM Mono', monospace;
+      --bg: #000000; --surface: #111111; --border: #2a2a2a; --border-hi: #444444;
+      --text: #FFFFFF; --muted: #888888; --faint: #444444;
+      --font: 'JetBrains Mono', monospace; --track: 0.15em; --track-xl: 0.25em;
     }
-
-    html {
-      scroll-behavior: smooth;
-      background: var(--black);
-      color: var(--white);
-      font-family: var(--font-display);
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
-
-    body { position: relative; }
-
-    /* ─── GRID LINES ─── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 9999;
-      background:
-        repeating-linear-gradient(
-          90deg,
-          transparent,
-          transparent calc(100% / 12 - 1px),
-          rgba(255,255,255,0.02) calc(100% / 12 - 1px),
-          rgba(255,255,255,0.02) calc(100% / 12)
-        );
-    }
-
-    /* ─── NOISE TEXTURE ─── */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 9998;
-      opacity: 0.035;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 256px 256px;
-    }
-
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     a { color: inherit; text-decoration: none; }
-
-    /* ─── LAYOUT ─── */
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 clamp(20px, 4vw, 80px);
-    }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    ::selection { background: var(--text); color: var(--bg); }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 
     /* ─── NAV ─── */
-    nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      padding: 20px 0;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      background: rgba(10, 10, 10, 0.7);
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-    }
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; max-width: 1200px; margin: 0 auto; }
+    .logo { font-size: 13px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; display: flex; align-items: center; gap: 12px; }
+    .logo-mark { width: 28px; height: 28px; border: 1px solid var(--border-hi); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+    .nav-links { display: flex; gap: 24px; list-style: none; align-items: center; }
+    .nav-links a { color: var(--muted); font-size: 11px; letter-spacing: var(--track); text-transform: uppercase; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--text); }
 
-    nav .container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+    /* ─── HERO ─── */
+    .page-hero { padding: 120px 0 64px; border-bottom: 1px solid var(--border); }
+    .page-eyebrow { font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; color: var(--faint); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+    .page-eyebrow::before { content: ''; width: 40px; height: 1px; background: var(--border-hi); }
+    .page-title { font-size: clamp(36px, 7vw, 80px); font-weight: 800; line-height: 0.95; letter-spacing: -0.02em; text-transform: uppercase; margin-bottom: 16px; }
+    .page-meta { font-size: 11px; letter-spacing: var(--track); text-transform: uppercase; color: var(--faint); }
 
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    /* ─── CONTENT ─── */
+    .legal-content { max-width: 760px; padding: 80px 0 120px; }
+    .legal-content h2 {
+      font-size: 14px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase;
+      color: var(--text); margin-top: 56px; margin-bottom: 20px;
+      padding-top: 24px; border-top: 1px solid var(--border);
     }
-
-    .nav-logo-mark {
-      width: 32px;
-      height: 32px;
-      border: 2px solid var(--green);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--font-mono);
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--green);
-    }
-
-    .nav-logo-text {
-      font-family: var(--font-mono);
-      font-size: 14px;
-      font-weight: 400;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--white);
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 32px;
-      align-items: center;
-    }
-
-    .nav-links a {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--gray-3);
-      transition: color 0.2s;
-    }
-
-    .nav-links a:hover { color: var(--white); }
-
-    .nav-cta {
-      font-family: var(--font-mono) !important;
-      font-size: 12px !important;
-      letter-spacing: 0.06em !important;
-      padding: 8px 20px;
-      border: 1px solid var(--green);
-      border-radius: 4px;
-      color: var(--green) !important;
-      transition: all 0.2s;
-    }
-
-    .nav-cta:hover {
-      background: var(--green);
-      color: var(--black) !important;
-    }
-
-    /* ─── LEGAL PAGE ─── */
-    .legal-hero {
-      padding: 160px 0 80px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .legal-label {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 400;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--green);
-      margin-bottom: 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .legal-label::before {
-      content: '';
-      display: block;
-      width: 40px;
-      height: 1px;
-      background: var(--green);
-    }
-
-    .legal-title {
-      font-size: clamp(36px, 5vw, 64px);
-      font-weight: 800;
-      line-height: 1.05;
-      letter-spacing: -0.02em;
-      margin-bottom: 16px;
-    }
-
-    .legal-meta {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      color: var(--gray-4);
-      letter-spacing: 0.04em;
-    }
-
-    .legal-body {
-      padding: 80px 0 160px;
-      max-width: 760px;
-    }
-
-    .legal-body h2 {
-      font-size: 22px;
-      font-weight: 700;
-      margin-top: 64px;
-      margin-bottom: 20px;
-      padding-top: 32px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      position: relative;
-    }
-
-    .legal-body h2::before {
-      content: '';
-      position: absolute;
-      top: -1px;
-      left: 0;
-      width: 48px;
-      height: 2px;
-      background: var(--green);
-    }
-
-    .legal-body h2:first-child {
-      margin-top: 0;
-      padding-top: 0;
-      border-top: none;
-    }
-
-    .legal-body h2:first-child::before {
-      display: none;
-    }
-
-    .legal-body p {
-      font-family: var(--font-mono);
-      font-size: 14px;
-      font-weight: 300;
-      line-height: 1.9;
-      color: var(--gray-3);
-      margin-bottom: 20px;
-    }
-
-    .legal-body ul, .legal-body ol {
-      list-style: none;
-      margin-bottom: 20px;
-      padding-left: 0;
-    }
-
-    .legal-body li {
-      font-family: var(--font-mono);
-      font-size: 14px;
-      font-weight: 300;
-      line-height: 1.9;
-      color: var(--gray-3);
-      padding-left: 20px;
-      position: relative;
-      margin-bottom: 8px;
-    }
-
-    .legal-body li::before {
-      content: '—';
-      position: absolute;
-      left: 0;
-      color: var(--green);
-    }
-
-    .legal-body strong {
-      color: var(--white);
-      font-weight: 500;
-    }
-
-    .legal-body a {
-      color: var(--green);
-      text-decoration: underline;
-      text-underline-offset: 3px;
-      transition: color 0.2s;
-    }
-
-    .legal-body a:hover {
-      color: #4aeea0;
-    }
-
-    .legal-callout {
-      margin: 32px 0;
-      padding: 24px 32px;
-      background: rgba(61, 220, 132, 0.04);
-      border-left: 3px solid var(--green);
-      border-radius: 0 4px 4px 0;
-    }
-
-    .legal-callout p {
-      color: var(--white);
-      margin-bottom: 0;
-    }
+    .legal-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+    .legal-content p { font-size: 13px; color: var(--muted); line-height: 1.9; margin-bottom: 16px; }
+    .legal-content ul { list-style: none; margin-bottom: 16px; }
+    .legal-content li { font-size: 13px; color: var(--muted); line-height: 1.9; padding-left: 20px; position: relative; margin-bottom: 6px; }
+    .legal-content li::before { content: '+'; position: absolute; left: 0; color: var(--faint); font-weight: 700; }
+    .legal-content strong { color: var(--text); font-weight: 600; }
+    .legal-content a { color: var(--text); border-bottom: 1px solid var(--border); transition: border-color 0.15s; }
+    .legal-content a:hover { border-color: var(--text); }
+    .callout { margin: 24px 0; padding: 20px 24px; background: var(--surface); border: 1px solid var(--border); border-left: 2px solid var(--text); }
+    .callout p { color: var(--text); margin-bottom: 0; }
 
     /* ─── FOOTER ─── */
-    footer {
-      padding: 40px 0;
-      border-top: 1px solid rgba(255,255,255,0.06);
-    }
-
-    footer .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .footer-left {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--gray-4);
-      letter-spacing: 0.06em;
-    }
-
-    .footer-right {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--gray-4);
-      letter-spacing: 0.06em;
-      display: flex;
-      gap: 24px;
-    }
-
-    .footer-right a {
-      color: var(--gray-4);
-      transition: color 0.2s;
-    }
-
-    .footer-right a:hover {
-      color: var(--white);
-    }
-
-    /* ─── ANIMATIONS ─── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .anim-fade-up {
-      opacity: 0;
-      animation: fadeUp 0.8s ease forwards;
-    }
-
-    .anim-delay-1 { animation-delay: 0.1s; }
-    .anim-delay-2 { animation-delay: 0.2s; }
-
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 640px) {
-      .nav-links a:not(.nav-cta) { display: none; }
-    }
+    footer { padding: 48px 0; border-top: 1px solid var(--border); }
+    .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .footer-links { display: flex; gap: 32px; list-style: none; }
+    .footer-links a { color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; transition: color 0.15s; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { font-size: 10px; color: var(--faint); letter-spacing: var(--track); }
+    @media (max-width: 640px) { .footer-inner { flex-direction: column; text-align: center; } }
   </style>
 </head>
 <body>
 
-  <!-- ─── NAV ─── -->
-  <nav>
-    <div class="container">
-      <a href="index.html" class="nav-logo">
-        <div class="nav-logo-mark">V</div>
-        <span class="nav-logo-text">Voxboard</span>
-      </a>
-      <div class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="privacy.html">Privacy</a>
-        <a href="index.html#download" class="nav-cta">Download</a>
-      </div>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <div class="logo-mark">V</div>
+      <span>Voxboard</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="privacy.html">Privacy</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="page-hero">
+  <div class="container">
+    <div class="page-eyebrow">Legal · Terms</div>
+    <h1 class="page-title">Terms of<br>Service</h1>
+    <p class="page-meta">Effective: February 9, 2026 · Last updated: February 9, 2026</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="legal-content">
+
+    <h2>Agreement to Terms</h2>
+    <p>By downloading, installing, or using Voxboard ("the app," "we," "our"), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the app.</p>
+
+    <h2>Description of Service</h2>
+    <p>Voxboard is an iOS application and keyboard extension that provides on-device voice-to-text transcription. The app uses the whisper.cpp engine — a local implementation of OpenAI's Whisper speech recognition model — to convert spoken audio into text entirely on your device.</p>
+    <div class="callout">
+      <p>Voxboard operates entirely offline. No data is sent to external servers. All processing occurs on your device using Apple's Neural Engine and Metal GPU acceleration.</p>
     </div>
-  </nav>
 
-  <!-- ─── HERO ─── -->
-  <section class="legal-hero">
-    <div class="container">
-      <div class="legal-label anim-fade-up">Legal · VXB-01</div>
-      <h1 class="legal-title anim-fade-up anim-delay-1">Terms of Service</h1>
-      <p class="legal-meta anim-fade-up anim-delay-2">Effective date: February 9, 2026 · Last updated: February 9, 2026</p>
+    <h2>License</h2>
+    <p>We grant you a limited, non-exclusive, non-transferable, revocable license to use the Voxboard app on any Apple device that you own or control, subject to Apple's standard Licensed Application End User License Agreement (EULA) and these Terms. You may not:</p>
+    <ul>
+      <li>Copy, modify, or distribute the app or any part of it</li>
+      <li>Reverse engineer, decompile, or disassemble the app</li>
+      <li>Rent, lease, lend, sell, or sublicense the app</li>
+      <li>Use the app for any unlawful purpose</li>
+    </ul>
+
+    <h2>Whisper Models</h2>
+    <p>Voxboard uses OpenAI's Whisper models, which are released under the MIT License. The app ships with a bundled Base model and allows downloading additional models. These models are open-source and provided "as is." We make no guarantees regarding the accuracy, completeness, or reliability of transcription output.</p>
+    <p>Model downloads may require an internet connection and consume device storage. You are responsible for managing your device storage and data usage related to model downloads.</p>
+
+    <h2>User Responsibilities</h2>
+    <p>You agree to the following when using Voxboard:</p>
+    <ul>
+      <li>You will use the app in compliance with all applicable laws and regulations</li>
+      <li>You will not use the app to transcribe audio without the consent of all parties being recorded, where required by law</li>
+      <li>You are solely responsible for the content you transcribe and how you use transcription output</li>
+      <li>You will ensure appropriate microphone permissions are granted for the app to function</li>
+    </ul>
+
+    <h2>Accuracy Disclaimer</h2>
+    <p>Voice-to-text transcription is performed by machine learning models and is inherently imperfect. Voxboard does not guarantee the accuracy of any transcription. Transcription quality may vary based on:</p>
+    <ul>
+      <li>The Whisper model size selected (Tiny through Large v3 Turbo)</li>
+      <li>Audio quality, background noise, and microphone hardware</li>
+      <li>Speaker accent, cadence, and language</li>
+      <li>Device processing capabilities</li>
+    </ul>
+    <p><strong>Do not rely on Voxboard for critical, legal, medical, or safety-related transcription</strong> without independently verifying the output.</p>
+
+    <h2>Intellectual Property</h2>
+    <p>The Voxboard app, including its design, code, interface, and branding, is the intellectual property of its developer. The whisper.cpp engine and Whisper models are open-source software subject to their respective licenses.</p>
+    <p>You retain full ownership of any audio you record and any text generated by the transcription process. We claim no rights to your content.</p>
+
+    <h2>Privacy</h2>
+    <p>Your privacy is fundamental to Voxboard's design. Please review our <a href="privacy.html">Privacy Policy</a> for full details. In summary: no data leaves your device. We collect nothing.</p>
+
+    <h2>Disclaimer of Warranties</h2>
+    <p>Voxboard is provided <strong>"as is"</strong> and <strong>"as available"</strong> without warranties of any kind, either express or implied, including but not limited to implied warranties of merchantability, fitness for a particular purpose, and non-infringement.</p>
+    <p>We do not warrant that the app will be uninterrupted, error-free, or free of harmful components, or that defects will be corrected.</p>
+
+    <h2>Limitation of Liability</h2>
+    <p>To the maximum extent permitted by applicable law, in no event shall Voxboard or its developer be liable for any indirect, incidental, special, consequential, or punitive damages resulting from:</p>
+    <ul>
+      <li>Your use or inability to use the app</li>
+      <li>Any inaccuracies in transcription output</li>
+      <li>Unauthorized access to or alteration of your data on your device</li>
+      <li>Any other matter relating to the app</li>
+    </ul>
+
+    <h2>App Store Terms</h2>
+    <p>Voxboard is distributed through Apple's App Store. Your use of the app is also subject to Apple's standard terms and conditions, including the Licensed Application End User License Agreement. Apple is not responsible for the app or its content, and has no obligation to provide maintenance, support, or warranty services for the app.</p>
+
+    <h2>Termination</h2>
+    <p>These Terms are effective until terminated. Your rights under these Terms will terminate automatically if you fail to comply with any of its provisions. Upon termination, you must cease all use of the app and delete it from your devices.</p>
+
+    <h2>Changes to These Terms</h2>
+    <p>We reserve the right to modify these Terms at any time. Updated terms will be posted on this page with a revised "Last updated" date. Your continued use of the app after changes are posted constitutes acceptance of the revised Terms.</p>
+
+    <h2>Governing Law</h2>
+    <p>These Terms shall be governed by and construed in accordance with the laws of the United States, without regard to conflict of law principles.</p>
+
+    <h2>Contact</h2>
+    <p>If you have questions about these Terms of Service, please contact us at:</p>
+    <p><strong>Email:</strong> <a href="mailto:codybontecou@gmail.com">codybontecou@gmail.com</a></p>
+
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="terms.html">Terms</a></li>
+      </ul>
+      <div class="footer-copy">© 2026 Voxboard · On-device AI · No cloud.</div>
     </div>
-  </section>
-
-  <!-- ─── BODY ─── -->
-  <section class="legal-body">
-    <div class="container">
-
-      <h2>Agreement to Terms</h2>
-      <p>
-        By downloading, installing, or using Voxboard ("the app," "we," "our"), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the app.
-      </p>
-
-      <h2>Description of Service</h2>
-      <p>
-        Voxboard is an iOS application and keyboard extension that provides on-device voice-to-text transcription. The app uses the whisper.cpp engine — a local implementation of OpenAI's Whisper speech recognition model — to convert spoken audio into text entirely on your device.
-      </p>
-      <div class="legal-callout">
-        <p>Voxboard operates entirely offline. No data is sent to external servers. All processing occurs on your device using Apple's Neural Engine and Metal GPU acceleration.</p>
-      </div>
-
-      <h2>License</h2>
-      <p>
-        We grant you a limited, non-exclusive, non-transferable, revocable license to use the Voxboard app on any Apple device that you own or control, subject to Apple's standard Licensed Application End User License Agreement (EULA) and these Terms. You may not:
-      </p>
-      <ul>
-        <li>Copy, modify, or distribute the app or any part of it</li>
-        <li>Reverse engineer, decompile, or disassemble the app</li>
-        <li>Rent, lease, lend, sell, or sublicense the app</li>
-        <li>Use the app for any unlawful purpose</li>
-      </ul>
-
-      <h2>Whisper Models</h2>
-      <p>
-        Voxboard uses OpenAI's Whisper models, which are released under the MIT License. The app ships with a bundled Base model and allows downloading additional models. These models are open-source and provided "as is." We make no guarantees regarding the accuracy, completeness, or reliability of transcription output.
-      </p>
-      <p>
-        Model downloads may require an internet connection and consume device storage. You are responsible for managing your device storage and data usage related to model downloads.
-      </p>
-
-      <h2>User Responsibilities</h2>
-      <p>You agree to the following when using Voxboard:</p>
-      <ul>
-        <li>You will use the app in compliance with all applicable laws and regulations</li>
-        <li>You will not use the app to transcribe audio without the consent of all parties being recorded, where required by law</li>
-        <li>You are solely responsible for the content you transcribe and how you use transcription output</li>
-        <li>You will ensure appropriate microphone permissions are granted for the app to function</li>
-      </ul>
-
-      <h2>Accuracy Disclaimer</h2>
-      <p>
-        Voice-to-text transcription is performed by machine learning models and is inherently imperfect. Voxboard does not guarantee the accuracy of any transcription. Transcription quality may vary based on:
-      </p>
-      <ul>
-        <li>The Whisper model size selected (Tiny through Large v3 Turbo)</li>
-        <li>Audio quality, background noise, and microphone hardware</li>
-        <li>Speaker accent, cadence, and language</li>
-        <li>Device processing capabilities</li>
-      </ul>
-      <p>
-        <strong>Do not rely on Voxboard for critical, legal, medical, or safety-related transcription</strong> without independently verifying the output.
-      </p>
-
-      <h2>Intellectual Property</h2>
-      <p>
-        The Voxboard app, including its design, code, interface, and branding, is the intellectual property of its developer. The whisper.cpp engine and Whisper models are open-source software subject to their respective licenses.
-      </p>
-      <p>
-        You retain full ownership of any audio you record and any text generated by the transcription process. We claim no rights to your content.
-      </p>
-
-      <h2>Privacy</h2>
-      <p>
-        Your privacy is fundamental to Voxboard's design. Please review our <a href="privacy.html">Privacy Policy</a> for full details. In summary: no data leaves your device. We collect nothing.
-      </p>
-
-      <h2>Disclaimer of Warranties</h2>
-      <p>
-        Voxboard is provided <strong>"as is"</strong> and <strong>"as available"</strong> without warranties of any kind, either express or implied, including but not limited to implied warranties of merchantability, fitness for a particular purpose, and non-infringement.
-      </p>
-      <p>
-        We do not warrant that the app will be uninterrupted, error-free, or free of harmful components, or that defects will be corrected.
-      </p>
-
-      <h2>Limitation of Liability</h2>
-      <p>
-        To the maximum extent permitted by applicable law, in no event shall Voxboard or its developer be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from:
-      </p>
-      <ul>
-        <li>Your use or inability to use the app</li>
-        <li>Any inaccuracies in transcription output</li>
-        <li>Unauthorized access to or alteration of your data on your device</li>
-        <li>Any other matter relating to the app</li>
-      </ul>
-
-      <h2>App Store Terms</h2>
-      <p>
-        Voxboard is distributed through Apple's App Store. Your use of the app is also subject to Apple's standard terms and conditions, including the Licensed Application End User License Agreement. In the event of a conflict between these Terms and Apple's terms, Apple's terms shall prevail to the extent of the conflict.
-      </p>
-      <p>
-        Apple is not responsible for the app or its content, and has no obligation to provide maintenance, support, or warranty services for the app.
-      </p>
-
-      <h2>Termination</h2>
-      <p>
-        These Terms are effective until terminated. Your rights under these Terms will terminate automatically if you fail to comply with any of its provisions. Upon termination, you must cease all use of the app and delete it from your devices.
-      </p>
-
-      <h2>Changes to These Terms</h2>
-      <p>
-        We reserve the right to modify these Terms at any time. Updated terms will be posted on this page with a revised "Last updated" date. Your continued use of the app after changes are posted constitutes acceptance of the revised Terms.
-      </p>
-
-      <h2>Governing Law</h2>
-      <p>
-        These Terms shall be governed by and construed in accordance with the laws of the United States, without regard to conflict of law principles.
-      </p>
-
-      <h2>Contact</h2>
-      <p>
-        If you have questions about these Terms of Service, please contact us at:
-      </p>
-      <p>
-        <strong>Email:</strong> <a href="mailto:codybontecou@gmail.com">codybontecou@gmail.com</a>
-      </p>
-
-    </div>
-  </section>
-
-  <!-- ─── FOOTER ─── -->
-  <footer>
-    <div class="container">
-      <div class="footer-left">
-        © 2026 Voxboard · VXB-01
-      </div>
-      <div class="footer-right">
-        <a href="privacy.html">Privacy Policy</a>
-        <a href="terms.html">Terms of Service</a>
-        <a href="index.html">Home</a>
-      </div>
-    </div>
-  </footer>
+  </div>
+</footer>
 
 </body>
 </html>

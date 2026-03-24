@@ -1,16 +1,33 @@
 import SwiftUI
 import VoxboardShared
 
-/// The custom toolbar that sits above the KeyboardKit keyboard.
-/// Shows model selector, status, and Start/Stop button.
-///
-/// In always-on mode, the Record/Stop buttons control transcription segments
-/// entirely via IPC — no app switching required.
+// MARK: - Local design tokens (keyboard extension cannot import BrutalTheme from main app)
+
+private enum K {
+    static let bg       = Color(red: 0,    green: 0,    blue: 0)
+    static let surface  = Color(white: 0.08)
+    static let border   = Color(white: 0.18)
+    static let borderHi = Color(white: 0.32)
+    static let text     = Color.white
+    static let muted    = Color(white: 0.5)
+    static let faint    = Color(white: 0.28)
+    static let error    = Color(red: 1.0, green: 0.271, blue: 0.227)
+
+    static func label(_ size: CGFloat = 11) -> Font {
+        .system(size: size, weight: .semibold, design: .monospaced)
+    }
+    static func caption(_ size: CGFloat = 10) -> Font {
+        .system(size: size, weight: .regular, design: .monospaced)
+    }
+}
+
+// MARK: - Toolbar View
+
+/// Brutal keyboard toolbar: model navigator · status · waveform · action button.
 struct VoiceToolbarView: View {
     @Bindable var voiceState: VoiceKeyboardState
     let hasFullAccess: Bool
 
-    /// Incremented each time the user switches models — drives the selection haptic.
     @State private var modelChangeCount = 0
 
     var body: some View {
@@ -25,15 +42,13 @@ struct VoiceToolbarView: View {
             actionButton
         }
         .padding(.horizontal, 12)
-        .padding(.top, 6)
-        .padding(.bottom, 6)
-        // .sensoryFeedback with conditional closures causes "unable to type-check"
-        // errors on this SDK due to the enum with associated value. Use onChange +
-        // UIFeedbackGenerator instead — equivalent behavior.
+        .padding(.vertical, 8)
+        .background(Color.clear)
+        .overlay(Rectangle().fill(K.border).frame(height: 0.5), alignment: .bottom)
         .onChange(of: voiceState.status) { old, new in
             if new == .recording || new == .transcribing {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            } else if old == .transcribing && new == .idle {
+            } else if old == .transcribing, case .idle = new {
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
             } else if case .error = new {
                 UINotificationFeedbackGenerator().notificationOccurred(.error)
@@ -44,46 +59,49 @@ struct VoiceToolbarView: View {
         }
     }
 
-    // MARK: - Model Navigator: [< 🎤 >]
+    // MARK: - Model Navigator  [< MODEL >]
 
     private var modelNavigator: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 0) {
+            // Prev
             Button(action: { voiceState.previousModel(); modelChangeCount += 1 }) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.primary.opacity(0.7))
+                Text("‹")
+                    .font(K.label(15))
+                    .foregroundColor(K.muted)
+                    .frame(width: 24, height: 28)
             }
+            .buttonStyle(.plain)
 
-            micIcon
+            // Center: model name or mic icon
+            ZStack {
+                switch voiceState.status {
+                case .recording:
+                    Rectangle()
+                        .fill(K.error)
+                        .frame(width: 6, height: 6)
+                case .transcribing:
+                    ProgressView()
+                        .scaleEffect(0.6)
+                        .tint(K.text)
+                default:
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(K.muted)
+                }
+            }
+            .frame(width: 20, height: 28)
 
+            // Next
             Button(action: { voiceState.nextModel(); modelChangeCount += 1 }) {
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.primary.opacity(0.7))
+                Text("›")
+                    .font(K.label(15))
+                    .foregroundColor(K.muted)
+                    .frame(width: 24, height: 28)
             }
+            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 7)
-        .background(Color(.systemGray5))
-        .clipShape(Capsule())
-    }
-
-    @ViewBuilder
-    private var micIcon: some View {
-        switch voiceState.status {
-        case .recording:
-            Image(systemName: "brain.head.profile")
-                .font(.system(size: 15))
-                .foregroundColor(.red)
-                .symbolEffect(.pulse, isActive: true)
-        case .transcribing:
-            ProgressView()
-                .scaleEffect(0.7)
-        default:
-            Image(systemName: "brain")
-                .font(.system(size: 15))
-                .foregroundColor(.primary)
-        }
+        .overlay(Rectangle().stroke(K.border, lineWidth: 1))
+        .background(K.surface)
     }
 
     // MARK: - Status Label
@@ -92,25 +110,25 @@ struct VoiceToolbarView: View {
         Group {
             switch voiceState.status {
             case .idle, .appNotListening:
-                Text(voiceState.currentModelName)
+                Text(voiceState.currentModelName.uppercased())
             case .recording:
                 Text(formatDuration(voiceState.recordingDuration))
                     .monospacedDigit()
             case .transcribing:
-                Text("Transcribing…")
+                Text("TRANSCRIBING...")
             case .error(let msg):
-                Text(msg)
-                    .foregroundColor(.red)
+                Text(msg.uppercased())
+                    .foregroundColor(K.error)
             case .noModel:
-                Text("Open Voxboard to set up")
-                    .foregroundColor(.orange)
+                Text("OPEN VOXBOARD")
+                    .foregroundColor(K.error)
             case .needsFullAccess:
-                Text("Enable Full Access in Settings")
-                    .foregroundColor(.orange)
+                Text("ENABLE FULL ACCESS")
+                    .foregroundColor(K.error)
             }
         }
-        .font(.system(size: 14))
-        .foregroundColor(.secondary)
+        .font(K.caption(11))
+        .foregroundColor(K.muted)
         .lineLimit(1)
     }
 
@@ -120,52 +138,65 @@ struct VoiceToolbarView: View {
     private var actionButton: some View {
         switch voiceState.status {
         case .recording:
-            // Red stop button — tapping stops the recording
+            // Square stop button — error color
             Button(action: { voiceState.stopRecording() }) {
-                Image(systemName: "stop.fill")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                    .frame(width: 36, height: 36)
-                    .background(Color.red)
-                    .clipShape(Circle())
+                Rectangle()
+                    .fill(K.error)
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Image(systemName: "stop.fill")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(K.text)
+                    )
             }
+            .buttonStyle(.plain)
 
         case .transcribing:
-            // Spinner in a circle while transcribing
-            ProgressView()
-                .scaleEffect(0.7)
-                .frame(width: 36, height: 36)
-                .background(Color(.systemGray5))
-                .clipShape(Circle())
+            // Bordered square spinner
+            ZStack {
+                Rectangle()
+                    .fill(K.surface)
+                    .frame(width: 32, height: 32)
+                    .overlay(Rectangle().stroke(K.border, lineWidth: 1))
+                ProgressView()
+                    .scaleEffect(0.55)
+                    .tint(K.muted)
+            }
 
         case .appNotListening:
-            // Blue mic — opens app when tapped, auto-starts recording once app is ready
+            // Square mic button — prompts opening app
             Button(action: { voiceState.openApp(hasFullAccess: hasFullAccess) }) {
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                    .frame(width: 36, height: 36)
-                    .background(Color.blue)
-                    .clipShape(Circle())
+                Rectangle()
+                    .fill(K.surface)
+                    .frame(width: 32, height: 32)
+                    .overlay(Rectangle().stroke(K.borderHi, lineWidth: 1))
+                    .overlay(
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(K.text)
+                    )
             }
+            .buttonStyle(.plain)
 
         default:
-            // Blue mic — starts recording when tapped
+            // Square mic button — start recording
             Button(action: { voiceState.startRecording(hasFullAccess: hasFullAccess) }) {
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 16))
-                    .foregroundColor(.white)
-                    .frame(width: 36, height: 36)
-                    .background(Color.blue)
-                    .clipShape(Circle())
+                Rectangle()
+                    .fill(K.text)
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Image(systemName: "mic.fill")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(K.bg)
+                    )
             }
+            .buttonStyle(.plain)
         }
     }
 
     // MARK: - Helpers
 
     private func formatDuration(_ d: TimeInterval) -> String {
-        let s = Int(d)
-        return String(format: "%d:%02d", s / 60, s % 60)
+        String(format: "%d:%02d", Int(d) / 60, Int(d) % 60)
     }
 }

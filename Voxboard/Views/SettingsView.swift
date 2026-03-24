@@ -1,29 +1,45 @@
 import SwiftUI
 import VoxboardShared
 
-/// Settings screen: model selection (download / select / delete) and language picker.
 struct SettingsView: View {
     @Environment(ModelManager.self) private var modelManager
     @Environment(\.dismiss) private var dismiss
     @State private var showDebugLog = false
 
     var body: some View {
-        @Bindable var mm = modelManager
-
         NavigationStack {
-            List {
-                modelSection
-                languageSection
-                debugSection
-                aboutSection
-            }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+            ZStack {
+                Brutal.surface.ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 0) {
+                        modelsSection
+                        BrutalDivider()
+                        languageSection
+                        BrutalDivider()
+                        aboutSection
+                        BrutalDivider()
+                        debugSection
+                    }
                 }
             }
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("SETTINGS")
+                        .font(Brutal.label(13))
+                        .foregroundColor(Brutal.text)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("DONE") { dismiss() }
+                        .font(Brutal.label(11))
+                        .foregroundColor(Brutal.muted)
+                        .buttonStyle(.plain)
+                }
+            }
+            .toolbarBackground(Brutal.bg, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .sheet(isPresented: $showDebugLog) {
                 KeyboardDebugLogView()
             }
@@ -31,88 +47,172 @@ struct SettingsView: View {
         .preferredColorScheme(.dark)
     }
 
-    // MARK: - Models
+    // MARK: - Section Header
 
-    private var modelSection: some View {
-        Section {
-            ForEach(WhisperModelInfo.availableModels) { model in
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 6) {
-                            Text(model.name)
-                                .font(.body)
-                            if model.isBundled {
-                                Text("Bundled")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color(.systemGray5))
-                                    .clipShape(Capsule())
-                            }
-                        }
-                        Text(model.sizeLabel)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-
-                    Spacer()
-
-                    modelActionView(for: model)
-                }
-                .swipeActions(edge: .trailing) {
-                    if model.isDownloaded && !model.isBundled {
-                        Button("Delete", role: .destructive) {
-                            modelManager.deleteModel(model)
-                        }
-                    }
-                }
-            }
-        } header: {
-            Text("Whisper Model")
-        } footer: {
-            Text("Larger models are more accurate but use more memory and take longer. The Tiny model is recommended for keyboard use.")
+    private func sectionHeader(_ number: String, _ title: String) -> some View {
+        HStack {
+            BrutalSectionLabel(number: number, title: title)
+            Spacer()
         }
+        .padding(.horizontal, 20)
+        .padding(.top, 28)
+        .padding(.bottom, 16)
+        .background(Brutal.bg)
+    }
+
+    // MARK: - Models Section
+
+    private var whisperModels: [WhisperModelInfo] {
+        WhisperModelInfo.availableModels.filter { !$0.engine.isParakeet }
+    }
+
+    private var parakeetModels: [WhisperModelInfo] {
+        WhisperModelInfo.availableModels.filter { $0.engine.isParakeet }
+    }
+
+    private var modelsSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("01", "Whisper Models")
+            BrutalDivider()
+            ForEach(whisperModels) { model in
+                modelRow(for: model)
+                BrutalDivider()
+            }
+            sectionHeader("02", "Parakeet Models")
+            BrutalDivider()
+            ForEach(parakeetModels) { model in
+                modelRow(for: model)
+                BrutalDivider()
+            }
+
+            // Footer note
+            Text("Tiny is best for the keyboard extension. Larger models are more accurate but use more memory.")
+                .font(Brutal.caption(11))
+                .foregroundColor(Brutal.faint)
+                .lineSpacing(3)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Brutal.bg)
+        }
+    }
+
+    private func modelRow(for model: WhisperModelInfo) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 8) {
+                    Text(model.name.uppercased())
+                        .font(Brutal.label(13))
+                        .foregroundColor(Brutal.text)
+                    if model.isBundled {
+                        Text("BUNDLED")
+                            .font(Brutal.caption(9))
+                            .foregroundColor(Brutal.faint)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                    }
+                }
+                Text(model.sizeLabel.uppercased())
+                    .font(Brutal.caption(10))
+                    .foregroundColor(Brutal.faint)
+            }
+
+            Spacer()
+
+            modelActionView(for: model)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Brutal.bg)
     }
 
     @ViewBuilder
     private func modelActionView(for model: WhisperModelInfo) -> some View {
         if model.isDownloaded {
-            if modelManager.selectedModelId == model.id {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(.blue)
-                    .font(.system(size: 20))
-            } else {
-                Button("Select") {
-                    modelManager.selectedModelId = model.id
+            HStack(spacing: 12) {
+                if modelManager.selectedModelId == model.id {
+                    HStack(spacing: 6) {
+                        Rectangle()
+                            .fill(Brutal.text)
+                            .frame(width: 6, height: 6)
+                        Text("SELECTED")
+                            .font(Brutal.caption(10))
+                            .foregroundColor(Brutal.text)
+                    }
+                } else {
+                    Button("SELECT") {
+                        modelManager.selectedModelId = model.id
+                    }
+                    .font(Brutal.caption(10))
+                    .foregroundColor(Brutal.muted)
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.borderless)
-                .font(.system(size: 14, weight: .medium))
+
+                Button {
+                    modelManager.deleteModel(model)
+                } label: {
+                    Text("DELETE")
+                        .font(Brutal.caption(10))
+                        .foregroundColor(Brutal.error)
+                }
+                .buttonStyle(.plain)
             }
         } else if modelManager.isDownloading[model.id] == true {
-            VStack(alignment: .trailing, spacing: 4) {
-                ProgressView(value: modelManager.downloadProgress[model.id] ?? 0)
-                    .frame(width: 80)
-                let pct = Int((modelManager.downloadProgress[model.id] ?? 0) * 100)
-                Text("\(pct)%")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
+            downloadingView(for: model)
         } else {
             Button {
-                Task { await modelManager.downloadModel(model) }
+                modelManager.startDownload(model)
             } label: {
-                Label("Download", systemImage: "arrow.down.circle")
-                    .font(.system(size: 14, weight: .medium))
+                Text("↓ DOWNLOAD")
+                    .font(Brutal.caption(10))
+                    .foregroundColor(Brutal.text)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
             }
-            .buttonStyle(.borderless)
+            .buttonStyle(.plain)
         }
     }
 
-    // MARK: - Language
+    private func downloadingView(for model: WhisperModelInfo) -> some View {
+        let pct = Int((modelManager.downloadProgress[model.id] ?? 0) * 100)
+        return HStack(spacing: 10) {
+            VStack(alignment: .trailing, spacing: 4) {
+                // Brutal progress bar
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Rectangle().fill(Brutal.border).frame(height: 2)
+                        Rectangle()
+                            .fill(Brutal.text)
+                            .frame(width: geo.size.width * CGFloat(modelManager.downloadProgress[model.id] ?? 0), height: 2)
+                    }
+                }
+                .frame(width: 72, height: 2)
+
+                Text("\(pct)%")
+                    .font(Brutal.caption(10))
+                    .foregroundColor(Brutal.faint)
+                    .monospacedDigit()
+            }
+            Button {
+                modelManager.cancelDownload(model)
+            } label: {
+                Text("✕")
+                    .font(Brutal.label(12))
+                    .foregroundColor(Brutal.faint)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    // MARK: - Language Section
 
     private var languageSection: some View {
-        Section("Language") {
+        VStack(spacing: 0) {
+            sectionHeader("03", "Language")
+            BrutalDivider()
+
             Picker("Transcription Language", selection: Binding(
                 get: { modelManager.selectedLanguage },
                 set: { modelManager.selectedLanguage = $0 }
@@ -121,28 +221,69 @@ struct SettingsView: View {
                     Text(lang.name).tag(lang.code)
                 }
             }
+            .pickerStyle(.wheel)
+            .frame(height: 140)
+            .background(Brutal.bg)
+            .tint(Brutal.text)
         }
     }
 
-    // MARK: - Debug
+    // MARK: - About Section
 
-    private var debugSection: some View {
-        Section("Keyboard Debug") {
-            Button {
-                showDebugLog = true
-            } label: {
-                Label("View Keyboard Log", systemImage: "doc.text.magnifyingglass")
+    private var aboutSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("04", "About")
+            BrutalDivider()
+
+            let rows: [(String, String)] = [
+                ("Whisper engine", "whisper.cpp"),
+                ("Parakeet engine", "FluidAudio (CoreML)"),
+                ("Processing", "On-device"),
+                ("Privacy", "Zero data leaves device"),
+            ]
+
+            ForEach(rows, id: \.0) { key, val in
+                HStack {
+                    Text(key.uppercased())
+                        .font(Brutal.caption(11))
+                        .foregroundColor(Brutal.faint)
+                    Spacer()
+                    Text(val)
+                        .font(Brutal.caption(11))
+                        .foregroundColor(Brutal.text)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(Brutal.bg)
+                BrutalDivider()
             }
         }
     }
 
-    // MARK: - About
+    // MARK: - Debug Section
 
-    private var aboutSection: some View {
-        Section("About") {
-            LabeledContent("Engine", value: "whisper.cpp")
-            LabeledContent("Processing", value: "On-device")
-            LabeledContent("Privacy", value: "No data leaves your device")
+    private var debugSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("05", "Debug")
+            BrutalDivider()
+
+            Button {
+                showDebugLog = true
+            } label: {
+                HStack {
+                    Text("VIEW KEYBOARD LOG")
+                        .font(Brutal.label(12))
+                        .foregroundColor(Brutal.text)
+                    Spacer()
+                    Text("→")
+                        .font(Brutal.label(12))
+                        .foregroundColor(Brutal.faint)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Brutal.bg)
+            }
+            .buttonStyle(.plain)
         }
     }
 }
@@ -155,45 +296,63 @@ private struct KeyboardDebugLogView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                Text(logText)
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundColor(.green)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(12)
-                    .textSelection(.enabled)
+            ZStack {
+                Color.black.ignoresSafeArea()
+                ScrollView {
+                    Text(logText.isEmpty ? "(empty)" : logText)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(Brutal.text)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                        .textSelection(.enabled)
+                }
             }
-            .background(Color.black)
-            .navigationTitle("Keyboard Debug Log")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("KEYBOARD LOG")
+                        .font(Brutal.label(12))
+                        .foregroundColor(Brutal.text)
+                }
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Clear") {
+                    Button("CLEAR") {
                         KeyboardDebugLog.shared.clear()
                         logText = "(cleared)"
                     }
-                    .foregroundColor(.red)
+                    .font(Brutal.label(11))
+                    .foregroundColor(Brutal.error)
+                    .buttonStyle(.plain)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 16) {
                         Button {
                             logText = KeyboardDebugLog.shared.read()
                         } label: {
-                            Image(systemName: "arrow.clockwise")
+                            Text("↺")
+                                .font(Brutal.label(16))
+                                .foregroundColor(Brutal.muted)
                         }
+                        .buttonStyle(.plain)
                         Button {
                             UIPasteboard.general.string = logText
                         } label: {
-                            Image(systemName: "doc.on.doc")
+                            Text("COPY")
+                                .font(Brutal.label(11))
+                                .foregroundColor(Brutal.muted)
                         }
-                        Button("Done") { dismiss() }
+                        .buttonStyle(.plain)
+                        Button("DONE") { dismiss() }
+                            .font(Brutal.label(11))
+                            .foregroundColor(Brutal.muted)
+                            .buttonStyle(.plain)
                     }
                 }
             }
+            .toolbarBackground(Brutal.bg, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
         .preferredColorScheme(.dark)
-        .onAppear {
-            logText = KeyboardDebugLog.shared.read()
-        }
+        .onAppear { logText = KeyboardDebugLog.shared.read() }
     }
 }
