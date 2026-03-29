@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "Limit reached — open Voxboard to unlock"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ถึงขีดจำกัดแล้ว — เปิด Voxboard เพื่อปลดล็อก"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No Model"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่มีโมเดล"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "No speech detected"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่ตรวจพบคำพูด"
+          }
         }
       }
     },
@@ -45,6 +63,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transcription timed out — try again"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การถอดเสียงหมดเวลา — ลองอีกครั้ง"
           }
         }
       }

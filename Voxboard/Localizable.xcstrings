@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "(cleared)"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(ล้างแล้ว)"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "(empty)"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(ว่าง)"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "%dh ago"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dชม. ที่แล้ว"
+          }
         }
       }
     },
@@ -45,6 +63,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%dm %ds"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dน %dวิ"
           }
         }
       }
@@ -58,6 +82,12 @@
             "state" : "translated",
             "value" : "%dm ago"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dน. ที่แล้ว"
+          }
         }
       }
     },
@@ -69,6 +99,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%ds"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dวิ"
           }
         }
       }
@@ -82,6 +118,12 @@
             "state" : "translated",
             "value" : "%.1f / 15 MIN FREE"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / ฟรี 15 นาที"
+          }
         }
       }
     },
@@ -93,6 +135,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%.1f / 15 min free used"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ใช้ฟรีไปแล้ว %.1f / 15 นาที"
           }
         }
       }
@@ -106,6 +154,12 @@
             "state" : "translated",
             "value" : "%.1f min free remaining."
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ฟรีคงเหลือ %.1f นาที."
+          }
         }
       }
     },
@@ -117,6 +171,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App preferences, upgrade, about, and debug"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "การตั้งค่าแอป อัปเกรด เกี่ยวกับ และดีบัก"
           }
         }
       }
@@ -130,6 +190,12 @@
             "state" : "translated",
             "value" : "Configure automatic transcript file export"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ตั้งค่าการส่งออกไฟล์ถอดเสียงอัตโนมัติ"
+          }
         }
       }
     },
@@ -141,6 +207,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not access microphone"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่สามารถเข้าถึงไมโครโฟนได้"
           }
         }
       }
@@ -154,6 +226,12 @@
             "state" : "translated",
             "value" : "Download and select Whisper or Parakeet AI models"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ดาวน์โหลดและเลือกโมเดล AI Whisper หรือ Parakeet"
+          }
         }
       }
     },
@@ -165,6 +243,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to load model"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "โหลดโมเดลไม่สำเร็จ"
           }
         }
       }
@@ -178,6 +262,12 @@
             "state" : "translated",
             "value" : "Free Tier"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "แผนฟรี"
+          }
         }
       }
     },
@@ -189,6 +279,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limit Reached"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ถึงขีดจำกัดแล้ว"
           }
         }
       }
@@ -202,6 +298,12 @@
             "state" : "translated",
             "value" : "Listening"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "กำลังฟัง"
+          }
         }
       }
     },
@@ -213,6 +315,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mic unavailable"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่สามารถใช้ไมโครโฟนได้"
           }
         }
       }
@@ -226,6 +334,12 @@
             "state" : "translated",
             "value" : "Model load failed"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "โหลดโมเดลไม่สำเร็จ"
+          }
         }
       }
     },
@@ -237,6 +351,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Model not found"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่พบโมเดล"
           }
         }
       }
@@ -250,6 +370,12 @@
             "state" : "translated",
             "value" : "Model not found: %@"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่พบโมเดล: %@"
+          }
         }
       }
     },
@@ -261,6 +387,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No audio captured"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่ได้บันทึกเสียง"
           }
         }
       }
@@ -274,6 +406,12 @@
             "state" : "translated",
             "value" : "No audio was captured"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่มีเสียงถูกบันทึก"
+          }
         }
       }
     },
@@ -285,6 +423,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No speech detected"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่ตรวจพบคำพูด"
           }
         }
       }
@@ -298,6 +442,12 @@
             "state" : "translated",
             "value" : "Not set"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ยังไม่ตั้งค่า"
+          }
         }
       }
     },
@@ -309,6 +459,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Off"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ปิด"
           }
         }
       }
@@ -322,6 +478,12 @@
             "state" : "translated",
             "value" : "Opens an email draft to contact support with app diagnostics"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เปิดร่างอีเมลเพื่อติดต่อฝ่ายสนับสนุนพร้อมข้อมูลวินิจฉัยแอป"
+          }
         }
       }
     },
@@ -333,6 +495,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Record and transcribe audio in real time"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "บันทึกและถอดเสียงแบบเรียลไทม์"
           }
         }
       }
@@ -346,6 +514,12 @@
             "state" : "translated",
             "value" : "Send Feedback"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ส่งคำติชม"
+          }
         }
       }
     },
@@ -357,6 +531,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เกิดข้อผิดพลาดบางอย่าง"
           }
         }
       }
@@ -370,6 +550,12 @@
             "state" : "translated",
             "value" : "TRANSCRIBING"
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "กำลังถอดเสียง"
+          }
         }
       }
     },
@@ -381,6 +567,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unlimited"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไม่จำกัด"
           }
         }
       }
@@ -394,6 +586,12 @@
             "state" : "translated",
             "value" : "Unlimited is already unlocked on this device."
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ปลดล็อกแบบไม่จำกัดบนอุปกรณ์นี้แล้ว"
+          }
         }
       }
     },
@@ -406,6 +604,12 @@
             "state" : "translated",
             "value" : "You've used all your free transcription time."
           }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คุณใช้เวลาในการถอดเสียงฟรีครบแล้ว"
+          }
         }
       }
     },
@@ -417,6 +621,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "just now"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เมื่อสักครู่"
           }
         }
       }
