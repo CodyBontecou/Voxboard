@@ -1,0 +1,208 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4] [cursor=pointer]:
+        - img "imghost" [ref=e6]
+        - generic [ref=e7]: imghost
+      - list [ref=e8]:
+        - listitem [ref=e9]:
+          - link "Features" [ref=e10] [cursor=pointer]:
+            - /url: "#features"
+        - listitem [ref=e11]:
+          - link "How It Works" [ref=e12] [cursor=pointer]:
+            - /url: "#how-it-works"
+        - listitem [ref=e13]:
+          - link "Pricing" [ref=e14] [cursor=pointer]:
+            - /url: "#pricing"
+      - generic [ref=e15]:
+        - button "Login" [ref=e16] [cursor=pointer]
+        - button "Sign Up" [ref=e17] [cursor=pointer]
+  - generic [ref=e18]:
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - text: Cloud Image Hosting for iOS
+        - generic [ref=e23]:
+          - text: — Built by
+          - link "isolated.tech" [ref=e24] [cursor=pointer]:
+            - /url: https://isolated.tech
+      - heading "UPLOAD. UPLOAD. UPLOAD. SHARE. SHARE. SHARE. DONE. DONE. DONE." [level=1] [ref=e25]:
+        - generic [ref=e27]: UPLOAD. UPLOAD. UPLOAD.
+        - generic [ref=e29]: SHARE. SHARE. SHARE.
+        - generic [ref=e31]: DONE. DONE. DONE.
+      - paragraph [ref=e32]: No fluff. No friction. Just brutal efficiency. Share images from anywhere on iOS and get instant, direct links.
+      - generic [ref=e34]:
+        - link "Download for iOS" [ref=e35] [cursor=pointer]:
+          - /url: "#download"
+          - img [ref=e36]
+          - text: Download for iOS
+        - link "Learn More" [ref=e38] [cursor=pointer]:
+          - /url: "#features"
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - generic [ref=e41]: "7"
+          - generic [ref=e42]: Day Free Trial
+        - generic [ref=e43]:
+          - generic [ref=e44]: 10GB
+          - generic [ref=e45]: Pro Storage
+        - generic [ref=e46]:
+          - generic [ref=e47]: <1s
+          - generic [ref=e48]: Upload Speed
+        - generic [ref=e49]:
+          - generic [ref=e50]: "0"
+          - generic [ref=e51]: Tracking Pixels
+    - generic [ref=e53]:
+      - generic [ref=e54]:
+        - generic [ref=e55]: 01 / Features
+        - heading "Everything you need. Nothing you don't." [level=2] [ref=e56]
+      - generic [ref=e57]:
+        - generic [ref=e58]:
+          - generic [ref=e59]: ↗
+          - generic [ref=e60]: "001"
+          - heading "Share Extension" [level=3] [ref=e61]
+          - paragraph [ref=e62]: Upload directly from your Photos app or any app with iOS Share Sheet. One tap. Done.
+        - generic [ref=e63]:
+          - generic [ref=e64]: ☷
+          - generic [ref=e65]: "002"
+          - heading "Photo Gallery" [level=3] [ref=e66]
+          - paragraph [ref=e67]: All your uploads organized by date. Pinch to zoom. Swipe to delete. No learning curve.
+        - generic [ref=e68]:
+          - generic [ref=e69]: ⇰
+          - generic [ref=e70]: "003"
+          - heading "Direct Links" [level=3] [ref=e71]
+          - paragraph [ref=e72]: Get clean, direct URLs. Markdown, HTML, BBCode, or raw. Your choice.
+        - generic [ref=e73]:
+          - generic [ref=e74]: ⍈
+          - generic [ref=e75]: "004"
+          - heading "Bulk Export" [level=3] [ref=e76]
+          - paragraph [ref=e77]: Download all your images as a ZIP. Your data, always accessible.
+        - generic [ref=e78]:
+          - generic [ref=e79]: ⧉
+          - generic [ref=e80]: "005"
+          - heading "Custom Link Formats" [level=3] [ref=e81]
+          - paragraph [ref=e82]: Markdown, HTML, BBCode, or raw URLs. Create your own format template.
+        - generic [ref=e83]:
+          - generic [ref=e84]: ⍟
+          - generic [ref=e85]: "006"
+          - heading "Secure by Default" [level=3] [ref=e86]
+          - paragraph [ref=e87]: JWT authentication. Per-image delete tokens. No tracking. No ads. Ever.
+    - generic [ref=e89]:
+      - generic [ref=e90]:
+        - generic [ref=e91]: 02 / Process
+        - heading "Three steps. Zero friction." [level=2] [ref=e92]
+      - generic [ref=e93]:
+        - generic [ref=e94]:
+          - generic [ref=e95]: "01"
+          - heading "Select Image" [level=3] [ref=e96]
+          - paragraph [ref=e97]: Open any image on your iPhone. Tap the share button.
+          - generic [ref=e98]: →
+        - generic [ref=e99]:
+          - generic [ref=e100]: "02"
+          - heading "Tap imghost" [level=3] [ref=e101]
+          - paragraph [ref=e102]: Find imghost in your share sheet. One tap to upload.
+          - generic [ref=e103]: →
+        - generic [ref=e104]:
+          - generic [ref=e105]: "03"
+          - heading "Get Your Link" [level=3] [ref=e106]
+          - paragraph [ref=e107]: Link copied to clipboard. Paste anywhere. Share everywhere.
+    - generic [ref=e110]:
+      - generic [ref=e111]:
+        - generic [ref=e112]:
+          - generic [ref=e113]: 03 / Interface
+          - heading "Brutally beautiful." [level=2] [ref=e114]
+        - generic [ref=e115]:
+          - generic [ref=e116]:
+            - generic [ref=e117]: +
+            - generic [ref=e118]:
+              - strong [ref=e119]: High Contrast UI
+              - text: Pure black. Pure white. Nothing in between. Designed for focus.
+          - generic [ref=e120]:
+            - generic [ref=e121]: +
+            - generic [ref=e122]:
+              - strong [ref=e123]: Monospace Typography
+              - text: Technical. Precise. Every character counts.
+          - generic [ref=e124]:
+            - generic [ref=e125]: +
+            - generic [ref=e126]:
+              - strong [ref=e127]: Zero Decoration
+              - text: No gradients. No shadows. No rounded corners. Just function.
+          - generic [ref=e128]:
+            - generic [ref=e129]: +
+            - generic [ref=e130]:
+              - strong [ref=e131]: Obsidian-Inspired
+              - text: Built for people who appreciate raw, utilitarian design.
+      - generic [ref=e135]:
+        - generic [ref=e136]: Gallery
+        - generic [ref=e137]: PHOTOS
+    - generic [ref=e152]:
+      - generic [ref=e153]:
+        - generic [ref=e154]: 04 / Pricing
+        - heading "Start free. Upgrade when ready." [level=2] [ref=e155]
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - generic [ref=e158]: Start Here
+          - generic [ref=e159]: 7-Day Trial
+          - generic [ref=e160]:
+            - text: $0
+            - generic [ref=e161]: /7 days
+          - paragraph [ref=e162]: Try imghost Pro free for 7 days. Full Pro experience, no limits.
+          - list [ref=e163]:
+            - listitem [ref=e164]: + 10GB storage
+            - listitem [ref=e165]: + Unlimited uploads
+            - listitem [ref=e166]: + 500MB max file size
+            - listitem [ref=e167]: + All Pro features
+            - listitem [ref=e168]: + Cancel anytime
+          - link "Start Free Trial" [ref=e170] [cursor=pointer]:
+            - /url: "#download"
+        - generic [ref=e171]:
+          - text: BEST VALUE
+          - generic [ref=e172]: Best Value
+          - generic [ref=e173]: Pro Annual
+          - generic [ref=e174]:
+            - text: $24.99
+            - generic [ref=e175]: /year
+          - paragraph [ref=e176]: Save 30% with annual billing. Full Pro access, unlimited uploads.
+          - list [ref=e177]:
+            - listitem [ref=e178]: + 10GB storage
+            - listitem [ref=e179]: + Unlimited uploads
+            - listitem [ref=e180]: + 500MB max file size
+            - listitem [ref=e181]: + Custom link formats
+            - listitem [ref=e182]: + Priority support
+          - link "Get Pro Annual" [ref=e184] [cursor=pointer]:
+            - /url: "#download"
+        - generic [ref=e185]:
+          - generic [ref=e186]: Flexible
+          - generic [ref=e187]: Pro Monthly
+          - generic [ref=e188]:
+            - text: $2.99
+            - generic [ref=e189]: /month
+          - paragraph [ref=e190]: Full Pro access with monthly flexibility. Cancel anytime.
+          - list [ref=e191]:
+            - listitem [ref=e192]: + 10GB storage
+            - listitem [ref=e193]: + Unlimited uploads
+            - listitem [ref=e194]: + 500MB max file size
+            - listitem [ref=e195]: + Custom link formats
+            - listitem [ref=e196]: + Priority support
+          - link "Get Pro Monthly" [ref=e198] [cursor=pointer]:
+            - /url: "#download"
+    - generic [ref=e200]:
+      - heading "TRY IT FREE." [level=2] [ref=e201]:
+        - text: TRY IT
+        - text: FREE.
+      - paragraph [ref=e202]: Start your 7-day free trial. No credit card required. Experience brutal image hosting.
+      - link "Download on the App Store" [ref=e203] [cursor=pointer]:
+        - /url: https://apps.apple.com/app/imagehost
+        - img [ref=e204]
+        - text: Download on the App Store
+    - contentinfo [ref=e206]:
+      - generic [ref=e208]:
+        - list [ref=e209]:
+          - listitem [ref=e210]:
+            - link "Privacy" [ref=e211] [cursor=pointer]:
+              - /url: /privacy.html
+          - listitem [ref=e212]:
+            - link "Terms" [ref=e213] [cursor=pointer]:
+              - /url: /terms.html
+          - listitem [ref=e214]:
+            - link "Support" [ref=e215] [cursor=pointer]:
+              - /url: mailto:cody@isolated.tech
+        - generic [ref=e216]: © 2026 imghost. Built with brutality.

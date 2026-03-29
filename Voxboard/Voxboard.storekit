@@ -1,0 +1,33 @@
+{
+  "identifier" : "VoxboardStore",
+  "nonConsumableProducts" : [
+    {
+      "displayPrice" : "9.99",
+      "familySharable" : false,
+      "internalID" : "bontecou.Voxboard.unlock",
+      "localizations" : [
+        {
+          "description" : "Unlock unlimited transcription. One-time purchase, no subscription.",
+          "displayName" : "Voxboard Unlimited",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "bontecou.Voxboard.unlock",
+      "referenceName" : "Voxboard Unlimited",
+      "type" : "NonConsumable"
+    }
+  ],
+  "consumableProducts" : [
+
+  ],
+  "autoRenewableSubscriptions" : [
+
+  ],
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}

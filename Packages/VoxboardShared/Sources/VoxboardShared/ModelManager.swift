@@ -1,22 +1,28 @@
 import Foundation
+import FluidAudio
 
-/// Manages whisper model lifecycle: bundled model setup, downloads, selection, and language preference.
+/// Manages model lifecycle: bundled model setup, downloads, selection, and language preference.
 /// Stores models in the App Group container so both the app and keyboard extension can access them.
 @Observable
 public final class ModelManager {
     public var downloadProgress: [String: Double] = [:]
     public var isDownloading: [String: Bool] = [:]
 
-    // MARK: - Settings (stored in shared UserDefaults)
+    /// Active download tasks keyed by model ID.
+    /// Not @Observable-tracked — only accessed from the main thread via SwiftUI.
+    @ObservationIgnored
+    private var downloadTasks: [String: Task<Void, Never>] = [:]
+
+    // MARK: - Settings
+    // Stored properties so @Observable tracks mutations and SwiftUI re-renders.
+    // didSet observers keep the shared UserDefaults in sync for the keyboard extension.
 
     public var selectedModelId: String {
-        get { AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey) ?? AppConstants.defaultModelName }
-        set { AppConstants.sharedDefaults?.set(newValue, forKey: AppConstants.selectedModelKey) }
+        didSet { AppConstants.sharedDefaults?.set(selectedModelId, forKey: AppConstants.selectedModelKey) }
     }
 
     public var selectedLanguage: String {
-        get { AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey) ?? "auto" }
-        set { AppConstants.sharedDefaults?.set(newValue, forKey: AppConstants.selectedLanguageKey) }
+        didSet { AppConstants.sharedDefaults?.set(selectedLanguage, forKey: AppConstants.selectedLanguageKey) }
     }
 
     public var selectedModel: WhisperModelInfo? {
@@ -30,6 +36,11 @@ public final class ModelManager {
     // MARK: - Initialization
 
     public init() {
+        // Seed from UserDefaults so the persisted selection survives app restarts.
+        self.selectedModelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+            ?? AppConstants.defaultModelName
+        self.selectedLanguage = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
+            ?? "auto"
         ensureModelsDirectory()
     }
 
@@ -53,12 +64,47 @@ public final class ModelManager {
 
     // MARK: - Download
 
-    public func downloadModel(_ model: WhisperModelInfo) async {
-        guard let modelsDir = AppConstants.modelsDirectoryURL else { return }
-        let destURL = modelsDir.appendingPathComponent(model.fileName)
+    /// Start downloading a model. No-op if the model is already downloading.
+    public func startDownload(_ model: WhisperModelInfo) {
+        guard downloadTasks[model.id] == nil else { return }
 
         isDownloading[model.id] = true
         downloadProgress[model.id] = 0
+
+        let task = Task { [weak self] in
+            if model.engine.isParakeet {
+                await self?.downloadParakeetModel(model)
+            } else {
+                await self?.downloadWhisperModel(model)
+            }
+            // Clean up task handle when done (whether success, failure, or cancellation)
+            await MainActor.run { [weak self] in
+                self?.downloadTasks[model.id] = nil
+            }
+        }
+        downloadTasks[model.id] = task
+    }
+
+    /// Cancel an in-progress download and clean up any partial files.
+    public func cancelDownload(_ model: WhisperModelInfo) {
+        downloadTasks[model.id]?.cancel()
+        downloadTasks[model.id] = nil
+        isDownloading[model.id] = false
+        downloadProgress[model.id] = 0
+
+        // Remove any partially-downloaded files so a future download starts clean.
+        cleanupPartialDownload(for: model)
+        print("[ModelManager] Cancelled download for \(model.name)")
+    }
+
+    // MARK: - Whisper Download
+
+    private func downloadWhisperModel(_ model: WhisperModelInfo) async {
+        guard let modelsDir = AppConstants.modelsDirectoryURL else {
+            await finishDownload(modelId: model.id, success: false)
+            return
+        }
+        let destURL = modelsDir.appendingPathComponent(model.fileName)
 
         do {
             let delegate = DownloadProgressDelegate { [weak self] progress in
@@ -68,22 +114,103 @@ public final class ModelManager {
             }
 
             let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
-            let (tempURL, _) = try await session.download(from: model.downloadURL)
+
+            // Cancel the URLSession when the enclosing Swift Task is cancelled.
+            let (tempURL, _) = try await withTaskCancellationHandler {
+                try await session.download(from: model.downloadURL)
+            } onCancel: {
+                session.invalidateAndCancel()
+            }
+
+            // Check for cancellation before moving the file
+            try Task.checkCancellation()
 
             if FileManager.default.fileExists(atPath: destURL.path) {
                 try FileManager.default.removeItem(at: destURL)
             }
             try FileManager.default.moveItem(at: tempURL, to: destURL)
 
-            downloadProgress[model.id] = 1.0
             session.invalidateAndCancel()
             print("[ModelManager] Downloaded \(model.name) successfully")
+            await finishDownload(modelId: model.id, success: true)
+        } catch is CancellationError {
+            print("[ModelManager] Download cancelled for \(model.name)")
+            await finishDownload(modelId: model.id, success: false)
         } catch {
             print("[ModelManager] Download failed for \(model.name): \(error)")
-            downloadProgress[model.id] = 0
+            await finishDownload(modelId: model.id, success: false)
+        }
+    }
+
+    // MARK: - Parakeet Download
+
+    private func downloadParakeetModel(_ model: WhisperModelInfo) async {
+        guard let modelsDir = AppConstants.modelsDirectoryURL else {
+            await finishDownload(modelId: model.id, success: false)
+            return
         }
 
-        isDownloading[model.id] = false
+        let repo: Repo = (model.engine == .parakeetV2) ? .parakeetV2 : .parakeet
+
+        do {
+            try await DownloadUtils.downloadRepo(repo, to: modelsDir) { [weak self] progress in
+                guard let self else { return }
+
+                // The weight.bin files in the Parakeet repos return `size: N/A` from the
+                // HuggingFace tree API, so `totalBytes` inside DownloadUtils is effectively
+                // zero — byte-fraction progress is unreliable and stays stuck at ~1%.
+                // Use file count instead, which is always accurate.
+                let fraction: Double
+                switch progress.phase {
+                case .listing:
+                    fraction = 0.01   // small nonzero so the bar visibly starts
+                case .downloading(let completed, let total):
+                    fraction = total > 0 ? Double(completed) / Double(total) : 0.01
+                case .compiling:
+                    fraction = 0.98
+                }
+
+                Task { @MainActor [weak self] in
+                    self?.downloadProgress[model.id] = fraction
+                }
+            }
+
+            try Task.checkCancellation()
+            print("[ModelManager] Downloaded Parakeet \(model.name) successfully")
+            await finishDownload(modelId: model.id, success: true)
+        } catch is CancellationError {
+            print("[ModelManager] Parakeet download cancelled for \(model.name)")
+            await finishDownload(modelId: model.id, success: false)
+        } catch {
+            print("[ModelManager] Parakeet download failed for \(model.name): \(error)")
+            await finishDownload(modelId: model.id, success: false)
+        }
+    }
+
+    // MARK: - Helpers
+
+    @MainActor
+    private func finishDownload(modelId: String, success: Bool) {
+        isDownloading[modelId] = false
+        if !success {
+            downloadProgress[modelId] = 0
+        } else {
+            downloadProgress[modelId] = 1.0
+        }
+    }
+
+    private func cleanupPartialDownload(for model: WhisperModelInfo) {
+        guard let modelsDir = AppConstants.modelsDirectoryURL else { return }
+        if model.engine.isParakeet {
+            // Remove the partial repo directory so the next download starts fresh.
+            guard let folder = model.engine.parakeetRepoFolderName else { return }
+            let repoDir = modelsDir.appendingPathComponent(folder)
+            try? FileManager.default.removeItem(at: repoDir)
+        } else {
+            // Remove any partial .bin file.
+            let dest = modelsDir.appendingPathComponent(model.fileName)
+            try? FileManager.default.removeItem(at: dest)
+        }
     }
 
     // MARK: - Delete
@@ -96,8 +223,6 @@ public final class ModelManager {
             selectedModelId = AppConstants.defaultModelName
         }
     }
-
-    // MARK: - Helpers
 
     private func ensureModelsDirectory() {
         guard let dir = AppConstants.modelsDirectoryURL else { return }
@@ -133,7 +258,7 @@ public final class ModelManager {
     ]
 }
 
-// MARK: - Download Delegate
+// MARK: - Whisper Download Delegate
 
 private final class DownloadProgressDelegate: NSObject, URLSessionDownloadDelegate, Sendable {
     let progressHandler: @Sendable (Double) -> Void

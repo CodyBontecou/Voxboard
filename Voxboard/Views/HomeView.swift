@@ -5,12 +5,15 @@ import VoxboardShared
 struct HomeView: View {
     @Environment(ModelManager.self) private var modelManager
     @Environment(TranscriptStore.self) private var transcriptStore
+    @Environment(UsageTracker.self) private var usageTracker
+    @Environment(StoreManager.self) private var storeManager
 
     @Bindable var persistentRecorder: PersistentRecorder
     @Binding var pendingKeyboardLaunch: Bool
 
     @State private var showHistory = false
     @State private var showSettings = false
+    @State private var showPaywall = false
     @State private var micPermissionGranted = false
     @State private var keyboardLaunchPhase: KeyboardLaunchPhase? = nil
 
@@ -51,7 +54,15 @@ struct HomeView: View {
             HistoryView().environment(transcriptStore)
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView().environment(modelManager)
+            SettingsView()
+                .environment(modelManager)
+                .environment(usageTracker)
+                .environment(storeManager)
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView()
+                .environment(usageTracker)
+                .environment(storeManager)
         }
         .task {
             micPermissionGranted = await AudioRecorder.requestMicrophonePermission()
@@ -62,32 +73,82 @@ struct HomeView: View {
                 handleKeyboardLaunch()
             }
         }
+        .onChange(of: persistentRecorder.needsUnlock) { _, needs in
+            if needs {
+                persistentRecorder.needsUnlock = false
+                showPaywall = true
+            }
+        }
     }
 
     // MARK: - Top Bar
 
     private var topBar: some View {
-        HStack {
-            BrutalStatusBadge(
-                label: persistentRecorder.isListening ? "Listening" : "Off",
-                isActive: persistentRecorder.isListening
-            )
-            Spacer()
-            Text("VOXBOARD")
-                .font(Brutal.label(13))
-                .foregroundColor(Brutal.text)
-            Spacer()
-            Button(action: { showSettings = true }) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Brutal.faint)
-                    .frame(width: 34, height: 34)
-                    .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+        VStack(spacing: 0) {
+            HStack {
+                BrutalStatusBadge(
+                    label: persistentRecorder.isListening ? "Listening" : "Off",
+                    isActive: persistentRecorder.isListening
+                )
+                Spacer()
+                Text("VOXBOARD")
+                    .font(Brutal.label(13))
+                    .foregroundColor(Brutal.text)
+                Spacer()
+                Button(action: { showSettings = true }) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Brutal.faint)
+                        .frame(width: 34, height: 34)
+                        .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+
+            // Usage bar — only shown to free-tier users
+            if !usageTracker.hasUnlocked {
+                usageMeterBar
+            }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
+    }
+
+    private var usageMeterBar: some View {
+        Button(action: { showPaywall = true }) {
+            HStack(spacing: 10) {
+                // Progress track
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Rectangle().fill(Brutal.surface).frame(height: 2)
+                        Rectangle()
+                            .fill(usageTracker.isAtLimit ? Brutal.error : Brutal.text)
+                            .frame(width: geo.size.width * usageTracker.fractionUsed, height: 2)
+                    }
+                }
+                .frame(height: 2)
+
+                // Label
+                if usageTracker.isAtLimit {
+                    Text("LIMIT REACHED — UNLOCK →")
+                        .font(Brutal.caption(9))
+                        .foregroundColor(Brutal.error)
+                        .lineLimit(1)
+                        .fixedSize()
+                } else {
+                    Text(String(format: "%.1f / 15 MIN FREE", usageTracker.minutesUsed))
+                        .font(Brutal.caption(9))
+                        .foregroundColor(Brutal.faint)
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .fixedSize()
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
+            .background(Brutal.surface.opacity(0.5))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Center Content
@@ -171,15 +232,20 @@ struct HomeView: View {
                     .foregroundColor(Brutal.faint)
             }
             Button(action: {
+                if usageTracker.isAtLimit {
+                    showPaywall = true
+                    return
+                }
                 persistentRecorder.lastTranscriptionResult = nil
                 persistentRecorder.startInAppSegment()
             }) {
                 HStack(spacing: 8) {
-                    Image(systemName: "mic.fill").font(.system(size: 11))
-                    Text("RECORD IN APP")
+                    Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
+                        .font(.system(size: 11))
+                    Text(usageTracker.isAtLimit ? "UNLOCK TO RECORD" : "RECORD IN APP")
                 }
             }
-            .buttonStyle(BrutalButtonStyle(variant: .secondary))
+            .buttonStyle(BrutalButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .secondary))
             .frame(maxWidth: 280)
         }
         .padding(.horizontal, 24)
@@ -260,15 +326,20 @@ struct HomeView: View {
             .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
 
             Button(action: {
+                if usageTracker.isAtLimit {
+                    showPaywall = true
+                    return
+                }
                 persistentRecorder.lastTranscriptionResult = nil
                 persistentRecorder.startInAppSegment()
             }) {
                 HStack(spacing: 8) {
-                    Image(systemName: "mic.fill").font(.system(size: 11))
-                    Text("RECORD AGAIN")
+                    Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
+                        .font(.system(size: 11))
+                    Text(usageTracker.isAtLimit ? "UNLOCK TO RECORD" : "RECORD AGAIN")
                 }
             }
-            .buttonStyle(BrutalButtonStyle(variant: .secondary))
+            .buttonStyle(BrutalButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .secondary))
             .frame(maxWidth: 280)
         }
         .padding(.horizontal, 24)
@@ -323,6 +394,11 @@ struct HomeView: View {
             persistentRecorder.stopListening()
             AppConstants.sharedDefaults?.set(false, forKey: "autoListenEnabled")
         } else {
+            // Gate on paywall only if at limit
+            if usageTracker.isAtLimit {
+                showPaywall = true
+                return
+            }
             persistentRecorder.startListening()
         }
     }
@@ -334,7 +410,16 @@ struct HomeView: View {
                 persistentRecorder.startListening()
             }
             withAnimation {
-                keyboardLaunchPhase = persistentRecorder.isListening ? nil : .error
+                keyboardLaunchPhase = persistentRecorder.isListening ? .ready : .error
+            }
+            // Auto-dismiss the "ready" overlay after 2.5 s so the user knows to
+            // return to their app. The error overlay stays until dismissed manually.
+            if persistentRecorder.isListening {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    withAnimation {
+                        if keyboardLaunchPhase == .ready { keyboardLaunchPhase = nil }
+                    }
+                }
             }
         }
     }

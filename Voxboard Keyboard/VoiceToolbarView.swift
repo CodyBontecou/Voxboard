@@ -44,7 +44,6 @@ struct VoiceToolbarView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(Color.clear)
-        .overlay(Rectangle().fill(K.border).frame(height: 0.5), alignment: .bottom)
         .onChange(of: voiceState.status) { old, new in
             if new == .recording || new == .transcribing {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -67,7 +66,7 @@ struct VoiceToolbarView: View {
             Button(action: { voiceState.previousModel(); modelChangeCount += 1 }) {
                 Text("‹")
                     .font(K.label(15))
-                    .foregroundColor(K.muted)
+                    .foregroundStyle(.secondary)
                     .frame(width: 24, height: 28)
             }
             .buttonStyle(.plain)
@@ -82,11 +81,11 @@ struct VoiceToolbarView: View {
                 case .transcribing:
                     ProgressView()
                         .scaleEffect(0.6)
-                        .tint(K.text)
+                        .tint(.secondary)
                 default:
                     Image(systemName: "mic.fill")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(K.muted)
+                        .foregroundStyle(.secondary)
                 }
             }
             .frame(width: 20, height: 28)
@@ -95,13 +94,11 @@ struct VoiceToolbarView: View {
             Button(action: { voiceState.nextModel(); modelChangeCount += 1 }) {
                 Text("›")
                     .font(K.label(15))
-                    .foregroundColor(K.muted)
+                    .foregroundStyle(.secondary)
                     .frame(width: 24, height: 28)
             }
             .buttonStyle(.plain)
         }
-        .overlay(Rectangle().stroke(K.border, lineWidth: 1))
-        .background(K.surface)
     }
 
     // MARK: - Status Label
@@ -109,8 +106,10 @@ struct VoiceToolbarView: View {
     private var statusLabel: some View {
         Group {
             switch voiceState.status {
-            case .idle, .appNotListening:
+            case .idle:
                 Text(voiceState.currentModelName.uppercased())
+            case .appNotListening:
+                Text("OPEN VOXBOARD")
             case .recording:
                 Text(formatDuration(voiceState.recordingDuration))
                     .monospacedDigit()
@@ -128,7 +127,7 @@ struct VoiceToolbarView: View {
             }
         }
         .font(K.caption(11))
-        .foregroundColor(K.muted)
+        .foregroundStyle(.secondary)
         .lineLimit(1)
     }
 
@@ -138,57 +137,39 @@ struct VoiceToolbarView: View {
     private var actionButton: some View {
         switch voiceState.status {
         case .recording:
-            // Square stop button — error color
+            // Stop button — error color icon, no background
             Button(action: { voiceState.stopRecording() }) {
-                Rectangle()
-                    .fill(K.error)
+                Image(systemName: "stop.fill")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(K.error)
                     .frame(width: 32, height: 32)
-                    .overlay(
-                        Image(systemName: "stop.fill")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(K.text)
-                    )
             }
             .buttonStyle(.plain)
 
         case .transcribing:
-            // Bordered square spinner
-            ZStack {
-                Rectangle()
-                    .fill(K.surface)
-                    .frame(width: 32, height: 32)
-                    .overlay(Rectangle().stroke(K.border, lineWidth: 1))
-                ProgressView()
-                    .scaleEffect(0.55)
-                    .tint(K.muted)
-            }
+            // Spinner, no background
+            ProgressView()
+                .scaleEffect(0.7)
+                .tint(.secondary)
+                .frame(width: 32, height: 32)
 
         case .appNotListening:
-            // Square mic button — prompts opening app
+            // Mic icon — prompts opening app
             Button(action: { voiceState.openApp(hasFullAccess: hasFullAccess) }) {
-                Rectangle()
-                    .fill(K.surface)
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.secondary)
                     .frame(width: 32, height: 32)
-                    .overlay(Rectangle().stroke(K.borderHi, lineWidth: 1))
-                    .overlay(
-                        Image(systemName: "mic.fill")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(K.text)
-                    )
             }
             .buttonStyle(.plain)
 
         default:
-            // Square mic button — start recording
+            // Mic icon — start recording
             Button(action: { voiceState.startRecording(hasFullAccess: hasFullAccess) }) {
-                Rectangle()
-                    .fill(K.text)
+                Image(systemName: "mic.fill")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(.primary)
                     .frame(width: 32, height: 32)
-                    .overlay(
-                        Image(systemName: "mic.fill")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(K.bg)
-                    )
             }
             .buttonStyle(.plain)
         }

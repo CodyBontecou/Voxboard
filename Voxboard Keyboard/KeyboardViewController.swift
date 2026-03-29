@@ -105,7 +105,22 @@ class KeyboardViewController: KeyboardInputViewController {
             responder = current.next
         }
 
-        log.log("❌ openAppURL — no responder found in chain")
+        log.log("openAppURL — modern selector not found, trying legacy openURL:")
+
+        // Fallback: legacy openURL: (works on some iOS versions where the modern
+        // openURL:options:completionHandler: isn't reachable via the responder chain)
+        let legacySelector = NSSelectorFromString("openURL:")
+        responder = self
+        while let current = responder {
+            if current.responds(to: legacySelector) {
+                log.log("openAppURL — found legacy responder: \(type(of: current))")
+                current.perform(legacySelector, with: url)
+                return
+            }
+            responder = current.next
+        }
+
+        log.log("❌ openAppURL — no responder found in chain (tried both selectors)")
     }
 }
 

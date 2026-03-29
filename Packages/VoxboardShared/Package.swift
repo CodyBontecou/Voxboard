@@ -9,10 +9,16 @@ let package = Package(
     products: [
         .library(name: "VoxboardShared", targets: ["VoxboardShared"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/FluidInference/FluidAudio.git", from: "0.12.5"),
+    ],
     targets: [
         .target(
             name: "VoxboardShared",
-            dependencies: ["whisper"],
+            dependencies: [
+                "whisper",
+                .product(name: "FluidAudio", package: "FluidAudio"),
+            ],
             linkerSettings: [
                 .linkedFramework("Accelerate"),
                 .linkedFramework("Metal"),

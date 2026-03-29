@@ -1,0 +1,1 @@
+voice typing,speech to text,keyboard,transcription,whisper,dictation,voice keyboard,on-device,ai

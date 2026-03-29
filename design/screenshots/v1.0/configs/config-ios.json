@@ -1,0 +1,74 @@
+{
+  "platform": "ios",
+  "theme": {
+    "accentColor": "#FF453A",
+    "font": "JetBrains Mono",
+    "fontUrl": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap",
+    "backgroundColor": "#000000",
+    "textColor": "#ffffff",
+    "subtitleColor": "#888888",
+    "frameColor": "dark"
+  },
+  "output": {
+    "width": 1242,
+    "height": 2688,
+    "prefix": "appstore-slide"
+  },
+  "slides": [
+    {
+      "layout": "text-top",
+      "headline": "{Voice}\nto Text.",
+      "subtitle": "Speak in any app.\nOn-device AI — no cloud,\nno account, no uploads.",
+      "screenshot": "../raw/iphone/01-home.png",
+      "headlineSize": 128,
+      "subtitleSize": 38,
+      "phoneWidth": 1060,
+      "phoneTop": 640,
+      "textTop": 80
+    },
+    {
+      "layout": "text-bottom",
+      "headline": "{Every}\nWord Saved.",
+      "subtitle": "Full transcript history.\nCopy anything, instantly.\nSearchable, shareable.",
+      "screenshot": "../raw/iphone/03-history.png",
+      "headlineSize": 112,
+      "subtitleSize": 38,
+      "phoneWidth": 1020,
+      "phoneTop": -100,
+      "textBottom": 90
+    },
+    {
+      "layout": "text-top",
+      "headline": "5 AI\n{Models}",
+      "subtitle": "Tiny (75 MB) to Large (1.6 GB).\nChoose speed or accuracy.\nDownload only what you need.",
+      "screenshot": "../raw/iphone/04-settings.png",
+      "headlineSize": 118,
+      "subtitleSize": 38,
+      "phoneWidth": 1040,
+      "phoneTop": 640,
+      "textTop": 80
+    },
+    {
+      "layout": "text-bottom",
+      "headline": "{$9.99}\nForever.",
+      "subtitle": "No subscription. No renewal.\nUnlock unlimited transcription\nwith a single one-time purchase.",
+      "screenshot": "../raw/iphone/02-paywall.png",
+      "headlineSize": 120,
+      "subtitleSize": 38,
+      "phoneWidth": 1020,
+      "phoneTop": -110,
+      "textBottom": 90
+    }
+    ,{
+      "layout": "text-top",
+      "headline": "Works in\n{Any App}",
+      "subtitle": "Claude, Notes, Messages,\nSafari — anywhere you\ncan type, you can speak.",
+      "screenshot": "../raw/iphone/05-keyboard-in-app.png",
+      "headlineSize": 112,
+      "subtitleSize": 38,
+      "phoneWidth": 1040,
+      "phoneTop": 640,
+      "textTop": 80
+    }
+  ]
+}

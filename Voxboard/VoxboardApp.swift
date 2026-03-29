@@ -6,6 +6,8 @@ struct VoxboardApp: App {
     @State private var modelManager = ModelManager()
     @State private var transcriptStore = TranscriptStore()
     @State private var persistentRecorder: PersistentRecorder
+    @State private var usageTracker = UsageTracker()
+    @State private var storeManager: StoreManager
 
     /// Set to true when the app is opened via the keyboard's "Open" button.
     /// HomeView reads this to show the loading overlay.
@@ -13,8 +15,12 @@ struct VoxboardApp: App {
 
     init() {
         let store = TranscriptStore()
+        let usage = UsageTracker()
+        let storeMan = StoreManager(usageTracker: usage)
         _transcriptStore = State(initialValue: store)
-        _persistentRecorder = State(initialValue: PersistentRecorder(transcriptStore: store))
+        _usageTracker = State(initialValue: usage)
+        _storeManager = State(initialValue: storeMan)
+        _persistentRecorder = State(initialValue: PersistentRecorder(transcriptStore: store, usageTracker: usage))
     }
     @Environment(\.scenePhase) private var scenePhase
 
@@ -29,9 +35,12 @@ struct VoxboardApp: App {
             )
                 .environment(modelManager)
                 .environment(transcriptStore)
+                .environment(usageTracker)
+                .environment(storeManager)
                 .onAppear {
                     modelManager.copyBundledModelIfNeeded()
                     transcriptionServer.start()
+                    storeManager.start()
 
                     // Auto-start listening if user previously enabled it
                     if AppConstants.sharedDefaults?.bool(forKey: "autoListenEnabled") == true {
@@ -45,6 +54,7 @@ struct VoxboardApp: App {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 transcriptionServer.checkForPendingRequest()
+                usageTracker.reload()
 
                 // Re-check listening state — if the user enabled auto-listen
                 // but the engine stopped (e.g. audio interruption), restart it.

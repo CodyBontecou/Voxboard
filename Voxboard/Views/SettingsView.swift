@@ -3,8 +3,11 @@ import VoxboardShared
 
 struct SettingsView: View {
     @Environment(ModelManager.self) private var modelManager
+    @Environment(UsageTracker.self) private var usageTracker
+    @Environment(StoreManager.self) private var storeManager
     @Environment(\.dismiss) private var dismiss
     @State private var showDebugLog = false
+    @State private var showPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -13,6 +16,8 @@ struct SettingsView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
+                        upgradeSection
+                        BrutalDivider()
                         modelsSection
                         BrutalDivider()
                         languageSection
@@ -43,6 +48,11 @@ struct SettingsView: View {
             .sheet(isPresented: $showDebugLog) {
                 KeyboardDebugLogView()
             }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView()
+                    .environment(usageTracker)
+                    .environment(storeManager)
+            }
         }
         .preferredColorScheme(.dark)
     }
@@ -58,6 +68,73 @@ struct SettingsView: View {
         .padding(.top, 28)
         .padding(.bottom, 16)
         .background(Brutal.bg)
+    }
+
+    // MARK: - Upgrade Section
+
+    private var upgradeSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("—", "Voxboard Unlimited")
+            BrutalDivider()
+
+            if usageTracker.hasUnlocked {
+                // Already purchased
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("UNLIMITED UNLOCKED")
+                            .font(Brutal.label(13))
+                            .foregroundColor(Brutal.text)
+                        Text("Lifetime access — no limits")
+                            .font(Brutal.caption(10))
+                            .foregroundColor(Brutal.faint)
+                    }
+                    Spacer()
+                    HStack(spacing: 6) {
+                        Rectangle()
+                            .fill(Brutal.text)
+                            .frame(width: 6, height: 6)
+                        Text("PURCHASED")
+                            .font(Brutal.caption(10))
+                            .foregroundColor(Brutal.text)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Brutal.bg)
+            } else {
+                // Not purchased — show upgrade prompt
+                VStack(spacing: 16) {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("UNLOCK UNLIMITED")
+                                .font(Brutal.label(13))
+                                .foregroundColor(Brutal.text)
+                            Text(String(format: "%.1f / 15 min free used", usageTracker.minutesUsed))
+                                .font(Brutal.caption(10))
+                                .foregroundColor(Brutal.faint)
+                        }
+                        Spacer()
+                        Text(storeManager.displayPrice)
+                            .font(Brutal.label(14))
+                            .foregroundColor(Brutal.text)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+
+                    Button(action: { showPaywall = true }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "lock.open.fill")
+                                .font(.system(size: 11))
+                            Text("VIEW UPGRADE OPTIONS")
+                        }
+                    }
+                    .buttonStyle(BrutalButtonStyle(variant: .primary))
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 16)
+                }
+                .background(Brutal.bg)
+            }
+        }
     }
 
     // MARK: - Models Section

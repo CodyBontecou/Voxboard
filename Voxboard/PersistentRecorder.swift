@@ -41,8 +41,10 @@ final class PersistentRecorder {
 
     // MARK: - Cached Model
 
-    /// Pre-loaded whisper context — avoids cold model load on the first transcription.
+    /// Pre-loaded Whisper context — avoids cold model load on the first transcription.
     private var cachedWhisperContext: WhisperContext?
+    /// Pre-loaded Parakeet context — avoids cold CoreML load on the first transcription.
+    private var cachedParakeetContext: ParakeetContext?
     private var cachedModelId: String?
     private var isPreloadingModel: Bool = false
 
@@ -71,11 +73,26 @@ final class PersistentRecorder {
     /// Shared transcript store — injected so saved transcripts appear in the UI immediately.
     private let transcriptStore: TranscriptStore
 
+    /// Tracks cumulative usage for the free-tier paywall.
+    private let usageTracker: UsageTracker
+
+    /// Set to true when a transcription is blocked because the user has hit the free limit.
+    /// Observed by HomeView to present the PaywallView.
+    var needsUnlock: Bool = false
+
     // MARK: - Init
 
-    init(transcriptStore: TranscriptStore) {
+    init(transcriptStore: TranscriptStore, usageTracker: UsageTracker) {
         self.transcriptStore = transcriptStore
+        self.usageTracker = usageTracker
         ensureRecordingsDirectory()
+
+        // Clear any stale listening state left over from a previous session.
+        // If the app was killed/crashed while listening, the IPC file still says
+        // isListening=true. Clearing it here ensures the keyboard extension won't
+        // try to record against a non-existent recorder and time out after 30s.
+        TranscriptionIPC.writeListeningState(ListeningState(isListening: false))
+        TranscriptionIPC.postListeningStateNotification()
     }
 
     deinit {
@@ -217,7 +234,7 @@ final class PersistentRecorder {
         return true
     }
 
-    /// Pre-load the whisper model in the background so it's ready for the first transcription.
+    /// Pre-load the selected model in the background so it's ready for the first transcription.
     private func preloadModel() {
         guard !isPreloadingModel else { return }
 
@@ -225,30 +242,50 @@ final class PersistentRecorder {
             ?? AppConstants.defaultModelName
 
         // Skip if already cached with the right model
-        if cachedModelId == modelId, cachedWhisperContext != nil { return }
+        if cachedModelId == modelId,
+           (cachedWhisperContext != nil || cachedParakeetContext != nil) { return }
 
         isPreloadingModel = true
         log.log("[PersistentRecorder] Pre-loading model: \(modelId)…")
 
         Task.detached(priority: .utility) { [weak self] in
             guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
-                  let modelPath = model.localURL?.path,
-                  FileManager.default.fileExists(atPath: modelPath) else {
+                  let modelURL = model.localURL,
+                  model.isDownloaded else {
                 log.log("[PersistentRecorder] ⚠️ Pre-load skipped — model not found: \(modelId)")
                 await MainActor.run { self?.isPreloadingModel = false }
                 return
             }
 
-            let ctx = WhisperContext(modelPath: modelPath, useGPU: false)
-
-            await MainActor.run {
-                self?.isPreloadingModel = false
-                if let ctx {
-                    self?.cachedWhisperContext = ctx
-                    self?.cachedModelId = modelId
-                    log.log("[PersistentRecorder] ✅ Model pre-loaded: \(model.name)")
-                } else {
-                    log.log("[PersistentRecorder] ⚠️ Model pre-load failed")
+            if model.engine.isParakeet {
+                guard let modelsDir = AppConstants.modelsDirectoryURL else {
+                    await MainActor.run { self?.isPreloadingModel = false }
+                    return
+                }
+                let ctx = await ParakeetContext.load(modelsDirectory: modelsDir, engine: model.engine)
+                await MainActor.run {
+                    self?.isPreloadingModel = false
+                    if let ctx {
+                        self?.cachedParakeetContext = ctx
+                        self?.cachedWhisperContext = nil
+                        self?.cachedModelId = modelId
+                        log.log("[PersistentRecorder] ✅ Parakeet pre-loaded: \(model.name)")
+                    } else {
+                        log.log("[PersistentRecorder] ⚠️ Parakeet pre-load failed")
+                    }
+                }
+            } else {
+                let ctx = WhisperContext(modelPath: modelURL.path, useGPU: false)
+                await MainActor.run {
+                    self?.isPreloadingModel = false
+                    if let ctx {
+                        self?.cachedWhisperContext = ctx
+                        self?.cachedParakeetContext = nil
+                        self?.cachedModelId = modelId
+                        log.log("[PersistentRecorder] ✅ Whisper pre-loaded: \(model.name)")
+                    } else {
+                        log.log("[PersistentRecorder] ⚠️ Whisper pre-load failed")
+                    }
                 }
             }
         }
@@ -417,6 +454,17 @@ final class PersistentRecorder {
         log.log("[PersistentRecorder] 🎙 Starting segment (fast path): \(command.requestId)")
         osLog.notice("🎙 Starting segment: \(command.requestId)")
 
+        // Paywall check (re-checked on main thread in the dispatch below, but do a quick
+        // static check here too so we can bail early on the background queue).
+        if UsageTracker.staticIsAtLimit {
+            log.log("[PersistentRecorder] 🔒 Fast-path: Free limit reached — blocking segment")
+            DispatchQueue.main.async { [weak self] in
+                self?.writeErrorResponse(requestId: command.requestId, message: "Free limit reached — open Voxboard to unlock")
+                self?.needsUnlock = true
+            }
+            return
+        }
+
         // CRITICAL: Mark buffer position immediately — this is the time-sensitive part.
         // The circular buffer is thread-safe, so reading indices off-main is safe.
         let preRollSamples = Int64(preRollSeconds * whisperSampleRate)
@@ -462,6 +510,14 @@ final class PersistentRecorder {
 
         guard !isSegmentActive else {
             log.log("[PersistentRecorder] ⚠️ startSegment but segment already active")
+            return
+        }
+
+        // Paywall check — block if free tier exhausted
+        if usageTracker.isAtLimit {
+            log.log("[PersistentRecorder] 🔒 Free limit reached — blocking segment")
+            writeErrorResponse(requestId: command.requestId, message: "Free limit reached — open Voxboard to unlock")
+            needsUnlock = true
             return
         }
 
@@ -611,43 +667,23 @@ final class PersistentRecorder {
     private func transcribe(audioURL: URL, modelId: String, language: String, requestId: String, duration: TimeInterval) async {
         // Resolve model
         guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
-              let modelPath = model.localURL?.path,
-              FileManager.default.fileExists(atPath: modelPath) else {
+              model.isDownloaded else {
             log.log("[PersistentRecorder] ❌ Model not found: \(modelId)")
             await MainActor.run { writeErrorResponse(requestId: requestId, message: "Model not found") }
             return
         }
 
-        // Use cached context if available and model matches, otherwise load fresh
-        let ctx: WhisperContext
-        let cachedCtx = await MainActor.run { () -> WhisperContext? in
-            if self.cachedModelId == modelId, let c = self.cachedWhisperContext {
-                log.log("[PersistentRecorder] ♻️ Reusing cached model: \(model.name)")
-                return c
-            }
-            return nil
-        }
-
-        if let cachedCtx {
-            ctx = cachedCtx
-        } else {
-            log.log("[PersistentRecorder] Loading model: \(model.name) (CPU-only)…")
-            guard let freshCtx = WhisperContext(modelPath: modelPath, useGPU: false) else {
-                log.log("[PersistentRecorder] ❌ Model load failed")
-                await MainActor.run { writeErrorResponse(requestId: requestId, message: "Model load failed") }
-                return
-            }
-            ctx = freshCtx
-            // Cache for next time
-            await MainActor.run {
-                self.cachedWhisperContext = freshCtx
-                self.cachedModelId = modelId
-            }
-        }
-
         osLog.notice("🔄 Transcribing audio: \(audioURL.lastPathComponent) model=\(modelId)")
-        log.log("[PersistentRecorder] Transcribing…")
-        let text = ctx.transcribe(audioURL: audioURL, language: language)
+        log.log("[PersistentRecorder] Transcribing with \(model.name)…")
+
+        let text: String?
+
+        if model.engine.isParakeet {
+            text = await transcribeWithParakeet(audioURL: audioURL, model: model)
+        } else {
+            text = await transcribeWithWhisper(audioURL: audioURL, model: model, language: language, modelId: modelId)
+        }
+
         log.log("[PersistentRecorder] Result: \(text?.count ?? 0) chars")
         osLog.notice("✅ Transcription result: \(text?.count ?? 0) chars")
 
@@ -677,6 +713,9 @@ final class PersistentRecorder {
                 )
                 self.transcriptStore.add(transcript)
 
+                // Track usage for the free-tier paywall
+                self.usageTracker.addUsage(seconds: duration)
+
                 // Surface result for in-app recording UI
                 self.lastTranscriptionResult = text
 
@@ -689,6 +728,84 @@ final class PersistentRecorder {
 
         // Clean up WAV file
         try? FileManager.default.removeItem(at: audioURL)
+    }
+
+    // MARK: - Engine-specific transcription helpers
+
+    private func transcribeWithWhisper(
+        audioURL: URL,
+        model: WhisperModelInfo,
+        language: String,
+        modelId: String
+    ) async -> String? {
+        guard let modelPath = model.localURL?.path else { return nil }
+
+        // Use cached context if model matches, otherwise load fresh
+        let cachedCtx = await MainActor.run { () -> WhisperContext? in
+            if self.cachedModelId == modelId, let c = self.cachedWhisperContext {
+                log.log("[PersistentRecorder] ♻️ Reusing cached Whisper: \(model.name)")
+                return c
+            }
+            return nil
+        }
+
+        let ctx: WhisperContext
+        if let c = cachedCtx {
+            ctx = c
+        } else {
+            log.log("[PersistentRecorder] Loading Whisper model: \(model.name) (CPU-only)…")
+            guard let freshCtx = WhisperContext(modelPath: modelPath, useGPU: false) else {
+                log.log("[PersistentRecorder] ❌ Whisper model load failed")
+                return nil
+            }
+            ctx = freshCtx
+            await MainActor.run {
+                self.cachedWhisperContext = freshCtx
+                self.cachedParakeetContext = nil
+                self.cachedModelId = modelId
+            }
+        }
+
+        return ctx.transcribe(audioURL: audioURL, language: language)
+    }
+
+    private func transcribeWithParakeet(
+        audioURL: URL,
+        model: WhisperModelInfo
+    ) async -> String? {
+        guard let modelsDir = AppConstants.modelsDirectoryURL else { return nil }
+        let modelId = model.id
+
+        // Use cached context if model matches, otherwise load fresh
+        let cachedCtx = await MainActor.run { () -> ParakeetContext? in
+            if self.cachedModelId == modelId, let c = self.cachedParakeetContext {
+                log.log("[PersistentRecorder] ♻️ Reusing cached Parakeet: \(model.name)")
+                return c
+            }
+            return nil
+        }
+
+        let ctx: ParakeetContext
+        if let c = cachedCtx {
+            ctx = c
+        } else {
+            log.log("[PersistentRecorder] Loading Parakeet model: \(model.name)…")
+            guard let freshCtx = await ParakeetContext.load(
+                modelsDirectory: modelsDir,
+                engine: model.engine
+            ) else {
+                log.log("[PersistentRecorder] ❌ Parakeet model load failed")
+                return nil
+            }
+            ctx = freshCtx
+            await MainActor.run {
+                self.cachedParakeetContext = freshCtx
+                self.cachedWhisperContext = nil
+                self.cachedModelId = modelId
+            }
+        }
+
+        return await ctx.transcribe(audioURL: audioURL)
     }
 
     // MARK: - WAV Writing
