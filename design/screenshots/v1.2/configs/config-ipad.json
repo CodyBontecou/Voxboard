@@ -1,0 +1,74 @@
+{
+  "platform": "ios",
+  "theme": {
+    "accentColor": "#FF453A",
+    "font": "JetBrains Mono",
+    "fontUrl": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap",
+    "backgroundColor": "#000000",
+    "textColor": "#ffffff",
+    "subtitleColor": "#888888",
+    "frameColor": "dark"
+  },
+  "output": {
+    "width": 2048,
+    "height": 2732,
+    "prefix": "appstore-ipad-slide"
+  },
+  "slides": [
+    {
+      "layout": "text-top",
+      "headline": "{Voice}\nto Text.",
+      "subtitle": "Speak in any app.\nOn-device AI — no cloud,\nno account, no uploads.",
+      "screenshot": "../raw/ipad/01-home.png",
+      "headlineSize": 210,
+      "subtitleSize": 64,
+      "phoneWidth": 1720,
+      "phoneTop": 1040,
+      "textTop": 130
+    },
+    {
+      "layout": "text-bottom",
+      "headline": "{Every}\nWord Saved.",
+      "subtitle": "Transcript history keeps\nevery session available\nfor quick copy and reuse.",
+      "screenshot": "../raw/ipad/02-history.png",
+      "headlineSize": 190,
+      "subtitleSize": 64,
+      "phoneWidth": 1680,
+      "phoneTop": -160,
+      "textBottom": 140
+    },
+    {
+      "layout": "text-top",
+      "headline": "5 AI\n{Models}",
+      "subtitle": "Tiny (75 MB) to Large (1.6 GB).\nPick speed or accuracy\nfor your device.",
+      "screenshot": "../raw/ipad/03-settings.png",
+      "headlineSize": 200,
+      "subtitleSize": 64,
+      "phoneWidth": 1700,
+      "phoneTop": 1040,
+      "textTop": 130
+    },
+    {
+      "layout": "text-bottom",
+      "headline": "{Tune}\nYour Setup.",
+      "subtitle": "Pick language, switch models,\nand customize Voxboard\nfor your workflow.",
+      "screenshot": "../raw/ipad/04-models.png",
+      "headlineSize": 185,
+      "subtitleSize": 64,
+      "phoneWidth": 1680,
+      "phoneTop": -160,
+      "textBottom": 140
+    },
+    {
+      "layout": "text-top",
+      "headline": "{Tap.}\nSpeak. Done.",
+      "subtitle": "Start listening instantly\nwith live audio levels\nand fast local transcription.",
+      "screenshot": "../raw/ipad/05-listening.png",
+      "headlineSize": 190,
+      "subtitleSize": 64,
+      "phoneWidth": 1700,
+      "phoneTop": 1040,
+      "textTop": 130
+    }
+  ]
+}

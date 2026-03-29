@@ -106,7 +106,8 @@ platform :ios do
       force: true,
       platform: "ios",
       submission_information: {
-        add_id_info_uses_idfa: false
+        add_id_info_uses_idfa: false,
+        export_compliance_uses_encryption: false
       }
     )
   end

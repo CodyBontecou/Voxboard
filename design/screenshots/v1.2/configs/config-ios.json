@@ -1,0 +1,74 @@
+{
+  "platform": "ios",
+  "theme": {
+    "accentColor": "#FF453A",
+    "font": "JetBrains Mono",
+    "fontUrl": "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap",
+    "backgroundColor": "#000000",
+    "textColor": "#ffffff",
+    "subtitleColor": "#888888",
+    "frameColor": "dark"
+  },
+  "output": {
+    "width": 1242,
+    "height": 2688,
+    "prefix": "appstore-ios-slide"
+  },
+  "slides": [
+    {
+      "layout": "text-top",
+      "headline": "{Voice}\nto Text.",
+      "subtitle": "Speak in any app.\nOn-device AI — no cloud,\nno account, no uploads.",
+      "screenshot": "../raw/iphone/01-home.png",
+      "headlineSize": 128,
+      "subtitleSize": 38,
+      "phoneWidth": 1060,
+      "phoneTop": 640,
+      "textTop": 80
+    },
+    {
+      "layout": "text-bottom",
+      "headline": "{Every}\nWord Saved.",
+      "subtitle": "Transcript history keeps\nevery session available\nfor quick copy and reuse.",
+      "screenshot": "../raw/iphone/02-history.png",
+      "headlineSize": 112,
+      "subtitleSize": 38,
+      "phoneWidth": 1020,
+      "phoneTop": -100,
+      "textBottom": 90
+    },
+    {
+      "layout": "text-top",
+      "headline": "5 AI\n{Models}",
+      "subtitle": "Tiny (75 MB) to Large (1.6 GB).\nPick speed or accuracy\nfor your device.",
+      "screenshot": "../raw/iphone/03-settings.png",
+      "headlineSize": 118,
+      "subtitleSize": 38,
+      "phoneWidth": 1040,
+      "phoneTop": 640,
+      "textTop": 80
+    },
+    {
+      "layout": "text-bottom",
+      "headline": "{Tap.}\nSpeak. Done.",
+      "subtitle": "Start listening instantly\nwith live audio levels\nand fast local transcription.",
+      "screenshot": "../raw/iphone/04-listening.png",
+      "headlineSize": 110,
+      "subtitleSize": 38,
+      "phoneWidth": 1020,
+      "phoneTop": -110,
+      "textBottom": 90
+    },
+    {
+      "layout": "text-top",
+      "headline": "Works in\n{Any App}",
+      "subtitle": "Claude, Notes, Messages,\nSafari — wherever you can\ntype, you can speak.",
+      "screenshot": "../raw/iphone/05-keyboard-safari.png",
+      "headlineSize": 112,
+      "subtitleSize": 38,
+      "phoneWidth": 1040,
+      "phoneTop": 640,
+      "textTop": 80
+    }
+  ]
+}
