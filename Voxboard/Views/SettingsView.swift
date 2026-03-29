@@ -71,12 +71,12 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("SETTINGS")
-                        .font(Brutal.label(13))
+                        .font(Brutal.label(.headline))
                         .foregroundColor(Brutal.text)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("DONE") { dismiss() }
-                        .font(Brutal.label(11))
+                        .font(Brutal.label())
                         .foregroundColor(Brutal.muted)
                         .buttonStyle(.plain)
                 }
@@ -168,11 +168,11 @@ struct SettingsView: View {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("UNLIMITED UNLOCKED")
-                            .font(Brutal.label(13))
+                            .font(Brutal.label())
                             .foregroundColor(Brutal.text)
                         Text("Lifetime access — no limits")
-                            .font(Brutal.caption(10))
-                            .foregroundColor(Brutal.faint)
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.muted)
                     }
                     Spacer()
                     HStack(spacing: 6) {
@@ -180,7 +180,7 @@ struct SettingsView: View {
                             .fill(Brutal.text)
                             .frame(width: 6, height: 6)
                         Text("PURCHASED")
-                            .font(Brutal.caption(10))
+                            .font(Brutal.caption())
                             .foregroundColor(Brutal.text)
                     }
                 }
@@ -193,15 +193,15 @@ struct SettingsView: View {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("UNLOCK UNLIMITED")
-                                .font(Brutal.label(13))
+                                .font(Brutal.label())
                                 .foregroundColor(Brutal.text)
                             Text(String(format: "%.1f / 15 min free used", usageTracker.minutesUsed))
-                                .font(Brutal.caption(10))
-                                .foregroundColor(Brutal.faint)
+                                .font(Brutal.caption())
+                                .foregroundColor(Brutal.muted)
                         }
                         Spacer()
                         Text(storeManager.displayPrice)
-                            .font(Brutal.label(14))
+                            .font(Brutal.label(.headline))
                             .foregroundColor(Brutal.text)
                     }
                     .padding(.horizontal, 20)
@@ -210,7 +210,7 @@ struct SettingsView: View {
                     Button(action: { showPaywall = true }) {
                         HStack(spacing: 8) {
                             Image(systemName: "lock.open.fill")
-                                .font(.system(size: 11))
+                                .font(.system(.subheadline))
                             Text("VIEW UPGRADE OPTIONS")
                         }
                     }
@@ -250,8 +250,8 @@ struct SettingsView: View {
 
             // Footer note
             Text("Tiny is best for the keyboard extension. Larger models are more accurate but use more memory.")
-                .font(Brutal.caption(11))
-                .foregroundColor(Brutal.faint)
+                .font(Brutal.caption())
+                .foregroundColor(Brutal.muted)
                 .lineSpacing(3)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 14)
@@ -265,20 +265,20 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
                     Text(model.name.uppercased())
-                        .font(Brutal.label(13))
+                        .font(Brutal.label())
                         .foregroundColor(Brutal.text)
                     if model.isBundled {
                         Text("BUNDLED")
-                            .font(Brutal.caption(9))
-                            .foregroundColor(Brutal.faint)
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.muted)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                     }
                 }
                 Text(model.sizeLabel.uppercased())
-                    .font(Brutal.caption(10))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
             }
 
             Spacer()
@@ -300,14 +300,14 @@ struct SettingsView: View {
                             .fill(Brutal.text)
                             .frame(width: 6, height: 6)
                         Text("SELECTED")
-                            .font(Brutal.caption(10))
+                            .font(Brutal.caption())
                             .foregroundColor(Brutal.text)
                     }
                 } else {
                     Button("SELECT") {
                         modelManager.selectedModelId = model.id
                     }
-                    .font(Brutal.caption(10))
+                    .font(Brutal.caption())
                     .foregroundColor(Brutal.muted)
                     .buttonStyle(.plain)
                 }
@@ -316,7 +316,7 @@ struct SettingsView: View {
                     modelManager.deleteModel(model)
                 } label: {
                     Text("DELETE")
-                        .font(Brutal.caption(10))
+                        .font(Brutal.caption())
                         .foregroundColor(Brutal.error)
                 }
                 .buttonStyle(.plain)
@@ -328,11 +328,11 @@ struct SettingsView: View {
                 modelManager.startDownload(model)
             } label: {
                 Text("↓ DOWNLOAD")
-                    .font(Brutal.caption(10))
+                    .font(Brutal.caption())
                     .foregroundColor(Brutal.text)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
             }
             .buttonStyle(.plain)
         }
@@ -354,16 +354,16 @@ struct SettingsView: View {
                 .frame(width: 72, height: 2)
 
                 Text("\(pct)%")
-                    .font(Brutal.caption(10))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
                     .monospacedDigit()
             }
             Button {
                 modelManager.cancelDownload(model)
             } label: {
                 Text("✕")
-                    .font(Brutal.label(12))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.label())
+                    .foregroundColor(Brutal.muted)
             }
             .buttonStyle(.plain)
         }
@@ -401,7 +401,7 @@ struct SettingsView: View {
             // Toggle
             HStack {
                 Text("AUTO-SAVE TO FILE")
-                    .font(Brutal.label(12))
+                    .font(Brutal.label())
                     .foregroundColor(Brutal.text)
                 Spacer()
                 Toggle("", isOn: $fileExportEnabled)
@@ -421,21 +421,21 @@ struct SettingsView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("SAVE LOCATION")
-                            .font(Brutal.caption(10))
-                            .foregroundColor(Brutal.faint)
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.muted)
                         Text(selectedFolderName.isEmpty ? "Not set" : selectedFolderName)
-                            .font(Brutal.label(12))
-                            .foregroundColor(selectedFolderName.isEmpty ? Brutal.faint : Brutal.text)
+                            .font(Brutal.label())
+                            .foregroundColor(selectedFolderName.isEmpty ? Brutal.muted : Brutal.text)
                     }
                     Spacer()
                     Button("CHOOSE") {
                         showFolderPicker = true
                     }
-                    .font(Brutal.caption(10))
+                    .font(Brutal.caption())
                     .foregroundColor(Brutal.text)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                     .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 20)
@@ -446,8 +446,8 @@ struct SettingsView: View {
                 // Format picker
                 HStack {
                     Text("FORMAT")
-                        .font(Brutal.caption(10))
-                        .foregroundColor(Brutal.faint)
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
                     Spacer()
                     Picker("", selection: $fileExportFormat) {
                         Text("TXT").tag(ExportFileFormat.txt)
@@ -469,8 +469,8 @@ struct SettingsView: View {
                 // Mode picker
                 HStack {
                     Text("MODE")
-                        .font(Brutal.caption(10))
-                        .foregroundColor(Brutal.faint)
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
                     Spacer()
                     Picker("", selection: $fileExportMode) {
                         Text("APPEND").tag(ExportFileMode.append)
@@ -491,24 +491,24 @@ struct SettingsView: View {
                 if fileExportMode == .newFile {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("FILE NAME TEMPLATE")
-                            .font(Brutal.caption(10))
-                            .foregroundColor(Brutal.faint)
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.muted)
 
                         TextField("", text: $newFileNameTemplate)
                             .textInputAutocapitalization(.never)
                             .disableAutocorrection(true)
-                            .font(Brutal.label(12))
+                            .font(Brutal.label())
                             .foregroundColor(Brutal.text)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 8)
-                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                             .onChange(of: newFileNameTemplate) { _, val in
                                 persistNewFileNameTemplate(val)
                             }
 
                         Text("TOKENS: {timestamp} {date} {time} {id8} {id} {model} {language}")
-                            .font(Brutal.caption(10))
-                            .foregroundColor(Brutal.faint)
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.muted)
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 14)
@@ -516,24 +516,24 @@ struct SettingsView: View {
                 } else {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("APPEND FILE NAME")
-                            .font(Brutal.caption(10))
-                            .foregroundColor(Brutal.faint)
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.muted)
 
                         TextField("", text: $appendFileName)
                             .textInputAutocapitalization(.never)
                             .disableAutocorrection(true)
-                            .font(Brutal.label(12))
+                            .font(Brutal.label())
                             .foregroundColor(Brutal.text)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 8)
-                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                             .onChange(of: appendFileName) { _, val in
                                 persistAppendFileName(val)
                             }
 
                         Text("Extension is added automatically")
-                            .font(Brutal.caption(10))
-                            .foregroundColor(Brutal.faint)
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.muted)
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 14)
@@ -547,11 +547,11 @@ struct SettingsView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("OBSIDIAN BASES")
-                                    .font(Brutal.label(11))
+                                    .font(Brutal.label())
                                     .foregroundColor(Brutal.text)
                                 Text("Use .md extension for YAML files")
-                                    .font(Brutal.caption(10))
-                                    .foregroundColor(Brutal.faint)
+                                    .font(Brutal.caption())
+                                    .foregroundColor(Brutal.muted)
                             }
                             Spacer()
                             Toggle("", isOn: $yamlObsidianBasesEnabled)
@@ -569,8 +569,8 @@ struct SettingsView: View {
 
                         HStack {
                             Text("YAML PROPERTIES")
-                                .font(Brutal.caption(10))
-                                .foregroundColor(Brutal.faint)
+                                .font(Brutal.caption())
+                                .foregroundColor(Brutal.muted)
                             Spacer()
                         }
                         .padding(.horizontal, 20)
@@ -580,7 +580,7 @@ struct SettingsView: View {
                         ForEach(ExportYAMLProperty.allCases, id: \.rawValue) { property in
                             HStack {
                                 Text(property.displayName.uppercased())
-                                    .font(Brutal.label(11))
+                                    .font(Brutal.label())
                                     .foregroundColor(Brutal.text)
                                 Spacer()
                                 Toggle(
@@ -625,11 +625,11 @@ struct SettingsView: View {
             ForEach(rows, id: \.0) { key, val in
                 HStack {
                     Text(key.uppercased())
-                        .font(Brutal.caption(11))
-                        .foregroundColor(Brutal.faint)
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
                     Spacer()
                     Text(val)
-                        .font(Brutal.caption(11))
+                        .font(Brutal.caption())
                         .foregroundColor(Brutal.text)
                 }
                 .padding(.horizontal, 20)
@@ -652,12 +652,12 @@ struct SettingsView: View {
             } label: {
                 HStack {
                     Text("VIEW KEYBOARD LOG")
-                        .font(Brutal.label(12))
+                        .font(Brutal.label())
                         .foregroundColor(Brutal.text)
                     Spacer()
                     Text("→")
-                        .font(Brutal.label(12))
-                        .foregroundColor(Brutal.faint)
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.muted)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
@@ -680,7 +680,7 @@ private struct KeyboardDebugLogView: View {
                 Color.black.ignoresSafeArea()
                 ScrollView {
                     Text(logText.isEmpty ? "(empty)" : logText)
-                        .font(.system(size: 10, design: .monospaced))
+                        .font(.system(.footnote, design: .monospaced))
                         .foregroundColor(Brutal.text)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)
@@ -692,7 +692,7 @@ private struct KeyboardDebugLogView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("KEYBOARD LOG")
-                        .font(Brutal.label(12))
+                        .font(Brutal.label(.headline))
                         .foregroundColor(Brutal.text)
                 }
                 ToolbarItem(placement: .topBarLeading) {
@@ -700,7 +700,7 @@ private struct KeyboardDebugLogView: View {
                         KeyboardDebugLog.shared.clear()
                         logText = "(cleared)"
                     }
-                    .font(Brutal.label(11))
+                    .font(Brutal.label())
                     .foregroundColor(Brutal.error)
                     .buttonStyle(.plain)
                 }
@@ -710,7 +710,7 @@ private struct KeyboardDebugLogView: View {
                             logText = KeyboardDebugLog.shared.read()
                         } label: {
                             Text("↺")
-                                .font(Brutal.label(16))
+                                .font(Brutal.label(.title3))
                                 .foregroundColor(Brutal.muted)
                         }
                         .buttonStyle(.plain)
@@ -718,12 +718,12 @@ private struct KeyboardDebugLogView: View {
                             UIPasteboard.general.string = logText
                         } label: {
                             Text("COPY")
-                                .font(Brutal.label(11))
+                                .font(Brutal.label())
                                 .foregroundColor(Brutal.muted)
                         }
                         .buttonStyle(.plain)
                         Button("DONE") { dismiss() }
-                            .font(Brutal.label(11))
+                            .font(Brutal.label())
                             .foregroundColor(Brutal.muted)
                             .buttonStyle(.plain)
                     }

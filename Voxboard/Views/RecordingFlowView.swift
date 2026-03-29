@@ -210,7 +210,7 @@ struct RecordingFlowView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.3)
                     Text(formatDuration(controller.recordingDuration))
-                        .font(.system(size: 54, weight: .heavy, design: .monospaced))
+                        .font(Brutal.display(54))
                         .foregroundColor(Brutal.text)
                         .monospacedDigit()
                 }
@@ -219,14 +219,14 @@ struct RecordingFlowView: View {
                 VStack(spacing: 8) {
                     HStack(spacing: 6) {
                         Text("←")
-                            .font(Brutal.label(16))
+                            .font(Brutal.label(.headline))
                         Text("SWIPE BACK TO YOUR APP")
-                            .font(Brutal.label(13))
+                            .font(Brutal.label())
                     }
                     .foregroundColor(Brutal.text)
                     Text("Recording continues. Tap Stop on the keyboard when done.")
-                        .font(Brutal.body(12))
-                        .foregroundColor(Brutal.faint)
+                        .font(Brutal.body())
+                        .foregroundColor(Brutal.muted)
                         .multilineTextAlignment(.center)
                         .lineSpacing(3)
                 }
@@ -239,8 +239,8 @@ struct RecordingFlowView: View {
                 BrutalSectionLabel(number: "01", title: "Status")
                 TranscribingDotsView()
                 Text("Processing audio on-device")
-                    .font(Brutal.body(12))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.body())
+                    .foregroundColor(Brutal.muted)
             }
 
         case .done:
@@ -253,7 +253,7 @@ struct RecordingFlowView: View {
                     .minimumScaleFactor(0.3)
                 if let result = controller.transcriptionResult {
                     Text(result)
-                        .font(Brutal.body(14))
+                        .font(Brutal.body())
                         .foregroundColor(Brutal.text)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
@@ -272,7 +272,7 @@ struct RecordingFlowView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                 Text(controller.errorMessage ?? "Something went wrong")
-                    .font(Brutal.body(12))
+                    .font(Brutal.body())
                     .foregroundColor(Brutal.muted)
                     .multilineTextAlignment(.center)
                     .padding(16)
@@ -290,7 +290,7 @@ struct RecordingFlowView: View {
             case .recording:
                 Button(action: { controller.stopAndTranscribe() }) {
                     HStack(spacing: 8) {
-                        Image(systemName: "stop.fill").font(.system(size: 11))
+                        Image(systemName: "stop.fill").font(.system(.footnote))
                         Text("STOP + TRANSCRIBE")
                     }
                 }

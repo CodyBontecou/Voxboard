@@ -126,13 +126,13 @@ struct HomeView: View {
                 )
                 Spacer()
                 Text("VOXBOARD")
-                    .font(Brutal.label(13))
+                    .font(Brutal.label(.headline))
                     .foregroundColor(Brutal.text)
                 Spacer()
                 Button(action: { showSettings = true }) {
                     Image(systemName: "gearshape")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Brutal.faint)
+                        .font(.system(.body, weight: .medium))
+                        .foregroundColor(Brutal.muted)
                         .frame(width: 34, height: 34)
                         .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
                 }
@@ -165,14 +165,14 @@ struct HomeView: View {
                 // Label
                 if usageTracker.isAtLimit {
                     Text("LIMIT REACHED — UNLOCK →")
-                        .font(Brutal.caption(9))
+                        .font(Brutal.caption())
                         .foregroundColor(Brutal.error)
                         .lineLimit(1)
                         .fixedSize()
                 } else {
                     Text(String(format: "%.1f / 15 MIN FREE", usageTracker.minutesUsed))
-                        .font(Brutal.caption(9))
-                        .foregroundColor(Brutal.faint)
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
                         .monospacedDigit()
                         .lineLimit(1)
                         .fixedSize()
@@ -206,12 +206,12 @@ struct HomeView: View {
             VStack(spacing: 8) {
                 Text("STANDBY.")
                     .font(Brutal.display(60))
-                    .foregroundColor(Brutal.muted)
+                    .foregroundColor(Brutal.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                 Text("Tap START LISTENING below")
-                    .font(Brutal.body(12))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.body())
+                    .foregroundColor(Brutal.muted)
             }
         }
         .padding(.horizontal, 24)
@@ -225,12 +225,12 @@ struct HomeView: View {
             VStack(spacing: 8) {
                 Text("NO MIC.")
                     .font(Brutal.display(52))
-                    .foregroundColor(Brutal.faint)
+                    .foregroundColor(Brutal.muted)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                 Text("Enable microphone access in Settings")
-                    .font(Brutal.body(12))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.body())
+                    .foregroundColor(Brutal.muted)
             }
         }
         .padding(.horizontal, 24)
@@ -262,8 +262,8 @@ struct HomeView: View {
                     .minimumScaleFactor(0.3)
                 IdleWaveformView()
                 Text("Keyboard mic ready in any app")
-                    .font(Brutal.body(12))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.body())
+                    .foregroundColor(Brutal.muted)
             }
             Button(action: {
                 if usageTracker.isAtLimit {
@@ -275,7 +275,7 @@ struct HomeView: View {
             }) {
                 HStack(spacing: 8) {
                     Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
-                        .font(.system(size: 11))
+                        .font(.system(.footnote))
                     Text(usageTracker.isAtLimit ? "UNLOCK TO RECORD" : "RECORD IN APP")
                 }
             }
@@ -295,17 +295,17 @@ struct HomeView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                 Text(formatDuration(persistentRecorder.segmentDuration))
-                    .font(.system(size: 54, weight: .heavy, design: .monospaced))
+                    .font(Brutal.display(54))
                     .foregroundColor(Brutal.text)
                     .monospacedDigit()
             }
             Text("Return to your app — recording continues")
-                .font(Brutal.body(11))
-                .foregroundColor(Brutal.faint)
+                .font(Brutal.body())
+                .foregroundColor(Brutal.muted)
                 .multilineTextAlignment(.center)
             Button(action: { persistentRecorder.stopInAppSegment() }) {
                 HStack(spacing: 8) {
-                    Image(systemName: "stop.fill").font(.system(size: 11))
+                    Image(systemName: "stop.fill").font(.system(.footnote))
                     Text("STOP + TRANSCRIBE")
                 }
             }
@@ -320,8 +320,8 @@ struct HomeView: View {
             BrutalSectionLabel(number: "01", title: "Status")
             TranscribingDotsView()
             Text("Processing audio on-device")
-                .font(Brutal.body(12))
-                .foregroundColor(Brutal.faint)
+                .font(Brutal.body())
+                .foregroundColor(Brutal.muted)
         }
         .padding(.horizontal, 24)
     }
@@ -338,21 +338,21 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text("TRANSCRIPT")
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.faint)
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.muted)
                     Spacer()
                     Button(action: {
                         UIPasteboard.general.string = result
                         persistentRecorder.lastTranscriptionResult = nil
                     }) {
                         Text("COPY + CLEAR")
-                            .font(Brutal.caption())
+                            .font(Brutal.label())
                             .foregroundColor(Brutal.text)
                     }
                     .buttonStyle(.plain)
                 }
                 Text(result)
-                    .font(Brutal.body(14))
+                    .font(Brutal.body())
                     .foregroundColor(Brutal.text)
                     .lineSpacing(4)
             }
@@ -369,7 +369,7 @@ struct HomeView: View {
             }) {
                 HStack(spacing: 8) {
                     Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
-                        .font(.system(size: 11))
+                        .font(.system(.footnote))
                     Text(usageTracker.isAtLimit ? "UNLOCK TO RECORD" : "RECORD AGAIN")
                 }
             }
@@ -388,8 +388,8 @@ struct HomeView: View {
                     Text("↑")
                     Text("HISTORY")
                 }
-                .font(Brutal.caption(11))
-                .foregroundColor(Brutal.faint)
+                .font(Brutal.label())
+                .foregroundColor(Brutal.muted)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
             }
@@ -401,7 +401,7 @@ struct HomeView: View {
                 if persistentRecorder.isListening {
                     Button(action: { toggleListening() }) {
                         HStack(spacing: 8) {
-                            Image(systemName: "stop.fill").font(.system(size: 11))
+                            Image(systemName: "stop.fill").font(.system(.footnote))
                             Text("STOP LISTENING")
                         }
                     }
@@ -409,7 +409,7 @@ struct HomeView: View {
                 } else {
                     Button(action: { toggleListening() }) {
                         HStack(spacing: 8) {
-                            Image(systemName: "play.fill").font(.system(size: 11))
+                            Image(systemName: "play.fill").font(.system(.footnote))
                             Text("START LISTENING")
                         }
                     }
@@ -509,15 +509,15 @@ private struct FileExportToastView: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(.subheadline, weight: .semibold))
                     .foregroundColor(Brutal.text)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text("SUCCESS")
-                        .font(Brutal.caption(10))
-                        .foregroundColor(Brutal.faint)
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
                     Text(fileName)
-                        .font(Brutal.body(12))
+                        .font(Brutal.body())
                         .foregroundColor(Brutal.text)
                         .lineLimit(1)
                 }
@@ -525,7 +525,7 @@ private struct FileExportToastView: View {
                 Spacer(minLength: 8)
 
                 Text("OPEN")
-                    .font(Brutal.label(10))
+                    .font(Brutal.label())
                     .foregroundColor(Brutal.text)
             }
             .padding(.horizontal, 12)
@@ -581,7 +581,7 @@ private struct KeyboardLaunchOverlay: View {
                 .frame(width: 80, height: 80)
                 .overlay(
                     Text("✓")
-                        .font(Brutal.heading(40))
+                        .font(Brutal.heading(.largeTitle))
                         .foregroundColor(Brutal.text)
                 )
                 .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
@@ -591,7 +591,7 @@ private struct KeyboardLaunchOverlay: View {
                 .frame(width: 80, height: 80)
                 .overlay(
                     Text("!")
-                        .font(Brutal.heading(40))
+                        .font(Brutal.heading(.largeTitle))
                         .foregroundColor(Brutal.error)
                 )
                 .overlay(Rectangle().stroke(Brutal.error, lineWidth: 1))
@@ -604,19 +604,19 @@ private struct KeyboardLaunchOverlay: View {
         case .starting:
             VStack(spacing: 10) {
                 Text("STARTING MIC")
-                    .font(Brutal.heading(20))
+                    .font(Brutal.heading(.title2))
                     .foregroundColor(Brutal.text)
                 Text("Setting up always-on listening...")
-                    .font(Brutal.body(12))
+                    .font(Brutal.body())
                     .foregroundColor(Brutal.muted)
             }
         case .ready:
             VStack(spacing: 10) {
                 Text("READY.")
-                    .font(Brutal.heading(28))
+                    .font(Brutal.heading(.title))
                     .foregroundColor(Brutal.text)
                 Text("Return to your app\nand tap Record on the keyboard.")
-                    .font(Brutal.body(12))
+                    .font(Brutal.body())
                     .foregroundColor(Brutal.muted)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
@@ -624,10 +624,10 @@ private struct KeyboardLaunchOverlay: View {
         case .error:
             VStack(spacing: 10) {
                 Text("MIC ERROR.")
-                    .font(Brutal.heading(24))
+                    .font(Brutal.heading(.title))
                     .foregroundColor(Brutal.error)
                 Text("Check microphone permissions\nin Settings.")
-                    .font(Brutal.body(12))
+                    .font(Brutal.body())
                     .foregroundColor(Brutal.muted)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)

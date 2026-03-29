@@ -21,19 +21,19 @@ struct HistoryView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("HISTORY")
-                        .font(Brutal.label(13))
+                        .font(Brutal.label(.headline))
                         .foregroundColor(Brutal.text)
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button("CLOSE") { dismiss() }
-                        .font(Brutal.label(11))
+                        .font(Brutal.label())
                         .foregroundColor(Brutal.muted)
                         .buttonStyle(.plain)
                 }
                 if !store.transcripts.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("CLEAR ALL") { store.clear() }
-                            .font(Brutal.label(11))
+                            .font(Brutal.label())
                             .foregroundColor(Brutal.error)
                             .buttonStyle(.plain)
                     }
@@ -52,13 +52,13 @@ struct HistoryView: View {
         VStack(spacing: 24) {
             BrutalSectionLabel(number: "—", title: "Empty")
             Text("NO TRANSCRIPTS.")
-                .font(Brutal.display(32))
-                .foregroundColor(Brutal.faint)
+                .font(Brutal.display(36))
+                .foregroundColor(Brutal.muted)
                 .lineLimit(1)
                 .minimumScaleFactor(0.35)
             Text("Use the keyboard mic in any app\nto see transcripts here.")
-                .font(Brutal.body(12))
-                .foregroundColor(Brutal.faint)
+                .font(Brutal.body())
+                .foregroundColor(Brutal.muted)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
         }
@@ -91,36 +91,36 @@ struct HistoryView: View {
                 HStack(spacing: 6) {
                     Text(relativeDate(transcript.date))
                         .font(Brutal.caption())
-                        .foregroundColor(Brutal.faint)
-                    Text("·").font(Brutal.caption()).foregroundColor(Brutal.faint)
+                        .foregroundColor(Brutal.muted)
+                    Text("·").font(Brutal.caption()).foregroundColor(Brutal.muted)
                     Text(transcript.modelUsed.uppercased())
                         .font(Brutal.caption())
-                        .foregroundColor(Brutal.faint)
-                    Text("·").font(Brutal.caption()).foregroundColor(Brutal.faint)
+                        .foregroundColor(Brutal.muted)
+                    Text("·").font(Brutal.caption()).foregroundColor(Brutal.muted)
                     Text(formatDuration(transcript.duration).uppercased())
                         .font(Brutal.caption())
-                        .foregroundColor(Brutal.faint)
+                        .foregroundColor(Brutal.muted)
                     if transcript.language != "auto" {
-                        Text("·").font(Brutal.caption()).foregroundColor(Brutal.faint)
+                        Text("·").font(Brutal.caption()).foregroundColor(Brutal.muted)
                         Text(transcript.language.uppercased())
                             .font(Brutal.caption())
-                            .foregroundColor(Brutal.faint)
+                            .foregroundColor(Brutal.muted)
                     }
                     Spacer()
                     Button(action: { UIPasteboard.general.string = transcript.text }) {
                         Text("COPY")
-                            .font(Brutal.caption(10))
-                            .foregroundColor(Brutal.muted)
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.text)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                 }
 
                 // Transcript text
                 Text(transcript.text)
-                    .font(Brutal.body(14))
+                    .font(Brutal.body())
                     .foregroundColor(Brutal.text)
                     .lineSpacing(4)
                     .lineLimit(5)

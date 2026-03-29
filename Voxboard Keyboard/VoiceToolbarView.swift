@@ -9,15 +9,15 @@ private enum K {
     static let border   = Color(white: 0.18)
     static let borderHi = Color(white: 0.32)
     static let text     = Color.white
-    static let muted    = Color(white: 0.5)
-    static let faint    = Color(white: 0.28)
+    static let muted    = Color(white: 0.72)
+    static let faint    = Color(white: 0.60)
     static let error    = Color(red: 1.0, green: 0.271, blue: 0.227)
 
-    static func label(_ size: CGFloat = 11) -> Font {
-        .system(size: size, weight: .semibold, design: .monospaced)
+    static func label(_ style: Font.TextStyle = .callout) -> Font {
+        .system(style, design: .monospaced, weight: .semibold)
     }
-    static func caption(_ size: CGFloat = 10) -> Font {
-        .system(size: size, weight: .regular, design: .monospaced)
+    static func caption(_ style: Font.TextStyle = .footnote) -> Font {
+        .system(style, design: .monospaced, weight: .regular)
     }
 }
 
@@ -65,7 +65,7 @@ struct VoiceToolbarView: View {
             // Prev
             Button(action: { voiceState.previousModel(); modelChangeCount += 1 }) {
                 Text("‹")
-                    .font(K.label(15))
+                    .font(K.label(.subheadline))
                     .foregroundStyle(.secondary)
                     .frame(width: 24, height: 28)
             }
@@ -84,7 +84,7 @@ struct VoiceToolbarView: View {
                         .tint(.secondary)
                 default:
                     Image(systemName: "mic.fill")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(.footnote, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -93,7 +93,7 @@ struct VoiceToolbarView: View {
             // Next
             Button(action: { voiceState.nextModel(); modelChangeCount += 1 }) {
                 Text("›")
-                    .font(K.label(15))
+                    .font(K.label(.subheadline))
                     .foregroundStyle(.secondary)
                     .frame(width: 24, height: 28)
             }
@@ -126,7 +126,7 @@ struct VoiceToolbarView: View {
                     .foregroundColor(K.error)
             }
         }
-        .font(K.caption(11))
+        .font(K.caption())
         .foregroundStyle(.secondary)
         .lineLimit(1)
     }
@@ -140,7 +140,7 @@ struct VoiceToolbarView: View {
             // Stop button — error color icon, no background
             Button(action: { voiceState.stopRecording() }) {
                 Image(systemName: "stop.fill")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(.title3, weight: .bold))
                     .foregroundColor(K.error)
                     .frame(width: 32, height: 32)
             }
@@ -157,7 +157,7 @@ struct VoiceToolbarView: View {
             // Mic icon — prompts opening app
             Button(action: { voiceState.openApp(hasFullAccess: hasFullAccess) }) {
                 Image(systemName: "mic.fill")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(.title3, weight: .bold))
                     .foregroundStyle(.secondary)
                     .frame(width: 32, height: 32)
             }
@@ -167,7 +167,7 @@ struct VoiceToolbarView: View {
             // Mic icon — start recording
             Button(action: { voiceState.startRecording(hasFullAccess: hasFullAccess) }) {
                 Image(systemName: "mic.fill")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(.system(.title3, weight: .bold))
                     .foregroundStyle(.primary)
                     .frame(width: 32, height: 32)
             }

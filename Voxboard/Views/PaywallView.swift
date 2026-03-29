@@ -54,13 +54,13 @@ struct PaywallView: View {
             BrutalStatusBadge(label: statusBadgeLabel, isActive: !usageTracker.isAtLimit)
             Spacer()
             Text("VOXBOARD")
-                .font(Brutal.label(13))
+                .font(Brutal.label(.headline))
                 .foregroundColor(Brutal.text)
             Spacer()
             Button(action: { dismiss() }) {
                 Text("✕")
-                    .font(Brutal.label(14))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.label(.headline))
+                    .foregroundColor(Brutal.muted)
                     .frame(width: 34, height: 34)
                     .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
             }
@@ -84,15 +84,15 @@ struct PaywallView: View {
             // Big usage display
             VStack(spacing: 8) {
                 Text("FREE TIER")
-                    .font(Brutal.caption(10))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
                 HStack(alignment: .lastTextBaseline, spacing: 4) {
                     Text(String(format: "%.1f", min(usageTracker.minutesUsed, 15.0)))
                         .font(Brutal.display(52))
                         .foregroundColor(Brutal.text)
                         .monospacedDigit()
                     Text("/ 15 MIN")
-                        .font(Brutal.label(14))
+                        .font(Brutal.label(.headline))
                         .foregroundColor(Brutal.muted)
                 }
                 .lineLimit(1)
@@ -118,7 +118,7 @@ struct PaywallView: View {
             .padding(.bottom, 8)
 
             Text(usageStatusMessage)
-                .font(Brutal.body(12))
+                .font(Brutal.body())
                 .foregroundColor(usageTracker.isAtLimit ? Brutal.error : Brutal.muted)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
@@ -141,19 +141,19 @@ struct PaywallView: View {
             // Price callout
             VStack(spacing: 6) {
                 Text("ONE-TIME PURCHASE")
-                    .font(Brutal.caption(10))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
                 HStack(alignment: .lastTextBaseline, spacing: 4) {
                     Text(storeManager.displayPrice)
                         .font(Brutal.display(48))
                         .foregroundColor(Brutal.text)
                     Text("forever")
-                        .font(Brutal.body(13))
+                        .font(Brutal.body())
                         .foregroundColor(Brutal.muted)
                 }
                 Text("No subscription. No renewal. Pay once.")
-                    .font(Brutal.caption(10))
-                    .foregroundColor(Brutal.faint)
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
@@ -172,7 +172,7 @@ struct PaywallView: View {
                         }
                     } else {
                         HStack(spacing: 8) {
-                            Image(systemName: "lock.open.fill").font(.system(size: 11))
+                            Image(systemName: "lock.open.fill").font(.system(.subheadline))
                             Text("UNLOCK UNLIMITED — \(storeManager.displayPrice)")
                         }
                     }
@@ -184,7 +184,7 @@ struct PaywallView: View {
 
             if let error = storeManager.errorMessage {
                 Text(error)
-                    .font(Brutal.caption(10))
+                    .font(Brutal.caption())
                     .foregroundColor(Brutal.error)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 20)
@@ -222,11 +222,11 @@ struct PaywallView: View {
                         .frame(width: 4, height: 4)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(title.uppercased())
-                            .font(Brutal.label(12))
+                            .font(Brutal.label())
                             .foregroundColor(Brutal.text)
                         Text(detail)
-                            .font(Brutal.caption(10))
-                            .foregroundColor(Brutal.faint)
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.muted)
                     }
                     Spacer()
                 }
@@ -262,8 +262,8 @@ struct PaywallView: View {
             .padding(.horizontal, 20)
 
             Text("Already purchased? Tap to restore your purchase. No charge will be made.")
-                .font(Brutal.caption(10))
-                .foregroundColor(Brutal.faint)
+                .font(Brutal.caption())
+                .foregroundColor(Brutal.muted)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
 

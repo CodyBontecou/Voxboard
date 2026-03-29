@@ -14,25 +14,39 @@ enum Brutal {
     static let border    = Color(white: 0.165)                             // #2a2a2a
     static let borderHi  = Color(white: 0.267)                             // #444444
     static let text      = Color.white
-    static let muted     = Color(white: 0.533)                             // #888888
-    static let faint     = Color(white: 0.267)                             // #444444
+    static let muted     = Color(white: 0.72)                              // #B8B8B8 — readable secondary (~14:1)
+    static let faint     = Color(white: 0.60)                              // #999999 — readable hint (≥7:1 on black)
     static let error     = Color(red: 1.0, green: 0.271, blue: 0.227)     // #FF453A
 
-    // ── Fonts (all monospaced) ───────────────────────────────────────────────
+    // ── Fonts (all monospaced, Dynamic-Type-aware) ──────────────────────────
+    // Semantic text-style overloads scale automatically with the user's
+    // iOS Settings → Display & Brightness → Text Size preference.
+    // `display` uses a fixed size (hero/status numbers already use
+    // minimumScaleFactor and are large enough at any setting).
+
+    /// Large decorative status words ("STANDBY.", "RECORDING."). Fixed size.
     static func display(_ size: CGFloat) -> Font {
         .system(size: size, weight: .heavy, design: .monospaced)
     }
-    static func heading(_ size: CGFloat = 17) -> Font {
-        .system(size: size, weight: .bold, design: .monospaced)
+
+    /// Section / overlay headings. Scales with Dynamic Type.
+    static func heading(_ style: Font.TextStyle = .title3) -> Font {
+        .system(style, design: .monospaced, weight: .bold)
     }
-    static func label(_ size: CGFloat = 11) -> Font {
-        .system(size: size, weight: .semibold, design: .monospaced)
+
+    /// Buttons, navigation titles, key labels. Scales with Dynamic Type.
+    static func label(_ style: Font.TextStyle = .callout) -> Font {
+        .system(style, design: .monospaced, weight: .semibold)
     }
-    static func body(_ size: CGFloat = 13) -> Font {
-        .system(size: size, weight: .regular, design: .monospaced)
+
+    /// Body / transcript / description text. Scales with Dynamic Type.
+    static func body(_ style: Font.TextStyle = .body) -> Font {
+        .system(style, design: .monospaced, weight: .regular)
     }
-    static func caption(_ size: CGFloat = 10) -> Font {
-        .system(size: size, weight: .regular, design: .monospaced)
+
+    /// Metadata, badges, sub-labels. Scales with Dynamic Type.
+    static func caption(_ style: Font.TextStyle = .footnote) -> Font {
+        .system(style, design: .monospaced, weight: .regular)
     }
 }
 
@@ -45,7 +59,7 @@ struct BrutalButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(Brutal.label(12))
+            .font(Brutal.label())
             .foregroundColor(fg(configuration.isPressed))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
@@ -98,7 +112,7 @@ struct BrutalStatusBadge: View {
                 .fill(isActive ? Brutal.text : Brutal.faint)
                 .frame(width: 5, height: 5)
             Text(label.uppercased())
-                .font(Brutal.caption(10))
+                .font(Brutal.caption())
                 .foregroundColor(isActive ? Brutal.text : Brutal.faint)
         }
         .padding(.horizontal, 10)
@@ -115,11 +129,11 @@ struct BrutalSectionLabel: View {
     var body: some View {
         HStack(spacing: 8) {
             Text(number)
-                .font(Brutal.caption())
+                .font(Brutal.label())
                 .foregroundColor(Brutal.faint)
             Rectangle().fill(Brutal.border).frame(width: 16, height: 1)
             Text(title.uppercased())
-                .font(Brutal.caption())
+                .font(Brutal.label())
                 .foregroundColor(Brutal.faint)
         }
     }
@@ -187,8 +201,8 @@ struct TranscribingDotsView: View {
 
     var body: some View {
         Text("TRANSCRIBING" + String(repeating: ".", count: (count % 3) + 1))
-            .font(Brutal.display(36))
-            .foregroundColor(Brutal.muted)
+            .font(Brutal.display(40))
+            .foregroundColor(Brutal.text)
             .lineLimit(1)
             .minimumScaleFactor(0.35)
             .onReceive(timer) { _ in count += 1 }
