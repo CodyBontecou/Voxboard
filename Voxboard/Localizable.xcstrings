@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "(cleared)"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(очищено)"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "(empty)"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(пусто)"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "%dh ago"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dч назад"
+          }
         }
       }
     },
@@ -45,6 +63,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%dm %ds"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dм %dс"
           }
         }
       }
@@ -58,6 +82,12 @@
             "state" : "translated",
             "value" : "%dm ago"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dм назад"
+          }
         }
       }
     },
@@ -69,6 +99,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%ds"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dс"
           }
         }
       }
@@ -82,6 +118,12 @@
             "state" : "translated",
             "value" : "%.1f / 15 MIN FREE"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 15 МИН БЕСПЛАТНО"
+          }
         }
       }
     },
@@ -93,6 +135,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%.1f / 15 min free used"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 15 бесплатных мин использовано"
           }
         }
       }
@@ -106,6 +154,12 @@
             "state" : "translated",
             "value" : "%.1f min free remaining."
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Осталось %.1f бесплатных мин."
+          }
         }
       }
     },
@@ -117,6 +171,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App preferences, upgrade, about, and debug"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки приложения, апгрейд, информация и отладка"
           }
         }
       }
@@ -130,6 +190,12 @@
             "state" : "translated",
             "value" : "Configure automatic transcript file export"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройка автоматического экспорта файлов расшифровки"
+          }
         }
       }
     },
@@ -141,6 +207,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not access microphone"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось получить доступ к микрофону"
           }
         }
       }
@@ -154,6 +226,12 @@
             "state" : "translated",
             "value" : "Download and select Whisper or Parakeet AI models"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузите и выберите модели ИИ Whisper или Parakeet"
+          }
         }
       }
     },
@@ -165,6 +243,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to load model"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось загрузить модель"
           }
         }
       }
@@ -178,6 +262,12 @@
             "state" : "translated",
             "value" : "Free Tier"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Бесплатный тариф"
+          }
         }
       }
     },
@@ -189,6 +279,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limit Reached"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Лимит достигнут"
           }
         }
       }
@@ -202,6 +298,12 @@
             "state" : "translated",
             "value" : "Listening"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Слушает"
+          }
         }
       }
     },
@@ -213,6 +315,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mic unavailable"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Микрофон недоступен"
           }
         }
       }
@@ -226,6 +334,12 @@
             "state" : "translated",
             "value" : "Model load failed"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось загрузить модель"
+          }
         }
       }
     },
@@ -237,6 +351,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Model not found"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Модель не найдена"
           }
         }
       }
@@ -250,6 +370,12 @@
             "state" : "translated",
             "value" : "Model not found: %@"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Модель не найдена: %@"
+          }
         }
       }
     },
@@ -261,6 +387,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No audio captured"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аудио не записано"
           }
         }
       }
@@ -274,6 +406,12 @@
             "state" : "translated",
             "value" : "No audio was captured"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Аудио не было записано"
+          }
         }
       }
     },
@@ -285,6 +423,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No speech detected"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Речь не обнаружена"
           }
         }
       }
@@ -298,6 +442,12 @@
             "state" : "translated",
             "value" : "Not set"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не задано"
+          }
         }
       }
     },
@@ -309,6 +459,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Off"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выкл."
           }
         }
       }
@@ -322,6 +478,12 @@
             "state" : "translated",
             "value" : "Opens an email draft to contact support with app diagnostics"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открывает черновик письма для связи с поддержкой с диагностикой приложения"
+          }
         }
       }
     },
@@ -333,6 +495,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Record and transcribe audio in real time"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записывайте и расшифровывайте аудио в реальном времени"
           }
         }
       }
@@ -346,6 +514,12 @@
             "state" : "translated",
             "value" : "Send Feedback"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Отправить отзыв"
+          }
         }
       }
     },
@@ -357,6 +531,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Что-то пошло не так"
           }
         }
       }
@@ -370,6 +550,12 @@
             "state" : "translated",
             "value" : "TRANSCRIBING"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "РАСШИФРОВКА"
+          }
         }
       }
     },
@@ -381,6 +567,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unlimited"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Безлимит"
           }
         }
       }
@@ -394,6 +586,12 @@
             "state" : "translated",
             "value" : "Unlimited is already unlocked on this device."
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Безлимит уже разблокирован на этом устройстве."
+          }
         }
       }
     },
@@ -406,6 +604,12 @@
             "state" : "translated",
             "value" : "You've used all your free transcription time."
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вы использовали всё бесплатное время расшифровки."
+          }
         }
       }
     },
@@ -417,6 +621,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "just now"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "только что"
           }
         }
       }

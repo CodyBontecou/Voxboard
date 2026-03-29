@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "Limit reached — open Voxboard to unlock"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Лимит достигнут — откройте Voxboard, чтобы разблокировать"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No Model"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нет модели"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "No speech detected"
           }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Речь не обнаружена"
+          }
         }
       }
     },
@@ -45,6 +63,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transcription timed out — try again"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Время расшифровки истекло — попробуйте снова"
           }
         }
       }
