@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "(cleared)"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(クリア済み)"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "(empty)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(空)"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "%dh ago"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d時間前"
+          }
         }
       }
     },
@@ -45,6 +63,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%dm %ds"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d分 %d秒"
           }
         }
       }
@@ -58,6 +82,12 @@
             "state" : "translated",
             "value" : "%dm ago"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d分前"
+          }
         }
       }
     },
@@ -69,6 +99,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%ds"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d秒"
           }
         }
       }
@@ -82,6 +118,12 @@
             "state" : "translated",
             "value" : "%.1f / 15 MIN FREE"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 無料15分"
+          }
         }
       }
     },
@@ -93,6 +135,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%.1f / 15 min free used"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無料15分中 %.1f 分を使用"
           }
         }
       }
@@ -106,6 +154,12 @@
             "state" : "translated",
             "value" : "%.1f min free remaining."
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無料時間が残り %.1f 分です。"
+          }
         }
       }
     },
@@ -117,6 +171,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App preferences, upgrade, about, and debug"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリ設定、アップグレード、情報、デバッグ"
           }
         }
       }
@@ -130,6 +190,12 @@
             "state" : "translated",
             "value" : "Configure automatic transcript file export"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字起こしファイルの自動書き出しを設定"
+          }
         }
       }
     },
@@ -141,6 +207,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not access microphone"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マイクにアクセスできませんでした"
           }
         }
       }
@@ -154,6 +226,12 @@
             "state" : "translated",
             "value" : "Download and select Whisper or Parakeet AI models"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisper または Parakeet のAIモデルをダウンロードして選択"
+          }
         }
       }
     },
@@ -165,6 +243,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to load model"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルの読み込みに失敗しました"
           }
         }
       }
@@ -178,6 +262,12 @@
             "state" : "translated",
             "value" : "Free Tier"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無料プラン"
+          }
         }
       }
     },
@@ -189,6 +279,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limit Reached"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上限に達しました"
           }
         }
       }
@@ -202,6 +298,12 @@
             "state" : "translated",
             "value" : "Listening"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "待機中"
+          }
         }
       }
     },
@@ -213,6 +315,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mic unavailable"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マイクを利用できません"
           }
         }
       }
@@ -226,6 +334,12 @@
             "state" : "translated",
             "value" : "Model load failed"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルの読み込みに失敗"
+          }
         }
       }
     },
@@ -237,6 +351,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Model not found"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルが見つかりません"
           }
         }
       }
@@ -250,6 +370,12 @@
             "state" : "translated",
             "value" : "Model not found: %@"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルが見つかりません: %@"
+          }
         }
       }
     },
@@ -261,6 +387,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No audio captured"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声が取得されませんでした"
           }
         }
       }
@@ -274,6 +406,12 @@
             "state" : "translated",
             "value" : "No audio was captured"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声が録音されませんでした"
+          }
         }
       }
     },
@@ -285,6 +423,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No speech detected"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声が検出されませんでした"
           }
         }
       }
@@ -298,6 +442,12 @@
             "state" : "translated",
             "value" : "Not set"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未設定"
+          }
         }
       }
     },
@@ -309,6 +459,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Off"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "オフ"
           }
         }
       }
@@ -322,6 +478,12 @@
             "state" : "translated",
             "value" : "Opens an email draft to contact support with app diagnostics"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリ診断情報付きのサポート連絡メール下書きを開きます"
+          }
         }
       }
     },
@@ -333,6 +495,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Record and transcribe audio in real time"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声をリアルタイムで録音・文字起こし"
           }
         }
       }
@@ -346,6 +514,12 @@
             "state" : "translated",
             "value" : "Send Feedback"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "フィードバックを送信"
+          }
         }
       }
     },
@@ -357,6 +531,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "問題が発生しました"
           }
         }
       }
@@ -370,6 +550,12 @@
             "state" : "translated",
             "value" : "TRANSCRIBING"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字起こし中"
+          }
         }
       }
     },
@@ -381,6 +567,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unlimited"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無制限"
           }
         }
       }
@@ -394,6 +586,12 @@
             "state" : "translated",
             "value" : "Unlimited is already unlocked on this device."
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このデバイスではすでに無制限が有効です。"
+          }
         }
       }
     },
@@ -406,6 +604,12 @@
             "state" : "translated",
             "value" : "You've used all your free transcription time."
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無料の文字起こし時間をすべて使い切りました。"
+          }
         }
       }
     },
@@ -417,6 +621,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "just now"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "たった今"
           }
         }
       }

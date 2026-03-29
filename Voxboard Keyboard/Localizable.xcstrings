@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "Limit reached — open Voxboard to unlock"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上限に達しました — Voxboard を開いて解除してください"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No Model"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モデルなし"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "No speech detected"
           }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声が検出されませんでした"
+          }
         }
       }
     },
@@ -45,6 +63,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transcription timed out — try again"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文字起こしがタイムアウトしました — もう一度お試しください"
           }
         }
       }
