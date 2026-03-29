@@ -1,54 +1,78 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "Limit reached — open Voxboard to unlock" : {
-      "comment" : "Error status shown in the keyboard toolbar when the free-tier limit is hit",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limit reached — open Voxboard to unlock"
+  "sourceLanguage": "en",
+  "strings": {
+    "Limit reached — open Voxboard to unlock": {
+      "comment": "Error status shown in the keyboard toolbar when the free-tier limit is hit",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limit reached — open Voxboard to unlock"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã đạt giới hạn — mở Voxboard để mở khóa"
           }
         }
       }
     },
-    "No Model" : {
-      "comment" : "Keyboard toolbar label when no AI model is downloaded",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No Model"
+    "No Model": {
+      "comment": "Keyboard toolbar label when no AI model is downloaded",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Model"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không Có Mô Hình"
           }
         }
       }
     },
-    "No speech detected" : {
-      "comment" : "Error message when transcription finds no recognisable speech in the audio",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No speech detected"
+    "No speech detected": {
+      "comment": "Error message when transcription finds no recognisable speech in the audio",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No speech detected"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không phát hiện giọng nói"
           }
         }
       }
     },
-    "Transcription timed out — try again" : {
-      "comment" : "Error status shown in the keyboard toolbar when transcription takes too long",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Transcription timed out — try again"
+    "Transcription timed out — try again": {
+      "comment": "Error status shown in the keyboard toolbar when transcription takes too long",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription timed out — try again"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phiên âm hết thời gian — thử lại"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }
