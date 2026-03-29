@@ -73,6 +73,21 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            if pendingWidgetRecord || pendingKeyboardLaunch {
+                focusListenTab()
+            }
+        }
+        .onChange(of: pendingWidgetRecord) { _, isPending in
+            if isPending {
+                focusListenTab()
+            }
+        }
+        .onChange(of: pendingKeyboardLaunch) { _, isPending in
+            if isPending {
+                focusListenTab()
+            }
+        }
     }
 
     // MARK: Compact — TabView
@@ -181,5 +196,10 @@ struct RootView: View {
                 MetaSettingsView()
             }
         }
+    }
+
+    private func focusListenTab() {
+        selectedTab = .listen
+        sidebarTab = .listen
     }
 }
