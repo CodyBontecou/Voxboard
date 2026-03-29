@@ -1,426 +1,636 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "(cleared)" : {
-      "comment" : "Debug log placeholder after user clears the log",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "(cleared)"
+  "sourceLanguage": "en",
+  "strings": {
+    "(cleared)": {
+      "comment": "Debug log placeholder after user clears the log",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(cleared)"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(அழிக்கப்பட்டது)"
           }
         }
       }
     },
-    "(empty)" : {
-      "comment" : "Debug log placeholder when the log is empty",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "(empty)"
+    "(empty)": {
+      "comment": "Debug log placeholder when the log is empty",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(empty)"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(காலி)"
           }
         }
       }
     },
-    "%dh ago" : {
-      "comment" : "Relative timestamp: N hours ago (e.g. '2h ago')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dh ago"
+    "%dh ago": {
+      "comment": "Relative timestamp: N hours ago (e.g. '2h ago')",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%dh ago"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d மணி முன்"
           }
         }
       }
     },
-    "%dm %ds" : {
-      "comment" : "Duration: minutes and seconds (e.g. '1m 23s')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm %ds"
+    "%dm %ds": {
+      "comment": "Duration: minutes and seconds (e.g. '1m 23s')",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%dm %ds"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%dநிமி %dவி"
           }
         }
       }
     },
-    "%dm ago" : {
-      "comment" : "Relative timestamp: N minutes ago (e.g. '5m ago')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm ago"
+    "%dm ago": {
+      "comment": "Relative timestamp: N minutes ago (e.g. '5m ago')",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%dm ago"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d நிமி முன்"
           }
         }
       }
     },
-    "%ds" : {
-      "comment" : "Duration: seconds only (e.g. '42s')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%ds"
+    "%ds": {
+      "comment": "Duration: seconds only (e.g. '42s')",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%ds"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%dவி"
           }
         }
       }
     },
-    "%.1f / 15 MIN FREE" : {
-      "comment" : "Usage meter label: minutes used out of 15 free (e.g. '3.2 / 15 MIN FREE')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1f / 15 MIN FREE"
+    "%.1f / 15 MIN FREE": {
+      "comment": "Usage meter label: minutes used out of 15 free (e.g. '3.2 / 15 MIN FREE')",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%.1f / 15 MIN FREE"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%.1f / 15 இலவச நிமிடங்கள்"
           }
         }
       }
     },
-    "%.1f / 15 min free used" : {
-      "comment" : "Settings upgrade section: minutes used out of 15 free (e.g. '3.2 / 15 min free used')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1f / 15 min free used"
+    "%.1f / 15 min free used": {
+      "comment": "Settings upgrade section: minutes used out of 15 free (e.g. '3.2 / 15 min free used')",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%.1f / 15 min free used"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%.1f / 15 இலவச நிமிடங்கள் பயன்படுத்தப்பட்டது"
           }
         }
       }
     },
-    "%.1f min free remaining." : {
-      "comment" : "Paywall usage message: minutes remaining on free tier (e.g. '7.3 min free remaining.')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1f min free remaining."
+    "%.1f min free remaining.": {
+      "comment": "Paywall usage message: minutes remaining on free tier (e.g. '7.3 min free remaining.')",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%.1f min free remaining."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%.1f இலவச நிமிடங்கள் மீதமுள்ளது."
           }
         }
       }
     },
-    "App preferences, upgrade, about, and debug" : {
-      "comment" : "Accessibility hint for the Settings tab",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App preferences, upgrade, about, and debug"
+    "App preferences, upgrade, about, and debug": {
+      "comment": "Accessibility hint for the Settings tab",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App preferences, upgrade, about, and debug"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "செயலி விருப்பங்கள், மேம்படுத்தல், பற்றி, மற்றும் பிழைத்திருத்தம்"
           }
         }
       }
     },
-    "Configure automatic transcript file export" : {
-      "comment" : "Accessibility hint for the Files tab",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Configure automatic transcript file export"
+    "Configure automatic transcript file export": {
+      "comment": "Accessibility hint for the Files tab",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure automatic transcript file export"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "உரைத்தொகுப்பு கோப்பு தானியங்கி ஏற்றுமதியை அமைக்கவும்"
           }
         }
       }
     },
-    "Could not access microphone" : {
-      "comment" : "Error message when microphone permission is denied during recording",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Could not access microphone"
+    "Could not access microphone": {
+      "comment": "Error message when microphone permission is denied during recording",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not access microphone"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "மைக்ரோஃபோனை அணுக முடியவில்லை"
           }
         }
       }
     },
-    "Download and select Whisper or Parakeet AI models" : {
-      "comment" : "Accessibility hint for the Model tab",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download and select Whisper or Parakeet AI models"
+    "Download and select Whisper or Parakeet AI models": {
+      "comment": "Accessibility hint for the Model tab",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download and select Whisper or Parakeet AI models"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whisper அல்லது Parakeet AI மாதிரிகளைப் பதிவிறக்கம் செய்து தேர்ந்தெடுக்கவும்"
           }
         }
       }
     },
-    "Failed to load model" : {
-      "comment" : "Error message when the AI model fails to initialize",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to load model"
+    "Failed to load model": {
+      "comment": "Error message when the AI model fails to initialize",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load model"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "மாதிரியை ஏற்ற முடியவில்லை"
           }
         }
       }
     },
-    "Free Tier" : {
-      "comment" : "Paywall status badge label for users on the free plan",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Free Tier"
+    "Free Tier": {
+      "comment": "Paywall status badge label for users on the free plan",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free Tier"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இலவச நிலை"
           }
         }
       }
     },
-    "Limit Reached" : {
-      "comment" : "Paywall status badge label when the user has used all free minutes",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limit Reached"
+    "Limit Reached": {
+      "comment": "Paywall status badge label when the user has used all free minutes",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limit Reached"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "வரம்பு எட்டப்பட்டது"
           }
         }
       }
     },
-    "Listening" : {
-      "comment" : "Status badge label when the microphone is active and always-on listening is enabled",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Listening"
+    "Listening": {
+      "comment": "Status badge label when the microphone is active and always-on listening is enabled",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "கேட்கிறது"
           }
         }
       }
     },
-    "Mic unavailable" : {
-      "comment" : "IPC error message when the microphone cannot be accessed",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mic unavailable"
+    "Mic unavailable": {
+      "comment": "IPC error message when the microphone cannot be accessed",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mic unavailable"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "மைக் கிடைக்கவில்லை"
           }
         }
       }
     },
-    "Model load failed" : {
-      "comment" : "IPC error response when the AI model fails to load",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Model load failed"
+    "Model load failed": {
+      "comment": "IPC error response when the AI model fails to load",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model load failed"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "மாதிரி ஏற்றம் தோல்வி"
           }
         }
       }
     },
-    "Model not found" : {
-      "comment" : "IPC error response when the requested AI model cannot be found on disk",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Model not found"
+    "Model not found": {
+      "comment": "IPC error response when the requested AI model cannot be found on disk",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model not found"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "மாதிரி கிடைக்கவில்லை"
           }
         }
       }
     },
-    "Model not found: %@" : {
-      "comment" : "Error message with model ID when the AI model file does not exist (e.g. 'Model not found: whisper-base')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Model not found: %@"
+    "Model not found: %@": {
+      "comment": "Error message with model ID when the AI model file does not exist (e.g. 'Model not found: whisper-base')",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model not found: %@"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "மாதிரி கிடைக்கவில்லை: %@"
           }
         }
       }
     },
-    "No audio captured" : {
-      "comment" : "IPC error response when recording produced no audio data",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No audio captured"
+    "No audio captured": {
+      "comment": "IPC error response when recording produced no audio data",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No audio captured"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ஆடியோ பதிவு செய்யப்படவில்லை"
           }
         }
       }
     },
-    "No audio was captured" : {
-      "comment" : "User-facing error message when the recording ended with no audio",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No audio was captured"
+    "No audio was captured": {
+      "comment": "User-facing error message when the recording ended with no audio",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No audio was captured"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ஆடியோ எதுவும் பதிவு செய்யப்படவில்லை"
           }
         }
       }
     },
-    "No speech detected" : {
-      "comment" : "Error message when transcription finds no recognisable speech in the audio",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No speech detected"
+    "No speech detected": {
+      "comment": "Error message when transcription finds no recognisable speech in the audio",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No speech detected"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "பேச்சு கண்டறியப்படவில்லை"
           }
         }
       }
     },
-    "Not set" : {
-      "comment" : "Placeholder shown in the file export folder picker when no folder has been chosen",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not set"
+    "Not set": {
+      "comment": "Placeholder shown in the file export folder picker when no folder has been chosen",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "அமைக்கப்படவில்லை"
           }
         }
       }
     },
-    "Off" : {
-      "comment" : "Status badge label when always-on listening is disabled",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Off"
+    "Off": {
+      "comment": "Status badge label when always-on listening is disabled",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "அணைப்பு"
           }
         }
       }
     },
-    "Opens an email draft to contact support with app diagnostics" : {
-      "comment" : "Accessibility hint for the Send Feedback button",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opens an email draft to contact support with app diagnostics"
+    "Opens an email draft to contact support with app diagnostics": {
+      "comment": "Accessibility hint for the Send Feedback button",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens an email draft to contact support with app diagnostics"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "செயலி ஆய்வுத் தகவல்களுடன் ஆதரவை தொடர்புகொள்ள மின்னஞ்சல் வரைவைத் திறக்கும்"
           }
         }
       }
     },
-    "Record and transcribe audio in real time" : {
-      "comment" : "Accessibility hint for the Listen tab",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record and transcribe audio in real time"
+    "Record and transcribe audio in real time": {
+      "comment": "Accessibility hint for the Listen tab",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record and transcribe audio in real time"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "நேரடியாக ஆடியோவை பதிவு செய்து உரையாக்கவும்"
           }
         }
       }
     },
-    "Send Feedback" : {
-      "comment" : "Accessibility label for the Send Feedback button in Settings",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Send Feedback"
+    "Send Feedback": {
+      "comment": "Accessibility label for the Send Feedback button in Settings",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send Feedback"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "கருத்தை அனுப்பவும்"
           }
         }
       }
     },
-    "Something went wrong" : {
-      "comment" : "Fallback error message shown in the recording flow when no specific error is available",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Something went wrong"
+    "Something went wrong": {
+      "comment": "Fallback error message shown in the recording flow when no specific error is available",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ஏதோ தவறு ஏற்பட்டது"
           }
         }
       }
     },
-    "TRANSCRIBING" : {
-      "comment" : "Base text for the animated transcribing indicator (dots are appended programmatically)",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRANSCRIBING"
+    "TRANSCRIBING": {
+      "comment": "Base text for the animated transcribing indicator (dots are appended programmatically)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRANSCRIBING"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "உரையாக்குகிறது"
           }
         }
       }
     },
-    "Unlimited" : {
-      "comment" : "Paywall status badge label for users who have purchased unlimited access",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlimited"
+    "Unlimited": {
+      "comment": "Paywall status badge label for users who have purchased unlimited access",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlimited"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "வரம்பற்றது"
           }
         }
       }
     },
-    "Unlimited is already unlocked on this device." : {
-      "comment" : "Paywall usage message for users who have already purchased",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlimited is already unlocked on this device."
+    "Unlimited is already unlocked on this device.": {
+      "comment": "Paywall usage message for users who have already purchased",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlimited is already unlocked on this device."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இந்த சாதனத்தில் வரம்பற்ற அணுகல் ஏற்கனவே திறக்கப்பட்டுள்ளது."
           }
         }
       }
     },
-    "You've used all your free transcription time." : {
-      "comment" : "Paywall usage message when the free tier limit has been reached",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You've used all your free transcription time."
+    "You've used all your free transcription time.": {
+      "comment": "Paywall usage message when the free tier limit has been reached",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've used all your free transcription time."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "உங்கள் இலவச உரையாக்க நேரம் முழுவதும் பயன்படுத்தப்பட்டுள்ளது."
           }
         }
       }
     },
-    "just now" : {
-      "comment" : "Relative timestamp for events less than 60 seconds ago",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "just now"
+    "just now": {
+      "comment": "Relative timestamp for events less than 60 seconds ago",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "just now"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இப்போதுதான்"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }
