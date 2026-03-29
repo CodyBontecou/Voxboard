@@ -94,7 +94,7 @@ struct ModelTabView: View {
                 modelRow(for: model)
                 BrutalDivider()
             }
-            footerNote("Parakeet models run via CoreML and are English-only.")
+            footerNote("Parakeet v3 supports 25 languages. Parakeet v2 is optimized for English.")
         }
     }
 
@@ -105,18 +105,22 @@ struct ModelTabView: View {
             sectionHeader("03", "Language")
             BrutalDivider()
 
-            Picker("Transcription Language", selection: Binding(
-                get: { modelManager.selectedLanguage },
-                set: { modelManager.selectedLanguage = $0 }
-            )) {
-                ForEach(ModelManager.supportedLanguages, id: \.code) { lang in
-                    Text(lang.name).tag(lang.code)
+            if modelManager.selectedModel?.engine.isParakeet == true {
+                footerNote("Parakeet currently auto-detects language in Voxboard. Manual language hints are not yet supported by the current engine API.")
+            } else {
+                Picker("Transcription Language", selection: Binding(
+                    get: { modelManager.selectedLanguage },
+                    set: { modelManager.selectedLanguage = $0 }
+                )) {
+                    ForEach(modelManager.availableLanguages, id: \.code) { lang in
+                        Text(lang.name).tag(lang.code)
+                    }
                 }
+                .pickerStyle(.wheel)
+                .frame(height: 140)
+                .background(Brutal.bg)
+                .tint(Brutal.text)
             }
-            .pickerStyle(.wheel)
-            .frame(height: 140)
-            .background(Brutal.bg)
-            .tint(Brutal.text)
         }
     }
 

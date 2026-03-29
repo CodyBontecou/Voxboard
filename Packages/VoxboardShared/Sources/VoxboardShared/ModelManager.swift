@@ -19,7 +19,10 @@ public final class ModelManager {
     // didSet observers keep the shared UserDefaults in sync for the keyboard extension.
 
     public var selectedModelId: String {
-        didSet { AppConstants.sharedDefaults?.set(selectedModelId, forKey: AppConstants.selectedModelKey) }
+        didSet {
+            AppConstants.sharedDefaults?.set(selectedModelId, forKey: AppConstants.selectedModelKey)
+            ensureSelectedLanguageIsSupported()
+        }
     }
 
     public var selectedLanguage: String {
@@ -28,6 +31,11 @@ public final class ModelManager {
 
     public var selectedModel: WhisperModelInfo? {
         WhisperModelInfo.availableModels.first { $0.id == selectedModelId }
+    }
+
+    /// Languages shown in the picker for the currently-selected model.
+    public var availableLanguages: [LanguageOption] {
+        Self.supportedLanguages(for: selectedModel?.engine ?? .whisper)
     }
 
     public var downloadedModels: [WhisperModelInfo] {
@@ -42,6 +50,7 @@ public final class ModelManager {
             ?? AppConstants.defaultModelName
         self.selectedLanguage = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
             ?? "auto"
+        ensureSelectedLanguageIsSupported()
         ensureModelsDirectory()
     }
 
@@ -232,7 +241,10 @@ public final class ModelManager {
 
     // MARK: - Supported Languages
 
-    public static let supportedLanguages: [(code: String, name: String)] = [
+    public typealias LanguageOption = (code: String, name: String)
+
+    /// Whisper.cpp language options exposed in Voxboard.
+    public static let whisperSupportedLanguages: [LanguageOption] = [
         ("auto", "Auto Detect"),
         ("en", "English"),
         ("es", "Spanish"),
@@ -257,6 +269,62 @@ public final class ModelManager {
         ("no", "Norwegian"),
         ("fi", "Finnish"),
     ]
+
+    /// NVIDIA Parakeet-TDT-0.6b-v3 languages.
+    public static let parakeetV3SupportedLanguages: [LanguageOption] = [
+        ("auto", "Auto Detect"),
+        ("bg", "Bulgarian"),
+        ("hr", "Croatian"),
+        ("cs", "Czech"),
+        ("da", "Danish"),
+        ("nl", "Dutch"),
+        ("en", "English"),
+        ("et", "Estonian"),
+        ("fi", "Finnish"),
+        ("fr", "French"),
+        ("de", "German"),
+        ("el", "Greek"),
+        ("hu", "Hungarian"),
+        ("it", "Italian"),
+        ("lv", "Latvian"),
+        ("lt", "Lithuanian"),
+        ("mt", "Maltese"),
+        ("pl", "Polish"),
+        ("pt", "Portuguese"),
+        ("ro", "Romanian"),
+        ("sk", "Slovak"),
+        ("sl", "Slovenian"),
+        ("es", "Spanish"),
+        ("sv", "Swedish"),
+        ("ru", "Russian"),
+        ("uk", "Ukrainian"),
+    ]
+
+    /// Parakeet v2 is currently treated as English-only in Voxboard.
+    public static let parakeetV2SupportedLanguages: [LanguageOption] = [
+        ("en", "English"),
+    ]
+
+    public static func supportedLanguages(for engine: ModelEngine) -> [LanguageOption] {
+        switch engine {
+        case .whisper:    return whisperSupportedLanguages
+        case .parakeetV2: return parakeetV2SupportedLanguages
+        case .parakeetV3: return parakeetV3SupportedLanguages
+        }
+    }
+
+    /// Backward-compatible alias used by older callers.
+    public static let supportedLanguages: [LanguageOption] = whisperSupportedLanguages
+
+    private func ensureSelectedLanguageIsSupported() {
+        let allowed = availableLanguages
+        guard !allowed.isEmpty else { return }
+        guard allowed.contains(where: { $0.code == selectedLanguage }) else {
+            // Prefer auto-detect when available; otherwise use the first explicit language.
+            selectedLanguage = allowed.first(where: { $0.code == "auto" })?.code ?? allowed[0].code
+            return
+        }
+    }
 }
 
 // MARK: - Whisper Download Delegate

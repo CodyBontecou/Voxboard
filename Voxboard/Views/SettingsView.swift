@@ -387,18 +387,29 @@ struct SettingsView: View {
             sectionHeader("03", "Language")
             BrutalDivider()
 
-            Picker("Transcription Language", selection: Binding(
-                get: { modelManager.selectedLanguage },
-                set: { modelManager.selectedLanguage = $0 }
-            )) {
-                ForEach(ModelManager.supportedLanguages, id: \.code) { lang in
-                    Text(lang.name).tag(lang.code)
+            if modelManager.selectedModel?.engine.isParakeet == true {
+                Text("Parakeet currently auto-detects language in Voxboard. Manual language hints are not yet supported by the current engine API.")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
+                    .lineSpacing(3)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Brutal.bg)
+            } else {
+                Picker("Transcription Language", selection: Binding(
+                    get: { modelManager.selectedLanguage },
+                    set: { modelManager.selectedLanguage = $0 }
+                )) {
+                    ForEach(modelManager.availableLanguages, id: \.code) { lang in
+                        Text(lang.name).tag(lang.code)
+                    }
                 }
+                .pickerStyle(.wheel)
+                .frame(height: 140)
+                .background(Brutal.bg)
+                .tint(Brutal.text)
             }
-            .pickerStyle(.wheel)
-            .frame(height: 140)
-            .background(Brutal.bg)
-            .tint(Brutal.text)
         }
     }
 
