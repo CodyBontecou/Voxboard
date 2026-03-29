@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import VoxboardShared
 
 /// Main screen — brutal black/white aesthetic matching imghost.isolated.tech.
@@ -17,6 +18,7 @@ struct HomeView: View {
     @State private var showPaywall = false
     @State private var micPermissionGranted = false
     @State private var keyboardLaunchPhase: KeyboardLaunchPhase? = nil
+    @State private var fileExportToast: FileExportToast?
 
     var body: some View {
         ZStack {
@@ -36,12 +38,24 @@ struct HomeView: View {
                 bottomArea
             }
 
+            if let toast = fileExportToast {
+                FileExportToastView(fileName: toast.url.lastPathComponent) {
+                    openExportedFileInFiles(toast.url)
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 104)
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .zIndex(2)
+            }
+
             if let phase = keyboardLaunchPhase {
                 KeyboardLaunchOverlay(phase: phase)
                     .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.25), value: keyboardLaunchPhase)
+        .animation(.easeInOut(duration: 0.2), value: fileExportToast)
         .gesture(
             DragGesture(minimumDistance: 40, coordinateSpace: .local)
                 .onEnded { val in
@@ -88,6 +102,16 @@ struct HomeView: View {
                     showPaywall = true
                 }
             }
+        }
+        .onChange(of: persistentRecorder.lastFileExportEvent) { _, event in
+            guard let event else { return }
+            fileExportToast = FileExportToast(url: event.url)
+        }
+        .task(id: fileExportToast?.id) {
+            guard fileExportToast != nil else { return }
+            try? await Task.sleep(nanoseconds: 3_500_000_000)
+            guard !Task.isCancelled else { return }
+            await MainActor.run { fileExportToast = nil }
         }
     }
 
@@ -448,11 +472,68 @@ struct HomeView: View {
         }
     }
 
+    private func openExportedFileInFiles(_ url: URL) {
+        fileExportToast = nil
+
+        let didScopeFile = url.startAccessingSecurityScopedResource()
+        UIApplication.shared.open(url, options: [:]) { success in
+            if didScopeFile { url.stopAccessingSecurityScopedResource() }
+            guard !success else { return }
+
+            let folderURL = url.deletingLastPathComponent()
+            let didScopeFolder = folderURL.startAccessingSecurityScopedResource()
+            UIApplication.shared.open(folderURL, options: [:]) { _ in
+                if didScopeFolder { folderURL.stopAccessingSecurityScopedResource() }
+            }
+        }
+    }
+
     private func formatDuration(_ d: TimeInterval) -> String {
         let m = Int(d) / 60
         let s = Int(d) % 60
         let t = Int((d * 10).truncatingRemainder(dividingBy: 10))
         return String(format: "%d:%02d.%d", m, s, t)
+    }
+}
+
+private struct FileExportToast: Equatable {
+    let id = UUID()
+    let url: URL
+}
+
+private struct FileExportToastView: View {
+    let fileName: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(Brutal.text)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("SUCCESS")
+                        .font(Brutal.caption(10))
+                        .foregroundColor(Brutal.faint)
+                    Text(fileName)
+                        .font(Brutal.body(12))
+                        .foregroundColor(Brutal.text)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 8)
+
+                Text("OPEN")
+                    .font(Brutal.label(10))
+                    .foregroundColor(Brutal.text)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 11)
+            .background(Brutal.surface2)
+            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
     }
 }
 

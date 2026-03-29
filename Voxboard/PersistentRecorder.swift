@@ -8,6 +8,12 @@ import WidgetKit
 private let log = KeyboardDebugLog.shared
 private let osLog = Logger(subsystem: "bontecou.Voxboard", category: "PersistentRecorder")
 
+/// Emitted when a transcript file export succeeds.
+struct FileExportEvent: Equatable {
+    let id = UUID()
+    let url: URL
+}
+
 /// Always-on audio recorder that captures microphone input into a circular buffer.
 ///
 /// The keyboard extension controls transcription segments via IPC commands:
@@ -29,6 +35,9 @@ final class PersistentRecorder {
 
     /// Last transcription result from an in-app recording. Observable for UI display.
     var lastTranscriptionResult: String?
+
+    /// Updated every time a transcript file is successfully exported.
+    var lastFileExportEvent: FileExportEvent?
 
     // MARK: - Audio Engine
 
@@ -718,7 +727,9 @@ final class PersistentRecorder {
                 self.transcriptStore.add(transcript)
 
                 // Auto-save to file if enabled
-                TranscriptFileExporter.exportIfEnabled(transcript)
+                if let exportedURL = TranscriptFileExporter.exportIfEnabled(transcript) {
+                    self.lastFileExportEvent = FileExportEvent(url: exportedURL)
+                }
 
                 // Track usage for the free-tier paywall
                 self.usageTracker.addUsage(seconds: duration)

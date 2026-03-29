@@ -332,12 +332,13 @@ public enum TranscriptFileExporter {
     // MARK: - Convenience: export if settings are enabled
 
     /// Reads export settings from the given defaults and exports if enabled.
-    /// Silently returns if export is disabled or no folder is configured.
+    /// Returns the written file URL on success; otherwise nil.
+    @discardableResult
     public static func exportIfEnabled(
         _ transcript: Transcript,
         defaults: UserDefaults? = AppConstants.sharedDefaults
-    ) {
-        guard let defaults, defaults.bool(forKey: AppConstants.fileExportEnabledKey) else { return }
+    ) -> URL? {
+        guard let defaults, defaults.bool(forKey: AppConstants.fileExportEnabledKey) else { return nil }
 
         let formatRaw = defaults.string(forKey: AppConstants.fileExportFormatKey) ?? "txt"
         let modeRaw = defaults.string(forKey: AppConstants.fileExportModeKey) ?? "newFile"
@@ -346,12 +347,12 @@ public enum TranscriptFileExporter {
         let yamlProperties = resolveYAMLProperties(from: defaults)
         let yamlUsesMarkdownExtension = resolveYAMLObsidianBasesEnabled(from: defaults)
 
-        guard let folderURL = resolveBookmark(from: defaults) else { return }
+        guard let folderURL = resolveBookmark(from: defaults) else { return nil }
 
         let needsScoping = folderURL.startAccessingSecurityScopedResource()
         defer { if needsScoping { folderURL.stopAccessingSecurityScopedResource() } }
 
-        _ = try? export(
+        return try? export(
             transcript,
             format: format,
             mode: mode,
