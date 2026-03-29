@@ -384,7 +384,7 @@ struct SettingsView: View {
                 Spacer()
                 Toggle("", isOn: $fileExportEnabled)
                     .labelsHidden()
-                    .tint(Brutal.text)
+                    .tint(Brutal.muted)
                     .onChange(of: fileExportEnabled) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportEnabledKey)
                     }
@@ -492,7 +492,7 @@ struct SettingsView: View {
                                     )
                                 )
                                 .labelsHidden()
-                                .tint(Brutal.text)
+                                .tint(Brutal.muted)
                                 .disabled(yamlProperties.count == 1 && yamlProperties.contains(property))
                             }
                             .padding(.horizontal, 20)
