@@ -10,6 +10,7 @@ struct HomeView: View {
 
     @Bindable var persistentRecorder: PersistentRecorder
     @Binding var pendingKeyboardLaunch: Bool
+    @Binding var pendingWidgetRecord: Bool
 
     @State private var showHistory = false
     @State private var showSettings = false
@@ -71,6 +72,12 @@ struct HomeView: View {
             if isPending {
                 pendingKeyboardLaunch = false
                 handleKeyboardLaunch()
+            }
+        }
+        .onChange(of: pendingWidgetRecord) { _, isPending in
+            if isPending {
+                pendingWidgetRecord = false
+                handleWidgetRecord()
             }
         }
         .onChange(of: persistentRecorder.needsUnlock) { _, needs in
@@ -400,6 +407,20 @@ struct HomeView: View {
                 return
             }
             persistentRecorder.startListening()
+        }
+    }
+
+    func handleWidgetRecord() {
+        // Start listening if not already, then immediately begin an in-app recording segment
+        if !persistentRecorder.isListening {
+            persistentRecorder.startListening()
+        }
+        // Small delay to let the audio engine initialize before starting segment
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            if persistentRecorder.isListening {
+                persistentRecorder.lastTranscriptionResult = nil
+                persistentRecorder.startInAppSegment()
+            }
         }
     }
 

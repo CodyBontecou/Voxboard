@@ -1,3 +1,4 @@
+#if os(iOS)
 import Foundation
 import FluidAudio
 
@@ -88,3 +89,4 @@ public final class ParakeetContext: @unchecked Sendable {
         }
     }
 }
+#endif

@@ -5,6 +5,7 @@ let package = Package(
     name: "VoxboardShared",
     platforms: [
         .iOS(.v17),
+        .macOS(.v14),
     ],
     products: [
         .library(name: "VoxboardShared", targets: ["VoxboardShared"]),
@@ -16,8 +17,8 @@ let package = Package(
         .target(
             name: "VoxboardShared",
             dependencies: [
-                "whisper",
-                .product(name: "FluidAudio", package: "FluidAudio"),
+                .target(name: "whisper", condition: .when(platforms: [.iOS])),
+                .product(name: "FluidAudio", package: "FluidAudio", condition: .when(platforms: [.iOS])),
             ],
             linkerSettings: [
                 .linkedFramework("Accelerate"),
@@ -29,6 +30,10 @@ let package = Package(
         .binaryTarget(
             name: "whisper",
             path: "../../whisper.xcframework"
+        ),
+        .testTarget(
+            name: "VoxboardSharedTests",
+            dependencies: ["VoxboardShared"]
         ),
     ]
 )

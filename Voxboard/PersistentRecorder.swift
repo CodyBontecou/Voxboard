@@ -3,6 +3,7 @@ import Foundation
 import os.log
 import UIKit
 import VoxboardShared
+import WidgetKit
 
 private let log = KeyboardDebugLog.shared
 private let osLog = Logger(subsystem: "bontecou.Voxboard", category: "PersistentRecorder")
@@ -93,6 +94,7 @@ final class PersistentRecorder {
         // try to record against a non-existent recorder and time out after 30s.
         TranscriptionIPC.writeListeningState(ListeningState(isListening: false))
         TranscriptionIPC.postListeningStateNotification()
+        WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
     }
 
     deinit {
@@ -217,6 +219,7 @@ final class PersistentRecorder {
             startedAt: Date().timeIntervalSince1970
         ))
         TranscriptionIPC.postListeningStateNotification()
+        WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
 
         // Start listening for commands from the keyboard
         registerCommandObserver()
@@ -379,6 +382,7 @@ final class PersistentRecorder {
         // Update IPC
         TranscriptionIPC.writeListeningState(ListeningState(isListening: false))
         TranscriptionIPC.postListeningStateNotification()
+        WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
 
         unregisterCommandObserver()
 
@@ -712,6 +716,9 @@ final class PersistentRecorder {
                     language: language
                 )
                 self.transcriptStore.add(transcript)
+
+                // Auto-save to file if enabled
+                TranscriptFileExporter.exportIfEnabled(transcript)
 
                 // Track usage for the free-tier paywall
                 self.usageTracker.addUsage(seconds: duration)

@@ -1,3 +1,4 @@
+#if os(iOS)
 import Foundation
 import whisper
 
@@ -260,3 +261,4 @@ public final class WhisperContext: @unchecked Sendable {
         return samples
     }
 }
+#endif

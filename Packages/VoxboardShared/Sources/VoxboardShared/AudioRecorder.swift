@@ -1,3 +1,4 @@
+#if os(iOS)
 import AVFoundation
 import Foundation
 
@@ -333,3 +334,4 @@ private extension Data {
         Swift.withUnsafeBytes(of: &v) { append(contentsOf: $0) }
     }
 }
+#endif

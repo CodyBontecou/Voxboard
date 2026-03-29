@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import VoxboardShared
 
 struct SettingsView: View {
@@ -8,6 +9,24 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showDebugLog = false
     @State private var showPaywall = false
+    @State private var showFolderPicker = false
+    @State private var fileExportEnabled: Bool = AppConstants.sharedDefaults?.bool(forKey: AppConstants.fileExportEnabledKey) ?? false
+    @State private var fileExportFormat: ExportFileFormat = {
+        let raw = AppConstants.sharedDefaults?.string(forKey: AppConstants.fileExportFormatKey) ?? "txt"
+        return ExportFileFormat(rawValue: raw) ?? .txt
+    }()
+    @State private var fileExportMode: ExportFileMode = {
+        let raw = AppConstants.sharedDefaults?.string(forKey: AppConstants.fileExportModeKey) ?? "newFile"
+        return ExportFileMode(rawValue: raw) ?? .newFile
+    }()
+    @State private var selectedFolderName: String = {
+        guard let data = AppConstants.sharedDefaults?.data(forKey: AppConstants.fileExportBookmarkKey),
+              var isStale = Optional(false),
+              let url = try? URL(resolvingBookmarkData: data, bookmarkDataIsStale: &isStale) else {
+            return ""
+        }
+        return url.lastPathComponent
+    }()
 
     var body: some View {
         NavigationStack {
@@ -21,6 +40,8 @@ struct SettingsView: View {
                         modelsSection
                         BrutalDivider()
                         languageSection
+                        BrutalDivider()
+                        fileExportSection
                         BrutalDivider()
                         aboutSection
                         BrutalDivider()
@@ -47,6 +68,28 @@ struct SettingsView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .sheet(isPresented: $showDebugLog) {
                 KeyboardDebugLogView()
+            }
+            .fileImporter(
+                isPresented: $showFolderPicker,
+                allowedContentTypes: [.folder],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    guard url.startAccessingSecurityScopedResource() else { return }
+                    defer { url.stopAccessingSecurityScopedResource() }
+                    if let bookmark = try? url.bookmarkData(
+                        options: .minimalBookmark,
+                        includingResourceValuesForKeys: nil,
+                        relativeTo: nil
+                    ) {
+                        AppConstants.sharedDefaults?.set(bookmark, forKey: AppConstants.fileExportBookmarkKey)
+                        selectedFolderName = url.lastPathComponent
+                    }
+                case .failure:
+                    break
+                }
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView()
@@ -305,11 +348,108 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - File Export Section
+
+    private var fileExportSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("04", "File Export")
+            BrutalDivider()
+
+            // Toggle
+            HStack {
+                Text("AUTO-SAVE TO FILE")
+                    .font(Brutal.label(12))
+                    .foregroundColor(Brutal.text)
+                Spacer()
+                Toggle("", isOn: $fileExportEnabled)
+                    .labelsHidden()
+                    .tint(Brutal.text)
+                    .onChange(of: fileExportEnabled) { _, val in
+                        AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportEnabledKey)
+                    }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(Brutal.bg)
+            BrutalDivider()
+
+            if fileExportEnabled {
+                // Folder picker
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("SAVE LOCATION")
+                            .font(Brutal.caption(10))
+                            .foregroundColor(Brutal.faint)
+                        Text(selectedFolderName.isEmpty ? "Not set" : selectedFolderName)
+                            .font(Brutal.label(12))
+                            .foregroundColor(selectedFolderName.isEmpty ? Brutal.faint : Brutal.text)
+                    }
+                    Spacer()
+                    Button("CHOOSE") {
+                        showFolderPicker = true
+                    }
+                    .font(Brutal.caption(10))
+                    .foregroundColor(Brutal.text)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(Brutal.bg)
+                BrutalDivider()
+
+                // Format picker
+                HStack {
+                    Text("FORMAT")
+                        .font(Brutal.caption(10))
+                        .foregroundColor(Brutal.faint)
+                    Spacer()
+                    Picker("", selection: $fileExportFormat) {
+                        Text("TXT").tag(ExportFileFormat.txt)
+                        Text("MD").tag(ExportFileFormat.md)
+                        Text("JSON").tag(ExportFileFormat.json)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 180)
+                    .onChange(of: fileExportFormat) { _, val in
+                        AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.fileExportFormatKey)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(Brutal.bg)
+                BrutalDivider()
+
+                // Mode picker
+                HStack {
+                    Text("MODE")
+                        .font(Brutal.caption(10))
+                        .foregroundColor(Brutal.faint)
+                    Spacer()
+                    Picker("", selection: $fileExportMode) {
+                        Text("APPEND").tag(ExportFileMode.append)
+                        Text("NEW FILE").tag(ExportFileMode.newFile)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 180)
+                    .onChange(of: fileExportMode) { _, val in
+                        AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.fileExportModeKey)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(Brutal.bg)
+            }
+        }
+    }
+
     // MARK: - About Section
 
     private var aboutSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("04", "About")
+            sectionHeader("05", "About")
             BrutalDivider()
 
             let rows: [(String, String)] = [
@@ -341,7 +481,7 @@ struct SettingsView: View {
 
     private var debugSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("05", "Debug")
+            sectionHeader("06", "Debug")
             BrutalDivider()
 
             Button {
