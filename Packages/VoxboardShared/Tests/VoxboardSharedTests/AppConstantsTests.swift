@@ -22,4 +22,16 @@ final class AppConstantsTests: XCTestCase {
     func test_fileExportYAMLPropertiesKey_isDefined() {
         XCTAssertFalse(AppConstants.fileExportYAMLPropertiesKey.isEmpty)
     }
+
+    func test_fileExportYAMLObsidianBasesKey_isDefined() {
+        XCTAssertFalse(AppConstants.fileExportYAMLObsidianBasesKey.isEmpty)
+    }
+
+    func test_fileExportNewFileNameTemplateKey_isDefined() {
+        XCTAssertFalse(AppConstants.fileExportNewFileNameTemplateKey.isEmpty)
+    }
+
+    func test_fileExportAppendFileNameKey_isDefined() {
+        XCTAssertFalse(AppConstants.fileExportAppendFileNameKey.isEmpty)
+    }
 }

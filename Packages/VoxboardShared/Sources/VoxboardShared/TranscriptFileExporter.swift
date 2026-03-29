@@ -58,6 +58,11 @@ public enum ExportYAMLProperty: String, Codable, CaseIterable, Sendable {
 
 public enum TranscriptFileExporter {
 
+    public static let defaultNewFileNameTemplate = "voxboard-{timestamp}-{id8}"
+    public static let defaultAppendFileName = "voxboard-transcripts"
+
+    private static let invalidFilenameCharacters = CharacterSet(charactersIn: "/\\?%*|\"<>:\n\r\t")
+
     private static let dateFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd-HHmmss"
@@ -90,9 +95,18 @@ public enum TranscriptFileExporter {
         format: ExportFileFormat,
         mode: ExportFileMode,
         folderURL: URL,
-        yamlProperties: Set<ExportYAMLProperty> = ExportYAMLProperty.defaultSelection
+        yamlProperties: Set<ExportYAMLProperty> = ExportYAMLProperty.defaultSelection,
+        yamlUsesMarkdownExtension: Bool = false,
+        defaults: UserDefaults? = nil
     ) throws -> URL {
-        let fileURL = targetURL(for: transcript, format: format, mode: mode, folderURL: folderURL)
+        let fileURL = targetURL(
+            for: transcript,
+            format: format,
+            mode: mode,
+            folderURL: folderURL,
+            yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
+            defaults: defaults
+        )
 
         switch (format, mode) {
         case (.json, .newFile):
@@ -198,16 +212,109 @@ public enum TranscriptFileExporter {
         for transcript: Transcript,
         format: ExportFileFormat,
         mode: ExportFileMode,
-        folderURL: URL
+        folderURL: URL,
+        yamlUsesMarkdownExtension: Bool,
+        defaults: UserDefaults?
     ) -> URL {
+        let fileExtension = resolvedFileExtension(for: format, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension)
+
         switch mode {
         case .newFile:
-            let timestamp = dateFormatter.string(from: transcript.date)
-            let shortId = transcript.id.uuidString.prefix(8).lowercased()
-            return folderURL.appendingPathComponent("voxboard-\(timestamp)-\(shortId).\(format.fileExtension)")
+            let baseName = resolveNewFileBaseName(for: transcript, defaults: defaults)
+            let initialURL = folderURL.appendingPathComponent("\(baseName).\(fileExtension)")
+            return uniquedURL(initialURL)
         case .append:
-            return folderURL.appendingPathComponent("voxboard-transcripts.\(format.fileExtension)")
+            let baseName = resolveAppendFileBaseName(defaults: defaults)
+            return folderURL.appendingPathComponent("\(baseName).\(fileExtension)")
         }
+    }
+
+    private static func resolvedFileExtension(
+        for format: ExportFileFormat,
+        yamlUsesMarkdownExtension: Bool
+    ) -> String {
+        if format == .yaml, yamlUsesMarkdownExtension {
+            return ExportFileFormat.md.fileExtension
+        }
+        return format.fileExtension
+    }
+
+    private static func resolveNewFileBaseName(for transcript: Transcript, defaults: UserDefaults?) -> String {
+        let configuredTemplate = defaults?.string(forKey: AppConstants.fileExportNewFileNameTemplateKey)
+        let template = nonEmptyTrimmed(configuredTemplate) ?? defaultNewFileNameTemplate
+        let rendered = renderTemplate(template, transcript: transcript)
+        let fallback = renderTemplate(defaultNewFileNameTemplate, transcript: transcript)
+        return sanitizeFilenameBase(rendered, fallback: fallback)
+    }
+
+    private static func resolveAppendFileBaseName(defaults: UserDefaults?) -> String {
+        let configured = defaults?.string(forKey: AppConstants.fileExportAppendFileNameKey)
+        return sanitizeFilenameBase(configured ?? defaultAppendFileName, fallback: defaultAppendFileName)
+    }
+
+    private static func renderTemplate(_ template: String, transcript: Transcript) -> String {
+        let timestamp = dateFormatter.string(from: transcript.date)
+        let date = String(timestamp.prefix(10))
+        let time = String(timestamp.suffix(6))
+        let id = transcript.id.uuidString.lowercased()
+        let id8 = String(id.prefix(8))
+
+        return template
+            .replacingOccurrences(of: "{timestamp}", with: timestamp)
+            .replacingOccurrences(of: "{date}", with: date)
+            .replacingOccurrences(of: "{time}", with: time)
+            .replacingOccurrences(of: "{id}", with: id)
+            .replacingOccurrences(of: "{id8}", with: id8)
+            .replacingOccurrences(of: "{model}", with: transcript.modelUsed)
+            .replacingOccurrences(of: "{language}", with: transcript.language)
+    }
+
+    private static func sanitizeFilenameBase(_ raw: String, fallback: String) -> String {
+        var trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            let nsString = trimmed as NSString
+            let ext = nsString.pathExtension
+            if !ext.isEmpty {
+                trimmed = nsString.deletingPathExtension
+            }
+        }
+
+        let replacedScalars = trimmed.unicodeScalars.map { scalar -> String in
+            if invalidFilenameCharacters.contains(scalar) {
+                return "-"
+            }
+            return String(scalar)
+        }
+
+        let cleaned = replacedScalars
+            .joined()
+            .replacingOccurrences(of: " ", with: "-")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-._"))
+
+        return nonEmptyTrimmed(cleaned) ?? fallback
+    }
+
+    private static func uniquedURL(_ url: URL) -> URL {
+        guard FileManager.default.fileExists(atPath: url.path) else { return url }
+
+        let directory = url.deletingLastPathComponent()
+        let ext = url.pathExtension
+        let base = url.deletingPathExtension().lastPathComponent
+
+        var index = 2
+        while true {
+            let candidate = directory.appendingPathComponent("\(base)-\(index).\(ext)")
+            if !FileManager.default.fileExists(atPath: candidate.path) {
+                return candidate
+            }
+            index += 1
+        }
+    }
+
+    private static func nonEmptyTrimmed(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     // MARK: - Append helpers
@@ -237,13 +344,22 @@ public enum TranscriptFileExporter {
         let format = ExportFileFormat(rawValue: formatRaw) ?? .txt
         let mode = ExportFileMode(rawValue: modeRaw) ?? .newFile
         let yamlProperties = resolveYAMLProperties(from: defaults)
+        let yamlUsesMarkdownExtension = resolveYAMLObsidianBasesEnabled(from: defaults)
 
         guard let folderURL = resolveBookmark(from: defaults) else { return }
 
         let needsScoping = folderURL.startAccessingSecurityScopedResource()
         defer { if needsScoping { folderURL.stopAccessingSecurityScopedResource() } }
 
-        _ = try? export(transcript, format: format, mode: mode, folderURL: folderURL, yamlProperties: yamlProperties)
+        _ = try? export(
+            transcript,
+            format: format,
+            mode: mode,
+            folderURL: folderURL,
+            yamlProperties: yamlProperties,
+            yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
+            defaults: defaults
+        )
     }
 
     /// Resolve security-scoped bookmark from UserDefaults.
@@ -269,6 +385,10 @@ public enum TranscriptFileExporter {
         }
         let parsed = Set(rawValues.compactMap(ExportYAMLProperty.init(rawValue:)))
         return parsed.isEmpty ? ExportYAMLProperty.defaultSelection : parsed
+    }
+
+    private static func resolveYAMLObsidianBasesEnabled(from defaults: UserDefaults) -> Bool {
+        defaults.bool(forKey: AppConstants.fileExportYAMLObsidianBasesKey)
     }
 
     private static func appendJSON(_ transcript: Transcript, to fileURL: URL) throws {

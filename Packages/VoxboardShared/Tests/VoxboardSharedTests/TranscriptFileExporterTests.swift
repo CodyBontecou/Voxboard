@@ -173,6 +173,23 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertTrue(content.contains("---"))
     }
 
+    func test_export_yaml_newFile_withObsidianBases_savesAsMarkdownExtension() throws {
+        let transcript = Transcript(text: "YAML in markdown", duration: 1.0, modelUsed: "base", language: "en")
+
+        let url = try TranscriptFileExporter.export(
+            transcript,
+            format: .yaml,
+            mode: .newFile,
+            folderURL: tempFolder,
+            yamlUsesMarkdownExtension: true
+        )
+
+        XCTAssertTrue(url.lastPathComponent.hasSuffix(".md"))
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(content.contains("text: |-"))
+        XCTAssertTrue(content.contains("YAML in markdown"))
+    }
+
     // MARK: - exportIfEnabled
 
     func test_exportIfEnabled_doesNothing_whenDisabled() {
@@ -247,5 +264,74 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertFalse(content.contains("duration_seconds"))
         XCTAssertFalse(content.contains("model_used"))
         XCTAssertFalse(content.contains("language:"))
+    }
+
+    func test_exportIfEnabled_yamlWithObsidianBases_usesMarkdownExtension() throws {
+        let suiteName = "test.export.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.set(true, forKey: AppConstants.fileExportEnabledKey)
+        defaults.set("yaml", forKey: AppConstants.fileExportFormatKey)
+        defaults.set("newFile", forKey: AppConstants.fileExportModeKey)
+        defaults.set(true, forKey: AppConstants.fileExportYAMLObsidianBasesKey)
+        let bookmark = try tempFolder.bookmarkData()
+        defaults.set(bookmark, forKey: AppConstants.fileExportBookmarkKey)
+        defer { UserDefaults.standard.removePersistentDomain(forName: suiteName) }
+
+        let transcript = Transcript(text: "YAML as markdown ext", duration: 3.0, modelUsed: "base", language: "en")
+        TranscriptFileExporter.exportIfEnabled(transcript, defaults: defaults)
+
+        let files = try FileManager.default.contentsOfDirectory(at: tempFolder, includingPropertiesForKeys: nil)
+        XCTAssertEqual(files.count, 1)
+        XCTAssertEqual(files[0].pathExtension, "md")
+
+        let content = try String(contentsOf: files[0], encoding: .utf8)
+        XCTAssertTrue(content.contains("text: |-"))
+        XCTAssertTrue(content.contains("YAML as markdown ext"))
+    }
+
+    func test_exportIfEnabled_newFileTemplateUsesConfiguredTokens() throws {
+        let suiteName = "test.export.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.set(true, forKey: AppConstants.fileExportEnabledKey)
+        defaults.set("txt", forKey: AppConstants.fileExportFormatKey)
+        defaults.set("newFile", forKey: AppConstants.fileExportModeKey)
+        defaults.set("meeting-{date}-{language}-{id8}", forKey: AppConstants.fileExportNewFileNameTemplateKey)
+        let bookmark = try tempFolder.bookmarkData()
+        defaults.set(bookmark, forKey: AppConstants.fileExportBookmarkKey)
+        defer { UserDefaults.standard.removePersistentDomain(forName: suiteName) }
+
+        let transcript = Transcript(text: "Template test", duration: 2.0, modelUsed: "base", language: "fr")
+        TranscriptFileExporter.exportIfEnabled(transcript, defaults: defaults)
+
+        let files = try FileManager.default.contentsOfDirectory(at: tempFolder, includingPropertiesForKeys: nil)
+        XCTAssertEqual(files.count, 1)
+        let fileName = files[0].deletingPathExtension().lastPathComponent
+        XCTAssertTrue(fileName.hasPrefix("meeting-"))
+        XCTAssertTrue(fileName.contains("-fr-"))
+    }
+
+    func test_exportIfEnabled_appendUsesConfiguredFileName() throws {
+        let suiteName = "test.export.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.set(true, forKey: AppConstants.fileExportEnabledKey)
+        defaults.set("txt", forKey: AppConstants.fileExportFormatKey)
+        defaults.set("append", forKey: AppConstants.fileExportModeKey)
+        defaults.set("Daily Notes", forKey: AppConstants.fileExportAppendFileNameKey)
+        let bookmark = try tempFolder.bookmarkData()
+        defaults.set(bookmark, forKey: AppConstants.fileExportBookmarkKey)
+        defer { UserDefaults.standard.removePersistentDomain(forName: suiteName) }
+
+        let t1 = Transcript(text: "First", duration: 1.0, modelUsed: "base", language: "en")
+        let t2 = Transcript(text: "Second", duration: 1.0, modelUsed: "base", language: "en")
+        TranscriptFileExporter.exportIfEnabled(t1, defaults: defaults)
+        TranscriptFileExporter.exportIfEnabled(t2, defaults: defaults)
+
+        let files = try FileManager.default.contentsOfDirectory(at: tempFolder, includingPropertiesForKeys: nil)
+        XCTAssertEqual(files.count, 1)
+        XCTAssertEqual(files[0].lastPathComponent, "Daily-Notes.txt")
+
+        let content = try String(contentsOf: files[0], encoding: .utf8)
+        XCTAssertTrue(content.contains("First"))
+        XCTAssertTrue(content.contains("Second"))
     }
 }

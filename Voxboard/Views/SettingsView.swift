@@ -19,6 +19,14 @@ struct SettingsView: View {
         let raw = AppConstants.sharedDefaults?.string(forKey: AppConstants.fileExportModeKey) ?? "newFile"
         return ExportFileMode(rawValue: raw) ?? .newFile
     }()
+    @State private var newFileNameTemplate: String = {
+        AppConstants.sharedDefaults?.string(forKey: AppConstants.fileExportNewFileNameTemplateKey)
+            ?? TranscriptFileExporter.defaultNewFileNameTemplate
+    }()
+    @State private var appendFileName: String = {
+        AppConstants.sharedDefaults?.string(forKey: AppConstants.fileExportAppendFileNameKey)
+            ?? TranscriptFileExporter.defaultAppendFileName
+    }()
     @State private var yamlProperties: Set<ExportYAMLProperty> = {
         guard let raw = AppConstants.sharedDefaults?.array(forKey: AppConstants.fileExportYAMLPropertiesKey) as? [String] else {
             return ExportYAMLProperty.defaultSelection
@@ -26,6 +34,8 @@ struct SettingsView: View {
         let parsed = Set(raw.compactMap(ExportYAMLProperty.init(rawValue:)))
         return parsed.isEmpty ? ExportYAMLProperty.defaultSelection : parsed
     }()
+    @State private var yamlObsidianBasesEnabled: Bool =
+        AppConstants.sharedDefaults?.bool(forKey: AppConstants.fileExportYAMLObsidianBasesKey) ?? false
     @State private var selectedFolderName: String = {
         guard let data = AppConstants.sharedDefaults?.data(forKey: AppConstants.fileExportBookmarkKey),
               var isStale = Optional(false),
@@ -119,6 +129,18 @@ struct SettingsView: View {
             .filter { yamlProperties.contains($0) }
             .map(\.rawValue)
         AppConstants.sharedDefaults?.set(raw, forKey: AppConstants.fileExportYAMLPropertiesKey)
+    }
+
+    private func persistYAMLObsidianBasesEnabled(_ enabled: Bool) {
+        AppConstants.sharedDefaults?.set(enabled, forKey: AppConstants.fileExportYAMLObsidianBasesKey)
+    }
+
+    private func persistNewFileNameTemplate(_ value: String) {
+        AppConstants.sharedDefaults?.set(value, forKey: AppConstants.fileExportNewFileNameTemplateKey)
+    }
+
+    private func persistAppendFileName(_ value: String) {
+        AppConstants.sharedDefaults?.set(value, forKey: AppConstants.fileExportAppendFileNameKey)
     }
 
     // MARK: - Section Header
@@ -464,10 +486,87 @@ struct SettingsView: View {
                 .padding(.vertical, 14)
                 .background(Brutal.bg)
 
+                BrutalDivider()
+
+                if fileExportMode == .newFile {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("FILE NAME TEMPLATE")
+                            .font(Brutal.caption(10))
+                            .foregroundColor(Brutal.faint)
+
+                        TextField("", text: $newFileNameTemplate)
+                            .textInputAutocapitalization(.never)
+                            .disableAutocorrection(true)
+                            .font(Brutal.label(12))
+                            .foregroundColor(Brutal.text)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .onChange(of: newFileNameTemplate) { _, val in
+                                persistNewFileNameTemplate(val)
+                            }
+
+                        Text("TOKENS: {timestamp} {date} {time} {id8} {id} {model} {language}")
+                            .font(Brutal.caption(10))
+                            .foregroundColor(Brutal.faint)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+                    .background(Brutal.bg)
+                } else {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("APPEND FILE NAME")
+                            .font(Brutal.caption(10))
+                            .foregroundColor(Brutal.faint)
+
+                        TextField("", text: $appendFileName)
+                            .textInputAutocapitalization(.never)
+                            .disableAutocorrection(true)
+                            .font(Brutal.label(12))
+                            .foregroundColor(Brutal.text)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .onChange(of: appendFileName) { _, val in
+                                persistAppendFileName(val)
+                            }
+
+                        Text("Extension is added automatically")
+                            .font(Brutal.caption(10))
+                            .foregroundColor(Brutal.faint)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+                    .background(Brutal.bg)
+                }
+
                 if fileExportFormat == .yaml {
                     BrutalDivider()
 
                     VStack(spacing: 0) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("OBSIDIAN BASES")
+                                    .font(Brutal.label(11))
+                                    .foregroundColor(Brutal.text)
+                                Text("Use .md extension for YAML files")
+                                    .font(Brutal.caption(10))
+                                    .foregroundColor(Brutal.faint)
+                            }
+                            Spacer()
+                            Toggle("", isOn: $yamlObsidianBasesEnabled)
+                                .labelsHidden()
+                                .tint(Brutal.muted)
+                                .onChange(of: yamlObsidianBasesEnabled) { _, val in
+                                    persistYAMLObsidianBasesEnabled(val)
+                                }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(Brutal.bg)
+
+                        BrutalDivider()
+
                         HStack {
                             Text("YAML PROPERTIES")
                                 .font(Brutal.caption(10))
