@@ -1,0 +1,426 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "(cleared)" : {
+      "comment" : "Debug log placeholder after user clears the log",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(cleared)"
+          }
+        }
+      }
+    },
+    "(empty)" : {
+      "comment" : "Debug log placeholder when the log is empty",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(empty)"
+          }
+        }
+      }
+    },
+    "%dh ago" : {
+      "comment" : "Relative timestamp: N hours ago (e.g. '2h ago')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dh ago"
+          }
+        }
+      }
+    },
+    "%dm %ds" : {
+      "comment" : "Duration: minutes and seconds (e.g. '1m 23s')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm %ds"
+          }
+        }
+      }
+    },
+    "%dm ago" : {
+      "comment" : "Relative timestamp: N minutes ago (e.g. '5m ago')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm ago"
+          }
+        }
+      }
+    },
+    "%ds" : {
+      "comment" : "Duration: seconds only (e.g. '42s')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%ds"
+          }
+        }
+      }
+    },
+    "%.1f / 15 MIN FREE" : {
+      "comment" : "Usage meter label: minutes used out of 15 free (e.g. '3.2 / 15 MIN FREE')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 15 MIN FREE"
+          }
+        }
+      }
+    },
+    "%.1f / 15 min free used" : {
+      "comment" : "Settings upgrade section: minutes used out of 15 free (e.g. '3.2 / 15 min free used')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 15 min free used"
+          }
+        }
+      }
+    },
+    "%.1f min free remaining." : {
+      "comment" : "Paywall usage message: minutes remaining on free tier (e.g. '7.3 min free remaining.')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f min free remaining."
+          }
+        }
+      }
+    },
+    "App preferences, upgrade, about, and debug" : {
+      "comment" : "Accessibility hint for the Settings tab",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App preferences, upgrade, about, and debug"
+          }
+        }
+      }
+    },
+    "Configure automatic transcript file export" : {
+      "comment" : "Accessibility hint for the Files tab",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configure automatic transcript file export"
+          }
+        }
+      }
+    },
+    "Could not access microphone" : {
+      "comment" : "Error message when microphone permission is denied during recording",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not access microphone"
+          }
+        }
+      }
+    },
+    "Download and select Whisper or Parakeet AI models" : {
+      "comment" : "Accessibility hint for the Model tab",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download and select Whisper or Parakeet AI models"
+          }
+        }
+      }
+    },
+    "Failed to load model" : {
+      "comment" : "Error message when the AI model fails to initialize",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to load model"
+          }
+        }
+      }
+    },
+    "Free Tier" : {
+      "comment" : "Paywall status badge label for users on the free plan",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free Tier"
+          }
+        }
+      }
+    },
+    "Limit Reached" : {
+      "comment" : "Paywall status badge label when the user has used all free minutes",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limit Reached"
+          }
+        }
+      }
+    },
+    "Listening" : {
+      "comment" : "Status badge label when the microphone is active and always-on listening is enabled",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listening"
+          }
+        }
+      }
+    },
+    "Mic unavailable" : {
+      "comment" : "IPC error message when the microphone cannot be accessed",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mic unavailable"
+          }
+        }
+      }
+    },
+    "Model load failed" : {
+      "comment" : "IPC error response when the AI model fails to load",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model load failed"
+          }
+        }
+      }
+    },
+    "Model not found" : {
+      "comment" : "IPC error response when the requested AI model cannot be found on disk",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model not found"
+          }
+        }
+      }
+    },
+    "Model not found: %@" : {
+      "comment" : "Error message with model ID when the AI model file does not exist (e.g. 'Model not found: whisper-base')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model not found: %@"
+          }
+        }
+      }
+    },
+    "No audio captured" : {
+      "comment" : "IPC error response when recording produced no audio data",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No audio captured"
+          }
+        }
+      }
+    },
+    "No audio was captured" : {
+      "comment" : "User-facing error message when the recording ended with no audio",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No audio was captured"
+          }
+        }
+      }
+    },
+    "No speech detected" : {
+      "comment" : "Error message when transcription finds no recognisable speech in the audio",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No speech detected"
+          }
+        }
+      }
+    },
+    "Not set" : {
+      "comment" : "Placeholder shown in the file export folder picker when no folder has been chosen",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not set"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "comment" : "Status badge label when always-on listening is disabled",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        }
+      }
+    },
+    "Opens an email draft to contact support with app diagnostics" : {
+      "comment" : "Accessibility hint for the Send Feedback button",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens an email draft to contact support with app diagnostics"
+          }
+        }
+      }
+    },
+    "Record and transcribe audio in real time" : {
+      "comment" : "Accessibility hint for the Listen tab",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record and transcribe audio in real time"
+          }
+        }
+      }
+    },
+    "Send Feedback" : {
+      "comment" : "Accessibility label for the Send Feedback button in Settings",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send Feedback"
+          }
+        }
+      }
+    },
+    "Something went wrong" : {
+      "comment" : "Fallback error message shown in the recording flow when no specific error is available",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong"
+          }
+        }
+      }
+    },
+    "TRANSCRIBING" : {
+      "comment" : "Base text for the animated transcribing indicator (dots are appended programmatically)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TRANSCRIBING"
+          }
+        }
+      }
+    },
+    "Unlimited" : {
+      "comment" : "Paywall status badge label for users who have purchased unlimited access",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlimited"
+          }
+        }
+      }
+    },
+    "Unlimited is already unlocked on this device." : {
+      "comment" : "Paywall usage message for users who have already purchased",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlimited is already unlocked on this device."
+          }
+        }
+      }
+    },
+    "You've used all your free transcription time." : {
+      "comment" : "Paywall usage message when the free tier limit has been reached",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've used all your free transcription time."
+          }
+        }
+      }
+    },
+    "just now" : {
+      "comment" : "Relative timestamp for events less than 60 seconds ago",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "just now"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -107,7 +107,7 @@ struct MetaSettingsView: View {
                             Text("UNLOCK UNLIMITED")
                                 .font(Brutal.label())
                                 .foregroundColor(Brutal.text)
-                            Text(String(format: "%.1f / 15 min free used", usageTracker.minutesUsed))
+                            Text(String(format: String(localized: "%.1f / 15 min free used"), usageTracker.minutesUsed))
                                 .font(Brutal.caption())
                                 .foregroundColor(Brutal.muted)
                         }
@@ -256,7 +256,7 @@ struct SettingsDebugLogView: View {
             ZStack {
                 Color.black.ignoresSafeArea()
                 ScrollView {
-                    Text(logText.isEmpty ? "(empty)" : logText)
+                    Text(logText.isEmpty ? String(localized: "(empty)") : logText)
                         .font(.system(.footnote, design: .monospaced))
                         .foregroundColor(Brutal.text)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -275,7 +275,7 @@ struct SettingsDebugLogView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("CLEAR") {
                         KeyboardDebugLog.shared.clear()
-                        logText = "(cleared)"
+                        logText = String(localized: "(cleared)")
                     }
                     .font(Brutal.label())
                     .foregroundColor(Brutal.error)

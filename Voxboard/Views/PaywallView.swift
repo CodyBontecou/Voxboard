@@ -32,19 +32,20 @@ struct PaywallView: View {
         .task { await storeManager.loadProducts() }
     }
 
-    private var statusBadgeLabel: String {
+    private var statusBadgeLabel: LocalizedStringKey {
         if usageTracker.hasUnlocked { return "Unlimited" }
         return usageTracker.isAtLimit ? "Limit Reached" : "Free Tier"
     }
 
     private var usageStatusMessage: String {
         if usageTracker.hasUnlocked {
-            return "Unlimited is already unlocked on this device."
+            return String(localized: "Unlimited is already unlocked on this device.")
         }
         if usageTracker.isAtLimit {
-            return "You've used all your free transcription time."
+            return String(localized: "You've used all your free transcription time.")
         }
-        return String(format: "%.1f min free remaining.", max(0, UsageTracker.freeMinutesLimit - usageTracker.minutesUsed))
+        let remaining = max(0, UsageTracker.freeMinutesLimit - usageTracker.minutesUsed)
+        return String(format: String(localized: "%.1f min free remaining."), remaining)
     }
 
     // MARK: - Header

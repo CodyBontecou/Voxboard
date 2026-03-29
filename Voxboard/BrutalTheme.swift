@@ -103,7 +103,7 @@ struct BrutalDivider: View {
 
 /// ■ STATUS square badge.
 struct BrutalStatusBadge: View {
-    let label: String
+    let label: LocalizedStringKey
     let isActive: Bool
 
     var body: some View {
@@ -111,7 +111,8 @@ struct BrutalStatusBadge: View {
             Rectangle()
                 .fill(isActive ? Brutal.text : Brutal.faint)
                 .frame(width: 5, height: 5)
-            Text(label.uppercased())
+            Text(label)
+                .textCase(.uppercase)
                 .font(Brutal.caption())
                 .foregroundColor(isActive ? Brutal.text : Brutal.faint)
         }
@@ -124,7 +125,7 @@ struct BrutalStatusBadge: View {
 /// "01 / SECTION TITLE" cap label.
 struct BrutalSectionLabel: View {
     let number: String
-    let title: String
+    let title: LocalizedStringKey
 
     var body: some View {
         HStack(spacing: 8) {
@@ -132,7 +133,8 @@ struct BrutalSectionLabel: View {
                 .font(Brutal.label())
                 .foregroundColor(Brutal.faint)
             Rectangle().fill(Brutal.border).frame(width: 16, height: 1)
-            Text(title.uppercased())
+            Text(title)
+                .textCase(.uppercase)
                 .font(Brutal.label())
                 .foregroundColor(Brutal.faint)
         }
@@ -200,7 +202,7 @@ struct TranscribingDotsView: View {
     @State private var count = 0
 
     var body: some View {
-        Text("TRANSCRIBING" + String(repeating: ".", count: (count % 3) + 1))
+        Text(String(localized: "TRANSCRIBING") + String(repeating: ".", count: (count % 3) + 1))
             .font(Brutal.display(40))
             .foregroundColor(Brutal.text)
             .lineLimit(1)

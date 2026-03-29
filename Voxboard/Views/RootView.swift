@@ -38,10 +38,10 @@ private enum Tab: Hashable, CaseIterable {
 
     var accessibilityHint: String {
         switch self {
-        case .listen:   return "Record and transcribe audio in real time"
-        case .model:    return "Download and select Whisper or Parakeet AI models"
-        case .files:    return "Configure automatic transcript file export"
-        case .settings: return "App preferences, upgrade, about, and debug"
+        case .listen:   return String(localized: "Record and transcribe audio in real time")
+        case .model:    return String(localized: "Download and select Whisper or Parakeet AI models")
+        case .files:    return String(localized: "Configure automatic transcript file export")
+        case .settings: return String(localized: "App preferences, upgrade, about, and debug")
         }
     }
 }

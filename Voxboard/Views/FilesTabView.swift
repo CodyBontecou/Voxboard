@@ -162,7 +162,7 @@ struct FilesTabView: View {
                 Text("SAVE LOCATION")
                     .font(Brutal.caption())
                     .foregroundColor(Brutal.muted)
-                Text(selectedFolderName.isEmpty ? "Not set" : selectedFolderName)
+                Text(selectedFolderName.isEmpty ? String(localized: "Not set") : selectedFolderName)
                     .font(Brutal.label())
                     .foregroundColor(selectedFolderName.isEmpty ? Brutal.muted : Brutal.text)
             }

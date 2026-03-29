@@ -122,7 +122,7 @@ final class VoiceKeyboardState {
     }
 
     var currentModelName: String {
-        currentModel?.name ?? "No Model"
+        currentModel?.name ?? String(localized: "No Model")
     }
 
     // MARK: - Model Navigation
@@ -183,7 +183,7 @@ final class VoiceKeyboardState {
 
         // Check if free tier is exhausted
         if UsageTracker.staticIsAtLimit {
-            status = .error("Limit reached — open Voxboard to unlock")
+            status = .error(String(localized: "Limit reached — open Voxboard to unlock"))
             log.log("🔒 startRecording blocked — free tier limit reached")
             resetErrorAfterDelay()
             return
@@ -454,7 +454,7 @@ final class VoiceKeyboardState {
             cleanupPending()
             TranscriptionIPC.clearResponse()
             TranscriptionIPC.clearStatus()
-            status = .error("Transcription timed out — try again")
+            status = .error(String(localized: "Transcription timed out — try again"))
             resetErrorAfterDelay()
             return
         }
@@ -566,7 +566,7 @@ final class VoiceKeyboardState {
                 writePendingText(text)
             }
         } else {
-            let msg = response.error ?? "No speech detected"
+            let msg = response.error ?? String(localized: "No speech detected")
             log.log("⚠️ \(msg)")
             status = .error(msg)
             resetErrorAfterDelay()

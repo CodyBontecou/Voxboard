@@ -41,8 +41,8 @@ final class RecordingFlowController {
 
         guard recorder.startRecording() else {
             phase = .error
-            errorMessage = "Could not access microphone"
-            TranscriptionIPC.writeStatus(RecordingStatus(requestId: requestId, phase: .error, message: "Mic unavailable"))
+            errorMessage = String(localized: "Could not access microphone")
+            TranscriptionIPC.writeStatus(RecordingStatus(requestId: requestId, phase: .error, message: String(localized: "Mic unavailable")))
             return
         }
 
@@ -58,8 +58,8 @@ final class RecordingFlowController {
         stopListeningForCommand()
 
         guard let audioURL = recorder.stopRecording() else {
-            phase = .error; errorMessage = "No audio was captured"
-            writeErrorResponse("No audio captured"); return
+            phase = .error; errorMessage = String(localized: "No audio was captured")
+            writeErrorResponse(String(localized: "No audio captured")); return
         }
 
         phase = .transcribing
@@ -69,8 +69,8 @@ final class RecordingFlowController {
         guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
               let modelPath = model.localURL?.path,
               FileManager.default.fileExists(atPath: modelPath) else {
-            phase = .error; errorMessage = "Model not found: \(modelId)"
-            writeErrorResponse("Model not found"); return
+            phase = .error; errorMessage = String(format: String(localized: "Model not found: %@"), modelId)
+            writeErrorResponse(String(localized: "Model not found")); return
         }
 
         let modelName = model.name
@@ -85,8 +85,8 @@ final class RecordingFlowController {
         Task.detached(priority: .userInitiated) {
             guard let ctx = WhisperContext(modelPath: modelPath, useGPU: false) else {
                 await MainActor.run { [weak self] in
-                    self?.phase = .error; self?.errorMessage = "Failed to load model"
-                    self?.writeErrorResponse("Model load failed")
+                    self?.phase = .error; self?.errorMessage = String(localized: "Failed to load model")
+                    self?.writeErrorResponse(String(localized: "Model load failed"))
                     if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
                 }; return
             }
@@ -107,8 +107,8 @@ final class RecordingFlowController {
                     self.transcriptStore.add(Transcript(text: text, duration: duration, modelUsed: modelName, language: lang))
                     self.phase = .done
                 } else {
-                    self.phase = .error; self.errorMessage = "No speech detected"
-                    self.writeErrorResponse("No speech detected")
+                    self.phase = .error; self.errorMessage = String(localized: "No speech detected")
+                    self.writeErrorResponse(String(localized: "No speech detected"))
                 }
                 if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
             }
@@ -271,7 +271,7 @@ struct RecordingFlowView: View {
                     .foregroundColor(Brutal.error)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
-                Text(controller.errorMessage ?? "Something went wrong")
+                Text(controller.errorMessage ?? String(localized: "Something went wrong"))
                     .font(Brutal.body())
                     .foregroundColor(Brutal.muted)
                     .multilineTextAlignment(.center)

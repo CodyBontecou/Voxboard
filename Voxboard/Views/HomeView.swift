@@ -178,7 +178,7 @@ struct HomeView: View {
                         .lineLimit(1)
                         .fixedSize()
                 } else {
-                    Text(String(format: "%.1f / 15 MIN FREE", usageTracker.minutesUsed))
+                    Text(String(format: String(localized: "%.1f / 15 MIN FREE"), usageTracker.minutesUsed))
                         .font(Brutal.caption())
                         .foregroundColor(Brutal.muted)
                         .monospacedDigit()

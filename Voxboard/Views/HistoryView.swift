@@ -135,9 +135,9 @@ struct HistoryView: View {
 
     private func relativeDate(_ date: Date) -> String {
         let diff = Date().timeIntervalSince(date)
-        if diff < 60 { return "just now" }
-        if diff < 3600 { return "\(Int(diff / 60))m ago" }
-        if diff < 86400 { return "\(Int(diff / 3600))h ago" }
+        if diff < 60 { return String(localized: "just now") }
+        if diff < 3600 { return String(format: String(localized: "%dm ago"), Int(diff / 60)) }
+        if diff < 86400 { return String(format: String(localized: "%dh ago"), Int(diff / 3600)) }
         let f = DateFormatter()
         f.dateStyle = .short
         f.timeStyle = .none
@@ -146,6 +146,10 @@ struct HistoryView: View {
 
     private func formatDuration(_ d: TimeInterval) -> String {
         let s = Int(d)
-        return s < 60 ? "\(s)s" : "\(s / 60)m \(s % 60)s"
+        if s < 60 {
+            return String(format: String(localized: "%ds"), s)
+        } else {
+            return String(format: String(localized: "%dm %ds"), s / 60, s % 60)
+        }
     }
 }

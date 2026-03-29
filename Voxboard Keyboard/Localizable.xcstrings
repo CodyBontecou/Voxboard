@@ -1,0 +1,54 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Limit reached — open Voxboard to unlock" : {
+      "comment" : "Error status shown in the keyboard toolbar when the free-tier limit is hit",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limit reached — open Voxboard to unlock"
+          }
+        }
+      }
+    },
+    "No Model" : {
+      "comment" : "Keyboard toolbar label when no AI model is downloaded",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Model"
+          }
+        }
+      }
+    },
+    "No speech detected" : {
+      "comment" : "Error message when transcription finds no recognisable speech in the audio",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No speech detected"
+          }
+        }
+      }
+    },
+    "Transcription timed out — try again" : {
+      "comment" : "Error status shown in the keyboard toolbar when transcription takes too long",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcription timed out — try again"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
