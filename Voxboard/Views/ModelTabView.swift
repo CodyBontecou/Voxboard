@@ -94,7 +94,6 @@ struct ModelTabView: View {
                 modelRow(for: model)
                 BrutalDivider()
             }
-            footerNote("Parakeet v3 supports 25 languages. Parakeet v2 is optimized for English.")
         }
     }
 
@@ -145,6 +144,13 @@ struct ModelTabView: View {
                 Text(model.sizeLabel.uppercased())
                     .font(Brutal.caption())
                     .foregroundColor(Brutal.muted)
+
+                if let modelDescription = model.modelDescription {
+                    Text(modelDescription)
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
+                        .lineLimit(2)
+                }
             }
             Spacer()
             modelActionView(for: model)

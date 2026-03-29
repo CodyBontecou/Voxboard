@@ -290,6 +290,13 @@ struct SettingsView: View {
                 Text(model.sizeLabel.uppercased())
                     .font(Brutal.caption())
                     .foregroundColor(Brutal.muted)
+
+                if let modelDescription = model.modelDescription {
+                    Text(modelDescription)
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
+                        .lineLimit(2)
+                }
             }
 
             Spacer()

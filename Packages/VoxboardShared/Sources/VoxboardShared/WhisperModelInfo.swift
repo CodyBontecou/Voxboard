@@ -41,6 +41,8 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
     /// For Parakeet: the repo folder name (same as `engine.parakeetRepoFolderName`).
     public let fileName: String
     public let sizeLabel: String
+    /// Optional per-model details shown in the model picker UI.
+    public let modelDescription: String?
     /// Informational URL. Whisper downloads use this directly; Parakeet downloads
     /// are handled by FluidAudio's DownloadUtils instead.
     public let downloadURL: URL
@@ -53,6 +55,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
         name: String,
         fileName: String,
         sizeLabel: String,
+        modelDescription: String? = nil,
         downloadURL: URL,
         isBundled: Bool,
         engine: ModelEngine = .whisper
@@ -61,6 +64,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
         self.name = name
         self.fileName = fileName
         self.sizeLabel = sizeLabel
+        self.modelDescription = modelDescription
         self.downloadURL = downloadURL
         self.isBundled = isBundled
         self.engine = engine
@@ -146,6 +150,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
             name: "Parakeet v2",
             fileName: "parakeet-tdt-0.6b-v2-coreml",
             sizeLabel: "~800 MB",
+            modelDescription: "Optimized for English.",
             downloadURL: URL(string: "https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v2-coreml")!,
             isBundled: false,
             engine: .parakeetV2
@@ -155,6 +160,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
             name: "Parakeet v3",
             fileName: "parakeet-tdt-0.6b-v3-coreml",
             sizeLabel: "~800 MB",
+            modelDescription: "Supports 25 languages.",
             downloadURL: URL(string: "https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v3-coreml")!,
             isBundled: false,
             engine: .parakeetV3
