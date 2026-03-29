@@ -32,11 +32,26 @@ struct PaywallView: View {
         .task { await storeManager.loadProducts() }
     }
 
+    private var statusBadgeLabel: String {
+        if usageTracker.hasUnlocked { return "Unlimited" }
+        return usageTracker.isAtLimit ? "Limit Reached" : "Free Tier"
+    }
+
+    private var usageStatusMessage: String {
+        if usageTracker.hasUnlocked {
+            return "Unlimited is already unlocked on this device."
+        }
+        if usageTracker.isAtLimit {
+            return "You've used all your free transcription time."
+        }
+        return String(format: "%.1f min free remaining.", max(0, UsageTracker.freeMinutesLimit - usageTracker.minutesUsed))
+    }
+
     // MARK: - Header
 
     private var header: some View {
         HStack {
-            BrutalStatusBadge(label: "Limit Reached", isActive: false)
+            BrutalStatusBadge(label: statusBadgeLabel, isActive: !usageTracker.isAtLimit)
             Spacer()
             Text("VOXBOARD")
                 .font(Brutal.label(13))
@@ -102,9 +117,9 @@ struct PaywallView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
 
-            Text("You've used all your free transcription time.")
+            Text(usageStatusMessage)
                 .font(Brutal.body(12))
-                .foregroundColor(Brutal.muted)
+                .foregroundColor(usageTracker.isAtLimit ? Brutal.error : Brutal.muted)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
                 .padding(.bottom, 24)

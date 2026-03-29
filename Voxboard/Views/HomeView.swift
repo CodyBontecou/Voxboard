@@ -83,7 +83,10 @@ struct HomeView: View {
         .onChange(of: persistentRecorder.needsUnlock) { _, needs in
             if needs {
                 persistentRecorder.needsUnlock = false
-                showPaywall = true
+                usageTracker.reload()
+                if usageTracker.isAtLimit {
+                    showPaywall = true
+                }
             }
         }
     }
