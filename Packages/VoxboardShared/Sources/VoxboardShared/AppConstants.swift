@@ -38,6 +38,16 @@ public enum AppConstants: Sendable {
         sharedContainerURL?.appendingPathComponent(recordingsDirectoryName)
     }
 
+    // File export settings
+    public static let fileExportEnabledKey = "fileExportEnabled"
+    public static let fileExportFormatKey = "fileExportFormat"
+    public static let fileExportModeKey = "fileExportMode"
+    public static let fileExportBookmarkKey = "fileExportFolderBookmark"
+    public static let fileExportYAMLPropertiesKey = "fileExportYAMLProperties"
+    public static let fileExportYAMLObsidianBasesKey = "fileExportYAMLObsidianBases"
+    public static let fileExportNewFileNameTemplateKey = "fileExportNewFileNameTemplate"
+    public static let fileExportAppendFileNameKey = "fileExportAppendFileName"
+
     public static var sharedDefaults: UserDefaults? {
         UserDefaults(suiteName: appGroupIdentifier)
     }

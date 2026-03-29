@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		622B4C802F78B09600FDC4CA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */; };
+		622B4C822F78B09600FDC4CA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C812F78B09600FDC4CA /* SwiftUI.framework */; };
+		622B4C8D2F78B09700FDC4CA /* Voxboard WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		62C952292F393361001F79DF /* Voxboard Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 62C952222F393361001F79DF /* Voxboard Keyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		62C952852F393BB1001F79DF /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 62C952842F393BB1001F79DF /* KeyboardKit */; };
 		AA0000042F394000AABBCC04 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000022F394000AABBCC02 /* VoxboardShared */; };
@@ -14,6 +17,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		622B4C8B2F78B09700FDC4CA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 62C951722F392ADB001F79DF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 622B4C7C2F78B09600FDC4CA;
+			remoteInfo = "Voxboard WidgetExtension";
+		};
 		62C952272F393361001F79DF /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 62C951722F392ADB001F79DF /* Project object */;
@@ -30,6 +40,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				622B4C8D2F78B09700FDC4CA /* Voxboard WidgetExtension.appex in Embed Foundation Extensions */,
 				62C952292F393361001F79DF /* Voxboard Keyboard.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
@@ -38,11 +49,29 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Voxboard WidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		622B4C812F78B09600FDC4CA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		622B4C992F78B10C00FDC4CA /* Voxboard WidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Voxboard WidgetExtension.entitlements"; sourceTree = "<group>"; };
 		62C9517A2F392ADB001F79DF /* Voxboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Voxboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		62C952222F393361001F79DF /* Voxboard Keyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Voxboard Keyboard.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		622B4C912F78B09700FDC4CA /* Exceptions for "Voxboard Widget" folder in "Voxboard WidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 622B4C7C2F78B09600FDC4CA /* Voxboard WidgetExtension */;
+		};
+		622B4C9F2F78B61A00FDC4CA /* Exceptions for "Voxboard" folder in "Voxboard WidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				OpenVoxboardRecordIntent.swift,
+			);
+			target = 622B4C7C2F78B09600FDC4CA /* Voxboard WidgetExtension */;
+		};
 		AA1000012F3A0000AABB0001 /* Exceptions for "Voxboard" folder in "Voxboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -60,10 +89,19 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		622B4C832F78B09600FDC4CA /* Voxboard Widget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				622B4C912F78B09700FDC4CA /* Exceptions for "Voxboard Widget" folder in "Voxboard WidgetExtension" target */,
+			);
+			path = "Voxboard Widget";
+			sourceTree = "<group>";
+		};
 		62C9517C2F392ADB001F79DF /* Voxboard */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				AA1000012F3A0000AABB0001 /* Exceptions for "Voxboard" folder in "Voxboard" target */,
+				622B4C9F2F78B61A00FDC4CA /* Exceptions for "Voxboard" folder in "Voxboard WidgetExtension" target */,
 			);
 			path = Voxboard;
 			sourceTree = "<group>";
@@ -79,6 +117,15 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		622B4C7A2F78B09600FDC4CA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				622B4C822F78B09600FDC4CA /* SwiftUI.framework in Frameworks */,
+				622B4C802F78B09600FDC4CA /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		62C951772F392ADB001F79DF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -99,11 +146,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		622B4C7E2F78B09600FDC4CA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */,
+				622B4C812F78B09600FDC4CA /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		62C951712F392ADB001F79DF = {
 			isa = PBXGroup;
 			children = (
+				622B4C992F78B10C00FDC4CA /* Voxboard WidgetExtension.entitlements */,
 				62C9517C2F392ADB001F79DF /* Voxboard */,
 				62C952232F393361001F79DF /* Voxboard Keyboard */,
+				622B4C832F78B09600FDC4CA /* Voxboard Widget */,
+				622B4C7E2F78B09600FDC4CA /* Frameworks */,
 				62C9517B2F392ADB001F79DF /* Products */,
 			);
 			sourceTree = "<group>";
@@ -113,6 +172,7 @@
 			children = (
 				62C9517A2F392ADB001F79DF /* Voxboard.app */,
 				62C952222F393361001F79DF /* Voxboard Keyboard.appex */,
+				622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -120,6 +180,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		622B4C7C2F78B09600FDC4CA /* Voxboard WidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 622B4C902F78B09700FDC4CA /* Build configuration list for PBXNativeTarget "Voxboard WidgetExtension" */;
+			buildPhases = (
+				622B4C792F78B09600FDC4CA /* Sources */,
+				622B4C7A2F78B09600FDC4CA /* Frameworks */,
+				622B4C7B2F78B09600FDC4CA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				622B4C832F78B09600FDC4CA /* Voxboard Widget */,
+			);
+			name = "Voxboard WidgetExtension";
+			packageProductDependencies = (
+			);
+			productName = "Voxboard WidgetExtension";
+			productReference = 622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		62C951792F392ADB001F79DF /* Voxboard */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 62C951852F392ADC001F79DF /* Build configuration list for PBXNativeTarget "Voxboard" */;
@@ -133,6 +215,7 @@
 			);
 			dependencies = (
 				62C952282F393361001F79DF /* PBXTargetDependency */,
+				622B4C8C2F78B09700FDC4CA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				62C9517C2F392ADB001F79DF /* Voxboard */,
@@ -176,9 +259,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2620;
+				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					622B4C7C2F78B09600FDC4CA = {
+						CreatedOnToolsVersion = 26.3;
+					};
 					62C951792F392ADB001F79DF = {
 						CreatedOnToolsVersion = 26.2;
 					};
@@ -207,11 +293,19 @@
 			targets = (
 				62C951792F392ADB001F79DF /* Voxboard */,
 				62C952212F393361001F79DF /* Voxboard Keyboard */,
+				622B4C7C2F78B09600FDC4CA /* Voxboard WidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		622B4C7B2F78B09600FDC4CA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		62C951782F392ADB001F79DF /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -229,6 +323,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		622B4C792F78B09600FDC4CA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		62C951762F392ADB001F79DF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -246,6 +347,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		622B4C8C2F78B09700FDC4CA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 622B4C7C2F78B09600FDC4CA /* Voxboard WidgetExtension */;
+			targetProxy = 622B4C8B2F78B09700FDC4CA /* PBXContainerItemProxy */;
+		};
 		62C952282F393361001F79DF /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 62C952212F393361001F79DF /* Voxboard Keyboard */;
@@ -254,6 +360,68 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		622B4C8E2F78B09700FDC4CA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard WidgetExtension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Voxboard Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		622B4C8F2F78B09700FDC4CA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard WidgetExtension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Voxboard Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		62C951832F392ADC001F79DF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -510,6 +678,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		622B4C902F78B09700FDC4CA /* Build configuration list for PBXNativeTarget "Voxboard WidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				622B4C8E2F78B09700FDC4CA /* Debug */,
+				622B4C8F2F78B09700FDC4CA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		62C951752F392ADB001F79DF /* Build configuration list for PBXProject "Voxboard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

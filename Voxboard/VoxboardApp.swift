@@ -13,6 +13,10 @@ struct VoxboardApp: App {
     /// HomeView reads this to show the loading overlay.
     @State private var pendingKeyboardLaunch = false
 
+    /// Set to true when the app is opened via the lock screen widget.
+    /// HomeView reads this to start listening and immediately begin recording.
+    @State private var pendingWidgetRecord = false
+
     init() {
         let store = TranscriptStore()
         let usage = UsageTracker()
@@ -31,7 +35,8 @@ struct VoxboardApp: App {
         WindowGroup {
             HomeView(
                 persistentRecorder: persistentRecorder,
-                pendingKeyboardLaunch: $pendingKeyboardLaunch
+                pendingKeyboardLaunch: $pendingKeyboardLaunch,
+                pendingWidgetRecord: $pendingWidgetRecord
             )
                 .environment(modelManager)
                 .environment(transcriptStore)
@@ -55,6 +60,12 @@ struct VoxboardApp: App {
             if phase == .active {
                 transcriptionServer.checkForPendingRequest()
                 usageTracker.reload()
+
+                // Check if the Control Widget signaled a pending record
+                if AppConstants.sharedDefaults?.bool(forKey: "pendingWidgetRecord") == true {
+                    AppConstants.sharedDefaults?.set(false, forKey: "pendingWidgetRecord")
+                    pendingWidgetRecord = true
+                }
 
                 // Re-check listening state — if the user enabled auto-listen
                 // but the engine stopped (e.g. audio interruption), restart it.
@@ -88,6 +99,11 @@ struct VoxboardApp: App {
             // Redirect to persistent listening mode instead
             log.log("[App] Legacy record request — triggering keyboard launch flow")
             pendingKeyboardLaunch = true
+
+        case "widget-record":
+            // Widget tapped — start listening and immediately begin in-app recording
+            log.log("[App] Widget record request — starting listening + recording")
+            pendingWidgetRecord = true
 
         default:
             log.log("[App] ❌ Unknown host: \(url.host ?? "nil")")

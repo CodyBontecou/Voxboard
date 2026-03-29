@@ -1,3 +1,4 @@
+#if os(iOS)
 import Foundation
 import FluidAudio
 
@@ -287,3 +288,4 @@ private final class DownloadProgressDelegate: NSObject, URLSessionDownloadDelega
         // Handled by the async/await download call
     }
 }
+#endif

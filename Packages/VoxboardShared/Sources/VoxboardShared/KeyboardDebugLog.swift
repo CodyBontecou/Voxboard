@@ -94,7 +94,11 @@ public final class KeyboardDebugLog: Sendable {
 
     /// Memory remaining before the OS kills this process (iOS 13+).
     private static func availableMemoryMB() -> Int {
+        #if os(iOS)
         Int(os_proc_available_memory() / (1024 * 1024))
+        #else
+        0
+        #endif
     }
 
     private static func timestamp() -> String {
