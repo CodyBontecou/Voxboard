@@ -7,8 +7,12 @@ struct SettingsView: View {
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(StoreManager.self) private var storeManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @State private var showDebugLog = false
     @State private var showPaywall = false
+#if os(iOS)
+    @State private var showMailCompose = false
+#endif
     @State private var showFolderPicker = false
     @State private var fileExportEnabled: Bool = AppConstants.sharedDefaults?.bool(forKey: AppConstants.fileExportEnabledKey) ?? false
     @State private var fileExportFormat: ExportFileFormat = {
@@ -62,6 +66,8 @@ struct SettingsView: View {
                         BrutalDivider()
                         aboutSection
                         BrutalDivider()
+                        feedbackSection
+                        BrutalDivider()
                         debugSection
                     }
                 }
@@ -113,6 +119,11 @@ struct SettingsView: View {
                     .environment(usageTracker)
                     .environment(storeManager)
             }
+#if os(iOS)
+            .sheet(isPresented: $showMailCompose) {
+                MailComposeView()
+            }
+#endif
         }
         .preferredColorScheme(.dark)
     }
@@ -640,11 +651,38 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Feedback Section
+
+    private var feedbackSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("06", "Feedback")
+            BrutalDivider()
+
+            Button(action: sendFeedback) {
+                HStack {
+                    Text("SEND FEEDBACK")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.text)
+                    Spacer()
+                    Text("→")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.muted)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Brutal.bg)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Send Feedback")
+            .accessibilityHint("Opens an email draft to contact support with app diagnostics")
+        }
+    }
+
     // MARK: - Debug Section
 
     private var debugSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("06", "Debug")
+            sectionHeader("07", "Debug")
             BrutalDivider()
 
             Button {
@@ -665,6 +703,22 @@ struct SettingsView: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    // MARK: - Helpers
+
+    private func sendFeedback() {
+        let payload = FeedbackHelper.makePayload()
+
+#if os(iOS)
+        if FeedbackHelper.canSendMail {
+            showMailCompose = true
+            return
+        }
+#endif
+
+        guard let url = FeedbackHelper.mailtoURL(payload: payload) else { return }
+        openURL(url)
     }
 }
 

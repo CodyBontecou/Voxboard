@@ -1,7 +1,4 @@
-Voxboard is now free to download.
-
-If you purchased the original $4.99 version, this update automatically unlocks unlimited transcription on your device — no action required.
-
-New users get 15 minutes of free transcription, with the option to unlock unlimited usage via a one-time $9.99 in-app purchase.
-
-Thank you for your early support.
+New in this update:
+• Added a built-in feedback action in Settings so you can quickly email diagnostics to support.
+• Improved settings organization and polished the in-app configuration flow.
+• General stability and quality improvements across Voxboard and the keyboard extension.
