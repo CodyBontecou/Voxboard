@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "(cleared)"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(صاف کیا گیا)"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "(empty)"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(خالی)"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "%dh ago"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d گھنٹے پہلے"
+          }
         }
       }
     },
@@ -45,6 +63,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%dm %ds"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d منٹ %d سیکنڈ"
           }
         }
       }
@@ -58,6 +82,12 @@
             "state" : "translated",
             "value" : "%dm ago"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d منٹ پہلے"
+          }
         }
       }
     },
@@ -69,6 +99,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%ds"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d سیکنڈ"
           }
         }
       }
@@ -82,6 +118,12 @@
             "state" : "translated",
             "value" : "%.1f / 15 MIN FREE"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 15 مفت منٹ"
+          }
         }
       }
     },
@@ -93,6 +135,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%.1f / 15 min free used"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 15 مفت منٹ استعمال ہو چکے"
           }
         }
       }
@@ -106,6 +154,12 @@
             "state" : "translated",
             "value" : "%.1f min free remaining."
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f مفت منٹ باقی ہیں۔"
+          }
         }
       }
     },
@@ -117,6 +171,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App preferences, upgrade, about, and debug"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایپ کی ترجیحات، اپ گریڈ، تعارف، اور ڈیبگ"
           }
         }
       }
@@ -130,6 +190,12 @@
             "state" : "translated",
             "value" : "Configure automatic transcript file export"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ٹرانسکرپٹ فائل کے خودکار ایکسپورٹ کو ترتیب دیں"
+          }
         }
       }
     },
@@ -141,6 +207,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not access microphone"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مائیکروفون تک رسائی نہ ہو سکی"
           }
         }
       }
@@ -154,6 +226,12 @@
             "state" : "translated",
             "value" : "Download and select Whisper or Parakeet AI models"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisper یا Parakeet AI ماڈلز ڈاؤن لوڈ اور منتخب کریں"
+          }
         }
       }
     },
@@ -165,6 +243,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to load model"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ماڈل لوڈ نہ ہو سکا"
           }
         }
       }
@@ -178,6 +262,12 @@
             "state" : "translated",
             "value" : "Free Tier"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مفت درجہ"
+          }
         }
       }
     },
@@ -189,6 +279,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limit Reached"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حد مکمل ہو گئی"
           }
         }
       }
@@ -202,6 +298,12 @@
             "state" : "translated",
             "value" : "Listening"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سن رہا ہے"
+          }
         }
       }
     },
@@ -213,6 +315,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mic unavailable"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مائیک دستیاب نہیں"
           }
         }
       }
@@ -226,6 +334,12 @@
             "state" : "translated",
             "value" : "Model load failed"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ماڈل لوڈ ناکام"
+          }
         }
       }
     },
@@ -237,6 +351,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Model not found"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ماڈل نہیں ملا"
           }
         }
       }
@@ -250,6 +370,12 @@
             "state" : "translated",
             "value" : "Model not found: %@"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ماڈل نہیں ملا: %@"
+          }
         }
       }
     },
@@ -261,6 +387,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No audio captured"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کوئی آڈیو ریکارڈ نہیں ہوئی"
           }
         }
       }
@@ -274,6 +406,12 @@
             "state" : "translated",
             "value" : "No audio was captured"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کوئی آڈیو ریکارڈ نہیں ہوئی"
+          }
         }
       }
     },
@@ -285,6 +423,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No speech detected"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کوئی آواز شناخت نہیں ہوئی"
           }
         }
       }
@@ -298,6 +442,12 @@
             "state" : "translated",
             "value" : "Not set"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سیٹ نہیں"
+          }
         }
       }
     },
@@ -309,6 +459,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Off"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بند"
           }
         }
       }
@@ -322,6 +478,12 @@
             "state" : "translated",
             "value" : "Opens an email draft to contact support with app diagnostics"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایپ کی تشخیصی معلومات کے ساتھ سپورٹ سے رابطے کے لیے ای میل ڈرافٹ کھولتا ہے"
+          }
         }
       }
     },
@@ -333,6 +495,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Record and transcribe audio in real time"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حقیقی وقت میں آڈیو ریکارڈ اور ٹرانسکرائب کریں"
           }
         }
       }
@@ -346,6 +514,12 @@
             "state" : "translated",
             "value" : "Send Feedback"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رائے بھیجیں"
+          }
         }
       }
     },
@@ -357,6 +531,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کچھ غلط ہو گیا"
           }
         }
       }
@@ -370,6 +550,12 @@
             "state" : "translated",
             "value" : "TRANSCRIBING"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ٹرانسکرائب ہو رہا ہے"
+          }
         }
       }
     },
@@ -381,6 +567,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unlimited"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لامحدود"
           }
         }
       }
@@ -394,6 +586,12 @@
             "state" : "translated",
             "value" : "Unlimited is already unlocked on this device."
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اس ڈیوائس پر لامحدود پہلے ہی غیر مقفل ہے۔"
+          }
         }
       }
     },
@@ -406,6 +604,12 @@
             "state" : "translated",
             "value" : "You've used all your free transcription time."
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آپ اپنا تمام مفت ٹرانسکرپشن وقت استعمال کر چکے ہیں۔"
+          }
         }
       }
     },
@@ -417,6 +621,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "just now"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ابھی ابھی"
           }
         }
       }

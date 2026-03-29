@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "Limit reached — open Voxboard to unlock"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "حد مکمل ہو گئی — غیر مقفل کرنے کے لیے Voxboard کھولیں"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No Model"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کوئی ماڈل نہیں"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "No speech detected"
           }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کوئی آواز شناخت نہیں ہوئی"
+          }
         }
       }
     },
@@ -45,6 +63,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transcription timed out — try again"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ٹرانسکرپشن کا وقت ختم ہو گیا — دوبارہ کوشش کریں"
           }
         }
       }
