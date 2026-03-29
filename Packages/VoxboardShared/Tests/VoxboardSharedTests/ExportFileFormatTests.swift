@@ -15,8 +15,12 @@ final class ExportFileFormatTests: XCTestCase {
         XCTAssertEqual(ExportFileFormat.json.fileExtension, "json")
     }
 
+    func test_yamlFormat_hasCorrectExtension() {
+        XCTAssertEqual(ExportFileFormat.yaml.fileExtension, "yaml")
+    }
+
     func test_allFormats_areCaseIterable() {
-        XCTAssertEqual(ExportFileFormat.allCases.count, 3)
+        XCTAssertEqual(ExportFileFormat.allCases.count, 4)
     }
 
     func test_allModes_areCaseIterable() {
@@ -33,5 +37,9 @@ final class ExportFileFormatTests: XCTestCase {
         let encoded = try JSONEncoder().encode(ExportFileMode.append)
         let decoded = try JSONDecoder().decode(ExportFileMode.self, from: encoded)
         XCTAssertEqual(decoded, .append)
+    }
+
+    func test_yamlProperties_haveDefaultSelectionForAllProperties() {
+        XCTAssertEqual(ExportYAMLProperty.defaultSelection.count, ExportYAMLProperty.allCases.count)
     }
 }

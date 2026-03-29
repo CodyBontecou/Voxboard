@@ -43,6 +43,7 @@ public enum AppConstants: Sendable {
     public static let fileExportFormatKey = "fileExportFormat"
     public static let fileExportModeKey = "fileExportMode"
     public static let fileExportBookmarkKey = "fileExportFolderBookmark"
+    public static let fileExportYAMLPropertiesKey = "fileExportYAMLProperties"
 
     public static var sharedDefaults: UserDefaults? {
         UserDefaults(suiteName: appGroupIdentifier)

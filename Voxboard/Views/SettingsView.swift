@@ -19,6 +19,13 @@ struct SettingsView: View {
         let raw = AppConstants.sharedDefaults?.string(forKey: AppConstants.fileExportModeKey) ?? "newFile"
         return ExportFileMode(rawValue: raw) ?? .newFile
     }()
+    @State private var yamlProperties: Set<ExportYAMLProperty> = {
+        guard let raw = AppConstants.sharedDefaults?.array(forKey: AppConstants.fileExportYAMLPropertiesKey) as? [String] else {
+            return ExportYAMLProperty.defaultSelection
+        }
+        let parsed = Set(raw.compactMap(ExportYAMLProperty.init(rawValue:)))
+        return parsed.isEmpty ? ExportYAMLProperty.defaultSelection : parsed
+    }()
     @State private var selectedFolderName: String = {
         guard let data = AppConstants.sharedDefaults?.data(forKey: AppConstants.fileExportBookmarkKey),
               var isStale = Optional(false),
@@ -98,6 +105,20 @@ struct SettingsView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+
+    private func toggleYAMLProperty(_ property: ExportYAMLProperty, enabled: Bool) {
+        if enabled {
+            yamlProperties.insert(property)
+        } else {
+            guard yamlProperties.count > 1 else { return }
+            yamlProperties.remove(property)
+        }
+
+        let raw = ExportYAMLProperty.allCases
+            .filter { yamlProperties.contains($0) }
+            .map(\.rawValue)
+        AppConstants.sharedDefaults?.set(raw, forKey: AppConstants.fileExportYAMLPropertiesKey)
     }
 
     // MARK: - Section Header
@@ -410,9 +431,10 @@ struct SettingsView: View {
                         Text("TXT").tag(ExportFileFormat.txt)
                         Text("MD").tag(ExportFileFormat.md)
                         Text("JSON").tag(ExportFileFormat.json)
+                        Text("YAML").tag(ExportFileFormat.yaml)
                     }
                     .pickerStyle(.segmented)
-                    .frame(width: 180)
+                    .frame(maxWidth: 240)
                     .onChange(of: fileExportFormat) { _, val in
                         AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.fileExportFormatKey)
                     }
@@ -441,6 +463,48 @@ struct SettingsView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 14)
                 .background(Brutal.bg)
+
+                if fileExportFormat == .yaml {
+                    BrutalDivider()
+
+                    VStack(spacing: 0) {
+                        HStack {
+                            Text("YAML PROPERTIES")
+                                .font(Brutal.caption(10))
+                                .foregroundColor(Brutal.faint)
+                            Spacer()
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .background(Brutal.bg)
+
+                        ForEach(ExportYAMLProperty.allCases, id: \.rawValue) { property in
+                            HStack {
+                                Text(property.displayName.uppercased())
+                                    .font(Brutal.label(11))
+                                    .foregroundColor(Brutal.text)
+                                Spacer()
+                                Toggle(
+                                    "",
+                                    isOn: Binding(
+                                        get: { yamlProperties.contains(property) },
+                                        set: { toggleYAMLProperty(property, enabled: $0) }
+                                    )
+                                )
+                                .labelsHidden()
+                                .tint(Brutal.text)
+                                .disabled(yamlProperties.count == 1 && yamlProperties.contains(property))
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
+                            .background(Brutal.bg)
+
+                            if property != ExportYAMLProperty.allCases.last {
+                                BrutalDivider()
+                            }
+                        }
+                    }
+                }
             }
         }
     }

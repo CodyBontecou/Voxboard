@@ -1,7 +1,7 @@
 import Foundation
 
 public enum ExportFileFormat: String, Codable, CaseIterable, Sendable {
-    case txt, md, json
+    case txt, md, json, yaml
 
     public var fileExtension: String { rawValue }
 }
@@ -9,6 +9,51 @@ public enum ExportFileFormat: String, Codable, CaseIterable, Sendable {
 public enum ExportFileMode: String, Codable, CaseIterable, Sendable {
     case append
     case newFile
+}
+
+public enum ExportYAMLProperty: String, Codable, CaseIterable, Sendable {
+    case id
+    case text
+    case date
+    case duration
+    case modelUsed
+    case language
+
+    public static let defaultSelection: Set<ExportYAMLProperty> = Set(allCases)
+
+    public var displayName: String {
+        switch self {
+        case .id:
+            return "Identifier"
+        case .text:
+            return "Text"
+        case .date:
+            return "Date"
+        case .duration:
+            return "Duration"
+        case .modelUsed:
+            return "Model"
+        case .language:
+            return "Language"
+        }
+    }
+
+    fileprivate var yamlKey: String {
+        switch self {
+        case .id:
+            return "id"
+        case .text:
+            return "text"
+        case .date:
+            return "date"
+        case .duration:
+            return "duration_seconds"
+        case .modelUsed:
+            return "model_used"
+        case .language:
+            return "language"
+        }
+    }
 }
 
 public enum TranscriptFileExporter {
@@ -25,6 +70,12 @@ public enum TranscriptFileExporter {
         return f
     }()
 
+    private static let isoDateFormatter: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+
     private static let jsonEncoder: JSONEncoder = {
         let e = JSONEncoder()
         e.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -38,7 +89,8 @@ public enum TranscriptFileExporter {
         _ transcript: Transcript,
         format: ExportFileFormat,
         mode: ExportFileMode,
-        folderURL: URL
+        folderURL: URL,
+        yamlProperties: Set<ExportYAMLProperty> = ExportYAMLProperty.defaultSelection
     ) throws -> URL {
         let fileURL = targetURL(for: transcript, format: format, mode: mode, folderURL: folderURL)
 
@@ -51,11 +103,11 @@ public enum TranscriptFileExporter {
             try appendJSON(transcript, to: fileURL)
 
         case (_, .newFile):
-            let content = formatContent(transcript, format: format)
+            let content = formatContent(transcript, format: format, yamlProperties: yamlProperties)
             try content.write(to: fileURL, atomically: true, encoding: .utf8)
 
         case (_, .append):
-            let content = formatContent(transcript, format: format)
+            let content = formatContent(transcript, format: format, yamlProperties: yamlProperties)
             try appendText(content, to: fileURL)
         }
 
@@ -64,12 +116,18 @@ public enum TranscriptFileExporter {
 
     // MARK: - Text formatting
 
-    private static func formatContent(_ transcript: Transcript, format: ExportFileFormat) -> String {
+    private static func formatContent(
+        _ transcript: Transcript,
+        format: ExportFileFormat,
+        yamlProperties: Set<ExportYAMLProperty>
+    ) -> String {
         switch format {
         case .txt:
             return transcript.text
         case .md:
             return formatMarkdown(transcript)
+        case .yaml:
+            return formatYAML(transcript, properties: yamlProperties)
         case .json:
             fatalError("JSON uses data-based export, not string formatting")
         }
@@ -87,6 +145,51 @@ public enum TranscriptFileExporter {
 
         \(transcript.text)
         """
+    }
+
+    private static func formatYAML(_ transcript: Transcript, properties: Set<ExportYAMLProperty>) -> String {
+        let orderedProperties = ExportYAMLProperty.allCases.filter { properties.contains($0) }
+        guard !orderedProperties.isEmpty else { return "{}" }
+
+        var lines: [String] = []
+        for property in orderedProperties {
+            switch property {
+            case .id:
+                lines.append("\(property.yamlKey): \(yamlQuoted(transcript.id.uuidString.lowercased()))")
+            case .text:
+                lines.append(contentsOf: yamlTextLines(transcript.text, key: property.yamlKey))
+            case .date:
+                let date = isoDateFormatter.string(from: transcript.date)
+                lines.append("\(property.yamlKey): \(yamlQuoted(date))")
+            case .duration:
+                lines.append("\(property.yamlKey): \(String(format: "%.3f", transcript.duration))")
+            case .modelUsed:
+                lines.append("\(property.yamlKey): \(yamlQuoted(transcript.modelUsed))")
+            case .language:
+                lines.append("\(property.yamlKey): \(yamlQuoted(transcript.language))")
+            }
+        }
+
+        return lines.joined(separator: "\n")
+    }
+
+    private static func yamlTextLines(_ text: String, key: String) -> [String] {
+        if text.isEmpty {
+            return ["\(key): \"\""]
+        }
+
+        let rows = text.components(separatedBy: .newlines)
+        var lines = ["\(key): |-"]
+        lines.append(contentsOf: rows.map { "  \($0)" })
+        return lines
+    }
+
+    private static func yamlQuoted(_ value: String) -> String {
+        let escaped = value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+        return "\"\(escaped)\""
     }
 
     // MARK: - File targeting
@@ -133,13 +236,14 @@ public enum TranscriptFileExporter {
         let modeRaw = defaults.string(forKey: AppConstants.fileExportModeKey) ?? "newFile"
         let format = ExportFileFormat(rawValue: formatRaw) ?? .txt
         let mode = ExportFileMode(rawValue: modeRaw) ?? .newFile
+        let yamlProperties = resolveYAMLProperties(from: defaults)
 
         guard let folderURL = resolveBookmark(from: defaults) else { return }
 
         let needsScoping = folderURL.startAccessingSecurityScopedResource()
         defer { if needsScoping { folderURL.stopAccessingSecurityScopedResource() } }
 
-        try? export(transcript, format: format, mode: mode, folderURL: folderURL)
+        _ = try? export(transcript, format: format, mode: mode, folderURL: folderURL, yamlProperties: yamlProperties)
     }
 
     /// Resolve security-scoped bookmark from UserDefaults.
@@ -157,6 +261,14 @@ public enum TranscriptFileExporter {
             }
         }
         return url
+    }
+
+    private static func resolveYAMLProperties(from defaults: UserDefaults) -> Set<ExportYAMLProperty> {
+        guard let rawValues = defaults.array(forKey: AppConstants.fileExportYAMLPropertiesKey) as? [String] else {
+            return ExportYAMLProperty.defaultSelection
+        }
+        let parsed = Set(rawValues.compactMap(ExportYAMLProperty.init(rawValue:)))
+        return parsed.isEmpty ? ExportYAMLProperty.defaultSelection : parsed
     }
 
     private static func appendJSON(_ transcript: Transcript, to fileURL: URL) throws {

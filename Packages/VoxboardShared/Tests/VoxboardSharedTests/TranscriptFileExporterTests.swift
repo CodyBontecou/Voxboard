@@ -138,6 +138,41 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertEqual(decoded[0].text, "Solo JSON")
     }
 
+    // MARK: - YAML
+
+    func test_export_yaml_newFile_includesSelectedProperties() throws {
+        let transcript = Transcript(text: "YAML text", duration: 9.25, modelUsed: "base", language: "en")
+
+        let url = try TranscriptFileExporter.export(
+            transcript,
+            format: .yaml,
+            mode: .newFile,
+            folderURL: tempFolder,
+            yamlProperties: [.text, .duration]
+        )
+
+        XCTAssertTrue(url.lastPathComponent.hasSuffix(".yaml"))
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(content.contains("text: |-"))
+        XCTAssertTrue(content.contains("YAML text"))
+        XCTAssertTrue(content.contains("duration_seconds: 9.250"))
+        XCTAssertFalse(content.contains("model_used:"))
+        XCTAssertFalse(content.contains("language:"))
+    }
+
+    func test_export_yaml_append_separatesEntries() throws {
+        let t1 = Transcript(text: "First YAML", duration: 2.0, modelUsed: "base", language: "en")
+        let t2 = Transcript(text: "Second YAML", duration: 4.0, modelUsed: "small", language: "fr")
+
+        try TranscriptFileExporter.export(t1, format: .yaml, mode: .append, folderURL: tempFolder)
+        let url = try TranscriptFileExporter.export(t2, format: .yaml, mode: .append, folderURL: tempFolder)
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(content.contains("First YAML"))
+        XCTAssertTrue(content.contains("Second YAML"))
+        XCTAssertTrue(content.contains("---"))
+    }
+
     // MARK: - exportIfEnabled
 
     func test_exportIfEnabled_doesNothing_whenDisabled() {
@@ -188,5 +223,29 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertEqual(files.count, 1, "One file should be written")
         let content = try String(contentsOf: files[0], encoding: .utf8)
         XCTAssertTrue(content.contains("Should export"))
+    }
+
+    func test_exportIfEnabled_yamlRespectsConfiguredPropertyList() throws {
+        let suiteName = "test.export.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.set(true, forKey: AppConstants.fileExportEnabledKey)
+        defaults.set("yaml", forKey: AppConstants.fileExportFormatKey)
+        defaults.set("newFile", forKey: AppConstants.fileExportModeKey)
+        defaults.set([ExportYAMLProperty.text.rawValue], forKey: AppConstants.fileExportYAMLPropertiesKey)
+        let bookmark = try tempFolder.bookmarkData()
+        defaults.set(bookmark, forKey: AppConstants.fileExportBookmarkKey)
+        defer { UserDefaults.standard.removePersistentDomain(forName: suiteName) }
+
+        let transcript = Transcript(text: "YAML only text", duration: 7.0, modelUsed: "large", language: "de")
+        TranscriptFileExporter.exportIfEnabled(transcript, defaults: defaults)
+
+        let files = try FileManager.default.contentsOfDirectory(at: tempFolder, includingPropertiesForKeys: nil)
+        XCTAssertEqual(files.count, 1)
+        let content = try String(contentsOf: files[0], encoding: .utf8)
+        XCTAssertTrue(content.contains("text: |-"))
+        XCTAssertTrue(content.contains("YAML only text"))
+        XCTAssertFalse(content.contains("duration_seconds"))
+        XCTAssertFalse(content.contains("model_used"))
+        XCTAssertFalse(content.contains("language:"))
     }
 }

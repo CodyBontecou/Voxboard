@@ -18,4 +18,8 @@ final class AppConstantsTests: XCTestCase {
     func test_fileExportBookmarkKey_isDefined() {
         XCTAssertFalse(AppConstants.fileExportBookmarkKey.isEmpty)
     }
+
+    func test_fileExportYAMLPropertiesKey_isDefined() {
+        XCTAssertFalse(AppConstants.fileExportYAMLPropertiesKey.isEmpty)
+    }
 }
