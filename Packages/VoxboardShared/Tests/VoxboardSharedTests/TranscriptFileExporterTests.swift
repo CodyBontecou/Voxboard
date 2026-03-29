@@ -173,7 +173,7 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertTrue(content.contains("---"))
     }
 
-    func test_export_yaml_newFile_withObsidianBases_savesAsMarkdownExtension() throws {
+    func test_export_yaml_newFile_withObsidianBases_savesAsMarkdownFrontmatter() throws {
         let transcript = Transcript(text: "YAML in markdown", duration: 1.0, modelUsed: "base", language: "en")
 
         let url = try TranscriptFileExporter.export(
@@ -186,6 +186,8 @@ final class TranscriptFileExporterTests: XCTestCase {
 
         XCTAssertTrue(url.lastPathComponent.hasSuffix(".md"))
         let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(content.hasPrefix("---\n"))
+        XCTAssertTrue(content.hasSuffix("\n---"))
         XCTAssertTrue(content.contains("text: |-"))
         XCTAssertTrue(content.contains("YAML in markdown"))
     }
@@ -266,7 +268,7 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertFalse(content.contains("language:"))
     }
 
-    func test_exportIfEnabled_yamlWithObsidianBases_usesMarkdownExtension() throws {
+    func test_exportIfEnabled_yamlWithObsidianBases_usesMarkdownFrontmatter() throws {
         let suiteName = "test.export.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.set(true, forKey: AppConstants.fileExportEnabledKey)
@@ -285,6 +287,8 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertEqual(files[0].pathExtension, "md")
 
         let content = try String(contentsOf: files[0], encoding: .utf8)
+        XCTAssertTrue(content.hasPrefix("---\n"))
+        XCTAssertTrue(content.hasSuffix("\n---"))
         XCTAssertTrue(content.contains("text: |-"))
         XCTAssertTrue(content.contains("YAML as markdown ext"))
     }

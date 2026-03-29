@@ -117,12 +117,23 @@ public enum TranscriptFileExporter {
             try appendJSON(transcript, to: fileURL)
 
         case (_, .newFile):
-            let content = formatContent(transcript, format: format, yamlProperties: yamlProperties)
+            let content = formatContent(
+                transcript,
+                format: format,
+                yamlProperties: yamlProperties,
+                yamlUsesMarkdownFrontmatter: format == .yaml && yamlUsesMarkdownExtension
+            )
             try content.write(to: fileURL, atomically: true, encoding: .utf8)
 
         case (_, .append):
-            let content = formatContent(transcript, format: format, yamlProperties: yamlProperties)
-            try appendText(content, to: fileURL)
+            let content = formatContent(
+                transcript,
+                format: format,
+                yamlProperties: yamlProperties,
+                yamlUsesMarkdownFrontmatter: format == .yaml && yamlUsesMarkdownExtension
+            )
+            let separator = (format == .yaml && yamlUsesMarkdownExtension) ? "\n\n" : "\n\n---\n\n"
+            try appendText(content, to: fileURL, separator: separator)
         }
 
         return fileURL
@@ -133,7 +144,8 @@ public enum TranscriptFileExporter {
     private static func formatContent(
         _ transcript: Transcript,
         format: ExportFileFormat,
-        yamlProperties: Set<ExportYAMLProperty>
+        yamlProperties: Set<ExportYAMLProperty>,
+        yamlUsesMarkdownFrontmatter: Bool
     ) -> String {
         switch format {
         case .txt:
@@ -141,7 +153,11 @@ public enum TranscriptFileExporter {
         case .md:
             return formatMarkdown(transcript)
         case .yaml:
-            return formatYAML(transcript, properties: yamlProperties)
+            return formatYAML(
+                transcript,
+                properties: yamlProperties,
+                wrapsInMarkdownFrontmatter: yamlUsesMarkdownFrontmatter
+            )
         case .json:
             fatalError("JSON uses data-based export, not string formatting")
         }
@@ -161,30 +177,40 @@ public enum TranscriptFileExporter {
         """
     }
 
-    private static func formatYAML(_ transcript: Transcript, properties: Set<ExportYAMLProperty>) -> String {
+    private static func formatYAML(
+        _ transcript: Transcript,
+        properties: Set<ExportYAMLProperty>,
+        wrapsInMarkdownFrontmatter: Bool
+    ) -> String {
         let orderedProperties = ExportYAMLProperty.allCases.filter { properties.contains($0) }
-        guard !orderedProperties.isEmpty else { return "{}" }
 
-        var lines: [String] = []
-        for property in orderedProperties {
-            switch property {
-            case .id:
-                lines.append("\(property.yamlKey): \(yamlQuoted(transcript.id.uuidString.lowercased()))")
-            case .text:
-                lines.append(contentsOf: yamlTextLines(transcript.text, key: property.yamlKey))
-            case .date:
-                let date = isoDateFormatter.string(from: transcript.date)
-                lines.append("\(property.yamlKey): \(yamlQuoted(date))")
-            case .duration:
-                lines.append("\(property.yamlKey): \(String(format: "%.3f", transcript.duration))")
-            case .modelUsed:
-                lines.append("\(property.yamlKey): \(yamlQuoted(transcript.modelUsed))")
-            case .language:
-                lines.append("\(property.yamlKey): \(yamlQuoted(transcript.language))")
+        let yamlBody: String
+        if orderedProperties.isEmpty {
+            yamlBody = "{}"
+        } else {
+            var lines: [String] = []
+            for property in orderedProperties {
+                switch property {
+                case .id:
+                    lines.append("\(property.yamlKey): \(yamlQuoted(transcript.id.uuidString.lowercased()))")
+                case .text:
+                    lines.append(contentsOf: yamlTextLines(transcript.text, key: property.yamlKey))
+                case .date:
+                    let date = isoDateFormatter.string(from: transcript.date)
+                    lines.append("\(property.yamlKey): \(yamlQuoted(date))")
+                case .duration:
+                    lines.append("\(property.yamlKey): \(String(format: "%.3f", transcript.duration))")
+                case .modelUsed:
+                    lines.append("\(property.yamlKey): \(yamlQuoted(transcript.modelUsed))")
+                case .language:
+                    lines.append("\(property.yamlKey): \(yamlQuoted(transcript.language))")
+                }
             }
+            yamlBody = lines.joined(separator: "\n")
         }
 
-        return lines.joined(separator: "\n")
+        guard wrapsInMarkdownFrontmatter else { return yamlBody }
+        return "---\n\(yamlBody)\n---"
     }
 
     private static func yamlTextLines(_ text: String, key: String) -> [String] {
@@ -319,10 +345,10 @@ public enum TranscriptFileExporter {
 
     // MARK: - Append helpers
 
-    private static func appendText(_ content: String, to fileURL: URL) throws {
+    private static func appendText(_ content: String, to fileURL: URL, separator: String) throws {
         if FileManager.default.fileExists(atPath: fileURL.path) {
             let existing = try String(contentsOf: fileURL, encoding: .utf8)
-            let combined = existing + "\n\n---\n\n" + content
+            let combined = existing + separator + content
             try combined.write(to: fileURL, atomically: true, encoding: .utf8)
         } else {
             try content.write(to: fileURL, atomically: true, encoding: .utf8)
