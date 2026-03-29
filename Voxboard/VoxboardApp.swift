@@ -33,15 +33,15 @@ struct VoxboardApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HomeView(
+            RootView(
                 persistentRecorder: persistentRecorder,
                 pendingKeyboardLaunch: $pendingKeyboardLaunch,
                 pendingWidgetRecord: $pendingWidgetRecord
             )
-                .environment(modelManager)
-                .environment(transcriptStore)
-                .environment(usageTracker)
-                .environment(storeManager)
+            .environment(modelManager)
+            .environment(transcriptStore)
+            .environment(usageTracker)
+            .environment(storeManager)
                 .onAppear {
                     modelManager.copyBundledModelIfNeeded()
                     transcriptionServer.start()
