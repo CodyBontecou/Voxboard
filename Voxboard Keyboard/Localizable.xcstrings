@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "Limit reached — open Voxboard to unlock"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limit erreicht — öffne Voxboard zum Entsperren"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No Model"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Modell"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "No speech detected"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Sprache erkannt"
+          }
         }
       }
     },
@@ -45,6 +63,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Transcription timed out — try again"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitüberschreitung bei der Transkription — versuche es erneut"
           }
         }
       }

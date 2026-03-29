@@ -10,6 +10,12 @@
             "state" : "translated",
             "value" : "(cleared)"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(geleert)"
+          }
         }
       }
     },
@@ -21,6 +27,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "(empty)"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(leer)"
           }
         }
       }
@@ -34,6 +46,12 @@
             "state" : "translated",
             "value" : "%dh ago"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vor %d Std."
+          }
         }
       }
     },
@@ -45,6 +63,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%dm %ds"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d Min. %d Sek."
           }
         }
       }
@@ -58,6 +82,12 @@
             "state" : "translated",
             "value" : "%dm ago"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vor %d Min."
+          }
         }
       }
     },
@@ -69,6 +99,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%ds"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d Sek."
           }
         }
       }
@@ -82,6 +118,12 @@
             "state" : "translated",
             "value" : "%.1f / 15 MIN FREE"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 15 MIN KOSTENLOS"
+          }
         }
       }
     },
@@ -93,6 +135,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%.1f / 15 min free used"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 15 Min. kostenlos verbraucht"
           }
         }
       }
@@ -106,6 +154,12 @@
             "state" : "translated",
             "value" : "%.1f min free remaining."
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f Min. kostenlos verbleibend."
+          }
         }
       }
     },
@@ -117,6 +171,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App preferences, upgrade, about, and debug"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-Einstellungen, Upgrade, Infos und Debug"
           }
         }
       }
@@ -130,6 +190,12 @@
             "state" : "translated",
             "value" : "Configure automatic transcript file export"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatischen Dateiexport von Transkripten konfigurieren"
+          }
         }
       }
     },
@@ -141,6 +207,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Could not access microphone"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Zugriff auf das Mikrofon"
           }
         }
       }
@@ -154,6 +226,12 @@
             "state" : "translated",
             "value" : "Download and select Whisper or Parakeet AI models"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whisper- oder Parakeet-KI-Modelle herunterladen und auswählen"
+          }
         }
       }
     },
@@ -165,6 +243,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to load model"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell konnte nicht geladen werden"
           }
         }
       }
@@ -178,6 +262,12 @@
             "state" : "translated",
             "value" : "Free Tier"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kostenlose Stufe"
+          }
         }
       }
     },
@@ -189,6 +279,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limit Reached"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limit erreicht"
           }
         }
       }
@@ -202,6 +298,12 @@
             "state" : "translated",
             "value" : "Listening"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hört zu"
+          }
         }
       }
     },
@@ -213,6 +315,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mic unavailable"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mikrofon nicht verfügbar"
           }
         }
       }
@@ -226,6 +334,12 @@
             "state" : "translated",
             "value" : "Model load failed"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laden des Modells fehlgeschlagen"
+          }
         }
       }
     },
@@ -237,6 +351,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Model not found"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell nicht gefunden"
           }
         }
       }
@@ -250,6 +370,12 @@
             "state" : "translated",
             "value" : "Model not found: %@"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modell nicht gefunden: %@"
+          }
         }
       }
     },
@@ -261,6 +387,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No audio captured"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Audio aufgezeichnet"
           }
         }
       }
@@ -274,6 +406,12 @@
             "state" : "translated",
             "value" : "No audio was captured"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es wurde kein Audio aufgezeichnet"
+          }
         }
       }
     },
@@ -285,6 +423,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No speech detected"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Sprache erkannt"
           }
         }
       }
@@ -298,6 +442,12 @@
             "state" : "translated",
             "value" : "Not set"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht festgelegt"
+          }
         }
       }
     },
@@ -309,6 +459,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Off"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus"
           }
         }
       }
@@ -322,6 +478,12 @@
             "state" : "translated",
             "value" : "Opens an email draft to contact support with app diagnostics"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öffnet einen E-Mail-Entwurf, um den Support mit App-Diagnosen zu kontaktieren"
+          }
         }
       }
     },
@@ -333,6 +495,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Record and transcribe audio in real time"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio in Echtzeit aufnehmen und transkribieren"
           }
         }
       }
@@ -346,6 +514,12 @@
             "state" : "translated",
             "value" : "Send Feedback"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feedback senden"
+          }
         }
       }
     },
@@ -357,6 +531,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Something went wrong"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etwas ist schiefgelaufen"
           }
         }
       }
@@ -370,6 +550,12 @@
             "state" : "translated",
             "value" : "TRANSCRIBING"
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TRANSKRIBIEREN"
+          }
         }
       }
     },
@@ -381,6 +567,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unlimited"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbegrenzt"
           }
         }
       }
@@ -394,6 +586,12 @@
             "state" : "translated",
             "value" : "Unlimited is already unlocked on this device."
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbegrenzt ist auf diesem Gerät bereits freigeschaltet."
+          }
         }
       }
     },
@@ -406,6 +604,12 @@
             "state" : "translated",
             "value" : "You've used all your free transcription time."
           }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du hast deine gesamte kostenlose Transkriptionszeit verbraucht."
+          }
         }
       }
     },
@@ -417,6 +621,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "just now"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gerade eben"
           }
         }
       }
