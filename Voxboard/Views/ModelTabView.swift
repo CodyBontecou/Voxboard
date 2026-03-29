@@ -22,6 +22,8 @@ struct ModelTabView: View {
 
             ScrollView {
                 VStack(spacing: 0) {
+                    pageHeader
+                    BrutalDivider()
                     whisperSection
                     BrutalDivider()
                     parakeetSection
@@ -41,6 +43,19 @@ struct ModelTabView: View {
         }
         .toolbarBackground(Brutal.bg, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+    }
+
+    // MARK: - Page header
+
+    private var pageHeader: some View {
+        Text("Download and select the speech recognition model used for transcription. Larger models are more accurate but require more memory and take longer to load.")
+            .font(Brutal.caption())
+            .foregroundColor(Brutal.muted)
+            .lineSpacing(3)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Brutal.bg)
     }
 
     // MARK: - Section header helper
@@ -66,10 +81,6 @@ struct ModelTabView: View {
                 modelRow(for: model)
                 BrutalDivider()
             }
-            // Footer note
-            footerNote(
-                "Tiny is best for the keyboard extension. Larger models are more accurate but use more memory."
-            )
         }
     }
 
