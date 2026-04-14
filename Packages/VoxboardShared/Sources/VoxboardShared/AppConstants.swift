@@ -52,6 +52,13 @@ public enum AppConstants: Sendable {
     // Defaults to true when unset — see `enrichmentEnabled` accessor below.
     public static let enrichmentEnabledKey = "enrichmentEnabled"
 
+    // Smart folder routing (Apple Intelligence routes transcripts to the best folder).
+    public static let smartFoldersEnabledKey = "smartFoldersEnabled"
+    public static let smartFoldersKey = "smartFolders"
+
+    // Auto-organize (Apple Intelligence generates subfolders under the base export folder).
+    public static let autoOrganizeEnabledKey = "autoOrganizeEnabled"
+
     // Which enrichment fields flow into file exports. Each defaults to true
     // so users who turn enrichment on get the enriched export for free.
     public static let exportUseEnrichedTitleInFilenameKey = "exportUseEnrichedTitleInFilename"
@@ -91,5 +98,28 @@ public enum AppConstants: Sendable {
 
     public static var sharedDefaults: UserDefaults? {
         UserDefaults(suiteName: appGroupIdentifier)
+    }
+
+    // MARK: - Smart Folder Routing
+
+    public static var smartFoldersEnabled: Bool {
+        boolOrDefault(smartFoldersEnabledKey, default: false)
+    }
+
+    public static var autoOrganizeEnabled: Bool {
+        boolOrDefault(autoOrganizeEnabledKey, default: false)
+    }
+
+    public static func loadSmartFolders() -> [SmartFolder] {
+        guard let data = sharedDefaults?.data(forKey: smartFoldersKey),
+              let folders = try? JSONDecoder().decode([SmartFolder].self, from: data) else {
+            return []
+        }
+        return folders
+    }
+
+    public static func saveSmartFolders(_ folders: [SmartFolder]) {
+        guard let data = try? JSONEncoder().encode(folders) else { return }
+        sharedDefaults?.set(data, forKey: smartFoldersKey)
     }
 }

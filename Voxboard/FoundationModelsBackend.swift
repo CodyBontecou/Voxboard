@@ -44,6 +44,32 @@ final class FoundationModelsBackend: LLMBackend {
         return response.content
     }
 
+    /// Picks the best smart folder for a transcript.
+    /// Returns the zero-based index into `folders`, or nil when none is a good fit.
+    func routeToFolder(transcript: VoxboardShared.Transcript, folders: [SmartFolder]) async throws -> Int? {
+        guard !folders.isEmpty else { return nil }
+        let session = try makeSession(instructions: Self.routingInstructions)
+        let prompt = Self.routingPrompt(transcript: transcript, folders: folders)
+        let response = try await session.respond(to: prompt, generating: FolderSelection.self)
+        let index = response.content.folderIndex
+        guard index >= 0 && index < folders.count else { return nil }
+        return index
+    }
+
+    /// Generates a folder name for auto-organize mode.
+    /// Reuses an existing folder when the content fits; creates a new name otherwise.
+    /// Returns nil when the model output is unusable.
+    func generateFolderName(
+        transcript: VoxboardShared.Transcript,
+        existingFolders: [String]
+    ) async throws -> String? {
+        let session = try makeSession(instructions: Self.autoOrganizeInstructions)
+        let prompt = Self.autoOrganizePrompt(transcript: transcript, existingFolders: existingFolders)
+        let response = try await session.respond(to: prompt, generating: GeneratedFolderName.self)
+        let name = Self.sanitizeFolderName(response.content.name)
+        return name.isEmpty ? nil : name
+    }
+
     func enrichNative(rawText: String) async throws -> TranscriptEnrichment? {
         let session = try makeSession(instructions: Self.systemInstructions)
         let response = try await session.respond(
@@ -76,6 +102,68 @@ final class FoundationModelsBackend: LLMBackend {
     }
 
     // MARK: - Prompt
+
+    private static let autoOrganizeInstructions = """
+    You organize voice transcriptions into folders. Given a transcript and a list \
+    of existing folder names, choose the most appropriate existing folder when the \
+    content clearly fits, or invent a concise new name. Use 1–3 lowercase words \
+    separated by hyphens. Never use special characters or spaces.
+    """
+
+    private static func autoOrganizePrompt(
+        transcript: VoxboardShared.Transcript,
+        existingFolders: [String]
+    ) -> String {
+        let text = transcript.cleanedText ?? transcript.text
+        let titleLine = transcript.title.map { "Title: \($0)\n" } ?? ""
+        let tagsLine = transcript.tags.map { "Tags: \($0.joined(separator: ", "))\n" } ?? ""
+        let categoryLine = transcript.category.map { "Category: \($0)\n" } ?? ""
+        let folderSection = existingFolders.isEmpty
+            ? "No existing folders — create a new one."
+            : "Existing folders (reuse if appropriate): \(existingFolders.joined(separator: ", "))"
+
+        return """
+        \(titleLine)\(tagsLine)\(categoryLine)Transcript: \"\"\"\(text)\"\"\"
+
+        \(folderSection)
+        """
+    }
+
+    private static func sanitizeFolderName(_ raw: String) -> String {
+        let invalid = CharacterSet(charactersIn: "/\\:*?\"<>|")
+        return raw
+            .lowercased()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .components(separatedBy: invalid)
+            .joined()
+            .replacingOccurrences(of: " ", with: "-")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-."))
+    }
+
+    private static let routingInstructions = """
+    You route voice transcriptions to the most appropriate folder based on the \
+    transcript content and folder descriptions. Choose the folder whose description \
+    best matches the transcript's topic and intent. Return -1 if no folder is a \
+    reasonable match.
+    """
+
+    private static func routingPrompt(transcript: VoxboardShared.Transcript, folders: [SmartFolder]) -> String {
+        let folderList = folders.enumerated().map { index, folder in
+            "[\(index)] \(folder.name): \(folder.folderDescription)"
+        }.joined(separator: "\n")
+
+        let text = transcript.cleanedText ?? transcript.text
+        let titleLine = transcript.title.map { "Title: \($0)\n" } ?? ""
+        let tagsLine = transcript.tags.map { "Tags: \($0.joined(separator: ", "))\n" } ?? ""
+
+        return """
+        Transcript:
+        \(titleLine)\(tagsLine)\"\"\"\(text)\"\"\"
+
+        Folders:
+        \(folderList)
+        """
+    }
 
     private static let systemInstructions = """
     You label short voice transcriptions for a local voice-notes app. The raw \
@@ -115,6 +203,20 @@ private struct GeneratedEnrichment {
 
     @Guide(description: "The transcript rewritten with proper casing and punctuation, filler words removed, meaning preserved verbatim")
     let cleanedText: String
+}
+
+@available(iOS 26, *)
+@Generable
+private struct GeneratedFolderName {
+    @Guide(description: "1–3 lowercase words separated by hyphens. Reuse an existing folder name when the content fits, otherwise invent a new one. Examples: app-dev, meeting-notes, ideas, personal-journal")
+    let name: String
+}
+
+@available(iOS 26, *)
+@Generable
+private struct FolderSelection {
+    @Guide(description: "Zero-based index of the best matching folder, or -1 if no folder is appropriate")
+    let folderIndex: Int
 }
 
 @available(iOS 26, *)

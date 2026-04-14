@@ -760,7 +760,47 @@ final class PersistentRecorder {
                     let latest = await MainActor.run {
                         store.transcripts.first(where: { $0.id == savedId }) ?? initialTranscript
                     }
-                    guard let url = TranscriptFileExporter.exportIfEnabled(latest) else { return }
+
+                    var folderOverride: URL? = nil
+                    var autoOrganizeSubfolder: String? = nil
+
+                    if #available(iOS 26, *), FoundationModelsBackend.isAvailable {
+                        let router = FoundationModelsBackend()
+
+                        // 1. Smart Folders: route to a user-defined destination.
+                        if AppConstants.smartFoldersEnabled {
+                            let folders = AppConstants.loadSmartFolders()
+                            if !folders.isEmpty,
+                               let idx = try? await router.routeToFolder(transcript: latest, folders: folders) {
+                                folderOverride = folders[idx].resolveURL()
+                            }
+                        }
+
+                        // 2. Auto-Organize fallback: generate a subfolder under the base export folder.
+                        if folderOverride == nil, AppConstants.autoOrganizeEnabled,
+                           let baseURL = TranscriptFileExporter.resolveExportFolderURL() {
+                            let needsScoping = baseURL.startAccessingSecurityScopedResource()
+                            let existingFolders = (try? FileManager.default.contentsOfDirectory(
+                                at: baseURL,
+                                includingPropertiesForKeys: [.isDirectoryKey],
+                                options: .skipsHiddenFiles
+                            ).filter { url in
+                                (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
+                            }.map { $0.lastPathComponent }) ?? []
+                            if needsScoping { baseURL.stopAccessingSecurityScopedResource() }
+
+                            autoOrganizeSubfolder = try? await router.generateFolderName(
+                                transcript: latest,
+                                existingFolders: existingFolders
+                            )
+                        }
+                    }
+
+                    guard let url = TranscriptFileExporter.exportIfEnabled(
+                        latest,
+                        folderURLOverride: folderOverride,
+                        autoOrganizeSubfolder: autoOrganizeSubfolder
+                    ) else { return }
                     await MainActor.run { self?.lastFileExportEvent = FileExportEvent(url: url) }
                 }
 
