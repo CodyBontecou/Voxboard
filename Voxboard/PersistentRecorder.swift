@@ -493,6 +493,8 @@ final class PersistentRecorder {
         let startIdx = max(currentIndex - preRollSamples, earliest)
         let startedAt = Date().timeIntervalSince1970
 
+        log.log("[PersistentRecorder] Buffer state: totalWritten=\(currentIndex) earliest=\(earliest) segmentStart=\(startIdx)")
+
         // Write IPC status immediately so the keyboard sees confirmation fast
         TranscriptionIPC.writeStatus(RecordingStatus(
             requestId: command.requestId,
@@ -543,11 +545,26 @@ final class PersistentRecorder {
 
         log.log("[PersistentRecorder] 🎙 Starting segment: \(command.requestId)")
 
+        // Re-assert the audio session category in case something (e.g. on-device
+        // LLM inference, a notification sound, or a system service) reconfigured
+        // it between startListening() and now. Without this, the tap can end up
+        // delivering silence while the engine still appears to be running.
+        let session = AVAudioSession.sharedInstance()
+        log.log("[PersistentRecorder] Session category=\(session.category.rawValue) isInputAvailable=\(session.isInputAvailable)")
+        do {
+            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth, .mixWithOthers])
+            try session.setActive(true)
+            log.log("[PersistentRecorder] ✅ Audio session re-asserted for segment")
+        } catch {
+            log.log("[PersistentRecorder] ⚠️ Audio session re-assert failed: \(error)")
+        }
+
         // Calculate start index with pre-roll
         let preRollSamples = Int64(preRollSeconds * whisperSampleRate)
         let currentIndex = circularBuffer.totalSamplesWritten
         let earliest = circularBuffer.earliestAvailableIndex
         segmentStartIndex = max(currentIndex - preRollSamples, earliest)
+        log.log("[PersistentRecorder] Buffer state: totalWritten=\(currentIndex) earliest=\(earliest) segmentStart=\(max(currentIndex - preRollSamples, earliest))")
 
         segmentRequestId = command.requestId
         segmentModelId = command.modelId
