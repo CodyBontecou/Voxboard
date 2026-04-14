@@ -59,7 +59,7 @@ struct MetaSettingsView: View {
 
     // MARK: - Section header
 
-    private func sectionHeader(_ number: String, _ title: String) -> some View {
+    private func sectionHeader(_ number: String, _ title: LocalizedStringKey) -> some View {
         HStack {
             BrutalSectionLabel(number: number, title: title)
             Spacer()
@@ -142,13 +142,21 @@ struct MetaSettingsView: View {
             sectionHeader("01", "About")
             BrutalDivider()
 
-            let rows: [(String, String)] = [
+            var rows: [(String, String)] = [
                 ("Whisper engine", "whisper.cpp"),
                 ("Parakeet engine", "FluidAudio (CoreML)"),
                 ("Processing", "On-device"),
                 ("Privacy", "Zero data leaves device"),
                 ("Version", appVersionString),
             ]
+            let _ = { // build Apple Intelligence row lazily, gated by availability
+                if #available(iOS 26, *) {
+                    let status = FoundationModelsBackend.isAvailable
+                        ? "Available"
+                        : "Unavailable"
+                    rows.append(("Apple Intelligence", status))
+                }
+            }()
 
             ForEach(rows, id: \.0) { key, val in
                 HStack {
@@ -206,7 +214,7 @@ struct MetaSettingsView: View {
                 showDebugLog = true
             } label: {
                 HStack {
-                    Text("VIEW KEYBOARD LOG")
+                    Text("VIEW DEBUG LOG")
                         .font(Brutal.label())
                         .foregroundColor(Brutal.text)
                     Spacer()
@@ -268,7 +276,7 @@ struct SettingsDebugLogView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("KEYBOARD LOG")
+                    Text("DEBUG LOG")
                         .font(Brutal.label(.headline))
                         .foregroundColor(Brutal.text)
                 }

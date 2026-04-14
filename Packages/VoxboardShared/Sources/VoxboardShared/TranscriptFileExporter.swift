@@ -11,6 +11,50 @@ public enum ExportFileMode: String, Codable, CaseIterable, Sendable {
     case newFile
 }
 
+/// Controls how the AI-generated title is applied to the exported filename.
+public enum EnrichedFilenameStyle: String, Codable, CaseIterable, Sendable {
+    /// Prepend the title to the template result: `{title}-{template}`.
+    case prefix
+    /// Use the title as the entire filename, ignoring the template.
+    case fullName
+}
+
+/// How enrichment (title, tags, cleanedText) flows into an export.
+/// All fields default to `true` — callers should construct via
+/// `TranscriptExportEnrichmentOptions.default` or read `.fromDefaults`.
+public struct TranscriptExportEnrichmentOptions: Sendable, Equatable {
+    public var useEnrichedTitleInFilename: Bool
+    public var enrichedFilenameStyle: EnrichedFilenameStyle
+    public var useCleanedText: Bool
+    public var includeTags: Bool
+
+    public init(
+        useEnrichedTitleInFilename: Bool,
+        enrichedFilenameStyle: EnrichedFilenameStyle = .prefix,
+        useCleanedText: Bool,
+        includeTags: Bool
+    ) {
+        self.useEnrichedTitleInFilename = useEnrichedTitleInFilename
+        self.enrichedFilenameStyle = enrichedFilenameStyle
+        self.useCleanedText = useCleanedText
+        self.includeTags = includeTags
+    }
+
+    public static let `default` = TranscriptExportEnrichmentOptions(
+        useEnrichedTitleInFilename: true,
+        enrichedFilenameStyle: .prefix,
+        useCleanedText: true,
+        includeTags: true
+    )
+
+    public static let disabled = TranscriptExportEnrichmentOptions(
+        useEnrichedTitleInFilename: false,
+        enrichedFilenameStyle: .prefix,
+        useCleanedText: false,
+        includeTags: false
+    )
+}
+
 public enum ExportYAMLProperty: String, Codable, CaseIterable, Sendable {
     case id
     case text
@@ -97,6 +141,7 @@ public enum TranscriptFileExporter {
         folderURL: URL,
         yamlProperties: Set<ExportYAMLProperty> = ExportYAMLProperty.defaultSelection,
         yamlUsesMarkdownExtension: Bool = false,
+        enrichmentOptions: TranscriptExportEnrichmentOptions = .default,
         defaults: UserDefaults? = nil
     ) throws -> URL {
         let fileURL = targetURL(
@@ -105,6 +150,7 @@ public enum TranscriptFileExporter {
             mode: mode,
             folderURL: folderURL,
             yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
+            enrichmentOptions: enrichmentOptions,
             defaults: defaults
         )
 
@@ -121,7 +167,8 @@ public enum TranscriptFileExporter {
                 transcript,
                 format: format,
                 yamlProperties: yamlProperties,
-                yamlUsesMarkdownFrontmatter: format == .yaml && yamlUsesMarkdownExtension
+                yamlUsesMarkdownFrontmatter: format == .yaml && yamlUsesMarkdownExtension,
+                enrichmentOptions: enrichmentOptions
             )
             try content.write(to: fileURL, atomically: true, encoding: .utf8)
 
@@ -130,7 +177,8 @@ public enum TranscriptFileExporter {
                 transcript,
                 format: format,
                 yamlProperties: yamlProperties,
-                yamlUsesMarkdownFrontmatter: format == .yaml && yamlUsesMarkdownExtension
+                yamlUsesMarkdownFrontmatter: format == .yaml && yamlUsesMarkdownExtension,
+                enrichmentOptions: enrichmentOptions
             )
             let separator = (format == .yaml && yamlUsesMarkdownExtension) ? "\n\n" : "\n\n---\n\n"
             try appendText(content, to: fileURL, separator: separator)
@@ -141,73 +189,135 @@ public enum TranscriptFileExporter {
 
     // MARK: - Text formatting
 
+    /// The body text chosen for export — cleaned text when enrichment provided
+    /// one and the user has that option enabled, otherwise the raw transcript.
+    private static func bodyText(
+        _ transcript: Transcript,
+        options: TranscriptExportEnrichmentOptions
+    ) -> String {
+        if options.useCleanedText, let cleaned = transcript.cleanedText, !cleaned.isEmpty {
+            return cleaned
+        }
+        return transcript.text
+    }
+
+    /// Non-nil, non-empty tags array the user wants in the export, or nil.
+    private static func usableTags(
+        _ transcript: Transcript,
+        options: TranscriptExportEnrichmentOptions
+    ) -> [String]? {
+        guard options.includeTags,
+              let tags = transcript.tags,
+              !tags.isEmpty else {
+            return nil
+        }
+        return tags
+    }
+
     private static func formatContent(
         _ transcript: Transcript,
         format: ExportFileFormat,
         yamlProperties: Set<ExportYAMLProperty>,
-        yamlUsesMarkdownFrontmatter: Bool
+        yamlUsesMarkdownFrontmatter: Bool,
+        enrichmentOptions: TranscriptExportEnrichmentOptions
     ) -> String {
         switch format {
         case .txt:
-            return transcript.text
+            return formatTxt(transcript, options: enrichmentOptions)
         case .md:
-            return formatMarkdown(transcript)
+            return formatMarkdown(transcript, options: enrichmentOptions)
         case .yaml:
             return formatYAML(
                 transcript,
                 properties: yamlProperties,
-                wrapsInMarkdownFrontmatter: yamlUsesMarkdownFrontmatter
+                wrapsInMarkdownFrontmatter: yamlUsesMarkdownFrontmatter,
+                options: enrichmentOptions
             )
         case .json:
             fatalError("JSON uses data-based export, not string formatting")
         }
     }
 
-    private static func formatMarkdown(_ transcript: Transcript) -> String {
+    private static func formatTxt(
+        _ transcript: Transcript,
+        options: TranscriptExportEnrichmentOptions
+    ) -> String {
+        let body = bodyText(transcript, options: options)
+        guard let tags = usableTags(transcript, options: options) else {
+            return body
+        }
+        let tagLine = "Tags: " + tags.joined(separator: ", ")
+        return body + "\n\n" + tagLine
+    }
+
+    private static func formatMarkdown(
+        _ transcript: Transcript,
+        options: TranscriptExportEnrichmentOptions
+    ) -> String {
         let dateString = displayDateFormatter.string(from: transcript.date)
         let durationString = String(format: "%.1fs", transcript.duration)
-        return """
+        let body = bodyText(transcript, options: options)
+        var result = """
         ## Transcript - \(dateString)
 
         - **Duration**: \(durationString)
         - **Model**: \(transcript.modelUsed)
         - **Language**: \(transcript.language)
 
-        \(transcript.text)
+        \(body)
         """
+        if let tags = usableTags(transcript, options: options) {
+            let hashtags = tags.map { "#\(sanitizeHashtag($0))" }.joined(separator: " ")
+            result += "\n\n" + hashtags
+        }
+        return result
+    }
+
+    private static func sanitizeHashtag(_ tag: String) -> String {
+        let lowered = tag.lowercased()
+        let replaced = lowered.unicodeScalars.map { scalar -> Character in
+            if CharacterSet.alphanumerics.contains(scalar) { return Character(scalar) }
+            return "-"
+        }
+        return String(replaced)
+            .replacingOccurrences(of: "--", with: "-")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
     }
 
     private static func formatYAML(
         _ transcript: Transcript,
         properties: Set<ExportYAMLProperty>,
-        wrapsInMarkdownFrontmatter: Bool
+        wrapsInMarkdownFrontmatter: Bool,
+        options: TranscriptExportEnrichmentOptions
     ) -> String {
         let orderedProperties = ExportYAMLProperty.allCases.filter { properties.contains($0) }
+        let exportedText = bodyText(transcript, options: options)
 
-        let yamlBody: String
-        if orderedProperties.isEmpty {
-            yamlBody = "{}"
-        } else {
-            var lines: [String] = []
-            for property in orderedProperties {
-                switch property {
-                case .id:
-                    lines.append("\(property.yamlKey): \(yamlQuoted(transcript.id.uuidString.lowercased()))")
-                case .text:
-                    lines.append(contentsOf: yamlTextLines(transcript.text, key: property.yamlKey))
-                case .date:
-                    let date = isoDateFormatter.string(from: transcript.date)
-                    lines.append("\(property.yamlKey): \(yamlQuoted(date))")
-                case .duration:
-                    lines.append("\(property.yamlKey): \(String(format: "%.3f", transcript.duration))")
-                case .modelUsed:
-                    lines.append("\(property.yamlKey): \(yamlQuoted(transcript.modelUsed))")
-                case .language:
-                    lines.append("\(property.yamlKey): \(yamlQuoted(transcript.language))")
-                }
+        var lines: [String] = []
+        for property in orderedProperties {
+            switch property {
+            case .id:
+                lines.append("\(property.yamlKey): \(yamlQuoted(transcript.id.uuidString.lowercased()))")
+            case .text:
+                lines.append(contentsOf: yamlTextLines(exportedText, key: property.yamlKey))
+            case .date:
+                let date = isoDateFormatter.string(from: transcript.date)
+                lines.append("\(property.yamlKey): \(yamlQuoted(date))")
+            case .duration:
+                lines.append("\(property.yamlKey): \(String(format: "%.3f", transcript.duration))")
+            case .modelUsed:
+                lines.append("\(property.yamlKey): \(yamlQuoted(transcript.modelUsed))")
+            case .language:
+                lines.append("\(property.yamlKey): \(yamlQuoted(transcript.language))")
             }
-            yamlBody = lines.joined(separator: "\n")
         }
+
+        if let tags = usableTags(transcript, options: options) {
+            let joined = tags.map { yamlQuoted($0) }.joined(separator: ", ")
+            lines.append("tags: [\(joined)]")
+        }
+
+        let yamlBody = lines.isEmpty ? "{}" : lines.joined(separator: "\n")
 
         guard wrapsInMarkdownFrontmatter else { return yamlBody }
         return "---\n\(yamlBody)\n---"
@@ -240,13 +350,18 @@ public enum TranscriptFileExporter {
         mode: ExportFileMode,
         folderURL: URL,
         yamlUsesMarkdownExtension: Bool,
+        enrichmentOptions: TranscriptExportEnrichmentOptions,
         defaults: UserDefaults?
     ) -> URL {
         let fileExtension = resolvedFileExtension(for: format, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension)
 
         switch mode {
         case .newFile:
-            let baseName = resolveNewFileBaseName(for: transcript, defaults: defaults)
+            let baseName = resolveNewFileBaseName(
+                for: transcript,
+                enrichmentOptions: enrichmentOptions,
+                defaults: defaults
+            )
             let initialURL = folderURL.appendingPathComponent("\(baseName).\(fileExtension)")
             return uniquedURL(initialURL)
         case .append:
@@ -265,12 +380,35 @@ public enum TranscriptFileExporter {
         return format.fileExtension
     }
 
-    private static func resolveNewFileBaseName(for transcript: Transcript, defaults: UserDefaults?) -> String {
+    private static func resolveNewFileBaseName(
+        for transcript: Transcript,
+        enrichmentOptions: TranscriptExportEnrichmentOptions,
+        defaults: UserDefaults?
+    ) -> String {
         let configuredTemplate = defaults?.string(forKey: AppConstants.fileExportNewFileNameTemplateKey)
         let template = nonEmptyTrimmed(configuredTemplate) ?? defaultNewFileNameTemplate
         let rendered = renderTemplate(template, transcript: transcript)
         let fallback = renderTemplate(defaultNewFileNameTemplate, transcript: transcript)
-        return sanitizeFilenameBase(rendered, fallback: fallback)
+        let templateBase = sanitizeFilenameBase(rendered, fallback: fallback)
+
+        // If the user wants the enriched title in the filename and it is
+        // available, apply it according to the chosen style.
+        if enrichmentOptions.useEnrichedTitleInFilename,
+           let title = nonEmptyTrimmed(transcript.title) {
+            let sanitizedTitle = sanitizeFilenameBase(title, fallback: "")
+            if !sanitizedTitle.isEmpty {
+                switch enrichmentOptions.enrichedFilenameStyle {
+                case .prefix:
+                    // Prepend the title to the template so files stay unique
+                    // even when two recordings produce the same title.
+                    return "\(sanitizedTitle)-\(templateBase)"
+                case .fullName:
+                    // Use the title as the entire filename.
+                    return sanitizedTitle
+                }
+            }
+        }
+        return templateBase
     }
 
     private static func resolveAppendFileBaseName(defaults: UserDefaults?) -> String {
@@ -372,6 +510,7 @@ public enum TranscriptFileExporter {
         let mode = ExportFileMode(rawValue: modeRaw) ?? .newFile
         let yamlProperties = resolveYAMLProperties(from: defaults)
         let yamlUsesMarkdownExtension = resolveYAMLObsidianBasesEnabled(from: defaults)
+        let enrichmentOptions = resolveEnrichmentOptions(from: defaults)
 
         guard let folderURL = resolveBookmark(from: defaults) else { return nil }
 
@@ -385,7 +524,22 @@ public enum TranscriptFileExporter {
             folderURL: folderURL,
             yamlProperties: yamlProperties,
             yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
+            enrichmentOptions: enrichmentOptions,
             defaults: defaults
+        )
+    }
+
+    /// Reads per-field enrichment toggles. When the master enrichment toggle is
+    /// off we force the "disabled" options — there won't be enrichment data
+    /// anyway, but this avoids any chance of partial enrichment leaking into
+    /// the filename or body.
+    private static func resolveEnrichmentOptions(from defaults: UserDefaults) -> TranscriptExportEnrichmentOptions {
+        guard AppConstants.enrichmentEnabled else { return .disabled }
+        return TranscriptExportEnrichmentOptions(
+            useEnrichedTitleInFilename: AppConstants.exportUseEnrichedTitleInFilename,
+            enrichedFilenameStyle: AppConstants.exportEnrichedFilenameStyle,
+            useCleanedText: AppConstants.exportUseCleanedText,
+            includeTags: AppConstants.exportIncludeTags
         )
     }
 

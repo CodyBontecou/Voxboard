@@ -24,7 +24,24 @@ struct VoxboardApp: App {
         _transcriptStore = State(initialValue: store)
         _usageTracker = State(initialValue: usage)
         _storeManager = State(initialValue: storeMan)
-        _persistentRecorder = State(initialValue: PersistentRecorder(transcriptStore: store, usageTracker: usage))
+
+        // Construct the on-device LLM enricher if the user's device supports
+        // Apple Intelligence and it's enabled. On older/ineligible devices,
+        // `isAvailable` returns false and the recorder is built without an
+        // enricher — transcripts stay unenriched (nil title/tags/etc.),
+        // which is the agreed failure mode.
+        let enricher: TranscriptEnricher?
+        if #available(iOS 26, *), FoundationModelsBackend.isAvailable {
+            enricher = TranscriptEnricher(backend: FoundationModelsBackend())
+        } else {
+            enricher = nil
+        }
+
+        _persistentRecorder = State(initialValue: PersistentRecorder(
+            transcriptStore: store,
+            usageTracker: usage,
+            transcriptEnricher: enricher
+        ))
     }
     @Environment(\.scenePhase) private var scenePhase
 

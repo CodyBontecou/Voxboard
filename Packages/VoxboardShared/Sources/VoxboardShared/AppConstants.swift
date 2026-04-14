@@ -48,6 +48,47 @@ public enum AppConstants: Sendable {
     public static let fileExportNewFileNameTemplateKey = "fileExportNewFileNameTemplate"
     public static let fileExportAppendFileNameKey = "fileExportAppendFileName"
 
+    // On-device LLM enrichment (Apple Intelligence) toggle.
+    // Defaults to true when unset — see `enrichmentEnabled` accessor below.
+    public static let enrichmentEnabledKey = "enrichmentEnabled"
+
+    // Which enrichment fields flow into file exports. Each defaults to true
+    // so users who turn enrichment on get the enriched export for free.
+    public static let exportUseEnrichedTitleInFilenameKey = "exportUseEnrichedTitleInFilename"
+    public static let exportEnrichedFilenameStyleKey = "exportEnrichedFilenameStyle"
+    public static let exportUseCleanedTextKey = "exportUseCleanedText"
+    public static let exportIncludeTagsKey = "exportIncludeTags"
+
+    /// Whether on-device LLM enrichment should run after transcription.
+    /// Defaults to `true` when the user has never flipped the toggle, so the
+    /// feature is opt-out rather than opt-in.
+    public static var enrichmentEnabled: Bool {
+        boolOrDefault(enrichmentEnabledKey, default: true)
+    }
+
+    public static var exportUseEnrichedTitleInFilename: Bool {
+        boolOrDefault(exportUseEnrichedTitleInFilenameKey, default: true)
+    }
+
+    public static var exportEnrichedFilenameStyle: EnrichedFilenameStyle {
+        guard let raw = sharedDefaults?.string(forKey: exportEnrichedFilenameStyleKey) else { return .prefix }
+        return EnrichedFilenameStyle(rawValue: raw) ?? .prefix
+    }
+
+    public static var exportUseCleanedText: Bool {
+        boolOrDefault(exportUseCleanedTextKey, default: true)
+    }
+
+    public static var exportIncludeTags: Bool {
+        boolOrDefault(exportIncludeTagsKey, default: true)
+    }
+
+    private static func boolOrDefault(_ key: String, default defaultValue: Bool) -> Bool {
+        guard let defaults = sharedDefaults else { return defaultValue }
+        if defaults.object(forKey: key) == nil { return defaultValue }
+        return defaults.bool(forKey: key)
+    }
+
     public static var sharedDefaults: UserDefaults? {
         UserDefaults(suiteName: appGroupIdentifier)
     }

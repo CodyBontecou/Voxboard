@@ -87,6 +87,15 @@ struct HistoryView: View {
             BrutalDivider()
 
             VStack(alignment: .leading, spacing: 12) {
+                // Title (or relative date fallback). When enrichment hasn't run,
+                // we fall back to showing the date here as a less prominent heading.
+                if let title = transcript.title, !title.isEmpty {
+                    Text(title.uppercased())
+                        .font(Brutal.label(.headline))
+                        .foregroundColor(Brutal.text)
+                        .lineLimit(2)
+                }
+
                 // Metadata row
                 HStack(spacing: 6) {
                     Text(relativeDate(transcript.date))
@@ -106,29 +115,73 @@ struct HistoryView: View {
                             .font(Brutal.caption())
                             .foregroundColor(Brutal.muted)
                     }
-                    Spacer()
-                    Button(action: { UIPasteboard.general.string = transcript.text }) {
-                        Text("COPY")
+                    if let category = transcript.category, !category.isEmpty {
+                        Text("·").font(Brutal.caption()).foregroundColor(Brutal.muted)
+                        Text(category.uppercased())
                             .font(Brutal.caption())
                             .foregroundColor(Brutal.text)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
                     }
-                    .buttonStyle(.plain)
+                    Spacer()
+                    copyMenu(for: transcript)
                 }
 
-                // Transcript text
-                Text(transcript.text)
+                // Transcript body — prefer the cleaned version when available.
+                Text(transcript.cleanedText ?? transcript.text)
                     .font(Brutal.body())
                     .foregroundColor(Brutal.text)
                     .lineSpacing(4)
                     .lineLimit(5)
+
+                // Tag chips
+                if let tags = transcript.tags, !tags.isEmpty {
+                    HStack(spacing: 6) {
+                        ForEach(tags.prefix(5), id: \.self) { tag in
+                            Text("#\(tag)".uppercased())
+                                .font(Brutal.caption())
+                                .foregroundColor(Brutal.muted)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                        }
+                    }
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
         }
         .contentShape(Rectangle())
+    }
+
+    /// Offers "Copy cleaned" + "Copy raw" when both exist, otherwise a plain
+    /// "COPY" button that copies whichever text is available.
+    @ViewBuilder
+    private func copyMenu(for transcript: Transcript) -> some View {
+        if let cleaned = transcript.cleanedText, !cleaned.isEmpty {
+            Menu {
+                Button("Copy cleaned") { UIPasteboard.general.string = cleaned }
+                Button("Copy raw") { UIPasteboard.general.string = transcript.text }
+            } label: {
+                Text("COPY")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.text)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+            }
+        } else {
+            Button(action: { UIPasteboard.general.string = transcript.text }) {
+                Text("COPY")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.text)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+        }
     }
 
     // MARK: - Helpers

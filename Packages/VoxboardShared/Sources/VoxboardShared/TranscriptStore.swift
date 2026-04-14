@@ -19,6 +19,17 @@ public final class TranscriptStore {
         save()
     }
 
+    /// Replace an existing transcript by id. No-op if the id is unknown.
+    /// Used by `TranscriptEnricher` to write back title/tags/category/cleanedText
+    /// once on-device LLM enrichment finishes.
+    public func update(_ transcript: Transcript) {
+        guard let index = transcripts.firstIndex(where: { $0.id == transcript.id }) else {
+            return
+        }
+        transcripts[index] = transcript
+        save()
+    }
+
     public func delete(at offsets: IndexSet) {
         for index in offsets.sorted().reversed() {
             transcripts.remove(at: index)

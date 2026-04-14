@@ -83,6 +83,11 @@ final class PersistentRecorder {
     /// Shared transcript store — injected so saved transcripts appear in the UI immediately.
     private let transcriptStore: TranscriptStore
 
+    /// On-device LLM post-processor. Nil when the feature is disabled or the
+    /// model hasn't been downloaded. When set, runs asynchronously after save
+    /// to populate title/tags/category/cleanedText on the just-saved transcript.
+    private let transcriptEnricher: TranscriptEnricher?
+
     /// Tracks cumulative usage for the free-tier paywall.
     private let usageTracker: UsageTracker
 
@@ -92,9 +97,14 @@ final class PersistentRecorder {
 
     // MARK: - Init
 
-    init(transcriptStore: TranscriptStore, usageTracker: UsageTracker) {
+    init(
+        transcriptStore: TranscriptStore,
+        usageTracker: UsageTracker,
+        transcriptEnricher: TranscriptEnricher? = nil
+    ) {
         self.transcriptStore = transcriptStore
         self.usageTracker = usageTracker
+        self.transcriptEnricher = transcriptEnricher
         ensureRecordingsDirectory()
 
         // Clear any stale listening state left over from a previous session.
@@ -337,23 +347,20 @@ final class PersistentRecorder {
             }
 
         case .ended:
-            log.log("[PersistentRecorder] Audio interruption ended — restarting engine")
+            log.log("[PersistentRecorder] Audio interruption ended — restarting listening")
             let options = (notification.userInfo?[AVAudioSessionInterruptionOptionKey] as? UInt)
                 .flatMap { AVAudioSession.InterruptionOptions(rawValue: $0) }
 
             if options?.contains(.shouldResume) ?? true {
-                // Restart the audio engine
-                if let engine = audioEngine {
-                    do {
-                        try AVAudioSession.sharedInstance().setActive(true)
-                        try engine.start()
-                        log.log("[PersistentRecorder] ✅ Audio engine restarted after interruption")
-                    } catch {
-                        log.log("[PersistentRecorder] ❌ Engine restart failed: \(error) — full restart")
-                        stopListening()
-                        startListening()
-                    }
-                }
+                // Full restart: stopListening() tears down the tap and engine;
+                // startListening() reinstalls both. iOS sometimes silently
+                // disconnects audio taps during long interruptions (phone lock,
+                // calls, headphone swaps), and `engine.start()` alone doesn't
+                // reconnect the data flow — leaving isListening=true with a
+                // dead tap that never delivers samples. A full restart is the
+                // only way to reliably self-heal.
+                stopListening()
+                startListening()
             }
 
         @unknown default:
@@ -585,8 +592,22 @@ final class PersistentRecorder {
         // Extract audio from the circular buffer
         let endIndex = circularBuffer.totalSamplesWritten
         guard let samples = circularBuffer.extract(from: segmentStartIndex, to: endIndex) else {
-            log.log("[PersistentRecorder] ❌ Could not extract audio — data was overwritten")
-            writeErrorResponse(requestId: requestId, message: "Audio buffer overwritten — try a shorter recording")
+            // Two distinct failure modes land here. Distinguish them so the
+            // log is actionable and we only self-heal when appropriate.
+            if endIndex == segmentStartIndex {
+                // The audio tap is not delivering samples — usually because
+                // iOS disconnected it during an interruption that we never
+                // saw an `.ended` event for (app was backgrounded during a
+                // call, phone locked for hours, etc.). Recover by rebuilding
+                // the engine + tap from scratch so the next recording works.
+                log.log("[PersistentRecorder] ❌ Audio tap not delivering samples — restarting listening to recover")
+                writeErrorResponse(requestId: requestId, message: "Microphone wasn't receiving audio — please try again")
+                stopListening()
+                startListening()
+            } else {
+                log.log("[PersistentRecorder] ❌ Could not extract audio — data was overwritten")
+                writeErrorResponse(requestId: requestId, message: "Audio buffer overwritten — try a shorter recording")
+            }
             return
         }
 
@@ -726,9 +747,30 @@ final class PersistentRecorder {
                 )
                 self.transcriptStore.add(transcript)
 
-                // Auto-save to file if enabled
-                if let exportedURL = TranscriptFileExporter.exportIfEnabled(transcript) {
-                    self.lastFileExportEvent = FileExportEvent(url: exportedURL)
+                // On-device LLM enrichment (title, tags, category, cleanedText).
+                // When enrichment is enabled, we defer the file export until
+                // the enricher finishes so the exported file reflects the
+                // enriched title/tags/cleaned text. On failure or timeout, we
+                // still export whatever is in the store (raw fields).
+                let store = self.transcriptStore
+                let savedId = transcript.id
+                let initialTranscript = transcript
+
+                let runExport: @Sendable () async -> Void = { [weak self] in
+                    let latest = await MainActor.run {
+                        store.transcripts.first(where: { $0.id == savedId }) ?? initialTranscript
+                    }
+                    guard let url = TranscriptFileExporter.exportIfEnabled(latest) else { return }
+                    await MainActor.run { self?.lastFileExportEvent = FileExportEvent(url: url) }
+                }
+
+                if let enricher = self.transcriptEnricher, AppConstants.enrichmentEnabled {
+                    Task.detached(priority: .utility) {
+                        await enricher.enrichAndUpdate(transcript: initialTranscript, into: store)
+                        await runExport()
+                    }
+                } else {
+                    Task.detached(priority: .utility) { await runExport() }
                 }
 
                 // Track usage for the free-tier paywall

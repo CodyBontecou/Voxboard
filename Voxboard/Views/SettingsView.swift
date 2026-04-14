@@ -156,7 +156,7 @@ struct SettingsView: View {
 
     // MARK: - Section Header
 
-    private func sectionHeader(_ number: String, _ title: String) -> some View {
+    private func sectionHeader(_ number: String, _ title: LocalizedStringKey) -> some View {
         HStack {
             BrutalSectionLabel(number: number, title: title)
             Spacer()
@@ -707,7 +707,7 @@ struct SettingsView: View {
                 showDebugLog = true
             } label: {
                 HStack {
-                    Text("VIEW KEYBOARD LOG")
+                    Text("VIEW DEBUG LOG")
                         .font(Brutal.label())
                         .foregroundColor(Brutal.text)
                     Spacer()
@@ -763,7 +763,7 @@ private struct KeyboardDebugLogView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("KEYBOARD LOG")
+                    Text("DEBUG LOG")
                         .font(Brutal.label(.headline))
                         .foregroundColor(Brutal.text)
                 }

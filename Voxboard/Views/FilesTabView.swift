@@ -46,6 +46,13 @@ struct FilesTabView: View {
         AppConstants.sharedDefaults?.bool(forKey: AppConstants.fileExportYAMLObsidianBasesKey) ?? false
     }()
 
+    // Apple Intelligence enrichment toggles — only shown when the master
+    // enrichment toggle is on and the device supports FoundationModels.
+    @State private var exportUseEnrichedTitleInFilename: Bool = AppConstants.exportUseEnrichedTitleInFilename
+    @State private var enrichedFilenameStyle: EnrichedFilenameStyle = AppConstants.exportEnrichedFilenameStyle
+    @State private var exportUseCleanedText: Bool = AppConstants.exportUseCleanedText
+    @State private var exportIncludeTags: Bool = AppConstants.exportIncludeTags
+
     @State private var selectedFolderName: String = {
         guard let data = AppConstants.sharedDefaults?.data(forKey: AppConstants.fileExportBookmarkKey),
               var isStale = Optional(false),
@@ -91,7 +98,7 @@ struct FilesTabView: View {
 
     // MARK: - Section Header
 
-    private func sectionHeader(_ number: String, _ title: String) -> some View {
+    private func sectionHeader(_ number: String, _ title: LocalizedStringKey) -> some View {
         HStack {
             BrutalSectionLabel(number: number, title: title)
             Spacer()
@@ -138,6 +145,10 @@ struct FilesTabView: View {
             if fileExportFormat == .yaml {
                 BrutalDivider()
                 yamlOptionsSection
+            }
+            if #available(iOS 26, *), FoundationModelsBackend.isAvailable, AppConstants.enrichmentEnabled {
+                BrutalDivider()
+                enrichmentOptionsSection
             }
         }
 
@@ -345,6 +356,101 @@ struct FilesTabView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Apple Intelligence enrichment options
+
+    private var enrichmentOptionsSection: some View {
+        VStack(spacing: 0) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("APPLE INTELLIGENCE")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.text)
+                    Text("Applies enrichment to your exported files.")
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(Brutal.bg)
+
+            BrutalDivider()
+
+            enrichmentToggleRow(
+                title: "ENRICHED FILENAME",
+                subtitle: "Apply the generated title to the filename",
+                isOn: $exportUseEnrichedTitleInFilename,
+                key: AppConstants.exportUseEnrichedTitleInFilenameKey
+            )
+
+            if exportUseEnrichedTitleInFilename {
+                BrutalDivider()
+                HStack {
+                    Text("FILENAME STYLE")
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
+                    Spacer()
+                    Picker("", selection: $enrichedFilenameStyle) {
+                        Text("PREFIX").tag(EnrichedFilenameStyle.prefix)
+                        Text("FULL NAME").tag(EnrichedFilenameStyle.fullName)
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 180)
+                    .onChange(of: enrichedFilenameStyle) { _, val in
+                        AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.exportEnrichedFilenameStyleKey)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Brutal.bg)
+            }
+
+            BrutalDivider()
+            enrichmentToggleRow(
+                title: "REWRITTEN TRANSCRIPTION",
+                subtitle: "Use the cleaned, punctuated text",
+                isOn: $exportUseCleanedText,
+                key: AppConstants.exportUseCleanedTextKey
+            )
+            BrutalDivider()
+            enrichmentToggleRow(
+                title: "INCLUDE TAGS",
+                subtitle: "Append generated tags to the file",
+                isOn: $exportIncludeTags,
+                key: AppConstants.exportIncludeTagsKey
+            )
+        }
+    }
+
+    private func enrichmentToggleRow(
+        title: LocalizedStringKey,
+        subtitle: LocalizedStringKey,
+        isOn: Binding<Bool>,
+        key: String
+    ) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(Brutal.label())
+                    .foregroundColor(Brutal.text)
+                Text(subtitle)
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
+            }
+            Spacer()
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+                .tint(Brutal.muted)
+                .onChange(of: isOn.wrappedValue) { _, val in
+                    AppConstants.sharedDefaults?.set(val, forKey: key)
+                }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Brutal.bg)
     }
 
     // MARK: - Helpers

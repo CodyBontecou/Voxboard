@@ -8,6 +8,8 @@ import VoxboardShared
 struct ModelTabView: View {
     @Environment(ModelManager.self) private var modelManager
 
+    @State private var enrichmentEnabled: Bool = AppConstants.enrichmentEnabled
+
     private var whisperModels: [WhisperModelInfo] {
         WhisperModelInfo.availableModels.filter { !$0.engine.isParakeet }
     }
@@ -29,6 +31,8 @@ struct ModelTabView: View {
                     parakeetSection
                     BrutalDivider()
                     languageSection
+                    BrutalDivider()
+                    appleIntelligenceSection
                 }
             }
         }
@@ -60,7 +64,7 @@ struct ModelTabView: View {
 
     // MARK: - Section header helper
 
-    private func sectionHeader(_ number: String, _ title: String) -> some View {
+    private func sectionHeader(_ number: String, _ title: LocalizedStringKey) -> some View {
         HStack {
             BrutalSectionLabel(number: number, title: title)
             Spacer()
@@ -119,6 +123,45 @@ struct ModelTabView: View {
                 .frame(height: 140)
                 .background(Brutal.bg)
                 .tint(Brutal.text)
+            }
+        }
+    }
+
+    // MARK: - Apple Intelligence
+
+    private var appleIntelligenceSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("04", "Apple Intelligence")
+            BrutalDivider()
+
+            if #available(iOS 26, *), FoundationModelsBackend.isAvailable {
+                Text("Uses Apple's on-device foundation model to generate a title, tags, category, and cleaned-up text for each transcription. Runs privately on your device after a recording is saved.")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
+                    .lineSpacing(3)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Brutal.bg)
+                BrutalDivider()
+
+                HStack {
+                    Text("ENRICH TRANSCRIPTIONS")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.text)
+                    Spacer()
+                    Toggle("", isOn: $enrichmentEnabled)
+                        .labelsHidden()
+                        .tint(Brutal.muted)
+                        .onChange(of: enrichmentEnabled) { _, val in
+                            AppConstants.sharedDefaults?.set(val, forKey: AppConstants.enrichmentEnabledKey)
+                        }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(Brutal.bg)
+            } else {
+                footerNote("Apple Intelligence is unavailable on this device. Enrichment requires iOS 26 or later on a supported device with Apple Intelligence enabled in Settings.")
             }
         }
     }
