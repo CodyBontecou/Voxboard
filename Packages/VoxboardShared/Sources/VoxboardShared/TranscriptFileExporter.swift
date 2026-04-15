@@ -141,6 +141,7 @@ public enum TranscriptFileExporter {
         folderURL: URL,
         yamlProperties: Set<ExportYAMLProperty> = ExportYAMLProperty.defaultSelection,
         yamlUsesMarkdownExtension: Bool = false,
+        mdObsidianEnabled: Bool = false,
         enrichmentOptions: TranscriptExportEnrichmentOptions = .default,
         defaults: UserDefaults? = nil
     ) throws -> URL {
@@ -168,6 +169,7 @@ public enum TranscriptFileExporter {
                 format: format,
                 yamlProperties: yamlProperties,
                 yamlUsesMarkdownFrontmatter: format == .yaml && yamlUsesMarkdownExtension,
+                mdObsidianEnabled: mdObsidianEnabled,
                 enrichmentOptions: enrichmentOptions
             )
             try content.write(to: fileURL, atomically: true, encoding: .utf8)
@@ -178,9 +180,10 @@ public enum TranscriptFileExporter {
                 format: format,
                 yamlProperties: yamlProperties,
                 yamlUsesMarkdownFrontmatter: format == .yaml && yamlUsesMarkdownExtension,
+                mdObsidianEnabled: mdObsidianEnabled,
                 enrichmentOptions: enrichmentOptions
             )
-            let separator = (format == .yaml && yamlUsesMarkdownExtension) ? "\n\n" : "\n\n---\n\n"
+            let separator = (format == .yaml && yamlUsesMarkdownExtension) || (format == .md && mdObsidianEnabled) ? "\n\n" : "\n\n---\n\n"
             try appendText(content, to: fileURL, separator: separator)
         }
 
@@ -219,12 +222,21 @@ public enum TranscriptFileExporter {
         format: ExportFileFormat,
         yamlProperties: Set<ExportYAMLProperty>,
         yamlUsesMarkdownFrontmatter: Bool,
+        mdObsidianEnabled: Bool = false,
         enrichmentOptions: TranscriptExportEnrichmentOptions
     ) -> String {
         switch format {
         case .txt:
             return formatTxt(transcript, options: enrichmentOptions)
         case .md:
+            if mdObsidianEnabled {
+                return formatYAML(
+                    transcript,
+                    properties: ExportYAMLProperty.defaultSelection,
+                    wrapsInMarkdownFrontmatter: true,
+                    options: enrichmentOptions
+                )
+            }
             return formatMarkdown(transcript, options: enrichmentOptions)
         case .yaml:
             return formatYAML(
@@ -520,6 +532,7 @@ public enum TranscriptFileExporter {
         let mode = ExportFileMode(rawValue: modeRaw) ?? .newFile
         let yamlProperties = resolveYAMLProperties(from: defaults)
         let yamlUsesMarkdownExtension = resolveYAMLObsidianBasesEnabled(from: defaults)
+        let mdObsidianEnabled = resolveMDObsidianEnabled(from: defaults)
         let enrichmentOptions = resolveEnrichmentOptions(from: defaults)
 
         // Smart folder override — URL carries its own security scope from a bookmark.
@@ -529,6 +542,7 @@ public enum TranscriptFileExporter {
             return try? export(
                 transcript, format: format, mode: mode, folderURL: override,
                 yamlProperties: yamlProperties, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
+                mdObsidianEnabled: mdObsidianEnabled,
                 enrichmentOptions: enrichmentOptions, defaults: defaults
             )
         }
@@ -545,6 +559,7 @@ public enum TranscriptFileExporter {
             return try? export(
                 transcript, format: format, mode: mode, folderURL: subfolderURL,
                 yamlProperties: yamlProperties, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
+                mdObsidianEnabled: mdObsidianEnabled,
                 enrichmentOptions: enrichmentOptions, defaults: defaults
             )
         }
@@ -553,6 +568,7 @@ public enum TranscriptFileExporter {
         return try? export(
             transcript, format: format, mode: mode, folderURL: baseURL,
             yamlProperties: yamlProperties, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
+            mdObsidianEnabled: mdObsidianEnabled,
             enrichmentOptions: enrichmentOptions, defaults: defaults
         )
     }
@@ -608,6 +624,10 @@ public enum TranscriptFileExporter {
 
     private static func resolveYAMLObsidianBasesEnabled(from defaults: UserDefaults) -> Bool {
         defaults.bool(forKey: AppConstants.fileExportYAMLObsidianBasesKey)
+    }
+
+    private static func resolveMDObsidianEnabled(from defaults: UserDefaults) -> Bool {
+        defaults.bool(forKey: AppConstants.fileExportMDObsidianKey)
     }
 
     private static func appendJSON(_ transcript: Transcript, to fileURL: URL) throws {

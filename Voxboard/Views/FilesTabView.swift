@@ -46,6 +46,10 @@ struct FilesTabView: View {
         AppConstants.sharedDefaults?.bool(forKey: AppConstants.fileExportYAMLObsidianBasesKey) ?? false
     }()
 
+    @State private var mdObsidianEnabled: Bool = {
+        AppConstants.sharedDefaults?.bool(forKey: AppConstants.fileExportMDObsidianKey) ?? false
+    }()
+
     // Apple Intelligence enrichment toggles — only shown when the master
     // enrichment toggle is on and the device supports FoundationModels.
     @State private var exportUseEnrichedTitleInFilename: Bool = AppConstants.exportUseEnrichedTitleInFilename
@@ -146,6 +150,10 @@ struct FilesTabView: View {
             folderPickerRow
             BrutalDivider()
             formatPickerRow
+            if fileExportFormat == .md {
+                BrutalDivider()
+                mdObsidianSection
+            }
             BrutalDivider()
             modePickerRow
             BrutalDivider()
@@ -302,6 +310,31 @@ struct FilesTabView: View {
             .padding(.vertical, 14)
             .background(Brutal.bg)
         }
+    }
+
+    // MARK: - MD Obsidian section
+
+    private var mdObsidianSection: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("OBSIDIAN BASES")
+                    .font(Brutal.label())
+                    .foregroundColor(Brutal.text)
+                Text("All fields in YAML frontmatter, empty body")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
+            }
+            Spacer()
+            Toggle("", isOn: $mdObsidianEnabled)
+                .labelsHidden()
+                .tint(Brutal.muted)
+                .onChange(of: mdObsidianEnabled) { _, val in
+                    AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportMDObsidianKey)
+                }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Brutal.bg)
     }
 
     // MARK: - YAML options section

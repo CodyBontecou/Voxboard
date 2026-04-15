@@ -45,6 +45,7 @@ public enum AppConstants: Sendable {
     public static let fileExportBookmarkKey = "fileExportFolderBookmark"
     public static let fileExportYAMLPropertiesKey = "fileExportYAMLProperties"
     public static let fileExportYAMLObsidianBasesKey = "fileExportYAMLObsidianBases"
+    public static let fileExportMDObsidianKey = "fileExportMDObsidian"
     public static let fileExportNewFileNameTemplateKey = "fileExportNewFileNameTemplate"
     public static let fileExportAppendFileNameKey = "fileExportAppendFileName"
 

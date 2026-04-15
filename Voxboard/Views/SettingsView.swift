@@ -40,6 +40,8 @@ struct SettingsView: View {
     }()
     @State private var yamlObsidianBasesEnabled: Bool =
         AppConstants.sharedDefaults?.bool(forKey: AppConstants.fileExportYAMLObsidianBasesKey) ?? false
+    @State private var mdObsidianEnabled: Bool =
+        AppConstants.sharedDefaults?.bool(forKey: AppConstants.fileExportMDObsidianKey) ?? false
     @State private var selectedFolderName: String = {
         guard let data = AppConstants.sharedDefaults?.data(forKey: AppConstants.fileExportBookmarkKey),
               var isStale = Optional(false),
@@ -493,6 +495,32 @@ struct SettingsView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 14)
                 .background(Brutal.bg)
+
+                if fileExportFormat == .md {
+                    BrutalDivider()
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("OBSIDIAN BASES")
+                                .font(Brutal.label())
+                                .foregroundColor(Brutal.text)
+                            Text("All fields in YAML frontmatter, empty body")
+                                .font(Brutal.caption())
+                                .foregroundColor(Brutal.muted)
+                        }
+                        Spacer()
+                        Toggle("", isOn: $mdObsidianEnabled)
+                            .labelsHidden()
+                            .tint(Brutal.muted)
+                            .onChange(of: mdObsidianEnabled) { _, val in
+                                AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportMDObsidianKey)
+                            }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(Brutal.bg)
+                }
+
                 BrutalDivider()
 
                 // Mode picker
