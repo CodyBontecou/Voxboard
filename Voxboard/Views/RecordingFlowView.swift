@@ -298,9 +298,11 @@ struct RecordingFlowView: View {
 
             case .done, .error:
                 Button(action: { onDismiss() }) {
-                    Text("CLOSE")
+                    Image(systemName: "xmark")
+                        .font(.system(.body, weight: .bold))
                 }
                 .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                .accessibilityLabel("Close")
 
             default:
                 Rectangle()

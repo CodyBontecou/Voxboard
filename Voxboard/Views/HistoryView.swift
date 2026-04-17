@@ -25,10 +25,13 @@ struct HistoryView: View {
                         .foregroundColor(Brutal.text)
                 }
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("CLOSE") { dismiss() }
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.muted)
-                        .buttonStyle(.plain)
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(Brutal.muted)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Close")
                 }
                 if !store.transcripts.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
