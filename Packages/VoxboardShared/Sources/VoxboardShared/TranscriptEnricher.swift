@@ -90,7 +90,7 @@ public struct TranscriptEnricher: Sendable {
         // guaranteed well-formed by the framework — no prompt engineering,
         // no parsing.
         if let native = try await backend.enrichNative(rawText: trimmed) {
-            return Self.normalizeCategory(in: native)
+            return Self.normalize(native)
         }
 
         // Fallback: string-based path with tolerant JSON extraction.
@@ -99,19 +99,37 @@ public struct TranscriptEnricher: Sendable {
         return try Self.parse(response: response)
     }
 
-    /// Snap a free-form category to the fixed taxonomy, preserving other
-    /// fields. Used for the native path where the backend may return any
-    /// string; `parse(response:)` applies the same rule for the string path.
-    private static func normalizeCategory(in enrichment: TranscriptEnrichment) -> TranscriptEnrichment {
-        guard !allowedCategories.contains(enrichment.category) else {
-            return enrichment
-        }
+    /// Snap a free-form category to the fixed taxonomy and enforce the
+    /// single-word tag contract on the tags array. Used for the native path
+    /// where the backend may return anything; `parse(response:)` applies the
+    /// same rules for the string path.
+    private static func normalize(_ enrichment: TranscriptEnrichment) -> TranscriptEnrichment {
+        let category = allowedCategories.contains(enrichment.category) ? enrichment.category : "other"
         return TranscriptEnrichment(
             title: enrichment.title,
-            tags: enrichment.tags,
-            category: "other",
+            tags: normalizeTags(enrichment.tags),
+            category: category,
             cleanedText: enrichment.cleanedText
         )
+    }
+
+    /// Collapse free-form tags into the single-word contract used by the UI:
+    /// split each tag on whitespace, lowercase, drop empties, dedupe while
+    /// preserving order, and cap at 5. Hyphenated tokens ("app-dev") are
+    /// kept intact — only whitespace breaks a tag into multiple words.
+    static func normalizeTags(_ raw: [String]) -> [String] {
+        var seen = Set<String>()
+        var out: [String] = []
+        for tag in raw {
+            let words = tag.split(whereSeparator: { $0.isWhitespace })
+            for word in words {
+                let lower = word.lowercased()
+                guard !lower.isEmpty, seen.insert(lower).inserted else { continue }
+                out.append(lower)
+                if out.count == 5 { return out }
+            }
+        }
+        return out
     }
 
     /// Run enrichment on a transcript and write the enriched copy back to the store.
@@ -151,7 +169,7 @@ public struct TranscriptEnricher: Sendable {
 
         Return ONLY a single JSON object — no prose, no markdown fences — with these keys:
           - "title": a short descriptive title (max 6 words)
-          - "tags": an array of 0–5 lowercase freeform tag strings
+          - "tags": an array of 0–5 lowercase single-word tags (no spaces; hyphens allowed for compound words like "app-dev")
           - "category": exactly one of [\(categoryList)]
           - "cleanedText": the transcript rewritten with proper casing, punctuation, \
             and filler words removed; preserve the speaker's meaning verbatim, do not \
@@ -182,13 +200,13 @@ public struct TranscriptEnricher: Sendable {
             throw TranscriptEnricherError.malformedOutput("JSON decode failed: \(error)")
         }
 
-        let normalizedCategory = allowedCategories.contains(raw.category) ? raw.category : "other"
-
-        return TranscriptEnrichment(
-            title: raw.title,
-            tags: raw.tags,
-            category: normalizedCategory,
-            cleanedText: raw.cleanedText
+        return normalize(
+            TranscriptEnrichment(
+                title: raw.title,
+                tags: raw.tags,
+                category: raw.category,
+                cleanedText: raw.cleanedText
+            )
         )
     }
 

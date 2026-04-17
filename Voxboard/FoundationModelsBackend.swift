@@ -168,10 +168,10 @@ final class FoundationModelsBackend: LLMBackend {
     private static let systemInstructions = """
     You label short voice transcriptions for a local voice-notes app. The raw \
     text comes from an automatic speech recognizer and may contain disfluencies, \
-    missing punctuation, and lowercase words. You produce a title, free-form \
-    tags, a category, and a cleaned version of the transcript. Preserve the \
-    speaker's meaning verbatim — never add information that wasn't in the \
-    original.
+    missing punctuation, and lowercase words. You produce a title, single-word \
+    tags (no spaces; hyphens allowed for compound words), a category, and a \
+    cleaned version of the transcript. Preserve the speaker's meaning verbatim \
+    — never add information that wasn't in the original.
     """
 
     private static func userPrompt(rawText: String) -> String {
@@ -195,7 +195,7 @@ private struct GeneratedEnrichment {
     @Guide(description: "A short descriptive title, at most 6 words")
     let title: String
 
-    @Guide(description: "0 to 5 lowercase free-form tags describing the content")
+    @Guide(description: "0 to 5 lowercase single-word tags describing the content (no spaces; hyphens allowed for compound words like app-dev)")
     let tags: [String]
 
     @Guide(description: "The single best category for this transcript")

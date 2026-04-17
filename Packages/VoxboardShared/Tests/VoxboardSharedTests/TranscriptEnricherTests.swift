@@ -59,6 +59,88 @@ final class TranscriptEnricherTests: XCTestCase {
         )
     }
 
+    // MARK: - Tag normalization (single-word enforcement)
+
+    func test_enrich_splitsMultiWordTagsIntoSingleWords_stringPath() async throws {
+        let backend = FakeLLMBackend(response: #"""
+        {
+          "title": "T",
+          "tags": ["grocery shopping", "food"],
+          "category": "note",
+          "cleanedText": "x"
+        }
+        """#)
+        let enricher = TranscriptEnricher(backend: backend)
+
+        let result = try await enricher.enrich(rawText: "x")
+
+        XCTAssertEqual(result.tags, ["grocery", "shopping", "food"])
+    }
+
+    func test_enrich_splitsMultiWordTagsIntoSingleWords_nativePath() async throws {
+        let native = TranscriptEnrichment(
+            title: "T",
+            tags: ["meeting notes", "q2 planning"],
+            category: "note",
+            cleanedText: "x"
+        )
+        let backend = FakeLLMBackend(nativeResponse: native)
+        let enricher = TranscriptEnricher(backend: backend)
+
+        let result = try await enricher.enrich(rawText: "x")
+
+        XCTAssertEqual(result.tags, ["meeting", "notes", "q2", "planning"])
+    }
+
+    func test_enrich_lowercasesAndDedupesTags() async throws {
+        let backend = FakeLLMBackend(response: #"""
+        {
+          "title": "T",
+          "tags": ["Work", "work", "  WORK  "],
+          "category": "note",
+          "cleanedText": "x"
+        }
+        """#)
+        let enricher = TranscriptEnricher(backend: backend)
+
+        let result = try await enricher.enrich(rawText: "x")
+
+        XCTAssertEqual(result.tags, ["work"])
+    }
+
+    func test_enrich_dropsEmptyTagsAndCapsAtFive() async throws {
+        let backend = FakeLLMBackend(response: #"""
+        {
+          "title": "T",
+          "tags": ["", "  ", "one two three four", "five", "six"],
+          "category": "note",
+          "cleanedText": "x"
+        }
+        """#)
+        let enricher = TranscriptEnricher(backend: backend)
+
+        let result = try await enricher.enrich(rawText: "x")
+
+        XCTAssertEqual(result.tags.count, 5)
+        XCTAssertEqual(result.tags, ["one", "two", "three", "four", "five"])
+    }
+
+    func test_enrich_preservesHyphenatedTagsAsSingleWord() async throws {
+        let backend = FakeLLMBackend(response: #"""
+        {
+          "title": "T",
+          "tags": ["app-dev", "machine-learning"],
+          "category": "note",
+          "cleanedText": "x"
+        }
+        """#)
+        let enricher = TranscriptEnricher(backend: backend)
+
+        let result = try await enricher.enrich(rawText: "x")
+
+        XCTAssertEqual(result.tags, ["app-dev", "machine-learning"])
+    }
+
     // MARK: - Category taxonomy
 
     func test_enrich_snapsUnknownCategoryToOther() async throws {
