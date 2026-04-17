@@ -49,6 +49,13 @@ public enum AppConstants: Sendable {
     public static let fileExportNewFileNameTemplateKey = "fileExportNewFileNameTemplate"
     public static let fileExportAppendFileNameKey = "fileExportAppendFileName"
 
+    // Obsidian-style file template: when enabled and a bookmark is set, the
+    // exporter renders each note through `TemplateRenderer` using the chosen
+    // template file and writes the result as `.md`.
+    public static let fileExportTemplateEnabledKey = "fileExportTemplateEnabled"
+    public static let fileExportTemplateBookmarkKey = "fileExportTemplateBookmark"
+    public static let fileExportTemplateNameKey = "fileExportTemplateName"
+
     // On-device LLM enrichment (Apple Intelligence) toggle.
     // Defaults to true when unset — see `enrichmentEnabled` accessor below.
     public static let enrichmentEnabledKey = "enrichmentEnabled"

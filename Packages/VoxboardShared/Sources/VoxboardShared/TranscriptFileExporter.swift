@@ -535,10 +535,21 @@ public enum TranscriptFileExporter {
         let mdObsidianEnabled = resolveMDObsidianEnabled(from: defaults)
         let enrichmentOptions = resolveEnrichmentOptions(from: defaults)
 
+        // Template-driven export overrides the format-specific path. The template
+        // controls frontmatter shape; output is always `.md` in new-file mode.
+        let templateEnabled = defaults.bool(forKey: AppConstants.fileExportTemplateEnabledKey)
+        let templateURL = templateEnabled ? resolveTemplateBookmark(from: defaults) : nil
+
         // Smart folder override — URL carries its own security scope from a bookmark.
         if let override = folderURLOverride {
             let needsScoping = override.startAccessingSecurityScopedResource()
             defer { if needsScoping { override.stopAccessingSecurityScopedResource() } }
+            if let templateURL {
+                return try? exportViaTemplate(
+                    transcript, templateURL: templateURL, folderURL: override,
+                    enrichmentOptions: enrichmentOptions, defaults: defaults
+                )
+            }
             return try? export(
                 transcript, format: format, mode: mode, folderURL: override,
                 yamlProperties: yamlProperties, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
@@ -556,6 +567,12 @@ public enum TranscriptFileExporter {
         if let subfolderName = autoOrganizeSubfolder, !subfolderName.isEmpty {
             let subfolderURL = baseURL.appendingPathComponent(subfolderName)
             try? FileManager.default.createDirectory(at: subfolderURL, withIntermediateDirectories: true)
+            if let templateURL {
+                return try? exportViaTemplate(
+                    transcript, templateURL: templateURL, folderURL: subfolderURL,
+                    enrichmentOptions: enrichmentOptions, defaults: defaults
+                )
+            }
             return try? export(
                 transcript, format: format, mode: mode, folderURL: subfolderURL,
                 yamlProperties: yamlProperties, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
@@ -565,12 +582,51 @@ public enum TranscriptFileExporter {
         }
 
         // Default: export directly to the base folder.
+        if let templateURL {
+            return try? exportViaTemplate(
+                transcript, templateURL: templateURL, folderURL: baseURL,
+                enrichmentOptions: enrichmentOptions, defaults: defaults
+            )
+        }
         return try? export(
             transcript, format: format, mode: mode, folderURL: baseURL,
             yamlProperties: yamlProperties, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
             mdObsidianEnabled: mdObsidianEnabled,
             enrichmentOptions: enrichmentOptions, defaults: defaults
         )
+    }
+
+    /// Render the transcript through the chosen template file and write the
+    /// result as `.md` (new-file mode) into `folderURL`. The template file is
+    /// opened with its own security scope.
+    @discardableResult
+    public static func exportViaTemplate(
+        _ transcript: Transcript,
+        templateURL: URL,
+        folderURL: URL,
+        enrichmentOptions: TranscriptExportEnrichmentOptions = .default,
+        defaults: UserDefaults? = nil
+    ) throws -> URL {
+        let needsScope = templateURL.startAccessingSecurityScopedResource()
+        defer { if needsScope { templateURL.stopAccessingSecurityScopedResource() } }
+
+        let templateContent = try String(contentsOf: templateURL, encoding: .utf8)
+        let rendered = TemplateRenderer.render(
+            template: templateContent,
+            context: TemplateRenderer.Context(transcript: transcript)
+        )
+
+        let fileURL = targetURL(
+            for: transcript,
+            format: .md,
+            mode: .newFile,
+            folderURL: folderURL,
+            yamlUsesMarkdownExtension: false,
+            enrichmentOptions: enrichmentOptions,
+            defaults: defaults
+        )
+        try rendered.write(to: fileURL, atomically: true, encoding: .utf8)
+        return fileURL
     }
 
     /// Returns the security-scoped URL for the configured export folder, or nil
@@ -624,6 +680,20 @@ public enum TranscriptFileExporter {
 
     private static func resolveYAMLObsidianBasesEnabled(from defaults: UserDefaults) -> Bool {
         defaults.bool(forKey: AppConstants.fileExportYAMLObsidianBasesKey)
+    }
+
+    private static func resolveTemplateBookmark(from defaults: UserDefaults) -> URL? {
+        guard let bookmarkData = defaults.data(forKey: AppConstants.fileExportTemplateBookmarkKey) else {
+            return nil
+        }
+        var isStale = false
+        guard let url = try? URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale) else {
+            return nil
+        }
+        if isStale, let newData = try? url.bookmarkData() {
+            defaults.set(newData, forKey: AppConstants.fileExportTemplateBookmarkKey)
+        }
+        return url
     }
 
     private static func resolveMDObsidianEnabled(from defaults: UserDefaults) -> Bool {

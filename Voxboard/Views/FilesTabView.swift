@@ -68,6 +68,15 @@ struct FilesTabView: View {
 
     @State private var showFolderPicker = false
 
+    // Template-driven export
+    @State private var templateEnabled: Bool = {
+        AppConstants.sharedDefaults?.bool(forKey: AppConstants.fileExportTemplateEnabledKey) ?? false
+    }()
+    @State private var templateName: String = {
+        AppConstants.sharedDefaults?.string(forKey: AppConstants.fileExportTemplateNameKey) ?? ""
+    }()
+    @State private var showTemplatePicker = false
+
     // Smart folder routing
     @State private var smartFoldersEnabled: Bool = AppConstants.smartFoldersEnabled
     @State private var smartFolders: [SmartFolder] = AppConstants.loadSmartFolders()
@@ -105,6 +114,13 @@ struct FilesTabView: View {
             allowsMultipleSelection: false
         ) { result in
             handleFolderSelection(result)
+        }
+        .fileImporter(
+            isPresented: $showTemplatePicker,
+            allowedContentTypes: [.init(filenameExtension: "md") ?? .plainText, .plainText],
+            allowsMultipleSelection: false
+        ) { result in
+            handleTemplateSelection(result)
         }
     }
 
@@ -148,6 +164,8 @@ struct FilesTabView: View {
         if fileExportEnabled {
             BrutalDivider()
             folderPickerRow
+            BrutalDivider()
+            templateSection
             BrutalDivider()
             formatPickerRow
             if fileExportFormat == .md {
@@ -209,6 +227,73 @@ struct FilesTabView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
         .background(Brutal.bg)
+    }
+
+    // MARK: - Template section
+
+    @ViewBuilder
+    private var templateSection: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("USE TEMPLATE")
+                    .font(Brutal.label())
+                    .foregroundColor(Brutal.text)
+                Text("Render each note through a Markdown template file")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
+            }
+            Spacer()
+            Toggle("", isOn: $templateEnabled)
+                .labelsHidden()
+                .tint(Brutal.muted)
+                .onChange(of: templateEnabled) { _, val in
+                    AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportTemplateEnabledKey)
+                }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Brutal.bg)
+
+        if templateEnabled {
+            BrutalDivider()
+
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("TEMPLATE FILE")
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
+                    Text(templateName.isEmpty ? String(localized: "Not set") : templateName)
+                        .font(Brutal.label())
+                        .foregroundColor(templateName.isEmpty ? Brutal.muted : Brutal.text)
+                }
+                Spacer()
+                Button("CHOOSE") { showTemplatePicker = true }
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.text)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                    .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(Brutal.bg)
+        }
+    }
+
+    private func handleTemplateSelection(_ result: Result<[URL], Error>) {
+        guard case .success(let urls) = result, let url = urls.first else { return }
+        guard url.startAccessingSecurityScopedResource() else { return }
+        defer { url.stopAccessingSecurityScopedResource() }
+        if let bookmark = try? url.bookmarkData(
+            options: .minimalBookmark,
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        ) {
+            AppConstants.sharedDefaults?.set(bookmark, forKey: AppConstants.fileExportTemplateBookmarkKey)
+            AppConstants.sharedDefaults?.set(url.lastPathComponent, forKey: AppConstants.fileExportTemplateNameKey)
+            templateName = url.lastPathComponent
+        }
     }
 
     // MARK: - Format picker row
