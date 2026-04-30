@@ -115,13 +115,16 @@ struct FilesTabView: View {
         ) { result in
             handleFolderSelection(result)
         }
-        .fileImporter(
-            isPresented: $showTemplatePicker,
-            allowedContentTypes: [.init(filenameExtension: "md") ?? .plainText, .plainText],
-            allowsMultipleSelection: false
-        ) { result in
-            handleTemplateSelection(result)
-        }
+        .background(
+            Color.clear
+                .fileImporter(
+                    isPresented: $showTemplatePicker,
+                    allowedContentTypes: [.init(filenameExtension: "md") ?? .plainText, .plainText],
+                    allowsMultipleSelection: false
+                ) { result in
+                    handleTemplateSelection(result)
+                }
+        )
     }
 
     // MARK: - Section Header
@@ -216,13 +219,17 @@ struct FilesTabView: View {
                     .foregroundColor(selectedFolderName.isEmpty ? Brutal.muted : Brutal.text)
             }
             Spacer()
-            Button("CHOOSE") { showFolderPicker = true }
-                .font(Brutal.caption())
-                .foregroundColor(Brutal.text)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
-                .buttonStyle(.plain)
+            Button {
+                showFolderPicker = true
+            } label: {
+                Text("CHOOSE")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.text)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
@@ -267,13 +274,17 @@ struct FilesTabView: View {
                         .foregroundColor(templateName.isEmpty ? Brutal.muted : Brutal.text)
                 }
                 Spacer()
-                Button("CHOOSE") { showTemplatePicker = true }
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.text)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
-                    .buttonStyle(.plain)
+                Button {
+                    showTemplatePicker = true
+                } label: {
+                    Text("CHOOSE")
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.text)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
@@ -748,13 +759,17 @@ private struct AddSmartFolderSheet: View {
                                     .foregroundColor(chosenFolderName.isEmpty ? Brutal.muted : Brutal.text)
                             }
                             Spacer()
-                            Button("CHOOSE") { showFolderPicker = true }
-                                .font(Brutal.caption())
-                                .foregroundColor(Brutal.text)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
-                                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
-                                .buttonStyle(.plain)
+                            Button {
+                                showFolderPicker = true
+                            } label: {
+                                Text("CHOOSE")
+                                    .font(Brutal.caption())
+                                    .foregroundColor(Brutal.text)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                            }
+                            .buttonStyle(.plain)
                         }
                         .padding(.horizontal, 20)
                         .padding(.vertical, 14)
