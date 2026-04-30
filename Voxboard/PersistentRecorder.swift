@@ -239,6 +239,7 @@ final class PersistentRecorder {
         ))
         TranscriptionIPC.postListeningStateNotification()
         WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
+        LiveActivityController.shared.startIfNeeded()
 
         // Start listening for commands from the keyboard
         registerCommandObserver()
@@ -399,6 +400,7 @@ final class PersistentRecorder {
         TranscriptionIPC.writeListeningState(ListeningState(isListening: false))
         TranscriptionIPC.postListeningStateNotification()
         WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
+        LiveActivityController.shared.end()
 
         unregisterCommandObserver()
 
@@ -583,6 +585,8 @@ final class PersistentRecorder {
             recordingStartedAt: segmentStartedAt
         ))
 
+        LiveActivityController.shared.update(isSegmentActive: true, startedAt: segmentStartedAt)
+
         log.log("[PersistentRecorder] ✅ Segment started at buffer index \(segmentStartIndex) (pre-roll: \(preRollSamples) samples)")
     }
 
@@ -605,6 +609,7 @@ final class PersistentRecorder {
         stopDurationTimer()
         isSegmentActive = false
         TranscriptionIPC.clearAudioLevel()
+        LiveActivityController.shared.update(isSegmentActive: false, startedAt: nil)
 
         // Extract audio from the circular buffer
         let endIndex = circularBuffer.totalSamplesWritten
@@ -711,6 +716,7 @@ final class PersistentRecorder {
         segmentDuration = 0
 
         TranscriptionIPC.clearStatus()
+        LiveActivityController.shared.update(isSegmentActive: false, startedAt: nil)
     }
 
     // MARK: - Transcription

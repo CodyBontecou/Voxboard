@@ -19,5 +19,7 @@
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Voxboard needs microphone access to transcribe your voice into text.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 </dict>
 </plist>

@@ -14,6 +14,7 @@
 		62C952852F393BB1001F79DF /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 62C952842F393BB1001F79DF /* KeyboardKit */; };
 		AA0000042F394000AABBCC04 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000022F394000AABBCC02 /* VoxboardShared */; };
 		AA0000052F394000AABBCC05 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000032F394000AABBCC03 /* VoxboardShared */; };
+		AA0000082F394000AABBCC08 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000092F394000AABBCC09 /* VoxboardShared */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,6 +70,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				OpenVoxboardRecordIntent.swift,
+				LiveActivityRecordingIntents.swift,
 			);
 			target = 622B4C7C2F78B09600FDC4CA /* Voxboard WidgetExtension */;
 		};
@@ -123,6 +125,7 @@
 			files = (
 				622B4C822F78B09600FDC4CA /* SwiftUI.framework in Frameworks */,
 				622B4C802F78B09600FDC4CA /* WidgetKit.framework in Frameworks */,
+				AA0000082F394000AABBCC08 /* VoxboardShared in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -197,6 +200,7 @@
 			);
 			name = "Voxboard WidgetExtension";
 			packageProductDependencies = (
+				AA0000092F394000AABBCC09 /* VoxboardShared */,
 			);
 			productName = "Voxboard WidgetExtension";
 			productReference = 622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */;
@@ -389,7 +393,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard WidgetExtension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
@@ -400,7 +404,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -420,7 +424,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard WidgetExtension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
@@ -431,7 +435,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -572,7 +576,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Voxboard/Voxboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -588,7 +592,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -608,7 +612,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Voxboard/Voxboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -624,7 +628,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -642,7 +646,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Keyboard/Info.plist";
@@ -654,7 +658,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Keyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -672,7 +676,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Keyboard/Info.plist";
@@ -684,7 +688,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.4;
+				MARKETING_VERSION = 1.5;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Keyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -767,6 +771,10 @@
 			productName = VoxboardShared;
 		};
 		AA0000032F394000AABBCC03 /* VoxboardShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VoxboardShared;
+		};
+		AA0000092F394000AABBCC09 /* VoxboardShared */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = VoxboardShared;
 		};
