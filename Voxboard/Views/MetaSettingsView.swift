@@ -183,6 +183,26 @@ struct MetaSettingsView: View {
             sectionHeader("02", "Feedback")
             BrutalDivider()
 
+            Button(action: openDiscord) {
+                HStack {
+                    Text("JOIN OUR DISCORD")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.text)
+                    Spacer()
+                    Text("→")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.muted)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Brutal.bg)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Join our Discord")
+            .accessibilityHint("Opens the Voxboard Discord community in your browser")
+
+            BrutalDivider()
+
             Button(action: sendFeedback) {
                 HStack {
                     Text("SEND FEEDBACK")
@@ -201,6 +221,11 @@ struct MetaSettingsView: View {
             .accessibilityLabel("Send Feedback")
             .accessibilityHint("Opens an email draft to contact support with app diagnostics")
         }
+    }
+
+    private func openDiscord() {
+        guard let url = URL(string: "https://discord.gg/RaQYS4t6gn") else { return }
+        openURL(url)
     }
 
     // MARK: - Debug Section

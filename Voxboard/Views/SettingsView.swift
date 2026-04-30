@@ -459,14 +459,16 @@ struct SettingsView: View {
                             .foregroundColor(selectedFolderName.isEmpty ? Brutal.muted : Brutal.text)
                     }
                     Spacer()
-                    Button("CHOOSE") {
+                    Button {
                         showFolderPicker = true
+                    } label: {
+                        Text("CHOOSE")
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.text)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                     }
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.text)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                     .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 20)
@@ -704,6 +706,26 @@ struct SettingsView: View {
             sectionHeader("06", "Feedback")
             BrutalDivider()
 
+            Button(action: openDiscord) {
+                HStack {
+                    Text("JOIN OUR DISCORD")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.text)
+                    Spacer()
+                    Text("→")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.muted)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Brutal.bg)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Join our Discord")
+            .accessibilityHint("Opens the Voxboard Discord community in your browser")
+
+            BrutalDivider()
+
             Button(action: sendFeedback) {
                 HStack {
                     Text("SEND FEEDBACK")
@@ -722,6 +744,11 @@ struct SettingsView: View {
             .accessibilityLabel("Send Feedback")
             .accessibilityHint("Opens an email draft to contact support with app diagnostics")
         }
+    }
+
+    private func openDiscord() {
+        guard let url = URL(string: "https://discord.gg/RaQYS4t6gn") else { return }
+        openURL(url)
     }
 
     // MARK: - Debug Section

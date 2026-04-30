@@ -23,6 +23,9 @@ struct HomeView: View {
     @State private var keyboardLaunchPhase: KeyboardLaunchPhase? = nil
     @State private var fileExportToast: FileExportToast?
 
+    @AppStorage("discordPromoDismissed") private var discordPromoDismissed = false
+    @Environment(\.openURL) private var openURL
+
     var body: some View {
         ZStack {
             Brutal.bg.ignoresSafeArea()
@@ -32,6 +35,10 @@ struct HomeView: View {
                 .allowsHitTesting(false)
 
             VStack(spacing: 0) {
+                if !discordPromoDismissed {
+                    discordBanner
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 topBar
                 BrutalDivider()
                 Spacer()
@@ -59,6 +66,7 @@ struct HomeView: View {
         }
         .animation(.easeInOut(duration: 0.25), value: keyboardLaunchPhase)
         .animation(.easeInOut(duration: 0.2), value: fileExportToast)
+        .animation(.easeInOut(duration: 0.25), value: discordPromoDismissed)
         .gesture(
             DragGesture(minimumDistance: 40, coordinateSpace: .local)
                 .onEnded { val in
@@ -116,6 +124,65 @@ struct HomeView: View {
             guard !Task.isCancelled else { return }
             await MainActor.run { fileExportToast = nil }
         }
+    }
+
+    // MARK: - Discord Banner
+
+    private var discordBanner: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Button(action: openDiscord) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
+                            .font(.system(.callout))
+                            .foregroundColor(Brutal.text)
+                            .frame(width: 28, height: 28)
+                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("JOIN THE COMMUNITY")
+                                .font(Brutal.label(.footnote))
+                                .foregroundColor(Brutal.text)
+                            Text("Chat with us on Discord")
+                                .font(Brutal.caption())
+                                .foregroundColor(Brutal.muted)
+                        }
+
+                        Spacer(minLength: 8)
+
+                        Text("JOIN")
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.text)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Join the Discord community.")
+
+                Button(action: { discordPromoDismissed = true }) {
+                    Image(systemName: "xmark")
+                        .font(.system(.footnote, weight: .medium))
+                        .foregroundColor(Brutal.muted)
+                        .frame(width: 28, height: 28)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Dismiss Discord banner.")
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(Brutal.surface2)
+
+            BrutalDivider()
+        }
+    }
+
+    private func openDiscord() {
+        guard let url = URL(string: "https://discord.gg/RaQYS4t6gn") else { return }
+        openURL(url)
     }
 
     // MARK: - Top Bar
