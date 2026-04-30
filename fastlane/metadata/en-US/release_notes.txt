@@ -1,4 +1,5 @@
 New in this update:
-• Added a built-in feedback action in Settings so you can quickly email diagnostics to support.
-• Improved settings organization and polished the in-app configuration flow.
-• General stability and quality improvements across Voxboard and the keyboard extension.
+• Live Activity support — control recording from your lock screen and Dynamic Island.
+• Join the Voxboard Discord community — new home-screen banner and Settings link.
+• Fixed the Save Location picker in Auto-Save to File so it reliably opens.
+• General stability and polish improvements.
