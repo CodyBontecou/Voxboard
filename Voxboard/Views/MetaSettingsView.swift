@@ -14,6 +14,7 @@ struct MetaSettingsView: View {
 #if os(iOS)
     @State private var showMailCompose = false
 #endif
+    @State private var hapticsEnabled: Bool = AppConstants.hapticsEnabled
 
     var body: some View {
         ZStack {
@@ -22,6 +23,8 @@ struct MetaSettingsView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     upgradeSection
+                    BrutalDivider()
+                    keyboardSection
                     BrutalDivider()
                     aboutSection
                     BrutalDivider()
@@ -135,11 +138,41 @@ struct MetaSettingsView: View {
         }
     }
 
+    // MARK: - Keyboard Section
+
+    private var keyboardSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("01", "Keyboard")
+            BrutalDivider()
+
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("HAPTIC FEEDBACK")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.text)
+                    Text("Vibrate on key press. Requires Allow Full Access.")
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
+                }
+                Spacer()
+                Toggle("", isOn: $hapticsEnabled)
+                    .labelsHidden()
+                    .tint(Brutal.muted)
+                    .onChange(of: hapticsEnabled) { _, val in
+                        AppConstants.sharedDefaults?.set(val, forKey: AppConstants.hapticsEnabledKey)
+                    }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(Brutal.bg)
+        }
+    }
+
     // MARK: - About Section
 
     private var aboutSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("01", "About")
+            sectionHeader("02", "About")
             BrutalDivider()
 
             var rows: [(String, String)] = [
@@ -180,7 +213,7 @@ struct MetaSettingsView: View {
 
     private var feedbackSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("02", "Feedback")
+            sectionHeader("03", "Feedback")
             BrutalDivider()
 
             Button(action: openDiscord) {
@@ -232,7 +265,7 @@ struct MetaSettingsView: View {
 
     private var debugSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("03", "Debug")
+            sectionHeader("04", "Debug")
             BrutalDivider()
 
             Button {
@@ -278,7 +311,7 @@ struct MetaSettingsView: View {
     }
 }
 
-// MARK: - Debug Log Viewer (internal, so SettingsView can keep its own copy)
+// MARK: - Debug Log Viewer
 
 struct SettingsDebugLogView: View {
     @Environment(\.dismiss) private var dismiss

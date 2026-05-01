@@ -56,6 +56,9 @@ public enum AppConstants: Sendable {
     public static let fileExportTemplateBookmarkKey = "fileExportTemplateBookmark"
     public static let fileExportTemplateNameKey = "fileExportTemplateName"
 
+    // Keyboard haptic feedback. Defaults to true when unset.
+    public static let hapticsEnabledKey = "hapticsEnabled"
+
     // On-device LLM enrichment (Apple Intelligence) toggle.
     // Defaults to true when unset — see `enrichmentEnabled` accessor below.
     public static let enrichmentEnabledKey = "enrichmentEnabled"
@@ -79,6 +82,10 @@ public enum AppConstants: Sendable {
     /// feature is opt-out rather than opt-in.
     public static var enrichmentEnabled: Bool {
         boolOrDefault(enrichmentEnabledKey, default: true)
+    }
+
+    public static var hapticsEnabled: Bool {
+        boolOrDefault(hapticsEnabledKey, default: true)
     }
 
     public static var exportUseEnrichedTitleInFilename: Bool {

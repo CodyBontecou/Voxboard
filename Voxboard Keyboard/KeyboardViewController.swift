@@ -36,6 +36,8 @@ class KeyboardViewController: KeyboardInputViewController {
         super.viewWillSetupKeyboardView()
         log.log("viewWillSetupKeyboardView — hasFullAccess=\(hasFullAccess)")
 
+        applyHapticsSetting()
+
         let state = voiceState
 
         setupKeyboardView { controller in
@@ -63,6 +65,13 @@ class KeyboardViewController: KeyboardInputViewController {
         // If we were transcribing when the extension was suspended, the poll timer
         // is dead and any Darwin notification may have been missed. Check now.
         voiceState.resumeAfterSuspension()
+
+        // Re-read in case the user toggled it in the main app while the keyboard was hidden.
+        applyHapticsSetting()
+    }
+
+    private func applyHapticsSetting() {
+        state.feedbackContext.settings.isHapticFeedbackEnabled = AppConstants.hapticsEnabled
     }
 
     override func viewDidDisappear(_ animated: Bool) {
