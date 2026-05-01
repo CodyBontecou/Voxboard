@@ -1,5 +1,5 @@
 New in this update:
-• Live Activity support — control recording from your lock screen and Dynamic Island.
-• Join the Voxboard Discord community — new home-screen banner and Settings link.
-• Fixed the Save Location picker in Auto-Save to File so it reliably opens.
-• General stability and polish improvements.
+• Keyboard haptic feedback — taps now have tactile feedback by default, with a Settings toggle to turn it off.
+• Long-press accent callouts — hold a key on Latin-script languages to access accented variants (à, é, ñ, ü, etc.).
+• Localized status messages on the keyboard toolbar across all supported languages.
+• Bug fix for in-app recordings that could trigger duplicate IPC responses.
