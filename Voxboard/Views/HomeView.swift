@@ -13,11 +13,7 @@ struct HomeView: View {
     @Binding var pendingKeyboardLaunch: Bool
     @Binding var pendingWidgetRecord: Bool
 
-    /// When `true` the settings gear is hidden (user navigates via the tab bar instead).
-    var isEmbeddedInTabBar: Bool = false
-
     @State private var showHistory = false
-    @State private var showSettings = false
     @State private var showPaywall = false
     @State private var micPermissionGranted = false
     @State private var keyboardLaunchPhase: KeyboardLaunchPhase? = nil
@@ -78,12 +74,6 @@ struct HomeView: View {
         )
         .sheet(isPresented: $showHistory) {
             HistoryView().environment(transcriptStore)
-        }
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
-                .environment(modelManager)
-                .environment(usageTracker)
-                .environment(storeManager)
         }
         .sheet(isPresented: $showPaywall) {
             PaywallView()
@@ -199,19 +189,8 @@ struct HomeView: View {
                     .font(Brutal.label(.headline))
                     .foregroundColor(Brutal.text)
                 Spacer()
-                if isEmbeddedInTabBar {
-                    // Settings lives in its own tab — keep top bar balanced with a spacer
-                    Color.clear.frame(width: 34, height: 34)
-                } else {
-                    Button(action: { showSettings = true }) {
-                        Image(systemName: "gearshape")
-                            .font(.system(.body, weight: .medium))
-                            .foregroundColor(Brutal.muted)
-                            .frame(width: 34, height: 34)
-                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
-                    }
-                    .buttonStyle(.plain)
-                }
+                // Settings lives in its own tab — keep top bar balanced with a spacer
+                Color.clear.frame(width: 34, height: 34)
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)

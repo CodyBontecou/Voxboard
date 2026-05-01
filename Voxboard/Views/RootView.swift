@@ -99,8 +99,7 @@ struct RootView: View {
                 HomeView(
                     persistentRecorder: persistentRecorder,
                     pendingKeyboardLaunch: $pendingKeyboardLaunch,
-                    pendingWidgetRecord: $pendingWidgetRecord,
-                    isEmbeddedInTabBar: true
+                    pendingWidgetRecord: $pendingWidgetRecord
                 )
             }
             .tabItem {
@@ -185,8 +184,7 @@ struct RootView: View {
                 HomeView(
                     persistentRecorder: persistentRecorder,
                     pendingKeyboardLaunch: $pendingKeyboardLaunch,
-                    pendingWidgetRecord: $pendingWidgetRecord,
-                    isEmbeddedInTabBar: true
+                    pendingWidgetRecord: $pendingWidgetRecord
                 )
             case .model:
                 ModelTabView()
