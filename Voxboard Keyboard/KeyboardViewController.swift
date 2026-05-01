@@ -144,6 +144,14 @@ private struct VoxboardKeyboardView: View {
                 emojiKeyboard: { $0.view },
                 toolbar: { _ in EmptyView() }
             )
+            .keyboardCalloutActions { params in
+                let lang = AppConstants.sharedDefaults?
+                    .string(forKey: AppConstants.selectedLanguageKey) ?? "auto"
+                return CalloutActionsProvider.actions(
+                    for: params.action,
+                    languageCode: lang
+                ) ?? params.standardActions()
+            }
         }
         .onChange(of: voiceState.pendingTranscription) { _, newValue in
             if let text = newValue {
