@@ -746,20 +746,29 @@ final class PersistentRecorder {
 
         await MainActor.run {
             if let text, !text.isEmpty {
-                let response = TranscriptionResponse(requestId: requestId, text: text)
-                do {
-                    try TranscriptionIPC.writeResponse(response)
-                    log.log("[PersistentRecorder] 📤 Response written (requestId=\(requestId.prefix(8)), chars=\(text.count))")
-                } catch {
-                    log.log("[PersistentRecorder] ❌ writeResponse FAILED: \(error) — keyboard will not receive transcription!")
-                }
-                TranscriptionIPC.postResponseNotification()
-                osLog.notice("📤 Response written and notification posted for \(requestId)")
+                // Only publish to the IPC channel for keyboard-initiated requests.
+                // In-app recordings surface the result via `lastTranscriptionResult`;
+                // writing response.json here would leave a stale file that the
+                // keyboard later treats as an orphaned transcription and pastes
+                // into the next text field that comes up.
+                if !requestId.hasPrefix("inapp-") {
+                    let response = TranscriptionResponse(requestId: requestId, text: text)
+                    do {
+                        try TranscriptionIPC.writeResponse(response)
+                        log.log("[PersistentRecorder] 📤 Response written (requestId=\(requestId.prefix(8)), chars=\(text.count))")
+                    } catch {
+                        log.log("[PersistentRecorder] ❌ writeResponse FAILED: \(error) — keyboard will not receive transcription!")
+                    }
+                    TranscriptionIPC.postResponseNotification()
+                    osLog.notice("📤 Response written and notification posted for \(requestId)")
 
-                TranscriptionIPC.writeStatus(RecordingStatus(
-                    requestId: requestId,
-                    phase: .done
-                ))
+                    TranscriptionIPC.writeStatus(RecordingStatus(
+                        requestId: requestId,
+                        phase: .done
+                    ))
+                } else {
+                    TranscriptionIPC.clearStatus()
+                }
 
                 // Save to history (uses shared store so UI updates immediately)
                 let transcript = Transcript(
@@ -1143,6 +1152,14 @@ final class PersistentRecorder {
 
     private func writeErrorResponse(requestId: String, message: String) {
         log.log("[PersistentRecorder] ❌ \(message)")
+        // In-app errors don't go through IPC — surface via `lastError` instead.
+        // Writing here would leave a stale response.json the keyboard would
+        // later treat as a recoverable transcription/error.
+        guard !requestId.hasPrefix("inapp-") else {
+            TranscriptionIPC.clearStatus()
+            lastError = message
+            return
+        }
         let response = TranscriptionResponse(requestId: requestId, error: message)
         try? TranscriptionIPC.writeResponse(response)
         TranscriptionIPC.postResponseNotification()
