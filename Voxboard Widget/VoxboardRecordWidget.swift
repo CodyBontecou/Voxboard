@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import VoxboardShared
 
 // MARK: - Entry
 
@@ -26,18 +27,13 @@ struct VoxboardWidgetProvider: TimelineProvider {
         completion(timeline)
     }
 
-    // Read listening state directly from App Group (avoids importing VoxboardShared)
+    // Read listening state directly from App Group so widgets can render without launching the app.
     static func readListeningState(containerURL: URL? = nil) -> Bool {
         let container = containerURL ?? FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: "group.bontecou.Voxboard"
+            forSecurityApplicationGroupIdentifier: AppConstants.appGroupIdentifier
         )
         guard let container else { return false }
-        let url = container
-            .appendingPathComponent("TranscriptionIPC")
-            .appendingPathComponent("listening_state.json")
-        guard let data = try? Data(contentsOf: url) else { return false }
-        struct ListeningState: Decodable { let isListening: Bool }
-        return (try? JSONDecoder().decode(ListeningState.self, from: data))?.isListening ?? false
+        return TranscriptionIPC.readListeningState(containerURL: container)?.isListening ?? false
     }
 
     private func readListeningState() -> Bool {

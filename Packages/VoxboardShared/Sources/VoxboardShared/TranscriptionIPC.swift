@@ -135,8 +135,16 @@ public enum TranscriptionIPC {
 
     // MARK: - File URLs
 
+    public static func ipcDirectory(in containerURL: URL) -> URL {
+        containerURL.appendingPathComponent("TranscriptionIPC")
+    }
+
+    public static func listeningStateURL(in containerURL: URL) -> URL {
+        ipcDirectory(in: containerURL).appendingPathComponent("listening_state.json")
+    }
+
     private static var ipcDirectory: URL? {
-        AppConstants.sharedContainerURL?.appendingPathComponent("TranscriptionIPC")
+        AppConstants.sharedContainerURL.map(ipcDirectory(in:))
     }
 
     public static var requestURL: URL? {
@@ -249,6 +257,12 @@ public enum TranscriptionIPC {
     public static func readListeningState() -> ListeningState? {
         guard let url = listeningStateURL,
               let data = try? Data(contentsOf: url) else { return nil }
+        return try? JSONDecoder().decode(ListeningState.self, from: data)
+    }
+
+    public static func readListeningState(containerURL: URL) -> ListeningState? {
+        let url = listeningStateURL(in: containerURL)
+        guard let data = try? Data(contentsOf: url) else { return nil }
         return try? JSONDecoder().decode(ListeningState.self, from: data)
     }
 

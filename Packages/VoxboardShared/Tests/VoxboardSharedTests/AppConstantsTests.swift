@@ -3,6 +3,10 @@ import XCTest
 
 final class AppConstantsTests: XCTestCase {
 
+    func test_appGroupIdentifier_isVoxboardGroup() {
+        XCTAssertEqual(AppConstants.appGroupIdentifier, "group.bontecou.Voxboard")
+    }
+
     func test_fileExportEnabledKey_isDefined() {
         XCTAssertFalse(AppConstants.fileExportEnabledKey.isEmpty)
     }
@@ -33,5 +37,21 @@ final class AppConstantsTests: XCTestCase {
 
     func test_fileExportAppendFileNameKey_isDefined() {
         XCTAssertFalse(AppConstants.fileExportAppendFileNameKey.isEmpty)
+    }
+
+    func test_widgetListeningStateReadPath_usesSharedIPCLayout() throws {
+        let container = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VoxboardSharedTests-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: container) }
+
+        let directory = TranscriptionIPC.ipcDirectory(in: container)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let state = ListeningState(isListening: true, startedAt: 123)
+        let data = try JSONEncoder().encode(state)
+        try data.write(to: TranscriptionIPC.listeningStateURL(in: container), options: .atomic)
+
+        let readState = TranscriptionIPC.readListeningState(containerURL: container)
+        XCTAssertEqual(readState?.isListening, true)
+        XCTAssertEqual(readState?.startedAt, 123)
     }
 }
