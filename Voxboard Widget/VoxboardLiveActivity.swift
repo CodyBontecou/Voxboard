@@ -116,6 +116,8 @@ private struct RecordButton: View {
                     .padding(.vertical, compact ? 8 : 12)
                     .background(Color.red, in: Capsule())
                     .foregroundStyle(.white)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Capsule())
             }
             .buttonStyle(.plain)
         } else {
@@ -127,6 +129,8 @@ private struct RecordButton: View {
                     .padding(.vertical, compact ? 8 : 12)
                     .background(Color.white, in: Capsule())
                     .foregroundStyle(.black)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Capsule())
             }
             .buttonStyle(.plain)
         }

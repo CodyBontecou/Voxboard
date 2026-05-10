@@ -57,8 +57,7 @@ public final class ParakeetContext: @unchecked Sendable {
                 version: version
             )
 
-            let manager = AsrManager()
-            try await manager.initialize(models: models)
+            let manager = AsrManager(models: models)
 
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             log.log("[ParakeetContext] ✅ Loaded in \(String(format: "%.2f", elapsed))s")
@@ -78,7 +77,8 @@ public final class ParakeetContext: @unchecked Sendable {
         let startTime = CFAbsoluteTimeGetCurrent()
 
         do {
-            let result = try await manager.transcribe(audioURL, source: .microphone)
+            var decoderState = TdtDecoderState.make(decoderLayers: await manager.decoderLayerCount)
+            let result = try await manager.transcribe(audioURL, decoderState: &decoderState)
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
             log.log("[ParakeetContext] ✅ Done in \(String(format: "%.2f", elapsed))s — \"\(text.prefix(60))\"")

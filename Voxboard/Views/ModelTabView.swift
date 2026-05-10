@@ -223,6 +223,7 @@ struct ModelTabView: View {
                     .font(Brutal.caption())
                     .foregroundColor(Brutal.muted)
                     .buttonStyle(.plain)
+                    .brutalHitTarget()
                 }
 
                 Button {
@@ -233,6 +234,7 @@ struct ModelTabView: View {
                         .foregroundColor(Brutal.error)
                 }
                 .buttonStyle(.plain)
+                .brutalHitTarget()
             }
         } else if modelManager.isDownloading[model.id] == true {
             downloadingView(for: model)
@@ -248,6 +250,7 @@ struct ModelTabView: View {
                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
             }
             .buttonStyle(.plain)
+            .brutalHitTarget()
         }
     }
 
@@ -281,6 +284,7 @@ struct ModelTabView: View {
                     .foregroundColor(Brutal.muted)
             }
             .buttonStyle(.plain)
+            .brutalHitTarget()
         }
     }
 

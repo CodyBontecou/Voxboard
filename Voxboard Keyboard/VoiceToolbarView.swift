@@ -21,6 +21,13 @@ private enum K {
     }
 }
 
+private extension View {
+    func keyboardHitTarget(minimumSize: CGFloat = 44) -> some View {
+        frame(minWidth: minimumSize, minHeight: minimumSize)
+            .contentShape(Rectangle())
+    }
+}
+
 // MARK: - Toolbar View
 
 /// Brutal keyboard toolbar: model navigator · status · waveform · action button.
@@ -70,6 +77,7 @@ struct VoiceToolbarView: View {
                     .frame(width: 24, height: 28)
             }
             .buttonStyle(.plain)
+            .keyboardHitTarget()
 
             // Center: model name or mic icon
             ZStack {
@@ -98,6 +106,7 @@ struct VoiceToolbarView: View {
                     .frame(width: 24, height: 28)
             }
             .buttonStyle(.plain)
+            .keyboardHitTarget()
         }
     }
 
@@ -145,6 +154,7 @@ struct VoiceToolbarView: View {
                     .frame(width: 32, height: 32)
             }
             .buttonStyle(.plain)
+            .keyboardHitTarget()
 
         case .transcribing:
             // Spinner, no background
@@ -162,6 +172,7 @@ struct VoiceToolbarView: View {
                     .frame(width: 32, height: 32)
             }
             .buttonStyle(.plain)
+            .keyboardHitTarget()
 
         default:
             // Mic icon — start recording
@@ -172,6 +183,7 @@ struct VoiceToolbarView: View {
                     .frame(width: 32, height: 32)
             }
             .buttonStyle(.plain)
+            .keyboardHitTarget()
         }
     }
 

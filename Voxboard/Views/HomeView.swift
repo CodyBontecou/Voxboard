@@ -160,6 +160,7 @@ struct HomeView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .brutalHitTarget()
                 .accessibilityLabel("Dismiss Discord banner.")
             }
             .padding(.horizontal, 20)
@@ -237,6 +238,7 @@ struct HomeView: View {
             .background(Brutal.surface.opacity(0.5))
         }
         .buttonStyle(.plain)
+        .brutalHitTarget()
     }
 
     // MARK: - Center Content
@@ -404,6 +406,7 @@ struct HomeView: View {
                             .foregroundColor(Brutal.text)
                     }
                     .buttonStyle(.plain)
+                    .brutalHitTarget()
                 }
                 Text(result)
                     .font(Brutal.body())
@@ -448,6 +451,7 @@ struct HomeView: View {
                 .padding(.vertical, 12)
             }
             .buttonStyle(.plain)
+            .brutalHitTarget()
 
             BrutalDivider()
 
@@ -588,6 +592,7 @@ private struct FileExportToastView: View {
             .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
         }
         .buttonStyle(.plain)
+        .brutalHitTarget()
     }
 }
 

@@ -63,8 +63,10 @@ struct BrutalButtonStyle: ButtonStyle {
             .foregroundColor(fg(configuration.isPressed))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
+            .frame(minHeight: 44)
             .background(bg(configuration.isPressed))
             .overlay(Rectangle().stroke(border(configuration.isPressed), lineWidth: 1))
+            .contentShape(Rectangle())
             .opacity(configuration.isPressed ? 0.85 : 1.0)
             .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
     }
@@ -89,6 +91,17 @@ struct BrutalButtonStyle: ButtonStyle {
         case .secondary:   return p ? Brutal.borderHi : Brutal.border
         case .destructive: return .clear
         }
+    }
+}
+
+// MARK: - Hit Targets
+
+extension View {
+    /// Keeps compact visual treatments while exposing a 44x44pt touch,
+    /// pointer, keyboard-focus, and VoiceOver focus region.
+    func brutalHitTarget(minimumSize: CGFloat = 44) -> some View {
+        frame(minWidth: minimumSize, minHeight: minimumSize)
+            .contentShape(Rectangle())
     }
 }
 

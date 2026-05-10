@@ -230,6 +230,7 @@ struct FilesTabView: View {
                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
             }
             .buttonStyle(.plain)
+            .brutalHitTarget()
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
@@ -285,6 +286,7 @@ struct FilesTabView: View {
                         .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
+                .brutalHitTarget()
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
@@ -323,6 +325,8 @@ struct FilesTabView: View {
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 240)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
             .onChange(of: fileExportFormat) { _, val in
                 AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.fileExportFormatKey)
             }
@@ -346,6 +350,8 @@ struct FilesTabView: View {
             }
             .pickerStyle(.segmented)
             .frame(width: 180)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
             .onChange(of: fileExportMode) { _, val in
                 AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.fileExportModeKey)
             }
@@ -371,6 +377,8 @@ struct FilesTabView: View {
                     .foregroundColor(Brutal.text)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                     .onChange(of: newFileNameTemplate) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportNewFileNameTemplateKey)
@@ -394,6 +402,8 @@ struct FilesTabView: View {
                     .foregroundColor(Brutal.text)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                     .onChange(of: appendFileName) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportAppendFileNameKey)
@@ -540,6 +550,8 @@ struct FilesTabView: View {
                     }
                     .pickerStyle(.segmented)
                     .frame(width: 180)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                     .onChange(of: enrichedFilenameStyle) { _, val in
                         AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.exportEnrichedFilenameStyleKey)
                     }
@@ -679,6 +691,7 @@ struct FilesTabView: View {
                                 .foregroundColor(Brutal.muted)
                         }
                         .buttonStyle(.plain)
+                        .brutalHitTarget()
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
@@ -702,6 +715,7 @@ struct FilesTabView: View {
                     .background(Brutal.bg)
                 }
                 .buttonStyle(.plain)
+                .brutalHitTarget()
                 .sheet(isPresented: $showAddSmartFolderSheet) {
                     AddSmartFolderSheet { newFolder in
                         smartFolders.append(newFolder)
@@ -770,6 +784,7 @@ private struct AddSmartFolderSheet: View {
                                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                             }
                             .buttonStyle(.plain)
+                            .brutalHitTarget()
                         }
                         .padding(.horizontal, 20)
                         .padding(.vertical, 14)
@@ -790,6 +805,7 @@ private struct AddSmartFolderSheet: View {
                     Button("CANCEL") { dismiss() }
                         .font(Brutal.caption())
                         .foregroundColor(Brutal.muted)
+                        .brutalHitTarget()
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("ADD") {
@@ -805,6 +821,7 @@ private struct AddSmartFolderSheet: View {
                     .font(Brutal.caption())
                     .foregroundColor(canAdd ? Brutal.text : Brutal.muted)
                     .disabled(!canAdd)
+                    .brutalHitTarget()
                 }
             }
             .toolbarBackground(Brutal.bg, for: .navigationBar)
@@ -830,6 +847,8 @@ private struct AddSmartFolderSheet: View {
                 .foregroundColor(Brutal.text)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
                 .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
         }
         .padding(.horizontal, 20)

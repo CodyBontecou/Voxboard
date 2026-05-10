@@ -66,6 +66,7 @@ struct PaywallView: View {
                     .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
             }
             .buttonStyle(.plain)
+            .brutalHitTarget()
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)

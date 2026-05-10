@@ -229,8 +229,10 @@ struct MetaSettingsView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
                 .background(Brutal.bg)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .brutalHitTarget()
             .accessibilityLabel("Join our Discord")
             .accessibilityHint("Opens the Voxboard Discord community in your browser")
 
@@ -249,8 +251,10 @@ struct MetaSettingsView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
                 .background(Brutal.bg)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .brutalHitTarget()
             .accessibilityLabel("Send Feedback")
             .accessibilityHint("Opens an email draft to contact support with app diagnostics")
         }
@@ -283,8 +287,10 @@ struct MetaSettingsView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
                 .background(Brutal.bg)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .brutalHitTarget()
         }
     }
 
@@ -346,6 +352,7 @@ struct SettingsDebugLogView: View {
                     .font(Brutal.label())
                     .foregroundColor(Brutal.error)
                     .buttonStyle(.plain)
+                    .brutalHitTarget()
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 16) {
@@ -357,6 +364,7 @@ struct SettingsDebugLogView: View {
                                 .foregroundColor(Brutal.muted)
                         }
                         .buttonStyle(.plain)
+                        .brutalHitTarget()
                         Button {
                             UIPasteboard.general.string = logText
                         } label: {
@@ -365,10 +373,12 @@ struct SettingsDebugLogView: View {
                                 .foregroundColor(Brutal.muted)
                         }
                         .buttonStyle(.plain)
+                        .brutalHitTarget()
                         Button("DONE") { dismiss() }
                             .font(Brutal.label())
                             .foregroundColor(Brutal.muted)
                             .buttonStyle(.plain)
+                            .brutalHitTarget()
                     }
                 }
             }

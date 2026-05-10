@@ -31,6 +31,7 @@ struct HistoryView: View {
                             .foregroundColor(Brutal.muted)
                     }
                     .buttonStyle(.plain)
+                    .brutalHitTarget()
                     .accessibilityLabel("Close")
                 }
                 if !store.transcripts.isEmpty {
@@ -39,6 +40,7 @@ struct HistoryView: View {
                             .font(Brutal.label())
                             .foregroundColor(Brutal.error)
                             .buttonStyle(.plain)
+                            .brutalHitTarget()
                     }
                 }
             }
@@ -174,6 +176,7 @@ struct HistoryView: View {
                     .padding(.vertical, 4)
                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
             }
+            .brutalHitTarget()
         } else {
             Button(action: { UIPasteboard.general.string = transcript.text }) {
                 Text("COPY")
@@ -184,6 +187,7 @@ struct HistoryView: View {
                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
             }
             .buttonStyle(.plain)
+            .brutalHitTarget()
         }
     }
 

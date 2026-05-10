@@ -160,7 +160,7 @@ public final class ModelManager {
             return
         }
 
-        let repo: Repo = (model.engine == .parakeetV2) ? .parakeetV2 : .parakeet
+        let repo: Repo = (model.engine == .parakeetV2) ? .parakeetV2 : .parakeetV3
 
         do {
             try await DownloadUtils.downloadRepo(repo, to: modelsDir) { [weak self] progress in
