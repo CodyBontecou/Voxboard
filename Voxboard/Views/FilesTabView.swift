@@ -156,6 +156,8 @@ struct FilesTabView: View {
             Toggle("", isOn: $fileExportEnabled)
                 .labelsHidden()
                 .tint(Brutal.muted)
+                .accessibilityLabel("Automatic file export")
+                .accessibilityHint("Turns automatic transcript file saving on or off.")
                 .onChange(of: fileExportEnabled) { _, val in
                     AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportEnabledKey)
                 }
@@ -230,6 +232,8 @@ struct FilesTabView: View {
                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Choose save location")
+            .accessibilityHint("Opens a folder picker for automatic transcript exports.")
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)
@@ -253,6 +257,8 @@ struct FilesTabView: View {
             Toggle("", isOn: $templateEnabled)
                 .labelsHidden()
                 .tint(Brutal.muted)
+                .accessibilityLabel("Use Markdown template")
+                .accessibilityHint("Turns template rendering for exported notes on or off.")
                 .onChange(of: templateEnabled) { _, val in
                     AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportTemplateEnabledKey)
                 }
@@ -285,6 +291,8 @@ struct FilesTabView: View {
                         .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Choose template file")
+                .accessibilityHint("Opens a file picker for a Markdown template.")
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
@@ -323,6 +331,8 @@ struct FilesTabView: View {
             }
             .pickerStyle(.segmented)
             .frame(maxWidth: 240)
+            .accessibilityLabel("Export file format")
+            .accessibilityHint("Choose the file format used for saved transcripts.")
             .onChange(of: fileExportFormat) { _, val in
                 AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.fileExportFormatKey)
             }
@@ -346,6 +356,8 @@ struct FilesTabView: View {
             }
             .pickerStyle(.segmented)
             .frame(width: 180)
+            .accessibilityLabel("Export file mode")
+            .accessibilityHint("Choose whether transcripts are appended to one file or saved as separate files.")
             .onChange(of: fileExportMode) { _, val in
                 AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.fileExportModeKey)
             }
@@ -372,6 +384,8 @@ struct FilesTabView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                    .accessibilityLabel("New file name template")
+                    .accessibilityHint("Enter the template used to name each exported transcript file.")
                     .onChange(of: newFileNameTemplate) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportNewFileNameTemplateKey)
                     }
@@ -395,6 +409,8 @@ struct FilesTabView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                    .accessibilityLabel("Append file name")
+                    .accessibilityHint("Enter the file name used when appending transcripts.")
                     .onChange(of: appendFileName) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportAppendFileNameKey)
                     }
@@ -424,6 +440,8 @@ struct FilesTabView: View {
             Toggle("", isOn: $mdObsidianEnabled)
                 .labelsHidden()
                 .tint(Brutal.muted)
+                .accessibilityLabel("Obsidian Bases Markdown export")
+                .accessibilityHint("Exports Markdown files with YAML frontmatter and an empty body.")
                 .onChange(of: mdObsidianEnabled) { _, val in
                     AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportMDObsidianKey)
                 }
@@ -451,6 +469,8 @@ struct FilesTabView: View {
                 Toggle("", isOn: $yamlObsidianBasesEnabled)
                     .labelsHidden()
                     .tint(Brutal.muted)
+                    .accessibilityLabel("Obsidian Bases YAML export")
+                    .accessibilityHint("Uses the Markdown file extension for YAML exports.")
                     .onChange(of: yamlObsidianBasesEnabled) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportYAMLObsidianBasesKey)
                     }
@@ -487,6 +507,8 @@ struct FilesTabView: View {
                     .labelsHidden()
                     .tint(Brutal.muted)
                     .disabled(yamlProperties.count == 1 && yamlProperties.contains(property))
+                    .accessibilityLabel("\(property.displayName) YAML property")
+                    .accessibilityHint("Includes or removes this property from YAML exports.")
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
@@ -540,6 +562,8 @@ struct FilesTabView: View {
                     }
                     .pickerStyle(.segmented)
                     .frame(width: 180)
+                    .accessibilityLabel("Enriched filename style")
+                    .accessibilityHint("Choose how generated titles are applied to exported file names.")
                     .onChange(of: enrichedFilenameStyle) { _, val in
                         AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.exportEnrichedFilenameStyleKey)
                     }
@@ -592,6 +616,8 @@ struct FilesTabView: View {
             Toggle("", isOn: isOn)
                 .labelsHidden()
                 .tint(Brutal.muted)
+                .accessibilityLabel(Text(title))
+                .accessibilityHint(Text(subtitle))
                 .onChange(of: isOn.wrappedValue) { _, val in
                     AppConstants.sharedDefaults?.set(val, forKey: key)
                 }
@@ -648,6 +674,8 @@ struct FilesTabView: View {
                 Toggle("", isOn: $smartFoldersEnabled)
                     .labelsHidden()
                     .tint(Brutal.muted)
+                    .accessibilityLabel("Smart folders")
+                    .accessibilityHint("Turns AI routing to matching destination folders on or off.")
                     .onChange(of: smartFoldersEnabled) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.smartFoldersEnabledKey)
                     }
@@ -670,6 +698,9 @@ struct FilesTabView: View {
                                 .foregroundColor(Brutal.muted)
                                 .lineLimit(2)
                         }
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("Smart folder \(folder.name)")
+                        .accessibilityValue(folder.folderDescription)
                         Spacer()
                         Button {
                             deleteSmartFolder(id: folder.id)
@@ -677,8 +708,11 @@ struct FilesTabView: View {
                             Image(systemName: "xmark")
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(Brutal.muted)
+                                .accessibilityHidden(true)
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel("Delete smart folder \(folder.name)")
+                        .accessibilityHint("Removes this smart folder routing destination.")
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
@@ -693,6 +727,7 @@ struct FilesTabView: View {
                     HStack {
                         Image(systemName: "plus")
                             .font(.system(size: 12, weight: .semibold))
+                            .accessibilityHidden(true)
                         Text("ADD FOLDER")
                             .font(Brutal.caption())
                     }
@@ -702,6 +737,8 @@ struct FilesTabView: View {
                     .background(Brutal.bg)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Add smart folder")
+                .accessibilityHint("Opens the form to create a smart folder routing destination.")
                 .sheet(isPresented: $showAddSmartFolderSheet) {
                     AddSmartFolderSheet { newFolder in
                         smartFolders.append(newFolder)
@@ -770,6 +807,8 @@ private struct AddSmartFolderSheet: View {
                                     .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("Choose smart folder destination")
+                            .accessibilityHint("Opens a folder picker for this smart folder.")
                         }
                         .padding(.horizontal, 20)
                         .padding(.vertical, 14)
@@ -790,6 +829,7 @@ private struct AddSmartFolderSheet: View {
                     Button("CANCEL") { dismiss() }
                         .font(Brutal.caption())
                         .foregroundColor(Brutal.muted)
+                        .accessibilityLabel("Cancel adding smart folder")
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("ADD") {
@@ -805,6 +845,8 @@ private struct AddSmartFolderSheet: View {
                     .font(Brutal.caption())
                     .foregroundColor(canAdd ? Brutal.text : Brutal.muted)
                     .disabled(!canAdd)
+                    .accessibilityLabel("Add smart folder")
+                    .accessibilityHint("Creates the smart folder when the name, description, and destination folder are filled in.")
                 }
             }
             .toolbarBackground(Brutal.bg, for: .navigationBar)
@@ -831,6 +873,7 @@ private struct AddSmartFolderSheet: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
                 .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                .accessibilityLabel(Text(label))
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 14)

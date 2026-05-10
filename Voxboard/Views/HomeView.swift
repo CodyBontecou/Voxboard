@@ -565,6 +565,7 @@ private struct FileExportToastView: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(.subheadline, weight: .semibold))
                     .foregroundColor(Brutal.text)
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text("SUCCESS")
@@ -588,6 +589,8 @@ private struct FileExportToastView: View {
             .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Open exported file \(fileName)")
+        .accessibilityHint("Opens the exported transcript in Files.")
     }
 }
 
