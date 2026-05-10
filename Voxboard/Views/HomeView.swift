@@ -8,6 +8,7 @@ struct HomeView: View {
     @Environment(TranscriptStore.self) private var transcriptStore
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(StoreManager.self) private var storeManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @Bindable var persistentRecorder: PersistentRecorder
     @Binding var pendingKeyboardLaunch: Bool
@@ -60,9 +61,9 @@ struct HomeView: View {
                     .transition(.opacity)
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: keyboardLaunchPhase)
-        .animation(.easeInOut(duration: 0.2), value: fileExportToast)
-        .animation(.easeInOut(duration: 0.25), value: discordPromoDismissed)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: keyboardLaunchPhase)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: fileExportToast)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: discordPromoDismissed)
         .gesture(
             DragGesture(minimumDistance: 40, coordinateSpace: .local)
                 .onEnded { val in
@@ -511,14 +512,14 @@ struct HomeView: View {
             if !persistentRecorder.isListening {
                 persistentRecorder.startListening()
             }
-            withAnimation {
+            updateForMotion {
                 keyboardLaunchPhase = persistentRecorder.isListening ? .ready : .error
             }
             // Auto-dismiss the "ready" overlay after 2.5 s so the user knows to
             // return to their app. The error overlay stays until dismissed manually.
             if persistentRecorder.isListening {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    withAnimation {
+                    updateForMotion {
                         if keyboardLaunchPhase == .ready { keyboardLaunchPhase = nil }
                     }
                 }
@@ -547,6 +548,16 @@ struct HomeView: View {
         let s = Int(d) % 60
         let t = Int((d * 10).truncatingRemainder(dividingBy: 10))
         return String(format: "%d:%02d.%d", m, s, t)
+    }
+
+    private func updateForMotion(_ updates: () -> Void) {
+        if reduceMotion {
+            updates()
+        } else {
+            withAnimation {
+                updates()
+            }
+        }
     }
 }
 
@@ -600,6 +611,8 @@ enum KeyboardLaunchPhase: Equatable {
 // MARK: - Keyboard Launch Overlay
 
 private struct KeyboardLaunchOverlay: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let phase: KeyboardLaunchPhase
 
     var body: some View {
@@ -625,9 +638,15 @@ private struct KeyboardLaunchOverlay: View {
                     .fill(Brutal.surface)
                     .frame(width: 80, height: 80)
                     .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .tint(Brutal.text)
+                if reduceMotion {
+                    Image(systemName: "mic.fill")
+                        .font(Brutal.heading(.largeTitle))
+                        .foregroundColor(Brutal.text)
+                } else {
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(Brutal.text)
+                }
             }
         case .ready:
             Rectangle()

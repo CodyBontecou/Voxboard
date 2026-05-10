@@ -54,6 +54,8 @@ enum Brutal {
 
 /// Single parameterised button style — primary, secondary, or destructive.
 struct BrutalButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     enum Variant { case primary, secondary, destructive }
     let variant: Variant
 
@@ -66,7 +68,7 @@ struct BrutalButtonStyle: ButtonStyle {
             .background(bg(configuration.isPressed))
             .overlay(Rectangle().stroke(border(configuration.isPressed), lineWidth: 1))
             .opacity(configuration.isPressed ? 0.85 : 1.0)
-            .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.08), value: configuration.isPressed)
     }
 
     private func fg(_ p: Bool) -> Color {
@@ -177,36 +179,72 @@ struct BrutalGridBackground: View {
 
 /// Animated bars for the standby-listening state.
 struct IdleWaveformView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     private let barCount = 9
+    private let reducedMotionHeights: [CGFloat] = [10, 17, 26, 14, 22, 12, 19, 8, 15]
 
     var body: some View {
-        TimelineView(.animation) { tl in
-            let t = tl.date.timeIntervalSinceReferenceDate
+        if reduceMotion {
             HStack(spacing: 4) {
                 ForEach(0..<barCount, id: \.self) { i in
-                    let phase = t * 2.0 + Double(i) * 0.55
-                    let h = (sin(phase) + 1) / 2 * 22 + 5
                     Rectangle()
                         .fill(Brutal.text.opacity(0.45))
-                        .frame(width: 3, height: h)
+                        .frame(width: 3, height: reducedMotionHeights[i])
                 }
             }
             .frame(height: 28)
+            .accessibilityLabel(Text("Listening"))
+        } else {
+            TimelineView(.animation) { tl in
+                let t = tl.date.timeIntervalSinceReferenceDate
+                HStack(spacing: 4) {
+                    ForEach(0..<barCount, id: \.self) { i in
+                        let phase = t * 2.0 + Double(i) * 0.55
+                        let h = (sin(phase) + 1) / 2 * 22 + 5
+                        Rectangle()
+                            .fill(Brutal.text.opacity(0.45))
+                            .frame(width: 3, height: h)
+                    }
+                }
+                .frame(height: 28)
+                .accessibilityLabel(Text("Listening"))
+            }
         }
     }
 }
 
 /// "TRANSCRIBING..." with cycling dots.
 struct TranscribingDotsView: View {
-    private let timer = Timer.publish(every: 0.4, on: .main, in: .common).autoconnect()
-    @State private var count = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        Text(String(localized: "TRANSCRIBING") + String(repeating: ".", count: (count % 3) + 1))
+        if reduceMotion {
+            transcribingText(String(localized: "TRANSCRIBING"))
+                .accessibilityLabel(Text("Transcribing"))
+        } else {
+            AnimatedTranscribingDotsText()
+        }
+    }
+
+    fileprivate static func transcribingText(_ text: String) -> some View {
+        Text(text)
             .font(Brutal.display(40))
             .foregroundColor(Brutal.text)
             .lineLimit(1)
             .minimumScaleFactor(0.35)
-            .onReceive(timer) { _ in count += 1 }
+    }
+}
+
+private struct AnimatedTranscribingDotsText: View {
+    private let timer = Timer.publish(every: 0.4, on: .main, in: .common).autoconnect()
+    @State private var count = 0
+
+    var body: some View {
+        TranscribingDotsView.transcribingText(
+            String(localized: "TRANSCRIBING") + String(repeating: ".", count: (count % 3) + 1)
+        )
+        .accessibilityLabel(Text("Transcribing"))
+        .onReceive(timer) { _ in count += 1 }
     }
 }

@@ -25,6 +25,8 @@ private enum K {
 
 /// Brutal keyboard toolbar: model navigator · status · waveform · action button.
 struct VoiceToolbarView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     @Bindable var voiceState: VoiceKeyboardState
     let hasFullAccess: Bool
 
@@ -79,9 +81,15 @@ struct VoiceToolbarView: View {
                         .fill(K.error)
                         .frame(width: 6, height: 6)
                 case .transcribing:
-                    ProgressView()
-                        .scaleEffect(0.6)
-                        .tint(.secondary)
+                    if reduceMotion {
+                        Image(systemName: "text.badge.checkmark")
+                            .font(.system(.footnote, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ProgressView()
+                            .scaleEffect(0.6)
+                            .tint(.secondary)
+                    }
                 default:
                     Image(systemName: "mic.fill")
                         .font(.system(.footnote, weight: .medium))
@@ -147,11 +155,19 @@ struct VoiceToolbarView: View {
             .buttonStyle(.plain)
 
         case .transcribing:
-            // Spinner, no background
-            ProgressView()
-                .scaleEffect(0.7)
-                .tint(.secondary)
-                .frame(width: 32, height: 32)
+            // Transcribing status, no background
+            Group {
+                if reduceMotion {
+                    Image(systemName: "text.badge.checkmark")
+                        .font(.system(.title3, weight: .bold))
+                        .foregroundStyle(.secondary)
+                } else {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                        .tint(.secondary)
+                }
+            }
+            .frame(width: 32, height: 32)
 
         case .appNotListening:
             // Mic icon — prompts opening app

@@ -158,6 +158,8 @@ final class RecordingFlowController {
 // MARK: - View (fully redesigned — brutal aesthetic)
 
 struct RecordingFlowView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     let controller: RecordingFlowController
     let onDismiss: () -> Void
 
@@ -195,9 +197,15 @@ struct RecordingFlowView: View {
                     .foregroundColor(Brutal.muted)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
-                ProgressView()
-                    .scaleEffect(1.2)
-                    .tint(Brutal.text)
+                if reduceMotion {
+                    Image(systemName: "mic.fill")
+                        .font(Brutal.heading(.title))
+                        .foregroundColor(Brutal.text)
+                } else {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                        .tint(Brutal.text)
+                }
             }
 
         case .recording:
