@@ -33,6 +33,7 @@ struct VoiceToolbarView: View {
     var body: some View {
         HStack(spacing: 10) {
             modelNavigator
+            flowPill
             statusLabel
             Spacer()
             if voiceState.status == .recording {
@@ -99,6 +100,22 @@ struct VoiceToolbarView: View {
             }
             .buttonStyle(.plain)
         }
+    }
+
+    // MARK: - Flow selector
+
+    private var flowPill: some View {
+        Button(action: { voiceState.nextFlow(); modelChangeCount += 1 }) {
+            Text(voiceState.currentFlowShortLabel)
+                .font(K.caption(.caption2))
+                .foregroundColor(K.text)
+                .lineLimit(1)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 4)
+                .overlay(Rectangle().stroke(K.borderHi, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Recording flow: \(voiceState.currentFlowName). Tap to change flow.")
     }
 
     // MARK: - Status Label

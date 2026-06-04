@@ -1,0 +1,5 @@
+Nou în această actualizare:
+• Feedback haptic tastatură — atingerile au acum feedback tactil implicit, cu comutator în Setări pentru a-l dezactiva.
+• Pop-up-uri accente apăsare lungă — țineți apăsată o tastă pe limbile cu scriere latină pentru a accesa variante cu accente (à, é, ñ, ü, etc.).
+• Mesaje de stare localizate pe bara de instrumente a tastaturii pentru toate limbile acceptate.
+• Corectare eroare pentru înregistrările in-app care puteau declanșa răspunsuri IPC duplicate.

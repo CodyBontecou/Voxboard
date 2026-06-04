@@ -1,0 +1,19 @@
+name = "voxboard-onboarding-analytics"
+main = "src/index.ts"
+compatibility_date = "2026-05-30"
+
+# D1 database created in Cloudflare account e4265f322e6380ee832b83ad45e3e8c0.
+[[d1_databases]]
+binding = "DB"
+database_name = "voxboard-onboarding-analytics"
+database_id = "af59f484-87cd-4f0b-b4ab-c5225125c50d"
+
+[vars]
+# This worker deliberately does not store IP addresses, user agents, request URLs,
+# audio, transcript text, keystrokes, file paths, template text, or model paths.
+MAX_BATCH_SIZE = "50"
+
+# Optional ingest token. Currently unset in production so the mobile app does
+# not need to embed a shared token. If configured later:
+#   wrangler secret put INGEST_TOKEN
+# If unset, requests are accepted without Authorization after schema validation.

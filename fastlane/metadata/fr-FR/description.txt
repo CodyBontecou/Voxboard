@@ -1,0 +1,32 @@
+Voxboard est un clavier vocal-texte hors ligne pour la reconnaissance vocale et la saisie vocale — sans internet, sans serveurs, sans abonnement.
+
+Appuyez sur le bouton micro dans n'importe quelle app, parlez naturellement, et vos mots apparaissent sous forme de texte. Tout est traité sur l'appareil avec Apple Silicon, donc rien ne quitte jamais votre téléphone.
+
+—
+
+COMMENT ÇA FONCTIONNE
+
+Voxboard ajoute un bouton vocal à votre clavier iOS. Quand vous voulez dicter, appuyez sur le micro, parlez, et Voxboard transcrit votre voix directement dans le champ texte — dans Messages, Notes, Safari, ou toute app qui accepte un clavier.
+
+—
+
+FONCTIONNALITÉS
+
+• Transcription sur appareil — alimentée par l'IA Whisper, zéro donnée envoyée nulle part
+• Fonctionne dans toute app — tout champ texte qui utilise le clavier iOS standard
+• Mode écoute permanente — démarrez une session depuis l'app principale, puis utilisez la dictée mains-libres dans toute app
+• Historique de transcription — faites défiler tout ce que vous avez dicté
+• Modèles Whisper multiples — choisissez entre Tiny, Base et Small selon votre préférence vitesse/précision
+• Pas d'abonnement — payez une fois, utilisez pour toujours
+
+—
+
+VERSION GRATUITE
+
+Les nouveaux utilisateurs obtiennent 15 minutes de transcription gratuite pour tout essayer. Passez à Voxboard Unlimited avec un seul achat unique pour supprimer toutes les limites.
+
+—
+
+CONFIDENTIALITÉ
+
+Tout le traitement audio se passe sur votre iPhone en utilisant l'apprentissage automatique sur appareil. Aucun enregistrement audio, transcription, ou donnée personnelle n'est jamais transmis vers des serveurs externes. L'accès au microphone est requis pour la transcription et n'est utilisé que quand vous démarrez activement un enregistrement.

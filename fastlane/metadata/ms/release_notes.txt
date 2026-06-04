@@ -1,0 +1,5 @@
+Baharu dalam kemas kini ini:
+• Maklum balas haptik papan kekunci — ketikan kini mempunyai maklum balas taktil secara lalai, dengan togol Tetapan untuk mematikannya.
+• Panggilan aksen tekan-lama — tahan kekunci pada bahasa skrip Latin untuk mengakses varian beraksen (à, é, ñ, ü, dll.).
+• Mesej status berlokal pada bar alat papan kekunci merentas semua bahasa yang disokong.
+• Pembetulan pepijat untuk rakaman dalam-apl yang boleh mencetuskan respons IPC pendua.

@@ -1,0 +1,5 @@
+Novetats d'aquesta actualització:
+• Retroalimentació hàptica del teclat — ara les pulsacions tenen retroalimentació tàctil per defecte, amb un botó a Configuració per desactivar-ho.
+• Callouts d'accents amb pressió llarga — manteniu premuda una tecla en idiomes d'escriptura llatina per accedir a variants amb accents (à, é, ñ, ü, etc.).
+• Missatges d'estat localitzats a la barra d'eines del teclat en tots els idiomes compatibles.
+• Correcció d'error per a gravacions dins de l'app que podien activar respostes IPC duplicades.

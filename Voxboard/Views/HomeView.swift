@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 import VoxboardShared
 
 /// Main screen — brutal black/white aesthetic matching imghost.isolated.tech.
@@ -15,9 +16,13 @@ struct HomeView: View {
 
     @State private var showHistory = false
     @State private var showPaywall = false
+    @State private var paywallContext: OnboardingAnalyticsPaywallContext = .limit
     @State private var micPermissionGranted = false
     @State private var keyboardLaunchPhase: KeyboardLaunchPhase? = nil
     @State private var fileExportToast: FileExportToast?
+    @State private var flows: [RecordingFlow] = RecordingFlowStore.loadFlows()
+    @State private var selectedFlowId: String = RecordingFlowStore.selectedFlowId()
+    @State private var showAudioImporter = false
 
     @AppStorage("discordPromoDismissed") private var discordPromoDismissed = false
     @Environment(\.openURL) private var openURL
@@ -76,12 +81,27 @@ struct HomeView: View {
             HistoryView().environment(transcriptStore)
         }
         .sheet(isPresented: $showPaywall) {
-            PaywallView()
+            PaywallView(context: paywallContext)
                 .environment(usageTracker)
                 .environment(storeManager)
         }
+        .fileImporter(
+            isPresented: $showAudioImporter,
+            allowedContentTypes: [.audio, .movie],
+            allowsMultipleSelection: false
+        ) { result in
+            handleAudioImport(result)
+        }
+        .onAppear {
+            reloadFlows()
+        }
         .task {
-            micPermissionGranted = await AudioRecorder.requestMicrophonePermission()
+            let granted = await AudioRecorder.requestMicrophonePermission()
+            micPermissionGranted = granted
+            OnboardingAnalyticsClient.shared.trackMicrophonePermissionCompleted(
+                status: granted ? .granted : .denied,
+                quotaState: usageTracker.onboardingAnalyticsQuotaState
+            )
         }
         .onChange(of: pendingKeyboardLaunch) { _, isPending in
             if isPending {
@@ -100,7 +120,7 @@ struct HomeView: View {
                 persistentRecorder.needsUnlock = false
                 usageTracker.reload()
                 if usageTracker.isAtLimit {
-                    showPaywall = true
+                    presentPaywall(context: .limit)
                 }
             }
         }
@@ -195,6 +215,8 @@ struct HomeView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
 
+            flowSelectorBar
+
             // Usage bar — only shown to free-tier users
             if !usageTracker.hasUnlocked {
                 usageMeterBar
@@ -203,7 +225,7 @@ struct HomeView: View {
     }
 
     private var usageMeterBar: some View {
-        Button(action: { showPaywall = true }) {
+        Button(action: { presentPaywall(context: .usageMeter) }) {
             HStack(spacing: 10) {
                 // Progress track
                 GeometryReader { geo in
@@ -239,12 +261,58 @@ struct HomeView: View {
         .buttonStyle(.plain)
     }
 
+    private var flowSelectorBar: some View {
+        HStack(spacing: 10) {
+            Text("FLOW")
+                .font(Brutal.caption())
+                .foregroundColor(Brutal.muted)
+            Menu {
+                ForEach(enabledFlows) { flow in
+                    Button(flow.displayName) {
+                        selectFlow(flow)
+                    }
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: selectedFlow.symbolName)
+                        .font(.system(.caption, weight: .semibold))
+                    Text(selectedFlow.displayName.uppercased())
+                        .font(Brutal.caption())
+                        .lineLimit(1)
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                }
+                .foregroundColor(Brutal.text)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 8)
+        .background(Brutal.surface.opacity(0.35))
+    }
+
+    private var enabledFlows: [RecordingFlow] {
+        let enabled = flows.filter(\.isEnabled)
+        return enabled.isEmpty ? RecordingFlowStore.defaultFlows : enabled
+    }
+
+    private var selectedFlow: RecordingFlow {
+        enabledFlows.first(where: { $0.id == selectedFlowId }) ?? enabledFlows[0]
+    }
+
     // MARK: - Center Content
 
     @ViewBuilder
     private var centerContent: some View {
         if !micPermissionGranted {
             noMicView
+        } else if let error = persistentRecorder.lastError,
+                  !persistentRecorder.isSegmentActive,
+                  !persistentRecorder.isTranscribing {
+            errorView(error)
         } else if persistentRecorder.isListening {
             listeningContent
         } else {
@@ -290,6 +358,27 @@ struct HomeView: View {
         .padding(.horizontal, 24)
     }
 
+    private func errorView(_ message: String) -> some View {
+        VStack(spacing: 20) {
+            BrutalSectionLabel(number: "01", title: "Status")
+            Text("ERROR.")
+                .font(Brutal.display(52))
+                .foregroundColor(Brutal.error)
+                .lineLimit(1)
+                .minimumScaleFactor(0.3)
+            Text(message)
+                .font(Brutal.body())
+                .foregroundColor(Brutal.muted)
+                .multilineTextAlignment(.center)
+            Button("DISMISS") {
+                persistentRecorder.lastError = nil
+            }
+            .buttonStyle(BrutalButtonStyle(variant: .secondary))
+            .frame(maxWidth: 220)
+        }
+        .padding(.horizontal, 24)
+    }
+
     // MARK: Listening states
 
     @ViewBuilder
@@ -321,7 +410,7 @@ struct HomeView: View {
             }
             Button(action: {
                 if usageTracker.isAtLimit {
-                    showPaywall = true
+                    presentPaywall(context: .recording)
                     return
                 }
                 persistentRecorder.lastTranscriptionResult = nil
@@ -415,7 +504,7 @@ struct HomeView: View {
 
             Button(action: {
                 if usageTracker.isAtLimit {
-                    showPaywall = true
+                    presentPaywall(context: .recording)
                     return
                 }
                 persistentRecorder.lastTranscriptionResult = nil
@@ -451,24 +540,39 @@ struct HomeView: View {
 
             BrutalDivider()
 
-            Group {
-                if persistentRecorder.isListening {
-                    Button(action: { toggleListening() }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "stop.fill").font(.system(.footnote))
-                            Text("STOP LISTENING")
+            HStack(spacing: 12) {
+                Group {
+                    if persistentRecorder.isListening {
+                        Button(action: { toggleListening() }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "stop.fill").font(.system(.footnote))
+                                Text("STOP LISTENING")
+                            }
                         }
-                    }
-                    .buttonStyle(BrutalButtonStyle(variant: .secondary))
-                } else {
-                    Button(action: { toggleListening() }) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "play.fill").font(.system(.footnote))
-                            Text("START LISTENING")
+                        .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                    } else {
+                        Button(action: { toggleListening() }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "play.fill").font(.system(.footnote))
+                                Text("START LISTENING")
+                            }
                         }
+                        .buttonStyle(BrutalButtonStyle(variant: .primary))
                     }
-                    .buttonStyle(BrutalButtonStyle(variant: .primary))
                 }
+
+                Button(action: { showAudioImporter = true }) {
+                    Image(systemName: "waveform")
+                        .font(.system(.callout, weight: .semibold))
+                        .foregroundColor(Brutal.text)
+                        .frame(width: 52, height: 52)
+                        .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(persistentRecorder.isTranscribing || persistentRecorder.isSegmentActive)
+                .opacity((persistentRecorder.isTranscribing || persistentRecorder.isSegmentActive) ? 0.35 : 1)
+                .accessibilityLabel("Import audio")
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 16)
@@ -477,6 +581,31 @@ struct HomeView: View {
 
     // MARK: - Actions
 
+    private func reloadFlows() {
+        flows = RecordingFlowStore.loadFlows()
+        selectedFlowId = RecordingFlowStore.selectedFlowId()
+    }
+
+    private func selectFlow(_ flow: RecordingFlow) {
+        RecordingFlowStore.selectFlow(id: flow.id)
+        selectedFlowId = flow.id
+    }
+
+    private func handleAudioImport(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first else { return }
+            persistentRecorder.importAudioFile(from: url)
+        case .failure(let error):
+            persistentRecorder.lastError = error.localizedDescription
+        }
+    }
+
+    private func presentPaywall(context: OnboardingAnalyticsPaywallContext) {
+        paywallContext = context
+        showPaywall = true
+    }
+
     private func toggleListening() {
         if persistentRecorder.isListening {
             persistentRecorder.stopListening()
@@ -484,7 +613,7 @@ struct HomeView: View {
         } else {
             // Gate on paywall only if at limit
             if usageTracker.isAtLimit {
-                showPaywall = true
+                presentPaywall(context: .recording)
                 return
             }
             persistentRecorder.startListening()
@@ -507,12 +636,20 @@ struct HomeView: View {
 
     func handleKeyboardLaunch() {
         keyboardLaunchPhase = .starting
+        OnboardingAnalyticsClient.shared.trackKeyboardSetupStarted(
+            quotaState: usageTracker.onboardingAnalyticsQuotaState
+        )
         DispatchQueue.main.async {
             if !persistentRecorder.isListening {
                 persistentRecorder.startListening()
             }
             withAnimation {
                 keyboardLaunchPhase = persistentRecorder.isListening ? .ready : .error
+            }
+            if persistentRecorder.isListening {
+                OnboardingAnalyticsClient.shared.trackKeyboardSetupCompleted(
+                    quotaState: usageTracker.onboardingAnalyticsQuotaState
+                )
             }
             // Auto-dismiss the "ready" overlay after 2.5 s so the user knows to
             // return to their app. The error overlay stays until dismissed manually.

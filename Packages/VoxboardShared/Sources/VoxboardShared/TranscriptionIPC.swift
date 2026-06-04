@@ -69,12 +69,14 @@ public struct RecordingCommand: Codable, Sendable {
     public let action: Action
     public let modelId: String?
     public let language: String?
+    public let flowId: String?
 
-    public init(requestId: String, action: Action, modelId: String? = nil, language: String? = nil) {
+    public init(requestId: String, action: Action, modelId: String? = nil, language: String? = nil, flowId: String? = nil) {
         self.requestId = requestId
         self.action = action
         self.modelId = modelId
         self.language = language
+        self.flowId = flowId
     }
 }
 

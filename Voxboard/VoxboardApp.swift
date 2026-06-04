@@ -63,6 +63,7 @@ struct VoxboardApp: App {
                     modelManager.copyBundledModelIfNeeded()
                     transcriptionServer.start()
                     storeManager.start()
+                    trackInitialOnboardingStartIfNeeded()
 
                     // Auto-start listening if user previously enabled it
                     if AppConstants.sharedDefaults?.bool(forKey: "autoListenEnabled") == true {
@@ -92,6 +93,19 @@ struct VoxboardApp: App {
                 }
             }
         }
+    }
+
+    // MARK: - Onboarding Analytics
+
+    private func trackInitialOnboardingStartIfNeeded() {
+        let defaults = AppConstants.sharedDefaults ?? .standard
+        let key = "onboarding.analytics.started.v1"
+        guard !defaults.bool(forKey: key) else { return }
+
+        defaults.set(true, forKey: key)
+        OnboardingAnalyticsClient.shared.trackOnboardingStarted(
+            quotaState: usageTracker.onboardingAnalyticsQuotaState
+        )
     }
 
     // MARK: - URL Handling

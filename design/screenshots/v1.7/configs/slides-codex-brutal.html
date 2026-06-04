@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1290, initial-scale=1">
+<title>Voxboard App Store Screenshots — v1.7</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --surface: #111111;
+    --surface-2: #1a1a1a;
+    --border: #2a2a2a;
+    --border-hi: #444444;
+    --text: #ffffff;
+    --muted: #b8b8b8;
+    --faint: #777777;
+    --accent: #F28C38;
+    --error: #FF453A;
+    --success: #30D158;
+    --font: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); overflow: hidden; }
+
+  .slide {
+    width: 1290px;
+    height: 2796px;
+    position: relative;
+    display: none;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+  }
+  .slide.active { display: block; }
+
+  /* Codex/gpt-image-2 generated brutalist waveform plate, reused as a subtle common motif. */
+  .slide::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url('../codex-background/image-0001.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.34;
+    filter: contrast(1.1) grayscale(0.06);
+    pointer-events: none;
+  }
+
+  /* Website design-system grid: black field, thin gray rules, masked like the hero section. */
+  .slide::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(42,42,42,0.58) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(42,42,42,0.58) 1px, transparent 1px);
+    background-size: 86px 86px;
+    opacity: 0.38;
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, black 72%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 0%, black 72%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .top-rule, .mid-rule, .bottom-rule {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--border-hi);
+    opacity: 0.75;
+    z-index: 1;
+  }
+  .top-rule { top: 94px; }
+  .mid-rule { top: 566px; opacity: 0.45; }
+  .bottom-rule { bottom: 132px; opacity: 0.42; }
+
+  .hud {
+    position: absolute;
+    top: 38px;
+    left: 70px;
+    right: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 4;
+    font-size: 19px;
+    line-height: 1;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-weight: 800;
+    color: var(--text);
+  }
+  .mark {
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border-hi);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    letter-spacing: 0;
+  }
+  .hud-meta { color: var(--faint); font-size: 16px; }
+  .hud-dot { color: var(--accent); letter-spacing: 0; margin: 0 10px; }
+
+  .copy {
+    position: absolute;
+    top: 142px;
+    left: 70px;
+    right: 70px;
+    z-index: 5;
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 26px;
+    color: var(--faint);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 54px;
+    height: 1px;
+    background: var(--border-hi);
+  }
+  .headline {
+    font-size: 106px;
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -0.055em;
+    text-transform: uppercase;
+    color: var(--text);
+    text-shadow: 0 2px 0 rgba(255,255,255,0.04);
+  }
+  .headline .accent { color: var(--accent); }
+  .subtitle {
+    margin-top: 30px;
+    max-width: 850px;
+    color: var(--muted);
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.48;
+    letter-spacing: 0.01em;
+  }
+  .badge-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    border: 1px solid var(--border-hi);
+    color: var(--text);
+    background: rgba(0,0,0,0.62);
+    padding: 10px 14px;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .badge.dim { color: var(--faint); border-color: var(--border); }
+
+  .phone {
+    position: absolute;
+    left: 50%;
+    top: 690px;
+    width: 1010px;
+    transform: translateX(-50%);
+    z-index: 3;
+    filter: drop-shadow(0 58px 86px rgba(0,0,0,0.82));
+  }
+  .phone.off-left { left: 46%; }
+  .phone.off-right { left: 54%; }
+  .phone-body {
+    position: relative;
+    padding: 12px;
+    border-radius: 78px;
+    background:
+      linear-gradient(145deg, #5a5a5c 0%, #38383a 7%, #202022 25%, #09090a 52%, #262628 76%, #555558 100%);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.18),
+      inset 0 0 0 3px rgba(0,0,0,0.62),
+      0 0 0 1px rgba(255,255,255,0.04);
+  }
+  .phone-screen {
+    overflow: hidden;
+    border-radius: 64px;
+    background: #000;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.045);
+  }
+  .phone-screen img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .btn-power, .btn-vol-1, .btn-vol-2, .btn-action {
+    position: absolute;
+    width: 5px;
+    background: linear-gradient(90deg, #202022, #5a5a5c, #202022);
+  }
+  .btn-power { right: -4px; top: 330px; height: 150px; border-radius: 0 4px 4px 0; }
+  .btn-action { left: -4px; top: 230px; height: 54px; border-radius: 4px 0 0 4px; }
+  .btn-vol-1 { left: -4px; top: 326px; height: 94px; border-radius: 4px 0 0 4px; }
+  .btn-vol-2 { left: -4px; top: 450px; height: 94px; border-radius: 4px 0 0 4px; }
+
+  .callout {
+    position: absolute;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid var(--border-hi);
+    background: rgba(0,0,0,0.82);
+    padding: 17px 20px;
+    color: var(--text);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    box-shadow: 8px 8px 0 rgba(255,255,255,0.08);
+  }
+  .callout::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+  }
+
+  .slide-number {
+    position: absolute;
+    right: 56px;
+    bottom: 26px;
+    z-index: 4;
+    color: rgba(255,255,255,0.08);
+    font-size: 178px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.08em;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.18);
+  }
+
+  /* Per-slide tuning */
+  #slide-1 .headline { font-size: 120px; }
+  #slide-1 .phone { top: 780px; width: 1032px; }
+  #slide-1 .mid-rule { top: 660px; }
+  #slide-1 .callout { right: 70px; top: 645px; }
+
+  #slide-2 .phone { top: 665px; width: 1000px; }
+  #slide-2 .callout { left: 70px; top: 622px; }
+
+  #slide-3 .phone { top: 650px; width: 1000px; }
+  #slide-3 .headline { font-size: 116px; }
+  #slide-3 .callout { right: 70px; top: 610px; }
+
+  #slide-4 .phone { top: 705px; width: 995px; }
+  #slide-4 .headline { font-size: 104px; }
+  #slide-4 .callout { left: 70px; top: 622px; }
+
+  #slide-5 .phone { top: 705px; width: 995px; }
+  #slide-5 .headline { font-size: 104px; }
+  #slide-5 .callout { right: 70px; top: 626px; }
+
+  #slide-6 .phone { top: 710px; width: 990px; }
+  #slide-6 .headline { font-size: 103px; }
+  #slide-6 .callout { left: 70px; top: 630px; }
+
+  #slide-7 .phone { top: 720px; width: 990px; }
+  #slide-7 .headline { font-size: 106px; }
+  #slide-7 .callout { right: 70px; top: 640px; }
+</style>
+</head>
+<body>
+
+<div class="slide" id="slide-1">
+  <div class="top-rule"></div><div class="mid-rule"></div><div class="bottom-rule"></div>
+  <div class="hud"><div class="brand"><span class="mark">V</span><span>Voxboard</span></div><div class="hud-meta">iOS keyboard <span class="hud-dot">•</span> on-device AI</div></div>
+  <div class="copy">
+    <div class="eyebrow">01 / Keyboard extension</div>
+    <div class="headline">Speak.<br><span class="accent">Type.</span><br>Done.</div>
+    <div class="subtitle">Tap Voxboard from the iOS keyboard and dictate directly into Notes, Safari, Messages — anywhere you type.</div>
+    <div class="badge-row"><span class="badge">Every app</span><span class="badge dim">No copy-paste</span></div>
+  </div>
+  <div class="phone off-right"><div class="phone-body"><div class="btn-power"></div><div class="btn-action"></div><div class="btn-vol-1"></div><div class="btn-vol-2"></div><div class="phone-screen"><img src="../raw/iphone/01-keyboard-everywhere.png" alt="Voxboard keyboard in another app"></div></div></div>
+  <div class="callout">System-wide mic</div>
+  <div class="slide-number">01</div>
+</div>
+
+<div class="slide" id="slide-2">
+  <div class="top-rule"></div><div class="mid-rule"></div><div class="bottom-rule"></div>
+  <div class="hud"><div class="brand"><span class="mark">V</span><span>Voxboard</span></div><div class="hud-meta">background audio <span class="hud-dot">•</span> fast capture</div></div>
+  <div class="copy">
+    <div class="eyebrow">02 / Always-on mode</div>
+    <div class="headline">Always<br><span class="accent">Listening.</span></div>
+    <div class="subtitle">Start once. Switch apps freely. The keyboard mic stays ready so thoughts become text before they disappear.</div>
+    <div class="badge-row"><span class="badge">One tap</span><span class="badge dim">Hands-free flow</span></div>
+  </div>
+  <div class="phone"><div class="phone-body"><div class="btn-power"></div><div class="btn-action"></div><div class="btn-vol-1"></div><div class="btn-vol-2"></div><div class="phone-screen"><img src="../raw/iphone/02-listening.png" alt="Voxboard listening status"></div></div></div>
+  <div class="callout">Keyboard ready</div>
+  <div class="slide-number">02</div>
+</div>
+
+<div class="slide" id="slide-3">
+  <div class="top-rule"></div><div class="mid-rule"></div><div class="bottom-rule"></div>
+  <div class="hud"><div class="brand"><span class="mark">V</span><span>Voxboard</span></div><div class="hud-meta">whisper.cpp <span class="hud-dot">•</span> private by default</div></div>
+  <div class="copy">
+    <div class="eyebrow">03 / Privacy first</div>
+    <div class="headline"><span class="accent">Zero</span><br>Cloud.</div>
+    <div class="subtitle">Audio is transcribed on your device. Your recordings and transcripts never leave your iPhone.</div>
+    <div class="badge-row"><span class="badge">0 bytes uploaded</span><span class="badge dim">No servers</span></div>
+  </div>
+  <div class="phone off-left"><div class="phone-body"><div class="btn-power"></div><div class="btn-action"></div><div class="btn-vol-1"></div><div class="btn-vol-2"></div><div class="phone-screen"><img src="../raw/iphone/03-privacy-settings.png" alt="Voxboard privacy settings"></div></div></div>
+  <div class="callout">On-device</div>
+  <div class="slide-number">03</div>
+</div>
+
+<div class="slide" id="slide-4">
+  <div class="top-rule"></div><div class="mid-rule"></div><div class="bottom-rule"></div>
+  <div class="hud"><div class="brand"><span class="mark">V</span><span>Voxboard</span></div><div class="hud-meta">whisper models <span class="hud-dot">•</span> speed vs accuracy</div></div>
+  <div class="copy">
+    <div class="eyebrow">04 / Model control</div>
+    <div class="headline">Pick Your<br><span class="accent">Engine.</span></div>
+    <div class="subtitle">Choose Tiny, Base, Small, Medium, or Large v3 Turbo — from quick notes to maximum accuracy.</div>
+    <div class="badge-row"><span class="badge">75 MB → 1.6 GB</span><span class="badge dim">Offline models</span></div>
+  </div>
+  <div class="phone off-right"><div class="phone-body"><div class="btn-power"></div><div class="btn-action"></div><div class="btn-vol-1"></div><div class="btn-vol-2"></div><div class="phone-screen"><img src="../raw/iphone/04-whisper-models.png" alt="Whisper model selector"></div></div></div>
+  <div class="callout">Whisper AI</div>
+  <div class="slide-number">04</div>
+</div>
+
+<div class="slide" id="slide-5">
+  <div class="top-rule"></div><div class="mid-rule"></div><div class="bottom-rule"></div>
+  <div class="hud"><div class="brand"><span class="mark">V</span><span>Voxboard</span></div><div class="hud-meta">language detect <span class="hud-dot">•</span> Apple Intelligence</div></div>
+  <div class="copy">
+    <div class="eyebrow">05 / Smarter notes</div>
+    <div class="headline">Clean<br><span class="accent">Transcripts.</span></div>
+    <div class="subtitle">Use on-device intelligence to title, tag, categorize, and polish each saved transcription.</div>
+    <div class="badge-row"><span class="badge">Titles + tags</span><span class="badge dim">Local enrichment</span></div>
+  </div>
+  <div class="phone"><div class="phone-body"><div class="btn-power"></div><div class="btn-action"></div><div class="btn-vol-1"></div><div class="btn-vol-2"></div><div class="phone-screen"><img src="../raw/iphone/05-parakeet-ai.png" alt="Language and Apple Intelligence settings"></div></div></div>
+  <div class="callout">AI cleanup</div>
+  <div class="slide-number">05</div>
+</div>
+
+<div class="slide" id="slide-6">
+  <div class="top-rule"></div><div class="mid-rule"></div><div class="bottom-rule"></div>
+  <div class="hud"><div class="brand"><span class="mark">V</span><span>Voxboard</span></div><div class="hud-meta">txt / md / json / yaml <span class="hud-dot">•</span> files</div></div>
+  <div class="copy">
+    <div class="eyebrow">06 / File export</div>
+    <div class="headline">Auto-save<br><span class="accent">To Files.</span></div>
+    <div class="subtitle">Route every transcript into your folder as TXT, Markdown, JSON, or YAML. No manual copy-paste.</div>
+    <div class="badge-row"><span class="badge">Markdown-ready</span><span class="badge dim">Template support</span></div>
+  </div>
+  <div class="phone off-left"><div class="phone-body"><div class="btn-power"></div><div class="btn-action"></div><div class="btn-vol-1"></div><div class="btn-vol-2"></div><div class="phone-screen"><img src="../raw/iphone/06-file-export.png" alt="File export settings"></div></div></div>
+  <div class="callout">Auto export</div>
+  <div class="slide-number">06</div>
+</div>
+
+<div class="slide" id="slide-7">
+  <div class="top-rule"></div><div class="mid-rule"></div><div class="bottom-rule"></div>
+  <div class="hud"><div class="brand"><span class="mark">V</span><span>Voxboard</span></div><div class="hud-meta">smart folders <span class="hud-dot">•</span> organized output</div></div>
+  <div class="copy">
+    <div class="eyebrow">07 / Organization</div>
+    <div class="headline"><span class="accent">Smart</span><br>Folders.</div>
+    <div class="subtitle">Use enriched filenames, tags, cleaned text, and auto-routing to turn raw dictation into organized notes.</div>
+    <div class="badge-row"><span class="badge">Auto-organize</span><span class="badge dim">Tags included</span></div>
+  </div>
+  <div class="phone off-right"><div class="phone-body"><div class="btn-power"></div><div class="btn-action"></div><div class="btn-vol-1"></div><div class="btn-vol-2"></div><div class="phone-screen"><img src="../raw/iphone/07-smart-files.png" alt="Smart file organization settings"></div></div></div>
+  <div class="callout">Smart routing</div>
+  <div class="slide-number">07</div>
+</div>
+
+<script>
+  function showSlide() {
+    const num = parseInt(location.hash.replace('#', '')) || 1;
+    document.querySelectorAll('.slide').forEach((s, i) => {
+      s.classList.toggle('active', i === num - 1);
+    });
+  }
+  window.addEventListener('hashchange', showSlide);
+  showSlide();
+</script>
+</body>
+</html>

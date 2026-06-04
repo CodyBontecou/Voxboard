@@ -46,7 +46,7 @@ struct MetaSettingsView: View {
         .toolbarBackground(Brutal.bg, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .sheet(isPresented: $showPaywall) {
-            PaywallView()
+            PaywallView(context: .settings)
                 .environment(usageTracker)
                 .environment(storeManager)
         }
@@ -179,7 +179,7 @@ struct MetaSettingsView: View {
                 ("Whisper engine", "whisper.cpp"),
                 ("Parakeet engine", "FluidAudio (CoreML)"),
                 ("Processing", "On-device"),
-                ("Privacy", "Zero data leaves device"),
+                ("Privacy", "Voice/text stay local"),
                 ("Version", appVersionString),
             ]
             let _ = { // build Apple Intelligence row lazily, gated by availability

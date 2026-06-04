@@ -1,0 +1,5 @@
+Nytt i denna uppdatering:
+• Tangentbord haptisk återkoppling — tryckningar har nu taktil återkoppling som standard, med en växlare i Inställningar för att stänga av det.
+• Långtryck accent pop-ups — håll ned en tangent på latinska skriftspråk för att komma åt accent-varianter (à, é, ñ, ü, osv.).
+• Lokaliserade statusmeddelanden på tangentbordets verktygsfält för alla språk som stöds.
+• Buggfix för in-app inspelningar som kunde utlösa duplicerade IPC-svar.

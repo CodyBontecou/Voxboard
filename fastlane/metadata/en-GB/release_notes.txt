@@ -1,0 +1,5 @@
+New in this update:
+• Keyboard haptic feedback — taps now have tactile feedback by default, with a Settings toggle to turn it off.
+• Long-press accent callouts — hold a key on Latin-script languages to access accented variants (à, é, ñ, ü, etc.).
+• Localised status messages on the keyboard toolbar across all supported languages.
+• Bug fix for in-app recordings that could trigger duplicate IPC responses.

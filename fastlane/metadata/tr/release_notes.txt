@@ -1,0 +1,5 @@
+Bu güncellemede yeni:
+• Klavye dokunsal geri bildirimi — dokunuşlar artık varsayılan olarak dokunsal geri bildirime sahip, kapatmak için Ayarlar'da bir geçiş anahtarı bulunuyor.
+• Uzun basma vurgu çağrıları — aksanlı varyantlara erişmek için Latin alfabesi dillerinde bir tuşu basılı tutun (à, é, ñ, ü, vb.).
+• Tüm desteklenen dillerde klavye araç çubuğunda yerelleştirilmiş durum mesajları.
+• Yinelenen IPC yanıtlarını tetikleyebilen uygulama içi kayıtlar için hata düzeltmesi.

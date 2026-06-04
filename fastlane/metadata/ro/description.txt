@@ -1,0 +1,34 @@
+Voxboard este o tastatură voce-în-text offline, pe dispozitiv pentru recunoașterea vocii și tastarea vocală — fără internet, fără servere, fără abonament.
+
+Atingeți butonul microfonului în orice aplicație, vorbiți natural și cuvintele dvs. apar ca text. Tot se procesează pe dispozitiv folosind Apple Silicon, deci nimic nu părăsește vreodată telefonul dvs.
+
+—
+
+CUM FUNCȚIONEAZĂ
+
+Voxboard adaugă un buton de voce la tastatura dvs. iOS. Când doriți să dictați, atingeți microfonul, vorbiți și Voxboard transcrie vocea dvs. direct în câmpul de text — în Mesaje, Notițe, Safari sau orice aplicație care acceptă o tastatură.
+
+—
+
+FUNCȚII
+
+• Transcriere pe dispozitiv — alimentată de Whisper AI, zero date trimise oriunde
+• Funcționează în toate aplicațiile — orice câmp de text care folosește tastatura iOS standard
+• Mod de ascultare mereu activ — începeți o sesiune din aplicația principală, apoi folosiți dictarea fără mâini în orice aplicație
+• Istoric transcriere — derulați prin tot ce ați dictat
+• Modele Whisper multiple — alegeți între Tiny, Base și Small în funcție de preferința dvs. de viteză/acuratețe
+• Fără abonament — plătiți o dată, folosiți pentru totdeauna
+
+—
+
+NIVEL GRATUIT
+
+Utilizatorii noi primesc 15 minute de transcriere gratuită pentru a încerca totul. Actualizați la Voxboard Unlimited cu o singură achiziție unică pentru a elimina toate limitările.
+
+—
+
+CONFIDENȚIALITATE
+
+Toată procesarea audio se întâmplă pe iPhone-ul dvs. folosind învățare automată pe dispozitiv. Nicio înregistrare audio, transcriere sau date personale nu sunt transmise vreodată pe servere externe. Accesul la microfon este necesar pentru transcriere și este folosit doar când începeți în mod activ înregistrarea.
+
+Util și pentru: recunoastere, vocala, transcriptie, confidentialitate, notite.

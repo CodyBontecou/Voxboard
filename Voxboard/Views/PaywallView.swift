@@ -7,6 +7,12 @@ struct PaywallView: View {
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(StoreManager.self) private var storeManager
 
+    let context: OnboardingAnalyticsPaywallContext
+
+    init(context: OnboardingAnalyticsPaywallContext = .limit) {
+        self.context = context
+    }
+
     var body: some View {
         ZStack {
             Brutal.bg.ignoresSafeArea()
@@ -29,6 +35,12 @@ struct PaywallView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            OnboardingAnalyticsClient.shared.trackPaywallShown(
+                context: context,
+                quotaState: usageTracker.onboardingAnalyticsQuotaState
+            )
+        }
         .task { await storeManager.loadProducts() }
     }
 
@@ -161,7 +173,7 @@ struct PaywallView: View {
 
             // Buy button
             Button(action: {
-                Task { await storeManager.purchase() }
+                Task { await storeManager.purchase(context: context) }
             }) {
                 Group {
                     if storeManager.isPurchasing {
@@ -210,7 +222,7 @@ struct PaywallView: View {
 
             let features: [(String, String)] = [
                 ("Unlimited transcription", "No time caps, ever"),
-                ("On-device processing",    "Zero data leaves your phone"),
+                ("On-device processing",    "Voice data stays on phone"),
                 ("All models included",     "Tiny, Base, Small, and more"),
                 ("Keyboard integration",    "Works in any app"),
                 ("Lifetime access",         "Pay once, use forever"),
@@ -243,7 +255,7 @@ struct PaywallView: View {
     private var restoreSection: some View {
         VStack(spacing: 16) {
             Button(action: {
-                Task { await storeManager.restorePurchases() }
+                Task { await storeManager.restorePurchases(context: .restore) }
             }) {
                 Group {
                     if storeManager.isRestoring {

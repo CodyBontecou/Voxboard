@@ -1,0 +1,17 @@
+{
+  "prompt": "Portrait App Store marketing background plate for an iOS voice transcription keyboard app called Voxboard. Brutalist black-and-white technical aesthetic matching a developer landing page: pure black field, thin dark-gray grid lines, precise 1px borders, abstract white audio waveform bars, small orange recording status dots, sparse terminal-like composition. Leave generous empty space for overlay text and a phone mockup. No readable text, no logos, no app screenshots, no devices, no people, no gradients, no glow; crisp monochrome editorial design.",
+  "model": "gpt-image-2",
+  "manifest_path": "design/screenshots/v1.7/codex-background/manifest.json",
+  "images": [
+    {
+      "index": 1,
+      "path": "design/screenshots/v1.7/codex-background/image-0001.png",
+      "format": "png",
+      "byte_count": 474985
+    }
+  ],
+  "response": {
+    "created": 1778207566,
+    "usage": {}
+  }
+}

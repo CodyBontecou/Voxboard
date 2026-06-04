@@ -1,0 +1,5 @@
+Nuovo in questo aggiornamento:
+• Feedback aptico della tastiera — i tocchi ora hanno feedback tattile per impostazione predefinita, con un interruttore nelle Impostazioni per disattivarlo.
+• Pressione lunga per accenti — tenga premuto un tasto nelle lingue con scrittura latina per accedere alle varianti accentate (à, é, ñ, ü, ecc.).
+• Messaggi di stato localizzati nella barra degli strumenti della tastiera in tutte le lingue supportate.
+• Correzione bug per registrazioni in-app che potevano attivare risposte IPC duplicate.

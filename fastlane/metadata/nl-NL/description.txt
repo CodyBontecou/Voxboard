@@ -1,0 +1,34 @@
+Voxboard is een offline, on-device spraak-naar-tekst toetsenbord voor spraak naar tekst en stemtypen — geen internet, geen servers, geen abonnement.
+
+Tik op de microfoonknop in elke app, spreek natuurlijk en uw woorden verschijnen als tekst. Alles wordt verwerkt op het apparaat met Apple Silicon, dus niets verlaat ooit uw telefoon.
+
+—
+
+HOE HET WERKT
+
+Voxboard voegt een stemknop toe aan uw iOS-toetsenbord. Wanneer u wilt dicteren, tikt u op de microfoon, spreekt u en Voxboard transcribeert uw stem direct in het tekstveld — in Berichten, Notities, Safari of elke app die een toetsenbord accepteert.
+
+—
+
+FUNCTIES
+
+• On-device transcriptie — aangedreven door Whisper AI, nul data verzonden ergens naartoe
+• Werkt in elke app — elk tekstveld dat het standaard iOS-toetsenbord gebruikt
+• Altijd-aan luistermodus — start een sessie vanuit de hoofd-app, gebruik dan handsfree dicteren in elke app
+• Transcriptiegeschiedenis — scroll terug door alles wat u hebt gedicteerd
+• Meerdere Whisper-modellen — kies tussen Tiny, Base en Small afhankelijk van uw snelheid/nauwkeurigheidsvoorkeur
+• Geen abonnement — betaal eenmaal, gebruik voor altijd
+
+—
+
+GRATIS NIVEAU
+
+Nieuwe gebruikers krijgen 15 minuten gratis transcriptie om alles uit te proberen. Upgrade naar Voxboard Unlimited met één eenmalige aankoop om alle beperkingen weg te nemen.
+
+—
+
+PRIVACY
+
+Alle audioverwerking gebeurt op uw iPhone met on-device machine learning. Geen audio-opnames, transcripties of persoonlijke gegevens worden ooit verzonden naar externe servers. Microfoon toegang is vereist voor transcriptie en wordt alleen gebruikt wanneer u actief opname start.
+
+Ook handig voor: spraakherkenning, lokaal.

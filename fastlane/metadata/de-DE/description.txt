@@ -1,0 +1,34 @@
+Voxboard ist eine Offline-Sprache-zu-Text-Tastatur für Spracherkennung und Spracheingabe — ohne Internet, ohne Server, ohne Abonnement.
+
+Tippen Sie auf das Mikrofon-Symbol in jeder App, sprechen Sie natürlich, und Ihre Worte erscheinen als Text. Alles wird direkt auf dem Gerät mit Apple Silicon verarbeitet, sodass nichts jemals Ihr Telefon verlässt.
+
+—
+
+SO FUNKTIONIERT ES
+
+Voxboard fügt eine Sprachtaste zu Ihrer iOS-Tastatur hinzu. Wenn Sie diktieren möchten, tippen Sie auf das Mikrofon, sprechen Sie, und Voxboard transkribiert Ihre Sprache direkt in das Textfeld — in Nachrichten, Notizen, Safari oder jeder App mit Tastaturunterstützung.
+
+—
+
+FUNKTIONEN
+
+• Geräte-interne Transkription — unterstützt von Whisper KI, keine Daten werden übertragen
+• Funktioniert in jeder App — jedes Textfeld mit Standard-iOS-Tastatur
+• Dauerhörungsmodus — starten Sie eine Sitzung in der Haupt-App, dann nutzen Sie freihändige Diktierfunktion in jeder App
+• Transkriptions-Verlauf — blättern Sie durch alles zurück, was Sie diktiert haben
+• Mehrere Whisper-Modelle — wählen Sie zwischen Tiny, Base und Small je nach Geschwindigkeit/Genauigkeit
+• Kein Abonnement — einmal bezahlen, für immer nutzen
+
+—
+
+KOSTENLOSE VERSION
+
+Neue Nutzer erhalten 15 Minuten kostenlose Transkription zum Ausprobieren. Upgraden Sie auf Voxboard Unlimited mit einem einmaligen Kauf, um alle Grenzen zu entfernen.
+
+—
+
+DATENSCHUTZ
+
+Alle Audioverarbeitung erfolgt auf Ihrem iPhone mit maschinellem Lernen auf dem Gerät. Keine Audioaufnahmen, Transkripte oder persönlichen Daten werden jemals an externe Server übertragen. Mikrofonzugriff ist für die Transkription erforderlich und wird nur verwendet, wenn Sie aktiv eine Aufnahme starten.
+
+Auch nützlich für: diktat.

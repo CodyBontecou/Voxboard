@@ -1,0 +1,34 @@
+Voxboard je offline klávesnice pro převod hlasu na text fungující přímo v zařízení pro přepis řeči a hlasové psaní — bez internetu, bez serverů, bez předplatného.
+
+Klepněte na tlačítko mikrofonu v jakékoliv aplikaci, mluvte přirozeně a vaše slova se zobrazí jako text. Vše se zpracovává v zařízení pomocí Apple Silicon, takže nic nikdy neopustí váš telefon.
+
+—
+
+JAK TO FUNGUJE
+
+Voxboard přidává hlasové tlačítko na vaši iOS klávesnici. Když chcete diktovat, klepněte na mikrofon, mluvte a Voxboard přepíše váš hlas přímo do textového pole — ve Zprávách, Poznámkách, Safari nebo jakékoliv aplikaci, která přijímá klávesnici.
+
+—
+
+FUNKCE
+
+• Přepis v zařízení — využívá Whisper AI, žádná data se nikam neposílají
+• Funguje ve všech aplikacích — jakékoliv textové pole, které používá standardní iOS klávesnici
+• Režim neustálého naslouchání — zahajte relaci z hlavní aplikace, poté používejte diktování bez rukou v jakékoliv aplikaci
+• Historie přepisů — procházejte vším, co jste nadiktovali
+• Více modelů Whisper — vyberte si mezi Tiny, Base a Small podle vašich preferencí rychlosti/přesnosti
+• Bez předplatného — zaplaťte jednou, používejte navždy
+
+—
+
+BEZPLATNÁ VERZE
+
+Noví uživatelé získají 15 minut bezplatného přepisu k vyzkoušení všech funkcí. Upgradujte na Voxboard Unlimited jediným jednorázovým nákupem pro odstranění všech omezení.
+
+—
+
+SOUKROMÍ
+
+Veškeré zpracování zvuku probíhá ve vašem iPhone pomocí strojového učení v zařízení. Žádné zvukové záznamy, přepisy ani osobní údaje se nikdy nepřenášejí na externí servery. Přístup k mikrofonu je vyžadován pro přepis a používá se pouze při aktivním spuštění nahrávání.
+
+Hodí se také pro: poznámky, lokálně, rychlé, poznámka.

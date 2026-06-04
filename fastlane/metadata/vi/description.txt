@@ -1,0 +1,32 @@
+Voxboard là bàn phím giọng nói thành văn bản ngoại tuyến, trên thiết bị để chuyển đổi giọng nói thành văn bản và gõ bằng giọng nói — không cần internet, không cần máy chủ, không cần đăng ký.
+
+Chạm vào nút micro trong bất kỳ ứng dụng nào, nói tự nhiên và lời nói của bạn xuất hiện dưới dạng văn bản. Mọi thứ được xử lý trên thiết bị sử dụng Apple Silicon, vì vậy không có gì rời khỏi điện thoại của bạn.
+
+—
+
+CÁCH HOẠT ĐỘNG
+
+Voxboard thêm một nút giọng nói vào bàn phím iOS của bạn. Khi bạn muốn đọc chính tả, chạm vào micro, nói, và Voxboard sẽ phiên âm giọng nói của bạn trực tiếp vào trường văn bản — trong Messages, Notes, Safari hoặc bất kỳ ứng dụng nào chấp nhận bàn phím.
+
+—
+
+TÍNH NĂNG
+
+• Phiên âm trên thiết bị — được hỗ trợ bởi Whisper AI, không có dữ liệu nào được gửi đi
+• Hoạt động trong mọi ứng dụng — bất kỳ trường văn bản nào sử dụng bàn phím iOS tiêu chuẩn
+• Chế độ lắng nghe luôn bật — bắt đầu phiên từ ứng dụng chính, sau đó sử dụng đọc chính tả rảnh tay trong bất kỳ ứng dụng nào
+• Lịch sử phiên âm — cuộn lại qua mọi thứ bạn đã đọc chính tả
+• Nhiều mô hình Whisper — chọn giữa Tiny, Base và Small tùy thuộc vào sở thích tốc độ/độ chính xác của bạn
+• Không cần đăng ký — trả một lần, sử dụng mãi mãi
+
+—
+
+CẤP MIỄN PHÍ
+
+Người dùng mới nhận được 15 phút phiên âm miễn phí để thử nghiệm mọi thứ. Nâng cấp lên Voxboard Unlimited với một lần mua duy nhất để loại bỏ mọi giới hạn.
+
+—
+
+QUYỀN RIÊNG TƯ
+
+Tất cả xử lý âm thanh xảy ra trên iPhone của bạn sử dụng machine learning trên thiết bị. Không có bản ghi âm thanh, bản phiên âm hoặc dữ liệu cá nhân nào được truyền tới máy chủ bên ngoài. Quyền truy cập micro được yêu cầu cho phiên âm và chỉ được sử dụng khi bạn chủ động bắt đầu ghi âm.

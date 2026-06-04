@@ -1,0 +1,40 @@
+locale	subtitle_len	keywords_len	description_len	whatsNew_len	subtitle	keywords
+ar-SA	17	90	1283	387	لوحة مفاتيح صوتية	تحويل الصوت لنص,إملاء,نسخ صوتي,ذكاء اصطناعي,خصوصية,أوفلاين,ميكروفون,ملاحظات,آيفون,سريع,خاص
+ca	20	92	1710	528	Teclat de veu a text	dictat,transcripció,veu,àudio,text,offline,privacitat,whisper,IA,micròfon,notes,iphone,local
+cs	23	91	1622	461	Klávesnice hlas na text	diktování,přepis,hlas,řeč,text,offline,soukromí,whisper,AI,mikrofon,poznámky,iphone,lokálně
+da	25	92	1567	437	Stemme til tekst tastatur	stemmediktering,transskription,stemme,tale,tekst,offline,privatliv,whisper,AI,mikrofon,noter
+de-DE	24	90	1702	478	Sprache-zu-Text-Tastatur	spracheingabe,diktat,transkription,offline,ki,datenschutz,mikrofon,notizen,spracherkennung
+el	29	93	1852	542	Πληκτρολόγιο φωνής σε κείμενο	υπαγόρευση,μεταγραφή,φωνή,κείμενο,whisper,ai,ιδιωτικότητα,offline,μικρόφωνο,σημειώσεις,iphone
+en-AU	22	95	1498	406	Voice-to-text keyboard	voice dictation,speech recognition,transcribe audio,whisper ai,offline,private,mic,notes,iphone
+en-CA	22	99	1497	406	Voice-to-text keyboard	speech-to-text,voice recognition,audio transcription,whisper,offline dictation,private,mic,notes,ai
+en-GB	22	100	1497	406	Voice-to-text keyboard	voice input,speech transcription,audio-to-text,whisper,offline typing,private dictation,mic,notes,ai
+en-US	22	98	1497	406	Voice-to-text keyboard	voice typing,speech to text,transcription,whisper,dictation,on-device,ai,privacy,offline,mic,notes
+es-ES	19	94	1720	541	Teclado voz-a-texto	dictado por voz,transcripción,sin conexión,ia,privacidad,micrófono,notas,reconocimiento,iphone
+es-MX	19	94	1726	547	Teclado voz-a-texto	dictado por voz,transcripción,sin conexión,ia,privacidad,micrófono,notas,reconocimiento,iphone
+fi	27	91	1718	489	Ääni tekstiksi -näppäimistö	puheentunnistus,transkriptio,ääni,puhe,teksti,offline,yksityisyys,whisper,tekoäly,mikrofoni
+fr-CA	19	91	1768	519	Clavier vocal-texte	saisie vocale,dictée,transcription,hors ligne,ia,confidentialité,micro,notes,reconnaissance
+fr-FR	19	91	1768	519	Clavier vocal-texte	saisie vocale,dictée,transcription,hors ligne,ia,confidentialité,micro,notes,reconnaissance
+he	15	91	1224	333	מקלדת קול לטקסט	הקלדה קולית,דיבור לטקסט,תמלול,ויספר,הכתבה,במכשיר,בינה מלאכותית,פרטיות,מיקרופון,פתקים,אייפון
+hi	24	94	1683	430	आवाज़ से टेक्स्ट कीबोर्ड	वॉइस टाइपिंग,स्पीच टू टेक्स्ट,ट्रांसक्रिप्शन,व्हिस्पर,डिक्टेशन,ऑफलाइन,एआई,प्राइवेसी,माइक,नोट्स
+hr	24	90	1673	477	Tipkovnica govor u tekst	diktiranje,govor,tekst,transkripija,offline,privatnost,whisper,AI,mikrofon,bilješke,iphone
+hu	26	91	1721	542	Beszéd szöveg billentyűzet	diktálás,beszédfelismerés,hang,szöveg,offline,adatvédelem,whisper,mesterséges,intelligencia
+id	22	92	1638	448	Keyboard suara ke teks	mengetik suara,bicara ke teks,transkripsi,whisper,dikte,lokal,ai,privasi,offline,mic,catatan
+it	19	92	1698	528	Tastiera voce-testo	dettatura vocale,trascrizione,offline,ia,privacy,microfono,note,riconoscimento vocale,iphone
+ja	9	98	833	237	音声入力キーボード	音声入力,音声認識,文字起こし,ウィスパー,聞き取り,オフライン,AI,プライバシー,マイク,メモ,ローカル,録音,議事録,文章化,ノート,音声メモ,オンデバイス,iPhone,テキスト化,会議録
+ko	10	91	853	230	음성 텍스트 키보드	음성입력,음성인식,텍스트변환,위스퍼,받아쓰기,오프라인,인공지능,개인정보보호,마이크,메모,로컬,녹음,노트,빠른입력,아이폰,음성메모,온디바이스,텍스트화,회의록,기록,앱
+ms	27	97	1704	462	Papan kekunci suara ke teks	menaip suara,pertuturan ke teks,transkripsi,whisper,imlak,peranti,ai,privasi,luar talian,mikrofon
+nl-NL	29	96	1626	462	Spraak naar tekst toetsenbord	dicteren,spraakherkenning,stem,tekst,offline,privacy,whisper,AI,microfoon,notities,iphone,lokaal
+no	23	96	1589	450	Tale til tekst tastatur	diktere,talegjenkjenning,stemme,tale,tekst,offline,personvern,whisper,AI,mikrofon,notater,iphone
+pl	24	96	1742	502	Klawiatura mowa na tekst	dyktowanie,rozpoznawanie,mowy,transkrypcja,offline,prywatność,whisper,AI,mikrofon,notatki,iphone
+pt-BR	22	90	1693	484	Teclado voz-para-texto	digitação por voz,transcrição,offline,ia,privacidade,microfone,notas,reconhecimento,iphone
+pt-PT	22	93	1699	489	Teclado voz-para-texto	ditado por voz,transcrição,offline,ia,privacidade,microfone,notas,reconhecimento,iphone,local
+ro	22	93	1707	484	Tastatură voce în text	dictare,recunoastere,vocala,transcriptie,offline,confidentialitate,whisper,AI,microfon,notite
+ru	24	98	1739	530	Клавиатура голос в текст	голосовой набор,речь в текст,транскрипция,whisper,диктовка,локально,ии,приватность,офлайн,микрофон
+sk	23	97	1658	456	Klávesnica hlas na text	diktovanie,rozpoznavanie,reči,prepis,offline,súkromie,whisper,AI,mikrofón,poznámky,iphone,lokálne
+sv	26	94	1624	459	Röst till text tangentbord	röstdiktering,taligenkänning,röst,tal,text,offline,integritet,whisper,AI,mikrofon,anteckningar
+th	25	96	1478	402	คีย์บอร์ดเสียงเป็นข้อความ	พิมพ์เสียง,เสียงเป็นข้อความ,ถอดเสียง,whisper,บอกคำ,ในเครื่อง,ai,ความเป็นส่วนตัว,ออฟไลน์,ไมโครโฟน
+tr	20	97	1685	478	Sesli yazım klavyesi	sesli yazma,konuşmayı yazıya,transkripsiyon,whisper,dikte,cihazda,ai,gizlilik,çevrimdışı,mikrofon
+uk	24	90	1677	533	Клавіатура голос у текст	голосовий ввід,мова в текст,транскрипція,whisper,диктування,локально,ші,приватність,офлайн
+vi	28	95	1699	461	Bàn phím giọng nói thành văn	gõ giọng nói,nói thành văn bản,phiên âm,whisper,chính tả,trên máy,ai,riêng tư,ngoại tuyến,micro
+zh-Hans	7	95	620	145	语音转文字键盘	语音输入,语音转文字,转录,语音识别,听写,离线,人工智能,隐私保护,麦克风,笔记,本地,无网络,录音,备忘录,转写,文字,语音笔记,私人,安全,iPhone,应用,会议记录,快速输入,口述
+zh-Hant	7	100	635	147	語音轉文字鍵盤	語音輸入,語音轉文字,轉錄,語音識別,聽寫,離線,人工智慧,隱私保護,麥克風,備忘錄,本機,無網路,錄音,轉寫,說話,文字,語音筆記,私人,安全,iPhone,應用,會議記錄,快速輸入,口述,本機AI

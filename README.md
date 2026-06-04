@@ -6,9 +6,9 @@
 [![Platform](https://img.shields.io/badge/platform-iOS%2017.6%2B%20%7C%20iPadOS-lightgrey)](#tech-stack)
 [![Swift](https://img.shields.io/badge/swift-5-orange)](#tech-stack)
 
-Voxboard is a custom iOS keyboard and transcription app for turning speech into text without sending audio to the cloud. It runs Whisper and Parakeet models on-device, saves transcript history locally, and can auto-export notes to files for workflows like Obsidian. No accounts. No analytics. No servers for your voice data. Just your keyboard, your models, and your words.
+Voxboard is a custom iOS keyboard and transcription app for turning speech into text without sending audio to the cloud. It runs Whisper and Parakeet models on-device, saves transcript history locally, and can auto-export notes to files for workflows like Obsidian. No accounts. No ads. No servers for your voice or transcript data. Just your keyboard, your models, and your words.
 
-**[🌐 isolated.tech/voxboard](https://isolated.tech/voxboard)** · **[📲 Download](https://isolated.tech/voxboard)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[💬 Discussions](https://github.com/CodyBontecou/Voxboard/discussions)** · **[👥 Discord](https://discord.gg/RaQYS4t6gn)** · **[⭐ Star this repo](https://github.com/CodyBontecou/Voxboard)**
+**[🌐 Website](https://voxboard-app.vercel.app/)** · **[📲 Download](https://voxboard-app.vercel.app/)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[💬 Discussions](https://github.com/CodyBontecou/Voxboard/discussions)** · **[👥 Discord](https://discord.gg/RaQYS4t6gn)** · **[⭐ Star this repo](https://github.com/CodyBontecou/Voxboard)**
 
 ## Screenshots
 
@@ -175,4 +175,4 @@ If you want to chat about the project, design decisions, or what to build next, 
 
 ## License
 
-Voxboard is licensed under the [GNU Affero General Public License v3.0](LICENSE). The AGPL ensures that any modified version of Voxboard — including ones run as a hosted service — must also be open source. This protects the privacy-first promise: nobody can take Voxboard, bolt on tracking or cloud transcription, and ship it as a closed product.
+Voxboard is licensed under the [GNU Affero General Public License v3.0](LICENSE). The AGPL ensures that any modified version of Voxboard — including ones run as a hosted service — must also be open source. This protects the privacy-first promise: nobody can take Voxboard, bolt on invasive tracking or cloud transcription, and ship it as a closed product.

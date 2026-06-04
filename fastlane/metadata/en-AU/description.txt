@@ -1,0 +1,34 @@
+Voxboard is an on-device voice-to-text keyboard for speech to text and voice typing — no cloud transcription, no accounts, no subscription.
+
+Tap the mic button in any app, speak naturally, and your words appear as text. Your audio and transcribed words are processed on-device using Apple Silicon, so your voice data never leaves your mobile.
+
+—
+
+HOW IT WORKS
+
+Voxboard adds a voice button to your iOS keyboard. When you want to dictate, tap the mic, speak, and Voxboard transcribes your voice directly into the text field — in Messages, Notes, Safari, or any app that accepts a keyboard.
+
+—
+
+FEATURES
+
+• On-device transcription — powered by Whisper AI, zero voice or transcript data sent anywhere
+• Works in every app — any text field that uses the standard iOS keyboard
+• Always-on listening mode — start a session from the main app, then use hands-free dictation in any app
+• Transcription history — scroll back through everything you've dictated
+• Multiple Whisper models — choose between Tiny, Base, and Small depending on your speed/accuracy preference
+• No subscription — pay once, use forever
+
+—
+
+FREE TIER
+
+New users get 15 minutes of free transcription to try everything out. Upgrade to Voxboard Unlimited with a single one-time purchase to remove all limits.
+
+—
+
+PRIVACY
+
+All audio processing happens on your iPhone using on-device machine learning. No audio recordings, transcripts, keystrokes, or exported note contents are ever transmitted to external servers. Voxboard collects only minimal, privacy-safe onboarding analytics to understand setup friction. Microphone access is required for transcription and is only used when you actively start recording.
+
+Also useful for: speech recognition, private.

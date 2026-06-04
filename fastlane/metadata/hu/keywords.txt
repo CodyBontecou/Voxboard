@@ -1,0 +1,1 @@
+diktálás,beszédfelismerés,hang,offline,adatvédelem,whisper,mesterséges,intelligencia,jegyzetek

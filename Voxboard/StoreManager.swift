@@ -171,30 +171,76 @@ final class StoreManager {
 
     // MARK: - Purchase
 
-    func purchase() async {
+    func purchase(context: OnboardingAnalyticsPaywallContext = .limit) async {
         guard let product else {
             errorMessage = "Product not available"
+            OnboardingAnalyticsClient.shared.trackPurchaseFinished(
+                outcome: .failed,
+                context: context,
+                errorCategory: .storeUnavailable,
+                quotaState: usageTracker.onboardingAnalyticsQuotaState
+            )
             return
         }
         isPurchasing = true
         errorMessage = nil
+        OnboardingAnalyticsClient.shared.trackPurchaseStarted(
+            context: context,
+            quotaState: usageTracker.onboardingAnalyticsQuotaState
+        )
 
         do {
             let result = try await product.purchase()
             switch result {
             case .success(let verification):
-                let transaction = try checkVerified(verification)
-                usageTracker.unlock()
-                await transaction.finish()
+                do {
+                    let transaction = try checkVerified(verification)
+                    usageTracker.unlock()
+                    await transaction.finish()
+                    OnboardingAnalyticsClient.shared.trackPurchaseFinished(
+                        outcome: .succeeded,
+                        context: context,
+                        quotaState: usageTracker.onboardingAnalyticsQuotaState
+                    )
+                } catch {
+                    errorMessage = "Purchase verification failed"
+                    OnboardingAnalyticsClient.shared.trackPurchaseFinished(
+                        outcome: .failed,
+                        context: context,
+                        errorCategory: .verificationFailed,
+                        quotaState: usageTracker.onboardingAnalyticsQuotaState
+                    )
+                }
             case .userCancelled:
-                break
+                OnboardingAnalyticsClient.shared.trackPurchaseFinished(
+                    outcome: .cancelled,
+                    context: context,
+                    errorCategory: .userCancelled,
+                    quotaState: usageTracker.onboardingAnalyticsQuotaState
+                )
             case .pending:
                 errorMessage = "Purchase pending approval"
+                OnboardingAnalyticsClient.shared.trackPurchaseFinished(
+                    outcome: .pending,
+                    context: context,
+                    quotaState: usageTracker.onboardingAnalyticsQuotaState
+                )
             @unknown default:
-                break
+                OnboardingAnalyticsClient.shared.trackPurchaseFinished(
+                    outcome: .failed,
+                    context: context,
+                    errorCategory: .unknown,
+                    quotaState: usageTracker.onboardingAnalyticsQuotaState
+                )
             }
         } catch {
             errorMessage = "Purchase failed: \(error.localizedDescription)"
+            OnboardingAnalyticsClient.shared.trackPurchaseFinished(
+                outcome: .failed,
+                context: context,
+                errorCategory: .storeUnavailable,
+                quotaState: usageTracker.onboardingAnalyticsQuotaState
+            )
         }
 
         isPurchasing = false
@@ -202,26 +248,44 @@ final class StoreManager {
 
     // MARK: - Restore
 
-    func restorePurchases() async {
+    func restorePurchases(context: OnboardingAnalyticsPaywallContext = .restore) async {
         isRestoring = true
         errorMessage = nil
+        OnboardingAnalyticsClient.shared.trackRestoreStarted(
+            context: context,
+            quotaState: usageTracker.onboardingAnalyticsQuotaState
+        )
 
         do {
             try await AppStore.sync()
         } catch {
             errorMessage = "Restore failed: \(error.localizedDescription)"
             isRestoring = false
+            OnboardingAnalyticsClient.shared.trackRestoreFinished(
+                outcome: .failed,
+                context: context,
+                errorCategory: .storeUnavailable,
+                quotaState: usageTracker.onboardingAnalyticsQuotaState
+            )
             return
         }
 
+        var restoredUnlock = false
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result,
                transaction.productID == Self.unlockProductID {
                 usageTracker.unlock()
+                restoredUnlock = true
                 await transaction.finish()
             }
         }
 
+        OnboardingAnalyticsClient.shared.trackRestoreFinished(
+            outcome: restoredUnlock ? .succeeded : .failed,
+            context: context,
+            errorCategory: restoredUnlock ? nil : .notUnlocked,
+            quotaState: usageTracker.onboardingAnalyticsQuotaState
+        )
         isRestoring = false
     }
 

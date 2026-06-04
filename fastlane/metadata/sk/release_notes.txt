@@ -1,0 +1,5 @@
+Nové v tejto aktualizácii:
+• Haptická odozva klávesnice — dotykanie má teraz predvolene hmatovú odozvu s prepínačom v Nastaveniach na vypnutie.
+• Dlhé stlačenie vyskakovacích akcentov — podržte kláves na jazykoch s latinkou pre prístup k variantom s akcentmi (à, é, ñ, ü, atď.).
+• Lokalizované stavové správy na paneli nástrojov klávesnice pre všetky podporované jazyky.
+• Oprava chyby pre nahrávky v aplikácii, ktoré mohli spustiť duplicitné IPC odpovede.

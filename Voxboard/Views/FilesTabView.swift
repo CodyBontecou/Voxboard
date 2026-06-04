@@ -144,6 +144,32 @@ struct FilesTabView: View {
 
     @ViewBuilder
     private var mainSection: some View {
+        sectionHeader("00", "Recording Flows")
+        BrutalDivider()
+        NavigationLink {
+            FlowSettingsView()
+        } label: {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("MANAGE FLOWS")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.text)
+                    Text("Default and custom flows for frontmatter, audio, export, and cleanup")
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Brutal.muted)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(Brutal.bg)
+        }
+        .buttonStyle(.plain)
+        BrutalDivider()
+
         sectionHeader("01", "Auto-Save to File")
         BrutalDivider()
 
@@ -158,6 +184,7 @@ struct FilesTabView: View {
                 .tint(Brutal.muted)
                 .onChange(of: fileExportEnabled) { _, val in
                     AppConstants.sharedDefaults?.set(val, forKey: AppConstants.fileExportEnabledKey)
+                    if val { trackFileExportSetupCompleted() }
                 }
         }
         .padding(.horizontal, 20)
@@ -325,6 +352,7 @@ struct FilesTabView: View {
             .frame(maxWidth: 240)
             .onChange(of: fileExportFormat) { _, val in
                 AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.fileExportFormatKey)
+                if fileExportEnabled { trackFileExportSetupCompleted() }
             }
         }
         .padding(.horizontal, 20)
@@ -348,6 +376,7 @@ struct FilesTabView: View {
             .frame(width: 180)
             .onChange(of: fileExportMode) { _, val in
                 AppConstants.sharedDefaults?.set(val.rawValue, forKey: AppConstants.fileExportModeKey)
+                if fileExportEnabled { trackFileExportSetupCompleted() }
             }
         }
         .padding(.horizontal, 20)
@@ -616,6 +645,13 @@ struct FilesTabView: View {
         AppConstants.sharedDefaults?.set(raw, forKey: AppConstants.fileExportYAMLPropertiesKey)
     }
 
+    private func trackFileExportSetupCompleted() {
+        OnboardingAnalyticsClient.shared.trackFileExportSetupCompleted(
+            format: fileExportEnabled ? OnboardingAnalyticsFileExportFormat(fileExportFormat) : .disabled,
+            mode: fileExportEnabled ? OnboardingAnalyticsFileExportMode(fileExportMode) : .disabled
+        )
+    }
+
     private func handleFolderSelection(_ result: Result<[URL], Error>) {
         guard case .success(let urls) = result, let url = urls.first else { return }
         guard url.startAccessingSecurityScopedResource() else { return }
@@ -627,6 +663,7 @@ struct FilesTabView: View {
         ) {
             AppConstants.sharedDefaults?.set(bookmark, forKey: AppConstants.fileExportBookmarkKey)
             selectedFolderName = url.lastPathComponent
+            trackFileExportSetupCompleted()
         }
     }
 

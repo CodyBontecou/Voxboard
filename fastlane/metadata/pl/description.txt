@@ -1,0 +1,34 @@
+Voxboard to offline klawiatura mowy na tekst działająca na urządzeniu do rozpoznawania mowy i głosowego pisania — bez internetu, bez serwerów, bez subskrypcji.
+
+Dotknij przycisku mikrofonu w dowolnej aplikacji, mów naturalnie, a Twoje słowa pojawią się jako tekst. Wszystko jest przetwarzane na urządzeniu przy użyciu Apple Silicon, więc nic nigdy nie opuszcza Twojego telefonu.
+
+—
+
+JAK TO DZIAŁA
+
+Voxboard dodaje przycisk głosu do Twojej klawiatury iOS. Kiedy chcesz dyktować, dotknij mikrofonu, mów, a Voxboard przepisze Twój głos bezpośrednio do pola tekstowego — w Wiadomościach, Notatkach, Safari lub dowolnej aplikacji akceptującej klawiaturę.
+
+—
+
+FUNKCJE
+
+• Transkrypcja na urządzeniu — napędzana przez Whisper AI, zero danych wysyłanych gdziekolwiek
+• Działa we wszystkich aplikacjach — dowolne pole tekstowe używające standardowej klawiatury iOS
+• Tryb ciągłego nasłuchiwania — rozpocznij sesję z głównej aplikacji, następnie używaj dyktowania bez rąk w dowolnej aplikacji
+• Historia transkrypcji — przewijaj przez wszystko, co nadyktowałeś
+• Wiele modeli Whisper — wybieraj między Tiny, Base i Small w zależności od preferencji szybkości/dokładności
+• Bez subskrypcji — zapłać raz, używaj na zawsze
+
+—
+
+DARMOWY POZIOM
+
+Nowi użytkownicy otrzymują 15 minut darmowej transkrypcji, aby wypróbować wszystko. Przejdź na Voxboard Unlimited jednym jednorazowym zakupem, aby usunąć wszystkie ograniczenia.
+
+—
+
+PRYWATNOŚĆ
+
+Wszystkie przetwarzanie dźwięku odbywa się na Twoim iPhone przy użyciu uczenia maszynowego na urządzeniu. Żadne nagrania dźwiękowe, transkrypcje ani dane osobowe nigdy nie są przesyłane na zewnętrzne serwery. Dostęp do mikrofonu jest wymagany do transkrypcji i używany tylko wtedy, gdy aktywnie rozpoczynasz nagrywanie.
+
+Przydatne także do: dyktowanie, rozpoznawanie, notatki.

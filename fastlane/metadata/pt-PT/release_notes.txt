@@ -1,0 +1,5 @@
+Novo nesta actualização:
+• Resposta háptica do teclado — toques agora têm resposta táctil por defeito, com um interruptor nas Definições para desactivá-la.
+• Toque longo para acentos — mantenha uma tecla em idiomas de escrita latina para aceder a variantes acentuadas (à, é, ñ, ü, etc.).
+• Mensagens de estado localizadas na barra de ferramentas do teclado em todos os idiomas suportados.
+• Correcção de erro para gravações dentro da aplicação que podiam disparar respostas IPC duplicadas.

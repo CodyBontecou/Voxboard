@@ -1,0 +1,34 @@
+Voxboard és un teclat de veu a text offline que funciona al dispositiu per a la transcripció de veu i l'escriptura per veu — sense internet, sense servidors, sense subscripció.
+
+Toqueu el botó del micròfon en qualsevol app, parleu de forma natural i les vostres paraules apareixen com a text. Tot es processa al dispositiu amb Apple Silicon, així que res no surt mai del vostre telèfon.
+
+—
+
+COM FUNCIONA
+
+Voxboard afegeix un botó de veu al vostre teclat d'iOS. Quan vulgueu dictar, toqueu el micròfon, parleu i Voxboard transcriu la vostra veu directament al camp de text — en Missatges, Notes, Safari o qualsevol app que accepti un teclat.
+
+—
+
+CARACTERÍSTIQUES
+
+• Transcripció al dispositiu — amb tecnologia Whisper AI, cap dada s'envia enlloc
+• Funciona en totes les apps — qualsevol camp de text que utilitzi el teclat estàndard d'iOS
+• Mode d'escolta sempre actiu — inicieu una sessió des de l'app principal, després utilitzeu el dictat sense mans lliures en qualsevol app
+• Historial de transcripció — reviseu tot el que hàgiu dictat
+• Múltiples models Whisper — trieu entre Tiny, Base i Small segons la vostra preferència de velocitat/precisió
+• Sense subscripció — pagueu un cop, utilitzeu per sempre
+
+—
+
+NIVELL GRATUÏT
+
+Els nous usuaris obtenen 15 minuts de transcripció gratuïta per provar-ho tot. Actualitzeu a Voxboard Unlimited amb una sola compra única per eliminar tots els límits.
+
+—
+
+PRIVACITAT
+
+Tot el processament d'àudio es fa al vostre iPhone utilitzant aprenentatge automàtic al dispositiu. Cap gravació d'àudio, transcripció o dada personal es transmet mai a servidors externs. L'accés al micròfon és necessari per a la transcripció i només s'utilitza quan inicieu activament la gravació.
+
+També és útil per a: local, parlar, ràpid.

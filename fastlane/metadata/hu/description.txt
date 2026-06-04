@@ -1,0 +1,34 @@
+A Voxboard egy offline, eszközön futó beszéd-szöveg billentyűzet beszédfelismeréshez és hangos gépeléshez — nincs internet, nincsenek szerverek, nincs előfizetés.
+
+Koppintson a mikrofon gombra bármilyen alkalmazásban, beszéljen természetesen, és a szavai szövegként jelennek meg. Minden az eszközön kerül feldolgozásra Apple Silicon használatával, így semmi sem hagyja el a telefonját.
+
+—
+
+HOGYAN MŰKÖDIK
+
+A Voxboard hang gombot ad az iOS billentyűzetéhez. Amikor diktálni szeretne, koppintson a mikrofonra, beszéljen, és a Voxboard közvetlenül a szövegmezőbe írja át a hangját — Üzenetekben, Jegyzetekben, Safariban vagy bármely alkalmazásban, amely billentyűzetet fogad.
+
+—
+
+FUNKCIÓK
+
+• Eszközön történő átírás — Whisper AI-vel működtetve, nulla adat küldése bárhová
+• Minden alkalmazásban működik — bármely szövegmező, amely a szabványos iOS billentyűzetet használja
+• Mindig aktív figyelő mód — indítson munkamenetet a főalkalmazásból, majd használja a kéz nélküli diktálást bármely alkalmazásban
+• Átírási előzmények — görgessen végig mindenen, amit diktált
+• Több Whisper modell — válasszon Tiny, Base és Small között a sebesség/pontosság preferenciája szerint
+• Nincs előfizetés — fizessen egyszer, használja örökké
+
+—
+
+INGYENES SZINT
+
+Az új felhasználók 15 perc ingyenes átírást kapnak, hogy mindent kipróbálhassanak. Frissítsen Voxboard Unlimited-re egyetlen egyszeri vásárlással minden korlátozás eltávolításához.
+
+—
+
+ADATV ÉDELEM
+
+Minden hangfeldolgozás az iPhone-on történik eszközön futó gépi tanulás használatával. Semmilyen hangfelvétel, átírás vagy személyes adat nem kerül át külső szerverekre. A mikrofon hozzáférés szükséges az átíráshoz és csak akkor használatos, amikor aktívan elindítja a felvételt.
+
+Hasznos ehhez is: adatvédelem, mesterséges, intelligencia.

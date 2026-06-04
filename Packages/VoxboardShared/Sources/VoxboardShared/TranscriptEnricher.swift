@@ -79,24 +79,25 @@ public struct TranscriptEnricher: Sendable {
         self.backend = backend
     }
 
-    public func enrich(rawText: String) async throws -> TranscriptEnrichment {
+    public func enrich(rawText: String, flow: RecordingFlow? = nil) async throws -> TranscriptEnrichment {
         let trimmed = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             throw TranscriptEnricherError.emptyInput
         }
 
-        // Prefer the backend's native structured-generation path when it
-        // exposes one (e.g., FoundationModels @Generable). The result is
-        // guaranteed well-formed by the framework — no prompt engineering,
-        // no parsing.
-        if let native = try await backend.enrichNative(rawText: trimmed) {
-            return Self.normalize(native)
+        // Prefer the backend's native structured-generation path when this is
+        // a plain cleanup flow. For flow-specific formatting (todo checkboxes,
+        // meeting notes, or custom instructions), force the prompt path so the
+        // flow instruction can shape `cleanedText`.
+        if !Self.requiresPromptDrivenFormatting(flow),
+           let native = try await backend.enrichNative(rawText: trimmed) {
+            return Self.applyFlowDefaults(Self.normalize(native), flow: flow)
         }
 
         // Fallback: string-based path with tolerant JSON extraction.
-        let prompt = Self.buildPrompt(rawText: trimmed)
+        let prompt = Self.buildPrompt(rawText: trimmed, flow: flow)
         let response = try await backend.complete(prompt: prompt)
-        return try Self.parse(response: response)
+        return Self.applyFlowDefaults(try Self.parse(response: response), flow: flow)
     }
 
     /// Snap a free-form category to the fixed taxonomy and enforce the
@@ -108,6 +109,28 @@ public struct TranscriptEnricher: Sendable {
         return TranscriptEnrichment(
             title: enrichment.title,
             tags: normalizeTags(enrichment.tags),
+            category: category,
+            cleanedText: enrichment.cleanedText
+        )
+    }
+
+    private static func requiresPromptDrivenFormatting(_ flow: RecordingFlow?) -> Bool {
+        guard let flow else { return false }
+        switch flow.postProcessingMode {
+        case .todoList, .meetingNotes, .custom:
+            return flow.resolvedPostProcessingInstruction != nil
+        case .none, .clean:
+            return false
+        }
+    }
+
+    private static func applyFlowDefaults(_ enrichment: TranscriptEnrichment, flow: RecordingFlow?) -> TranscriptEnrichment {
+        guard let flow else { return enrichment }
+        let tags = TranscriptFlowFormatter.mergeTags(enrichment.tags, flow.staticTags)
+        let category = enrichment.category == "other" ? (flow.staticCategory ?? enrichment.category) : enrichment.category
+        return TranscriptEnrichment(
+            title: enrichment.title,
+            tags: tags,
             category: category,
             cleanedText: enrichment.cleanedText
         )
@@ -137,12 +160,12 @@ public struct TranscriptEnricher: Sendable {
     /// is left as-is (per the agreed failure policy: fields stay nil). The caller
     /// is responsible for deciding when to invoke this (e.g., only after a
     /// foreground save, only when the feature is enabled).
-    public func enrichAndUpdate(transcript: Transcript, into store: TranscriptStore) async {
+    public func enrichAndUpdate(transcript: Transcript, flow: RecordingFlow? = nil, into store: TranscriptStore) async {
         let log = KeyboardDebugLog.shared
         let shortId = String(transcript.id.uuidString.prefix(8))
-        log.log("[Enrichment] start id=\(shortId) chars=\(transcript.text.count)")
+        log.log("[Enrichment] start id=\(shortId) flow=\(flow?.id ?? "none") chars=\(transcript.text.count)")
         do {
-            let enrichment = try await enrich(rawText: transcript.text)
+            let enrichment = try await enrich(rawText: transcript.text, flow: flow)
             let updated = transcript.withEnrichment(
                 title: enrichment.title,
                 tags: enrichment.tags,
@@ -160,20 +183,27 @@ public struct TranscriptEnricher: Sendable {
 
     // MARK: - Prompt
 
-    static func buildPrompt(rawText: String) -> String {
+    static func buildPrompt(rawText: String, flow: RecordingFlow? = nil) -> String {
         let categoryList = allowedCategories.joined(separator: ", ")
+        let flowInstruction = flow?.resolvedPostProcessingInstruction
+        let flowLine = flow.map { "\nWorkflow: \($0.displayName)" } ?? ""
+        let staticTags = flow?.staticTags ?? []
+        let staticTagLine = staticTags.isEmpty ? "" : "\nPrefer including these tags when relevant: \(staticTags.joined(separator: ", "))"
+        let staticCategoryLine = flow?.staticCategory.map { "\nPrefer this category when appropriate: \($0)" } ?? ""
+        let cleanedTextInstruction = flowInstruction.map {
+            "For \"cleanedText\": \($0) Preserve the speaker's meaning and do not add information that was not in the original."
+        } ?? "For \"cleanedText\": rewrite the transcript with proper casing, punctuation, and filler words removed; preserve the speaker's meaning verbatim and do not add information that was not in the original."
+
         return """
         You are labeling a short voice transcription for a local voice-notes app. \
         The raw text was produced by an automatic speech recognizer and may contain \
-        disfluencies, missing punctuation, and lowercase text.
+        disfluencies, missing punctuation, and lowercase text.\(flowLine)\(staticTagLine)\(staticCategoryLine)
 
         Return ONLY a single JSON object — no prose, no markdown fences — with these keys:
           - "title": a short descriptive title (max 6 words)
           - "tags": an array of 0–5 lowercase single-word tags (no spaces; hyphens allowed for compound words like "app-dev")
           - "category": exactly one of [\(categoryList)]
-          - "cleanedText": the transcript rewritten with proper casing, punctuation, \
-            and filler words removed; preserve the speaker's meaning verbatim, do not \
-            add information that was not in the original
+          - "cleanedText": \(cleanedTextInstruction)
 
         Transcript:
         \"\"\"

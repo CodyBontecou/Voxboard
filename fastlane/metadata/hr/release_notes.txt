@@ -1,0 +1,5 @@
+Novo u ovoj aktualizaciji:
+• Haptički odgovor tipkovnice — dodiri sada imaju taktilni odgovor prema zadanim postavkama, s prekidačem u Postavkama za isključivanje.
+• Pop-upovi naglasaka dugim pritiskom — držite tipku na jezicima latinskog pisma za pristup varijantama s naglascima (à, é, ñ, ü, itd.).
+• Lokalizirane statusne poruke na traci alata tipkovnice preko svih podržanih jezika.
+• Ispravka greške za snimke u aplikaciji koje su mogle pokrenuti duplicirane IPC odgovore.

@@ -1,0 +1,1 @@
+puheentunnistus,transkriptio,puhe,teksti,offline,yksityisyys,whisper,tekoäly,mikrofoni,sanelu

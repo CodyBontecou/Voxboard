@@ -1,0 +1,34 @@
+Voxboard, konuşmayı yazıya çevirme ve sesli yazım için çevrimdışı, cihaz üzerinde çalışan bir sesli yazım klavyesidir — internet yok, sunucu yok, abonelik yok.
+
+Herhangi bir uygulamada mikrofon düğmesine dokunun, doğal bir şekilde konuşun ve sözleriniz metin olarak görünsün. Her şey Apple Silicon kullanarak cihazınızda işlenir, böylece hiçbir şey telefonunuzdan ayrılmaz.
+
+—
+
+NASIL ÇALIŞIR
+
+Voxboard, iOS klavyenize bir ses düğmesi ekler. Dikte etmek istediğinizde mikrofona dokunun, konuşun ve Voxboard sesinizi doğrudan metin alanına çevirir — Messages, Notes, Safari veya klavye kabul eden herhangi bir uygulamada.
+
+—
+
+ÖZELLİKLER
+
+• Cihaz üzerinde transkripsiyon — Whisper AI tarafından desteklenir, hiçbir veri hiçbir yere gönderilmez
+• Her uygulamada çalışır — standart iOS klavyesini kullanan herhangi bir metin alanında
+• Her zaman açık dinleme modu — ana uygulamadan bir oturum başlatın, ardından herhangi bir uygulamada eller serbest dikte kullanın
+• Transkripsiyon geçmişi — dikte ettiğiniz her şeyi geriye doğru kaydırın
+• Birden fazla Whisper modeli — hız/doğruluk tercihinize bağlı olarak Tiny, Base ve Small arasından seçin
+• Abonelik yok — bir kez ödeyin, sonsuza kadar kullanın
+
+—
+
+ÜCRETSİZ SEVİYE
+
+Yeni kullanıcılar her şeyi denemek için 15 dakika ücretsiz transkripsiyon alır. Tüm sınırları kaldırmak için tek seferlik bir satın alma ile Voxboard Unlimited'e yükseltin.
+
+—
+
+GİZLİLİK
+
+Tüm ses işleme, cihaz üzerinde makine öğrenmesi kullanarak iPhone'unuzda gerçekleşir. Hiçbir ses kaydı, transkript veya kişisel veri harici sunuculara hiçbir zaman iletilmez. Mikrofon erişimi transkripsiyon için gereklidir ve yalnızca aktif olarak kayıt başlattığınızda kullanılır.
+
+Şunlar için de yararlı: sesli yazma, cihazda, gizlilik.

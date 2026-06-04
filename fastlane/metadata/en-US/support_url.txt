@@ -1,1 +1,1 @@
-https://isolated.tech/voxboard
+https://voxboard-app.vercel.app/

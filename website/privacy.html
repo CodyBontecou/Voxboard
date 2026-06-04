@@ -85,7 +85,7 @@
   <div class="container">
     <div class="page-eyebrow">Legal · Privacy</div>
     <h1 class="page-title">Privacy<br>Policy</h1>
-    <p class="page-meta">Effective: February 9, 2026 · Last updated: February 9, 2026</p>
+    <p class="page-meta">Effective: February 9, 2026 · Last updated: May 30, 2026</p>
   </div>
 </section>
 
@@ -94,9 +94,9 @@
 
     <h2>Overview</h2>
     <div class="callout">
-      <p>Voxboard is built on a simple principle: your voice data never leaves your device. We do not collect, transmit, or store any personal information on external servers. Period.</p>
+      <p>Voxboard is built on a simple principle: your voice and transcript data never leave your device. We collect only minimal, privacy-safe onboarding analytics so we can understand setup friction without seeing what you say or type.</p>
     </div>
-    <p>This Privacy Policy describes how Voxboard ("we," "our," or "the app") handles information when you use our iOS application and keyboard extension. We are committed to transparency and want you to understand exactly what happens with your data — which is nothing, because it stays on your device.</p>
+    <p>This Privacy Policy describes how Voxboard ("we," "our," or "the app") handles information when you use our iOS application and keyboard extension. We are committed to transparency: audio, transcripts, keystrokes, exported file contents, and user-entered text stay on your device.</p>
 
     <h2>Information We Do Not Collect</h2>
     <p>Voxboard does not collect, transmit, or have access to any of the following:</p>
@@ -105,10 +105,21 @@
       <li>Transcribed text or transcription history</li>
       <li>Keystrokes, typed text, or keyboard input</li>
       <li>Personal information such as your name, email, or phone number</li>
-      <li>Device identifiers, IP addresses, or location data</li>
-      <li>Usage analytics, crash reports, or telemetry</li>
-      <li>Contacts, photos, or any other on-device data</li>
+      <li>Precise location data, contacts, photos, or other unrelated on-device data</li>
+      <li>File names, folder paths, template text, exported note contents, or model file paths</li>
+      <li>Advertising identifiers, raw IP address storage, or third-party tracking identifiers</li>
     </ul>
+
+    <h2>Privacy-Safe Onboarding Analytics</h2>
+    <p>Voxboard sends a small set of first-party onboarding events to help us understand where setup succeeds or fails. These events are intentionally coarse and are not used for advertising or cross-app tracking.</p>
+    <p>Onboarding analytics may include:</p>
+    <ul>
+      <li>An anonymous Voxboard install ID used only to count funnel progress</li>
+      <li>Event names such as onboarding started, microphone permission completed, model setup completed, paywall shown, purchase or restore outcome, and onboarding completed</li>
+      <li>App version, build number, platform, and experiment variant</li>
+      <li>Coarse setup state such as microphone permission status, model engine and size bucket, file export format/mode, free-minute usage buckets, and paywall context</li>
+    </ul>
+    <p>These analytics never include audio, transcripts, dictated text, keystrokes, file/folder paths, template text, model file paths, names, email addresses, raw dates, raw IP addresses, or device names.</p>
 
     <h2>On-Device Processing</h2>
     <p>All voice-to-text transcription is performed entirely on your device using the <strong>whisper.cpp</strong> engine — a local implementation of OpenAI's Whisper model optimised for Apple Silicon. Audio captured by the microphone is processed in real-time by the on-device model and is never transmitted over a network connection.</p>
@@ -135,7 +146,7 @@
     <p>Voxboard ships with a bundled Base model and allows you to download additional Whisper models of varying sizes. These model files are downloaded from open-source distribution sources and stored locally on your device. No account or personal information is required to download models.</p>
 
     <h2>Third-Party Services</h2>
-    <p>Voxboard does not integrate with any third-party analytics, advertising, crash reporting, or tracking services. We do not use any SDKs or frameworks that collect user data. The app has no server-side component.</p>
+    <p>Voxboard does not integrate with third-party analytics SDKs, advertising networks, crash-reporting SDKs, or cross-app tracking services. Privacy-safe onboarding events are sent directly to a first-party Cloudflare Worker endpoint operated for Voxboard and stored in Cloudflare D1 with the strict allowlist described above.</p>
 
     <h2>Data Storage &amp; Deletion</h2>
     <p>All data — including transcription history, downloaded models, and settings — is stored locally on your device. You can delete this data at any time by:</p>
@@ -146,10 +157,10 @@
     </ul>
 
     <h2>Children's Privacy</h2>
-    <p>Voxboard does not knowingly collect any personal information from anyone, including children under the age of 13. Since no data is collected or transmitted, there is no risk of children's data being stored or shared.</p>
+    <p>Voxboard does not knowingly collect personal information from anyone, including children under the age of 13. The privacy-safe onboarding analytics described above are not intended to identify or contact a child and never include audio, transcripts, keystrokes, or user-entered content.</p>
 
     <h2>Changes to This Policy</h2>
-    <p>We may update this Privacy Policy from time to time. Any changes will be reflected on this page with an updated "Last updated" date. Since Voxboard collects no data, changes are likely to be minimal and clarifying in nature.</p>
+    <p>We may update this Privacy Policy from time to time. Any changes will be reflected on this page with an updated "Last updated" date.</p>
 
     <h2>Contact</h2>
     <p>If you have questions or concerns about this Privacy Policy, please contact us at:</p>

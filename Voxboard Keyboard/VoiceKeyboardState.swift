@@ -31,6 +31,7 @@ final class VoiceKeyboardState {
     var status: Status = .idle
     var recordingDuration: TimeInterval = 0
     var selectedModelIndex: Int = 0
+    var selectedFlowId: String = RecordingFlowStore.selectedFlowId()
 
     /// Rolling audio levels for the waveform animation (most recent last).
     /// Updated from the poll timer during recording.
@@ -49,6 +50,7 @@ final class VoiceKeyboardState {
 
     // Cached model list — avoids filesystem checks on every Record tap
     private var cachedDownloadedModels: [WhisperModelInfo] = []
+    private var cachedFlows: [RecordingFlow] = []
 
     // When the user taps the mic button while app isn't listening,
     // we open the app and set this flag so recording auto-starts
@@ -73,8 +75,9 @@ final class VoiceKeyboardState {
         // Ensure IPC directory exists once upfront (avoids repeated checks on every write)
         TranscriptionIPC.ensureDirectory()
 
-        // Cache downloaded models so Record tap doesn't hit the filesystem
+        // Cache downloaded models and flows so Record tap doesn't hit the filesystem
         refreshModelCache()
+        refreshFlowCache()
 
         registerResponseObserver()
         registerListeningStateObserver()
@@ -123,6 +126,33 @@ final class VoiceKeyboardState {
 
     var currentModelName: String {
         currentModel?.name ?? String(localized: "No Model")
+    }
+
+    var currentFlow: RecordingFlow {
+        let flows = cachedFlows.filter(\.isEnabled)
+        return flows.first(where: { $0.id == selectedFlowId })
+            ?? RecordingFlowStore.selectedFlow()
+    }
+
+    var currentFlowName: String {
+        currentFlow.displayName
+    }
+
+    var currentFlowShortLabel: String {
+        currentFlow.shortLabel
+    }
+
+    func refreshFlowCache() {
+        cachedFlows = RecordingFlowStore.loadFlows()
+        selectedFlowId = RecordingFlowStore.selectedFlowId()
+    }
+
+    func nextFlow() {
+        refreshFlowCache()
+        let next = RecordingFlowStore.selectNextFlow()
+        selectedFlowId = next.id
+        refreshFlowCache()
+        log.log("Flow switched to: \(next.displayName)")
     }
 
     // MARK: - Model Navigation
@@ -197,8 +227,10 @@ final class VoiceKeyboardState {
             return
         }
 
+        refreshFlowCache()
         let requestId = UUID().uuidString
         let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey) ?? "auto"
+        let flowId = currentFlow.id
 
         // Update UI immediately — don't wait for IPC round-trip
         pendingRequestId = requestId
@@ -212,12 +244,13 @@ final class VoiceKeyboardState {
             requestId: requestId,
             action: .startSegment,
             modelId: model.id,
-            language: language
+            language: language,
+            flowId: flowId
         )
         TranscriptionIPC.writeCommand(command)
         TranscriptionIPC.postCommandNotification()
 
-        log.log("📤 Sent startSegment command (requestId=\(requestId), model=\(model.id))")
+        log.log("📤 Sent startSegment command (requestId=\(requestId), model=\(model.id), flow=\(flowId))")
 
         // Start local duration timer
         startDurationTimer()

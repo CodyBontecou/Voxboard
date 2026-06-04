@@ -1,0 +1,5 @@
+Nytt i denne oppdateringen:
+• Tastatur haptisk tilbakemelding — trykk har nå taktil tilbakemelding som standard, med en bryter i Innstillinger for å slå det av.
+• Lang-trykk aksent pop-ups — hold en tast nede på latinsk-skrift språk for å få tilgang til aksent-varianter (à, é, ñ, ü, osv.).
+• Lokaliserte statusmeldinger på tastatur verktøylinjen på tvers av alle støttede språk.
+• Feilrettelse for in-app opptak som kunne utløse dupliserte IPC-svar.

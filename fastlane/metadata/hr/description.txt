@@ -1,0 +1,34 @@
+Voxboard je offline tipkovnica za pretvaranje govora u tekst koja radi na uređaju za govor u tekst i glasovno tipkanje — bez interneta, bez servera, bez pretplate.
+
+Dodirnite dugme mikrofona u bilo kojoj aplikaciji, govorite prirodno i vaše riječi će se pojaviti kao tekst. Sve se obrađuje na uređaju koristeći Apple Silicon, tako da ništa nikada ne napušta vaš telefon.
+
+—
+
+KAKO FUNKCIONIŠE
+
+Voxboard dodaje dugme za glas na vašu iOS tipkovnicu. Kada želite diktirati, dodirnite mikrofon, govorite i Voxboard će transkribirati vaš glas direktno u tekstno polje — u Porukama, Bilješkama, Safari ili bilo kojoj aplikaciji koja prima tipkovnicu.
+
+—
+
+FUNKCIJE
+
+• Transkribiranje na uređaju — pokretano Whisper AI-jem, nula podataka poslano bilo gdje
+• Radi u svim aplikacijama — bilo koje tekstno polje koje koristi standardnu iOS tipkovnicu
+• Način stalne audio nadzore — pokrenite sesiju iz glavne aplikacije, zatim koristite diktiranje bez ruku u bilo kojoj aplikaciji
+• Historija transkribovanja — prođite kroz sve što ste diktirali
+• Više Whisper modela — birajte između Tiny, Base i Small ovisno o vašoj preferenciji brzine/točnosti
+• Bez pretplate — platite jednom, koristite zauvijek
+
+—
+
+BESPLATNA RAZINA
+
+Novi korisnici dobivaju 15 minuta besplatnog transkribovanja da isprobaju sve. Nadogradite na Voxboard Unlimited jednom jednosatnom kupovinom da uklonite sva ograničenja.
+
+—
+
+PRIVATNOST
+
+Sva obrada zvuka odvija se na vašem iPhone-u koristeći mašinsko učenje na uređaju. Nijedna audio snimka, transkript ili osobni podatak se nikada ne prenose vanjskim serverima. Pristup mikrofonu je potreban za transkribovanje i koristi se samo kada aktivno pokrenete snimanje.
+
+Korisno i za: transkripija, bilješke, brzo.

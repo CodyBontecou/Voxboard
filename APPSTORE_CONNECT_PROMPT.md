@@ -54,10 +54,23 @@ Click **Save**.
 Click **App Privacy** in the left sidebar.
 
 1. Click **Get Started** (or **Edit** if already started)
-2. When asked "Do you or your third-party partners collect data from this app?" → select **No, we do not collect data from this app**
-3. Confirm / Save / Publish the privacy responses
+2. When asked "Do you or your third-party partners collect data from this app?" → select **Yes, we collect data from this app**
+3. Add first-party analytics disclosures only — **not tracking**:
+   - **Usage Data → Product Interaction**
+     - Purpose: **Analytics**
+     - Linked to user: **No**
+     - Used for tracking: **No**
+   - **Purchases → Purchase History**
+     - Purpose: **Analytics**
+     - Linked to user: **No**
+     - Used for tracking: **No**
+   - **Identifiers → User ID** (anonymous Voxboard install UUID used only for onboarding funnel counts)
+     - Purpose: **Analytics**
+     - Linked to user: **No**
+     - Used for tracking: **No**
+4. Confirm / Save / Publish the privacy responses
 
-This is accurate: Voxboard runs whisper.cpp entirely on-device. No audio, transcripts, keystrokes, or personal data ever leave the device. There are no analytics, accounts, or network requests (except optional model downloads from Hugging Face).
+This is accurate for the production onboarding analytics engine: Voxboard sends minimal first-party onboarding events and an anonymous app-install ID to understand setup friction. Do **not** disclose audio, transcripts, keystrokes, user content, contacts, location, diagnostics, advertising data, or third-party tracking for this analytics path.
 
 ## Step 5 — Version 1.0 Metadata
 
@@ -85,7 +98,7 @@ Scroll down and fill in these fields exactly:
 
 **Promotional Text:**
 ```
-On-device voice transcription powered by Whisper AI. No internet. No data collection. Just your voice, instantly converted to text.
+On-device voice transcription powered by Whisper AI. No cloud transcription, no accounts, no subscriptions. Just your voice, instantly converted to text.
 ```
 
 **Description:**
@@ -102,7 +115,7 @@ CHOOSE YOUR MODEL
 Pick from 5 Whisper AI models ranging from 75 MB (Tiny — fast and light) to 1.6 GB (Large — maximum accuracy). Download only what you need.
 
 COMPLETE PRIVACY
-All speech processing happens on your iPhone using whisper.cpp. No audio recordings, transcripts, or personal data ever leave your device. No accounts. No analytics. No internet connection required.
+All speech processing happens on your iPhone using whisper.cpp. Audio recordings, transcripts, keystrokes, and exported note contents stay on your device. Voxboard collects only minimal, privacy-safe onboarding analytics to understand setup friction. No accounts or cloud transcription.
 
 FEATURES
 • Custom iOS keyboard with voice transcription
@@ -171,9 +184,9 @@ To test the keyboard:
 5. Open any text field (e.g., Notes app), switch to the Voxboard keyboard using the globe icon.
 6. Tap the Record button on the keyboard toolbar, speak, then tap Stop. Your speech will be transcribed and inserted as text.
 
-The app ships with the Whisper "Base" model (142 MB) bundled. Additional models can be downloaded from Settings within the app. All processing is done on-device — the app makes no network requests except when downloading optional additional Whisper models from Hugging Face.
+The app ships with the Whisper "Base" model (142 MB) bundled. Additional models can be downloaded from Settings within the app. Speech processing is done on-device. Production builds also send minimal, first-party onboarding analytics events to understand setup friction; these events never include audio, transcripts, keystrokes, file paths, template text, exported note contents, or user-entered content.
 
-The keyboard extension requires "Allow Full Access" solely for microphone access (NSMicrophoneUsageDescription). No keystrokes or user data are collected or transmitted.
+The keyboard extension requires "Allow Full Access" solely for microphone access (NSMicrophoneUsageDescription). No keystrokes or dictated text are collected or transmitted.
 ```
 
 ### 5e — Build
@@ -196,7 +209,7 @@ After saving everything, do a quick pass:
 
 1. Click **App Information** → verify subtitle, categories, and content rights are saved
 2. Click **Pricing and Availability** → verify price is Free
-3. Click **App Privacy** → verify it says "No data collected"
+3. Click **App Privacy** → verify it lists Product Interaction, Purchase History, and anonymous User ID for Analytics only; all are **Not Linked to You** and **Not Used for Tracking**
 4. Click back to the **1.0 Prepare for Submission** version → verify screenshots, description, keywords, review notes are all present
 
 Take a final screenshot showing the version page so I can confirm everything looks correct.
@@ -217,7 +230,7 @@ Fill in everything and save, but do **not** submit. I want to review it all manu
 | Primary Category | Utilities |
 | Secondary Category | Productivity |
 | Price | Free |
-| Privacy | No data collected |
+| Privacy | Product Interaction, Purchase History, anonymous User ID for Analytics only; Not Linked to You; Not Tracking |
 | Copyright | 2026 Cody Bontecou |
 | Support URL | https://bontecou.com |
 | Version | 1.0 |

@@ -1,0 +1,5 @@
+Baru dalam pembaruan ini:
+• Umpan balik haptic keyboard — ketukan sekarang memiliki umpan balik taktil secara default, dengan toggle Pengaturan untuk mematikannya.
+• Callout aksen tekan-lama — tahan tombol pada bahasa skrip Latin untuk mengakses varian beraksen (à, é, ñ, ü, dll.).
+• Pesan status terlokalisasi pada toolbar keyboard di semua bahasa yang didukung.
+• Perbaikan bug untuk rekaman dalam aplikasi yang dapat memicu respons IPC duplikat.

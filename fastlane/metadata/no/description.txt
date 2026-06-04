@@ -1,0 +1,34 @@
+Voxboard er et offline, på-enhet tale-til-tekst tastatur for talegjenkjenning og stemmeskriving — intet internett, ingen servere, intet abonnement.
+
+Trykk på mikrofonknappen i hvilken som helst app, snakk naturlig og ordene dine vises som tekst. Alt prosesseres på enheten ved hjelp av Apple Silicon, så ingenting forlater noensinne telefonen din.
+
+—
+
+HVORDAN DET VIRKER
+
+Voxboard legger til en stemmeknapp til ditt iOS-tastatur. Når du vil diktere, trykk på mikrofonen, snakk og Voxboard transkriberer stemmen din direkte inn i tekstfeltet — i Meldinger, Notater, Safari eller hvilken som helst app som aksepterer et tastatur.
+
+—
+
+FUNKSJONER
+
+• På-enhet transkripsjon — drevet av Whisper AI, null data sendt noen steder
+• Virker i alle apper — hvilket som helst tekstfelt som bruker standard iOS-tastatur
+• Alltid-på lyttemodus — start en økt fra hovedappen, bruk deretter håndfri diktering i hvilken som helst app
+• Transkripsjonhistorikk — bla tilbake gjennom alt du har diktert
+• Flere Whisper-modeller — velg mellom Tiny, Base og Small avhengig av din hastighet/nøyaktighet-preferanse
+• Intet abonnement — betal én gang, bruk for alltid
+
+—
+
+GRATIS NIVÅ
+
+Nye brukere får 15 minutter gratis transkripsjon for å prøve alt. Oppgrader til Voxboard Unlimited med et enkelt engangs-kjøp for å fjerne alle begrensninger.
+
+—
+
+PERSONVERN
+
+Alle lydbehandling skjer på din iPhone ved hjelp av på-enhet maskinlæring. Ingen lydopptak, transkripsjoner eller personlige data overføres noensinne til eksterne servere. Mikrofonilgang kreves for transkripsjon og brukes kun når du aktivt starter opptak.
+
+Også nyttig for: diktat.

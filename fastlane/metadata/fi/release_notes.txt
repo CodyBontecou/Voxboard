@@ -1,0 +1,5 @@
+Uutta tässä päivityksessä:
+• Näppäimistön haptinen palaute — napautuksilla on nyt taktiilinen palaute oletuksena, Asetuksista voi kytkeä pois päältä.
+• Pitkän painalluksen aksenttivalikot — pidä näppäintä pohjassa latinalaisissa kielissä päästäksesi aksenttivariantteihin (à, é, ñ, ü, jne.).
+• Lokalisoidut tilaviestit näppäimistön työkalurivissä kaikilla tuetuilla kielillä.
+• Virheen korjaus sovelluksen sisäisille tallenteille, jotka saattoivat laukaista kaksinkertaisia IPC-vastauksia.

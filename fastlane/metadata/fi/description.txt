@@ -1,0 +1,34 @@
+Voxboard on offline-ääni-tekstiksi-näppäimistö, joka toimii laitteessa puheentunnistusta ja äänellä kirjoittamista varten — ei internettiä, ei palvelimia, ei tilausta.
+
+Napauta mikrofonikuvaketta missä tahansa sovelluksessa, puhu luonnollisesti, ja sanasi ilmestyvät tekstinä. Kaikki käsitellään laitteessa Apple Siliconin avulla, joten mikään ei koskaan poistu puhelimestasi.
+
+—
+
+KUIKA SE TOIMII
+
+Voxboard lisää äänipainikkeen iOS-näppäimistöösi. Kun haluat sanella, napauta mikrofonia, puhu, ja Voxboard litteroi äänesi suoraan tekstikenttään — Viesteissä, Muistiinpanoissa, Safarissa tai missä tahansa sovelluksessa, joka hyväksyy näppäimistön.
+
+—
+
+OMINAISUUDET
+
+• Laitteessa tapahtuva transkriptio — Whisper AI:n voimalla, nolla dataa lähetetään minnekään
+• Toimii kaikissa sovelluksissa — mikä tahansa tekstikenttä, joka käyttää tavallista iOS-näppäimistöä
+• Aina päällä -kuuntelutila — aloita istunto pääsovelluksesta, käytä sitten kädetöntä sanelua missä tahansa sovelluksessa
+• Transkriptiohistoria — selaa kaikkea, mitä olet sanellut
+• Useita Whisper-malleja — valitse Tiny, Base tai Small riippuen nopeuden/tarkkuuden mieltymyksestäsi
+• Ei tilausta — maksa kerran, käytä ikuisesti
+
+—
+
+ILMAINEN TASO
+
+Uudet käyttäjät saavat 15 minuuttia ilmaista transkriptiota kokeillakseen kaikkea. Päivitä Voxboard Unlimitediin yhdellä kertamaksulla poistaaksesi kaikki rajoitukset.
+
+—
+
+YKSITYISYYS
+
+Kaikki äänen käsittely tapahtuu iPhonessasi laitteessa tapahtuvan koneoppimisen avulla. Mitään äänitallenteita, transkriptioita tai henkilökohtaisia tietoja ei koskaan siirretä ulkoisille palvelimille. Mikrofonin käyttöoikeus vaaditaan transkriptiota varten ja sitä käytetään vain, kun käynnistät aktiivisesti tallennuksen.
+
+Sopii myös: tekoäly.

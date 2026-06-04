@@ -11,7 +11,8 @@ let package = Package(
         .library(name: "VoxboardShared", targets: ["VoxboardShared"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/FluidInference/FluidAudio.git", from: "0.12.5"),
+        .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.13.4"),
+        .package(url: "https://github.com/CodyBontecou/ExportKit", branch: "main"),
     ],
     targets: [
         .target(
@@ -19,6 +20,7 @@ let package = Package(
             dependencies: [
                 .target(name: "whisper", condition: .when(platforms: [.iOS])),
                 .product(name: "FluidAudio", package: "FluidAudio", condition: .when(platforms: [.iOS])),
+                .product(name: "ExportKit", package: "ExportKit"),
             ],
             linkerSettings: [
                 .linkedFramework("Accelerate"),
@@ -33,7 +35,10 @@ let package = Package(
         ),
         .testTarget(
             name: "VoxboardSharedTests",
-            dependencies: ["VoxboardShared"]
+            dependencies: [
+                "VoxboardShared",
+                .product(name: "ExportKit", package: "ExportKit"),
+            ]
         ),
     ]
 )

@@ -25,6 +25,9 @@ struct FileExportEvent: Equatable {
 @Observable
 final class PersistentRecorder {
 
+    private static let modelSetupAnalyticsKey = "onboarding.analytics.model_setup_completed.v1"
+    private static let completionAnalyticsKey = "onboarding.analytics.completed.v1"
+
     // MARK: - Public State
 
     var isListening: Bool = false
@@ -65,6 +68,7 @@ final class PersistentRecorder {
     private var segmentRequestId: String?
     private var segmentModelId: String?
     private var segmentLanguage: String?
+    private var segmentFlowId: String?
     private var segmentStartedAt: TimeInterval = 0
 
     /// Pre-roll: capture this many seconds before the user tapped Start.
@@ -249,6 +253,7 @@ final class PersistentRecorder {
 
         // Pre-load the default whisper model so the first transcription is fast
         preloadModel()
+        trackModelSetupCompletedIfNeeded()
 
         // Observe audio session interruptions so we can auto-restart the engine
         registerInterruptionObserver()
@@ -312,6 +317,38 @@ final class PersistentRecorder {
                 }
             }
         }
+    }
+
+    // MARK: - Onboarding Analytics
+
+    private func trackModelSetupCompletedIfNeeded() {
+        let defaults = AppConstants.sharedDefaults ?? .standard
+        guard !defaults.bool(forKey: Self.modelSetupAnalyticsKey),
+              let model = selectedModelForAnalytics(),
+              model.isDownloaded else { return }
+
+        defaults.set(true, forKey: Self.modelSetupAnalyticsKey)
+        OnboardingAnalyticsClient.shared.trackModelSetupCompleted(
+            metadata: OnboardingAnalyticsModelMetadata(model: model),
+            quotaState: usageTracker.onboardingAnalyticsQuotaState
+        )
+    }
+
+    private func trackOnboardingCompletedIfNeeded(model: WhisperModelInfo) {
+        let defaults = AppConstants.sharedDefaults ?? .standard
+        guard !defaults.bool(forKey: Self.completionAnalyticsKey) else { return }
+
+        defaults.set(true, forKey: Self.completionAnalyticsKey)
+        OnboardingAnalyticsClient.shared.trackOnboardingCompleted(
+            modelMetadata: OnboardingAnalyticsModelMetadata(model: model),
+            quotaState: usageTracker.onboardingAnalyticsQuotaState
+        )
+    }
+
+    private func selectedModelForAnalytics() -> WhisperModelInfo? {
+        let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+            ?? AppConstants.defaultModelName
+        return WhisperModelInfo.availableModels.first { $0.id == modelId }
     }
 
     // MARK: - Audio Interruption Handling
@@ -429,12 +466,14 @@ final class PersistentRecorder {
         let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
             ?? "auto"
         let requestId = "inapp-\(UUID().uuidString)"
+        let flowId = RecordingFlowStore.selectedFlowId()
 
         let command = RecordingCommand(
             requestId: requestId,
             action: .startSegment,
             modelId: modelId,
-            language: language
+            language: language,
+            flowId: flowId
         )
 
         log.log("[PersistentRecorder] 🎙 In-app segment start: \(requestId)")
@@ -453,6 +492,85 @@ final class PersistentRecorder {
 
         log.log("[PersistentRecorder] ⏹ In-app segment stop: \(requestId)")
         handleStopSegment(command)
+    }
+
+    /// Import an existing audio file, normalize it to Whisper WAV, and run it
+    /// through the same local transcription/history/export pipeline as live recordings.
+    func importAudioFile(from url: URL) {
+        guard !isSegmentActive, !isTranscribing else {
+            lastError = "Wait for the current recording to finish"
+            return
+        }
+        if usageTracker.isAtLimit {
+            needsUnlock = true
+            lastError = "Free limit reached — unlock Voxboard to import audio"
+            return
+        }
+        guard let dir = AppConstants.recordingsDirectoryURL else {
+            lastError = "Could not access recordings folder"
+            return
+        }
+
+        let didScope = url.startAccessingSecurityScopedResource()
+        defer { if didScope { url.stopAccessingSecurityScopedResource() } }
+
+        do {
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            let sourceExt = url.pathExtension.isEmpty ? "audio" : url.pathExtension
+            let sourceCopy = dir
+                .appendingPathComponent("import_source_\(UUID().uuidString)")
+                .appendingPathExtension(sourceExt)
+            try? FileManager.default.removeItem(at: sourceCopy)
+            try FileManager.default.copyItem(at: url, to: sourceCopy)
+
+            let wavURL = dir
+                .appendingPathComponent("import_\(UUID().uuidString)")
+                .appendingPathExtension("wav")
+            let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+                ?? AppConstants.defaultModelName
+            let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
+                ?? "auto"
+            let flowId = RecordingFlowStore.selectedFlowId()
+            let requestId = "import-\(UUID().uuidString)"
+
+            isTranscribing = true
+            lastTranscriptionResult = nil
+            lastError = nil
+
+            Task.detached(priority: .userInitiated) { [weak self] in
+                do {
+                    let workingURL = try AudioFileConverter.convertToWhisperWAV(
+                        inputURL: sourceCopy,
+                        outputURL: wavURL
+                    )
+                    let duration = AudioFileConverter.duration(of: workingURL)
+                        ?? AudioFileConverter.duration(of: sourceCopy)
+                        ?? 0
+                    await self?.transcribe(
+                        audioURL: workingURL,
+                        modelId: modelId,
+                        language: language,
+                        requestId: requestId,
+                        duration: duration,
+                        flowId: flowId,
+                        sourceAudioURL: sourceCopy
+                    )
+                    if workingURL != sourceCopy {
+                        try? FileManager.default.removeItem(at: sourceCopy)
+                    }
+                } catch {
+                    await MainActor.run {
+                        self?.lastError = "Could not import audio: \(error.localizedDescription)"
+                        self?.lastTranscriptionResult = nil
+                    }
+                    try? FileManager.default.removeItem(at: sourceCopy)
+                    try? FileManager.default.removeItem(at: wavURL)
+                }
+                await MainActor.run { self?.isTranscribing = false }
+            }
+        } catch {
+            lastError = "Could not import audio: \(error.localizedDescription)"
+        }
     }
 
     // MARK: - Segment Control
@@ -517,6 +635,7 @@ final class PersistentRecorder {
             self.segmentRequestId = command.requestId
             self.segmentModelId = command.modelId
             self.segmentLanguage = command.language
+            self.segmentFlowId = command.flowId
             self.segmentStartedAt = startedAt
             self.isSegmentActive = true
             self.segmentDuration = 0
@@ -571,6 +690,7 @@ final class PersistentRecorder {
         segmentRequestId = command.requestId
         segmentModelId = command.modelId
         segmentLanguage = command.language
+        segmentFlowId = command.flowId
         segmentStartedAt = Date().timeIntervalSince1970
         isSegmentActive = true
         segmentDuration = 0
@@ -669,6 +789,7 @@ final class PersistentRecorder {
         // Transcribe
         let modelId = segmentModelId ?? command.modelId ?? AppConstants.defaultModelName
         let language = segmentLanguage ?? command.language ?? "auto"
+        let flowId = segmentFlowId ?? command.flowId ?? RecordingFlowStore.selectedFlowId()
         let duration = TimeInterval(durationSec)
 
         // Request background time
@@ -685,7 +806,9 @@ final class PersistentRecorder {
                 modelId: modelId,
                 language: language,
                 requestId: requestId,
-                duration: duration
+                duration: duration,
+                flowId: flowId,
+                sourceAudioURL: wavURL
             )
 
             await MainActor.run {
@@ -700,6 +823,7 @@ final class PersistentRecorder {
         segmentRequestId = nil
         segmentModelId = nil
         segmentLanguage = nil
+        segmentFlowId = nil
     }
 
     /// Cancel an active segment without transcribing.
@@ -713,6 +837,7 @@ final class PersistentRecorder {
         segmentRequestId = nil
         segmentModelId = nil
         segmentLanguage = nil
+        segmentFlowId = nil
         segmentDuration = 0
 
         TranscriptionIPC.clearStatus()
@@ -721,7 +846,15 @@ final class PersistentRecorder {
 
     // MARK: - Transcription
 
-    private func transcribe(audioURL: URL, modelId: String, language: String, requestId: String, duration: TimeInterval) async {
+    private func transcribe(
+        audioURL: URL,
+        modelId: String,
+        language: String,
+        requestId: String,
+        duration: TimeInterval,
+        flowId: String? = nil,
+        sourceAudioURL: URL? = nil
+    ) async {
         // Resolve model
         guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
               model.isDownloaded else {
@@ -751,7 +884,8 @@ final class PersistentRecorder {
                 // writing response.json here would leave a stale file that the
                 // keyboard later treats as an orphaned transcription and pastes
                 // into the next text field that comes up.
-                if !requestId.hasPrefix("inapp-") {
+                let shouldPublishToKeyboard = !requestId.hasPrefix("inapp-") && !requestId.hasPrefix("import-")
+                if shouldPublishToKeyboard {
                     let response = TranscriptionResponse(requestId: requestId, text: text)
                     do {
                         try TranscriptionIPC.writeResponse(response)
@@ -771,12 +905,14 @@ final class PersistentRecorder {
                 }
 
                 // Save to history (uses shared store so UI updates immediately)
-                let transcript = Transcript(
+                let selectedFlow = RecordingFlowStore.flow(id: flowId) ?? RecordingFlowStore.selectedFlow()
+                let rawTranscript = Transcript(
                     text: text,
                     duration: duration,
                     modelUsed: model.name,
                     language: language
                 )
+                let transcript = TranscriptFlowFormatter.apply(flow: selectedFlow, to: rawTranscript)
                 self.transcriptStore.add(transcript)
 
                 // On-device LLM enrichment (title, tags, category, cleanedText).
@@ -787,6 +923,21 @@ final class PersistentRecorder {
                 let store = self.transcriptStore
                 let savedId = transcript.id
                 let initialTranscript = transcript
+                let flowForExport = selectedFlow
+                let audioSourceForExport: URL? = {
+                    guard flowForExport.audioSaveMode != .off else { return nil }
+                    let source = sourceAudioURL ?? audioURL
+                    guard let dir = AppConstants.recordingsDirectoryURL else { return nil }
+                    let ext = source.pathExtension.isEmpty ? "wav" : source.pathExtension
+                    let retained = dir.appendingPathComponent("export_audio_\(UUID().uuidString)").appendingPathExtension(ext)
+                    do {
+                        try FileManager.default.copyItem(at: source, to: retained)
+                        return retained
+                    } catch {
+                        log.log("[PersistentRecorder] ⚠️ Could not retain audio for export: \(error)")
+                        return nil
+                    }
+                }()
 
                 let runExport: @Sendable () async -> Void = { [weak self] in
                     let latest = await MainActor.run {
@@ -831,14 +982,28 @@ final class PersistentRecorder {
                     guard let url = TranscriptFileExporter.exportIfEnabled(
                         latest,
                         folderURLOverride: folderOverride,
-                        autoOrganizeSubfolder: autoOrganizeSubfolder
+                        autoOrganizeSubfolder: autoOrganizeSubfolder,
+                        flow: flowForExport
                     ) else { return }
+
+                    if let audioSourceForExport {
+                        if let audioURL = try? await AudioAttachmentExporter.exportAudioIfNeeded(
+                            sourceAudioURL: audioSourceForExport,
+                            transcriptFileURL: url,
+                            flow: flowForExport
+                        ) {
+                            let relativePath = AudioAttachmentExporter.relativePath(from: url, to: audioURL)
+                            try? TranscriptFileExporter.attachAudioReference(to: url, relativePath: relativePath)
+                        }
+                        try? FileManager.default.removeItem(at: audioSourceForExport)
+                    }
+
                     await MainActor.run { self?.lastFileExportEvent = FileExportEvent(url: url) }
                 }
 
                 if let enricher = self.transcriptEnricher, AppConstants.enrichmentEnabled {
                     Task.detached(priority: .utility) {
-                        await enricher.enrichAndUpdate(transcript: initialTranscript, into: store)
+                        await enricher.enrichAndUpdate(transcript: initialTranscript, flow: flowForExport, into: store)
                         await runExport()
                     }
                 } else {
@@ -847,6 +1012,7 @@ final class PersistentRecorder {
 
                 // Track usage for the free-tier paywall
                 self.usageTracker.addUsage(seconds: duration)
+                self.trackOnboardingCompletedIfNeeded(model: model)
 
                 // Surface result for in-app recording UI
                 self.lastTranscriptionResult = text

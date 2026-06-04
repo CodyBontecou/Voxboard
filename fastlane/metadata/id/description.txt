@@ -1,0 +1,34 @@
+Voxboard adalah keyboard suara-ke-teks offline dan lokal untuk speech-to-text dan voice typing — tanpa internet, tanpa server, tanpa berlangganan.
+
+Ketuk tombol mic di aplikasi apa pun, bicara secara alami, dan kata-kata Anda muncul sebagai teks. Semua diproses secara lokal menggunakan Apple Silicon, sehingga tidak ada yang pernah meninggalkan ponsel Anda.
+
+—
+
+CARA KERJA
+
+Voxboard menambahkan tombol suara ke keyboard iOS Anda. Ketika Anda ingin mendiktekan, ketuk mic, bicara, dan Voxboard mentranskripsikan suara Anda langsung ke bidang teks — di Messages, Notes, Safari, atau aplikasi apa pun yang menerima keyboard.
+
+—
+
+FITUR
+
+• Transkripsi lokal — didukung oleh Whisper AI, nol data dikirim ke mana pun
+• Bekerja di setiap aplikasi — bidang teks apa pun yang menggunakan keyboard iOS standar
+• Mode mendengar selalu aktif — mulai sesi dari aplikasi utama, lalu gunakan dikte hands-free di aplikasi apa pun
+• Riwayat transkripsi — gulir kembali melalui semua yang telah Anda diktekan
+• Beberapa model Whisper — pilih antara Tiny, Base, dan Small tergantung pada preferensi kecepatan/akurasi Anda
+• Tanpa berlangganan — bayar sekali, gunakan selamanya
+
+—
+
+TIER GRATIS
+
+Pengguna baru mendapat 15 menit transkripsi gratis untuk mencoba semuanya. Upgrade ke Voxboard Unlimited dengan satu pembelian satu kali untuk menghapus semua batasan.
+
+—
+
+PRIVASI
+
+Semua pemrosesan audio terjadi di iPhone Anda menggunakan machine learning lokal. Tidak ada rekaman audio, transkrip, atau data pribadi yang pernah dikirim ke server eksternal. Akses mikrofon diperlukan untuk transkripsi dan hanya digunakan saat Anda secara aktif memulai perekaman.
+
+Juga berguna untuk: mengetik suara, catatan.

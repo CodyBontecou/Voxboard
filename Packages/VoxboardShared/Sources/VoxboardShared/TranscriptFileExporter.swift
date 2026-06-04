@@ -143,51 +143,26 @@ public enum TranscriptFileExporter {
         yamlUsesMarkdownExtension: Bool = false,
         mdObsidianEnabled: Bool = false,
         enrichmentOptions: TranscriptExportEnrichmentOptions = .default,
+        staticFrontmatter: [String: String] = [:],
+        audioAttachmentRelativePath: String? = nil,
+        newFileNameTemplateOverride: String? = nil,
+        appendFileNameOverride: String? = nil,
         defaults: UserDefaults? = nil
     ) throws -> URL {
-        let fileURL = targetURL(
-            for: transcript,
+        let configuration = exportKitConfiguration(
             format: format,
             mode: mode,
-            folderURL: folderURL,
+            yamlProperties: yamlProperties,
             yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
+            mdObsidianEnabled: mdObsidianEnabled,
             enrichmentOptions: enrichmentOptions,
+            staticFrontmatter: staticFrontmatter,
+            audioAttachmentRelativePath: audioAttachmentRelativePath,
+            newFileNameTemplateOverride: newFileNameTemplateOverride,
+            appendFileNameOverride: appendFileNameOverride,
             defaults: defaults
         )
-
-        switch (format, mode) {
-        case (.json, .newFile):
-            let data = try jsonEncoder.encode(transcript)
-            try data.write(to: fileURL)
-
-        case (.json, .append):
-            try appendJSON(transcript, to: fileURL)
-
-        case (_, .newFile):
-            let content = formatContent(
-                transcript,
-                format: format,
-                yamlProperties: yamlProperties,
-                yamlUsesMarkdownFrontmatter: format == .yaml && yamlUsesMarkdownExtension,
-                mdObsidianEnabled: mdObsidianEnabled,
-                enrichmentOptions: enrichmentOptions
-            )
-            try content.write(to: fileURL, atomically: true, encoding: .utf8)
-
-        case (_, .append):
-            let content = formatContent(
-                transcript,
-                format: format,
-                yamlProperties: yamlProperties,
-                yamlUsesMarkdownFrontmatter: format == .yaml && yamlUsesMarkdownExtension,
-                mdObsidianEnabled: mdObsidianEnabled,
-                enrichmentOptions: enrichmentOptions
-            )
-            let separator = (format == .yaml && yamlUsesMarkdownExtension) || (format == .md && mdObsidianEnabled) ? "\n\n" : "\n\n---\n\n"
-            try appendText(content, to: fileURL, separator: separator)
-        }
-
-        return fileURL
+        return try TranscriptExportRun(configuration: configuration).export(transcript, to: folderURL)
     }
 
     // MARK: - Text formatting
@@ -223,27 +198,41 @@ public enum TranscriptFileExporter {
         yamlProperties: Set<ExportYAMLProperty>,
         yamlUsesMarkdownFrontmatter: Bool,
         mdObsidianEnabled: Bool = false,
-        enrichmentOptions: TranscriptExportEnrichmentOptions
+        enrichmentOptions: TranscriptExportEnrichmentOptions,
+        staticFrontmatter: [String: String],
+        audioAttachmentRelativePath: String?
     ) -> String {
+        let frontmatter = resolvedFrontmatter(
+            transcript,
+            options: enrichmentOptions,
+            staticFrontmatter: staticFrontmatter,
+            audioAttachmentRelativePath: audioAttachmentRelativePath
+        )
+
         switch format {
         case .txt:
-            return formatTxt(transcript, options: enrichmentOptions)
+            return formatTxt(transcript, options: enrichmentOptions, audioAttachmentRelativePath: audioAttachmentRelativePath)
         case .md:
             if mdObsidianEnabled {
                 return formatYAML(
                     transcript,
                     properties: ExportYAMLProperty.defaultSelection,
                     wrapsInMarkdownFrontmatter: true,
-                    options: enrichmentOptions
+                    options: enrichmentOptions,
+                    frontmatter: frontmatter
                 )
             }
-            return formatMarkdown(transcript, options: enrichmentOptions)
+            return applyMarkdownFrontmatter(
+                to: formatMarkdown(transcript, options: enrichmentOptions),
+                frontmatter: frontmatter
+            )
         case .yaml:
             return formatYAML(
                 transcript,
                 properties: yamlProperties,
                 wrapsInMarkdownFrontmatter: yamlUsesMarkdownFrontmatter,
-                options: enrichmentOptions
+                options: enrichmentOptions,
+                frontmatter: frontmatter
             )
         case .json:
             fatalError("JSON uses data-based export, not string formatting")
@@ -252,14 +241,18 @@ public enum TranscriptFileExporter {
 
     private static func formatTxt(
         _ transcript: Transcript,
-        options: TranscriptExportEnrichmentOptions
+        options: TranscriptExportEnrichmentOptions,
+        audioAttachmentRelativePath: String?
     ) -> String {
         let body = bodyText(transcript, options: options)
-        guard let tags = usableTags(transcript, options: options) else {
-            return body
+        var lines: [String] = [body]
+        if let tags = usableTags(transcript, options: options) {
+            lines.append("Tags: " + tags.joined(separator: ", "))
         }
-        let tagLine = "Tags: " + tags.joined(separator: ", ")
-        return body + "\n\n" + tagLine
+        if let audioAttachmentRelativePath, !audioAttachmentRelativePath.isEmpty {
+            lines.append("Audio: " + audioAttachmentRelativePath)
+        }
+        return lines.joined(separator: "\n\n")
     }
 
     private static func formatMarkdown(
@@ -296,11 +289,83 @@ public enum TranscriptFileExporter {
             .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
     }
 
+    private static func resolvedFrontmatter(
+        _ transcript: Transcript,
+        options: TranscriptExportEnrichmentOptions,
+        staticFrontmatter: [String: String],
+        audioAttachmentRelativePath: String?
+    ) -> [String: String] {
+        var fm = staticFrontmatter
+        if let title = transcript.title, !title.isEmpty, fm["title"] == nil {
+            fm["title"] = title
+        }
+        if let category = transcript.category, !category.isEmpty, fm["category"] == nil {
+            fm["category"] = category
+        }
+        if let tags = usableTags(transcript, options: options), !tags.isEmpty {
+            let merged = TranscriptFlowFormatter.mergeTags(tags, parseFrontmatterTags(fm["tags"]))
+            fm["tags"] = "[" + merged.map { yamlQuoted($0) }.joined(separator: ", ") + "]"
+        }
+        if let audioAttachmentRelativePath, !audioAttachmentRelativePath.isEmpty {
+            fm["audio"] = audioAttachmentRelativePath
+        }
+        return fm.filter { !$0.key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !$0.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
+    private static func parseFrontmatterTags(_ raw: String?) -> [String] {
+        guard let raw else { return [] }
+        return raw
+            .replacingOccurrences(of: "[", with: "")
+            .replacingOccurrences(of: "]", with: "")
+            .replacingOccurrences(of: "\"", with: "")
+            .split { $0 == "," || $0 == " " || $0 == "#" }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
+    private static func applyMarkdownFrontmatter(to markdown: String, frontmatter: [String: String]) -> String {
+        guard !frontmatter.isEmpty else { return markdown }
+        let lines = frontmatterLines(frontmatter)
+        guard !lines.isEmpty else { return markdown }
+        let block = "---\n" + lines.joined(separator: "\n") + "\n---"
+
+        if markdown.hasPrefix("---\n"), let closeRange = markdown.range(of: "\n---", options: [], range: markdown.index(markdown.startIndex, offsetBy: 4)..<markdown.endIndex) {
+            var result = markdown
+            result.insert(contentsOf: "\n" + lines.joined(separator: "\n"), at: closeRange.lowerBound)
+            return result
+        }
+        return block + "\n\n" + markdown
+    }
+
+    private static func frontmatterLines(_ frontmatter: [String: String]) -> [String] {
+        frontmatter
+            .sorted(by: { $0.key < $1.key })
+            .map { "\(sanitizeYAMLKey($0.key)): \(yamlFrontmatterValue($0.value))" }
+    }
+
+    private static func sanitizeYAMLKey(_ raw: String) -> String {
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "_-"))
+        let key = raw.unicodeScalars.map { allowed.contains($0) ? String($0) : "_" }.joined()
+        return key.trimmingCharacters(in: CharacterSet(charactersIn: "_"))
+    }
+
+    private static func yamlFrontmatterValue(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "\"\"" }
+        if (trimmed.hasPrefix("[") && trimmed.hasSuffix("]")) ||
+            trimmed == "true" || trimmed == "false" ||
+            Double(trimmed) != nil {
+            return trimmed
+        }
+        return yamlQuoted(trimmed)
+    }
+
     private static func formatYAML(
         _ transcript: Transcript,
         properties: Set<ExportYAMLProperty>,
         wrapsInMarkdownFrontmatter: Bool,
-        options: TranscriptExportEnrichmentOptions
+        options: TranscriptExportEnrichmentOptions,
+        frontmatter: [String: String] = [:]
     ) -> String {
         let orderedProperties = ExportYAMLProperty.allCases.filter { properties.contains($0) }
         let exportedText = bodyText(transcript, options: options)
@@ -327,6 +392,10 @@ public enum TranscriptFileExporter {
         if let tags = usableTags(transcript, options: options) {
             let joined = tags.map { yamlQuoted($0) }.joined(separator: ", ")
             lines.append("tags: [\(joined)]")
+        }
+
+        for (key, value) in frontmatter.sorted(by: { $0.key < $1.key }) where !key.isEmpty && key != "tags" {
+            lines.append("\(sanitizeYAMLKey(key)): \(yamlFrontmatterValue(value))")
         }
 
         let yamlBody = lines.isEmpty ? "{}" : lines.joined(separator: "\n")
@@ -363,6 +432,8 @@ public enum TranscriptFileExporter {
         folderURL: URL,
         yamlUsesMarkdownExtension: Bool,
         enrichmentOptions: TranscriptExportEnrichmentOptions,
+        newFileNameTemplateOverride: String? = nil,
+        appendFileNameOverride: String? = nil,
         defaults: UserDefaults?
     ) -> URL {
         let fileExtension = resolvedFileExtension(for: format, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension)
@@ -372,12 +443,13 @@ public enum TranscriptFileExporter {
             let baseName = resolveNewFileBaseName(
                 for: transcript,
                 enrichmentOptions: enrichmentOptions,
+                templateOverride: newFileNameTemplateOverride,
                 defaults: defaults
             )
             let initialURL = folderURL.appendingPathComponent("\(baseName).\(fileExtension)")
             return uniquedURL(initialURL)
         case .append:
-            let baseName = resolveAppendFileBaseName(defaults: defaults)
+            let baseName = resolveAppendFileBaseName(templateOverride: appendFileNameOverride, defaults: defaults)
             return folderURL.appendingPathComponent("\(baseName).\(fileExtension)")
         }
     }
@@ -395,9 +467,10 @@ public enum TranscriptFileExporter {
     private static func resolveNewFileBaseName(
         for transcript: Transcript,
         enrichmentOptions: TranscriptExportEnrichmentOptions,
+        templateOverride: String? = nil,
         defaults: UserDefaults?
     ) -> String {
-        let configuredTemplate = defaults?.string(forKey: AppConstants.fileExportNewFileNameTemplateKey)
+        let configuredTemplate = templateOverride ?? defaults?.string(forKey: AppConstants.fileExportNewFileNameTemplateKey)
         let template = nonEmptyTrimmed(configuredTemplate) ?? defaultNewFileNameTemplate
         let rendered = renderTemplate(template, transcript: transcript)
         let fallback = renderTemplate(defaultNewFileNameTemplate, transcript: transcript)
@@ -423,8 +496,8 @@ public enum TranscriptFileExporter {
         return templateBase
     }
 
-    private static func resolveAppendFileBaseName(defaults: UserDefaults?) -> String {
-        let configured = defaults?.string(forKey: AppConstants.fileExportAppendFileNameKey)
+    private static func resolveAppendFileBaseName(templateOverride: String? = nil, defaults: UserDefaults?) -> String {
+        let configured = templateOverride ?? defaults?.string(forKey: AppConstants.fileExportAppendFileNameKey)
         return sanitizeFilenameBase(configured ?? defaultAppendFileName, fallback: defaultAppendFileName)
     }
 
@@ -505,6 +578,100 @@ public enum TranscriptFileExporter {
         }
     }
 
+    // MARK: - ExportKit adapter seams
+
+    static func exportKitConfiguration(
+        format: ExportFileFormat,
+        mode: ExportFileMode,
+        yamlProperties: Set<ExportYAMLProperty>,
+        yamlUsesMarkdownExtension: Bool,
+        mdObsidianEnabled: Bool,
+        enrichmentOptions: TranscriptExportEnrichmentOptions,
+        staticFrontmatter: [String: String],
+        audioAttachmentRelativePath: String?,
+        newFileNameTemplateOverride: String?,
+        appendFileNameOverride: String?,
+        markdownTemplateContent: String? = nil,
+        defaults: UserDefaults?
+    ) -> TranscriptExportConfiguration {
+        let configuredNewFileTemplate = newFileNameTemplateOverride ?? defaults?.string(forKey: AppConstants.fileExportNewFileNameTemplateKey)
+        let configuredAppendFileName = appendFileNameOverride ?? defaults?.string(forKey: AppConstants.fileExportAppendFileNameKey)
+        return TranscriptExportConfiguration(
+            format: format,
+            mode: mode,
+            yamlProperties: yamlProperties,
+            yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
+            mdObsidianEnabled: mdObsidianEnabled,
+            enrichmentOptions: enrichmentOptions,
+            staticFrontmatter: staticFrontmatter,
+            audioAttachmentRelativePath: audioAttachmentRelativePath,
+            newFileNameTemplate: nonEmptyTrimmed(configuredNewFileTemplate) ?? defaultNewFileNameTemplate,
+            appendFileName: nonEmptyTrimmed(configuredAppendFileName) ?? defaultAppendFileName,
+            markdownTemplateContent: markdownTemplateContent
+        )
+    }
+
+    static func exportKitRenderedContent(
+        _ transcript: Transcript,
+        configuration: TranscriptExportConfiguration
+    ) throws -> String {
+        if configuration.format == .json {
+            if configuration.mode == .append {
+                return try exportKitEncodedTranscriptArray([transcript])
+            }
+            let data = try jsonEncoder.encode(transcript)
+            return String(decoding: data, as: UTF8.self)
+        }
+
+        if let templateContent = configuration.markdownTemplateContent {
+            return applyMarkdownFrontmatter(
+                to: TemplateRenderer.render(
+                    template: templateContent,
+                    context: TemplateRenderer.Context(transcript: transcript)
+                ),
+                frontmatter: resolvedFrontmatter(
+                    transcript,
+                    options: configuration.enrichmentOptions,
+                    staticFrontmatter: configuration.staticFrontmatter,
+                    audioAttachmentRelativePath: configuration.audioAttachmentRelativePath
+                )
+            )
+        }
+
+        return formatContent(
+            transcript,
+            format: configuration.format,
+            yamlProperties: configuration.yamlProperties,
+            yamlUsesMarkdownFrontmatter: configuration.format == .yaml && configuration.yamlUsesMarkdownExtension,
+            mdObsidianEnabled: configuration.mdObsidianEnabled,
+            enrichmentOptions: configuration.enrichmentOptions,
+            staticFrontmatter: configuration.staticFrontmatter,
+            audioAttachmentRelativePath: configuration.audioAttachmentRelativePath
+        )
+    }
+
+    static func exportKitResolvedNewFileBaseName(
+        for transcript: Transcript,
+        enrichmentOptions: TranscriptExportEnrichmentOptions,
+        template: String
+    ) -> String {
+        resolveNewFileBaseName(
+            for: transcript,
+            enrichmentOptions: enrichmentOptions,
+            templateOverride: template,
+            defaults: nil
+        )
+    }
+
+    static func exportKitResolvedAppendFileBaseName(template: String) -> String {
+        resolveAppendFileBaseName(templateOverride: template, defaults: nil)
+    }
+
+    static func exportKitEncodedTranscriptArray(_ transcripts: [Transcript]) throws -> String {
+        let data = try jsonEncoder.encode(transcripts)
+        return String(decoding: data, as: UTF8.self)
+    }
+
     // MARK: - Convenience: export if settings are enabled
 
     /// Reads export settings from the given defaults and exports if enabled.
@@ -522,44 +689,100 @@ public enum TranscriptFileExporter {
         _ transcript: Transcript,
         folderURLOverride: URL? = nil,
         autoOrganizeSubfolder: String? = nil,
+        flow: RecordingFlow? = nil,
+        audioAttachmentRelativePath: String? = nil,
         defaults: UserDefaults? = AppConstants.sharedDefaults
     ) -> URL? {
-        guard let defaults, defaults.bool(forKey: AppConstants.fileExportEnabledKey) else { return nil }
+        guard let defaults else { return nil }
 
-        let formatRaw = defaults.string(forKey: AppConstants.fileExportFormatKey) ?? "txt"
-        let modeRaw = defaults.string(forKey: AppConstants.fileExportModeKey) ?? "newFile"
-        let format = ExportFileFormat(rawValue: formatRaw) ?? .txt
-        let mode = ExportFileMode(rawValue: modeRaw) ?? .newFile
-        let yamlProperties = resolveYAMLProperties(from: defaults)
-        let yamlUsesMarkdownExtension = resolveYAMLObsidianBasesEnabled(from: defaults)
-        let mdObsidianEnabled = resolveMDObsidianEnabled(from: defaults)
-        let enrichmentOptions = resolveEnrichmentOptions(from: defaults)
+        let custom = (flow?.exportSettings.usesCustomExportSettings == true) ? flow?.exportSettings : nil
+        let exportEnabled = custom?.exportEnabled ?? defaults.bool(forKey: AppConstants.fileExportEnabledKey)
+        guard exportEnabled else { return nil }
 
-        // Template-driven export overrides the format-specific path. The template
-        // controls frontmatter shape; output is always `.md` in new-file mode.
-        let templateEnabled = defaults.bool(forKey: AppConstants.fileExportTemplateEnabledKey)
-        let templateURL = templateEnabled ? resolveTemplateBookmark(from: defaults) : nil
+        let format: ExportFileFormat
+        let mode: ExportFileMode
+        let yamlProperties: Set<ExportYAMLProperty>
+        let yamlUsesMarkdownExtension: Bool
+        let mdObsidianEnabled: Bool
+        let templateURL: URL?
+        let newFileNameTemplateOverride: String?
+        let appendFileNameOverride: String?
+
+        if let custom {
+            format = custom.format
+            mode = custom.mode
+            yamlProperties = custom.yamlProperties
+            yamlUsesMarkdownExtension = custom.yamlUsesMarkdownExtension
+            mdObsidianEnabled = custom.mdObsidianEnabled
+            templateURL = custom.markdownTemplateEnabled ? resolveBookmarkData(custom.markdownTemplateBookmark) : nil
+            newFileNameTemplateOverride = custom.newFileNameTemplate
+            appendFileNameOverride = custom.appendFileName
+        } else {
+            let formatRaw = defaults.string(forKey: AppConstants.fileExportFormatKey) ?? "txt"
+            let modeRaw = defaults.string(forKey: AppConstants.fileExportModeKey) ?? "newFile"
+            format = ExportFileFormat(rawValue: formatRaw) ?? .txt
+            mode = ExportFileMode(rawValue: modeRaw) ?? .newFile
+            yamlProperties = resolveYAMLProperties(from: defaults)
+            yamlUsesMarkdownExtension = resolveYAMLObsidianBasesEnabled(from: defaults)
+            mdObsidianEnabled = resolveMDObsidianEnabled(from: defaults)
+            let templateEnabled = defaults.bool(forKey: AppConstants.fileExportTemplateEnabledKey)
+            templateURL = templateEnabled ? resolveTemplateBookmark(from: defaults) : nil
+            newFileNameTemplateOverride = nil
+            appendFileNameOverride = nil
+        }
+
+        var enrichmentOptions = resolveEnrichmentOptions(from: defaults)
+        if flow != nil {
+            enrichmentOptions.useCleanedText = true
+            enrichmentOptions.includeTags = true
+        }
+        let staticFrontmatter = flow?.staticFrontmatter ?? [:]
+
+        func write(to folderURL: URL) -> URL? {
+            if let templateURL {
+                return try? exportViaTemplate(
+                    transcript,
+                    templateURL: templateURL,
+                    folderURL: folderURL,
+                    enrichmentOptions: enrichmentOptions,
+                    staticFrontmatter: staticFrontmatter,
+                    audioAttachmentRelativePath: audioAttachmentRelativePath,
+                    newFileNameTemplateOverride: newFileNameTemplateOverride,
+                    defaults: defaults
+                )
+            }
+            return try? export(
+                transcript,
+                format: format,
+                mode: mode,
+                folderURL: folderURL,
+                yamlProperties: yamlProperties,
+                yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
+                mdObsidianEnabled: mdObsidianEnabled,
+                enrichmentOptions: enrichmentOptions,
+                staticFrontmatter: staticFrontmatter,
+                audioAttachmentRelativePath: audioAttachmentRelativePath,
+                newFileNameTemplateOverride: newFileNameTemplateOverride,
+                appendFileNameOverride: appendFileNameOverride,
+                defaults: defaults
+            )
+        }
 
         // Smart folder override — URL carries its own security scope from a bookmark.
         if let override = folderURLOverride {
             let needsScoping = override.startAccessingSecurityScopedResource()
             defer { if needsScoping { override.stopAccessingSecurityScopedResource() } }
-            if let templateURL {
-                return try? exportViaTemplate(
-                    transcript, templateURL: templateURL, folderURL: override,
-                    enrichmentOptions: enrichmentOptions, defaults: defaults
-                )
-            }
-            return try? export(
-                transcript, format: format, mode: mode, folderURL: override,
-                yamlProperties: yamlProperties, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
-                mdObsidianEnabled: mdObsidianEnabled,
-                enrichmentOptions: enrichmentOptions, defaults: defaults
-            )
+            return write(to: override)
         }
 
         // Base export folder — required for both auto-organize and the default path.
-        guard let baseURL = resolveBookmark(from: defaults) else { return nil }
+        let baseURL: URL?
+        if let custom {
+            baseURL = resolveBookmarkData(custom.folderBookmark)
+        } else {
+            baseURL = resolveBookmark(from: defaults)
+        }
+        guard let baseURL else { return nil }
         let needsBaseScoping = baseURL.startAccessingSecurityScopedResource()
         defer { if needsBaseScoping { baseURL.stopAccessingSecurityScopedResource() } }
 
@@ -567,33 +790,33 @@ public enum TranscriptFileExporter {
         if let subfolderName = autoOrganizeSubfolder, !subfolderName.isEmpty {
             let subfolderURL = baseURL.appendingPathComponent(subfolderName)
             try? FileManager.default.createDirectory(at: subfolderURL, withIntermediateDirectories: true)
-            if let templateURL {
-                return try? exportViaTemplate(
-                    transcript, templateURL: templateURL, folderURL: subfolderURL,
-                    enrichmentOptions: enrichmentOptions, defaults: defaults
-                )
-            }
-            return try? export(
-                transcript, format: format, mode: mode, folderURL: subfolderURL,
-                yamlProperties: yamlProperties, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
-                mdObsidianEnabled: mdObsidianEnabled,
-                enrichmentOptions: enrichmentOptions, defaults: defaults
-            )
+            return write(to: subfolderURL)
         }
 
         // Default: export directly to the base folder.
-        if let templateURL {
-            return try? exportViaTemplate(
-                transcript, templateURL: templateURL, folderURL: baseURL,
-                enrichmentOptions: enrichmentOptions, defaults: defaults
-            )
+        return write(to: baseURL)
+    }
+
+    /// Add an audio attachment reference to an already-exported transcript file.
+    /// Used after M4A/WAV attachment export succeeds and the final relative path
+    /// is known. Markdown files receive/update YAML frontmatter; YAML files get
+    /// an `audio` property; TXT files get a short trailing reference.
+    public static func attachAudioReference(to transcriptFileURL: URL, relativePath: String) throws {
+        guard !relativePath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let ext = transcriptFileURL.pathExtension.lowercased()
+        let existing = (try? String(contentsOf: transcriptFileURL, encoding: .utf8)) ?? ""
+        let updated: String
+        switch ext {
+        case "md", "markdown":
+            updated = applyMarkdownFrontmatter(to: existing, frontmatter: ["audio": relativePath])
+        case "yaml", "yml":
+            updated = existing + (existing.hasSuffix("\n") ? "" : "\n") + "audio: \(yamlQuoted(relativePath))\n"
+        case "txt":
+            updated = existing + "\n\nAudio: \(relativePath)"
+        default:
+            return
         }
-        return try? export(
-            transcript, format: format, mode: mode, folderURL: baseURL,
-            yamlProperties: yamlProperties, yamlUsesMarkdownExtension: yamlUsesMarkdownExtension,
-            mdObsidianEnabled: mdObsidianEnabled,
-            enrichmentOptions: enrichmentOptions, defaults: defaults
-        )
+        try updated.write(to: transcriptFileURL, atomically: true, encoding: .utf8)
     }
 
     /// Render the transcript through the chosen template file and write the
@@ -605,28 +828,30 @@ public enum TranscriptFileExporter {
         templateURL: URL,
         folderURL: URL,
         enrichmentOptions: TranscriptExportEnrichmentOptions = .default,
+        staticFrontmatter: [String: String] = [:],
+        audioAttachmentRelativePath: String? = nil,
+        newFileNameTemplateOverride: String? = nil,
         defaults: UserDefaults? = nil
     ) throws -> URL {
         let needsScope = templateURL.startAccessingSecurityScopedResource()
         defer { if needsScope { templateURL.stopAccessingSecurityScopedResource() } }
 
         let templateContent = try String(contentsOf: templateURL, encoding: .utf8)
-        let rendered = TemplateRenderer.render(
-            template: templateContent,
-            context: TemplateRenderer.Context(transcript: transcript)
-        )
-
-        let fileURL = targetURL(
-            for: transcript,
+        let configuration = exportKitConfiguration(
             format: .md,
             mode: .newFile,
-            folderURL: folderURL,
+            yamlProperties: ExportYAMLProperty.defaultSelection,
             yamlUsesMarkdownExtension: false,
+            mdObsidianEnabled: false,
             enrichmentOptions: enrichmentOptions,
+            staticFrontmatter: staticFrontmatter,
+            audioAttachmentRelativePath: audioAttachmentRelativePath,
+            newFileNameTemplateOverride: newFileNameTemplateOverride,
+            appendFileNameOverride: nil,
+            markdownTemplateContent: templateContent,
             defaults: defaults
         )
-        try rendered.write(to: fileURL, atomically: true, encoding: .utf8)
-        return fileURL
+        return try TranscriptExportRun(configuration: configuration).export(transcript, to: folderURL)
     }
 
     /// Returns the security-scoped URL for the configured export folder, or nil
@@ -651,6 +876,12 @@ public enum TranscriptFileExporter {
             useCleanedText: AppConstants.exportUseCleanedText,
             includeTags: AppConstants.exportIncludeTags
         )
+    }
+
+    private static func resolveBookmarkData(_ bookmarkData: Data?) -> URL? {
+        guard let bookmarkData else { return nil }
+        var isStale = false
+        return try? URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale)
     }
 
     /// Resolve security-scoped bookmark from UserDefaults.

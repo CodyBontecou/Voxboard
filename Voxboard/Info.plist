@@ -19,6 +19,8 @@
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Voxboard needs microphone access to transcribe your voice into text.</string>
+	<key>ONBOARDING_ANALYTICS_ENDPOINT_URL</key>
+	<string>https://voxboard-onboarding-analytics.costream.workers.dev</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 </dict>

@@ -1,0 +1,5 @@
+Novo nesta atualização:
+• Feedback háptico do teclado — toques agora têm feedback tátil por padrão, com um interruptor nas Configurações para desativá-lo.
+• Toque longo para acentos — segure uma tecla em idiomas de escrita latina para acessar variantes acentuadas (à, é, ñ, ü, etc.).
+• Mensagens de status localizadas na barra de ferramentas do teclado em todos os idiomas suportados.
+• Correção de bug para gravações dentro do aplicativo que podiam disparar respostas IPC duplicadas.

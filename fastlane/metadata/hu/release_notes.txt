@@ -1,0 +1,5 @@
+Újdonságok ebben a frissítésben:
+• Billentyűzet haptikus visszajelzés — a koppintások mostantól alapértelmezetten tapintható visszajelzéssel rendelkeznek, bekapcsoló a Beállításokban a kikapcsolásához.
+• Hosszú nyomás ékezetes felugró ablakok — tartsa lenyomva egy billentyűt latin írásos nyelveknél az ékezetes variánsok eléréséhez (à, é, ñ, ü, stb.).
+• Honosított állapot üzenetek a billentyűzet eszköztárában az összes támogatott nyelven.
+• Hibajavítás az alkalmazáson belüli felvételekhez, amelyek duplikált IPC válaszokat indíthattak el.

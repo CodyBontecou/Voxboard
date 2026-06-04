@@ -219,6 +219,9 @@ struct ModelTabView: View {
                 } else {
                     Button("SELECT") {
                         modelManager.selectedModelId = model.id
+                        OnboardingAnalyticsClient.shared.trackModelSetupCompleted(
+                            metadata: OnboardingAnalyticsModelMetadata(model: model)
+                        )
                     }
                     .font(Brutal.caption())
                     .foregroundColor(Brutal.muted)

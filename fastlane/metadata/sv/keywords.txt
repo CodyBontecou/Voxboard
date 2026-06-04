@@ -1,0 +1,1 @@
+röstdiktering,taligenkänning,tal,offline,integritet,whisper,AI,mikrofon,anteckningar,diktat,ljud

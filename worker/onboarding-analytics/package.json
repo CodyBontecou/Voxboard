@@ -1,0 +1,21 @@
+{
+  "name": "voxboard-onboarding-analytics-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "test": "node --test test/*.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create voxboard-onboarding-analytics",
+    "db:migrate:local": "wrangler d1 migrations apply voxboard-onboarding-analytics --local",
+    "db:migrate:remote": "wrangler d1 migrations apply voxboard-onboarding-analytics --remote",
+    "query:recent": "wrangler d1 execute voxboard-onboarding-analytics --remote --command \"SELECT received_at,event_name,variant_id,platform,onboarding_step,paywall_context,purchase_outcome FROM onboarding_events ORDER BY received_at DESC LIMIT 20;\""
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260516.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.60.0"
+  }
+}

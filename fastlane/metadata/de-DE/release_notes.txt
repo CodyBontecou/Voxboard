@@ -1,0 +1,5 @@
+Neu in diesem Update:
+• Tastatur-Haptik-Feedback — Tippen haben jetzt standardmäßig taktiles Feedback, mit Einstellungs-Schalter zum Deaktivieren.
+• Langes Drücken für Akzent-Zeichen — halten Sie eine Taste bei lateinischen Sprachen gedrückt, um akzentuierte Varianten zu erreichen (à, é, ñ, ü, etc.).
+• Lokalisierte Statusmeldungen in der Tastatur-Symbolleiste für alle unterstützten Sprachen.
+• Fehlerbehebung für In-App-Aufnahmen, die doppelte IPC-Antworten auslösen konnten.

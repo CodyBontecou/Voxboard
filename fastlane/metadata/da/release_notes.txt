@@ -1,0 +1,5 @@
+Nyt i denne opdatering:
+• Tastatur haptisk feedback — tryk har nu taktil feedback som standard, med en indstillingsknap til at slå det fra.
+• Langt tryk accent-pop-ups — hold en tast nede på latin-baserede sprog for at få adgang til accentvarianter (à, é, ñ, ü, osv.).
+• Lokaliserede statusbeskeder på tastaturværktøjslinjen på tværs af alle understøttede sprog.
+• Fejlrettelse for in-app optagelser, der kunne udløse duplicate IPC-svar.

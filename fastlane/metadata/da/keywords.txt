@@ -1,0 +1,1 @@
+stemmediktering,transskription,tale,offline,privatliv,whisper,AI,mikrofon,noter,diktat,lyd,iphone

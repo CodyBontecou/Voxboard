@@ -1,0 +1,5 @@
+Nuevo en esta actualización:
+• Retroalimentación háptica del teclado — las pulsaciones ahora tienen retroalimentación táctil por defecto, con un interruptor en Configuración para desactivarlo.
+• Pulsación larga para acentos — mantenga una tecla en idiomas de escritura latina para acceder a variantes acentuadas (à, é, ñ, ü, etc.).
+• Mensajes de estado localizados en la barra de herramientas del teclado en todos los idiomas compatibles.
+• Corrección de error para grabaciones dentro de la aplicación que podían activar respuestas IPC duplicadas.

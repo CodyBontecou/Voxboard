@@ -1,0 +1,1 @@
+saisie vocale,dictée,transcription,hors ligne,ia,confidentialité,micro,notes,reconnaissance
