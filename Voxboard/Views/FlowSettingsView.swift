@@ -146,16 +146,32 @@ private struct FlowEditorView: View {
     }
 
     private var postProcessingSection: some View {
-        Section("Post-Processing") {
+        Section {
             Picker("Mode", selection: $flow.postProcessingMode) {
                 ForEach(RecordingFlowPostProcessingMode.allCases) { mode in
                     Text(mode.displayName).tag(mode)
                 }
             }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Label(flow.postProcessingMode.helpTitle, systemImage: "info.circle")
+                    .font(.caption.weight(.semibold))
+                Text(flow.postProcessingMode.helpText)
+                    .font(.caption)
+            }
+            .foregroundStyle(.secondary)
+
             if flow.postProcessingMode == .custom {
                 TextEditor(text: $flow.customPostProcessingInstruction)
                     .frame(minHeight: 90)
+                Text("Describe exactly how Voxboard should shape the cleaned/exported transcript. Leave blank to fall back to the normal cleanup path when AI enrichment is available.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
+        } header: {
+            Text("Post-Processing")
+        } footer: {
+            Text("Applies to the cleaned copy shown in History and used for file exports. Keyboard insertion and the in-app Done screen still show the raw transcript immediately.")
         }
     }
 
@@ -597,6 +613,38 @@ private struct FlowIconPickerView: View {
             ]
         ),
     ]
+}
+
+private extension RecordingFlowPostProcessingMode {
+    var helpTitle: String {
+        switch self {
+        case .none:
+            return "Skips flow-specific formatting"
+        case .clean:
+            return "Cleans prose without changing intent"
+        case .todoList:
+            return "Creates a Markdown checklist"
+        case .meetingNotes:
+            return "Formats notes and action items"
+        case .custom:
+            return "Uses your custom instruction"
+        }
+    }
+
+    var helpText: String {
+        switch self {
+        case .none:
+            return "Saves the recognized text without todo, meeting, or custom reshaping. If AI enrichment is enabled, Voxboard may still add a title, tags, category, and cleaned copy for history/export."
+        case .clean:
+            return "Uses the standard cleanup path when AI enrichment is available: fixes casing and punctuation, trims light filler words, and preserves the speaker's meaning. Without enrichment, the transcript remains raw."
+        case .todoList:
+            return "Turns spoken tasks into `- [ ]` Markdown items. Voxboard reshapes only what you said and avoids inventing new tasks."
+        case .meetingNotes:
+            return "Builds Markdown meeting notes with useful sections and best-effort action items. It keeps details grounded in the transcript and does not invent speakers or decisions."
+        case .custom:
+            return "When on-device AI enrichment is available, Voxboard follows your instruction for the cleaned/exported text. Use it for formats like standup notes, journal prompts, summaries, or call follow-ups."
+        }
+    }
 }
 
 private struct FlowIconCategory: Identifiable {
