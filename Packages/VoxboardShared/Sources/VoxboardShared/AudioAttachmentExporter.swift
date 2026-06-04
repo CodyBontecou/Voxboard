@@ -18,7 +18,9 @@ public enum AudioAttachmentExporter {
         flow: RecordingFlow?
     ) async throws -> URL? {
         guard let flow, flow.audioSaveMode != .off else { return nil }
-        let audioFolderOverride = resolveBookmarkData(flow.exportSettings.audioFolderBookmark)
+        let audioFolderOverride = flow.audioSaveMode == .attachmentsFolder
+            ? resolveBookmarkData(flow.exportSettings.audioFolderBookmark)
+            : nil
         let needsScoping = audioFolderOverride?.startAccessingSecurityScopedResource() ?? false
         defer { if needsScoping { audioFolderOverride?.stopAccessingSecurityScopedResource() } }
 
@@ -77,7 +79,7 @@ public enum AudioAttachmentExporter {
     ) -> URL {
         let baseFolder = transcriptFileURL.deletingLastPathComponent()
         let destinationFolder: URL
-        if let audioFolderOverride {
+        if flow.audioSaveMode == .attachmentsFolder, let audioFolderOverride {
             destinationFolder = audioFolderOverride
         } else {
             switch flow.audioSaveMode {

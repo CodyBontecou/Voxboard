@@ -214,5 +214,21 @@ final class RecordingFlowTests: XCTestCase {
 
         XCTAssertEqual(destination.path, "/tmp/Audio Clips/meeting.m4a")
     }
+
+    func test_audioDestinationURL_ignoresAudioFolderOverrideWhenAlongsideTranscript() {
+        let transcriptURL = URL(fileURLWithPath: "/tmp/Notes/meeting.md")
+        let audioFolder = URL(fileURLWithPath: "/tmp/Audio Clips")
+        var flow = RecordingFlowStore.makeCustomFlow()
+        flow.audioSaveMode = .alongsideTranscript
+
+        let destination = AudioAttachmentExporter.audioDestinationURL(
+            for: transcriptURL,
+            flow: flow,
+            preferredExtension: "m4a",
+            audioFolderOverride: audioFolder
+        )
+
+        XCTAssertEqual(destination.path, "/tmp/Notes/meeting.m4a")
+    }
     #endif
 }

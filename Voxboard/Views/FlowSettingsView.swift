@@ -263,8 +263,15 @@ private struct FlowEditorView: View {
                     Text(mode.displayName).tag(mode)
                 }
             }
+            .onChange(of: flow.audioSaveMode) { _, newMode in
+                markPerFlow()
+                if newMode == .alongsideTranscript {
+                    flow.exportSettings.audioFolderBookmark = nil
+                    flow.exportSettings.audioFolderName = ""
+                }
+            }
 
-            if flow.audioSaveMode != .off {
+            if flow.audioSaveMode == .attachmentsFolder {
                 Button {
                     openBookmarkPicker(.audioFolder)
                 } label: {
@@ -279,7 +286,7 @@ private struct FlowEditorView: View {
                     }
                 }
 
-                if flow.audioSaveMode == .attachmentsFolder, flow.exportSettings.audioFolderName.isEmpty {
+                if flow.exportSettings.audioFolderName.isEmpty {
                     TextField("Attachments Folder", text: $flow.attachmentsFolderName)
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
@@ -288,7 +295,18 @@ private struct FlowEditorView: View {
         } header: {
             Text("Audio Export")
         } footer: {
-            Text("When no audio export directory is set, saved audio uses this flow's note export folder. Attachments Folder creates a subfolder next to the note.")
+            Text(audioExportFooterText)
+        }
+    }
+
+    private var audioExportFooterText: String {
+        switch flow.audioSaveMode {
+        case .off:
+            return "Turn this on to save a copy of the recorded audio when a note is exported."
+        case .alongsideTranscript:
+            return "Saved audio uses the same export directory and base filename as the note."
+        case .attachmentsFolder:
+            return "When no audio export directory is set, saved audio uses this flow's note export folder. Attachments Folder creates a subfolder next to the note."
         }
     }
 
