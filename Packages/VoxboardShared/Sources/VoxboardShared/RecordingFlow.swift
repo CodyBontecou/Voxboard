@@ -139,9 +139,9 @@ public enum RecordingFlowAudioSaveMode: String, Codable, CaseIterable, Sendable,
     }
 }
 
-/// Export settings that can optionally override the global Files tab settings
-/// for a single flow. When `usesCustomExportSettings` is false, Voxboard keeps
-/// using the existing global export configuration for that flow.
+/// Per-flow file export settings. `usesCustomExportSettings` is kept for
+/// migration from the old global Files tab; new flows set it to `true` so each
+/// flow can choose its own note and audio destinations.
 public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
     public var usesCustomExportSettings: Bool
     public var exportEnabled: Bool
@@ -149,6 +149,8 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
     public var mode: ExportFileMode
     public var folderBookmark: Data?
     public var folderName: String
+    public var audioFolderBookmark: Data?
+    public var audioFolderName: String
     public var newFileNameTemplate: String
     public var appendFileName: String
     public var markdownTemplateEnabled: Bool
@@ -159,12 +161,14 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
     public var yamlProperties: Set<ExportYAMLProperty>
 
     public init(
-        usesCustomExportSettings: Bool = false,
+        usesCustomExportSettings: Bool = true,
         exportEnabled: Bool = true,
         format: ExportFileFormat = .md,
         mode: ExportFileMode = .newFile,
         folderBookmark: Data? = nil,
         folderName: String = "",
+        audioFolderBookmark: Data? = nil,
+        audioFolderName: String = "",
         newFileNameTemplate: String = TranscriptFileExporter.defaultNewFileNameTemplate,
         appendFileName: String = TranscriptFileExporter.defaultAppendFileName,
         markdownTemplateEnabled: Bool = false,
@@ -180,6 +184,8 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
         self.mode = mode
         self.folderBookmark = folderBookmark
         self.folderName = folderName
+        self.audioFolderBookmark = audioFolderBookmark
+        self.audioFolderName = audioFolderName
         self.newFileNameTemplate = newFileNameTemplate
         self.appendFileName = appendFileName
         self.markdownTemplateEnabled = markdownTemplateEnabled
@@ -188,6 +194,52 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
         self.mdObsidianEnabled = mdObsidianEnabled
         self.yamlUsesMarkdownExtension = yamlUsesMarkdownExtension
         self.yamlProperties = yamlProperties
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case usesCustomExportSettings
+        case exportEnabled
+        case format
+        case mode
+        case folderBookmark
+        case folderName
+        case audioFolderBookmark
+        case audioFolderName
+        case newFileNameTemplate
+        case appendFileName
+        case markdownTemplateEnabled
+        case markdownTemplateBookmark
+        case markdownTemplateName
+        case mdObsidianEnabled
+        case yamlUsesMarkdownExtension
+        case yamlProperties
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        usesCustomExportSettings = try container.decodeIfPresent(Bool.self, forKey: .usesCustomExportSettings) ?? false
+        exportEnabled = try container.decodeIfPresent(Bool.self, forKey: .exportEnabled) ?? true
+        format = try container.decodeIfPresent(ExportFileFormat.self, forKey: .format) ?? .md
+        mode = try container.decodeIfPresent(ExportFileMode.self, forKey: .mode) ?? .newFile
+        folderBookmark = try container.decodeIfPresent(Data.self, forKey: .folderBookmark)
+        folderName = try container.decodeIfPresent(String.self, forKey: .folderName) ?? ""
+        audioFolderBookmark = try container.decodeIfPresent(Data.self, forKey: .audioFolderBookmark)
+        audioFolderName = try container.decodeIfPresent(String.self, forKey: .audioFolderName) ?? ""
+        newFileNameTemplate = try container.decodeIfPresent(String.self, forKey: .newFileNameTemplate)
+            ?? TranscriptFileExporter.defaultNewFileNameTemplate
+        appendFileName = try container.decodeIfPresent(String.self, forKey: .appendFileName)
+            ?? TranscriptFileExporter.defaultAppendFileName
+        markdownTemplateEnabled = try container.decodeIfPresent(Bool.self, forKey: .markdownTemplateEnabled) ?? false
+        markdownTemplateBookmark = try container.decodeIfPresent(Data.self, forKey: .markdownTemplateBookmark)
+        markdownTemplateName = try container.decodeIfPresent(String.self, forKey: .markdownTemplateName) ?? ""
+        mdObsidianEnabled = try container.decodeIfPresent(Bool.self, forKey: .mdObsidianEnabled) ?? false
+        yamlUsesMarkdownExtension = try container.decodeIfPresent(Bool.self, forKey: .yamlUsesMarkdownExtension) ?? false
+        let decodedYAMLProperties = try container.decodeIfPresent(Set<ExportYAMLProperty>.self, forKey: .yamlProperties)
+        if let decodedYAMLProperties, !decodedYAMLProperties.isEmpty {
+            yamlProperties = decodedYAMLProperties
+        } else {
+            yamlProperties = ExportYAMLProperty.defaultSelection
+        }
     }
 }
 
@@ -233,7 +285,12 @@ public enum RecordingFlowStore {
             .flatMap { try? decoder.decode([RecordingFlow].self, from: $0) } ?? []
 
         if stored.isEmpty {
-            let flows = defaultFlows
+            var flows = defaultFlows
+            if let legacySettings = legacyFileExportSettings(from: defaults) {
+                for index in flows.indices {
+                    flows[index].exportSettings = legacySettings
+                }
+            }
             saveFlows(flows, defaults: defaults)
             return flows
         }
@@ -252,8 +309,73 @@ public enum RecordingFlowStore {
         if !migrated.contains(where: { $0.id == generalId }) {
             migrated.insert(defaultFlow, at: 0)
         }
+
+        migrateFileExportSettingsToFlows(&migrated, defaults: defaults)
+
         if migrated != stored { saveFlows(migrated, defaults: defaults) }
         return migrated
+    }
+
+    private static func migrateFileExportSettingsToFlows(_ flows: inout [RecordingFlow], defaults: UserDefaults) {
+        let legacySettings = legacyFileExportSettings(from: defaults)
+        for index in flows.indices where !flows[index].exportSettings.usesCustomExportSettings {
+            if let legacySettings {
+                flows[index].exportSettings = legacySettings
+            } else {
+                flows[index].exportSettings.usesCustomExportSettings = true
+            }
+        }
+    }
+
+    private static func legacyFileExportSettings(from defaults: UserDefaults) -> RecordingFlowExportSettings? {
+        let legacyKeys = [
+            AppConstants.fileExportEnabledKey,
+            AppConstants.fileExportFormatKey,
+            AppConstants.fileExportModeKey,
+            AppConstants.fileExportBookmarkKey,
+            AppConstants.fileExportYAMLPropertiesKey,
+            AppConstants.fileExportYAMLObsidianBasesKey,
+            AppConstants.fileExportMDObsidianKey,
+            AppConstants.fileExportNewFileNameTemplateKey,
+            AppConstants.fileExportAppendFileNameKey,
+            AppConstants.fileExportTemplateEnabledKey,
+            AppConstants.fileExportTemplateBookmarkKey,
+            AppConstants.fileExportTemplateNameKey,
+        ]
+        guard legacyKeys.contains(where: { defaults.object(forKey: $0) != nil }) else { return nil }
+
+        let formatRaw = defaults.string(forKey: AppConstants.fileExportFormatKey) ?? ExportFileFormat.txt.rawValue
+        let modeRaw = defaults.string(forKey: AppConstants.fileExportModeKey) ?? ExportFileMode.newFile.rawValue
+        let bookmark = defaults.data(forKey: AppConstants.fileExportBookmarkKey)
+        let templateBookmark = defaults.data(forKey: AppConstants.fileExportTemplateBookmarkKey)
+        let yamlRaw = defaults.array(forKey: AppConstants.fileExportYAMLPropertiesKey) as? [String]
+        let yamlProperties = Set((yamlRaw ?? []).compactMap(ExportYAMLProperty.init(rawValue:)))
+
+        return RecordingFlowExportSettings(
+            usesCustomExportSettings: true,
+            exportEnabled: defaults.bool(forKey: AppConstants.fileExportEnabledKey),
+            format: ExportFileFormat(rawValue: formatRaw) ?? .txt,
+            mode: ExportFileMode(rawValue: modeRaw) ?? .newFile,
+            folderBookmark: bookmark,
+            folderName: bookmark.flatMap(resolvedBookmarkName(_:)) ?? "",
+            newFileNameTemplate: defaults.string(forKey: AppConstants.fileExportNewFileNameTemplateKey)
+                ?? TranscriptFileExporter.defaultNewFileNameTemplate,
+            appendFileName: defaults.string(forKey: AppConstants.fileExportAppendFileNameKey)
+                ?? TranscriptFileExporter.defaultAppendFileName,
+            markdownTemplateEnabled: defaults.bool(forKey: AppConstants.fileExportTemplateEnabledKey),
+            markdownTemplateBookmark: templateBookmark,
+            markdownTemplateName: defaults.string(forKey: AppConstants.fileExportTemplateNameKey)
+                ?? templateBookmark.flatMap(resolvedBookmarkName(_:))
+                ?? "",
+            mdObsidianEnabled: defaults.bool(forKey: AppConstants.fileExportMDObsidianKey),
+            yamlUsesMarkdownExtension: defaults.bool(forKey: AppConstants.fileExportYAMLObsidianBasesKey),
+            yamlProperties: yamlProperties.isEmpty ? ExportYAMLProperty.defaultSelection : yamlProperties
+        )
+    }
+
+    private static func resolvedBookmarkName(_ bookmarkData: Data) -> String? {
+        var isStale = false
+        return try? URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale).lastPathComponent
     }
 
     public static func saveFlows(_ flows: [RecordingFlow], defaults: UserDefaults? = AppConstants.sharedDefaults) {

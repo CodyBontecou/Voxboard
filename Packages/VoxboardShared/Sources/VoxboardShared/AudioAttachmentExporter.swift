@@ -18,7 +18,16 @@ public enum AudioAttachmentExporter {
         flow: RecordingFlow?
     ) async throws -> URL? {
         guard let flow, flow.audioSaveMode != .off else { return nil }
-        let destination = uniquedURL(audioDestinationURL(for: transcriptFileURL, flow: flow, preferredExtension: "m4a"))
+        let audioFolderOverride = resolveBookmarkData(flow.exportSettings.audioFolderBookmark)
+        let needsScoping = audioFolderOverride?.startAccessingSecurityScopedResource() ?? false
+        defer { if needsScoping { audioFolderOverride?.stopAccessingSecurityScopedResource() } }
+
+        let destination = uniquedURL(audioDestinationURL(
+            for: transcriptFileURL,
+            flow: flow,
+            preferredExtension: "m4a",
+            audioFolderOverride: audioFolderOverride
+        ))
 
         do {
             try await exportM4A(from: sourceAudioURL, to: destination)
@@ -26,7 +35,16 @@ public enum AudioAttachmentExporter {
         } catch {
             // Fallback: keep the original/working file extension, usually WAV.
             let fallbackExt = sourceAudioURL.pathExtension.isEmpty ? "wav" : sourceAudioURL.pathExtension
-            let fallback = uniquedURL(audioDestinationURL(for: transcriptFileURL, flow: flow, preferredExtension: fallbackExt))
+            let fallback = uniquedURL(audioDestinationURL(
+                for: transcriptFileURL,
+                flow: flow,
+                preferredExtension: fallbackExt,
+                audioFolderOverride: audioFolderOverride
+            ))
+            try FileManager.default.createDirectory(
+                at: fallback.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
             try FileManager.default.copyItem(at: sourceAudioURL, to: fallback)
             return fallback
         }
@@ -54,19 +72,30 @@ public enum AudioAttachmentExporter {
     public static func audioDestinationURL(
         for transcriptFileURL: URL,
         flow: RecordingFlow,
-        preferredExtension: String
+        preferredExtension: String,
+        audioFolderOverride: URL? = nil
     ) -> URL {
         let baseFolder = transcriptFileURL.deletingLastPathComponent()
         let destinationFolder: URL
-        switch flow.audioSaveMode {
-        case .off, .alongsideTranscript:
-            destinationFolder = baseFolder
-        case .attachmentsFolder:
-            let folderName = sanitizedFolderName(flow.attachmentsFolderName)
-            destinationFolder = baseFolder.appendingPathComponent(folderName.isEmpty ? "attachments" : folderName)
+        if let audioFolderOverride {
+            destinationFolder = audioFolderOverride
+        } else {
+            switch flow.audioSaveMode {
+            case .off, .alongsideTranscript:
+                destinationFolder = baseFolder
+            case .attachmentsFolder:
+                let folderName = sanitizedFolderName(flow.attachmentsFolderName)
+                destinationFolder = baseFolder.appendingPathComponent(folderName.isEmpty ? "attachments" : folderName)
+            }
         }
         let baseName = transcriptFileURL.deletingPathExtension().lastPathComponent
         return destinationFolder.appendingPathComponent(baseName).appendingPathExtension(preferredExtension)
+    }
+
+    private static func resolveBookmarkData(_ bookmarkData: Data?) -> URL? {
+        guard let bookmarkData else { return nil }
+        var isStale = false
+        return try? URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale)
     }
 
     private static func exportM4A(from sourceURL: URL, to destinationURL: URL) async throws {

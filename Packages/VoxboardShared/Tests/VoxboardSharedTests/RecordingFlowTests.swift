@@ -22,6 +22,7 @@ final class RecordingFlowTests: XCTestCase {
             symbolName: "person.2",
             isBuiltIn: false,
             kind: .custom,
+            exportSettings: RecordingFlowExportSettings(usesCustomExportSettings: false),
             postProcessingMode: .meetingNotes
         )
         let oldBuiltIns = [
@@ -62,7 +63,72 @@ final class RecordingFlowTests: XCTestCase {
         XCTAssertEqual(loaded.map(\.id).sorted(), [RecordingFlowStore.generalId, custom.id].sorted())
         XCTAssertTrue(loaded.contains { $0.id == RecordingFlowStore.generalId && $0.displayName == "Default" })
         XCTAssertTrue(loaded.contains { $0.id == custom.id && $0.postProcessingMode == .meetingNotes })
+        XCTAssertTrue(loaded.allSatisfy { $0.exportSettings.usesCustomExportSettings })
         XCTAssertFalse(loaded.contains { ["dream", "todo", "meeting"].contains($0.id) })
+    }
+
+    func test_loadFlows_migratesLegacyGlobalFileExportSettingsToPerFlowSettings() throws {
+        let suiteName = "test.flow.export-migration.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let tempFolder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VoxboardLegacyFlowExport-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tempFolder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempFolder) }
+
+        defaults.set(true, forKey: AppConstants.fileExportEnabledKey)
+        defaults.set(ExportFileFormat.yaml.rawValue, forKey: AppConstants.fileExportFormatKey)
+        defaults.set(ExportFileMode.append.rawValue, forKey: AppConstants.fileExportModeKey)
+        defaults.set("Legacy Daily", forKey: AppConstants.fileExportAppendFileNameKey)
+        defaults.set([ExportYAMLProperty.text.rawValue], forKey: AppConstants.fileExportYAMLPropertiesKey)
+        defaults.set(try tempFolder.bookmarkData(), forKey: AppConstants.fileExportBookmarkKey)
+
+        let custom = RecordingFlow(
+            id: "custom-legacy",
+            name: "Legacy Export Flow",
+            symbolName: "folder",
+            isBuiltIn: false,
+            kind: .custom,
+            exportSettings: RecordingFlowExportSettings(usesCustomExportSettings: false)
+        )
+        defaults.set(try JSONEncoder().encode([custom]), forKey: RecordingFlowStore.flowsKey)
+
+        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
+        let migrated = try XCTUnwrap(loaded.first { $0.id == custom.id })
+
+        XCTAssertTrue(migrated.exportSettings.usesCustomExportSettings)
+        XCTAssertTrue(migrated.exportSettings.exportEnabled)
+        XCTAssertEqual(migrated.exportSettings.format, .yaml)
+        XCTAssertEqual(migrated.exportSettings.mode, .append)
+        XCTAssertEqual(migrated.exportSettings.appendFileName, "Legacy Daily")
+        XCTAssertEqual(migrated.exportSettings.yamlProperties, [.text])
+        XCTAssertEqual(migrated.exportSettings.folderName, tempFolder.lastPathComponent)
+        XCTAssertNotNil(migrated.exportSettings.folderBookmark)
+    }
+
+    func test_loadFlows_appliesLegacyGlobalExportSettingsWhenNoFlowsStored() throws {
+        let suiteName = "test.flow.default-export-migration.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let tempFolder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VoxboardDefaultLegacyExport-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: tempFolder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempFolder) }
+
+        defaults.set(true, forKey: AppConstants.fileExportEnabledKey)
+        defaults.set(ExportFileFormat.md.rawValue, forKey: AppConstants.fileExportFormatKey)
+        defaults.set(try tempFolder.bookmarkData(), forKey: AppConstants.fileExportBookmarkKey)
+
+        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
+        let defaultFlow = try XCTUnwrap(loaded.first { $0.id == RecordingFlowStore.generalId })
+
+        XCTAssertTrue(defaultFlow.exportSettings.usesCustomExportSettings)
+        XCTAssertTrue(defaultFlow.exportSettings.exportEnabled)
+        XCTAssertEqual(defaultFlow.exportSettings.format, .md)
+        XCTAssertEqual(defaultFlow.exportSettings.folderName, tempFolder.lastPathComponent)
+        XCTAssertNotNil(defaultFlow.exportSettings.folderBookmark)
     }
 
     func test_todoFlowFormatter_outputsMarkdownCheckboxes() {
@@ -130,4 +196,23 @@ final class RecordingFlowTests: XCTestCase {
         XCTAssertTrue(content.contains("tags: [\"dream\"]"))
         XCTAssertTrue(content.contains("I was flying over a city"))
     }
+
+    #if canImport(AVFoundation)
+    func test_audioDestinationURL_usesFlowAudioFolderOverride() {
+        let transcriptURL = URL(fileURLWithPath: "/tmp/Notes/meeting.md")
+        let audioFolder = URL(fileURLWithPath: "/tmp/Audio Clips")
+        var flow = RecordingFlowStore.makeCustomFlow()
+        flow.audioSaveMode = .attachmentsFolder
+        flow.attachmentsFolderName = "nested-attachments"
+
+        let destination = AudioAttachmentExporter.audioDestinationURL(
+            for: transcriptURL,
+            flow: flow,
+            preferredExtension: "m4a",
+            audioFolderOverride: audioFolder
+        )
+
+        XCTAssertEqual(destination.path, "/tmp/Audio Clips/meeting.m4a")
+    }
+    #endif
 }

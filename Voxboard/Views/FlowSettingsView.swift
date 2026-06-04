@@ -71,8 +71,23 @@ struct FlowSettingsView: View {
 private struct FlowEditorView: View {
     @Binding var flow: RecordingFlow
     @State private var frontmatterText: String
-    @State private var showFolderPicker = false
-    @State private var showTemplatePicker = false
+    @State private var showBookmarkPicker = false
+    @State private var bookmarkPickerKind: BookmarkKind = .exportFolder
+
+    private enum BookmarkKind {
+        case exportFolder
+        case audioFolder
+        case markdownTemplate
+
+        var allowedContentTypes: [UTType] {
+            switch self {
+            case .exportFolder, .audioFolder:
+                return [.folder]
+            case .markdownTemplate:
+                return [.init(filenameExtension: "md") ?? .plainText, .plainText]
+            }
+        }
+    }
 
     init(flow: Binding<RecordingFlow>) {
         self._flow = flow
@@ -81,132 +96,250 @@ private struct FlowEditorView: View {
 
     var body: some View {
         Form {
-            Section("Identity") {
-                TextField("Name", text: $flow.name)
-                NavigationLink {
-                    FlowIconPickerView(symbolName: $flow.symbolName)
-                } label: {
-                    HStack {
-                        Text("Icon")
-                        Spacer()
-                        Image(systemName: FlowIconPickerView.iconName(for: flow.symbolName))
-                            .frame(width: 24)
-                            .foregroundStyle(.secondary)
-                        Text(FlowIconPickerView.title(for: flow.symbolName))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                }
-                Toggle("Enabled", isOn: $flow.isEnabled)
-                    .tint(Brutal.muted)
-            }
-
-            Section("Post-Processing") {
-                Picker("Mode", selection: $flow.postProcessingMode) {
-                    ForEach(RecordingFlowPostProcessingMode.allCases) { mode in
-                        Text(mode.displayName).tag(mode)
-                    }
-                }
-                if flow.postProcessingMode == .custom {
-                    TextEditor(text: $flow.customPostProcessingInstruction)
-                        .frame(minHeight: 90)
-                }
-            }
-
-            Section("Frontmatter") {
-                Text("One `key: value` per line. Example: `tags: [dream, voice]`.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                TextEditor(text: $frontmatterText)
-                    .font(.system(.body, design: .monospaced))
-                    .frame(minHeight: 120)
-                    .onChange(of: frontmatterText) { _, value in
-                        flow.staticFrontmatter = Self.parseFrontmatter(value)
-                    }
-            }
-
-            Section("Audio") {
-                Picker("Save Audio", selection: $flow.audioSaveMode) {
-                    ForEach(RecordingFlowAudioSaveMode.allCases) { mode in
-                        Text(mode.displayName).tag(mode)
-                    }
-                }
-                if flow.audioSaveMode == .attachmentsFolder {
-                    TextField("Attachments Folder", text: $flow.attachmentsFolderName)
-                        .textInputAutocapitalization(.never)
-                        .disableAutocorrection(true)
-                }
-            }
-
-            Section("Custom Export") {
-                Toggle("Override Global File Export", isOn: $flow.exportSettings.usesCustomExportSettings)
-                    .tint(Brutal.muted)
-                if flow.exportSettings.usesCustomExportSettings {
-                    Toggle("Export Enabled", isOn: $flow.exportSettings.exportEnabled)
-                        .tint(Brutal.muted)
-                    Button {
-                        showFolderPicker = true
-                    } label: {
-                        HStack {
-                            Text("Save Location")
-                            Spacer()
-                            Text(flow.exportSettings.folderName.isEmpty ? "Not set" : flow.exportSettings.folderName)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    Picker("Format", selection: $flow.exportSettings.format) {
-                        Text("TXT").tag(ExportFileFormat.txt)
-                        Text("MD").tag(ExportFileFormat.md)
-                        Text("JSON").tag(ExportFileFormat.json)
-                        Text("YAML").tag(ExportFileFormat.yaml)
-                    }
-                    Picker("Mode", selection: $flow.exportSettings.mode) {
-                        Text("New File").tag(ExportFileMode.newFile)
-                        Text("Append").tag(ExportFileMode.append)
-                    }
-                    if flow.exportSettings.mode == .newFile {
-                        TextField("Filename Template", text: $flow.exportSettings.newFileNameTemplate)
-                            .textInputAutocapitalization(.never)
-                            .disableAutocorrection(true)
-                    } else {
-                        TextField("Append Filename", text: $flow.exportSettings.appendFileName)
-                            .textInputAutocapitalization(.never)
-                            .disableAutocorrection(true)
-                    }
-
-                    Toggle("Use Markdown Template", isOn: $flow.exportSettings.markdownTemplateEnabled)
-                        .tint(Brutal.muted)
-                    if flow.exportSettings.markdownTemplateEnabled {
-                        Button {
-                            showTemplatePicker = true
-                        } label: {
-                            HStack {
-                                Text("Template")
-                                Spacer()
-                                Text(flow.exportSettings.markdownTemplateName.isEmpty ? "Not set" : flow.exportSettings.markdownTemplateName)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                }
-            }
+            identitySection
+            postProcessingSection
+            frontmatterSection
+            fileExportSection
+            audioExportSection
         }
         .navigationTitle(flow.displayName)
         .navigationBarTitleDisplayMode(.inline)
-        .fileImporter(isPresented: $showFolderPicker, allowedContentTypes: [.folder], allowsMultipleSelection: false) { result in
-            guard case .success(let urls) = result, let url = urls.first else { return }
-            saveBookmark(url: url, isTemplate: false)
+        .onAppear {
+            // File export now lives on each flow. Mark old flow records as
+            // per-flow when the user opens them so later edits do not fall back
+            // to the legacy app-wide Files tab settings.
+            flow.exportSettings.usesCustomExportSettings = true
         }
-        .fileImporter(isPresented: $showTemplatePicker, allowedContentTypes: [.init(filenameExtension: "md") ?? .plainText, .plainText], allowsMultipleSelection: false) { result in
+        .fileImporter(
+            isPresented: $showBookmarkPicker,
+            allowedContentTypes: bookmarkPickerKind.allowedContentTypes,
+            allowsMultipleSelection: false
+        ) { result in
             guard case .success(let urls) = result, let url = urls.first else { return }
-            saveBookmark(url: url, isTemplate: true)
+            saveBookmark(url: url, kind: bookmarkPickerKind)
         }
         .onDisappear {
             flow.staticFrontmatter = Self.parseFrontmatter(frontmatterText)
         }
     }
 
-    private func saveBookmark(url: URL, isTemplate: Bool) {
+    private var identitySection: some View {
+        Section("Identity") {
+            TextField("Name", text: $flow.name)
+            NavigationLink {
+                FlowIconPickerView(symbolName: $flow.symbolName)
+            } label: {
+                HStack {
+                    Text("Icon")
+                    Spacer()
+                    Image(systemName: FlowIconPickerView.iconName(for: flow.symbolName))
+                        .frame(width: 24)
+                        .foregroundStyle(.secondary)
+                    Text(FlowIconPickerView.title(for: flow.symbolName))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            Toggle("Enabled", isOn: $flow.isEnabled)
+                .tint(Brutal.muted)
+        }
+    }
+
+    private var postProcessingSection: some View {
+        Section("Post-Processing") {
+            Picker("Mode", selection: $flow.postProcessingMode) {
+                ForEach(RecordingFlowPostProcessingMode.allCases) { mode in
+                    Text(mode.displayName).tag(mode)
+                }
+            }
+            if flow.postProcessingMode == .custom {
+                TextEditor(text: $flow.customPostProcessingInstruction)
+                    .frame(minHeight: 90)
+            }
+        }
+    }
+
+    private var frontmatterSection: some View {
+        Section("Frontmatter") {
+            Text("One `key: value` per line. Example: `tags: [dream, voice]`.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            TextEditor(text: $frontmatterText)
+                .font(.system(.body, design: .monospaced))
+                .frame(minHeight: 120)
+                .onChange(of: frontmatterText) { _, value in
+                    flow.staticFrontmatter = Self.parseFrontmatter(value)
+                }
+        }
+    }
+
+    private var fileExportSection: some View {
+        Section {
+            Toggle("Save Notes to Files", isOn: $flow.exportSettings.exportEnabled)
+                .tint(Brutal.muted)
+                .onChange(of: flow.exportSettings.exportEnabled) { _, _ in markPerFlow() }
+
+            if flow.exportSettings.exportEnabled {
+                Button {
+                    openBookmarkPicker(.exportFolder)
+                } label: {
+                    folderRow(title: "Export Directory", value: flow.exportSettings.folderName)
+                }
+                .buttonStyle(.plain)
+
+                if !flow.exportSettings.folderName.isEmpty {
+                    Button("Clear Export Directory", role: .destructive) {
+                        markPerFlow()
+                        flow.exportSettings.folderBookmark = nil
+                        flow.exportSettings.folderName = ""
+                    }
+                }
+
+                Picker("Format", selection: $flow.exportSettings.format) {
+                    Text("TXT").tag(ExportFileFormat.txt)
+                    Text("MD").tag(ExportFileFormat.md)
+                    Text("JSON").tag(ExportFileFormat.json)
+                    Text("YAML").tag(ExportFileFormat.yaml)
+                }
+                .onChange(of: flow.exportSettings.format) { _, _ in markPerFlow() }
+
+                if flow.exportSettings.format == .md {
+                    Toggle("Obsidian Bases", isOn: $flow.exportSettings.mdObsidianEnabled)
+                        .tint(Brutal.muted)
+                        .onChange(of: flow.exportSettings.mdObsidianEnabled) { _, _ in markPerFlow() }
+                }
+
+                if flow.exportSettings.format == .yaml {
+                    Toggle("Use .md Extension", isOn: $flow.exportSettings.yamlUsesMarkdownExtension)
+                        .tint(Brutal.muted)
+                        .onChange(of: flow.exportSettings.yamlUsesMarkdownExtension) { _, _ in markPerFlow() }
+                    yamlPropertiesPicker
+                }
+
+                Picker("Mode", selection: $flow.exportSettings.mode) {
+                    Text("New File").tag(ExportFileMode.newFile)
+                    Text("Append").tag(ExportFileMode.append)
+                }
+                .onChange(of: flow.exportSettings.mode) { _, _ in markPerFlow() }
+
+                if flow.exportSettings.mode == .newFile {
+                    TextField("Filename Template", text: $flow.exportSettings.newFileNameTemplate)
+                        .textInputAutocapitalization(.never)
+                        .disableAutocorrection(true)
+                        .onChange(of: flow.exportSettings.newFileNameTemplate) { _, _ in markPerFlow() }
+                    Text("Tokens: {timestamp}, {date}, {time}, {id8}, {id}, {model}, {language}")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    TextField("Append Filename", text: $flow.exportSettings.appendFileName)
+                        .textInputAutocapitalization(.never)
+                        .disableAutocorrection(true)
+                        .onChange(of: flow.exportSettings.appendFileName) { _, _ in markPerFlow() }
+                }
+
+                Toggle("Use Markdown Template", isOn: $flow.exportSettings.markdownTemplateEnabled)
+                    .tint(Brutal.muted)
+                    .onChange(of: flow.exportSettings.markdownTemplateEnabled) { _, _ in markPerFlow() }
+                if flow.exportSettings.markdownTemplateEnabled {
+                    Button {
+                        openBookmarkPicker(.markdownTemplate)
+                    } label: {
+                        folderRow(title: "Markdown Template", value: flow.exportSettings.markdownTemplateName, systemImage: "doc.text")
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        } header: {
+            Text("File Export")
+        } footer: {
+            Text("These settings apply only when this flow is selected before recording. Choose a different export directory for each flow to route notes into separate folders.")
+        }
+    }
+
+    private var audioExportSection: some View {
+        Section {
+            Picker("Save Audio", selection: $flow.audioSaveMode) {
+                ForEach(RecordingFlowAudioSaveMode.allCases) { mode in
+                    Text(mode.displayName).tag(mode)
+                }
+            }
+
+            if flow.audioSaveMode != .off {
+                Button {
+                    openBookmarkPicker(.audioFolder)
+                } label: {
+                    folderRow(title: "Audio Export Directory", value: flow.exportSettings.audioFolderName)
+                }
+                .buttonStyle(.plain)
+
+                if !flow.exportSettings.audioFolderName.isEmpty {
+                    Button("Clear Audio Directory", role: .destructive) {
+                        flow.exportSettings.audioFolderBookmark = nil
+                        flow.exportSettings.audioFolderName = ""
+                    }
+                }
+
+                if flow.audioSaveMode == .attachmentsFolder, flow.exportSettings.audioFolderName.isEmpty {
+                    TextField("Attachments Folder", text: $flow.attachmentsFolderName)
+                        .textInputAutocapitalization(.never)
+                        .disableAutocorrection(true)
+                }
+            }
+        } header: {
+            Text("Audio Export")
+        } footer: {
+            Text("When no audio export directory is set, saved audio uses this flow's note export folder. Attachments Folder creates a subfolder next to the note.")
+        }
+    }
+
+    private var yamlPropertiesPicker: some View {
+        ForEach(ExportYAMLProperty.allCases, id: \.rawValue) { property in
+            Toggle(
+                property.displayName,
+                isOn: Binding(
+                    get: { flow.exportSettings.yamlProperties.contains(property) },
+                    set: { enabled in toggleYAMLProperty(property, enabled: enabled) }
+                )
+            )
+            .tint(Brutal.muted)
+            .disabled(flow.exportSettings.yamlProperties.count == 1 && flow.exportSettings.yamlProperties.contains(property))
+        }
+    }
+
+    private func folderRow(title: LocalizedStringKey, value: String, systemImage: String = "folder") -> some View {
+        HStack {
+            Text(title)
+            Spacer()
+            Text(value.isEmpty ? String(localized: "Not set") : value)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Image(systemName: systemImage)
+                .foregroundStyle(Brutal.muted)
+        }
+        .contentShape(Rectangle())
+    }
+
+    private func openBookmarkPicker(_ kind: BookmarkKind) {
+        markPerFlow()
+        bookmarkPickerKind = kind
+        showBookmarkPicker = true
+    }
+
+    private func markPerFlow() {
+        flow.exportSettings.usesCustomExportSettings = true
+    }
+
+    private func toggleYAMLProperty(_ property: ExportYAMLProperty, enabled: Bool) {
+        markPerFlow()
+        if enabled {
+            flow.exportSettings.yamlProperties.insert(property)
+        } else {
+            guard flow.exportSettings.yamlProperties.count > 1 else { return }
+            flow.exportSettings.yamlProperties.remove(property)
+        }
+    }
+
+    private func saveBookmark(url: URL, kind: BookmarkKind) {
         let didScope = url.startAccessingSecurityScopedResource()
         defer { if didScope { url.stopAccessingSecurityScopedResource() } }
         guard let bookmark = try? url.bookmarkData(
@@ -214,12 +347,17 @@ private struct FlowEditorView: View {
             includingResourceValuesForKeys: nil,
             relativeTo: nil
         ) else { return }
-        if isTemplate {
-            flow.exportSettings.markdownTemplateBookmark = bookmark
-            flow.exportSettings.markdownTemplateName = url.lastPathComponent
-        } else {
+        markPerFlow()
+        switch kind {
+        case .exportFolder:
             flow.exportSettings.folderBookmark = bookmark
             flow.exportSettings.folderName = url.lastPathComponent
+        case .audioFolder:
+            flow.exportSettings.audioFolderBookmark = bookmark
+            flow.exportSettings.audioFolderName = url.lastPathComponent
+        case .markdownTemplate:
+            flow.exportSettings.markdownTemplateBookmark = bookmark
+            flow.exportSettings.markdownTemplateName = url.lastPathComponent
         }
     }
 

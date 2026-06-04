@@ -949,9 +949,12 @@ final class PersistentRecorder {
 
                     if #available(iOS 26, *), FoundationModelsBackend.isAvailable {
                         let router = FoundationModelsBackend()
+                        let flowHasExplicitExportFolder = flowForExport.exportSettings.usesCustomExportSettings
+                            && flowForExport.exportSettings.folderBookmark != nil
 
-                        // 1. Smart Folders: route to a user-defined destination.
-                        if AppConstants.smartFoldersEnabled {
+                        // 1. Legacy Smart Folders: route to a user-defined destination
+                        // only when the selected flow does not already specify a folder.
+                        if !flowHasExplicitExportFolder, AppConstants.smartFoldersEnabled {
                             let folders = AppConstants.loadSmartFolders()
                             if !folders.isEmpty,
                                let idx = try? await router.routeToFolder(transcript: latest, folders: folders) {
@@ -961,7 +964,7 @@ final class PersistentRecorder {
 
                         // 2. Auto-Organize fallback: generate a subfolder under the base export folder.
                         if folderOverride == nil, AppConstants.autoOrganizeEnabled,
-                           let baseURL = TranscriptFileExporter.resolveExportFolderURL() {
+                           let baseURL = TranscriptFileExporter.resolveExportFolderURL(flow: flowForExport) {
                             let needsScoping = baseURL.startAccessingSecurityScopedResource()
                             let existingFolders = (try? FileManager.default.contentsOfDirectory(
                                 at: baseURL,

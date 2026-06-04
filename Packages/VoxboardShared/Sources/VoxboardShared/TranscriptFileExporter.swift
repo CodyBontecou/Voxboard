@@ -858,9 +858,13 @@ public enum TranscriptFileExporter {
     /// when no bookmark has been saved. Used by callers (e.g. auto-organize) that
     /// need to inspect the folder's contents before exporting.
     public static func resolveExportFolderURL(
+        flow: RecordingFlow? = nil,
         defaults: UserDefaults? = AppConstants.sharedDefaults
     ) -> URL? {
         guard let defaults else { return nil }
+        if flow?.exportSettings.usesCustomExportSettings == true {
+            return resolveBookmarkData(flow?.exportSettings.folderBookmark)
+        }
         return resolveBookmark(from: defaults)
     }
 
