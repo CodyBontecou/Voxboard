@@ -142,7 +142,7 @@ struct RootView: View {
 
             // 4 ── Settings
             NavigationStack {
-                MetaSettingsView()
+                MetaSettingsView(persistentRecorder: persistentRecorder)
             }
             .tabItem {
                 Image(systemName: selectedTab == .settings
@@ -191,7 +191,7 @@ struct RootView: View {
             case .vox:
                 FlowSettingsView()
             case .settings:
-                MetaSettingsView()
+                MetaSettingsView(persistentRecorder: persistentRecorder)
             }
         }
     }

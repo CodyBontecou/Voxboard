@@ -29,9 +29,10 @@ struct CircularWidgetView: View {
     var body: some View {
         ZStack {
             AccessoryWidgetBackground()
-            Image(systemName: entry.isListening ? "mic.fill" : "mic")
+            Image(systemName: entry.isQuickRecordEnabled ? (entry.isListening ? "mic.fill" : "mic") : "mic.slash")
                 .font(.system(size: 22, weight: .semibold))
                 .widgetAccentable()
+                .foregroundStyle(entry.isQuickRecordEnabled ? .primary : .secondary)
         }
     }
 }
@@ -50,7 +51,7 @@ struct RectangularWidgetView: View {
                 Text("VOXBOARD")
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .widgetAccentable()
-                Text(entry.isListening ? "Listening" : "Tap to record")
+                Text(entry.isQuickRecordEnabled ? (entry.isListening ? "Listening" : "Tap to record") : "Disabled")
                     .font(.system(size: 10, weight: .regular, design: .monospaced))
                     .foregroundStyle(.secondary)
             }
@@ -69,11 +70,11 @@ struct SmallWidgetView: View {
             VStack(spacing: 12) {
                 HStack {
                     Circle()
-                        .fill(entry.isListening ? Color.white : Color.gray)
+                        .fill(entry.isQuickRecordEnabled && entry.isListening ? Color.white : Color.gray)
                         .frame(width: 6, height: 6)
-                    Text(entry.isListening ? "LISTENING" : "OFF")
+                    Text(entry.isQuickRecordEnabled ? (entry.isListening ? "LISTENING" : "OFF") : "DISABLED")
                         .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                        .foregroundColor(entry.isListening ? .white : .gray)
+                        .foregroundColor(entry.isQuickRecordEnabled && entry.isListening ? .white : .gray)
                     Spacer()
                 }
                 Spacer()
@@ -81,7 +82,7 @@ struct SmallWidgetView: View {
                     .font(.system(size: 36, weight: .semibold))
                     .foregroundColor(.white)
                 Spacer()
-                Text("TAP TO RECORD")
+                Text(entry.isQuickRecordEnabled ? "TAP TO RECORD" : "OFF IN SETTINGS")
                     .font(.system(size: 9, weight: .bold, design: .monospaced))
                     .foregroundColor(Color(white: 0.5))
             }
@@ -95,20 +96,23 @@ struct SmallWidgetView: View {
 #Preview("Circular", as: .accessoryCircular) {
     VoxboardRecordWidget()
 } timeline: {
-    VoxboardWidgetEntry(date: .now, isListening: false)
-    VoxboardWidgetEntry(date: .now, isListening: true)
+    VoxboardWidgetEntry(date: .now, isListening: false, isQuickRecordEnabled: true)
+    VoxboardWidgetEntry(date: .now, isListening: true, isQuickRecordEnabled: true)
+    VoxboardWidgetEntry(date: .now, isListening: false, isQuickRecordEnabled: false)
 }
 
 #Preview("Rectangular", as: .accessoryRectangular) {
     VoxboardRecordWidget()
 } timeline: {
-    VoxboardWidgetEntry(date: .now, isListening: false)
-    VoxboardWidgetEntry(date: .now, isListening: true)
+    VoxboardWidgetEntry(date: .now, isListening: false, isQuickRecordEnabled: true)
+    VoxboardWidgetEntry(date: .now, isListening: true, isQuickRecordEnabled: true)
+    VoxboardWidgetEntry(date: .now, isListening: false, isQuickRecordEnabled: false)
 }
 
 #Preview("Small", as: .systemSmall) {
     VoxboardRecordWidget()
 } timeline: {
-    VoxboardWidgetEntry(date: .now, isListening: false)
-    VoxboardWidgetEntry(date: .now, isListening: true)
+    VoxboardWidgetEntry(date: .now, isListening: false, isQuickRecordEnabled: true)
+    VoxboardWidgetEntry(date: .now, isListening: true, isQuickRecordEnabled: true)
+    VoxboardWidgetEntry(date: .now, isListening: false, isQuickRecordEnabled: false)
 }

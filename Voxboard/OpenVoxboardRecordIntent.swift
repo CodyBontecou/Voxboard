@@ -1,5 +1,6 @@
 import AppIntents
 import Foundation
+import VoxboardShared
 
 @available(iOS 18.0, *)
 struct OpenVoxboardRecordIntent: AppIntent {
@@ -9,9 +10,10 @@ struct OpenVoxboardRecordIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
+        guard AppConstants.lockScreenQuickRecordEnabled else { return .result() }
+
         // Signal the app to start recording
-        let defaults = UserDefaults(suiteName: "group.bontecou.Voxboard")
-        defaults?.set(true, forKey: "pendingWidgetRecord")
+        AppConstants.sharedDefaults?.set(true, forKey: "pendingWidgetRecord")
         return .result()
     }
 }

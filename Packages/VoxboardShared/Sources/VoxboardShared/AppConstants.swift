@@ -59,6 +59,10 @@ public enum AppConstants: Sendable {
     // Keyboard haptic feedback. Defaults to true when unset.
     public static let hapticsEnabledKey = "hapticsEnabled"
 
+    // Lock Screen / Dynamic Island controls. Both default to true when unset.
+    public static let liveActivityMonitorEnabledKey = "liveActivityMonitorEnabled"
+    public static let lockScreenQuickRecordEnabledKey = "lockScreenQuickRecordEnabled"
+
     // Smart folder routing (Apple Intelligence routes transcripts to the best folder).
     public static let smartFoldersEnabledKey = "smartFoldersEnabled"
     public static let smartFoldersKey = "smartFolders"
@@ -75,6 +79,14 @@ public enum AppConstants: Sendable {
 
     public static var hapticsEnabled: Bool {
         boolOrDefault(hapticsEnabledKey, default: true)
+    }
+
+    public static var liveActivityMonitorEnabled: Bool {
+        boolOrDefault(liveActivityMonitorEnabledKey, default: true)
+    }
+
+    public static var lockScreenQuickRecordEnabled: Bool {
+        boolOrDefault(lockScreenQuickRecordEnabledKey, default: true)
     }
 
     public static var exportUseEnrichedTitleInFilename: Bool {

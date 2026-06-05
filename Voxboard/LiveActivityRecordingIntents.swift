@@ -10,6 +10,8 @@ struct StartRecordingLiveActivityIntent: LiveActivityIntent {
     init() {}
 
     func perform() async throws -> some IntentResult {
+        guard AppConstants.liveActivityMonitorEnabled else { return .result() }
+
         let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
         let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
         let cmd = LiveActivityCommandBuilder.buildStartCommand(

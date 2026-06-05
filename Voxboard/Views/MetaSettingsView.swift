@@ -1,10 +1,13 @@
 import SwiftUI
 import VoxboardShared
+import WidgetKit
 
 // MARK: - MetaSettingsView
 
 /// Tab 4 — app-level settings: upgrade / paywall, about metadata, and debug tools.
 struct MetaSettingsView: View {
+    let persistentRecorder: PersistentRecorder
+
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(StoreManager.self) private var storeManager
     @Environment(\.openURL) private var openURL
@@ -15,6 +18,8 @@ struct MetaSettingsView: View {
     @State private var showMailCompose = false
 #endif
     @State private var hapticsEnabled: Bool = AppConstants.hapticsEnabled
+    @State private var liveActivityMonitorEnabled: Bool = AppConstants.liveActivityMonitorEnabled
+    @State private var lockScreenQuickRecordEnabled: Bool = AppConstants.lockScreenQuickRecordEnabled
 
     var body: some View {
         ZStack {
@@ -25,6 +30,8 @@ struct MetaSettingsView: View {
                     upgradeSection
                     BrutalDivider()
                     keyboardSection
+                    BrutalDivider()
+                    lockScreenSection
                     BrutalDivider()
                     aboutSection
                     BrutalDivider()
@@ -168,11 +175,75 @@ struct MetaSettingsView: View {
         }
     }
 
+    // MARK: - Lock Screen Section
+
+    private var lockScreenSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("02", "Lock Screen")
+            BrutalDivider()
+
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("LIVE ACTIVITY MONITOR")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.text)
+                    Text("Show Voxboard status and Record/Stop controls on the Lock Screen and Dynamic Island while listening.")
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
+                }
+                Spacer()
+                Toggle("", isOn: $liveActivityMonitorEnabled)
+                    .labelsHidden()
+                    .tint(Brutal.muted)
+                    .onChange(of: liveActivityMonitorEnabled) { _, val in
+                        AppConstants.sharedDefaults?.set(val, forKey: AppConstants.liveActivityMonitorEnabledKey)
+                        if val {
+                            if persistentRecorder.isListening {
+                                LiveActivityController.shared.startIfNeeded()
+                            }
+                        } else {
+                            LiveActivityController.shared.end()
+                        }
+                    }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(Brutal.bg)
+
+            BrutalDivider()
+
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("LOCK SCREEN RECORD BUTTON")
+                        .font(Brutal.label())
+                        .foregroundColor(Brutal.text)
+                    Text("Allow the Quick Record widget/control to open Voxboard and immediately start recording.")
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
+                }
+                Spacer()
+                Toggle("", isOn: $lockScreenQuickRecordEnabled)
+                    .labelsHidden()
+                    .tint(Brutal.muted)
+                    .onChange(of: lockScreenQuickRecordEnabled) { _, val in
+                        AppConstants.sharedDefaults?.set(val, forKey: AppConstants.lockScreenQuickRecordEnabledKey)
+                        WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
+                        if #available(iOS 18.0, *) {
+                            ControlCenter.shared.reloadControls(ofKind: "VoxboardRecordControl")
+                        }
+                    }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(Brutal.bg)
+        }
+    }
+
     // MARK: - About Section
 
     private var aboutSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("02", "About")
+            sectionHeader("03", "About")
             BrutalDivider()
 
             var rows: [(String, String)] = [
@@ -213,7 +284,7 @@ struct MetaSettingsView: View {
 
     private var feedbackSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("03", "Feedback")
+            sectionHeader("04", "Feedback")
             BrutalDivider()
 
             Button(action: openDiscord) {
@@ -265,7 +336,7 @@ struct MetaSettingsView: View {
 
     private var debugSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("04", "Debug")
+            sectionHeader("05", "Debug")
             BrutalDivider()
 
             Button {

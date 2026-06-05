@@ -36,6 +36,11 @@ final class LiveActivityController {
     func startIfNeeded() {
         #if canImport(ActivityKit)
         guard #available(iOS 16.1, *) else { return }
+        guard AppConstants.liveActivityMonitorEnabled else {
+            if activity != nil { end() }
+            osLog.notice("Live Activity monitor disabled in Voxboard settings — skipping start")
+            return
+        }
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             osLog.notice("Live Activities disabled — skipping start")
             return
@@ -67,7 +72,12 @@ final class LiveActivityController {
 
     func update(isSegmentActive: Bool, startedAt: TimeInterval?) {
         #if canImport(ActivityKit)
-        guard #available(iOS 16.1, *), let activity else { return }
+        guard #available(iOS 16.1, *) else { return }
+        guard AppConstants.liveActivityMonitorEnabled else {
+            end()
+            return
+        }
+        guard let activity else { return }
         let state = VoxboardLiveActivityState(
             isSegmentActive: isSegmentActive,
             segmentStartedAt: isSegmentActive ? startedAt : nil

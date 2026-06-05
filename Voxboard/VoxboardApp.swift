@@ -83,7 +83,9 @@ struct VoxboardApp: App {
                 // Check if the Control Widget signaled a pending record
                 if AppConstants.sharedDefaults?.bool(forKey: "pendingWidgetRecord") == true {
                     AppConstants.sharedDefaults?.set(false, forKey: "pendingWidgetRecord")
-                    pendingWidgetRecord = true
+                    if AppConstants.lockScreenQuickRecordEnabled {
+                        pendingWidgetRecord = true
+                    }
                 }
 
                 // Re-check listening state — if the user enabled auto-listen
@@ -134,6 +136,10 @@ struct VoxboardApp: App {
 
         case "widget-record":
             // Widget tapped — start listening and immediately begin in-app recording
+            guard AppConstants.lockScreenQuickRecordEnabled else {
+                log.log("[App] Widget record request ignored — Lock Screen Record Button disabled")
+                return
+            }
             log.log("[App] Widget record request — starting listening + recording")
             pendingWidgetRecord = true
 

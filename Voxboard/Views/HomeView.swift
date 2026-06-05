@@ -621,6 +621,8 @@ struct HomeView: View {
     }
 
     func handleWidgetRecord() {
+        guard AppConstants.lockScreenQuickRecordEnabled else { return }
+
         // Start listening if not already, then immediately begin an in-app recording segment
         if !persistentRecorder.isListening {
             persistentRecorder.startListening()
