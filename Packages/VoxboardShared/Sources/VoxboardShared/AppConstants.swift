@@ -59,10 +59,6 @@ public enum AppConstants: Sendable {
     // Keyboard haptic feedback. Defaults to true when unset.
     public static let hapticsEnabledKey = "hapticsEnabled"
 
-    // On-device LLM enrichment (Apple Intelligence) toggle.
-    // Defaults to true when unset — see `enrichmentEnabled` accessor below.
-    public static let enrichmentEnabledKey = "enrichmentEnabled"
-
     // Smart folder routing (Apple Intelligence routes transcripts to the best folder).
     public static let smartFoldersEnabledKey = "smartFoldersEnabled"
     public static let smartFoldersKey = "smartFolders"
@@ -76,13 +72,6 @@ public enum AppConstants: Sendable {
     public static let exportEnrichedFilenameStyleKey = "exportEnrichedFilenameStyle"
     public static let exportUseCleanedTextKey = "exportUseCleanedText"
     public static let exportIncludeTagsKey = "exportIncludeTags"
-
-    /// Whether on-device LLM enrichment should run after transcription.
-    /// Defaults to `true` when the user has never flipped the toggle, so the
-    /// feature is opt-out rather than opt-in.
-    public static var enrichmentEnabled: Bool {
-        boolOrDefault(enrichmentEnabledKey, default: true)
-    }
 
     public static var hapticsEnabled: Bool {
         boolOrDefault(hapticsEnabledKey, default: true)

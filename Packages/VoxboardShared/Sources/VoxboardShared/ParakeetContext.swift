@@ -28,8 +28,8 @@ public final class ParakeetContext: @unchecked Sendable {
     ///
     /// - Parameters:
     ///   - modelsDirectory:  The shared App Group models directory
-    ///                       (``AppConstants.modelsDirectoryURL``).  The CoreML repo folder
-    ///                       (`parakeet-tdt-0.6b-v?-coreml`) must already exist inside it.
+    ///                       (``AppConstants.modelsDirectoryURL``).  The local FluidAudio
+    ///                       repo folder (`parakeet-tdt-0.6b-v?`) must already exist inside it.
     ///   - engine:           `.parakeetV2` or `.parakeetV3`
     /// - Returns: A ready-to-use `ParakeetContext`, or `nil` if models are missing / corrupt.
     public static func load(

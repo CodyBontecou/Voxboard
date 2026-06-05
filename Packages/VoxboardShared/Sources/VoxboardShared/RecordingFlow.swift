@@ -93,6 +93,14 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
         let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed?.isEmpty == false ? trimmed : nil
     }
+
+    /// Whether this Vox should run on-device AI enrichment after transcription.
+    /// Raw Transcript is the explicit per-Vox opt-out; every other mode uses
+    /// Apple Intelligence when it is available so the app no longer needs a
+    /// separate global enrichment toggle.
+    public var usesAIEnrichment: Bool {
+        postProcessingMode != .none
+    }
 }
 
 public enum RecordingFlowKind: String, Codable, CaseIterable, Sendable {

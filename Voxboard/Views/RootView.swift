@@ -5,13 +5,13 @@ import VoxboardShared
 
 /// The four top-level destinations in the app.
 private enum Tab: Hashable, CaseIterable {
-    case listen, model, files, settings
+    case listen, model, vox, settings
 
     var label: String {
         switch self {
         case .listen:   return "Listen"
         case .model:    return "Model"
-        case .files:    return "Files"
+        case .vox:      return "Vox"
         case .settings: return "Settings"
         }
     }
@@ -20,7 +20,7 @@ private enum Tab: Hashable, CaseIterable {
         switch self {
         case .listen:   return "mic"
         case .model:    return "cpu"
-        case .files:    return "folder"
+        case .vox:      return "waveform.circle"
         case .settings: return "gearshape"
         }
     }
@@ -29,7 +29,7 @@ private enum Tab: Hashable, CaseIterable {
         switch self {
         case .listen:   return "mic.fill"
         case .model:    return "cpu.fill"
-        case .files:    return "folder.fill"
+        case .vox:      return "waveform.circle.fill"
         case .settings: return "gearshape.fill"
         }
     }
@@ -40,7 +40,7 @@ private enum Tab: Hashable, CaseIterable {
         switch self {
         case .listen:   return String(localized: "Record and transcribe audio in real time")
         case .model:    return String(localized: "Download and select Whisper or Parakeet AI models")
-        case .files:    return String(localized: "Configure automatic transcript file export")
+        case .vox:      return String(localized: "Manage Vox presets for export routing and post-processing")
         case .settings: return String(localized: "App preferences, upgrade, about, and debug")
         }
     }
@@ -126,19 +126,19 @@ struct RootView: View {
             .accessibilityIdentifier(Tab.model.accessibilityIdentifier)
             .accessibilityHint(Tab.model.accessibilityHint)
 
-            // 3 ── Files
+            // 3 ── Vox
             NavigationStack {
-                FilesTabView()
+                FlowSettingsView()
             }
             .tabItem {
-                Image(systemName: selectedTab == .files
-                    ? Tab.files.activeSymbol
-                    : Tab.files.inactiveSymbol)
-                Text(Tab.files.label)
+                Image(systemName: selectedTab == .vox
+                    ? Tab.vox.activeSymbol
+                    : Tab.vox.inactiveSymbol)
+                Text(Tab.vox.label)
             }
-            .tag(Tab.files)
-            .accessibilityIdentifier(Tab.files.accessibilityIdentifier)
-            .accessibilityHint(Tab.files.accessibilityHint)
+            .tag(Tab.vox)
+            .accessibilityIdentifier(Tab.vox.accessibilityIdentifier)
+            .accessibilityHint(Tab.vox.accessibilityHint)
 
             // 4 ── Settings
             NavigationStack {
@@ -188,8 +188,8 @@ struct RootView: View {
                 )
             case .model:
                 ModelTabView()
-            case .files:
-                FilesTabView()
+            case .vox:
+                FlowSettingsView()
             case .settings:
                 MetaSettingsView()
             }

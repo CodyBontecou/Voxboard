@@ -1,8 +1,8 @@
 import Foundation
 
 /// Lightweight, deterministic flow formatter used as a private fallback when
-/// Apple Intelligence is unavailable or disabled. It deliberately avoids adding
-/// new information; it only reshapes the recognized text.
+/// Apple Intelligence is unavailable or skipped by the selected Vox. It
+/// deliberately avoids adding new information; it only reshapes the recognized text.
 public enum TranscriptFlowFormatter {
 
     public static func apply(flow: RecordingFlow?, to transcript: Transcript) -> Transcript {
@@ -50,6 +50,16 @@ public enum TranscriptFlowFormatter {
     }
 
     public static func formatTodoList(_ text: String) -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lines = trimmed
+            .components(separatedBy: .newlines)
+            .map(cleanTodoItem)
+            .filter { !$0.isEmpty }
+
+        if lines.count > 1 || startsWithListMarker(trimmed) {
+            return lines.map { "- [ ] \($0)" }.joined(separator: "\n")
+        }
+
         let items = splitIntoItems(text)
             .map(cleanTodoItem)
             .filter { !$0.isEmpty }
@@ -88,7 +98,7 @@ public enum TranscriptFlowFormatter {
     }
 
     private static func cleanTodoItem(_ raw: String) -> String {
-        var item = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        var item = stripListMarker(raw.trimmingCharacters(in: .whitespacesAndNewlines))
         let prefixes = [
             "i need to ", "i have to ", "i should ", "we need to ", "we have to ",
             "todo ", "to do ", "task ", "remember to ", "remind me to ", "please "
@@ -101,6 +111,51 @@ public enum TranscriptFlowFormatter {
         item = item.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !item.isEmpty else { return "" }
         return item.prefix(1).uppercased() + String(item.dropFirst())
+    }
+
+    private static func startsWithListMarker(_ raw: String) -> Bool {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return stripListMarker(trimmed) != trimmed
+    }
+
+    private static func stripListMarker(_ raw: String) -> String {
+        var item = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let markers = [
+            "- [ ] ", "- [x] ", "- [X] ",
+            "* [ ] ", "* [x] ", "* [X] ",
+            "• [ ] ", "• [x] ", "• [X] ",
+            "☐ ", "□ ", "- ", "* ", "• "
+        ]
+
+        var stripped = true
+        while stripped {
+            stripped = false
+            for marker in markers where item.hasPrefix(marker) {
+                item.removeFirst(marker.count)
+                item = item.trimmingCharacters(in: .whitespacesAndNewlines)
+                stripped = true
+                break
+            }
+            if !stripped, let numbered = stripNumberedListMarker(item) {
+                item = numbered
+                stripped = true
+            }
+        }
+        return item
+    }
+
+    private static func stripNumberedListMarker(_ raw: String) -> String? {
+        var digitCount = 0
+        for character in raw {
+            guard character.isNumber else { break }
+            digitCount += 1
+        }
+        guard digitCount > 0, raw.count > digitCount else { return nil }
+        let separatorIndex = raw.index(raw.startIndex, offsetBy: digitCount)
+        guard raw[separatorIndex] == "." || raw[separatorIndex] == ")" else { return nil }
+        let afterSeparator = raw.index(after: separatorIndex)
+        guard afterSeparator < raw.endIndex, raw[afterSeparator].isWhitespace else { return nil }
+        return String(raw[afterSeparator...]).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private static func looksActionable(_ raw: String) -> Bool {

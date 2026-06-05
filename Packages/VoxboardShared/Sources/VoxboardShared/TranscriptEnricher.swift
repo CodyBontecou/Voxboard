@@ -128,11 +128,18 @@ public struct TranscriptEnricher: Sendable {
         guard let flow else { return enrichment }
         let tags = TranscriptFlowFormatter.mergeTags(enrichment.tags, flow.staticTags)
         let category = enrichment.category == "other" ? (flow.staticCategory ?? enrichment.category) : enrichment.category
+        let cleanedText: String
+        switch flow.postProcessingMode {
+        case .todoList:
+            cleanedText = TranscriptFlowFormatter.formatTodoList(enrichment.cleanedText)
+        case .none, .clean, .meetingNotes, .custom:
+            cleanedText = enrichment.cleanedText
+        }
         return TranscriptEnrichment(
             title: enrichment.title,
             tags: tags,
             category: category,
-            cleanedText: enrichment.cleanedText
+            cleanedText: cleanedText
         )
     }
 

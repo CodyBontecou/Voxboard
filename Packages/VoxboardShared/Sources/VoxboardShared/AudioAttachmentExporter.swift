@@ -15,14 +15,18 @@ public enum AudioAttachmentExporter {
     public static func exportAudioIfNeeded(
         sourceAudioURL: URL,
         transcriptFileURL: URL,
-        flow: RecordingFlow?
+        flow: RecordingFlow?,
+        transcriptFolderScopeURL: URL? = nil
     ) async throws -> URL? {
         guard let flow, flow.audioSaveMode != .off else { return nil }
         let audioFolderOverride = flow.audioSaveMode == .attachmentsFolder
             ? resolveBookmarkData(flow.exportSettings.audioFolderBookmark)
             : nil
-        let needsScoping = audioFolderOverride?.startAccessingSecurityScopedResource() ?? false
-        defer { if needsScoping { audioFolderOverride?.stopAccessingSecurityScopedResource() } }
+        let folderNeedingScope = audioFolderOverride
+            ?? transcriptFolderScopeURL
+            ?? exportFolderScopeURL(for: flow)
+        let needsScoping = folderNeedingScope?.startAccessingSecurityScopedResource() ?? false
+        defer { if needsScoping { folderNeedingScope?.stopAccessingSecurityScopedResource() } }
 
         let destination = uniquedURL(audioDestinationURL(
             for: transcriptFileURL,
@@ -98,6 +102,13 @@ public enum AudioAttachmentExporter {
         guard let bookmarkData else { return nil }
         var isStale = false
         return try? URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale)
+    }
+
+    private static func exportFolderScopeURL(for flow: RecordingFlow) -> URL? {
+        if flow.exportSettings.usesCustomExportSettings {
+            return resolveBookmarkData(flow.exportSettings.folderBookmark)
+        }
+        return resolveBookmarkData(AppConstants.sharedDefaults?.data(forKey: AppConstants.fileExportBookmarkKey))
     }
 
     private static func exportM4A(from sourceURL: URL, to destinationURL: URL) async throws {

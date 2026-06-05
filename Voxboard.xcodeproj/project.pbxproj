@@ -12,6 +12,7 @@
 		622B4C8D2F78B09700FDC4CA /* Voxboard WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		62C952292F393361001F79DF /* Voxboard Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 62C952222F393361001F79DF /* Voxboard Keyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		62C952852F393BB1001F79DF /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 62C952842F393BB1001F79DF /* KeyboardKit */; };
+		AA9000012F900000AABB0001 /* Notelet in Frameworks */ = {isa = PBXBuildFile; productRef = AA9000032F900000AABB0003 /* Notelet */; };
 		AA0000042F394000AABBCC04 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000022F394000AABBCC02 /* VoxboardShared */; };
 		AA0000052F394000AABBCC05 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000032F394000AABBCC03 /* VoxboardShared */; };
 		AA0000082F394000AABBCC08 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000092F394000AABBCC09 /* VoxboardShared */; };
@@ -134,6 +135,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				62C952852F393BB1001F79DF /* KeyboardKit in Frameworks */,
+				AA9000012F900000AABB0001 /* Notelet in Frameworks */,
 				AA0000042F394000AABBCC04 /* VoxboardShared in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -227,6 +229,7 @@
 			name = Voxboard;
 			packageProductDependencies = (
 				62C952842F393BB1001F79DF /* KeyboardKit */,
+				AA9000032F900000AABB0003 /* Notelet */,
 				AA0000022F394000AABBCC02 /* VoxboardShared */,
 			);
 			productName = Voxboard;
@@ -310,6 +313,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				62C952832F393BB1001F79DF /* XCRemoteSwiftPackageReference "KeyboardKit" */,
+				AA9000022F900000AABB0002 /* XCRemoteSwiftPackageReference "notelet" */,
 				AA0000012F394000AABBCC01 /* XCLocalSwiftPackageReference "Packages/VoxboardShared" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -393,7 +397,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard WidgetExtension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
@@ -404,7 +408,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.8.1;
+				MARKETING_VERSION = 1.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -424,7 +428,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard WidgetExtension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
@@ -435,7 +439,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.8.1;
+				MARKETING_VERSION = 1.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -576,7 +580,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Voxboard/Voxboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -592,7 +596,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.1;
+				MARKETING_VERSION = 1.9;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -612,7 +616,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Voxboard/Voxboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -628,7 +632,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.8.1;
+				MARKETING_VERSION = 1.9;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -646,7 +650,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Keyboard/Info.plist";
@@ -658,7 +662,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.8.1;
+				MARKETING_VERSION = 1.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Keyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -676,7 +680,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 15;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Keyboard/Info.plist";
@@ -688,7 +692,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.8.1;
+				MARKETING_VERSION = 1.9;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Keyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -758,6 +762,14 @@
 				minimumVersion = 10.2.2;
 			};
 		};
+		AA9000022F900000AABB0002 /* XCRemoteSwiftPackageReference "notelet" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/mykolaharmash/notelet";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -765,6 +777,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 62C952832F393BB1001F79DF /* XCRemoteSwiftPackageReference "KeyboardKit" */;
 			productName = KeyboardKit;
+		};
+		AA9000032F900000AABB0003 /* Notelet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA9000022F900000AABB0002 /* XCRemoteSwiftPackageReference "notelet" */;
+			productName = Notelet;
 		};
 		AA0000022F394000AABBCC02 /* VoxboardShared */ = {
 			isa = XCSwiftPackageProductDependency;

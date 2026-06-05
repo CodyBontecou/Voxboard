@@ -186,6 +186,13 @@ public final class ModelManager {
             }
 
             try Task.checkCancellation()
+
+            guard model.isDownloaded else {
+                print("[ModelManager] Parakeet download finished but required files are missing for \(model.name)")
+                await finishDownload(modelId: model.id, success: false)
+                return
+            }
+
             print("[ModelManager] Downloaded Parakeet \(model.name) successfully")
             await finishDownload(modelId: model.id, success: true)
         } catch is CancellationError {
@@ -216,6 +223,10 @@ public final class ModelManager {
             guard let folder = model.engine.parakeetRepoFolderName else { return }
             let repoDir = modelsDir.appendingPathComponent(folder)
             try? FileManager.default.removeItem(at: repoDir)
+
+            // Clean up the legacy pre-FluidAudio-folder-name directory if present.
+            let legacyRepoDir = modelsDir.appendingPathComponent("\(folder)-coreml")
+            try? FileManager.default.removeItem(at: legacyRepoDir)
         } else {
             // Remove any partial .bin file.
             let dest = modelsDir.appendingPathComponent(model.fileName)

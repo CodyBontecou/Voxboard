@@ -26,10 +26,10 @@ struct VoxboardApp: App {
         _storeManager = State(initialValue: storeMan)
 
         // Construct the on-device LLM enricher if the user's device supports
-        // Apple Intelligence and it's enabled. On older/ineligible devices,
-        // `isAvailable` returns false and the recorder is built without an
-        // enricher — transcripts stay unenriched (nil title/tags/etc.),
-        // which is the agreed failure mode.
+        // Apple Intelligence. Individual Vox settings decide whether a given
+        // transcript uses enrichment. On older/ineligible devices, `isAvailable`
+        // returns false and the recorder is built without an enricher — affected
+        // Vox modes fall back to deterministic formatting or raw transcripts.
         let enricher: TranscriptEnricher?
         if #available(iOS 26, *), FoundationModelsBackend.isAvailable {
             enricher = TranscriptEnricher(backend: FoundationModelsBackend())
@@ -59,20 +59,21 @@ struct VoxboardApp: App {
             .environment(transcriptStore)
             .environment(usageTracker)
             .environment(storeManager)
-                .onAppear {
-                    modelManager.copyBundledModelIfNeeded()
-                    transcriptionServer.start()
-                    storeManager.start()
-                    trackInitialOnboardingStartIfNeeded()
+            .voxboardReleaseNotesSheet()
+            .onAppear {
+                modelManager.copyBundledModelIfNeeded()
+                transcriptionServer.start()
+                storeManager.start()
+                trackInitialOnboardingStartIfNeeded()
 
-                    // Auto-start listening if user previously enabled it
-                    if AppConstants.sharedDefaults?.bool(forKey: "autoListenEnabled") == true {
-                        persistentRecorder.startListening()
-                    }
+                // Auto-start listening if user previously enabled it
+                if AppConstants.sharedDefaults?.bool(forKey: "autoListenEnabled") == true {
+                    persistentRecorder.startListening()
                 }
-                .onOpenURL { url in
-                    handleURL(url)
-                }
+            }
+            .onOpenURL { url in
+                handleURL(url)
+            }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {

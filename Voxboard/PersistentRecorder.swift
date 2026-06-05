@@ -990,13 +990,23 @@ final class PersistentRecorder {
                     ) else { return }
 
                     if let audioSourceForExport {
-                        if let audioURL = try? await AudioAttachmentExporter.exportAudioIfNeeded(
-                            sourceAudioURL: audioSourceForExport,
-                            transcriptFileURL: url,
-                            flow: flowForExport
-                        ) {
-                            let relativePath = AudioAttachmentExporter.relativePath(from: url, to: audioURL)
-                            try? TranscriptFileExporter.attachAudioReference(to: url, relativePath: relativePath)
+                        let noteFolderScopeURL = folderOverride ?? TranscriptFileExporter.resolveExportFolderURL(flow: flowForExport)
+                        do {
+                            if let audioURL = try await AudioAttachmentExporter.exportAudioIfNeeded(
+                                sourceAudioURL: audioSourceForExport,
+                                transcriptFileURL: url,
+                                flow: flowForExport,
+                                transcriptFolderScopeURL: noteFolderScopeURL
+                            ) {
+                                let relativePath = AudioAttachmentExporter.relativePath(from: url, to: audioURL)
+                                try TranscriptFileExporter.attachAudioReference(
+                                    to: url,
+                                    relativePath: relativePath,
+                                    securityScopedFolderURL: noteFolderScopeURL
+                                )
+                            }
+                        } catch {
+                            log.log("[PersistentRecorder] ⚠️ Audio export failed: \(error)")
                         }
                         try? FileManager.default.removeItem(at: audioSourceForExport)
                     }
@@ -1004,7 +1014,7 @@ final class PersistentRecorder {
                     await MainActor.run { self?.lastFileExportEvent = FileExportEvent(url: url) }
                 }
 
-                if let enricher = self.transcriptEnricher, AppConstants.enrichmentEnabled {
+                if let enricher = self.transcriptEnricher, flowForExport.usesAIEnrichment {
                     Task.detached(priority: .utility) {
                         await enricher.enrichAndUpdate(transcript: initialTranscript, flow: flowForExport, into: store)
                         await runExport()

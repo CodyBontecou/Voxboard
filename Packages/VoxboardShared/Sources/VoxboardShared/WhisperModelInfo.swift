@@ -14,12 +14,12 @@ public enum ModelEngine: String, Codable, Hashable, Sendable {
         self == .parakeetV2 || self == .parakeetV3
     }
 
-    /// HuggingFace repo folder name used when storing Parakeet CoreML models on disk.
+    /// Local folder name used by FluidAudio when caching Parakeet CoreML models on disk.
     /// Nil for Whisper models (they use a single `.bin` file identified by `fileName`).
     public var parakeetRepoFolderName: String? {
         switch self {
-        case .parakeetV2: return "parakeet-tdt-0.6b-v2-coreml"
-        case .parakeetV3: return "parakeet-tdt-0.6b-v3-coreml"
+        case .parakeetV2: return "parakeet-tdt-0.6b-v2"
+        case .parakeetV3: return "parakeet-tdt-0.6b-v3"
         case .whisper:    return nil
         }
     }
@@ -31,6 +31,9 @@ public enum ModelEngine: String, Codable, Hashable, Sendable {
         "Decoder.mlmodelc",
         "JointDecision.mlmodelc",
     ]
+
+    /// Shared vocabulary file required by FluidAudio's Parakeet loader.
+    public static let parakeetVocabularyFile = "parakeet_vocab.json"
 }
 
 /// Metadata for a transcription model (Whisper GGML or Parakeet CoreML).
@@ -77,10 +80,14 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
         if engine.isParakeet {
             guard let folder = engine.parakeetRepoFolderName else { return false }
             let repoDir = modelsDir.appendingPathComponent(folder)
-            return ModelEngine.parakeetRequiredModelDirs.allSatisfy {
+            let modelDirsPresent = ModelEngine.parakeetRequiredModelDirs.allSatisfy {
                 FileManager.default.fileExists(
                     atPath: repoDir.appendingPathComponent($0).path)
             }
+            let vocabularyPresent = FileManager.default.fileExists(
+                atPath: repoDir.appendingPathComponent(ModelEngine.parakeetVocabularyFile).path
+            )
+            return modelDirsPresent && vocabularyPresent
         } else {
             return FileManager.default.fileExists(
                 atPath: modelsDir.appendingPathComponent(fileName).path)
@@ -88,7 +95,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
     }
 
     /// For Whisper: path to the `.bin` file.
-    /// For Parakeet: path to the repo directory (e.g. `…/parakeet-tdt-0.6b-v3-coreml`).
+    /// For Parakeet: path to the local FluidAudio repo directory (e.g. `…/parakeet-tdt-0.6b-v3`).
     public var localURL: URL? {
         guard let modelsDir = AppConstants.modelsDirectoryURL else { return nil }
         if engine.isParakeet {
@@ -148,7 +155,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
         WhisperModelInfo(
             id: "parakeet-v2",
             name: "Parakeet v2",
-            fileName: "parakeet-tdt-0.6b-v2-coreml",
+            fileName: "parakeet-tdt-0.6b-v2",
             sizeLabel: "~800 MB",
             modelDescription: "Optimized for English.",
             downloadURL: URL(string: "https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v2-coreml")!,
@@ -158,7 +165,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
         WhisperModelInfo(
             id: "parakeet-v3",
             name: "Parakeet v3",
-            fileName: "parakeet-tdt-0.6b-v3-coreml",
+            fileName: "parakeet-tdt-0.6b-v3",
             sizeLabel: "~800 MB",
             modelDescription: "Supports 25 languages.",
             downloadURL: URL(string: "https://huggingface.co/FluidInference/parakeet-tdt-0.6b-v3-coreml")!,

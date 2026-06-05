@@ -80,7 +80,7 @@ Voxboard/
     RootView.swift                  # Adaptive tab/sidebar shell
     HomeView.swift                  # Recording controls and listening state
     ModelTabView.swift              # Download/select Whisper and Parakeet models
-    FilesTabView.swift              # Auto-save, templates, smart folders
+    FlowSettingsView.swift          # Manage Vox presets, exports, templates, and audio routing
     HistoryView.swift               # Local transcript history
     MetaSettingsView.swift          # Preferences, upgrade, feedback, about
     PaywallView.swift               # One-time unlimited unlock

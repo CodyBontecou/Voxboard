@@ -801,8 +801,15 @@ public enum TranscriptFileExporter {
     /// Used after M4A/WAV attachment export succeeds and the final relative path
     /// is known. Markdown files receive/update YAML frontmatter; YAML files get
     /// an `audio` property; TXT files get a short trailing reference.
-    public static func attachAudioReference(to transcriptFileURL: URL, relativePath: String) throws {
+    public static func attachAudioReference(
+        to transcriptFileURL: URL,
+        relativePath: String,
+        securityScopedFolderURL: URL? = nil
+    ) throws {
         guard !relativePath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let needsScope = securityScopedFolderURL?.startAccessingSecurityScopedResource() ?? false
+        defer { if needsScope { securityScopedFolderURL?.stopAccessingSecurityScopedResource() } }
+
         let ext = transcriptFileURL.pathExtension.lowercased()
         let existing = (try? String(contentsOf: transcriptFileURL, encoding: .utf8)) ?? ""
         let updated: String
@@ -868,12 +875,10 @@ public enum TranscriptFileExporter {
         return resolveBookmark(from: defaults)
     }
 
-    /// Reads per-field enrichment toggles. When the master enrichment toggle is
-    /// off we force the "disabled" options — there won't be enrichment data
-    /// anyway, but this avoids any chance of partial enrichment leaking into
-    /// the filename or body.
+    /// Reads per-field enrichment export preferences. Whether enrichment runs is
+    /// decided by the selected Vox; exports simply use enriched fields when they
+    /// exist and these field-level preferences allow them.
     private static func resolveEnrichmentOptions(from defaults: UserDefaults) -> TranscriptExportEnrichmentOptions {
-        guard AppConstants.enrichmentEnabled else { return .disabled }
         return TranscriptExportEnrichmentOptions(
             useEnrichedTitleInFilename: AppConstants.exportUseEnrichedTitleInFilename,
             enrichedFilenameStyle: AppConstants.exportEnrichedFilenameStyle,

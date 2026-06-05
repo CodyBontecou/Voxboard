@@ -221,6 +221,31 @@ final class TranscriptEnricherTests: XCTestCase {
         }
     }
 
+    // MARK: - Flow-specific formatting
+
+    func test_enrich_todoFlowNormalizesDashBulletsToMarkdownCheckboxes() async throws {
+        let backend = FakeLLMBackend(
+            nativeResponse: TranscriptEnrichment(title: "Native", tags: [], category: "task", cleanedText: "native"),
+            response: #"""
+            {
+              "title": "Apple Intelligence Task",
+              "tags": ["task", "apple"],
+              "category": "task",
+              "cleanedText": "- Ensure Vox on device processing works with Apple Intelligence."
+            }
+            """#
+        )
+        var flow = RecordingFlowStore.makeCustomFlow()
+        flow.postProcessingMode = .todoList
+        let enricher = TranscriptEnricher(backend: backend)
+
+        let result = try await enricher.enrich(rawText: "ensure vox on device processing works with apple intelligence", flow: flow)
+
+        XCTAssertEqual(result.cleanedText, "- [ ] Ensure Vox on device processing works with Apple Intelligence.")
+        XCTAssertNotNil(backend.lastPrompt, "todo flows should use the prompt path so the workflow instruction is included")
+        XCTAssertNil(backend.lastNativeInput, "todo flows should not use native cleanup because they need flow-specific formatting")
+    }
+
     // MARK: - enrichAndUpdate orchestration
 
     func test_enrichAndUpdate_writesEnrichedCopyBackToStore() async {

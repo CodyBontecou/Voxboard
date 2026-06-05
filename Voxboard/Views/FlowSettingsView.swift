@@ -9,6 +9,8 @@ struct FlowSettingsView: View {
 
     var body: some View {
         List {
+            introSection
+
             Section {
                 ForEach($flows) { $flow in
                     NavigationLink {
@@ -40,9 +42,9 @@ struct FlowSettingsView: View {
                     }
                 }
             } header: {
-                Text("Vox's")
+                Text("Your Vox's")
             } footer: {
-                Text("Select the active Vox from the Listen screen dropdown before recording. Use this screen to edit the default Vox or add custom Vox's for your own frontmatter, audio, export, and post-processing rules.")
+                Text("Tap a Vox to customize its frontmatter, note folder, audio export, and post-processing rules. Select the active Vox from the Listen screen dropdown before recording.")
             }
 
             Section {
@@ -53,10 +55,24 @@ struct FlowSettingsView: View {
                 }
             }
         }
-        .navigationTitle("Vox's")
+        .navigationTitle("Manage Vox's")
         .preferredColorScheme(.dark)
         .onChange(of: flows) { _, newValue in
             RecordingFlowStore.saveFlows(newValue)
+        }
+    }
+
+    private var introSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 8) {
+                Label("What is a Vox?", systemImage: "waveform.circle")
+                    .font(.headline)
+                Text("A Vox is a reusable voice workflow. Choose one before recording and Voxboard uses it to decide how the transcript is cleaned, what frontmatter is added, and where the note or audio is saved.")
+                Text("Make different Vox's for meetings, journal entries, task capture, ideas, or any folder and template setup you use often.")
+            }
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            .padding(.vertical, 4)
         }
     }
 
@@ -183,7 +199,7 @@ private struct FlowEditorView: View {
         } header: {
             Text("Post-Processing")
         } footer: {
-            Text("Applies to the cleaned copy shown in History and used for file exports. Keyboard insertion and the in-app Done screen still show the raw transcript immediately.")
+            Text("This per-Vox mode controls whether Apple Intelligence runs and how the cleaned copy is shaped. Keyboard insertion and the in-app Done screen still show the raw transcript immediately.")
         }
     }
 
@@ -646,7 +662,7 @@ private extension RecordingFlowPostProcessingMode {
     var helpText: String {
         switch self {
         case .none:
-            return "Saves the recognized text without todo, meeting, or custom reshaping. If AI enrichment is enabled, Voxboard may still add a title, tags, category, and cleaned copy for history/export."
+            return "Saves the recognized text exactly as transcribed and skips Apple Intelligence enrichment for this Vox. No title, tags, category, or cleaned copy are generated unless provided by frontmatter/export settings."
         case .clean:
             return "Uses the standard cleanup path when AI enrichment is available: fixes casing and punctuation, trims light filler words, and preserves the speaker's meaning. Without enrichment, the transcript remains raw."
         case .todoList:

@@ -11,6 +11,17 @@ final class RecordingFlowTests: XCTestCase {
         XCTAssertEqual(flows.first?.kind, .general)
     }
 
+    func test_usesAIEnrichment_isControlledByPostProcessingMode() {
+        var flow = RecordingFlowStore.defaultFlow
+        XCTAssertTrue(flow.usesAIEnrichment)
+
+        flow.postProcessingMode = .none
+        XCTAssertFalse(flow.usesAIEnrichment)
+
+        flow.postProcessingMode = .todoList
+        XCTAssertTrue(flow.usesAIEnrichment)
+    }
+
     func test_loadFlows_removesDeprecatedBuiltInsAndPreservesCustomFlows() throws {
         let suiteName = "test.flow.migration.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -150,6 +161,12 @@ final class RecordingFlowTests: XCTestCase {
         XCTAssertTrue(formatted.tags?.contains("todo") == true)
     }
 
+    func test_todoFlowFormatter_convertsPlainBulletsToMarkdownCheckboxes() {
+        let formatted = TranscriptFlowFormatter.formatTodoList("- Ensure Vox on device processing works with Apple Intelligence.")
+
+        XCTAssertEqual(formatted, "- [ ] Ensure Vox on device processing works with Apple Intelligence.")
+    }
+
     func test_recordingCommand_decodesLegacyPayloadWithoutFlowId() throws {
         let json = """
         {"requestId":"abc","action":"startSegment","modelId":"ggml-base","language":"en"}
@@ -229,6 +246,36 @@ final class RecordingFlowTests: XCTestCase {
         )
 
         XCTAssertEqual(destination.path, "/tmp/Notes/meeting.m4a")
+    }
+
+    func test_exportAudioIfNeeded_alongsideTranscriptWritesAudioNextToNote() async throws {
+        let tempFolder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VoxboardAudioExportTests-\(UUID().uuidString)")
+        let notesFolder = tempFolder.appendingPathComponent("Notes")
+        try FileManager.default.createDirectory(at: notesFolder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempFolder) }
+
+        let sourceAudioURL = tempFolder.appendingPathComponent("recording.wav")
+        try Data("not-a-real-wav".utf8).write(to: sourceAudioURL)
+        let transcriptURL = notesFolder.appendingPathComponent("meeting.md")
+        try "# Meeting".write(to: transcriptURL, atomically: true, encoding: .utf8)
+
+        var flow = RecordingFlowStore.makeCustomFlow()
+        flow.audioSaveMode = .alongsideTranscript
+
+        let audioURL = try await AudioAttachmentExporter.exportAudioIfNeeded(
+            sourceAudioURL: sourceAudioURL,
+            transcriptFileURL: transcriptURL,
+            flow: flow,
+            transcriptFolderScopeURL: notesFolder
+        )
+
+        let savedAudioURL = try XCTUnwrap(audioURL)
+        XCTAssertEqual(
+            savedAudioURL.deletingLastPathComponent().resolvingSymlinksInPath(),
+            notesFolder.resolvingSymlinksInPath()
+        )
+        XCTAssertTrue(FileManager.default.fileExists(atPath: savedAudioURL.path))
     }
     #endif
 }
