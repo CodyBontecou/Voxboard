@@ -98,8 +98,10 @@ private struct FlowEditorView: View {
         Form {
             identitySection
             postProcessingSection
-            frontmatterSection
             fileExportSection
+            if showsFrontmatterSection {
+                frontmatterSection
+            }
             audioExportSection
         }
         .navigationTitle(flow.displayName)
@@ -120,6 +122,16 @@ private struct FlowEditorView: View {
         }
         .onDisappear {
             flow.staticFrontmatter = Self.parseFrontmatter(frontmatterText)
+        }
+    }
+
+    private var showsFrontmatterSection: Bool {
+        guard flow.exportSettings.exportEnabled else { return false }
+        switch flow.exportSettings.format {
+        case .md, .yaml:
+            return true
+        case .txt, .json:
+            return false
         }
     }
 
