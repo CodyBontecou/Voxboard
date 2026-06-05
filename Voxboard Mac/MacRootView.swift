@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import VoxboardShared
 
-private enum MacDestination: String, CaseIterable, Identifiable {
+private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
     case listen = "Listen"
     case model = "Model"
     case vox = "Vox"
@@ -32,8 +32,12 @@ struct MacRootView: View {
             List(selection: $selection) {
                 Section("VOXBOARD") {
                     ForEach(MacDestination.allCases) { destination in
-                        Label(destination.rawValue, systemImage: destination.symbol)
-                            .tag(destination as MacDestination?)
+                        NavigationLink(value: destination) {
+                            Label(destination.rawValue, systemImage: destination.symbol)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .contentShape(Rectangle())
+                        }
+                        .tag(destination)
                     }
                 }
             }
