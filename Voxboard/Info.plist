@@ -23,5 +23,7 @@
 	<string>https://voxboard-onboarding-analytics.costream.workers.dev</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>

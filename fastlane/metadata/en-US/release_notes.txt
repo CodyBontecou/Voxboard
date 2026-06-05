@@ -1,5 +1,6 @@
+Voxes are here: create named dictation presets for journaling, meetings, tasks, or any custom workflow, then route each one to its own format, folder, template, and audio rules.
+
 New in this update:
-• Keyboard haptic feedback — taps now have tactile feedback by default, with a Settings toggle to turn it off.
-• Long-press accent callouts — hold a key on Latin-script languages to access accented variants (à, é, ñ, ü, etc.).
-• Localized status messages on the keyboard toolbar across all supported languages.
-• Bug fix for in-app recordings that could trigger duplicate IPC responses.
+• Lock Screen settings — turn the Live Activity/Dynamic Island monitor and Quick Record button on or off.
+• Smarter note exports — each Vox can control Markdown, YAML, templates, filenames, frontmatter, and audio attachments.
+• Safer migration — existing export settings move into your default Vox, with clearer post-processing choices and more reliable audio export.

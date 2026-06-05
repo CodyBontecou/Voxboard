@@ -14,6 +14,11 @@ enum VoxboardReleaseNotes {
                     title: "What’s new in Voxboard",
                     rows: [
                         .init(
+                            symbolSystemName: "lock.fill",
+                            title: "Lock Screen controls you can tune",
+                            description: "Settings now lets you turn the Live Activity/Dynamic Island monitor and Lock Screen Quick Record button on or off, with disabled widgets showing an off state instead of starting a recording."
+                        ),
+                        .init(
                             symbolSystemName: "mic.badge.plus",
                             title: "Voxes for every workflow",
                             description: "Create named Vox presets for different kinds of dictation—journal entries, meeting notes, task capture, or anything custom. Pick one before recording and Voxboard applies its formatting, cleanup, frontmatter, export, and audio rules."
