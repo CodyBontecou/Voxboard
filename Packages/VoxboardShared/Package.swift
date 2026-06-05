@@ -18,8 +18,8 @@ let package = Package(
         .target(
             name: "VoxboardShared",
             dependencies: [
-                .target(name: "whisper", condition: .when(platforms: [.iOS])),
-                .product(name: "FluidAudio", package: "FluidAudio", condition: .when(platforms: [.iOS])),
+                .target(name: "whisper", condition: .when(platforms: [.iOS, .macOS])),
+                .product(name: "FluidAudio", package: "FluidAudio", condition: .when(platforms: [.iOS, .macOS])),
                 .product(name: "ExportKit", package: "ExportKit"),
             ],
             linkerSettings: [

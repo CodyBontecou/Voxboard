@@ -1,12 +1,12 @@
 # Voxboard
 
-> **Open source, privacy-first iOS voice-to-text keyboard — on-device transcription that works anywhere you type.**
+> **Open source, privacy-first voice-to-text for iOS and macOS — on-device transcription that works anywhere you type.**
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-iOS%2017.6%2B%20%7C%20iPadOS-lightgrey)](#tech-stack)
 [![Swift](https://img.shields.io/badge/swift-5-orange)](#tech-stack)
 
-Voxboard is a custom iOS keyboard and transcription app for turning speech into text without sending audio to the cloud. It runs Whisper and Parakeet models on-device, saves transcript history locally, and can auto-export notes to files for workflows like Obsidian. No accounts. No ads. No servers for your voice or transcript data. Just your keyboard, your models, and your words.
+Voxboard is a custom iOS keyboard, iOS transcription app, and macOS companion app for turning speech into text without sending audio to the cloud. It runs Whisper and Parakeet models on-device, saves transcript history locally, and can auto-export notes to files for workflows like Obsidian. No accounts. No ads. No servers for your voice or transcript data. Just your keyboard, your models, and your words.
 
 **[🌐 Website](https://voxboard-app.vercel.app/)** · **[📲 Download](https://voxboard-app.vercel.app/)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[💬 Discussions](https://github.com/CodyBontecou/Voxboard/discussions)** · **[👥 Discord](https://discord.gg/RaQYS4t6gn)** · **[⭐ Star this repo](https://github.com/CodyBontecou/Voxboard)**
 
@@ -42,6 +42,9 @@ On iOS 26+ devices with Apple Intelligence, Voxboard can generate titles, tags, 
 ### Widgets & Live Activities
 Start or monitor recording from widgets, Live Activities, the lock screen, and Dynamic Island. The widget target shares state through the same private App Group container.
 
+### macOS Companion
+Record directly on your Mac, import audio or video files, pick local Whisper or Parakeet models, manage Vox export presets, browse/copy transcript history, and export TXT/Markdown/JSON/YAML notes with optional audio attachments. The macOS app uses the same shared model/history/export stack as iOS, with a local Application Support fallback for unsigned development builds.
+
 ## Pricing
 
 Voxboard includes **15 minutes of free transcription** so you can test the full flow.
@@ -57,6 +60,7 @@ Unlimited transcription is a one-time **$9.99** unlock. No subscription, no rene
 - **Persistence:** App Group files + shared `UserDefaults`
 - **Monetization:** StoreKit 2 one-time purchase
 - **Minimum iOS:** 17.6
+- **Minimum macOS:** 14.0
 - **Recommended Xcode:** 26.2+
 
 ### Frameworks Used
@@ -105,6 +109,13 @@ Voxboard Widget/
   VoxboardLiveActivity.swift        # Live Activity views
   WidgetViews.swift                 # Shared widget UI
 
+Voxboard Mac/
+  VoxboardMacApp.swift              # macOS app entry point
+  MacRootView.swift                 # macOS sidebar UI for listen/model/vox/history/settings
+  MacRecorder.swift                 # macOS recording, import, transcription, history, export
+  MacStoreManager.swift             # macOS StoreKit unlock/restore
+  VoxboardMac.entitlements          # macOS sandbox, app group, mic, file access
+
 Packages/VoxboardShared/
   Sources/VoxboardShared/
     AppConstants.swift              # App Group, URL scheme, shared keys
@@ -131,6 +142,7 @@ website/                            # Static marketing, privacy, and terms pages
 | Voxboard | `bontecou.Voxboard` | iOS / iPadOS |
 | Voxboard Keyboard | `bontecou.Voxboard.Voxboard-Keyboard` | iOS keyboard extension |
 | Voxboard WidgetExtension | `bontecou.Voxboard.Voxboard-Widget` | iOS widgets / Live Activities |
+| Voxboard Mac | `bontecou.Voxboard.mac` | macOS companion app |
 
 ## Setup
 
@@ -140,7 +152,7 @@ website/                            # Static marketing, privacy, and terms pages
    cd Voxboard
    ```
 2. Open `Voxboard.xcodeproj` in Xcode 26.2+.
-3. Select the **Voxboard** scheme.
+3. Select the **Voxboard** scheme for iOS or **Voxboard Mac** for the macOS companion.
 4. Set your development team for all targets.
 5. Configure the App Group entitlement (`group.bontecou.Voxboard`) for your team or replace it with your own group ID in the targets and `AppConstants.swift`.
 6. Build and run on a physical device. Keyboard, microphone, background audio, and model performance are best tested on hardware.

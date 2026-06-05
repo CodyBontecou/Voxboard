@@ -7,15 +7,24 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		154ED7783EDFF91EC1D07921 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B42D87F76743327017AE80B3 /* Assets.xcassets */; };
+		4C3693BE5FAD3AE5C0A78C74 /* BrutalTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */; };
 		622B4C802F78B09600FDC4CA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */; };
 		622B4C822F78B09600FDC4CA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C812F78B09600FDC4CA /* SwiftUI.framework */; };
 		622B4C8D2F78B09700FDC4CA /* Voxboard WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		62C952292F393361001F79DF /* Voxboard Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 62C952222F393361001F79DF /* Voxboard Keyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		62C952852F393BB1001F79DF /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 62C952842F393BB1001F79DF /* KeyboardKit */; };
-		AA9000012F900000AABB0001 /* Notelet in Frameworks */ = {isa = PBXBuildFile; productRef = AA9000032F900000AABB0003 /* Notelet */; };
+		643BAC287FB3B9EB19C8A1D8 /* MacStoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CA2E8D9B126FE68EF96A0C1 /* MacStoreManager.swift */; };
+		980C04404AB6C692BDA12016 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64622CB3BC5428FC2A2BD2EC /* Cocoa.framework */; };
+		9B15EF5409110CBDF04C40C5 /* MacRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C52E8DD3842F298B7583550 /* MacRecorder.swift */; };
 		AA0000042F394000AABBCC04 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000022F394000AABBCC02 /* VoxboardShared */; };
 		AA0000052F394000AABBCC05 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000032F394000AABBCC03 /* VoxboardShared */; };
 		AA0000082F394000AABBCC08 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000092F394000AABBCC09 /* VoxboardShared */; };
+		AA9000012F900000AABB0001 /* Notelet in Frameworks */ = {isa = PBXBuildFile; productRef = AA9000032F900000AABB0003 /* Notelet */; };
+		E00A9CF58799DA14B1DFFCCD /* VoxboardMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC7E10646EA0B56748352D67 /* VoxboardMacApp.swift */; };
+		F714E206EA01CB59CAD495BC /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AB3B931CCF85C9706AD3C0 /* MacRootView.swift */; };
+		F88C80553313A5C2CF7A42D2 /* ggml-base.bin in Resources */ = {isa = PBXBuildFile; fileRef = ACD6D7FCBB7B20FF8F653162 /* ggml-base.bin */; };
+		FB3BB675A89471D862FE7343 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5DCFFC6C307F334D1C010608 /* VoxboardShared */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,12 +60,22 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1926268D6D235EA2E6308151 /* VoxboardMac.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = VoxboardMac.entitlements; path = "Voxboard Mac/VoxboardMac.entitlements"; sourceTree = "<group>"; };
+		39AB3B931CCF85C9706AD3C0 /* MacRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacRootView.swift; path = "Voxboard Mac/MacRootView.swift"; sourceTree = "<group>"; };
 		622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Voxboard WidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		622B4C812F78B09600FDC4CA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		622B4C992F78B10C00FDC4CA /* Voxboard WidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Voxboard WidgetExtension.entitlements"; sourceTree = "<group>"; };
 		62C9517A2F392ADB001F79DF /* Voxboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Voxboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		62C952222F393361001F79DF /* Voxboard Keyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Voxboard Keyboard.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		64622CB3BC5428FC2A2BD2EC /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		8CA2E8D9B126FE68EF96A0C1 /* MacStoreManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacStoreManager.swift; path = "Voxboard Mac/MacStoreManager.swift"; sourceTree = "<group>"; };
+		9C52E8DD3842F298B7583550 /* MacRecorder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacRecorder.swift; path = "Voxboard Mac/MacRecorder.swift"; sourceTree = "<group>"; };
+		ACD6D7FCBB7B20FF8F653162 /* ggml-base.bin */ = {isa = PBXFileReference; includeInIndex = 1; name = "ggml-base.bin"; path = "Voxboard/ggml-base.bin"; sourceTree = "<group>"; };
+		B42D87F76743327017AE80B3 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Voxboard/Assets.xcassets; sourceTree = "<group>"; };
+		B7CCD1646C8EA9E9C4F0979E /* Voxboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Voxboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC7E10646EA0B56748352D67 /* VoxboardMacApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoxboardMacApp.swift; path = "Voxboard Mac/VoxboardMacApp.swift"; sourceTree = "<group>"; };
+		F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BrutalTheme.swift; path = Voxboard/BrutalTheme.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -148,14 +167,45 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		98FF7F7E6DB0F3B87A5ED01C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				980C04404AB6C692BDA12016 /* Cocoa.framework in Frameworks */,
+				FB3BB675A89471D862FE7343 /* VoxboardShared in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		339B9880237B6C686475B64C /* Voxboard Mac */ = {
+			isa = PBXGroup;
+			children = (
+				DC7E10646EA0B56748352D67 /* VoxboardMacApp.swift */,
+				39AB3B931CCF85C9706AD3C0 /* MacRootView.swift */,
+				9C52E8DD3842F298B7583550 /* MacRecorder.swift */,
+				8CA2E8D9B126FE68EF96A0C1 /* MacStoreManager.swift */,
+				1926268D6D235EA2E6308151 /* VoxboardMac.entitlements */,
+				B42D87F76743327017AE80B3 /* Assets.xcassets */,
+			);
+			name = "Voxboard Mac";
+			sourceTree = "<group>";
+		};
+		4E73D3BA542E2D5EDB72EF9B /* OS X */ = {
+			isa = PBXGroup;
+			children = (
+				64622CB3BC5428FC2A2BD2EC /* Cocoa.framework */,
+			);
+			name = "OS X";
+			sourceTree = "<group>";
+		};
 		622B4C7E2F78B09600FDC4CA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */,
 				622B4C812F78B09600FDC4CA /* SwiftUI.framework */,
+				4E73D3BA542E2D5EDB72EF9B /* OS X */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -169,6 +219,9 @@
 				622B4C832F78B09600FDC4CA /* Voxboard Widget */,
 				622B4C7E2F78B09600FDC4CA /* Frameworks */,
 				62C9517B2F392ADB001F79DF /* Products */,
+				339B9880237B6C686475B64C /* Voxboard Mac */,
+				F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */,
+				ACD6D7FCBB7B20FF8F653162 /* ggml-base.bin */,
 			);
 			sourceTree = "<group>";
 		};
@@ -178,6 +231,7 @@
 				62C9517A2F392ADB001F79DF /* Voxboard.app */,
 				62C952222F393361001F79DF /* Voxboard Keyboard.appex */,
 				622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */,
+				B7CCD1646C8EA9E9C4F0979E /* Voxboard.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -259,6 +313,26 @@
 			productReference = 62C952222F393361001F79DF /* Voxboard Keyboard.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		6DF3EC8D8CB741DA65803ECF /* Voxboard Mac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D0851AD90D66AA9242563BCC /* Build configuration list for PBXNativeTarget "Voxboard Mac" */;
+			buildPhases = (
+				D27E32EC79DC5AA88EADA245 /* Sources */,
+				98FF7F7E6DB0F3B87A5ED01C /* Frameworks */,
+				DBA7562BACCFD97B4C9947AA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Voxboard Mac";
+			packageProductDependencies = (
+				5DCFFC6C307F334D1C010608 /* VoxboardShared */,
+			);
+			productName = Voxboard;
+			productReference = B7CCD1646C8EA9E9C4F0979E /* Voxboard.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -314,7 +388,7 @@
 			packageReferences = (
 				62C952832F393BB1001F79DF /* XCRemoteSwiftPackageReference "KeyboardKit" */,
 				AA9000022F900000AABB0002 /* XCRemoteSwiftPackageReference "notelet" */,
-				AA0000012F394000AABBCC01 /* XCLocalSwiftPackageReference "Packages/VoxboardShared" */,
+				AA0000012F394000AABBCC01 /* XCLocalSwiftPackageReference "VoxboardShared" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 62C9517B2F392ADB001F79DF /* Products */;
@@ -324,6 +398,7 @@
 				62C951792F392ADB001F79DF /* Voxboard */,
 				62C952212F393361001F79DF /* Voxboard Keyboard */,
 				622B4C7C2F78B09600FDC4CA /* Voxboard WidgetExtension */,
+				6DF3EC8D8CB741DA65803ECF /* Voxboard Mac */,
 			);
 		};
 /* End PBXProject section */
@@ -350,6 +425,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DBA7562BACCFD97B4C9947AA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F88C80553313A5C2CF7A42D2 /* ggml-base.bin in Resources */,
+				154ED7783EDFF91EC1D07921 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -371,6 +455,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D27E32EC79DC5AA88EADA245 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E00A9CF58799DA14B1DFFCCD /* VoxboardMacApp.swift in Sources */,
+				F714E206EA01CB59CAD495BC /* MacRootView.swift in Sources */,
+				9B15EF5409110CBDF04C40C5 /* MacRecorder.swift in Sources */,
+				643BAC287FB3B9EB19C8A1D8 /* MacStoreManager.swift in Sources */,
+				4C3693BE5FAD3AE5C0A78C74 /* BrutalTheme.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -705,6 +801,80 @@
 			};
 			name = Release;
 		};
+		676BEA7B1F1FA9DCDF69EF69 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Mac/VoxboardMac.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 17;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Voxboard;
+				INFOPLIST_KEY_CFBundleName = Voxboard;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Voxboard records microphone audio locally so it can transcribe speech on this Mac.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.9;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.mac;
+				PRODUCT_NAME = Voxboard;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		8FCF66A232DA8B6B108CC645 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Mac/VoxboardMac.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 17;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Voxboard;
+				INFOPLIST_KEY_CFBundleName = Voxboard;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Voxboard records microphone audio locally so it can transcribe speech on this Mac.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.9;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.mac;
+				PRODUCT_NAME = Voxboard;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -744,10 +914,19 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		D0851AD90D66AA9242563BCC /* Build configuration list for PBXNativeTarget "Voxboard Mac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8FCF66A232DA8B6B108CC645 /* Release */,
+				676BEA7B1F1FA9DCDF69EF69 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		AA0000012F394000AABBCC01 /* XCLocalSwiftPackageReference "Packages/VoxboardShared" */ = {
+		AA0000012F394000AABBCC01 /* XCLocalSwiftPackageReference "VoxboardShared" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/VoxboardShared;
 		};
@@ -773,15 +952,14 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5DCFFC6C307F334D1C010608 /* VoxboardShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = VoxboardShared;
+		};
 		62C952842F393BB1001F79DF /* KeyboardKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 62C952832F393BB1001F79DF /* XCRemoteSwiftPackageReference "KeyboardKit" */;
 			productName = KeyboardKit;
-		};
-		AA9000032F900000AABB0003 /* Notelet */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AA9000022F900000AABB0002 /* XCRemoteSwiftPackageReference "notelet" */;
-			productName = Notelet;
 		};
 		AA0000022F394000AABBCC02 /* VoxboardShared */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -794,6 +972,11 @@
 		AA0000092F394000AABBCC09 /* VoxboardShared */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = VoxboardShared;
+		};
+		AA9000032F900000AABB0003 /* Notelet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA9000022F900000AABB0002 /* XCRemoteSwiftPackageReference "notelet" */;
+			productName = Notelet;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

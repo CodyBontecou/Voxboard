@@ -1,4 +1,4 @@
-#if os(iOS)
+#if os(iOS) || os(macOS)
 import AVFoundation
 import Foundation
 
@@ -42,6 +42,7 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
             return false
         }
 
+        #if os(iOS)
         let session = AVAudioSession.sharedInstance()
 
         // Log permission & input status
@@ -78,6 +79,12 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
             log.log("[AudioRecorder] ❌ Session setup failed: \(error)")
             return false
         }
+        #else
+        guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else {
+            log.log("[AudioRecorder] ❌ Mic permission not authorized")
+            return false
+        }
+        #endif
 
         // Delete stale recording file
         try? FileManager.default.removeItem(at: url)
@@ -151,8 +158,10 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
 
         guard totalFrames > 0 else {
             log.log("[AudioRecorder] ⚠️ No audio frames captured")
+            #if os(iOS)
             let session = AVAudioSession.sharedInstance()
             try? session.setActive(false, options: .notifyOthersOnDeactivation)
+            #endif
             return nil
         }
 
@@ -174,8 +183,10 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
             log.log("[AudioRecorder] ❌ Failed to write WAV")
         }
 
+        #if os(iOS)
         let session = AVAudioSession.sharedInstance()
         try? session.setActive(false, options: .notifyOthersOnDeactivation)
+        #endif
 
         return success ? url : nil
     }
@@ -307,9 +318,22 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
 
     public static func requestMicrophonePermission() async -> Bool {
         await withCheckedContinuation { continuation in
+            #if os(iOS)
             AVAudioSession.sharedInstance().requestRecordPermission { granted in
                 continuation.resume(returning: granted)
             }
+            #else
+            switch AVCaptureDevice.authorizationStatus(for: .audio) {
+            case .authorized:
+                continuation.resume(returning: true)
+            case .notDetermined:
+                AVCaptureDevice.requestAccess(for: .audio) { granted in
+                    continuation.resume(returning: granted)
+                }
+            default:
+                continuation.resume(returning: false)
+            }
+            #endif
         }
     }
 

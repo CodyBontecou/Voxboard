@@ -27,7 +27,26 @@ public enum AppConstants: Sendable {
     }
 
     public static var sharedContainerURL: URL? {
-        FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier)
+        if let appGroupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
+            return appGroupURL
+        }
+
+        #if os(macOS)
+        // The macOS companion can run unsigned during local development, where
+        // App Group containers are unavailable. Fall back to Application Support
+        // so transcription history, models, and export settings still work.
+        guard let applicationSupportURL = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first else {
+            return nil
+        }
+        let fallbackURL = applicationSupportURL.appendingPathComponent("Voxboard", isDirectory: true)
+        try? FileManager.default.createDirectory(at: fallbackURL, withIntermediateDirectories: true)
+        return fallbackURL
+        #else
+        return nil
+        #endif
     }
 
     public static var modelsDirectoryURL: URL? {
@@ -113,7 +132,12 @@ public enum AppConstants: Sendable {
     }
 
     public static var sharedDefaults: UserDefaults? {
-        UserDefaults(suiteName: appGroupIdentifier)
+        #if os(macOS)
+        guard FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) != nil else {
+            return .standard
+        }
+        #endif
+        return UserDefaults(suiteName: appGroupIdentifier)
     }
 
     // MARK: - Smart Folder Routing

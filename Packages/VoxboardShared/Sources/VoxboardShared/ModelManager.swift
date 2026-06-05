@@ -1,6 +1,7 @@
-#if os(iOS)
 import Foundation
+#if os(iOS) || os(macOS)
 import FluidAudio
+#endif
 
 /// Manages model lifecycle: bundled model setup, downloads, selection, and language preference.
 /// Stores models in the App Group container so both the app and keyboard extension can access them.
@@ -155,6 +156,7 @@ public final class ModelManager {
     // MARK: - Parakeet Download
 
     private func downloadParakeetModel(_ model: WhisperModelInfo) async {
+        #if os(iOS) || os(macOS)
         guard let modelsDir = AppConstants.modelsDirectoryURL else {
             await finishDownload(modelId: model.id, success: false)
             return
@@ -202,6 +204,10 @@ public final class ModelManager {
             print("[ModelManager] Parakeet download failed for \(model.name): \(error)")
             await finishDownload(modelId: model.id, success: false)
         }
+        #else
+        print("[ModelManager] Parakeet downloads are not available on this platform")
+        await finishDownload(modelId: model.id, success: false)
+        #endif
     }
 
     // MARK: - Helpers
@@ -367,4 +373,3 @@ private final class DownloadProgressDelegate: NSObject, URLSessionDownloadDelega
         // Handled by the async/await download call
     }
 }
-#endif
