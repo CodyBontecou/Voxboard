@@ -40,20 +40,20 @@ struct FlowSettingsView: View {
                     }
                 }
             } header: {
-                Text("Flows")
+                Text("Vox's")
             } footer: {
-                Text("Select the active flow from the Listen screen dropdown before recording. Use this screen to edit the default flow or add custom flows for your own frontmatter, audio, export, and post-processing rules.")
+                Text("Select the active Vox from the Listen screen dropdown before recording. Use this screen to edit the default Vox or add custom Vox's for your own frontmatter, audio, export, and post-processing rules.")
             }
 
             Section {
                 Button {
                     flows.append(RecordingFlowStore.makeCustomFlow())
                 } label: {
-                    Label("Add Custom Flow", systemImage: "plus")
+                    Label("Add Custom Vox", systemImage: "plus")
                 }
             }
         }
-        .navigationTitle("Flows")
+        .navigationTitle("Vox's")
         .preferredColorScheme(.dark)
         .onChange(of: flows) { _, newValue in
             RecordingFlowStore.saveFlows(newValue)
@@ -268,7 +268,7 @@ private struct FlowEditorView: View {
         } header: {
             Text("File Export")
         } footer: {
-            Text("These settings apply only when this flow is selected before recording. Choose a different export directory for each flow to route notes into separate folders.")
+            Text("These settings apply only when this Vox is selected before recording. Choose a different export directory for each Vox to route notes into separate folders.")
         }
     }
 
@@ -322,7 +322,7 @@ private struct FlowEditorView: View {
         case .alongsideTranscript:
             return "Saved audio uses the same export directory and base filename as the note."
         case .attachmentsFolder:
-            return "When no audio export directory is set, saved audio uses this flow's note export folder. Attachments Folder creates a subfolder next to the note."
+            return "When no audio export directory is set, saved audio uses this Vox's note export folder. Attachments Folder creates a subfolder next to the note."
         }
     }
 
@@ -619,7 +619,7 @@ private extension RecordingFlowPostProcessingMode {
     var helpTitle: String {
         switch self {
         case .none:
-            return "Skips flow-specific formatting"
+            return "Skips Vox-specific formatting"
         case .clean:
             return "Cleans prose without changing intent"
         case .todoList:

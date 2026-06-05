@@ -263,7 +263,7 @@ struct HomeView: View {
 
     private var flowSelectorBar: some View {
         HStack(spacing: 10) {
-            Text("FLOW")
+            Text("VOX")
                 .font(Brutal.caption())
                 .foregroundColor(Brutal.muted)
             Menu {

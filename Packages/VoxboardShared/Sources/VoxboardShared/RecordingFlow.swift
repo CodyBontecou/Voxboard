@@ -48,7 +48,7 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
 
     public var displayName: String {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Untitled Flow" : trimmed
+        return trimmed.isEmpty ? "Untitled Vox" : trimmed
     }
 
     public var shortLabel: String {
@@ -269,7 +269,7 @@ public enum RecordingFlowStore {
     public static func makeCustomFlow() -> RecordingFlow {
         RecordingFlow(
             id: "custom-\(UUID().uuidString.lowercased())",
-            name: "Custom Flow",
+            name: "Custom Vox",
             symbolName: "slider.horizontal.3",
             isBuiltIn: false,
             kind: .custom,

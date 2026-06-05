@@ -115,7 +115,7 @@ struct VoiceToolbarView: View {
                 .overlay(Rectangle().stroke(K.borderHi, lineWidth: 1))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Recording flow: \(voiceState.currentFlowName). Tap to change flow.")
+        .accessibilityLabel("Recording Vox: \(voiceState.currentFlowName). Tap to change Vox.")
     }
 
     // MARK: - Status Label

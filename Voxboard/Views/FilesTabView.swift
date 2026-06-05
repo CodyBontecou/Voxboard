@@ -44,17 +44,17 @@ struct FilesTabView: View {
 
     @ViewBuilder
     private var mainSection: some View {
-        sectionHeader("00", "Recording Flows")
+        sectionHeader("00", "Vox's")
         BrutalDivider()
         NavigationLink {
             FlowSettingsView()
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("MANAGE FLOWS")
+                    Text("MANAGE VOX'S")
                         .font(Brutal.label())
                         .foregroundColor(Brutal.text)
-                    Text("Set export, template, note folder, and audio folder per flow")
+                    Text("Set export, template, note folder, and audio folder per Vox")
                         .font(Brutal.caption())
                         .foregroundColor(Brutal.muted)
                 }
@@ -70,7 +70,7 @@ struct FilesTabView: View {
         .buttonStyle(.plain)
         BrutalDivider()
 
-        Text("Choose a flow before recording. Voxboard saves the resulting note to that flow's Export Directory, making it easy to keep meeting notes, journal entries, tasks, and other workflows in separate folders.")
+        Text("Choose a Vox before recording. Voxboard saves the resulting note to that Vox's Export Directory, making it easy to keep meeting notes, journal entries, tasks, and other workflows in separate folders.")
             .font(Brutal.caption())
             .foregroundColor(Brutal.muted)
             .lineSpacing(3)
@@ -79,13 +79,13 @@ struct FilesTabView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Brutal.bg)
 
-        sectionHeader("01", "Per-Flow Routing")
+        sectionHeader("01", "Per-Vox Routing")
         BrutalDivider()
-        infoRow(title: "EXPORT DIRECTORY", subtitle: "Required for a flow to auto-save notes to Files or Obsidian.", symbol: "folder")
+        infoRow(title: "EXPORT DIRECTORY", subtitle: "Required for a Vox to auto-save notes to Files or Obsidian.", symbol: "folder")
         BrutalDivider()
-        infoRow(title: "AUDIO EXPORT DIRECTORY", subtitle: "Optional. If unset, saved audio stays next to the flow's exported note.", symbol: "waveform")
+        infoRow(title: "AUDIO EXPORT DIRECTORY", subtitle: "Optional. If unset, saved audio stays next to the Vox's exported note.", symbol: "waveform")
         BrutalDivider()
-        infoRow(title: "MARKDOWN TEMPLATE", subtitle: "Optional per-flow template for custom note layouts.", symbol: "doc.text")
+        infoRow(title: "MARKDOWN TEMPLATE", subtitle: "Optional per-Vox template for custom note layouts.", symbol: "doc.text")
         BrutalDivider()
     }
 
