@@ -801,6 +801,8 @@ private struct MacSettingsView: View {
     let recorder: MacRecorder
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(MacStoreManager.self) private var storeManager
+    @AppStorage(MacAppVisibilityMode.storageKey, store: AppConstants.sharedDefaults)
+    private var visibilityModeRaw = MacAppVisibilityMode.dockAndMenuBar.rawValue
     @State private var showPaywall = false
     @State private var showDebug = false
 
@@ -821,10 +823,12 @@ private struct MacSettingsView: View {
                     settingsRow(title: "APPLE INTELLIGENCE", detail: appleIntelligenceDetail, trailing: appleIntelligenceStatus)
                     settingsRow(title: "FILE EXPORT", detail: "Vox folders, templates, Markdown/YAML/JSON/TXT, and audio attachments are shared with iOS settings when the App Group is available.", trailing: "ENABLED")
                     settingsRow(title: "KEYBOARD + LOCK SCREEN", detail: "Custom keyboard, widgets, Dynamic Island, and Live Activities remain iOS-specific.", trailing: "IOS")
-                    sectionHeader("02", "About")
+                    sectionHeader("02", "Visibility")
+                    visibilitySettings
+                    sectionHeader("03", "About")
                     settingsRow(title: "VERSION", detail: appVersionString, trailing: "")
                     settingsRow(title: "PROCESSING", detail: "Voice and text stay on-device.", trailing: "PRIVATE")
-                    sectionHeader("03", "Debug")
+                    sectionHeader("04", "Debug")
                     Button("VIEW DEBUG LOG") { showDebug = true }
                         .buttonStyle(BrutalButtonStyle(variant: .secondary))
                         .padding(20)
@@ -840,6 +844,24 @@ private struct MacSettingsView: View {
         }
     }
 
+
+    private var visibilityMode: MacAppVisibilityMode {
+        MacAppVisibilityMode(rawValue: visibilityModeRaw) ?? .dockAndMenuBar
+    }
+
+    private var visibilityFootnote: String {
+        switch visibilityMode {
+        case .dockAndMenuBar:
+            return "Default. Click “Show Voxboard” from the menu bar or use Cmd-Tab."
+        case .menuBarOnly:
+            return "No Dock icon or Cmd-Tab entry. Click the menu bar item to reveal Voxboard."
+        case .dockOnly:
+            return "Use the Dock icon or Cmd-Tab to bring Voxboard forward."
+        case .hidden:
+            return "Fully hidden. Reopen Voxboard from Spotlight, Finder, or Launchpad to access it again."
+        }
+    }
+
     private var appleIntelligenceStatus: String {
         if #available(macOS 26, *) {
             return FoundationModelsBackend.isAvailable ? "READY" : "UNAVAILABLE"
@@ -852,6 +874,69 @@ private struct MacSettingsView: View {
             return "Foundation Models cleans transcripts, adds titles/tags/categories, and powers smart folder routing on-device."
         }
         return "Requires macOS 26+ on an Apple Intelligence-capable Mac."
+    }
+
+
+    private var visibilitySettings: some View {
+        VStack(spacing: 0) {
+            BrutalDivider()
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Choose where Voxboard appears. macOS controls the Dock icon and Cmd-Tab entry together.")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
+
+                VStack(spacing: 8) {
+                    ForEach(MacAppVisibilityMode.allCases) { mode in
+                        visibilityModeRow(mode)
+                    }
+                }
+
+                Text(visibilityFootnote)
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.faint)
+            }
+            .padding(20)
+            .background(Brutal.bg)
+        }
+    }
+
+    private func visibilityModeRow(_ mode: MacAppVisibilityMode) -> some View {
+        let isSelected = visibilityMode == mode
+        return Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                visibilityModeRaw = mode.rawValue
+            }
+            mode.apply()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: mode.systemImage)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(isSelected ? Brutal.bg : Brutal.faint)
+                    .frame(width: 28)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(mode.title.uppercased())
+                        .font(Brutal.label())
+                        .foregroundColor(isSelected ? Brutal.bg : Brutal.text)
+                    Text(mode.summary)
+                        .font(Brutal.caption())
+                        .foregroundColor(isSelected ? Brutal.bg.opacity(0.72) : Brutal.muted)
+                }
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(Brutal.bg)
+                }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(isSelected ? Brutal.text : Brutal.surface)
+            .overlay(Rectangle().stroke(isSelected ? Brutal.text : Brutal.border, lineWidth: 1))
+        }
+        .buttonStyle(.plain)
     }
 
     private var appVersionString: String {
