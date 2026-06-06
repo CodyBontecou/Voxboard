@@ -818,6 +818,7 @@ private struct MacSettingsView: View {
                     }
                     sectionHeader("01", "Mac Companion")
                     settingsRow(title: "ON-DEVICE TRANSCRIPTION", detail: "Whisper and Parakeet models run locally with Metal/Core ML acceleration.", trailing: "LOCAL")
+                    settingsRow(title: "APPLE INTELLIGENCE", detail: appleIntelligenceDetail, trailing: appleIntelligenceStatus)
                     settingsRow(title: "FILE EXPORT", detail: "Vox folders, templates, Markdown/YAML/JSON/TXT, and audio attachments are shared with iOS settings when the App Group is available.", trailing: "ENABLED")
                     settingsRow(title: "KEYBOARD + LOCK SCREEN", detail: "Custom keyboard, widgets, Dynamic Island, and Live Activities remain iOS-specific.", trailing: "IOS")
                     sectionHeader("02", "About")
@@ -837,6 +838,20 @@ private struct MacSettingsView: View {
         .sheet(isPresented: $showDebug) {
             MacDebugLogView()
         }
+    }
+
+    private var appleIntelligenceStatus: String {
+        if #available(macOS 26, *) {
+            return FoundationModelsBackend.isAvailable ? "READY" : "UNAVAILABLE"
+        }
+        return "MACOS 26+"
+    }
+
+    private var appleIntelligenceDetail: String {
+        if #available(macOS 26, *) {
+            return "Foundation Models cleans transcripts, adds titles/tags/categories, and powers smart folder routing on-device."
+        }
+        return "Requires macOS 26+ on an Apple Intelligence-capable Mac."
     }
 
     private var appVersionString: String {
@@ -930,15 +945,15 @@ private extension RecordingFlowPostProcessingMode {
     var helpText: String {
         switch self {
         case .none:
-            return "Saves the recognized text exactly as transcribed and skips AI enrichment for this Vox."
+            return "Saves the recognized text exactly as transcribed and skips Apple Intelligence enrichment for this Vox."
         case .clean:
-            return "Uses the standard cleanup path when enrichment is available. Without enrichment, the transcript remains raw."
+            return "Uses Apple Intelligence cleanup when available. Without enrichment, the transcript remains raw."
         case .todoList:
             return "Turns spoken tasks into `- [ ]` Markdown checklist items without inventing new tasks."
         case .meetingNotes:
             return "Builds Markdown meeting notes with useful sections and best-effort action items."
         case .custom:
-            return "Follows your instruction when on-device enrichment is available."
+            return "Follows your instruction when Apple Intelligence enrichment is available."
         }
     }
 }

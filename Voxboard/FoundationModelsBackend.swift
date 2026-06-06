@@ -4,18 +4,19 @@ import VoxboardShared
 
 /// `LLMBackend` backed by Apple's on-device Foundation Models framework.
 ///
-/// Lives in the main app target only — FoundationModels is out of the
+/// Lives in the app targets only — FoundationModels is out of the
 /// keyboard extension's memory budget and rate-limited in extensions.
 ///
-/// Availability: iOS 26+ on Apple Intelligence-capable devices with AI
-/// enabled. Callers should check `isAvailable` before constructing the
-/// enricher; `complete` / `enrichNative` throw `.unavailable` otherwise.
+/// Availability: iOS 26+ / macOS 26+ on Apple Intelligence-capable devices
+/// with Apple Intelligence enabled. Callers should check `isAvailable` before
+/// constructing the enricher; `complete` / `enrichNative` throw `.unavailable`
+/// otherwise.
 ///
 /// Structured output: overrides `enrichNative(rawText:)` to use `@Generable`
 /// guided generation, which guarantees well-formed output. The string path
 /// (`complete(prompt:)`) also runs against the same session but is only
 /// used as a fallback when `TranscriptEnricher` can't or won't use native.
-@available(iOS 26, *)
+@available(iOS 26, macOS 26, *)
 final class FoundationModelsBackend: LLMBackend {
 
     // MARK: - Availability
@@ -189,7 +190,7 @@ final class FoundationModelsBackend: LLMBackend {
 /// The shape the on-device model produces via guided generation. Kept
 /// private to the backend so `VoxboardShared` stays FoundationModels-free.
 /// Converted to `TranscriptEnrichment` before returning to the enricher.
-@available(iOS 26, *)
+@available(iOS 26, macOS 26, *)
 @Generable
 private struct GeneratedEnrichment {
     @Guide(description: "A short descriptive title, at most 6 words")
@@ -205,21 +206,21 @@ private struct GeneratedEnrichment {
     let cleanedText: String
 }
 
-@available(iOS 26, *)
+@available(iOS 26, macOS 26, *)
 @Generable
 private struct GeneratedFolderName {
     @Guide(description: "1–3 lowercase words separated by hyphens. Reuse an existing folder name when the content fits, otherwise invent a new one. Examples: app-dev, meeting-notes, ideas, personal-journal")
     let name: String
 }
 
-@available(iOS 26, *)
+@available(iOS 26, macOS 26, *)
 @Generable
 private struct FolderSelection {
     @Guide(description: "Zero-based index of the best matching folder, or -1 if no folder is appropriate")
     let folderIndex: Int
 }
 
-@available(iOS 26, *)
+@available(iOS 26, macOS 26, *)
 @Generable
 private enum GeneratedCategory: String {
     case note

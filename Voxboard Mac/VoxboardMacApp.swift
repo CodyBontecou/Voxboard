@@ -15,7 +15,21 @@ struct VoxboardMacApp: App {
         let store = TranscriptStore()
         let usage = UsageTracker()
         let storeManager = MacStoreManager(usageTracker: usage)
-        let recorder = MacRecorder(transcriptStore: store, usageTracker: usage)
+
+        // Match the iOS app's on-device Apple Intelligence enrichment path on
+        // macOS 26+ when Foundation Models is available for this Mac/user.
+        let enricher: TranscriptEnricher?
+        if #available(macOS 26, *), FoundationModelsBackend.isAvailable {
+            enricher = TranscriptEnricher(backend: FoundationModelsBackend())
+        } else {
+            enricher = nil
+        }
+
+        let recorder = MacRecorder(
+            transcriptStore: store,
+            usageTracker: usage,
+            transcriptEnricher: enricher
+        )
 
         _transcriptStore = State(initialValue: store)
         _usageTracker = State(initialValue: usage)

@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		154ED7783EDFF91EC1D07921 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B42D87F76743327017AE80B3 /* Assets.xcassets */; };
 		4C3693BE5FAD3AE5C0A78C74 /* BrutalTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */; };
+		AB2600022F901000AABB0002 /* FoundationModelsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */; };
 		622B4C802F78B09600FDC4CA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */; };
 		622B4C822F78B09600FDC4CA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C812F78B09600FDC4CA /* SwiftUI.framework */; };
 		622B4C8D2F78B09700FDC4CA /* Voxboard WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -76,6 +77,7 @@
 		B7CCD1646C8EA9E9C4F0979E /* Voxboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Voxboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC7E10646EA0B56748352D67 /* VoxboardMacApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoxboardMacApp.swift; path = "Voxboard Mac/VoxboardMacApp.swift"; sourceTree = "<group>"; };
 		F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BrutalTheme.swift; path = Voxboard/BrutalTheme.swift; sourceTree = "<group>"; };
+		AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FoundationModelsBackend.swift; path = Voxboard/FoundationModelsBackend.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -221,6 +223,7 @@
 				62C9517B2F392ADB001F79DF /* Products */,
 				339B9880237B6C686475B64C /* Voxboard Mac */,
 				F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */,
+				AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */,
 				ACD6D7FCBB7B20FF8F653162 /* ggml-base.bin */,
 			);
 			sourceTree = "<group>";
@@ -467,6 +470,7 @@
 				9B15EF5409110CBDF04C40C5 /* MacRecorder.swift in Sources */,
 				643BAC287FB3B9EB19C8A1D8 /* MacStoreManager.swift in Sources */,
 				4C3693BE5FAD3AE5C0A78C74 /* BrutalTheme.swift in Sources */,
+				AB2600022F901000AABB0002 /* FoundationModelsBackend.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

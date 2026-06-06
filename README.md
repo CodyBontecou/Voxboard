@@ -37,13 +37,13 @@ Every transcription is stored locally in the shared App Group container. Browse 
 Automatically save transcripts after each session as TXT, Markdown, or YAML. Choose a destination folder, use filename templates, append to a single file, render Markdown templates, and enable Obsidian-friendly frontmatter.
 
 ### Apple Intelligence Enrichment
-On iOS 26+ devices with Apple Intelligence, Voxboard can generate titles, tags, categories, cleaned-up text, and smart folder routing — still locally on-device through Apple's Foundation Models framework.
+On iOS 26+ devices and macOS 26+ Macs with Apple Intelligence, Voxboard can generate titles, tags, categories, cleaned-up text, and smart folder routing — still locally on-device through Apple's Foundation Models framework.
 
 ### Widgets & Live Activities
 Start or monitor recording from widgets, Live Activities, the lock screen, and Dynamic Island. The widget target shares state through the same private App Group container.
 
 ### macOS Companion
-Record directly on your Mac, import audio or video files, pick local Whisper or Parakeet models, manage Vox export presets, browse/copy transcript history, and export TXT/Markdown/JSON/YAML notes with optional audio attachments. The macOS app uses the same shared model/history/export stack as iOS, with a local Application Support fallback for unsigned development builds.
+Record directly on your Mac, import audio or video files, pick local Whisper or Parakeet models, manage Vox export presets, browse/copy transcript history, run Apple Intelligence enrichment on macOS 26+ capable Macs, and export TXT/Markdown/JSON/YAML notes with optional audio attachments. The macOS app uses the same shared model/history/export stack as iOS, with a local Application Support fallback for unsigned development builds.
 
 ## Pricing
 
@@ -56,7 +56,7 @@ Unlimited transcription is a one-time **$9.99** unlock. No subscription, no rene
 - **Language:** Swift 5
 - **UI:** SwiftUI
 - **Transcription:** whisper.cpp, FluidAudio, Core ML, Metal, Accelerate
-- **AI Enrichment:** Foundation Models / Apple Intelligence (iOS 26+)
+- **AI Enrichment:** Foundation Models / Apple Intelligence (iOS/macOS 26+)
 - **Persistence:** App Group files + shared `UserDefaults`
 - **Monetization:** StoreKit 2 one-time purchase
 - **Minimum iOS:** 17.6

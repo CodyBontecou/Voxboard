@@ -17,15 +17,21 @@ final class MacRecorder {
     private let recorder = AudioRecorder()
     private let transcriptStore: TranscriptStore
     private let usageTracker: UsageTracker
+    private let transcriptEnricher: TranscriptEnricher?
     private var durationTimer: Timer?
     private var cachedWhisperContext: WhisperContext?
     private var cachedModelId: String?
     private var cachedParakeetContext: ParakeetContext?
     private var cachedParakeetEngine: ModelEngine?
 
-    init(transcriptStore: TranscriptStore, usageTracker: UsageTracker) {
+    init(
+        transcriptStore: TranscriptStore,
+        usageTracker: UsageTracker,
+        transcriptEnricher: TranscriptEnricher? = nil
+    ) {
         self.transcriptStore = transcriptStore
         self.usageTracker = usageTracker
+        self.transcriptEnricher = transcriptEnricher
     }
 
     func startRecording(modelManager: ModelManager, flowId: String) {
@@ -284,16 +290,81 @@ final class MacRecorder {
         lastError = nil
 
         let retainedAudioURL = retainAudioIfNeeded(sourceAudioURL ?? audioURL, flow: selectedFlow)
-        Task.detached(priority: .utility) { [weak self] in
-            guard let self else { return }
-            let exportURL = TranscriptFileExporter.exportIfEnabled(transcript, flow: selectedFlow)
+        let store = transcriptStore
+        let savedId = transcript.id
+        let initialTranscript = transcript
+        let flowForExport = selectedFlow
+        let enricher = transcriptEnricher
+        let recorderForExport = self
+
+        Task.detached(priority: .utility) { [recorderForExport] in
+            defer {
+                if let retainedAudioURL {
+                    try? FileManager.default.removeItem(at: retainedAudioURL)
+                }
+            }
+
+            if let enricher, flowForExport.usesAIEnrichment {
+                await enricher.enrichAndUpdate(transcript: initialTranscript, flow: flowForExport, into: store)
+            }
+
+            let latest = await MainActor.run {
+                store.transcripts.first(where: { $0.id == savedId }) ?? initialTranscript
+            }
+
+            var folderOverride: URL?
+            var autoOrganizeSubfolder: String?
+
+            if #available(macOS 26, *), FoundationModelsBackend.isAvailable {
+                let router = FoundationModelsBackend()
+                let flowHasExplicitExportFolder = flowForExport.exportSettings.usesCustomExportSettings
+                    && flowForExport.exportSettings.folderBookmark != nil
+
+                // Match iOS: route to legacy Smart Folders only when the
+                // selected Vox does not already specify an export folder.
+                if !flowHasExplicitExportFolder, AppConstants.smartFoldersEnabled {
+                    let folders = AppConstants.loadSmartFolders()
+                    if !folders.isEmpty,
+                       let idx = try? await router.routeToFolder(transcript: latest, folders: folders) {
+                        folderOverride = folders[idx].resolveURL()
+                    }
+                }
+
+                // Match iOS Auto-Organize: generate a subfolder beneath the
+                // base export folder when no Smart Folder override won.
+                if folderOverride == nil, AppConstants.autoOrganizeEnabled,
+                   let baseURL = TranscriptFileExporter.resolveExportFolderURL(flow: flowForExport) {
+                    let needsScoping = baseURL.startAccessingSecurityScopedResource()
+                    let existingFolders = (try? FileManager.default.contentsOfDirectory(
+                        at: baseURL,
+                        includingPropertiesForKeys: [.isDirectoryKey],
+                        options: .skipsHiddenFiles
+                    ).filter { url in
+                        (try? url.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true
+                    }.map { $0.lastPathComponent }) ?? []
+                    if needsScoping { baseURL.stopAccessingSecurityScopedResource() }
+
+                    autoOrganizeSubfolder = try? await router.generateFolderName(
+                        transcript: latest,
+                        existingFolders: existingFolders
+                    )
+                }
+            }
+
+            let exportURL = TranscriptFileExporter.exportIfEnabled(
+                latest,
+                folderURLOverride: folderOverride,
+                autoOrganizeSubfolder: autoOrganizeSubfolder,
+                flow: flowForExport
+            )
+
             if let exportURL, let retainedAudioURL {
-                let noteFolderScopeURL = TranscriptFileExporter.resolveExportFolderURL(flow: selectedFlow)
+                let noteFolderScopeURL = folderOverride ?? TranscriptFileExporter.resolveExportFolderURL(flow: flowForExport)
                 do {
                     if let audioExportURL = try await AudioAttachmentExporter.exportAudioIfNeeded(
                         sourceAudioURL: retainedAudioURL,
                         transcriptFileURL: exportURL,
-                        flow: selectedFlow,
+                        flow: flowForExport,
                         transcriptFolderScopeURL: noteFolderScopeURL
                     ) {
                         let relativePath = AudioAttachmentExporter.relativePath(from: exportURL, to: audioExportURL)
@@ -306,10 +377,10 @@ final class MacRecorder {
                 } catch {
                     KeyboardDebugLog.shared.log("[MacRecorder] Audio export failed: \(error)")
                 }
-                try? FileManager.default.removeItem(at: retainedAudioURL)
             }
+
             await MainActor.run {
-                self.lastExportURL = exportURL
+                recorderForExport.lastExportURL = exportURL
             }
         }
 
