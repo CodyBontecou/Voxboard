@@ -447,7 +447,7 @@ final class PersistentRecorder {
     // MARK: - In-App Recording
 
     /// Start a recording segment directly from the app UI (no IPC needed).
-    func startInAppSegment() {
+    func startInAppSegment(flowId requestedFlowId: String? = nil) {
         guard isListening else {
             lastError = "Start listening first"
             log.log("[PersistentRecorder] ❌ startInAppSegment but not listening")
@@ -466,7 +466,10 @@ final class PersistentRecorder {
         let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
             ?? "auto"
         let requestId = "inapp-\(UUID().uuidString)"
-        let flowId = RecordingFlowStore.selectedFlowId()
+        let flowId = requestedFlowId.flatMap { requested in
+            guard let flow = RecordingFlowStore.flow(id: requested), flow.isEnabled else { return nil }
+            return flow.id
+        } ?? RecordingFlowStore.selectedFlowId()
 
         let command = RecordingCommand(
             requestId: requestId,
@@ -476,7 +479,7 @@ final class PersistentRecorder {
             flowId: flowId
         )
 
-        log.log("[PersistentRecorder] 🎙 In-app segment start: \(requestId)")
+        log.log("[PersistentRecorder] 🎙 In-app segment start: \(requestId) flow=\(flowId)")
         handleStartSegment(command)
     }
 

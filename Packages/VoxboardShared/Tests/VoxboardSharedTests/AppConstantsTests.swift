@@ -34,4 +34,12 @@ final class AppConstantsTests: XCTestCase {
     func test_fileExportAppendFileNameKey_isDefined() {
         XCTAssertFalse(AppConstants.fileExportAppendFileNameKey.isEmpty)
     }
+
+    func test_pendingWidgetRecordKey_isDefined() {
+        XCTAssertFalse(AppConstants.pendingWidgetRecordKey.isEmpty)
+    }
+
+    func test_pendingWidgetRecordFlowIdKey_isDefined() {
+        XCTAssertFalse(AppConstants.pendingWidgetRecordFlowIdKey.isEmpty)
+    }
 }

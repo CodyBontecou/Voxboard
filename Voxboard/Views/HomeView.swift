@@ -623,6 +623,16 @@ struct HomeView: View {
     func handleWidgetRecord() {
         guard AppConstants.lockScreenQuickRecordEnabled else { return }
 
+        let requestedFlowId = AppConstants.sharedDefaults?.string(forKey: AppConstants.pendingWidgetRecordFlowIdKey)
+        AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingWidgetRecordFlowIdKey)
+
+        let flowId: String? = requestedFlowId.flatMap { requested in
+            guard let flow = RecordingFlowStore.flow(id: requested), flow.isEnabled else { return nil }
+            RecordingFlowStore.selectFlow(id: flow.id)
+            selectedFlowId = flow.id
+            return flow.id
+        }
+
         // Start listening if not already, then immediately begin an in-app recording segment
         if !persistentRecorder.isListening {
             persistentRecorder.startListening()
@@ -631,7 +641,7 @@ struct HomeView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             if persistentRecorder.isListening {
                 persistentRecorder.lastTranscriptionResult = nil
-                persistentRecorder.startInAppSegment()
+                persistentRecorder.startInAppSegment(flowId: flowId)
             }
         }
     }

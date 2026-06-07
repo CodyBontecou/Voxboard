@@ -3,29 +3,47 @@ import SwiftUI
 import VoxboardShared
 import WidgetKit
 
-// MARK: - Control Widget (iOS 18+ lock screen bottom slots)
+// MARK: - Control Widget (iOS 18+ lock screen bottom slots / Control Center)
 
 @available(iOS 18.0, *)
 struct VoxboardRecordControl: ControlWidget {
     static let kind = "VoxboardRecordControl"
 
     var body: some ControlWidgetConfiguration {
-        StaticControlConfiguration(kind: Self.kind, provider: Provider()) { isEnabled in
-            ControlWidgetButton(action: OpenVoxboardRecordIntent()) {
-                Label(isEnabled ? "Record" : "Off", systemImage: isEnabled ? "mic.fill" : "mic.slash")
-                    .controlWidgetActionHint(isEnabled ? "Record with Voxboard" : "Disabled in Voxboard Settings")
+        AppIntentControlConfiguration(kind: Self.kind, provider: Provider()) { state in
+            ControlWidgetButton(action: OpenVoxboardRecordIntent(vox: state.vox)) {
+                Label(
+                    state.isEnabled ? state.vox.name : "Off",
+                    systemImage: state.isEnabled ? state.vox.symbolName : "mic.slash"
+                )
+                .controlWidgetActionHint(
+                    state.isEnabled
+                        ? "Record with \(state.vox.name)"
+                        : "Disabled in Voxboard Settings"
+                )
             }
-            .disabled(!isEnabled)
+            .disabled(!state.isEnabled)
         }
         .displayName("Voxboard Record")
-        .description("Tap to open Voxboard and start recording.")
+        .description("Start recording with a configurable Vox preset.")
+        .promptsForUserConfiguration()
     }
 
-    private struct Provider: ControlValueProvider {
-        var previewValue: Bool { true }
+    struct State {
+        let isEnabled: Bool
+        let vox: VoxEntity
+    }
 
-        func currentValue() async throws -> Bool {
-            AppConstants.lockScreenQuickRecordEnabled
+    private struct Provider: AppIntentControlValueProvider {
+        func previewValue(configuration: SelectVoxboardRecordVoxIntent) -> State {
+            State(isEnabled: true, vox: VoxEntity.resolved(configuration.vox))
+        }
+
+        func currentValue(configuration: SelectVoxboardRecordVoxIntent) async throws -> State {
+            State(
+                isEnabled: AppConstants.lockScreenQuickRecordEnabled,
+                vox: VoxEntity.resolved(configuration.vox)
+            )
         }
     }
 }

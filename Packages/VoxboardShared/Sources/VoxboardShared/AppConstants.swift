@@ -81,6 +81,8 @@ public enum AppConstants: Sendable {
     // Lock Screen / Dynamic Island controls. Both default to true when unset.
     public static let liveActivityMonitorEnabledKey = "liveActivityMonitorEnabled"
     public static let lockScreenQuickRecordEnabledKey = "lockScreenQuickRecordEnabled"
+    public static let pendingWidgetRecordKey = "pendingWidgetRecord"
+    public static let pendingWidgetRecordFlowIdKey = "pendingWidgetRecordFlowId"
 
     // Smart folder routing (Apple Intelligence routes transcripts to the best folder).
     public static let smartFoldersEnabledKey = "smartFoldersEnabled"

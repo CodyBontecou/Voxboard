@@ -1,3 +1,4 @@
+import AppIntents
 import SwiftUI
 import VoxboardShared
 
@@ -18,6 +19,10 @@ struct VoxboardApp: App {
     @State private var pendingWidgetRecord = false
 
     init() {
+        if #available(iOS 18.0, *) {
+            VoxboardShortcutsProvider.updateAppShortcutParameters()
+        }
+
         let store = TranscriptStore()
         let usage = UsageTracker()
         let storeMan = StoreManager(usageTracker: usage)
@@ -70,6 +75,8 @@ struct VoxboardApp: App {
                 if AppConstants.sharedDefaults?.bool(forKey: "autoListenEnabled") == true {
                     persistentRecorder.startListening()
                 }
+
+                consumePendingWidgetRecordIfNeeded()
             }
             .onOpenURL { url in
                 handleURL(url)
@@ -80,13 +87,7 @@ struct VoxboardApp: App {
                 transcriptionServer.checkForPendingRequest()
                 usageTracker.reload()
 
-                // Check if the Control Widget signaled a pending record
-                if AppConstants.sharedDefaults?.bool(forKey: "pendingWidgetRecord") == true {
-                    AppConstants.sharedDefaults?.set(false, forKey: "pendingWidgetRecord")
-                    if AppConstants.lockScreenQuickRecordEnabled {
-                        pendingWidgetRecord = true
-                    }
-                }
+                consumePendingWidgetRecordIfNeeded()
 
                 // Re-check listening state — if the user enabled auto-listen
                 // but the engine stopped (e.g. audio interruption), restart it.
@@ -95,6 +96,16 @@ struct VoxboardApp: App {
                     persistentRecorder.startListening()
                 }
             }
+        }
+    }
+
+    // MARK: - Pending Quick Record
+
+    private func consumePendingWidgetRecordIfNeeded() {
+        guard AppConstants.sharedDefaults?.bool(forKey: AppConstants.pendingWidgetRecordKey) == true else { return }
+        AppConstants.sharedDefaults?.set(false, forKey: AppConstants.pendingWidgetRecordKey)
+        if AppConstants.lockScreenQuickRecordEnabled {
+            pendingWidgetRecord = true
         }
     }
 
@@ -139,6 +150,12 @@ struct VoxboardApp: App {
             guard AppConstants.lockScreenQuickRecordEnabled else {
                 log.log("[App] Widget record request ignored — Lock Screen Record Button disabled")
                 return
+            }
+            if let flowId = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                .queryItems?
+                .first(where: { $0.name == "flowId" })?
+                .value {
+                AppConstants.sharedDefaults?.set(flowId, forKey: AppConstants.pendingWidgetRecordFlowIdKey)
             }
             log.log("[App] Widget record request — starting listening + recording")
             pendingWidgetRecord = true

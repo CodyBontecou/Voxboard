@@ -1,3 +1,4 @@
+import AppIntents
 import SwiftUI
 import UniformTypeIdentifiers
 import VoxboardShared
@@ -59,6 +60,9 @@ struct FlowSettingsView: View {
         .preferredColorScheme(.dark)
         .onChange(of: flows) { _, newValue in
             RecordingFlowStore.saveFlows(newValue)
+            if #available(iOS 18.0, *) {
+                VoxboardShortcutsProvider.updateAppShortcutParameters()
+            }
         }
     }
 

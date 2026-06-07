@@ -14,9 +14,11 @@ struct StartRecordingLiveActivityIntent: LiveActivityIntent {
 
         let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
         let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
+        let flowId = RecordingFlowStore.selectedFlowId()
         let cmd = LiveActivityCommandBuilder.buildStartCommand(
             modelId: modelId,
-            language: language
+            language: language,
+            flowId: flowId
         )
         LiveActivityCommandBuilder.enqueue(cmd)
         return .result()

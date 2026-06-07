@@ -12,13 +12,15 @@ public enum LiveActivityCommandBuilder {
     public static func buildStartCommand(
         requestId: String = UUID().uuidString,
         modelId: String? = nil,
-        language: String? = nil
+        language: String? = nil,
+        flowId: String? = nil
     ) -> RecordingCommand {
         RecordingCommand(
             requestId: requestId,
             action: .startSegment,
             modelId: modelId,
-            language: language
+            language: language,
+            flowId: flowId
         )
     }
 
