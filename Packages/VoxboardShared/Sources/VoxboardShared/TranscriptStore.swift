@@ -6,11 +6,14 @@ import Foundation
 public final class TranscriptStore {
     public var transcripts: [Transcript] = []
 
-    private let fileURL: URL? = {
-        AppConstants.sharedContainerURL?.appendingPathComponent("transcripts.json")
-    }()
+    private let fileURL: URL?
 
-    public init() {
+    public convenience init() {
+        self.init(fileURL: AppConstants.sharedContainerURL?.appendingPathComponent("transcripts.json"))
+    }
+
+    init(fileURL: URL?) {
+        self.fileURL = fileURL
         load()
     }
 

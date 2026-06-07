@@ -96,6 +96,40 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertTrue(content.contains("---"))
     }
 
+    func test_attachAudioReference_embedsObsidianAudioAtBottomOfMarkdown() throws {
+        let url = tempFolder.appendingPathComponent("meeting.md")
+        try "# Meeting\n\nTranscript body".write(to: url, atomically: true, encoding: .utf8)
+
+        try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "attachments/meeting.m4a",
+            embedInMarkdown: true,
+            embedPlacement: .bottom
+        )
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(content.hasPrefix("---\n"))
+        XCTAssertTrue(content.contains("audio: \"attachments/meeting.m4a\""))
+        XCTAssertTrue(content.hasSuffix("![[attachments/meeting.m4a]]"))
+    }
+
+    func test_attachAudioReference_canPlaceObsidianAudioAtTopAfterFrontmatter() throws {
+        let url = tempFolder.appendingPathComponent("meeting.md")
+        try "---\ntype: note\n---\n\n# Meeting\n\nTranscript body".write(to: url, atomically: true, encoding: .utf8)
+
+        try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "meeting.m4a",
+            embedInMarkdown: true,
+            embedPlacement: .top
+        )
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(content.contains("type: note"))
+        XCTAssertTrue(content.contains("audio: \"meeting.m4a\""))
+        XCTAssertTrue(content.contains("---\n\n![[meeting.m4a]]\n\n# Meeting"))
+    }
+
     // MARK: - JSON New File
 
     func test_export_json_newFile_isDecodableTranscript() throws {

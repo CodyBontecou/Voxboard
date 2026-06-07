@@ -371,7 +371,9 @@ final class MacRecorder {
                         try TranscriptFileExporter.attachAudioReference(
                             to: exportURL,
                             relativePath: relativePath,
-                            securityScopedFolderURL: noteFolderScopeURL
+                            securityScopedFolderURL: noteFolderScopeURL,
+                            embedInMarkdown: flowForExport.exportSettings.embedAudioInMarkdown,
+                            embedPlacement: flowForExport.exportSettings.audioEmbedPlacement
                         )
                     }
                 } catch {

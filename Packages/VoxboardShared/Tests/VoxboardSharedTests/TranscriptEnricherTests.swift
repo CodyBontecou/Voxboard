@@ -259,7 +259,7 @@ final class TranscriptEnricherTests: XCTestCase {
         """#)
         let enricher = TranscriptEnricher(backend: backend)
 
-        let store = TranscriptStore()
+        let store = TranscriptStore(fileURL: nil)
         let original = Transcript(
             text: "buy milk and eggs",
             duration: 1.0,
@@ -282,7 +282,7 @@ final class TranscriptEnricherTests: XCTestCase {
         let backend = FakeLLMBackend(error: FakeLLMError.boom)
         let enricher = TranscriptEnricher(backend: backend)
 
-        let store = TranscriptStore()
+        let store = TranscriptStore(fileURL: nil)
         let original = Transcript(
             text: "hi",
             duration: 1.0,
@@ -305,7 +305,7 @@ final class TranscriptEnricherTests: XCTestCase {
         let backend = FakeLLMBackend(response: "I'm sorry, I can't help with that.")
         let enricher = TranscriptEnricher(backend: backend)
 
-        let store = TranscriptStore()
+        let store = TranscriptStore(fileURL: nil)
         let original = Transcript(
             text: "hi",
             duration: 1.0,

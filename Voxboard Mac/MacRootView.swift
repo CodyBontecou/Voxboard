@@ -656,6 +656,22 @@ private struct MacFlowEditor: View {
                     }
                     TextField("Attachments Folder", text: $flow.attachmentsFolderName)
                 }
+                if flow.audioSaveMode != .off {
+                    Toggle("Embed Audio in Markdown", isOn: $flow.exportSettings.embedAudioInMarkdown)
+                        .disabled(!markdownAudioEmbedAvailable)
+                        .onChange(of: flow.exportSettings.embedAudioInMarkdown) { _, _ in markPerFlow() }
+                    if flow.exportSettings.embedAudioInMarkdown && markdownAudioEmbedAvailable {
+                        Picker("Embed Position", selection: $flow.exportSettings.audioEmbedPlacement) {
+                            ForEach(RecordingFlowAudioEmbedPlacement.allCases) { placement in
+                                Text(placement.displayName).tag(placement)
+                            }
+                        }
+                        .onChange(of: flow.exportSettings.audioEmbedPlacement) { _, _ in markPerFlow() }
+                    }
+                    Text(markdownAudioEmbedHelpText)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if !flow.isBuiltIn {
@@ -683,6 +699,20 @@ private struct MacFlowEditor: View {
                 .foregroundStyle(.secondary)
         }
         .contentShape(Rectangle())
+    }
+
+    private var markdownAudioEmbedAvailable: Bool {
+        guard flow.exportSettings.exportEnabled else { return false }
+        if flow.exportSettings.markdownTemplateEnabled { return true }
+        if flow.exportSettings.format == .md { return true }
+        return flow.exportSettings.format == .yaml && flow.exportSettings.yamlUsesMarkdownExtension
+    }
+
+    private var markdownAudioEmbedHelpText: String {
+        guard markdownAudioEmbedAvailable else {
+            return "Audio embeds require a Markdown note export. Switch this Vox to MD, a Markdown template, or YAML with the .md extension."
+        }
+        return "Adds an Obsidian-style `![[recording.m4a]]` link to the note so you can replay the recording while reviewing the transcript."
     }
 
     private func markPerFlow() {

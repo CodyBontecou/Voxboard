@@ -337,6 +337,42 @@ public enum TranscriptFileExporter {
         return block + "\n\n" + markdown
     }
 
+    private static func applyMarkdownAudioEmbed(
+        to markdown: String,
+        relativePath: String,
+        placement: RecordingFlowAudioEmbedPlacement
+    ) -> String {
+        let embed = obsidianAudioEmbed(relativePath: relativePath)
+        guard !embed.isEmpty, !markdown.contains(embed) else { return markdown }
+
+        switch placement {
+        case .top:
+            if markdown.hasPrefix("---\n"), let closeRange = markdown.range(of: "\n---", options: [], range: markdown.index(markdown.startIndex, offsetBy: 4)..<markdown.endIndex) {
+                let before = markdown[..<closeRange.upperBound]
+                let remainder = markdown[closeRange.upperBound...]
+                    .drop(while: { $0.isNewline })
+                if remainder.isEmpty {
+                    return "\(before)\n\n\(embed)"
+                }
+                return "\(before)\n\n\(embed)\n\n\(remainder)"
+            }
+            let trimmed = markdown.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? embed : "\(embed)\n\n\(trimmed)"
+        case .bottom:
+            let trimmed = markdown.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? embed : "\(trimmed)\n\n\(embed)"
+        }
+    }
+
+    private static func obsidianAudioEmbed(relativePath: String) -> String {
+        let normalizedPath = relativePath
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\\", with: "/")
+        guard !normalizedPath.isEmpty else { return "" }
+        let escaped = normalizedPath.replacingOccurrences(of: "]", with: "\\]")
+        return "![[\(escaped)]]"
+    }
+
     private static func frontmatterLines(_ frontmatter: [String: String]) -> [String] {
         frontmatter
             .sorted(by: { $0.key < $1.key })
@@ -804,7 +840,9 @@ public enum TranscriptFileExporter {
     public static func attachAudioReference(
         to transcriptFileURL: URL,
         relativePath: String,
-        securityScopedFolderURL: URL? = nil
+        securityScopedFolderURL: URL? = nil,
+        embedInMarkdown: Bool = false,
+        embedPlacement: RecordingFlowAudioEmbedPlacement = .bottom
     ) throws {
         guard !relativePath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         let needsScope = securityScopedFolderURL?.startAccessingSecurityScopedResource() ?? false
@@ -815,7 +853,10 @@ public enum TranscriptFileExporter {
         let updated: String
         switch ext {
         case "md", "markdown":
-            updated = applyMarkdownFrontmatter(to: existing, frontmatter: ["audio": relativePath])
+            let markdownWithFrontmatter = applyMarkdownFrontmatter(to: existing, frontmatter: ["audio": relativePath])
+            updated = embedInMarkdown
+                ? applyMarkdownAudioEmbed(to: markdownWithFrontmatter, relativePath: relativePath, placement: embedPlacement)
+                : markdownWithFrontmatter
         case "yaml", "yml":
             updated = existing + (existing.hasSuffix("\n") ? "" : "\n") + "audio: \(yamlQuoted(relativePath))\n"
         case "txt":

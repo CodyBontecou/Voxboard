@@ -1002,7 +1002,9 @@ final class PersistentRecorder {
                                 try TranscriptFileExporter.attachAudioReference(
                                     to: url,
                                     relativePath: relativePath,
-                                    securityScopedFolderURL: noteFolderScopeURL
+                                    securityScopedFolderURL: noteFolderScopeURL,
+                                    embedInMarkdown: flowForExport.exportSettings.embedAudioInMarkdown,
+                                    embedPlacement: flowForExport.exportSettings.audioEmbedPlacement
                                 )
                             }
                         } catch {

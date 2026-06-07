@@ -147,6 +147,20 @@ public enum RecordingFlowAudioSaveMode: String, Codable, CaseIterable, Sendable,
     }
 }
 
+public enum RecordingFlowAudioEmbedPlacement: String, Codable, CaseIterable, Sendable, Identifiable {
+    case top
+    case bottom
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .top: return "Top"
+        case .bottom: return "Bottom"
+        }
+    }
+}
+
 /// Per-flow file export settings. `usesCustomExportSettings` is kept for
 /// migration from the old global Files tab; new flows set it to `true` so each
 /// flow can choose its own note and audio destinations.
@@ -167,6 +181,8 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
     public var mdObsidianEnabled: Bool
     public var yamlUsesMarkdownExtension: Bool
     public var yamlProperties: Set<ExportYAMLProperty>
+    public var embedAudioInMarkdown: Bool
+    public var audioEmbedPlacement: RecordingFlowAudioEmbedPlacement
 
     public init(
         usesCustomExportSettings: Bool = true,
@@ -184,7 +200,9 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
         markdownTemplateName: String = "",
         mdObsidianEnabled: Bool = false,
         yamlUsesMarkdownExtension: Bool = false,
-        yamlProperties: Set<ExportYAMLProperty> = ExportYAMLProperty.defaultSelection
+        yamlProperties: Set<ExportYAMLProperty> = ExportYAMLProperty.defaultSelection,
+        embedAudioInMarkdown: Bool = false,
+        audioEmbedPlacement: RecordingFlowAudioEmbedPlacement = .bottom
     ) {
         self.usesCustomExportSettings = usesCustomExportSettings
         self.exportEnabled = exportEnabled
@@ -202,6 +220,8 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
         self.mdObsidianEnabled = mdObsidianEnabled
         self.yamlUsesMarkdownExtension = yamlUsesMarkdownExtension
         self.yamlProperties = yamlProperties
+        self.embedAudioInMarkdown = embedAudioInMarkdown
+        self.audioEmbedPlacement = audioEmbedPlacement
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -221,6 +241,8 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
         case mdObsidianEnabled
         case yamlUsesMarkdownExtension
         case yamlProperties
+        case embedAudioInMarkdown
+        case audioEmbedPlacement
     }
 
     public init(from decoder: Decoder) throws {
@@ -248,6 +270,8 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
         } else {
             yamlProperties = ExportYAMLProperty.defaultSelection
         }
+        embedAudioInMarkdown = try container.decodeIfPresent(Bool.self, forKey: .embedAudioInMarkdown) ?? false
+        audioEmbedPlacement = try container.decodeIfPresent(RecordingFlowAudioEmbedPlacement.self, forKey: .audioEmbedPlacement) ?? .bottom
     }
 }
 

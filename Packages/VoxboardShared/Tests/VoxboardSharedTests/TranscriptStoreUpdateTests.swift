@@ -4,12 +4,11 @@ import XCTest
 final class TranscriptStoreUpdateTests: XCTestCase {
 
     // These tests exercise the in-memory behavior of TranscriptStore.update(_:).
-    // TranscriptStore's on-disk persistence goes through AppConstants.sharedContainerURL,
-    // which is nil in the unit-test host — so save() is a silent no-op here and we only
-    // assert on the `transcripts` array.
+    // Use a nil file URL so package tests never read or write the app group's
+    // real transcript history when AppConstants.sharedContainerURL is available.
 
     func test_update_replacesTranscriptWithMatchingId() {
-        let store = TranscriptStore()
+        let store = TranscriptStore(fileURL: nil)
         let original = Transcript(
             text: "hello",
             duration: 1.0,
@@ -34,7 +33,7 @@ final class TranscriptStoreUpdateTests: XCTestCase {
     }
 
     func test_update_preservesOrderingWhenReplacing() {
-        let store = TranscriptStore()
+        let store = TranscriptStore(fileURL: nil)
         let first = Transcript(text: "first", duration: 1.0, modelUsed: "m", language: "en")
         let second = Transcript(text: "second", duration: 1.0, modelUsed: "m", language: "en")
         let third = Transcript(text: "third", duration: 1.0, modelUsed: "m", language: "en")
@@ -59,7 +58,7 @@ final class TranscriptStoreUpdateTests: XCTestCase {
     }
 
     func test_update_isNoOpForUnknownId() {
-        let store = TranscriptStore()
+        let store = TranscriptStore(fileURL: nil)
         let saved = Transcript(text: "hi", duration: 1.0, modelUsed: "m", language: "en")
         store.add(saved)
 

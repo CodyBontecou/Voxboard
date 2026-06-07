@@ -22,6 +22,13 @@ final class RecordingFlowTests: XCTestCase {
         XCTAssertTrue(flow.usesAIEnrichment)
     }
 
+    func test_exportSettingsDecodeMissingAudioEmbedFieldsWithSafeDefaults() throws {
+        let settings = try JSONDecoder().decode(RecordingFlowExportSettings.self, from: Data("{}".utf8))
+
+        XCTAssertFalse(settings.embedAudioInMarkdown)
+        XCTAssertEqual(settings.audioEmbedPlacement, .bottom)
+    }
+
     func test_loadFlows_removesDeprecatedBuiltInsAndPreservesCustomFlows() throws {
         let suiteName = "test.flow.migration.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
