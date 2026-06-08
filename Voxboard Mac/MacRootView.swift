@@ -148,7 +148,7 @@ private struct MacHomeView: View {
                     .foregroundColor(Brutal.muted)
                 Picker("Vox", selection: $selectedFlowId) {
                     ForEach(enabledFlows) { flow in
-                        Label(flow.displayName, systemImage: flow.symbolName).tag(flow.id)
+                        Label(flow.displayName, systemImage: MacFlowIconPickerView.iconName(for: flow.symbolName)).tag(flow.id)
                     }
                 }
                 .labelsHidden()
@@ -528,7 +528,7 @@ private struct MacVoxSettingsView: View {
                 BrutalDivider()
                 List(selection: $selectedFlowId) {
                     ForEach(flows) { flow in
-                        Label(flow.displayName, systemImage: flow.symbolName)
+                        Label(flow.displayName, systemImage: MacFlowIconPickerView.iconName(for: flow.symbolName))
                             .tag(flow.id)
                     }
                 }
@@ -576,6 +576,7 @@ private struct MacFlowEditor: View {
     @Binding var flow: RecordingFlow
     let onDelete: () -> Void
     @State private var frontmatterText: String
+    @State private var isIconPickerPresented = false
 
     init(flow: Binding<RecordingFlow>, onDelete: @escaping () -> Void) {
         self._flow = flow
@@ -587,7 +588,26 @@ private struct MacFlowEditor: View {
         Form {
             Section("Identity") {
                 TextField("Name", text: $flow.name)
-                TextField("SF Symbol", text: $flow.symbolName)
+                Button {
+                    isIconPickerPresented = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Text("Icon")
+                        Spacer()
+                        Image(systemName: MacFlowIconPickerView.iconName(for: flow.symbolName))
+                            .frame(width: 24)
+                            .foregroundStyle(.secondary)
+                        Text(MacFlowIconPickerView.title(for: flow.symbolName))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .contentShape(Rectangle())
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
                 Toggle("Enabled", isOn: $flow.isEnabled)
             }
 
@@ -683,6 +703,11 @@ private struct MacFlowEditor: View {
         .formStyle(.grouped)
         .padding(.horizontal, 18)
         .navigationTitle(flow.displayName)
+        .sheet(isPresented: $isIconPickerPresented) {
+            MacFlowIconPickerView(symbolName: $flow.symbolName)
+                .frame(minWidth: 540, minHeight: 620)
+                .preferredColorScheme(.dark)
+        }
         .onAppear { flow.exportSettings.usesCustomExportSettings = true }
         .onDisappear { flow.staticFrontmatter = Self.parseFrontmatter(frontmatterText) }
     }
@@ -759,6 +784,264 @@ private struct MacFlowEditor: View {
     }
 }
 
+private struct MacFlowIconPickerView: View {
+    @Binding var symbolName: String
+    @Environment(\.dismiss) private var dismiss
+    @State private var searchText = ""
+
+    private let columns = [GridItem(.adaptive(minimum: 88), spacing: 12)]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            header
+            BrutalDivider()
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 20) {
+                    selectedIconPreview
+
+                    if filteredCategories.isEmpty {
+                        Text("No matching icons")
+                            .font(Brutal.body())
+                            .foregroundColor(Brutal.muted)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.top, 48)
+                    } else {
+                        ForEach(filteredCategories) { category in
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text(category.title.uppercased())
+                                    .font(Brutal.caption())
+                                    .foregroundColor(Brutal.faint)
+
+                                LazyVGrid(columns: columns, spacing: 12) {
+                                    ForEach(category.options) { option in
+                                        iconButton(option)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(20)
+            }
+            .background(Brutal.bg)
+        }
+        .background(Brutal.bg)
+    }
+
+    private var header: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Choose Icon")
+                    .font(Brutal.label(.title3))
+                    .foregroundColor(Brutal.text)
+                Text("Pick the symbol shown for this Vox.")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
+            }
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(Brutal.faint)
+                TextField("Search icons", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .font(Brutal.body(.callout))
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .frame(width: 230)
+            .background(Brutal.surface2)
+            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+
+            Button("Done") { dismiss() }
+                .buttonStyle(.bordered)
+        }
+        .padding(20)
+        .background(Brutal.surface)
+    }
+
+    private var filteredCategories: [MacFlowIconCategory] {
+        Self.filteredCategories(matching: searchText)
+    }
+
+    private var selectedIconPreview: some View {
+        HStack(spacing: 12) {
+            Image(systemName: Self.iconName(for: symbolName))
+                .font(.title2)
+                .foregroundColor(Brutal.text)
+                .frame(width: 48, height: 48)
+                .background(Brutal.surface2)
+                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Selected Icon")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
+                Text(Self.title(for: symbolName))
+                    .font(Brutal.label())
+                    .foregroundColor(Brutal.text)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(Brutal.surface)
+        .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+    }
+
+    private func iconButton(_ option: MacFlowIconOption) -> some View {
+        let selected = option.symbolName == Self.iconName(for: symbolName)
+        return Button {
+            symbolName = option.symbolName
+            dismiss()
+        } label: {
+            VStack(spacing: 8) {
+                Image(systemName: option.symbolName)
+                    .font(.title2)
+                Text(option.title)
+                    .font(Brutal.caption())
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+            }
+            .foregroundColor(selected ? Brutal.text : Brutal.muted)
+            .frame(maxWidth: .infinity, minHeight: 82)
+            .padding(.vertical, 8)
+            .background(selected ? Brutal.surface2 : Brutal.surface)
+            .overlay(Rectangle().stroke(selected ? Brutal.text : Brutal.border, lineWidth: selected ? 2 : 1))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(option.title)
+        .accessibilityValue(option.symbolName)
+    }
+
+    static func iconName(for symbolName: String) -> String {
+        let trimmed = symbolName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "questionmark.square" : trimmed
+    }
+
+    static func title(for symbolName: String) -> String {
+        let iconName = iconName(for: symbolName)
+        return allOptions.first(where: { $0.symbolName == iconName })?.title ?? iconName
+    }
+
+    private static func filteredCategories(matching query: String) -> [MacFlowIconCategory] {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return iconCategories }
+
+        return iconCategories.compactMap { category in
+            let matches = category.options.filter { $0.matches(trimmed) }
+            guard !matches.isEmpty else { return nil }
+            return MacFlowIconCategory(title: category.title, options: matches)
+        }
+    }
+
+    private static let allOptions = iconCategories.flatMap(\.options)
+
+    private static let iconCategories: [MacFlowIconCategory] = [
+        MacFlowIconCategory(
+            title: "Writing",
+            options: [
+                MacFlowIconOption("text.alignleft", "Text"),
+                MacFlowIconOption("note.text", "Note"),
+                MacFlowIconOption("doc.text", "Document"),
+                MacFlowIconOption("doc.text.magnifyingglass", "Research"),
+                MacFlowIconOption("list.bullet", "List"),
+                MacFlowIconOption("quote.bubble", "Quote"),
+                MacFlowIconOption("books.vertical", "Books"),
+                MacFlowIconOption("bookmark", "Bookmark"),
+                MacFlowIconOption("newspaper", "Article"),
+                MacFlowIconOption("pencil", "Draft"),
+            ]
+        ),
+        MacFlowIconCategory(
+            title: "Voice",
+            options: [
+                MacFlowIconOption("mic", "Mic"),
+                MacFlowIconOption("waveform", "Waveform"),
+                MacFlowIconOption("wave.3.right", "Audio"),
+                MacFlowIconOption("record.circle", "Record"),
+                MacFlowIconOption("headphones", "Listen"),
+                MacFlowIconOption("speaker.wave.2", "Speaker"),
+                MacFlowIconOption("message", "Message"),
+                MacFlowIconOption("bubble.left.and.text.bubble.right", "Chat"),
+                MacFlowIconOption("phone", "Call"),
+                MacFlowIconOption("video", "Video"),
+            ]
+        ),
+        MacFlowIconCategory(
+            title: "Tasks",
+            options: [
+                MacFlowIconOption("checkmark.circle", "Done"),
+                MacFlowIconOption("checklist", "Checklist"),
+                MacFlowIconOption("calendar", "Calendar"),
+                MacFlowIconOption("bell", "Reminder"),
+                MacFlowIconOption("flag", "Flag"),
+                MacFlowIconOption("target", "Goal"),
+                MacFlowIconOption("tray.and.arrow.down", "Inbox"),
+                MacFlowIconOption("paperplane", "Send"),
+                MacFlowIconOption("wand.and.stars", "Magic"),
+                MacFlowIconOption("timer", "Timer"),
+            ]
+        ),
+        MacFlowIconCategory(
+            title: "Personal",
+            options: [
+                MacFlowIconOption("person", "Person"),
+                MacFlowIconOption("person.crop.circle", "Profile"),
+                MacFlowIconOption("brain.head.profile", "Thought"),
+                MacFlowIconOption("heart", "Heart"),
+                MacFlowIconOption("moon.stars", "Dream"),
+                MacFlowIconOption("lightbulb", "Idea"),
+                MacFlowIconOption("sparkles", "Sparkles"),
+                MacFlowIconOption("house", "Home"),
+                MacFlowIconOption("leaf", "Nature"),
+                MacFlowIconOption("figure.walk", "Walk"),
+            ]
+        ),
+        MacFlowIconCategory(
+            title: "Work",
+            options: [
+                MacFlowIconOption("briefcase", "Work"),
+                MacFlowIconOption("person.2", "People"),
+                MacFlowIconOption("person.2.wave.2", "Meeting"),
+                MacFlowIconOption("building.2", "Company"),
+                MacFlowIconOption("chart.bar", "Stats"),
+                MacFlowIconOption("rectangle.on.rectangle.angled", "Slides"),
+                MacFlowIconOption("folder", "Folder"),
+                MacFlowIconOption("archivebox", "Archive"),
+                MacFlowIconOption("hammer", "Build"),
+                MacFlowIconOption("gearshape", "Settings"),
+            ]
+        ),
+    ]
+}
+
+private struct MacFlowIconCategory: Identifiable {
+    let title: String
+    let options: [MacFlowIconOption]
+
+    var id: String { title }
+}
+
+private struct MacFlowIconOption: Identifiable {
+    let symbolName: String
+    let title: String
+    let keywords: [String]
+
+    var id: String { symbolName }
+
+    init(_ symbolName: String, _ title: String, keywords: [String] = []) {
+        self.symbolName = symbolName
+        self.title = title
+        self.keywords = keywords
+    }
+
+    func matches(_ query: String) -> Bool {
+        let haystack = ([symbolName, title] + keywords).joined(separator: " ")
+        return haystack.localizedCaseInsensitiveContains(query)
+    }
+}
+
 // MARK: - History
 
 private struct MacHistoryView: View {
@@ -831,10 +1114,14 @@ private struct MacSettingsView: View {
     let recorder: MacRecorder
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(MacStoreManager.self) private var storeManager
+    @AppStorage(MacHotKeyStore.storageKey, store: AppConstants.sharedDefaults)
+    private var hotKeyStorage = ""
     @AppStorage(MacAppVisibilityMode.storageKey, store: AppConstants.sharedDefaults)
     private var visibilityModeRaw = MacAppVisibilityMode.dockAndMenuBar.rawValue
     @State private var showPaywall = false
     @State private var showDebug = false
+    @State private var showHotKeyRecorder = false
+    @State private var hotKeyStatusMessage: String?
 
     var body: some View {
         ZStack {
@@ -853,12 +1140,14 @@ private struct MacSettingsView: View {
                     settingsRow(title: "APPLE INTELLIGENCE", detail: appleIntelligenceDetail, trailing: appleIntelligenceStatus)
                     settingsRow(title: "FILE EXPORT", detail: "Vox folders, templates, Markdown/YAML/JSON/TXT, and audio attachments are shared with iOS settings when the App Group is available.", trailing: "ENABLED")
                     settingsRow(title: "KEYBOARD + LOCK SCREEN", detail: "Custom keyboard, widgets, Dynamic Island, and Live Activities remain iOS-specific.", trailing: "IOS")
-                    sectionHeader("02", "Visibility")
+                    sectionHeader("02", "Global Keybind")
+                    hotKeySettings
+                    sectionHeader("03", "Visibility")
                     visibilitySettings
-                    sectionHeader("03", "About")
+                    sectionHeader("04", "About")
                     settingsRow(title: "VERSION", detail: appVersionString, trailing: "")
                     settingsRow(title: "PROCESSING", detail: "Voice and text stay on-device.", trailing: "PRIVATE")
-                    sectionHeader("04", "Debug")
+                    sectionHeader("05", "Debug")
                     Button("VIEW DEBUG LOG") { showDebug = true }
                         .buttonStyle(BrutalButtonStyle(variant: .secondary))
                         .padding(20)
@@ -872,8 +1161,18 @@ private struct MacSettingsView: View {
         .sheet(isPresented: $showDebug) {
             MacDebugLogView()
         }
+        .sheet(isPresented: $showHotKeyRecorder) {
+            MacHotKeyRecorderSheet(
+                currentShortcut: currentHotKey,
+                onSave: saveHotKey,
+                onClear: clearHotKey
+            )
+        }
     }
 
+    private var currentHotKey: MacHotKeyShortcut? {
+        MacHotKeyStore.decode(hotKeyStorage)
+    }
 
     private var visibilityMode: MacAppVisibilityMode {
         MacAppVisibilityMode(rawValue: visibilityModeRaw) ?? .dockAndMenuBar
@@ -905,7 +1204,6 @@ private struct MacSettingsView: View {
         }
         return "Requires macOS 26+ on an Apple Intelligence-capable Mac."
     }
-
 
     private var visibilitySettings: some View {
         VStack(spacing: 0) {
@@ -969,10 +1267,220 @@ private struct MacSettingsView: View {
         .buttonStyle(.plain)
     }
 
+    private var hotKeySettings: some View {
+        VStack(spacing: 0) {
+            BrutalDivider()
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("START / STOP LISTENING")
+                            .font(Brutal.label())
+                            .foregroundColor(Brutal.text)
+                        Text("Press your keybind from anywhere on macOS to start recording; press it again to stop and transcribe.")
+                            .font(Brutal.caption())
+                            .foregroundColor(Brutal.muted)
+                    }
+                    Spacer()
+                    Text(currentHotKey?.displayString ?? "OFF")
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.text)
+                }
+
+                HStack(spacing: 12) {
+                    Button(currentHotKey == nil ? "SET KEYBIND" : "CHANGE KEYBIND") {
+                        showHotKeyRecorder = true
+                    }
+                    .buttonStyle(BrutalButtonStyle(variant: .secondary))
+
+                    Button("CLEAR") { clearHotKey() }
+                        .buttonStyle(.plain)
+                        .foregroundColor(Brutal.error)
+                        .disabled(currentHotKey == nil)
+                }
+
+                if let hotKeyStatusMessage {
+                    Text(hotKeyStatusMessage)
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.error)
+                }
+            }
+            .padding(20)
+            .background(Brutal.bg)
+        }
+    }
+
+    private func saveHotKey(_ shortcut: MacHotKeyShortcut) {
+        MacHotKeyStore.save(shortcut)
+        hotKeyStorage = MacHotKeyStore.encode(shortcut) ?? ""
+        MacGlobalHotKeyCenter.shared.reloadRegistration()
+        hotKeyStatusMessage = MacGlobalHotKeyCenter.shared.lastRegistrationError
+        showHotKeyRecorder = false
+    }
+
+    private func clearHotKey() {
+        MacHotKeyStore.clear()
+        hotKeyStorage = ""
+        MacGlobalHotKeyCenter.shared.reloadRegistration()
+        hotKeyStatusMessage = nil
+        showHotKeyRecorder = false
+    }
+
     private var appVersionString: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
         return "\(version) (\(build))"
+    }
+}
+
+private struct MacHotKeyRecorderSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let currentShortcut: MacHotKeyShortcut?
+    let onSave: (MacHotKeyShortcut) -> Void
+    let onClear: () -> Void
+
+    @State private var capturedShortcut: MacHotKeyShortcut?
+    @State private var errorMessage: String?
+
+    var body: some View {
+        VStack(spacing: 22) {
+            VStack(spacing: 8) {
+                Text("SET GLOBAL KEYBIND")
+                    .font(Brutal.heading(.title2))
+                    .foregroundColor(Brutal.text)
+                Text("Choose a shortcut Voxboard will listen for while the Mac app is running.")
+                    .font(Brutal.body())
+                    .foregroundColor(Brutal.muted)
+                    .multilineTextAlignment(.center)
+            }
+
+            VStack(spacing: 10) {
+                Text(capturedShortcut?.displayString ?? "PRESS A KEYBIND")
+                    .font(Brutal.display(42))
+                    .foregroundColor(Brutal.text)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.45)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 28)
+                    .background(Brutal.surface2)
+                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 2))
+
+                Text("Use a letter, number, Space, arrow, or function key with ⌃ Control, ⌥ Option, or ⌘ Command. ⇧ Shift can be combined. Press Esc to cancel.")
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.muted)
+                    .multilineTextAlignment(.center)
+            }
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(Brutal.caption())
+                    .foregroundColor(Brutal.error)
+            }
+
+            HStack(spacing: 12) {
+                Button("CANCEL") { dismiss() }
+                    .buttonStyle(BrutalButtonStyle(variant: .secondary))
+
+                Button("CLEAR") { onClear() }
+                    .buttonStyle(.plain)
+                    .foregroundColor(Brutal.error)
+                    .disabled(currentShortcut == nil && capturedShortcut == nil)
+
+                Spacer()
+
+                Button("SAVE") {
+                    guard let capturedShortcut else { return }
+                    onSave(capturedShortcut)
+                }
+                .buttonStyle(BrutalButtonStyle(variant: .primary))
+                .disabled(capturedShortcut == nil)
+            }
+        }
+        .padding(30)
+        .frame(width: 560)
+        .background(Brutal.bg)
+        .background(
+            MacHotKeyCaptureView(
+                onKeyDown: handleKeyDown,
+                onFlagsChanged: handleFlagsChanged
+            )
+            .frame(width: 0, height: 0)
+        )
+        .preferredColorScheme(.dark)
+        .onAppear {
+            capturedShortcut = currentShortcut
+        }
+    }
+
+    private func handleKeyDown(_ event: NSEvent) {
+        if event.keyCode == 53 {
+            dismiss()
+            return
+        }
+
+        guard let shortcut = MacHotKeyShortcut(event: event) else {
+            errorMessage = "Press one non-modifier key with Control, Option, or Command."
+            return
+        }
+
+        capturedShortcut = shortcut
+        errorMessage = nil
+    }
+
+    private func handleFlagsChanged(_ event: NSEvent) {
+        let modifiers = event.modifierFlags.intersection(MacHotKeyShortcut.allowedModifierFlags)
+        guard !modifiers.isEmpty else { return }
+
+        if modifiers.intersection([.command, .option, .control]).isEmpty {
+            errorMessage = "Shift alone cannot be used. Add Control, Option, or Command plus one non-modifier key."
+        } else {
+            errorMessage = "Now press a letter, number, Space, arrow, or function key to finish the shortcut."
+        }
+    }
+}
+
+private struct MacHotKeyCaptureView: NSViewRepresentable {
+    let onKeyDown: (NSEvent) -> Void
+    let onFlagsChanged: (NSEvent) -> Void
+
+    func makeNSView(context: Context) -> MacHotKeyCaptureNSView {
+        let view = MacHotKeyCaptureNSView()
+        view.onKeyDown = onKeyDown
+        view.onFlagsChanged = onFlagsChanged
+        return view
+    }
+
+    func updateNSView(_ nsView: MacHotKeyCaptureNSView, context: Context) {
+        nsView.onKeyDown = onKeyDown
+        nsView.onFlagsChanged = onFlagsChanged
+        nsView.focusIfPossible()
+    }
+}
+
+private final class MacHotKeyCaptureNSView: NSView {
+    var onKeyDown: ((NSEvent) -> Void)?
+    var onFlagsChanged: ((NSEvent) -> Void)?
+
+    override var acceptsFirstResponder: Bool { true }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        focusIfPossible()
+    }
+
+    func focusIfPossible() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            window?.makeFirstResponder(self)
+        }
+    }
+
+    override func keyDown(with event: NSEvent) {
+        onKeyDown?(event)
+    }
+
+    override func flagsChanged(with event: NSEvent) {
+        onFlagsChanged?(event)
     }
 }
 

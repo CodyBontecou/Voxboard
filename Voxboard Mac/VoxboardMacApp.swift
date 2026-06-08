@@ -1,4 +1,5 @@
 import AppKit
+import Carbon
 import SwiftUI
 import UniformTypeIdentifiers
 import VoxboardShared
@@ -63,6 +64,7 @@ struct VoxboardMacApp: App {
                     storeManager.start()
                     transcriptStore.reload()
                     usageTracker.reload()
+                    configureGlobalHotKey()
                 }
                 .onChange(of: visibilityModeRaw) { _, _ in
                     visibilityMode.apply()
@@ -118,6 +120,69 @@ struct VoxboardMacApp: App {
         if recorder.isRecording { return "Voxboard is recording" }
         if recorder.isTranscribing { return "Voxboard is transcribing" }
         return "Voxboard"
+    }
+
+    private func configureGlobalHotKey() {
+        let recorder = recorder
+        let modelManager = modelManager
+        let usageTracker = usageTracker
+        MacGlobalHotKeyCenter.shared.configure {
+            Self.handleGlobalHotKey(
+                recorder: recorder,
+                modelManager: modelManager,
+                usageTracker: usageTracker
+            )
+        }
+    }
+
+    @MainActor
+    private static func handleGlobalHotKey(
+        recorder: MacRecorder,
+        modelManager: ModelManager,
+        usageTracker: UsageTracker
+    ) {
+        guard !recorder.isTranscribing else {
+            NSSound.beep()
+            return
+        }
+
+        let flowId = RecordingFlowStore.selectedFlowId()
+        if recorder.isRecording {
+            recorder.stopAndTranscribe(modelManager: modelManager, flowId: flowId)
+            return
+        }
+
+        guard !usageTracker.isAtLimit else {
+            recorder.needsUnlock = true
+            bringMainWindowForward()
+            return
+        }
+
+        Task { @MainActor in
+            let granted = await AudioRecorder.requestMicrophonePermission()
+            guard granted else {
+                recorder.lastError = "Could not access the microphone. Check macOS Privacy & Security settings."
+                bringMainWindowForward()
+                return
+            }
+
+            recorder.startRecording(modelManager: modelManager, flowId: flowId)
+            if !recorder.isRecording, recorder.lastError != nil {
+                bringMainWindowForward()
+            }
+        }
+    }
+
+    @MainActor
+    private static func bringMainWindowForward() {
+        MacAppVisibilityMode.current.apply()
+        if let window = NSApplication.shared.windows.first(where: { $0.canBecomeMain }) {
+            if window.isMiniaturized {
+                window.deminiaturize(nil)
+            }
+            window.makeKeyAndOrderFront(nil)
+        }
+        NSApplication.shared.activate(ignoringOtherApps: true)
     }
 }
 
@@ -204,6 +269,228 @@ final class VoxboardMacAppDelegate: NSObject, NSApplicationDelegate {
             window.makeKeyAndOrderFront(nil)
         }
         return true
+    }
+}
+
+struct MacHotKeyShortcut: Codable, Equatable {
+    static let allowedModifierFlags: NSEvent.ModifierFlags = [.command, .option, .control, .shift]
+    private static let requiredModifierFlags: NSEvent.ModifierFlags = [.command, .option, .control]
+
+    let keyCode: UInt32
+    let modifierFlagsRawValue: UInt
+    let keyEquivalent: String
+
+    init?(event: NSEvent) {
+        let modifiers = event.modifierFlags.intersection(Self.allowedModifierFlags)
+        guard !modifiers.intersection(Self.requiredModifierFlags).isEmpty else { return nil }
+
+        let keyName = Self.keyName(
+            keyCode: event.keyCode,
+            charactersIgnoringModifiers: event.charactersIgnoringModifiers
+        )
+        guard !keyName.isEmpty else { return nil }
+
+        self.keyCode = UInt32(event.keyCode)
+        self.modifierFlagsRawValue = modifiers.rawValue
+        self.keyEquivalent = keyName
+    }
+
+    var modifierFlags: NSEvent.ModifierFlags {
+        NSEvent.ModifierFlags(rawValue: modifierFlagsRawValue).intersection(Self.allowedModifierFlags)
+    }
+
+    var carbonModifiers: UInt32 {
+        var carbonModifiers: UInt32 = 0
+        let flags = modifierFlags
+        if flags.contains(.command) { carbonModifiers |= UInt32(cmdKey) }
+        if flags.contains(.option) { carbonModifiers |= UInt32(optionKey) }
+        if flags.contains(.control) { carbonModifiers |= UInt32(controlKey) }
+        if flags.contains(.shift) { carbonModifiers |= UInt32(shiftKey) }
+        return carbonModifiers
+    }
+
+    var displayString: String {
+        var pieces: [String] = []
+        let flags = modifierFlags
+        if flags.contains(.control) { pieces.append("⌃") }
+        if flags.contains(.option) { pieces.append("⌥") }
+        if flags.contains(.shift) { pieces.append("⇧") }
+        if flags.contains(.command) { pieces.append("⌘") }
+        pieces.append(keyEquivalent)
+        return pieces.joined()
+    }
+
+    private static func keyName(keyCode: UInt16, charactersIgnoringModifiers: String?) -> String {
+        switch keyCode {
+        case 36: return "Return"
+        case 48: return "Tab"
+        case 49: return "Space"
+        case 51: return "Delete"
+        case 53: return "Escape"
+        case 71: return "Clear"
+        case 76: return "Enter"
+        case 96: return "F5"
+        case 97: return "F6"
+        case 98: return "F7"
+        case 99: return "F3"
+        case 100: return "F8"
+        case 101: return "F9"
+        case 103: return "F11"
+        case 105: return "F13"
+        case 106: return "F16"
+        case 107: return "F14"
+        case 109: return "F10"
+        case 111: return "F12"
+        case 113: return "F15"
+        case 118: return "F4"
+        case 120: return "F2"
+        case 122: return "F1"
+        case 123: return "←"
+        case 124: return "→"
+        case 125: return "↓"
+        case 126: return "↑"
+        default:
+            let trimmed = (charactersIgnoringModifiers ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return "" }
+            return trimmed.uppercased()
+        }
+    }
+}
+
+enum MacHotKeyStore {
+    static let storageKey = "macGlobalHotKeyShortcut"
+
+    static func load() -> MacHotKeyShortcut? {
+        guard let encoded = AppConstants.sharedDefaults?.string(forKey: storageKey) else { return nil }
+        return decode(encoded)
+    }
+
+    static func save(_ shortcut: MacHotKeyShortcut) {
+        guard let encoded = encode(shortcut) else { return }
+        AppConstants.sharedDefaults?.set(encoded, forKey: storageKey)
+    }
+
+    static func clear() {
+        AppConstants.sharedDefaults?.removeObject(forKey: storageKey)
+    }
+
+    static func decode(_ encoded: String) -> MacHotKeyShortcut? {
+        guard let data = encoded.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(MacHotKeyShortcut.self, from: data)
+    }
+
+    static func encode(_ shortcut: MacHotKeyShortcut) -> String? {
+        guard let data = try? JSONEncoder().encode(shortcut) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+}
+
+private let macHotKeySignature: OSType = 0x564F5848 // VOXH
+private let macHotKeyIDValue: UInt32 = 1
+
+nonisolated private func macHotKeyHandler(
+    _ nextHandler: EventHandlerCallRef?,
+    _ eventRef: EventRef?,
+    _ userData: UnsafeMutableRawPointer?
+) -> OSStatus {
+    var hotKeyID = EventHotKeyID()
+    let status = GetEventParameter(
+        eventRef,
+        EventParamName(kEventParamDirectObject),
+        EventParamType(typeEventHotKeyID),
+        nil,
+        MemoryLayout<EventHotKeyID>.size,
+        nil,
+        &hotKeyID
+    )
+    guard status == noErr,
+          hotKeyID.signature == 0x564F5848,
+          hotKeyID.id == 1 else {
+        return noErr
+    }
+
+    Task { @MainActor in
+        MacGlobalHotKeyCenter.shared.handleHotKeyPressed()
+    }
+    return noErr
+}
+
+@MainActor
+final class MacGlobalHotKeyCenter {
+    static let shared = MacGlobalHotKeyCenter()
+
+    private var action: (() -> Void)?
+    private var eventHandlerRef: EventHandlerRef?
+    private var hotKeyRef: EventHotKeyRef?
+
+    private(set) var lastRegistrationError: String?
+
+    func configure(action: @escaping () -> Void) {
+        self.action = action
+        installEventHandlerIfNeeded()
+        reloadRegistration()
+    }
+
+    func reloadRegistration() {
+        unregisterHotKey()
+        lastRegistrationError = nil
+
+        guard let shortcut = MacHotKeyStore.load() else { return }
+
+        let modifiers = shortcut.carbonModifiers
+        guard modifiers != 0 else { return }
+
+        let hotKeyID = EventHotKeyID(signature: macHotKeySignature, id: macHotKeyIDValue)
+        var newHotKeyRef: EventHotKeyRef?
+        let status = RegisterEventHotKey(
+            shortcut.keyCode,
+            modifiers,
+            hotKeyID,
+            GetApplicationEventTarget(),
+            0,
+            &newHotKeyRef
+        )
+
+        if status == noErr {
+            hotKeyRef = newHotKeyRef
+            KeyboardDebugLog.shared.log("[MacHotKey] Registered global hotkey: \(shortcut.displayString)")
+        } else {
+            lastRegistrationError = "Could not register \(shortcut.displayString). Try a different shortcut. (OSStatus \(status))"
+            KeyboardDebugLog.shared.log("[MacHotKey] ❌ RegisterEventHotKey failed: \(status)")
+        }
+    }
+
+    func handleHotKeyPressed() {
+        KeyboardDebugLog.shared.log("[MacHotKey] Hotkey pressed")
+        action?()
+    }
+
+    private func installEventHandlerIfNeeded() {
+        guard eventHandlerRef == nil else { return }
+        var eventType = EventTypeSpec(
+            eventClass: OSType(kEventClassKeyboard),
+            eventKind: UInt32(kEventHotKeyPressed)
+        )
+        let handler: EventHandlerUPP = macHotKeyHandler
+        let status = InstallEventHandler(
+            GetApplicationEventTarget(),
+            handler,
+            1,
+            &eventType,
+            nil,
+            &eventHandlerRef
+        )
+        if status != noErr {
+            lastRegistrationError = "Could not install Voxboard hotkey listener. (OSStatus \(status))"
+            KeyboardDebugLog.shared.log("[MacHotKey] ❌ InstallEventHandler failed: \(status)")
+        }
+    }
+
+    private func unregisterHotKey() {
+        guard let hotKeyRef else { return }
+        UnregisterEventHotKey(hotKeyRef)
+        self.hotKeyRef = nil
     }
 }
 
