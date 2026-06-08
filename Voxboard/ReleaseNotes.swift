@@ -14,6 +14,16 @@ enum VoxboardReleaseNotes {
                     title: "What’s new in Voxboard",
                     rows: [
                         .init(
+                            symbolSystemName: "keyboard",
+                            title: "Global recording keybind on Mac",
+                            description: "The Mac app can now listen for your custom shortcut and use it to start recording from anywhere, then stop and transcribe with the same shortcut."
+                        ),
+                        .init(
+                            symbolSystemName: "square.grid.2x2",
+                            title: "Friendlier Vox icons on Mac",
+                            description: "Custom Voxes on macOS now use a searchable icon picker, so you can choose a clear symbol without memorizing SF Symbol names."
+                        ),
+                        .init(
                             symbolSystemName: "lock.fill",
                             title: "Lock Screen controls you can tune",
                             description: "Settings now lets you turn the Live Activity/Dynamic Island monitor and Lock Screen Quick Record button on or off, with disabled widgets showing an off state instead of starting a recording."
