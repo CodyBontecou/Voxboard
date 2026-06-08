@@ -24,5 +24,11 @@ node_modules/
 # Generated output
 output/
 
+# Agent/local automation state
+.pi/
+.asc/
+.playwright/
+.playwright-cli/
+
 # Whisper framework (large binary)
 whisper.xcframework/
