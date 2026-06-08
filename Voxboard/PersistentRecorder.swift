@@ -99,6 +99,17 @@ final class PersistentRecorder {
     /// Observed by HomeView to present the PaywallView.
     var needsUnlock: Bool = false
 
+    // MARK: - One-shot recording sessions
+
+    /// True when the current in-app/widget/shortcut recording started the audio
+    /// engine only for this segment. When the segment stops, audio capture is
+    /// torn down immediately so system haptics recover while transcription runs.
+    private var shouldAutoStopListeningAfterCurrentRecording = false
+
+    /// True after a one-shot recording has stopped capture but keeps the Live
+    /// Activity around in a lightweight processing state until transcription ends.
+    private var shouldEndLiveActivityAfterCurrentTranscription = false
+
     // MARK: - Init
 
     init(
@@ -127,11 +138,19 @@ final class PersistentRecorder {
 
     // MARK: - Start / Stop Listening
 
-    /// Start the always-on microphone capture. Call once from the main app.
+    /// Start microphone capture.
+    ///
+    /// Persistent keyboard-listening sessions save the auto-listen preference so
+    /// the recorder can restart when the app is reopened. One-shot recordings pass
+    /// `persistPreference: false` so the app returns to a fully idle audio session.
     @discardableResult
-    func startListening() -> Bool {
+    func startListening(persistPreference: Bool = true) -> Bool {
         guard !isListening else {
             log.log("[PersistentRecorder] Already listening")
+            if persistPreference {
+                shouldAutoStopListeningAfterCurrentRecording = false
+                AppConstants.sharedDefaults?.set(true, forKey: AppConstants.autoListenEnabledKey)
+            }
             return true
         }
 
@@ -248,8 +267,9 @@ final class PersistentRecorder {
         // Start listening for commands from the keyboard
         registerCommandObserver()
 
-        // Persist preference
-        AppConstants.sharedDefaults?.set(true, forKey: "autoListenEnabled")
+        // Persist only explicit keyboard-listening sessions. One-shot recordings
+        // should not re-open the microphone on the next app activation.
+        AppConstants.sharedDefaults?.set(persistPreference, forKey: AppConstants.autoListenEnabledKey)
 
         // Pre-load the default whisper model so the first transcription is fast
         preloadModel()
@@ -383,6 +403,10 @@ final class PersistentRecorder {
             if isSegmentActive {
                 cancelSegment()
             }
+            if shouldAutoStopListeningAfterCurrentRecording {
+                lastError = "Recording interrupted — please try again"
+                stopListening()
+            }
 
         case .ended:
             log.log("[PersistentRecorder] Audio interruption ended — restarting listening")
@@ -406,9 +430,24 @@ final class PersistentRecorder {
         }
     }
 
-    /// Stop the always-on capture.
+    /// Stop microphone capture and end the Live Activity.
     func stopListening() {
-        guard isListening else { return }
+        stopListening(endLiveActivity: true)
+        shouldEndLiveActivityAfterCurrentTranscription = false
+    }
+
+    /// Stop microphone capture while optionally keeping the Live Activity alive.
+    ///
+    /// One-shot recordings use `endLiveActivity: false` after audio has been
+    /// extracted so the UI can show a processing state without keeping the audio
+    /// session active (which is what suppresses system haptics).
+    private func stopListening(endLiveActivity: Bool) {
+        guard isListening else {
+            if endLiveActivity {
+                LiveActivityController.shared.end()
+            }
+            return
+        }
 
         log.log("[PersistentRecorder] Stopping listening…")
 
@@ -416,6 +455,8 @@ final class PersistentRecorder {
         if isSegmentActive {
             cancelSegment()
         }
+
+        shouldAutoStopListeningAfterCurrentRecording = false
 
         // Remove interruption observer
         removeInterruptionObserver()
@@ -437,7 +478,9 @@ final class PersistentRecorder {
         TranscriptionIPC.writeListeningState(ListeningState(isListening: false))
         TranscriptionIPC.postListeningStateNotification()
         WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
-        LiveActivityController.shared.end()
+        if endLiveActivity {
+            LiveActivityController.shared.end()
+        }
 
         unregisterCommandObserver()
 
@@ -445,6 +488,45 @@ final class PersistentRecorder {
     }
 
     // MARK: - In-App Recording
+
+    /// Start a one-shot recording from the app, widget, or Shortcut.
+    ///
+    /// If the persistent keyboard-listening engine is already running, this simply
+    /// marks a segment and leaves listening on afterward. Otherwise it starts the
+    /// microphone only for this recording and automatically returns to idle once
+    /// transcription has finished.
+    @discardableResult
+    func startOneShotInAppSegment(flowId requestedFlowId: String? = nil) -> Bool {
+        guard !isSegmentActive, !isTranscribing else {
+            log.log("[PersistentRecorder] ⚠️ one-shot start skipped — segment active or transcribing")
+            return false
+        }
+        if usageTracker.isAtLimit {
+            needsUnlock = true
+            lastError = "Free limit reached — unlock Voxboard to keep recording"
+            return false
+        }
+
+        let startedTemporaryListening = !isListening
+        if startedTemporaryListening {
+            shouldAutoStopListeningAfterCurrentRecording = true
+            guard startListening(persistPreference: false) else {
+                shouldAutoStopListeningAfterCurrentRecording = false
+                return false
+            }
+        } else {
+            shouldAutoStopListeningAfterCurrentRecording = false
+        }
+
+        lastTranscriptionResult = nil
+        lastError = nil
+        startInAppSegment(flowId: requestedFlowId)
+
+        if !isSegmentActive, startedTemporaryListening {
+            stopListening()
+        }
+        return isSegmentActive
+    }
 
     /// Start a recording segment directly from the app UI (no IPC needed).
     func startInAppSegment(flowId requestedFlowId: String? = nil) {
@@ -732,7 +814,6 @@ final class PersistentRecorder {
         stopDurationTimer()
         isSegmentActive = false
         TranscriptionIPC.clearAudioLevel()
-        LiveActivityController.shared.update(isSegmentActive: false, startedAt: nil)
 
         // Extract audio from the circular buffer
         let endIndex = circularBuffer.totalSamplesWritten
@@ -746,12 +827,17 @@ final class PersistentRecorder {
                 // call, phone locked for hours, etc.). Recover by rebuilding
                 // the engine + tap from scratch so the next recording works.
                 log.log("[PersistentRecorder] ❌ Audio tap not delivering samples — restarting listening to recover")
-                writeErrorResponse(requestId: requestId, message: "Microphone wasn't receiving audio — please try again")
-                stopListening()
-                startListening()
+                if shouldAutoStopListeningAfterCurrentRecording {
+                    finishStoppedSegmentWithError(requestId: requestId, message: "Microphone wasn't receiving audio — please try again")
+                } else {
+                    writeErrorResponse(requestId: requestId, message: "Microphone wasn't receiving audio — please try again")
+                    clearSegmentState()
+                    stopListening()
+                    startListening()
+                }
             } else {
                 log.log("[PersistentRecorder] ❌ Could not extract audio — data was overwritten")
-                writeErrorResponse(requestId: requestId, message: "Audio buffer overwritten — try a shorter recording")
+                finishStoppedSegmentWithError(requestId: requestId, message: "Audio buffer overwritten — try a shorter recording")
             }
             return
         }
@@ -761,7 +847,7 @@ final class PersistentRecorder {
 
         guard samples.count > Int(whisperSampleRate * 0.3) else {
             log.log("[PersistentRecorder] ⚠️ Segment too short (<0.3s)")
-            writeErrorResponse(requestId: requestId, message: "Recording too short")
+            finishStoppedSegmentWithError(requestId: requestId, message: "Recording too short")
             return
         }
 
@@ -770,38 +856,48 @@ final class PersistentRecorder {
         log.log("[PersistentRecorder] Audio maxAmp=\(String(format: "%.4f", maxAmp))")
         if maxAmp < 0.005 {
             log.log("[PersistentRecorder] ⚠️ Audio appears silent")
-            writeErrorResponse(requestId: requestId, message: "No speech detected")
+            finishStoppedSegmentWithError(requestId: requestId, message: "No speech detected")
             return
         }
 
         // Write WAV file
         guard let wavURL = writeWAV(samples: samples) else {
-            writeErrorResponse(requestId: requestId, message: "Failed to save audio")
+            finishStoppedSegmentWithError(requestId: requestId, message: "Failed to save audio")
             return
         }
 
         log.log("[PersistentRecorder] WAV written: \(wavURL.lastPathComponent)")
 
-        // Update status to transcribing
+        // Update status to transcribing. If this was a one-shot recording,
+        // tear down audio capture now (restoring system haptics) while leaving
+        // the Live Activity visible in a lightweight processing state.
         isTranscribing = true
         TranscriptionIPC.writeStatus(RecordingStatus(
             requestId: requestId,
             phase: .transcribing
         ))
+        LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: true, startedAt: nil)
 
-        // Transcribe
-        let modelId = segmentModelId ?? command.modelId ?? AppConstants.defaultModelName
-        let language = segmentLanguage ?? command.language ?? "auto"
-        let flowId = segmentFlowId ?? command.flowId ?? RecordingFlowStore.selectedFlowId()
-        let duration = TimeInterval(durationSec)
-
-        // Request background time
+        // Request background time before deactivating the audio session. One-shot
+        // recordings may be stopped from the Lock Screen/Dynamic Island while the
+        // app is backgrounded, and transcription still needs time to finish.
         var bgTask: UIBackgroundTaskIdentifier = .invalid
         bgTask = UIApplication.shared.beginBackgroundTask {
             log.log("[PersistentRecorder] ⚠️ Background task expired")
             UIApplication.shared.endBackgroundTask(bgTask)
             bgTask = .invalid
         }
+
+        if shouldAutoStopListeningAfterCurrentRecording {
+            shouldEndLiveActivityAfterCurrentTranscription = true
+            stopListening(endLiveActivity: false)
+        }
+
+        // Transcribe
+        let modelId = segmentModelId ?? command.modelId ?? AppConstants.defaultModelName
+        let language = segmentLanguage ?? command.language ?? "auto"
+        let flowId = segmentFlowId ?? command.flowId ?? RecordingFlowStore.selectedFlowId()
+        let duration = TimeInterval(durationSec)
 
         Task.detached(priority: .userInitiated) { [weak self] in
             await self?.transcribe(
@@ -816,6 +912,7 @@ final class PersistentRecorder {
 
             await MainActor.run {
                 self?.isTranscribing = false
+                self?.finishLiveActivityAfterTranscription()
                 if bgTask != .invalid {
                     UIApplication.shared.endBackgroundTask(bgTask)
                 }
@@ -823,10 +920,35 @@ final class PersistentRecorder {
         }
 
         // Clear segment state
+        clearSegmentState()
+    }
+
+    private func finishStoppedSegmentWithError(requestId: String, message: String) {
+        writeErrorResponse(requestId: requestId, message: message)
+        clearSegmentState()
+
+        if shouldAutoStopListeningAfterCurrentRecording {
+            stopListening()
+        } else {
+            LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: false, startedAt: nil)
+        }
+    }
+
+    private func finishLiveActivityAfterTranscription() {
+        if shouldEndLiveActivityAfterCurrentTranscription {
+            shouldEndLiveActivityAfterCurrentTranscription = false
+            LiveActivityController.shared.end()
+        } else if isListening {
+            LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: false, startedAt: nil)
+        }
+    }
+
+    private func clearSegmentState() {
         segmentRequestId = nil
         segmentModelId = nil
         segmentLanguage = nil
         segmentFlowId = nil
+        segmentDuration = 0
     }
 
     /// Cancel an active segment without transcribing.
@@ -837,14 +959,10 @@ final class PersistentRecorder {
         stopDurationTimer()
         isSegmentActive = false
         TranscriptionIPC.clearAudioLevel()
-        segmentRequestId = nil
-        segmentModelId = nil
-        segmentLanguage = nil
-        segmentFlowId = nil
-        segmentDuration = 0
+        clearSegmentState()
 
         TranscriptionIPC.clearStatus()
-        LiveActivityController.shared.update(isSegmentActive: false, startedAt: nil)
+        LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: false, startedAt: nil)
     }
 
     // MARK: - Transcription

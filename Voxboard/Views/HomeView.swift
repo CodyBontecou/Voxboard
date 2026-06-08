@@ -201,8 +201,8 @@ struct HomeView: View {
         VStack(spacing: 0) {
             HStack {
                 BrutalStatusBadge(
-                    label: persistentRecorder.isListening ? "Listening" : "Off",
-                    isActive: persistentRecorder.isListening
+                    label: statusBadgeLabel,
+                    isActive: statusBadgeIsActive
                 )
                 Spacer()
                 Text("VOXBOARD")
@@ -303,18 +303,33 @@ struct HomeView: View {
         enabledFlows.first(where: { $0.id == selectedFlowId }) ?? enabledFlows[0]
     }
 
+    private var statusBadgeLabel: LocalizedStringKey {
+        if persistentRecorder.isSegmentActive { return "Recording" }
+        if persistentRecorder.isTranscribing { return "Processing" }
+        if persistentRecorder.isListening { return "Listening" }
+        return "Off"
+    }
+
+    private var statusBadgeIsActive: Bool {
+        persistentRecorder.isListening || persistentRecorder.isSegmentActive || persistentRecorder.isTranscribing
+    }
+
     // MARK: - Center Content
 
     @ViewBuilder
     private var centerContent: some View {
         if !micPermissionGranted {
             noMicView
-        } else if let error = persistentRecorder.lastError,
-                  !persistentRecorder.isSegmentActive,
-                  !persistentRecorder.isTranscribing {
+        } else if persistentRecorder.isSegmentActive {
+            recordingView
+        } else if persistentRecorder.isTranscribing {
+            transcribingView
+        } else if let error = persistentRecorder.lastError {
             errorView(error)
+        } else if let result = persistentRecorder.lastTranscriptionResult {
+            resultView(result)
         } else if persistentRecorder.isListening {
-            listeningContent
+            listeningIdleView
         } else {
             standbyView
         }
@@ -331,7 +346,7 @@ struct HomeView: View {
                     .foregroundColor(Brutal.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
-                Text("Tap START LISTENING below")
+                Text("Tap START RECORDING below")
                     .font(Brutal.body())
                     .foregroundColor(Brutal.muted)
             }
@@ -408,14 +423,7 @@ struct HomeView: View {
                     .font(Brutal.body())
                     .foregroundColor(Brutal.muted)
             }
-            Button(action: {
-                if usageTracker.isAtLimit {
-                    presentPaywall(context: .recording)
-                    return
-                }
-                persistentRecorder.lastTranscriptionResult = nil
-                persistentRecorder.startInAppSegment()
-            }) {
+            Button(action: { startRecording() }) {
                 HStack(spacing: 8) {
                     Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
                         .font(.system(.footnote))
@@ -502,14 +510,7 @@ struct HomeView: View {
             .padding(16)
             .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
 
-            Button(action: {
-                if usageTracker.isAtLimit {
-                    presentPaywall(context: .recording)
-                    return
-                }
-                persistentRecorder.lastTranscriptionResult = nil
-                persistentRecorder.startInAppSegment()
-            }) {
+            Button(action: { startRecording() }) {
                 HStack(spacing: 8) {
                     Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
                         .font(.system(.footnote))
@@ -540,42 +541,42 @@ struct HomeView: View {
 
             BrutalDivider()
 
-            HStack(spacing: 12) {
-                Group {
-                    if persistentRecorder.isListening {
-                        Button(action: { toggleListening() }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "stop.fill").font(.system(.footnote))
-                                Text("STOP LISTENING")
+            if !persistentRecorder.isSegmentActive && !persistentRecorder.isTranscribing {
+                HStack(spacing: 12) {
+                    Group {
+                        if persistentRecorder.isListening {
+                            Button(action: { stopPersistentListening() }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "stop.fill").font(.system(.footnote))
+                                    Text("STOP LISTENING")
+                                }
                             }
-                        }
-                        .buttonStyle(BrutalButtonStyle(variant: .secondary))
-                    } else {
-                        Button(action: { toggleListening() }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "play.fill").font(.system(.footnote))
-                                Text("START LISTENING")
+                            .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                        } else {
+                            Button(action: { startRecording() }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "mic.fill").font(.system(.footnote))
+                                    Text(usageTracker.isAtLimit ? "UNLOCK TO RECORD" : "START RECORDING")
+                                }
                             }
+                            .buttonStyle(BrutalButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .primary))
                         }
-                        .buttonStyle(BrutalButtonStyle(variant: .primary))
                     }
-                }
 
-                Button(action: { showAudioImporter = true }) {
-                    Image(systemName: "waveform")
-                        .font(.system(.callout, weight: .semibold))
-                        .foregroundColor(Brutal.text)
-                        .frame(width: 52, height: 52)
-                        .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
-                        .contentShape(Rectangle())
+                    Button(action: { showAudioImporter = true }) {
+                        Image(systemName: "waveform")
+                            .font(.system(.callout, weight: .semibold))
+                            .foregroundColor(Brutal.text)
+                            .frame(width: 52, height: 52)
+                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Import audio")
                 }
-                .buttonStyle(.plain)
-                .disabled(persistentRecorder.isTranscribing || persistentRecorder.isSegmentActive)
-                .opacity((persistentRecorder.isTranscribing || persistentRecorder.isSegmentActive) ? 0.35 : 1)
-                .accessibilityLabel("Import audio")
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
             }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
         }
     }
 
@@ -606,18 +607,18 @@ struct HomeView: View {
         showPaywall = true
     }
 
-    private func toggleListening() {
-        if persistentRecorder.isListening {
-            persistentRecorder.stopListening()
-            AppConstants.sharedDefaults?.set(false, forKey: "autoListenEnabled")
-        } else {
-            // Gate on paywall only if at limit
-            if usageTracker.isAtLimit {
-                presentPaywall(context: .recording)
-                return
-            }
-            persistentRecorder.startListening()
+    private func startRecording() {
+        if usageTracker.isAtLimit {
+            presentPaywall(context: .recording)
+            return
         }
+        persistentRecorder.lastTranscriptionResult = nil
+        persistentRecorder.startOneShotInAppSegment()
+    }
+
+    private func stopPersistentListening() {
+        persistentRecorder.stopListening()
+        AppConstants.sharedDefaults?.set(false, forKey: AppConstants.autoListenEnabledKey)
     }
 
     func handleWidgetRecord() {
@@ -633,17 +634,7 @@ struct HomeView: View {
             return flow.id
         }
 
-        // Start listening if not already, then immediately begin an in-app recording segment
-        if !persistentRecorder.isListening {
-            persistentRecorder.startListening()
-        }
-        // Small delay to let the audio engine initialize before starting segment
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            if persistentRecorder.isListening {
-                persistentRecorder.lastTranscriptionResult = nil
-                persistentRecorder.startInAppSegment(flowId: flowId)
-            }
-        }
+        persistentRecorder.startOneShotInAppSegment(flowId: flowId)
     }
 
     func handleKeyboardLaunch() {

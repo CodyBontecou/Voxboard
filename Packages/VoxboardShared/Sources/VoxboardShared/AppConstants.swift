@@ -78,6 +78,10 @@ public enum AppConstants: Sendable {
     // Keyboard haptic feedback. Defaults to true when unset.
     public static let hapticsEnabledKey = "hapticsEnabled"
 
+    // Persistent keyboard-listening preference. One-shot recordings deliberately
+    // leave this off so the app returns to an idle audio session when done.
+    public static let autoListenEnabledKey = "autoListenEnabled"
+
     // Lock Screen / Dynamic Island controls. Both default to true when unset.
     public static let liveActivityMonitorEnabledKey = "liveActivityMonitorEnabled"
     public static let lockScreenQuickRecordEnabledKey = "lockScreenQuickRecordEnabled"

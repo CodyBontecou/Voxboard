@@ -17,10 +17,10 @@ struct VoxboardLiveActivity: Widget {
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
                     HStack(spacing: 8) {
-                        Image(systemName: context.state.isSegmentActive ? "waveform.circle.fill" : "mic.circle")
-                            .foregroundStyle(context.state.isSegmentActive ? .red : .white)
+                        Image(systemName: context.state.activitySymbolName(expanded: true))
+                            .foregroundStyle(context.state.activityTint)
                             .font(.title2)
-                        Text(context.state.isSegmentActive ? "Recording" : "Voxboard")
+                        Text(context.state.activityTitle)
                             .font(.headline)
                             .foregroundStyle(.white)
                     }
@@ -32,28 +32,32 @@ struct VoxboardLiveActivity: Widget {
                             .font(.headline)
                             .foregroundStyle(.white)
                     } else {
-                        Text("Ready")
+                        Text(context.state.isTranscribing ? "Working" : "Ready")
                             .font(.headline)
                             .foregroundStyle(.white.opacity(0.7))
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    RecordButton(isSegmentActive: context.state.isSegmentActive, compact: false)
+                    RecordButton(state: context.state, compact: false)
                 }
             } compactLeading: {
-                Image(systemName: context.state.isSegmentActive ? "waveform" : "mic")
-                    .foregroundStyle(context.state.isSegmentActive ? .red : .white)
+                Image(systemName: context.state.activitySymbolName(expanded: false))
+                    .foregroundStyle(context.state.activityTint)
             } compactTrailing: {
                 if let started = context.state.segmentStartedAt, context.state.isSegmentActive {
                     Text(Date(timeIntervalSince1970: started), style: .timer)
                         .monospacedDigit()
                         .frame(maxWidth: 44)
+                } else if context.state.isTranscribing {
+                    Text("…")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(.white.opacity(0.7))
                 } else {
                     Text("Ready").font(.caption2).foregroundStyle(.white.opacity(0.7))
                 }
             } minimal: {
-                Image(systemName: context.state.isSegmentActive ? "waveform" : "mic")
-                    .foregroundStyle(context.state.isSegmentActive ? .red : .white)
+                Image(systemName: context.state.activitySymbolName(expanded: false))
+                    .foregroundStyle(context.state.activityTint)
             }
         }
     }
@@ -69,8 +73,8 @@ private struct LockScreenBanner: View {
                 Circle()
                     .fill(state.isSegmentActive ? Color.red.opacity(0.2) : Color.white.opacity(0.1))
                     .frame(width: 44, height: 44)
-                Image(systemName: state.isSegmentActive ? "waveform" : "mic.fill")
-                    .foregroundStyle(state.isSegmentActive ? .red : .white)
+                Image(systemName: state.activitySymbolName(expanded: false))
+                    .foregroundStyle(state.activityTint)
                     .font(.title3)
             }
 
@@ -88,7 +92,7 @@ private struct LockScreenBanner: View {
                             .foregroundStyle(.white)
                     }
                 } else {
-                    Text("Tap to record")
+                    Text(state.isTranscribing ? "Processing audio" : "Tap to record")
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.7))
                 }
@@ -96,18 +100,18 @@ private struct LockScreenBanner: View {
 
             Spacer(minLength: 8)
 
-            RecordButton(isSegmentActive: state.isSegmentActive, compact: true)
+            RecordButton(state: state, compact: true)
         }
     }
 }
 
 @available(iOS 17.0, *)
 private struct RecordButton: View {
-    let isSegmentActive: Bool
+    let state: VoxboardLiveActivityState
     let compact: Bool
 
     var body: some View {
-        if isSegmentActive {
+        if state.isSegmentActive {
             Button(intent: StopRecordingLiveActivityIntent()) {
                 Label("Stop", systemImage: "stop.fill")
                     .labelStyle(.titleAndIcon)
@@ -118,6 +122,14 @@ private struct RecordButton: View {
                     .foregroundStyle(.white)
             }
             .buttonStyle(.plain)
+        } else if state.isTranscribing {
+            Label("Processing", systemImage: "hourglass")
+                .labelStyle(.titleAndIcon)
+                .font(compact ? .subheadline.weight(.semibold) : .headline)
+                .padding(.horizontal, compact ? 14 : 20)
+                .padding(.vertical, compact ? 8 : 12)
+                .background(Color.white.opacity(0.16), in: Capsule())
+                .foregroundStyle(.white)
         } else {
             Button(intent: StartRecordingLiveActivityIntent()) {
                 Label("Record", systemImage: "record.circle")
@@ -130,5 +142,25 @@ private struct RecordButton: View {
             }
             .buttonStyle(.plain)
         }
+    }
+}
+
+@available(iOS 17.0, *)
+private extension VoxboardLiveActivityState {
+    var activityTitle: String {
+        if isSegmentActive { return "Recording" }
+        if isTranscribing { return "Processing" }
+        return "Voxboard"
+    }
+
+    var activityTint: Color {
+        if isSegmentActive { return .red }
+        return .white
+    }
+
+    func activitySymbolName(expanded: Bool) -> String {
+        if isSegmentActive { return expanded ? "waveform.circle.fill" : "waveform" }
+        if isTranscribing { return expanded ? "hourglass.circle" : "hourglass" }
+        return expanded ? "mic.circle" : "mic.fill"
     }
 }

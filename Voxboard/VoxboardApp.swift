@@ -15,7 +15,7 @@ struct VoxboardApp: App {
     @State private var pendingKeyboardLaunch = false
 
     /// Set to true when the app is opened via the lock screen widget.
-    /// HomeView reads this to start listening and immediately begin recording.
+    /// HomeView reads this to immediately begin a one-shot recording.
     @State private var pendingWidgetRecord = false
 
     init() {
@@ -74,7 +74,7 @@ struct VoxboardApp: App {
                 ReviewPromptManager.shared.requestPendingPromptIfPossible()
 
                 // Auto-start listening if user previously enabled it
-                if AppConstants.sharedDefaults?.bool(forKey: "autoListenEnabled") == true {
+                if AppConstants.sharedDefaults?.bool(forKey: AppConstants.autoListenEnabledKey) == true {
                     persistentRecorder.startListening()
                 }
 
@@ -95,7 +95,7 @@ struct VoxboardApp: App {
 
                 // Re-check listening state — if the user enabled auto-listen
                 // but the engine stopped (e.g. audio interruption), restart it.
-                if AppConstants.sharedDefaults?.bool(forKey: "autoListenEnabled") == true,
+                if AppConstants.sharedDefaults?.bool(forKey: AppConstants.autoListenEnabledKey) == true,
                    !persistentRecorder.isListening {
                     persistentRecorder.startListening()
                 }
@@ -150,7 +150,7 @@ struct VoxboardApp: App {
             pendingKeyboardLaunch = true
 
         case "widget-record":
-            // Widget tapped — start listening and immediately begin in-app recording
+            // Widget tapped — immediately begin a one-shot in-app recording
             guard AppConstants.lockScreenQuickRecordEnabled else {
                 log.log("[App] Widget record request ignored — Lock Screen Record Button disabled")
                 return
@@ -161,7 +161,7 @@ struct VoxboardApp: App {
                 .value {
                 AppConstants.sharedDefaults?.set(flowId, forKey: AppConstants.pendingWidgetRecordFlowIdKey)
             }
-            log.log("[App] Widget record request — starting listening + recording")
+            log.log("[App] Widget record request — starting one-shot recording")
             pendingWidgetRecord = true
 
         default:

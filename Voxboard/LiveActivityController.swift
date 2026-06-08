@@ -12,7 +12,7 @@ private let osLog = Logger(subsystem: "bontecou.Voxboard", category: "LiveActivi
 ///
 /// Lifecycle:
 /// - `startIfNeeded()` when the always-on recorder becomes active.
-/// - `update(isSegmentActive:startedAt:)` whenever a segment starts or stops.
+/// - `update(isSegmentActive:isTranscribing:startedAt:)` whenever a segment starts, stops, or begins processing.
 /// - `end()` when the recorder stops listening entirely.
 ///
 /// All calls are no-ops on pre-iOS 16.1 devices or when Live Activities are
@@ -70,7 +70,7 @@ final class LiveActivityController {
         #endif
     }
 
-    func update(isSegmentActive: Bool, startedAt: TimeInterval?) {
+    func update(isSegmentActive: Bool, isTranscribing: Bool = false, startedAt: TimeInterval?) {
         #if canImport(ActivityKit)
         guard #available(iOS 16.1, *) else { return }
         guard AppConstants.liveActivityMonitorEnabled else {
@@ -80,6 +80,7 @@ final class LiveActivityController {
         guard let activity else { return }
         let state = VoxboardLiveActivityState(
             isSegmentActive: isSegmentActive,
+            isTranscribing: isTranscribing,
             segmentStartedAt: isSegmentActive ? startedAt : nil
         )
         Task {

@@ -97,7 +97,7 @@ public struct ListeningState: Codable, Sendable {
 /// File-based IPC between the keyboard extension and the main app.
 ///
 /// **Always-on flow** (primary):
-/// 1. User opens Voxboard once → taps "Start Listening" → app starts persistent recording
+/// 1. Keyboard opens Voxboard via `voxboard://listen` → app starts persistent recording
 /// 2. App writes listeningState.json (isListening=true)
 /// 3. User switches to any app, brings up the keyboard
 /// 4. Keyboard reads listeningState → shows "Ready" with Record button

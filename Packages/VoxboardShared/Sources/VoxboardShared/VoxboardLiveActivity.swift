@@ -9,14 +9,24 @@ import ActivityKit
 /// unit-tested without ActivityKit.
 public struct VoxboardLiveActivityState: Codable, Hashable, Sendable {
     public var isSegmentActive: Bool
+    public var isTranscribing: Bool
     public var segmentStartedAt: TimeInterval?
 
-    public init(isSegmentActive: Bool = false, segmentStartedAt: TimeInterval? = nil) {
+    public init(
+        isSegmentActive: Bool = false,
+        isTranscribing: Bool = false,
+        segmentStartedAt: TimeInterval? = nil
+    ) {
         self.isSegmentActive = isSegmentActive
+        self.isTranscribing = isTranscribing
         self.segmentStartedAt = segmentStartedAt
     }
 
-    public static let idle = VoxboardLiveActivityState(isSegmentActive: false, segmentStartedAt: nil)
+    public static let idle = VoxboardLiveActivityState(
+        isSegmentActive: false,
+        isTranscribing: false,
+        segmentStartedAt: nil
+    )
 }
 
 #if os(iOS)

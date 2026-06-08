@@ -24,8 +24,8 @@ Add the Voxboard keyboard to iOS and dictate into any text field — Messages, N
 ### On-Device Transcription
 Speech recognition runs locally using `whisper.cpp` and Core ML/FluidAudio-backed Parakeet models. Audio and transcripts stay on the device. The app only uses the network for optional model downloads and normal App Store purchase flows.
 
-### Always-On Listening
-Start listening once in the app, then switch apps and use the keyboard to mark each recording segment. Voxboard keeps the recorder alive in the background, captures the segment, transcribes it, and sends the text back to the keyboard.
+### One-Shot Recording + Keyboard Listening
+Tap **Start Recording** in the app, from Shortcuts, or from a widget to record one segment, process it locally, and automatically return the microphone session to idle. Keyboard users can still open Voxboard from the keyboard to start persistent listening, then mark recording segments from any text field.
 
 ### Model Picker
 Download and switch between multiple local models: Whisper Tiny, Base, Small, Medium, Large v3 Turbo, plus Parakeet v2/v3. Pick lighter models for speed or larger models for accuracy.
