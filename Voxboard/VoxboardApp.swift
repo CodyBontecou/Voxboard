@@ -70,6 +70,8 @@ struct VoxboardApp: App {
                 transcriptionServer.start()
                 storeManager.start()
                 trackInitialOnboardingStartIfNeeded()
+                ReviewPromptManager.shared.recordAppUsageDay()
+                ReviewPromptManager.shared.requestPendingPromptIfPossible()
 
                 // Auto-start listening if user previously enabled it
                 if AppConstants.sharedDefaults?.bool(forKey: "autoListenEnabled") == true {
@@ -88,6 +90,8 @@ struct VoxboardApp: App {
                 usageTracker.reload()
 
                 consumePendingWidgetRecordIfNeeded()
+                ReviewPromptManager.shared.recordAppUsageDay()
+                ReviewPromptManager.shared.requestPendingPromptIfPossible()
 
                 // Re-check listening state — if the user enabled auto-listen
                 // but the engine stopped (e.g. audio interruption), restart it.

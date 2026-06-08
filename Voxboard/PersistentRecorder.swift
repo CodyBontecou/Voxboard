@@ -917,6 +917,10 @@ final class PersistentRecorder {
                 )
                 let transcript = TranscriptFlowFormatter.apply(flow: selectedFlow, to: rawTranscript)
                 self.transcriptStore.add(transcript)
+                ReviewPromptManager.shared.recordSuccessfulTranscription(
+                    totalTranscriptionCount: self.transcriptStore.transcripts.count,
+                    transcriptDates: self.transcriptStore.transcripts.map(\.date)
+                )
 
                 // On-device LLM enrichment (title, tags, category, cleanedText).
                 // When enrichment is enabled, we defer the file export until

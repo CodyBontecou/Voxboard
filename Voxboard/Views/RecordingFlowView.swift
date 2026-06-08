@@ -105,6 +105,10 @@ final class RecordingFlowController {
                     TranscriptionIPC.postResponseNotification()
                     TranscriptionIPC.writeStatus(RecordingStatus(requestId: reqId, phase: .done))
                     self.transcriptStore.add(Transcript(text: text, duration: duration, modelUsed: modelName, language: lang))
+                    ReviewPromptManager.shared.recordSuccessfulTranscription(
+                        totalTranscriptionCount: self.transcriptStore.transcripts.count,
+                        transcriptDates: self.transcriptStore.transcripts.map(\.date)
+                    )
                     self.phase = .done
                 } else {
                     self.phase = .error; self.errorMessage = String(localized: "No speech detected")
