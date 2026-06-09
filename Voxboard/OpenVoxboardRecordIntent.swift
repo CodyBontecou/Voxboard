@@ -13,7 +13,10 @@ struct VoxEntity: AppEntity, Identifiable, Hashable {
     let symbolName: String
 
     var displayRepresentation: DisplayRepresentation {
-        DisplayRepresentation(title: "\(name)")
+        DisplayRepresentation(
+            title: "\(name)",
+            image: .init(systemName: symbolName)
+        )
     }
 
     init(id: String, name: String, symbolName: String) {

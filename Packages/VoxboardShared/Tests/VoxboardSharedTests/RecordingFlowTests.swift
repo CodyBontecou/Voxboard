@@ -8,6 +8,7 @@ final class RecordingFlowTests: XCTestCase {
 
         XCTAssertEqual(flows.map(\.id), [RecordingFlowStore.generalId])
         XCTAssertEqual(flows.first?.displayName, "Default")
+        XCTAssertEqual(flows.first?.symbolName, RecordingFlowStore.defaultSymbolName)
         XCTAssertEqual(flows.first?.kind, .general)
     }
 
@@ -79,7 +80,7 @@ final class RecordingFlowTests: XCTestCase {
         let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
 
         XCTAssertEqual(loaded.map(\.id).sorted(), [RecordingFlowStore.generalId, custom.id].sorted())
-        XCTAssertTrue(loaded.contains { $0.id == RecordingFlowStore.generalId && $0.displayName == "Default" })
+        XCTAssertTrue(loaded.contains { $0.id == RecordingFlowStore.generalId && $0.displayName == "Default" && $0.symbolName == RecordingFlowStore.defaultSymbolName })
         XCTAssertTrue(loaded.contains { $0.id == custom.id && $0.postProcessingMode == .meetingNotes })
         XCTAssertTrue(loaded.allSatisfy { $0.exportSettings.usesCustomExportSettings })
         XCTAssertFalse(loaded.contains { ["dream", "todo", "meeting"].contains($0.id) })

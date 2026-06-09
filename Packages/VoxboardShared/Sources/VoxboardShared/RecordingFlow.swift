@@ -280,13 +280,15 @@ public enum RecordingFlowStore {
     public static let selectedFlowIdKey = "selectedRecordingFlowId"
 
     public static let generalId = "general"
+    public static let defaultSymbolName = "waveform"
     private static let deprecatedBuiltInFlowIds: Set<String> = ["dream", "todo", "meeting"]
+    private static let legacyDefaultSymbolName = "text.alignleft"
 
     public static var defaultFlow: RecordingFlow {
         RecordingFlow(
             id: generalId,
             name: "Default",
-            symbolName: "text.alignleft",
+            symbolName: defaultSymbolName,
             isBuiltIn: true,
             kind: .general,
             staticFrontmatter: ["type": "voice-note"],
@@ -334,9 +336,13 @@ public enum RecordingFlowStore {
             !deprecatedBuiltInFlowIds.contains(flow.id) && !(flow.isBuiltIn && flow.id != generalId)
         }
         if let defaultIndex = migrated.firstIndex(where: { $0.id == generalId }),
-           migrated[defaultIndex].isBuiltIn,
-           migrated[defaultIndex].name == "General Note" {
-            migrated[defaultIndex].name = defaultFlow.name
+           migrated[defaultIndex].isBuiltIn {
+            if migrated[defaultIndex].name == "General Note" {
+                migrated[defaultIndex].name = defaultFlow.name
+            }
+            if migrated[defaultIndex].symbolName == legacyDefaultSymbolName {
+                migrated[defaultIndex].symbolName = defaultFlow.symbolName
+            }
         }
         if !migrated.contains(where: { $0.id == generalId }) {
             migrated.insert(defaultFlow, at: 0)

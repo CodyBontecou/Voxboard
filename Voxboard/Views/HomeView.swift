@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
@@ -17,7 +18,7 @@ struct HomeView: View {
     @State private var showHistory = false
     @State private var showPaywall = false
     @State private var paywallContext: OnboardingAnalyticsPaywallContext = .limit
-    @State private var micPermissionGranted = false
+    @State private var micPermissionGranted = Self.currentMicrophonePermissionGranted()
     @State private var keyboardLaunchPhase: KeyboardLaunchPhase? = nil
     @State private var fileExportToast: FileExportToast?
     @State private var flows: [RecordingFlow] = RecordingFlowStore.loadFlows()
@@ -26,6 +27,14 @@ struct HomeView: View {
 
     @AppStorage("discordPromoDismissed") private var discordPromoDismissed = false
     @Environment(\.openURL) private var openURL
+
+    private static func currentMicrophonePermissionGranted() -> Bool {
+        if #available(iOS 17.0, *) {
+            return AVAudioApplication.shared.recordPermission == .granted
+        } else {
+            return AVAudioSession.sharedInstance().recordPermission == .granted
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -94,6 +103,7 @@ struct HomeView: View {
         }
         .onAppear {
             reloadFlows()
+            consumePendingWidgetRecordIfNeeded()
         }
         .task {
             let granted = await AudioRecorder.requestMicrophonePermission()
@@ -111,8 +121,7 @@ struct HomeView: View {
         }
         .onChange(of: pendingWidgetRecord) { _, isPending in
             if isPending {
-                pendingWidgetRecord = false
-                handleWidgetRecord()
+                consumePendingWidgetRecordIfNeeded()
             }
         }
         .onChange(of: persistentRecorder.needsUnlock) { _, needs in
@@ -318,9 +327,7 @@ struct HomeView: View {
 
     @ViewBuilder
     private var centerContent: some View {
-        if !micPermissionGranted {
-            noMicView
-        } else if persistentRecorder.isSegmentActive {
+        if persistentRecorder.isSegmentActive {
             recordingView
         } else if persistentRecorder.isTranscribing {
             transcribingView
@@ -330,6 +337,8 @@ struct HomeView: View {
             resultView(result)
         } else if persistentRecorder.isListening {
             listeningIdleView
+        } else if !micPermissionGranted {
+            noMicView
         } else {
             standbyView
         }
@@ -619,6 +628,12 @@ struct HomeView: View {
     private func stopPersistentListening() {
         persistentRecorder.stopListening()
         AppConstants.sharedDefaults?.set(false, forKey: AppConstants.autoListenEnabledKey)
+    }
+
+    private func consumePendingWidgetRecordIfNeeded() {
+        guard pendingWidgetRecord else { return }
+        pendingWidgetRecord = false
+        handleWidgetRecord()
     }
 
     func handleWidgetRecord() {

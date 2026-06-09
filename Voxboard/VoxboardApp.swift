@@ -30,6 +30,13 @@ struct VoxboardApp: App {
         _usageTracker = State(initialValue: usage)
         _storeManager = State(initialValue: storeMan)
 
+        let shouldStartPendingWidgetRecord = AppConstants.sharedDefaults?.bool(forKey: AppConstants.pendingWidgetRecordKey) == true
+            && AppConstants.lockScreenQuickRecordEnabled
+        _pendingWidgetRecord = State(initialValue: shouldStartPendingWidgetRecord)
+        if shouldStartPendingWidgetRecord {
+            AppConstants.sharedDefaults?.set(false, forKey: AppConstants.pendingWidgetRecordKey)
+        }
+
         // Construct the on-device LLM enricher if the user's device supports
         // Apple Intelligence. Individual Vox settings decide whether a given
         // transcript uses enrichment. On older/ineligible devices, `isAvailable`
@@ -66,6 +73,8 @@ struct VoxboardApp: App {
             .environment(storeManager)
             .voxboardReleaseNotesSheet()
             .onAppear {
+                consumePendingWidgetRecordIfNeeded()
+
                 modelManager.copyBundledModelIfNeeded()
                 transcriptionServer.start()
                 storeManager.start()
@@ -77,8 +86,6 @@ struct VoxboardApp: App {
                 if AppConstants.sharedDefaults?.bool(forKey: AppConstants.autoListenEnabledKey) == true {
                     persistentRecorder.startListening()
                 }
-
-                consumePendingWidgetRecordIfNeeded()
             }
             .onOpenURL { url in
                 handleURL(url)
