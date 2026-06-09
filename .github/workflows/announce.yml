@@ -37,6 +37,11 @@ on:
         required: true
         type: choice
         options: [IOS, MAC_OS]
+      dry_run:
+        description: 'Resolve notes and render the Discord post without publishing side effects'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -139,6 +144,7 @@ jobs:
             echo "platform=$PLATFORM"
             echo "tag=v$VERSION"
             echo "platform_label=$PLATFORM_LABEL"
+            echo "dry_run=${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true }}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Fetch release (or fall back to ASC notes)
@@ -185,7 +191,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Promote draft GitHub release
-        if: steps.release.outputs.is_draft == 'true'
+        if: steps.meta.outputs.dry_run != 'true' && steps.release.outputs.is_draft == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release edit '${{ steps.meta.outputs.tag }}' --draft=false
@@ -194,11 +200,6 @@ jobs:
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
         run: |
-          if [[ -z "$DISCORD_BOT_TOKEN" ]]; then
-            echo "::error::Missing DISCORD_BOT_TOKEN repository secret"
-            exit 1
-          fi
-
           BODY_FILE="$RUNNER_TEMP/discord.md"
           NOTES=$(head -c 1500 "$RUNNER_TEMP/notes.md")
           cat > "$BODY_FILE" <<DISCORD_EOF
@@ -209,6 +210,25 @@ jobs:
           App Store: ${APP_STORE_URL}
           Repo: ${REPO_URL}
           DISCORD_EOF
+
+          if [[ "${{ steps.meta.outputs.dry_run }}" == "true" ]]; then
+            echo "::notice::Dry run: would post to Discord channel ${DISCORD_CHANNEL_ID}"
+            {
+              echo "### Dry-run Discord post"
+              echo ""
+              echo "Channel: #voxboard-updates (${DISCORD_CHANNEL_ID})"
+              echo ""
+              echo '```'
+              cat "$BODY_FILE"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if [[ -z "$DISCORD_BOT_TOKEN" ]]; then
+            echo "::error::Missing DISCORD_BOT_TOKEN repository secret"
+            exit 1
+          fi
 
           PAYLOAD=$(jq -n \
             --rawfile c "$BODY_FILE" \
@@ -224,6 +244,7 @@ jobs:
           echo "Posted to Discord: https://discord.com/channels/${DISCORD_GUILD_ID}/${DISCORD_CHANNEL_ID}/${MSG_ID}"
 
       - name: Trigger llm-wiki launch checklist scaffold
+        if: steps.meta.outputs.dry_run != 'true'
         env:
           GH_TOKEN: ${{ secrets.LLM_WIKI_DISPATCH_TOKEN }}
         run: |
@@ -245,11 +266,19 @@ jobs:
           {
             echo "## Announce ${{ steps.meta.outputs.tag }} (${{ steps.meta.outputs.platform_label }})"
             echo ""
+            if [[ "${{ steps.meta.outputs.dry_run }}" == "true" ]]; then
+              echo "- Mode: dry run (no GitHub release promotion, Discord post, or llm-wiki dispatch)"
+            fi
             if [[ "${{ steps.release.outputs.has_release }}" == "true" ]]; then
               echo "- GitHub release: ${{ steps.release.outputs.is_draft == 'true' && 'promoted from draft' || 'already published' }}"
             else
               echo "- GitHub release: skipped (no draft existed; submitted via asc directly)"
             fi
-            echo "- Discord: posted to #voxboard-updates"
-            echo "- llm-wiki: dispatched if token was configured"
+            if [[ "${{ steps.meta.outputs.dry_run }}" == "true" ]]; then
+              echo "- Discord: rendered only for #voxboard-updates"
+              echo "- llm-wiki: skipped"
+            else
+              echo "- Discord: posted to #voxboard-updates"
+              echo "- llm-wiki: dispatched if token was configured"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
