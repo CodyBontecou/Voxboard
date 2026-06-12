@@ -324,17 +324,20 @@ public enum TranscriptFileExporter {
     }
 
     private static func applyMarkdownFrontmatter(to markdown: String, frontmatter: [String: String]) -> String {
-        guard !frontmatter.isEmpty else { return markdown }
-        let lines = frontmatterLines(frontmatter)
-        guard !lines.isEmpty else { return markdown }
-        let block = "---\n" + lines.joined(separator: "\n") + "\n---"
+        let entries = frontmatterEntries(frontmatter)
+        guard !entries.isEmpty else { return markdown }
+        let block = "---\n" + entries.map(\.line).joined(separator: "\n") + "\n---"
 
-        if markdown.hasPrefix("---\n"), let closeRange = markdown.range(of: "\n---", options: [], range: markdown.index(markdown.startIndex, offsetBy: 4)..<markdown.endIndex) {
-            var result = markdown
-            result.insert(contentsOf: "\n" + lines.joined(separator: "\n"), at: closeRange.lowerBound)
-            return result
+        guard let bounds = leadingMarkdownFrontmatterBounds(in: markdown) else {
+            return block + "\n\n" + markdown
         }
-        return block + "\n\n" + markdown
+
+        var existingLines = String(markdown[bounds.bodyRange]).components(separatedBy: "\n")
+        if existingLines.count == 1, existingLines[0].isEmpty {
+            existingLines = []
+        }
+        let mergedLines = mergeFrontmatterEntries(entries, into: existingLines)
+        return "---\n" + mergedLines.joined(separator: "\n") + "\n---" + markdown[bounds.blockRange.upperBound...]
     }
 
     private static func applyMarkdownAudioEmbed(
@@ -373,10 +376,206 @@ public enum TranscriptFileExporter {
         return "![[\(escaped)]]"
     }
 
+    private struct MarkdownFrontmatterBounds {
+        let blockRange: Range<String.Index>
+        let bodyRange: Range<String.Index>
+    }
+
+    private struct MarkdownFrontmatterEntry {
+        let key: String
+        let value: String
+        let line: String
+    }
+
+    private static func leadingMarkdownFrontmatterBounds(in markdown: String) -> MarkdownFrontmatterBounds? {
+        guard markdown.hasPrefix("---\n") else { return nil }
+        let bodyStart = markdown.index(markdown.startIndex, offsetBy: 4)
+        guard let closeRange = markdown.range(of: "\n---", options: [], range: bodyStart..<markdown.endIndex) else {
+            return nil
+        }
+        if closeRange.upperBound < markdown.endIndex {
+            let next = markdown[closeRange.upperBound]
+            guard next.isNewline else { return nil }
+        }
+        return MarkdownFrontmatterBounds(
+            blockRange: markdown.startIndex..<closeRange.upperBound,
+            bodyRange: bodyStart..<closeRange.lowerBound
+        )
+    }
+
+    static func exportKitRemovingLeadingMarkdownFrontmatter(from markdown: String) -> String {
+        guard let bounds = leadingMarkdownFrontmatterBounds(in: markdown) else { return markdown }
+        let remainder = markdown[bounds.blockRange.upperBound...].drop(while: { $0.isNewline })
+        return String(remainder)
+    }
+
+    private static func frontmatterEntries(_ frontmatter: [String: String]) -> [MarkdownFrontmatterEntry] {
+        frontmatter.compactMap { key, value in
+            let sanitizedKey = sanitizeYAMLKey(key)
+            guard !sanitizedKey.isEmpty else { return nil }
+            return MarkdownFrontmatterEntry(
+                key: sanitizedKey,
+                value: value,
+                line: "\(sanitizedKey): \(yamlFrontmatterValue(value))"
+            )
+        }
+        .sorted(by: { $0.key < $1.key })
+    }
+
+    private static func mergeFrontmatterEntries(
+        _ entries: [MarkdownFrontmatterEntry],
+        into lines: [String]
+    ) -> [String] {
+        var merged = lines
+        for entry in entries {
+            if entry.key == "audio" {
+                merged = upsertAudioFrontmatterEntry(entry, into: merged)
+                continue
+            }
+
+            let matches = frontmatterLineIndices(in: merged, key: entry.key)
+            guard let firstMatch = matches.first else {
+                merged.append(entry.line)
+                continue
+            }
+
+            merged[firstMatch] = entry.line
+            for index in matches.dropFirst().reversed() {
+                merged.remove(at: index)
+            }
+        }
+        return merged
+    }
+
+    private static func upsertAudioFrontmatterEntry(
+        _ entry: MarkdownFrontmatterEntry,
+        into lines: [String]
+    ) -> [String] {
+        var merged = lines
+        let matches = frontmatterLineIndices(in: merged, key: entry.key)
+        guard let firstMatch = matches.first else {
+            merged.append(entry.line)
+            return merged
+        }
+
+        var values: [String] = []
+        for index in matches {
+            values.append(contentsOf: frontmatterValues(fromLine: merged[index]))
+        }
+        values.append(contentsOf: frontmatterValues(fromRawValue: entry.value))
+        values = uniquePreservingOrder(values.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
+
+        let renderedValue: String
+        if values.count <= 1, let only = values.first {
+            renderedValue = yamlFrontmatterValue(only)
+        } else {
+            renderedValue = "[" + values.map(yamlQuoted).joined(separator: ", ") + "]"
+        }
+
+        merged[firstMatch] = "\(entry.key): \(renderedValue)"
+        for index in matches.dropFirst().reversed() {
+            merged.remove(at: index)
+        }
+        return merged
+    }
+
+    private static func frontmatterLineIndices(in lines: [String], key: String) -> [Int] {
+        lines.indices.filter { yamlKey(fromFrontmatterLine: lines[$0]) == key }
+    }
+
+    private static func yamlKey(fromFrontmatterLine line: String) -> String? {
+        guard let firstScalar = line.unicodeScalars.first,
+              !CharacterSet.whitespaces.contains(firstScalar) else {
+            return nil
+        }
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, !trimmed.hasPrefix("#"), let colon = trimmed.firstIndex(of: ":") else {
+            return nil
+        }
+        let key = trimmed[..<colon].trimmingCharacters(in: .whitespacesAndNewlines)
+        return key.isEmpty ? nil : String(key)
+    }
+
+    private static func frontmatterValues(fromLine line: String) -> [String] {
+        guard let colon = line.firstIndex(of: ":") else { return [] }
+        let rawValue = String(line[line.index(after: colon)...])
+        return frontmatterValues(fromRawValue: rawValue)
+    }
+
+    private static func frontmatterValues(fromRawValue rawValue: String) -> [String] {
+        let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return [] }
+        if trimmed.hasPrefix("["), trimmed.hasSuffix("]") {
+            let inner = String(trimmed.dropFirst().dropLast())
+            return splitYAMLInlineList(inner).map(unquoteYAMLScalar)
+        }
+        return [unquoteYAMLScalar(trimmed)]
+    }
+
+    private static func splitYAMLInlineList(_ value: String) -> [String] {
+        var items: [String] = []
+        var current = ""
+        var inQuotes = false
+        var isEscaped = false
+
+        for character in value {
+            if isEscaped {
+                current.append(character)
+                isEscaped = false
+                continue
+            }
+
+            if character == "\\", inQuotes {
+                current.append(character)
+                isEscaped = true
+                continue
+            }
+
+            if character == "\"" {
+                inQuotes.toggle()
+                current.append(character)
+                continue
+            }
+
+            if character == ",", !inQuotes {
+                items.append(current.trimmingCharacters(in: .whitespacesAndNewlines))
+                current = ""
+            } else {
+                current.append(character)
+            }
+        }
+
+        let final = current.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !final.isEmpty {
+            items.append(final)
+        }
+        return items
+    }
+
+    private static func unquoteYAMLScalar(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("\""), trimmed.hasSuffix("\""), trimmed.count >= 2 else {
+            return trimmed
+        }
+        let body = trimmed.dropFirst().dropLast()
+        return body
+            .replacingOccurrences(of: "\\n", with: "\n")
+            .replacingOccurrences(of: "\\\"", with: "\"")
+            .replacingOccurrences(of: "\\\\", with: "\\")
+    }
+
+    private static func uniquePreservingOrder(_ values: [String]) -> [String] {
+        var seen = Set<String>()
+        var unique: [String] = []
+        for value in values where !seen.contains(value) {
+            seen.insert(value)
+            unique.append(value)
+        }
+        return unique
+    }
+
     private static func frontmatterLines(_ frontmatter: [String: String]) -> [String] {
-        frontmatter
-            .sorted(by: { $0.key < $1.key })
-            .map { "\(sanitizeYAMLKey($0.key)): \(yamlFrontmatterValue($0.value))" }
+        frontmatterEntries(frontmatter).map(\.line)
     }
 
     private static func sanitizeYAMLKey(_ raw: String) -> String {

@@ -286,19 +286,33 @@ public struct TranscriptDestinationWriter {
         if configuration.format == .json {
             return TranscriptJSONAppendMergeStrategy()
         }
-        return TranscriptSeparatorAppendMergeStrategy(separator: configuration.appendSeparator)
+        return TranscriptSeparatorAppendMergeStrategy(
+            separator: configuration.appendSeparator,
+            stripLeadingMarkdownFrontmatterFromNewContent: configuration.format == .md && !configuration.mdObsidianEnabled
+        )
     }
 }
 
 public struct TranscriptSeparatorAppendMergeStrategy: ExportMergeStrategy, Sendable {
     public var separator: String
+    public var stripLeadingMarkdownFrontmatterFromNewContent: Bool
 
-    public init(separator: String) {
+    public init(
+        separator: String,
+        stripLeadingMarkdownFrontmatterFromNewContent: Bool = false
+    ) {
         self.separator = separator
+        self.stripLeadingMarkdownFrontmatterFromNewContent = stripLeadingMarkdownFrontmatterFromNewContent
     }
 
     public func merge(existing: String, new: String, file: PlannedExportFile) throws -> String {
-        existing + separator + new
+        let contentToAppend = stripLeadingMarkdownFrontmatterFromNewContent
+            ? TranscriptFileExporter.exportKitRemovingLeadingMarkdownFrontmatter(from: new)
+            : new
+        guard !contentToAppend.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return existing
+        }
+        return existing + separator + contentToAppend
     }
 }
 

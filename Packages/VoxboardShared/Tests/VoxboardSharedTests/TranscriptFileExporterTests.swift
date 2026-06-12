@@ -96,6 +96,47 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertTrue(content.contains("---"))
     }
 
+    func test_export_md_append_keepsSingleDocumentFrontmatter() throws {
+        let t1 = Transcript(text: "First MD", duration: 10.0, modelUsed: "base", language: "en")
+        let t2 = Transcript(text: "Second MD", duration: 20.0, modelUsed: "base", language: "en")
+        let frontmatter = ["category": "voice-note", "type": "voice-note"]
+
+        let url = try TranscriptFileExporter.export(
+            t1,
+            format: .md,
+            mode: .append,
+            folderURL: tempFolder,
+            staticFrontmatter: frontmatter
+        )
+        try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "voxboard-transcripts.m4a",
+            embedInMarkdown: true
+        )
+        _ = try TranscriptFileExporter.export(
+            t2,
+            format: .md,
+            mode: .append,
+            folderURL: tempFolder,
+            staticFrontmatter: frontmatter
+        )
+        try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "voxboard-transcripts-2.m4a",
+            embedInMarkdown: true
+        )
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(content.hasPrefix("---\n"))
+        XCTAssertEqual(occurrences(of: "category:", in: content), 1)
+        XCTAssertEqual(occurrences(of: "type:", in: content), 1)
+        XCTAssertEqual(occurrences(of: "audio:", in: content), 1)
+        XCTAssertTrue(content.contains("audio: [\"voxboard-transcripts.m4a\", \"voxboard-transcripts-2.m4a\"]"))
+        XCTAssertTrue(content.contains("First MD"))
+        XCTAssertTrue(content.contains("Second MD"))
+        XCTAssertFalse(content.contains("\n---\ncategory:"))
+    }
+
     func test_attachAudioReference_embedsObsidianAudioAtBottomOfMarkdown() throws {
         let url = tempFolder.appendingPathComponent("meeting.md")
         try "# Meeting\n\nTranscript body".write(to: url, atomically: true, encoding: .utf8)
@@ -371,5 +412,10 @@ final class TranscriptFileExporterTests: XCTestCase {
         let content = try String(contentsOf: files[0], encoding: .utf8)
         XCTAssertTrue(content.contains("First"))
         XCTAssertTrue(content.contains("Second"))
+    }
+
+    private func occurrences(of needle: String, in haystack: String) -> Int {
+        guard !needle.isEmpty else { return 0 }
+        return haystack.components(separatedBy: needle).count - 1
     }
 }
