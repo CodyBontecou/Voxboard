@@ -1,43 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="js">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voxboard — ON-DEVICE VOICE TRANSCRIPTION</title>
-  <meta name="description" content="Voice to text as your iOS keyboard. On-device. No cloud. No compromise.">
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <title>Voxboard — Private voice-to-text keyboard for iPhone</title>
+  <meta name="description" content="Voxboard is a private iPhone voice-to-text keyboard that works in every app. No Full Access required, no audio uploads, no account, and local transcription after setup.">
+  <link rel="canonical" href="https://voxboard.isolated.tech/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Voxboard">
+  <meta property="og:title" content="Voxboard — Private voice-to-text in every iPhone app">
+  <meta property="og:description" content="Speak into Safari, Messages, Notes, email, Slack, and any iOS text field. Voxboard transcribes locally on your iPhone without Full Access or audio uploads.">
+  <meta property="og:url" content="https://voxboard.isolated.tech/">
+  <meta property="og:image" content="https://voxboard.isolated.tech/screenshots/00-standby.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Voxboard — Private voice-to-text in every iPhone app">
+  <meta name="twitter:description" content="A private iPhone keyboard for voice-to-text anywhere you can type. No Full Access required. No audio uploads.">
+  <meta name="twitter:image" content="https://voxboard.isolated.tech/screenshots/00-standby.png">
+
+  <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="screenshots/optimized/00-standby-640.webp" type="image/webp" fetchpriority="high">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Voxboard",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "iOS 17+",
+    "description": "Private voice-to-text keyboard for iPhone that works across iOS apps with on-device transcription and no Full Access requirement.",
+    "url": "https://voxboard.isolated.tech/",
+    "downloadUrl": "https://apps.apple.com/us/app/voxboard/id6758967337",
+    "image": "https://voxboard.isolated.tech/screenshots/00-standby.png",
+    "author": {
+      "@type": "Person",
+      "name": "Cody Bontecou"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    },
+    "featureList": [
+      "iOS keyboard extension for voice-to-text in any text field",
+      "No Full Access required",
+      "Audio is processed on-device and not uploaded",
+      "Local transcript history",
+      "Multiple Whisper model sizes"
+    ]
+  }
+  </script>
 
   <style>
-    /* ─── TOKENS ─── */
     :root {
       --bg:        #000000;
       --surface:   #111111;
       --surface-2: #1a1a1a;
+      --surface-3: #0a0f0c;
       --border:    #2a2a2a;
       --border-hi: #444444;
       --text:      #FFFFFF;
-      --muted:     #888888;
-      --faint:     #444444;
-      --error:     #FF453A;
+      --muted:     #9a9a9a;
+      --faint:     #555555;
       --success:   #30D158;
-      --font:      'JetBrains Mono', monospace;
+      --success-dim: rgba(48, 209, 88, 0.14);
+      --font:      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
       --track:     0.15em;
       --track-xl:  0.25em;
     }
 
-    /* ─── RESET ─── */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     a { color: inherit; text-decoration: none; }
-
+    img { max-width: 100%; height: auto; }
     html { scroll-behavior: smooth; overflow-x: hidden; }
 
     body {
-      background: var(--bg);
+      background:
+        radial-gradient(circle at 78% 8%, rgba(48,209,88,0.08), transparent 28rem),
+        radial-gradient(circle at 8% 14%, rgba(255,255,255,0.05), transparent 20rem),
+        var(--bg);
       color: var(--text);
       font-family: var(--font);
       line-height: 1.6;
@@ -51,14 +96,14 @@
     ::-webkit-scrollbar-thumb { background: var(--border); }
     ::-webkit-scrollbar-thumb:hover { background: var(--border-hi); }
 
-    /* ─── LAYOUT ─── */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
-    /* ─── NAV ─── */
     nav {
       position: fixed; top: 0; left: 0; right: 0;
       z-index: 1000;
-      background: var(--bg);
+      background: rgba(0,0,0,0.88);
+      backdrop-filter: blur(18px);
       border-bottom: 1px solid var(--border);
     }
     .nav-inner {
@@ -75,6 +120,7 @@
       border: 1px solid var(--border-hi);
       display: flex; align-items: center; justify-content: center;
       font-size: 12px; font-weight: 800;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
     }
     .nav-links { display: flex; gap: 32px; list-style: none; }
     .nav-links a {
@@ -85,97 +131,84 @@
     .nav-links a:hover { color: var(--text); }
     .nav-cta {
       background: var(--text); color: var(--bg);
-      padding: 10px 20px; font-family: var(--font);
+      padding: 10px 18px; font-family: var(--font);
       font-size: 11px; font-weight: 700;
       letter-spacing: var(--track); text-transform: uppercase;
       border: none; cursor: pointer;
       transition: transform 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
     }
-    .nav-cta:hover {
-      transform: translate(-3px,-3px);
-      box-shadow: 3px 3px 0 var(--text);
-    }
+    .nav-cta:hover { transform: translate(-3px,-3px); box-shadow: 3px 3px 0 var(--text); }
 
-    /* ─── BUTTONS ─── */
-    .btn-primary {
-      display: inline-flex; align-items: center; gap: 12px;
-      background: var(--text); color: var(--bg);
-      padding: 16px 32px; font-family: var(--font);
+    .btn-primary, .btn-secondary {
+      display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+      padding: 16px 28px; font-family: var(--font);
       font-size: 12px; font-weight: 700;
       letter-spacing: var(--track); text-transform: uppercase;
       border: none; cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
       text-decoration: none;
     }
-    .btn-primary:hover {
-      transform: translate(-4px,-4px);
-      box-shadow: 4px 4px 0 var(--text);
-    }
-    .btn-secondary {
-      display: inline-flex; align-items: center; gap: 12px;
-      background: transparent; color: var(--text);
-      padding: 16px 32px; font-family: var(--font);
-      font-size: 12px; font-weight: 600;
-      letter-spacing: var(--track); text-transform: uppercase;
-      border: 1px solid var(--border); cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-      text-decoration: none;
-    }
+    .btn-primary { background: var(--text); color: var(--bg); }
+    .btn-primary:hover { transform: translate(-4px,-4px); box-shadow: 4px 4px 0 var(--text); }
+    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { border-color: var(--text); background: var(--surface); }
+    .btn-note { display: block; color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; margin-top: 12px; }
 
-    /* ─── HERO ─── */
     .hero {
       min-height: 100vh;
-      display: flex; flex-direction: column; justify-content: center;
-      padding: 120px 0 80px;
+      display: flex; align-items: center;
+      padding: 118px 0 74px;
       position: relative; overflow: hidden;
+      border-top: none;
     }
-    /* Grid background */
     .hero-grid-bg {
       position: absolute; inset: 0;
       background-image:
         linear-gradient(var(--border) 1px, transparent 1px),
         linear-gradient(90deg, var(--border) 1px, transparent 1px);
       background-size: 60px 60px;
-      opacity: 0.35;
-      mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
-      -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+      opacity: 0.32;
+      mask-image: radial-gradient(ellipse at 50% 28%, black 0%, transparent 72%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 28%, black 0%, transparent 72%);
     }
-    .hero-content { position: relative; z-index: 1; }
+    .hero-inner {
+      position: relative; z-index: 1;
+      display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(300px, 0.78fr);
+      align-items: center; gap: 64px;
+    }
     .hero-label {
       font-size: 11px; letter-spacing: var(--track-xl);
       text-transform: uppercase; color: var(--muted);
-      margin-bottom: 24px;
+      margin-bottom: 22px;
       display: flex; align-items: center; gap: 12px;
     }
     .hero-label::before { content: ''; width: 40px; height: 1px; background: var(--border-hi); }
-
-    /* Animated title */
     .hero-title {
-      font-size: clamp(52px, 11vw, 136px);
-      font-weight: 800; line-height: 0.92;
-      letter-spacing: -0.02em; margin-bottom: 40px;
+      font-size: clamp(42px, 6.3vw, 86px);
+      font-weight: 800; line-height: 0.94;
+      letter-spacing: -0.045em; margin-bottom: 28px;
+      text-transform: uppercase;
     }
     .hero-title .line { display: block; overflow: hidden; }
-    .hero-title .line span {
+    .hero-title .line > span {
       display: block;
       animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
       transform: translateY(105%);
     }
-    .hero-title .line:nth-child(2) span { animation-delay: 0.1s; }
-    .hero-title .line:nth-child(3) span { animation-delay: 0.2s; }
-
+    .hero-title .line:nth-child(2) > span { animation-delay: 0.08s; }
+    .hero-title .line:nth-child(3) > span { animation-delay: 0.16s; }
+    .hero-title .line:nth-child(4) > span { animation-delay: 0.24s; }
     @keyframes slideUp { to { transform: translateY(0); } }
 
-    /* Glitch on title hover */
     .glitch { position: relative; display: inline-block; }
     .glitch::before, .glitch::after {
       content: attr(data-text);
       position: absolute; top: 0; left: 0;
       width: 100%; height: 100%; opacity: 0;
     }
-    .glitch:hover::before { animation: g1 0.4s linear; color: var(--error); opacity: 0.7; }
-    .glitch:hover::after  { animation: g2 0.4s linear; color: var(--success); opacity: 0.7; }
+    .glitch:hover::before { animation: g1 0.4s linear; color: var(--success); opacity: 0.55; }
+    .glitch:hover::after  { animation: g2 0.4s linear; color: #ffffff; opacity: 0.35; }
     @keyframes g1 {
       0%,100%{transform:translate(0)} 20%{transform:translate(-3px,2px)}
       40%{transform:translate(-2px,-2px)} 60%{transform:translate(3px,2px)} 80%{transform:translate(2px,-2px)}
@@ -184,8 +217,6 @@
       0%,100%{transform:translate(0)} 20%{transform:translate(3px,-2px)}
       40%{transform:translate(2px,2px)} 60%{transform:translate(-3px,-2px)} 80%{transform:translate(-2px,2px)}
     }
-
-    /* Blinking cursor */
     .cursor {
       display: inline-block; width: 3px; height: 0.85em;
       background: var(--text); margin-left: 2px;
@@ -195,29 +226,71 @@
     @keyframes blink { 50% { opacity: 0; } }
 
     .hero-subtitle {
-      font-size: 13px; color: var(--muted);
-      max-width: 480px; margin-bottom: 48px;
-      letter-spacing: 0.02em; line-height: 1.9;
+      font-size: 14px; color: var(--muted);
+      max-width: 640px; margin-bottom: 30px;
+      letter-spacing: 0.01em; line-height: 1.9;
     }
-    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
-    .hero-stats {
-      display: flex; gap: 56px;
-      margin-top: 80px; padding-top: 40px;
-      border-top: 1px solid var(--border);
-      flex-wrap: wrap;
+    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 28px; }
+    .trust-grid {
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border);
+      max-width: 860px;
     }
-    .stat { display: flex; flex-direction: column; gap: 4px; }
-    .stat-value { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
-    .stat-label { font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; color: var(--faint); }
+    .trust-card { background: rgba(0,0,0,0.84); padding: 18px; min-height: 116px; }
+    .trust-card strong { display: block; font-size: 12px; letter-spacing: var(--track); text-transform: uppercase; margin-bottom: 8px; color: var(--text); }
+    .trust-card span { display: block; font-size: 11px; color: var(--muted); line-height: 1.65; }
 
-    /* ─── SHARED SECTION ─── */
+    .hero-visual { position: relative; min-height: 650px; display: flex; align-items: center; justify-content: center; }
+    .phone-shell {
+      width: min(360px, 82vw);
+      position: relative; z-index: 2;
+      border: 1px solid var(--border-hi);
+      border-radius: 44px;
+      padding: 10px;
+      background: linear-gradient(145deg, #1d1d1d, #050505);
+      box-shadow: 0 42px 120px rgba(0,0,0,0.72), 0 0 0 1px rgba(255,255,255,0.05);
+      transform: rotate(1.4deg);
+    }
+    .phone-shell::before {
+      content: 'KEYBOARD LIVE IN SAFARI';
+      position: absolute; left: -22px; top: 42px;
+      writing-mode: vertical-rl; transform: rotate(180deg);
+      color: var(--faint); font-size: 9px; letter-spacing: var(--track-xl); text-transform: uppercase;
+    }
+    .phone-shell img {
+      display: block; width: 100%; border-radius: 34px;
+      border: 1px solid rgba(255,255,255,0.09);
+    }
+    .terminal-card {
+      position: absolute; right: 0; top: 88px; z-index: 3;
+      width: 220px; padding: 18px;
+      border: 1px solid var(--border-hi);
+      background: rgba(0,0,0,0.88);
+      box-shadow: 12px 12px 0 rgba(255,255,255,0.08);
+    }
+    .terminal-card .k { color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; }
+    .terminal-card .v { color: var(--success); font-size: 12px; font-weight: 700; margin-top: 6px; }
+    .privacy-rail {
+      position: absolute; left: 0; bottom: 74px; z-index: 3;
+      width: 238px; background: var(--surface-3);
+      border: 1px solid rgba(48,209,88,0.42);
+      padding: 16px 18px;
+      box-shadow: -10px 10px 0 rgba(48,209,88,0.08);
+    }
+    .rail-row { display: flex; justify-content: space-between; gap: 12px; font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; padding: 8px 0; border-bottom: 1px solid rgba(48,209,88,0.16); }
+    .rail-row:last-child { border-bottom: none; }
+    .rail-row span:first-child { color: var(--muted); }
+    .rail-row span:last-child { color: var(--success); font-weight: 700; }
+
     section { border-top: 1px solid var(--border); }
+    .how-section, .features-section, .screenshots-section, .models-section, .specs-section, .privacy-section, .faq-section, .cta-section { content-visibility: auto; contain-intrinsic-size: 1px 900px; }
     .section-label { font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; color: var(--faint); margin-bottom: 16px; }
-    .section-title { font-size: clamp(28px,5vw,52px); font-weight: 700; line-height: 1.1; max-width: 600px; text-transform: uppercase; }
+    .section-title { font-size: clamp(30px,5vw,56px); font-weight: 800; line-height: 1.06; max-width: 720px; text-transform: uppercase; letter-spacing: -0.03em; }
+    .section-kicker { font-size: 13px; color: var(--muted); line-height: 1.9; max-width: 650px; margin-top: 20px; }
     .section-header { margin-bottom: 72px; }
 
-    /* ─── HOW IT WORKS ─── */
-    .how-section { padding: 120px 0; background: var(--surface); }
+    .how-section { padding: 118px 0; background: var(--surface); }
     .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 40px; margin-top: 72px; }
     .step { position: relative; }
     .step-number {
@@ -229,50 +302,45 @@
     .step-desc { font-size: 12px; color: var(--muted); line-height: 1.8; }
     .step-arrow { position: absolute; top: 48px; right: -20px; color: var(--border-hi); font-size: 20px; }
 
-    /* ─── FEATURES ─── */
-    .features-section { padding: 120px 0; }
+    .features-section { padding: 118px 0; }
     .features-grid {
       display: grid; grid-template-columns: repeat(3,1fr);
       gap: 1px; background: var(--border);
       border: 1px solid var(--border); margin-top: 72px;
     }
     .feature-card {
-      background: var(--bg); padding: 40px;
-      display: flex; flex-direction: column; gap: 20px;
-      transition: background 0.25s;
+      background: var(--bg); padding: 38px;
+      display: flex; flex-direction: column; gap: 18px;
+      transition: background 0.25s, transform 0.25s;
     }
-    .feature-card:hover { background: var(--surface); }
+    .feature-card:hover { background: var(--surface); transform: translateY(-2px); }
     .feature-num { font-size: 10px; color: var(--faint); letter-spacing: var(--track); }
     .feature-icon {
-      width: 44px; height: 44px;
+      width: 46px; height: 46px;
       border: 1px solid var(--border);
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
+      font-size: 10px; letter-spacing: 0.08em; color: var(--text);
+      background: rgba(255,255,255,0.02);
     }
     .feature-title { font-size: 13px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; }
     .feature-desc { font-size: 12px; color: var(--muted); line-height: 1.8; }
 
-    /* ─── SCREENSHOTS ─── */
-    .screenshots-section { padding: 120px 0; background: var(--surface); }
+    .screenshots-section { padding: 118px 0; background: var(--surface); }
     .screenshots-scroll {
-      display: flex; gap: 24px; padding: 0 24px;
+      display: flex; gap: 24px; padding: 0 24px 6px;
       overflow-x: auto; scroll-snap-type: x mandatory;
       -ms-overflow-style: none; scrollbar-width: none;
       margin-top: 72px;
     }
     .screenshots-scroll::-webkit-scrollbar { display: none; }
     .screenshot-item { flex: 0 0 auto; scroll-snap-align: start; display: flex; flex-direction: column; gap: 14px; }
-    .screenshot-frame { width: 240px; border: 1px solid var(--border); position: relative; }
-    .screenshot-frame img {
-      width: 100%; height: auto; display: block;
-      filter: grayscale(15%); transition: filter 0.3s;
-    }
+    .screenshot-frame { width: 240px; border: 1px solid var(--border); position: relative; background: #050505; }
+    .screenshot-frame img { width: 100%; height: auto; display: block; filter: grayscale(16%); transition: filter 0.3s; }
     .screenshot-item:hover .screenshot-frame img { filter: grayscale(0%); }
     .screenshot-label { font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; color: var(--faint); }
     .screenshot-label strong { color: var(--text); display: block; margin-bottom: 2px; }
 
-    /* ─── MODELS ─── */
-    .models-section { padding: 120px 0; }
+    .models-section { padding: 118px 0; }
     .models-grid {
       display: grid; grid-template-columns: repeat(5,1fr);
       gap: 1px; background: var(--border);
@@ -297,16 +365,14 @@
     .model-bar-fill { height: 100%; background: var(--text); }
     .model-label { font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; color: var(--faint); }
 
-    /* ─── SPECS ─── */
-    .specs-section { padding: 120px 0; background: var(--surface); }
-    .specs-table { display: grid; grid-template-columns: 1fr 1fr; max-width: 860px; margin-top: 72px; border: 1px solid var(--border); }
+    .specs-section { padding: 118px 0; background: var(--surface); }
+    .specs-table { display: grid; grid-template-columns: 1fr 1fr; max-width: 900px; margin-top: 72px; border: 1px solid var(--border); }
     .spec-row { display: contents; }
     .spec-key, .spec-val { padding: 18px 24px; border-bottom: 1px solid var(--border); font-size: 12px; }
     .spec-key { color: var(--muted); letter-spacing: var(--track); text-transform: uppercase; border-right: 1px solid var(--border); }
     .spec-val { color: var(--text); font-weight: 600; }
 
-    /* ─── PRIVACY ─── */
-    .privacy-section { padding: 160px 0; text-align: center; }
+    .privacy-section { padding: 146px 0; text-align: center; }
     .privacy-eyebrow {
       font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; color: var(--faint);
       margin-bottom: 24px;
@@ -314,273 +380,347 @@
     }
     .privacy-eyebrow::before, .privacy-eyebrow::after { content: ''; width: 40px; height: 1px; background: var(--border-hi); }
     .privacy-title {
-      font-size: clamp(36px,7vw,88px); font-weight: 800;
-      line-height: 0.95; letter-spacing: -0.02em;
+      font-size: clamp(38px,7vw,86px); font-weight: 800;
+      line-height: 0.95; letter-spacing: -0.035em;
       margin-bottom: 32px; text-transform: uppercase;
     }
-    .privacy-desc { font-size: 13px; color: var(--muted); max-width: 480px; margin: 0 auto; line-height: 1.9; }
+    .privacy-desc { font-size: 13px; color: var(--muted); max-width: 620px; margin: 0 auto; line-height: 1.9; }
 
-    /* ─── CTA ─── */
-    .cta-section { padding: 160px 0; text-align: center; position: relative; overflow: hidden; }
+    .faq-section { padding: 118px 0; background: var(--surface); }
+    .faq-grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 56px; align-items: start; }
+    .faq-list { border: 1px solid var(--border); background: var(--bg); }
+    details { border-bottom: 1px solid var(--border); }
+    details:last-child { border-bottom: none; }
+    summary {
+      list-style: none; cursor: pointer; padding: 24px 28px;
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      color: var(--text); font-size: 13px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '+'; color: var(--faint); font-size: 18px; }
+    details[open] summary::after { content: '−'; color: var(--text); }
+    details p { color: var(--muted); font-size: 12px; line-height: 1.85; padding: 0 28px 26px; }
+    details a { color: var(--text); border-bottom: 1px solid var(--border-hi); }
+
+    .cta-section { padding: 150px 0; text-align: center; position: relative; overflow: hidden; }
     .cta-section::before {
       content: ''; position: absolute; top: 50%; left: 50%;
       transform: translate(-50%,-50%);
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(255,255,255,0.025) 0%, transparent 70%);
+      width: 620px; height: 620px;
+      background: radial-gradient(circle, rgba(48,209,88,0.08) 0%, transparent 68%);
       pointer-events: none;
     }
+    .cta-section .container { position: relative; z-index: 1; }
     .cta-title {
-      font-size: clamp(48px,9vw,96px); font-weight: 800;
-      line-height: 1; margin-bottom: 32px;
-      text-transform: uppercase; letter-spacing: -0.02em;
+      font-size: clamp(48px,9vw,94px); font-weight: 800;
+      line-height: 0.98; margin-bottom: 32px;
+      text-transform: uppercase; letter-spacing: -0.035em;
     }
-    .cta-sub { font-size: 13px; color: var(--muted); max-width: 380px; margin: 0 auto 48px; line-height: 1.9; }
+    .cta-sub { font-size: 13px; color: var(--muted); max-width: 500px; margin: 0 auto 34px; line-height: 1.9; }
 
-    /* ─── FOOTER ─── */
     footer { padding: 48px 0; border-top: 1px solid var(--border); }
     .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-    .footer-links { display: flex; gap: 32px; list-style: none; }
+    .footer-links { display: flex; gap: 32px; list-style: none; flex-wrap: wrap; }
     .footer-links a { color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; transition: color 0.15s; }
     .footer-links a:hover { color: var(--text); }
     .footer-copy { font-size: 10px; color: var(--faint); letter-spacing: var(--track); }
 
-    /* ─── SCROLL REVEAL ─── */
     @media (prefers-reduced-motion: no-preference) {
-      .reveal { opacity: 0; transform: translateY(20px); animation: fadeInUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; animation-play-state: paused; }
-      .reveal.visible { animation-play-state: running; }
+      .js .reveal { opacity: 0; transform: translateY(20px); animation: fadeInUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; animation-play-state: paused; }
+      .js .reveal.visible { animation-play-state: running; }
       .rd1{animation-delay:.1s} .rd2{animation-delay:.2s} .rd3{animation-delay:.3s}
       .rd4{animation-delay:.4s} .rd5{animation-delay:.5s} .rd6{animation-delay:.6s}
+      .rd7{animation-delay:.7s}
       @keyframes fadeInUp { to { opacity:1; transform:translateY(0); } }
 
-      /* Features/steps/models animate in */
-      .feature-card, .step, .model-card {
+      .js .feature-card, .js .step, .js .model-card {
         opacity: 0; transform: translateY(20px);
         animation: fadeInUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
         animation-play-state: paused;
       }
     }
 
-    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1040px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 46px; }
+      .hero { min-height: auto; padding-bottom: 90px; }
+      .hero-visual { min-height: auto; justify-content: flex-start; padding-left: 36px; }
+      .trust-grid { grid-template-columns: repeat(2, 1fr); }
+      .faq-grid { grid-template-columns: 1fr; gap: 34px; }
+    }
     @media (max-width: 960px) {
       .nav-links { display: none; }
       .steps { grid-template-columns: 1fr; }
       .step-arrow { display: none; }
       .features-grid { grid-template-columns: 1fr 1fr; }
       .models-grid { grid-template-columns: repeat(3,1fr); }
-      .hero-stats { gap: 32px; }
     }
     @media (max-width: 640px) {
-      .features-grid { grid-template-columns: 1fr; }
+      .container { padding: 0 18px; }
+      .nav-inner { padding: 12px 18px; }
+      .logo { font-size: 12px; gap: 10px; }
+      .nav-cta { padding: 9px 12px; font-size: 10px; }
+      .hero { padding: 94px 0 60px; }
+      .hero-label { font-size: 10px; line-height: 1.5; align-items: flex-start; }
+      .hero-label::before { width: 24px; margin-top: 8px; flex: 0 0 auto; }
+      .hero-title { font-size: clamp(34px, 11.4vw, 46px); line-height: 0.98; margin-bottom: 22px; }
+      .hero-subtitle { font-size: 13px; line-height: 1.75; }
+      .hero-actions { display: grid; grid-template-columns: 1fr; }
+      .btn-primary, .btn-secondary { width: 100%; padding: 15px 18px; }
+      .trust-grid { grid-template-columns: 1fr; }
+      .trust-card { min-height: auto; }
+      .hero-visual { padding-left: 0; justify-content: center; flex-direction: column; }
+      .phone-shell { order: 1; width: min(310px, 86vw); transform: none; border-radius: 38px; }
+      .phone-shell img { border-radius: 28px; }
+      .phone-shell::before { display: none; }
+      .terminal-card { order: 2; position: static; width: min(310px, 86vw); margin: -18px auto 0; }
+      .privacy-rail { order: 3; position: static; width: min(310px, 86vw); margin: 14px auto 0; }
+      .how-section, .features-section, .screenshots-section, .models-section, .specs-section, .faq-section { padding: 84px 0; }
+      .section-header { margin-bottom: 48px; }
+      .features-grid { grid-template-columns: 1fr; margin-top: 48px; }
+      .feature-card { padding: 30px; }
       .models-grid { grid-template-columns: 1fr 1fr; }
-      .specs-table { grid-template-columns: 1fr; }
+      .specs-table { grid-template-columns: 1fr; margin-top: 48px; }
       .spec-key { border-right: none; border-bottom: none; padding-bottom: 4px; }
       .spec-val { padding-top: 4px; }
+      .screenshots-scroll { padding: 0 18px 6px; gap: 16px; }
+      .screenshot-frame { width: 206px; }
+      summary { padding: 22px 20px; font-size: 12px; line-height: 1.5; }
+      details p { padding: 0 20px 24px; }
+      .privacy-section, .cta-section { padding: 104px 0; }
       .footer-inner { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; gap: 22px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ─── NAV ─── -->
-<nav>
+<nav aria-label="Primary navigation">
   <div class="nav-inner">
-    <div class="logo">
+    <a href="index.html" class="logo" aria-label="Voxboard home">
       <div class="logo-mark">V</div>
       <span>Voxboard</span>
-    </div>
+    </a>
     <ul class="nav-links">
-      <li><a href="#how">How It Works</a></li>
-      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#privacy">Privacy</a></li>
+      <li><a href="#faq">FAQ</a></li>
       <li><a href="#specs">Specs</a></li>
     </ul>
-    <a href="#download" class="nav-cta">Download</a>
+    <a href="https://apps.apple.com/us/app/voxboard/id6758967337" class="nav-cta" target="_blank" rel="noopener">Free download</a>
   </div>
 </nav>
 
-<!-- ─── HERO ─── -->
-<section class="hero" style="border-top:none;">
+<section class="hero" aria-labelledby="hero-title">
   <div class="hero-grid-bg"></div>
   <div class="container">
-    <div class="hero-content">
-      <div class="hero-label">iOS Keyboard Extension · On-device AI · whisper.cpp</div>
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-label">iPhone keyboard · Free download · Private dictation</div>
 
-      <h1 class="hero-title">
-        <span class="line"><span class="glitch" data-text="SPEAK.">SPEAK.</span></span>
-        <span class="line"><span class="glitch" data-text="TYPE.">TYPE.</span></span>
-        <span class="line"><span class="glitch" data-text="DONE.">DONE.<span class="cursor"></span></span></span>
-      </h1>
+        <h1 class="hero-title" id="hero-title">
+          <span class="line"><span class="glitch" data-text="Private">Private</span></span>
+          <span class="line"><span class="glitch" data-text="voice-to-text">voice-to-text</span></span>
+          <span class="line"><span class="glitch" data-text="in every">in every</span></span>
+          <span class="line"><span class="glitch" data-text="iPhone app.">iPhone app.<span class="cursor"></span></span></span>
+        </h1>
 
-      <p class="hero-subtitle">
-        On-device voice transcription as your iOS keyboard. Powered by whisper.cpp on Apple Neural Engine. Zero cloud transcription. Zero latency. Zero compromise.
-      </p>
+        <p class="hero-subtitle">
+          Voxboard adds a microphone keyboard to iOS, so you can speak into Safari, Messages, Notes, email, Slack, and any text field. Your audio is transcribed locally on your iPhone instead of being uploaded to a server.
+        </p>
 
-      <div class="hero-actions">
-        <a href="#download" class="btn-primary">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-          </svg>
-          App Store
-        </a>
-        <a href="#how" class="btn-secondary">Learn more →</a>
+        <div class="hero-actions">
+          <div>
+            <a href="https://apps.apple.com/us/app/voxboard/id6758967337" class="btn-primary" target="_blank" rel="noopener">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+              </svg>
+              Download on the App Store
+            </a>
+            <span class="btn-note">Free download · iOS 17+</span>
+          </div>
+          <a href="#how" class="btn-secondary">See how it works</a>
+        </div>
+
+        <div class="trust-grid" aria-label="Privacy and trust facts">
+          <div class="trust-card"><strong>No Full Access</strong><span>Voxboard's keyboard does not require Apple's Full Access switch.</span></div>
+          <div class="trust-card"><strong>No audio uploads</strong><span>Microphone audio is processed locally and discarded after transcription.</span></div>
+          <div class="trust-card"><strong>No account</strong><span>Start dictating without creating a profile or handing over an email.</span></div>
+          <div class="trust-card"><strong>Offline core</strong><span>Voice-to-text can run after setup with a local model on the device.</span></div>
+        </div>
       </div>
 
-      <div class="hero-stats">
-        <div class="stat"><div class="stat-value">99+</div><div class="stat-label">Languages</div></div>
-        <div class="stat"><div class="stat-value">0</div><div class="stat-label">Voice bytes to cloud</div></div>
-        <div class="stat"><div class="stat-value">5</div><div class="stat-label">Whisper models</div></div>
-        <div class="stat"><div class="stat-value">100%</div><div class="stat-label">On-device</div></div>
+      <div class="hero-visual" aria-label="Voxboard app standing by to record private voice-to-text">
+        <div class="terminal-card" aria-hidden="true">
+          <div class="k">recording status</div>
+          <div class="v">standby · local</div>
+        </div>
+        <div class="phone-shell">
+          <picture>
+            <source srcset="screenshots/optimized/00-standby-640.webp" type="image/webp">
+            <img src="screenshots/00-standby.png" alt="Voxboard app standby screen with a Start Recording button and private local transcription controls" width="1206" height="2622" fetchpriority="high" decoding="async">
+          </picture>
+        </div>
+        <div class="privacy-rail" aria-hidden="true">
+          <div class="rail-row"><span>Full access</span><span>off</span></div>
+          <div class="rail-row"><span>Audio uploads</span><span>0</span></div>
+          <div class="rail-row"><span>Account</span><span>none</span></div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── HOW IT WORKS ─── -->
 <section class="how-section" id="how">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">01 / How It Works</div>
-      <h2 class="section-title">Three taps.<br>Zero friction.</h2>
+      <div class="section-label">01 / How it works</div>
+      <h2 class="section-title">Dictate where you already type.</h2>
+      <p class="section-kicker">Voxboard is not another notes app you have to copy from. It is an iOS keyboard, so the words land directly in the app you are using.</p>
     </div>
     <div class="steps">
       <div class="step">
         <div class="step-number">01</div>
-        <div class="step-title">Enable the keyboard</div>
-        <p class="step-desc">Install Voxboard and enable it as a system keyboard in iOS Settings. Takes 30 seconds. Works everywhere text input exists.</p>
-        <div class="step-arrow">→</div>
+        <div class="step-title">Install the keyboard</div>
+        <p class="step-desc">Download Voxboard, enable the keyboard in iOS Settings, and keep Full Access off. The app guides you through the setup.</p>
+        <div class="step-arrow" aria-hidden="true">→</div>
       </div>
       <div class="step">
         <div class="step-number">02</div>
-        <div class="step-title">Open any app</div>
-        <p class="step-desc">Safari, Messages, Notes, Slack — any app with a text field. Switch to Voxboard by holding the globe key.</p>
-        <div class="step-arrow">→</div>
+        <div class="step-title">Open any text field</div>
+        <p class="step-desc">Use it in Safari, Messages, Notes, Mail, Slack, forms, search boxes, or anywhere the iPhone keyboard appears.</p>
+        <div class="step-arrow" aria-hidden="true">→</div>
       </div>
       <div class="step">
         <div class="step-number">03</div>
-        <div class="step-title">Tap mic. Speak.</div>
-        <p class="step-desc">Hit the microphone button. Speak naturally. Whisper transcribes your voice instantly on your device. No upload. No wait.</p>
+        <div class="step-title">Tap mic and speak</div>
+        <p class="step-desc">Voxboard listens, transcribes locally, and inserts the text in place. No copy-paste round trip through another app.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── FEATURES ─── -->
 <section class="features-section" id="features">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">02 / Features</div>
-      <h2 class="section-title">Built for real use.</h2>
+      <div class="section-label">02 / Proof</div>
+      <h2 class="section-title">Made for private everyday dictation.</h2>
+      <p class="section-kicker">The value is simple: faster typing without turning your voice into someone else's cloud data.</p>
     </div>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-num">001</div>
-        <div class="feature-icon">🔒</div>
-        <div class="feature-title">Fully Private</div>
-        <p class="feature-desc">All transcription runs on your device. No audio leaves your iPhone. No server ever sees a single syllable.</p>
+        <div class="feature-icon">LOCK</div>
+        <div class="feature-title">Privacy by default</div>
+        <p class="feature-desc">Audio, transcripts, keystrokes, and dictated text are not collected by Voxboard. Transcription happens on the device.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">002</div>
-        <div class="feature-icon">⌨️</div>
-        <div class="feature-title">System Keyboard</div>
-        <p class="feature-desc">Works as a native iOS keyboard extension. Available in every app. No copy-paste needed. Text appears inline.</p>
+        <div class="feature-icon">KEY</div>
+        <div class="feature-title">Real iOS keyboard</div>
+        <p class="feature-desc">Switch to Voxboard with the globe key and insert text directly into the field you are editing.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">003</div>
-        <div class="feature-icon">🧠</div>
-        <div class="feature-title">whisper.cpp Engine</div>
-        <p class="feature-desc">Powered by whisper.cpp with Apple Silicon acceleration. State-of-the-art OpenAI Whisper accuracy — offline.</p>
+        <div class="feature-icon">APP</div>
+        <div class="feature-title">Works across apps</div>
+        <p class="feature-desc">Use one dictation workflow for browsers, messages, notes, email, chat tools, and long web forms.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">004</div>
-        <div class="feature-icon">🌍</div>
-        <div class="feature-title">Auto Language</div>
-        <p class="feature-desc">Automatic language detection across 99+ languages. Or pin your preferred language for maximum speed.</p>
+        <div class="feature-icon">LANG</div>
+        <div class="feature-title">99+ languages</div>
+        <p class="feature-desc">Automatic language detection is available, or you can choose a preferred language for a more predictable workflow.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">005</div>
-        <div class="feature-icon">📋</div>
-        <div class="feature-title">Transcript History</div>
-        <p class="feature-desc">Every transcription saved locally. Browse, copy, and search past recordings. Stored only on your device.</p>
+        <div class="feature-icon">HIST</div>
+        <div class="feature-title">Local history</div>
+        <p class="feature-desc">Review previous transcripts in the app and delete local data when you no longer need it.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">006</div>
-        <div class="feature-icon">🎛️</div>
-        <div class="feature-title">Choose Your Model</div>
-        <p class="feature-desc">Tiny (75 MB) to Large v3 Turbo (1.6 GB). Pick the right balance between speed and accuracy for your workflow.</p>
+        <div class="feature-icon">SIZE</div>
+        <div class="feature-title">Choose storage tradeoffs</div>
+        <p class="feature-desc">Start with the bundled Base model, then download larger models only if you want more accuracy and have space.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ─── SCREENSHOTS ─── -->
 <section class="screenshots-section" id="screenshots">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">03 / Interface</div>
-      <h2 class="section-title">Designed to<br>disappear.</h2>
+      <div class="section-label">03 / Product tour</div>
+      <h2 class="section-title">Recording, keyboard, models, Vox workflows, and history.</h2>
+      <p class="section-kicker">No mystery landing-page mockups: these are fresh simulator captures of the actual iPhone surfaces people use.</p>
     </div>
   </div>
-  <div class="screenshots-scroll">
+  <div class="screenshots-scroll" aria-label="Voxboard screenshots">
     <div class="screenshot-item reveal rd1">
-      <div class="screenshot-frame"><img src="screenshots/01-home.png" alt="Home — Ready"></div>
-      <div class="screenshot-label"><strong>01 — STANDBY</strong>Ready to listen</div>
+      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/00-standby-360.webp" type="image/webp"><img src="screenshots/00-standby.png" alt="Voxboard standby screen ready to start recording" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
+      <div class="screenshot-label"><strong>01 — Standby</strong>Start a private recording</div>
     </div>
     <div class="screenshot-item reveal rd2">
-      <div class="screenshot-frame"><img src="screenshots/04-listening.png" alt="Listening"></div>
-      <div class="screenshot-label"><strong>02 — LISTENING</strong>Always-on mode</div>
+      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/04-listening-360.webp" type="image/webp"><img src="screenshots/04-listening.png" alt="Voxboard recording screen showing an active local transcription session" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
+      <div class="screenshot-label"><strong>02 — Recording</strong>One-shot capture in progress</div>
     </div>
     <div class="screenshot-item reveal rd3">
-      <div class="screenshot-frame"><img src="screenshots/06-keyboard-safari.png" alt="Keyboard"></div>
-      <div class="screenshot-label"><strong>03 — KEYBOARD</strong>In Safari</div>
+      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/06-keyboard-safari-360.webp" type="image/webp"><img src="screenshots/06-keyboard-safari.png" alt="Voxboard keyboard transcribing in Safari" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
+      <div class="screenshot-label"><strong>03 — Keyboard</strong>Dictate in Safari and any text field</div>
     </div>
     <div class="screenshot-item reveal rd4">
-      <div class="screenshot-frame"><img src="screenshots/02-settings.png" alt="Settings"></div>
-      <div class="screenshot-label"><strong>04 — SETTINGS</strong>Model selection</div>
+      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/02-settings-360.webp" type="image/webp"><img src="screenshots/02-settings.png" alt="Voxboard model picker with Whisper and Parakeet models" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
+      <div class="screenshot-label"><strong>04 — Models</strong>Whisper and Parakeet options</div>
     </div>
     <div class="screenshot-item reveal rd5">
-      <div class="screenshot-frame"><img src="screenshots/03-history.png" alt="History"></div>
-      <div class="screenshot-label"><strong>05 — HISTORY</strong>Past transcripts</div>
+      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/07-vox-360.webp" type="image/webp"><img src="screenshots/07-vox.png" alt="Voxboard Vox workflow preset manager" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
+      <div class="screenshot-label"><strong>05 — Vox</strong>Reusable voice workflows</div>
     </div>
     <div class="screenshot-item reveal rd6">
-      <div class="screenshot-frame"><img src="screenshots/05-settings-scrolled.png" alt="Privacy"></div>
-      <div class="screenshot-label"><strong>06 — PRIVACY</strong>Tech specs</div>
+      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/03-history-360.webp" type="image/webp"><img src="screenshots/03-history.png" alt="Voxboard local transcript history with tags and copy actions" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
+      <div class="screenshot-label"><strong>06 — History</strong>Local transcripts and tags</div>
+    </div>
+    <div class="screenshot-item reveal rd7">
+      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/05-settings-scrolled-360.webp" type="image/webp"><img src="screenshots/05-settings-scrolled.png" alt="Voxboard privacy and technical settings" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
+      <div class="screenshot-label"><strong>07 — Privacy</strong>Device-only controls</div>
     </div>
   </div>
 </section>
 
-<!-- ─── MODELS ─── -->
 <section class="models-section" id="models">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">04 / Models</div>
-      <h2 class="section-title">Pick your engine.</h2>
+      <div class="section-label">04 / Technical proof</div>
+      <h2 class="section-title">Local Whisper models, sized for your device.</h2>
+      <p class="section-kicker">Voxboard uses whisper.cpp and GGML model files under the hood. Keep the small bundled model or trade storage for higher accuracy.</p>
     </div>
     <div class="models-grid">
       <div class="model-card">
-        <div class="model-name">TINY</div>
+        <div class="model-name">Tiny</div>
         <div class="model-size">75 MB</div>
         <div class="model-bar"><div class="model-bar-fill" style="width:20%"></div></div>
         <div class="model-label">Fastest</div>
       </div>
       <div class="model-card bundled">
-        <div class="model-name">BASE</div>
+        <div class="model-name">Base</div>
         <div class="model-size">142 MB</div>
         <div class="model-bar"><div class="model-bar-fill" style="width:36%"></div></div>
-        <div class="model-label">Balanced</div>
+        <div class="model-label">Bundled</div>
       </div>
       <div class="model-card">
-        <div class="model-name">SMALL</div>
+        <div class="model-name">Small</div>
         <div class="model-size">466 MB</div>
         <div class="model-bar"><div class="model-bar-fill" style="width:55%"></div></div>
         <div class="model-label">Accurate</div>
       </div>
       <div class="model-card">
-        <div class="model-name">MEDIUM</div>
+        <div class="model-name">Medium</div>
         <div class="model-size">1.5 GB</div>
         <div class="model-bar"><div class="model-bar-fill" style="width:78%"></div></div>
         <div class="model-label">High accuracy</div>
       </div>
       <div class="model-card">
-        <div class="model-name">LARGE<br>V3 TURBO</div>
+        <div class="model-name">Large<br>v3 Turbo</div>
         <div class="model-size">1.6 GB</div>
         <div class="model-bar"><div class="model-bar-fill" style="width:100%"></div></div>
         <div class="model-label">Maximum</div>
@@ -589,92 +729,138 @@
   </div>
 </section>
 
-<!-- ─── SPECS ─── -->
 <section class="specs-section" id="specs">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">05 / Technical Specs</div>
-      <h2 class="section-title">Under the hood.</h2>
+      <div class="section-label">05 / Specs</div>
+      <h2 class="section-title">Precise claims, not vague AI promises.</h2>
     </div>
     <div class="specs-table reveal rd2">
       <div class="spec-row"><div class="spec-key">Engine</div><div class="spec-val">whisper.cpp</div></div>
-      <div class="spec-row"><div class="spec-key">AI Model</div><div class="spec-val">OpenAI Whisper (GGML)</div></div>
-      <div class="spec-row"><div class="spec-key">Processing</div><div class="spec-val">100% On-device</div></div>
+      <div class="spec-row"><div class="spec-key">AI model format</div><div class="spec-val">OpenAI Whisper GGML models</div></div>
+      <div class="spec-row"><div class="spec-key">Processing</div><div class="spec-val">On-device transcription</div></div>
       <div class="spec-row"><div class="spec-key">Acceleration</div><div class="spec-val">Apple Neural Engine + Metal</div></div>
       <div class="spec-row"><div class="spec-key">Languages</div><div class="spec-val">99+ with auto-detect</div></div>
-      <div class="spec-row"><div class="spec-key">Model sizes</div><div class="spec-val">75 MB — 1.6 GB</div></div>
-      <div class="spec-row"><div class="spec-key">Keyboard type</div><div class="spec-val">iOS system-wide extension</div></div>
-      <div class="spec-row"><div class="spec-key">Background mode</div><div class="spec-val">Always-on listening</div></div>
-      <div class="spec-row"><div class="spec-key">Transcript storage</div><div class="spec-val">Local device only</div></div>
-      <div class="spec-row"><div class="spec-key">Voice/transcript cloud data</div><div class="spec-val">Zero. None.</div></div>
-      <div class="spec-row"><div class="spec-key">Analytics</div><div class="spec-val">Minimal onboarding events only</div></div>
+      <div class="spec-row"><div class="spec-key">Model sizes</div><div class="spec-val">75 MB to 1.6 GB</div></div>
+      <div class="spec-row"><div class="spec-key">Keyboard type</div><div class="spec-val">iOS system-wide keyboard extension</div></div>
+      <div class="spec-row"><div class="spec-key">Full Access</div><div class="spec-val">Not required</div></div>
+      <div class="spec-row"><div class="spec-key">Audio uploads</div><div class="spec-val">None for transcription</div></div>
+      <div class="spec-row"><div class="spec-key">Transcript storage</div><div class="spec-val">Local device storage</div></div>
+      <div class="spec-row"><div class="spec-key">Analytics</div><div class="spec-val">Privacy-safe onboarding events only</div></div>
       <div class="spec-row"><div class="spec-key">Platform</div><div class="spec-val">iOS 17+</div></div>
       <div class="spec-row"><div class="spec-key">Framework</div><div class="spec-val">SwiftUI + KeyboardKit</div></div>
     </div>
   </div>
 </section>
 
-<!-- ─── PRIVACY ─── -->
-<section class="privacy-section">
+<section class="privacy-section" id="privacy">
   <div class="container reveal rd1">
-    <div class="privacy-eyebrow">Privacy First · Always</div>
-    <h2 class="privacy-title">Your voice<br>never leaves.</h2>
+    <div class="privacy-eyebrow">Privacy first · Always</div>
+    <h2 class="privacy-title">Your voice<br>stays local.</h2>
     <p class="privacy-desc">
-      No accounts. No ads. No voice or transcript data leaves your device. Every syllable is processed by Whisper running directly on your iPhone's Neural Engine; only minimal onboarding events help us understand setup friction.
+      Voxboard does not collect audio recordings, transcripts, keystrokes, typed text, names, emails, contacts, or advertising identifiers. The keyboard works without Full Access, and microphone audio is discarded after the local transcription finishes.
     </p>
   </div>
 </section>
 
-<!-- ─── CTA ─── -->
+<section class="faq-section" id="faq">
+  <div class="container">
+    <div class="faq-grid">
+      <div class="section-header reveal rd1">
+        <div class="section-label">06 / FAQ</div>
+        <h2 class="section-title">What people ask before installing a keyboard.</h2>
+        <p class="section-kicker">The short version: Voxboard is a free download, works inside iOS text fields, and is designed so private dictation does not require cloud transcription.</p>
+      </div>
+      <div class="faq-list reveal rd2">
+        <details open>
+          <summary>Do I need to enable Full Access?</summary>
+          <p>No. Voxboard's keyboard extension does not request or require Apple's Full Access setting. The keyboard is designed to operate without network connectivity.</p>
+        </details>
+        <details>
+          <summary>Does Voxboard upload my audio?</summary>
+          <p>No. Microphone audio is processed locally by the on-device transcription engine, is not saved as raw audio, and is not sent to a server or third-party API.</p>
+        </details>
+        <details>
+          <summary>Can I use it offline?</summary>
+          <p>Core voice-to-text can run locally after setup with an installed model. The bundled Base model is included; downloading optional larger models, opening the App Store, and some setup analytics require a network connection.</p>
+        </details>
+        <details>
+          <summary>Which apps does it work with?</summary>
+          <p>Voxboard works anywhere iOS shows a standard text field: Safari, Messages, Notes, Mail, search boxes, chat apps, forms, and more. Use the globe key to switch keyboards.</p>
+        </details>
+        <details>
+          <summary>How accurate is the transcription?</summary>
+          <p>Accuracy depends on the selected model, language, background noise, accent, and microphone quality. Larger models can improve results but use more storage and processing power. Verify critical text before sending.</p>
+        </details>
+        <details>
+          <summary>How much storage do models need?</summary>
+          <p>The bundled Base model is about 142 MB. Optional models range from Tiny at about 75 MB to Large v3 Turbo at about 1.6 GB. You can choose the model size that fits your device.</p>
+        </details>
+        <details>
+          <summary>What does Voxboard cost?</summary>
+          <p>Voxboard is a free download from the App Store. This site does not list paid tiers; check the App Store listing for the current pricing shown by Apple.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="cta-section" id="download">
   <div class="container reveal rd1">
-    <h2 class="cta-title">START<br>SPEAKING.</h2>
-    <p class="cta-sub">Download Voxboard and turn your voice into text — privately, instantly, everywhere.</p>
-    <a href="#" class="btn-primary" style="margin: 0 auto;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <h2 class="cta-title">Speak it.<br>Keep it private.</h2>
+    <p class="cta-sub">Download Voxboard and add private voice-to-text to the iPhone apps you already use every day.</p>
+    <a href="https://apps.apple.com/us/app/voxboard/id6758967337" class="btn-primary" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
       </svg>
       Download on the App Store
     </a>
+    <span class="btn-note">Free download · no account required</span>
   </div>
 </section>
 
-<!-- ─── FOOTER ─── -->
 <footer>
   <div class="container">
     <div class="footer-inner">
       <ul class="footer-links">
         <li><a href="privacy.html">Privacy</a></li>
         <li><a href="terms.html">Terms</a></li>
-        <li><a href="mailto:support@voxboard.app">Support</a></li>
+        <li><a href="mailto:codybontecou@gmail.com">Support</a></li>
+        <li><a href="https://apps.apple.com/us/app/voxboard/id6758967337" target="_blank" rel="noopener">App Store</a></li>
       </ul>
-      <div class="footer-copy">© 2026 Voxboard · On-device AI · No cloud.</div>
+      <div class="footer-copy">© 2026 Voxboard · Private iPhone dictation · No audio uploads.</div>
     </div>
   </div>
 </footer>
 
 <script>
-  // Scroll reveal
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+  const revealEls = document.querySelectorAll('.reveal');
+  const animatedEls = document.querySelectorAll('.feature-card, .step, .model-card');
 
-  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  if ('IntersectionObserver' in window) {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
-  // Animate cards/steps/models when they enter viewport
-  const cardObs = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.style.animationPlayState = 'running';
-        cardObs.unobserve(e.target);
-      }
+    revealEls.forEach(el => obs.observe(el));
+
+    const cardObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.animationPlayState = 'running';
+          cardObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    animatedEls.forEach((el, i) => {
+      el.style.animationDelay = (i % 6 * 0.08) + 's';
+      cardObs.observe(el);
     });
-  }, { threshold: 0.08 });
-
-  document.querySelectorAll('.feature-card, .step, .model-card').forEach((el, i) => {
-    el.style.animationDelay = (i % 6 * 0.08) + 's';
-    cardObs.observe(el);
-  });
+  } else {
+    revealEls.forEach(el => el.classList.add('visible'));
+    animatedEls.forEach(el => { el.style.animationPlayState = 'running'; });
+  }
 </script>
 
 </body>
