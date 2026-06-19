@@ -25,6 +25,10 @@ struct HomeView: View {
     @State private var selectedFlowId: String = RecordingFlowStore.selectedFlowId()
     @State private var showAudioImporter = false
     @State private var watchRecordingInboxItems: [WatchRecordingInboxItem] = WatchRecordingInbox.shared.load()
+    @State private var isProcessingWatchRecordingQueue = false
+    @State private var watchRecordingProcessingQueue: [WatchRecordingInboxItem] = []
+    @State private var watchRecordingProcessingTotal = 0
+    @State private var watchRecordingProcessingIndex = 0
 
     @AppStorage("discordPromoDismissed") private var discordPromoDismissed = false
     @Environment(\.openURL) private var openURL
@@ -141,6 +145,10 @@ struct HomeView: View {
         .onChange(of: persistentRecorder.lastFileExportEvent) { _, event in
             guard let event else { return }
             fileExportToast = FileExportToast(url: event.url)
+        }
+        .onChange(of: persistentRecorder.isTranscribing) { _, isTranscribing in
+            guard !isTranscribing else { return }
+            processNextQueuedWatchRecordingIfNeeded()
         }
         .task(id: fileExportToast?.id) {
             guard fileExportToast != nil else { return }
@@ -486,11 +494,22 @@ struct HomeView: View {
         VStack(spacing: 24) {
             BrutalSectionLabel(number: "01", title: "Status")
             TranscribingDotsView()
-            Text("Processing audio on-device")
+            Text(transcribingStatusText)
                 .font(Brutal.body())
                 .foregroundColor(Brutal.muted)
+                .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 24)
+    }
+
+    private var transcribingStatusText: String {
+        guard isProcessingWatchRecordingQueue else {
+            return "Processing audio on-device"
+        }
+        if watchRecordingProcessingTotal > 1 {
+            return "Processing Watch recording \(watchRecordingProcessingIndex) of \(watchRecordingProcessingTotal)"
+        }
+        return "Processing Watch recording"
     }
 
     private func resultView(_ result: String) -> some View {
@@ -573,11 +592,11 @@ struct HomeView: View {
                 .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
 
                 HStack(spacing: 12) {
-                    Button(action: { processWatchRecording(item) }) {
+                    Button(action: { processWatchRecordingQueue() }) {
                         HStack(spacing: 8) {
                             Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "waveform")
                                 .font(.system(.footnote))
-                            Text(usageTracker.isAtLimit ? "UNLOCK" : "PROCESS")
+                            Text(usageTracker.isAtLimit ? "UNLOCK" : watchRecordingProcessButtonTitle)
                         }
                     }
                     .buttonStyle(BrutalButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .primary))
@@ -605,6 +624,10 @@ struct HomeView: View {
             return "1 Watch recording is waiting to be transcribed on this iPhone."
         }
         return "\(count) Watch recordings are waiting to be transcribed on this iPhone."
+    }
+
+    private var watchRecordingProcessButtonTitle: String {
+        watchRecordingInboxItems.count > 1 ? "PROCESS ALL" : "PROCESS"
     }
 
     // MARK: - Bottom Area
@@ -695,18 +718,64 @@ struct HomeView: View {
         showPaywall = true
     }
 
-    private func processWatchRecording(_ item: WatchRecordingInboxItem) {
+    private func processWatchRecordingQueue() {
         if usageTracker.isAtLimit {
             presentPaywall(context: .recording)
             return
         }
+        guard !isProcessingWatchRecordingQueue else { return }
         guard !persistentRecorder.isSegmentActive, !persistentRecorder.isTranscribing else {
             persistentRecorder.lastError = "Wait for the current recording to finish"
             return
         }
-        persistentRecorder.importAudioFile(from: item.fileURL)
-        WatchRecordingInbox.shared.remove(item)
-        reloadWatchRecordingInbox()
+
+        let items = WatchRecordingInbox.shared.load()
+        guard !items.isEmpty else {
+            reloadWatchRecordingInbox()
+            return
+        }
+
+        watchRecordingProcessingQueue = items
+        watchRecordingProcessingTotal = items.count
+        watchRecordingProcessingIndex = 0
+        isProcessingWatchRecordingQueue = true
+        persistentRecorder.lastTranscriptionResult = nil
+        processNextQueuedWatchRecordingIfNeeded()
+    }
+
+    private func processNextQueuedWatchRecordingIfNeeded() {
+        guard isProcessingWatchRecordingQueue else { return }
+        guard !persistentRecorder.isSegmentActive, !persistentRecorder.isTranscribing else { return }
+
+        guard !watchRecordingProcessingQueue.isEmpty else {
+            resetWatchRecordingProcessingQueue()
+            reloadWatchRecordingInbox()
+            return
+        }
+
+        if usageTracker.isAtLimit {
+            resetWatchRecordingProcessingQueue()
+            presentPaywall(context: .recording)
+            return
+        }
+
+        let item = watchRecordingProcessingQueue.removeFirst()
+        watchRecordingProcessingIndex = max(1, watchRecordingProcessingTotal - watchRecordingProcessingQueue.count)
+
+        if persistentRecorder.importAudioFile(from: item.fileURL) {
+            WatchRecordingInbox.shared.remove(item)
+            reloadWatchRecordingInbox()
+        } else {
+            resetWatchRecordingProcessingQueue()
+            reloadWatchRecordingInbox()
+        }
+    }
+
+    private func resetWatchRecordingProcessingQueue() {
+        isProcessingWatchRecordingQueue = false
+        watchRecordingProcessingQueue.removeAll()
+        watchRecordingProcessingTotal = 0
+        watchRecordingProcessingIndex = 0
     }
 
     private func discardWatchRecording(_ item: WatchRecordingInboxItem) {

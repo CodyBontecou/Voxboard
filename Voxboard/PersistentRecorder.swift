@@ -626,19 +626,20 @@ final class PersistentRecorder {
 
     /// Import an existing audio file, normalize it to Whisper WAV, and run it
     /// through the same local transcription/history/export pipeline as live recordings.
-    func importAudioFile(from url: URL) {
+    @discardableResult
+    func importAudioFile(from url: URL) -> Bool {
         guard !isSegmentActive, !isTranscribing else {
             lastError = "Wait for the current recording to finish"
-            return
+            return false
         }
         if usageTracker.isAtLimit {
             needsUnlock = true
             lastError = "Free limit reached — unlock Voxboard to import audio"
-            return
+            return false
         }
         guard let dir = AppConstants.recordingsDirectoryURL else {
             lastError = "Could not access recordings folder"
-            return
+            return false
         }
 
         let didScope = url.startAccessingSecurityScopedResource()
@@ -698,8 +699,10 @@ final class PersistentRecorder {
                 }
                 await MainActor.run { self?.isTranscribing = false }
             }
+            return true
         } catch {
             lastError = "Could not import audio: \(error.localizedDescription)"
+            return false
         }
     }
 
