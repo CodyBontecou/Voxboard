@@ -24,6 +24,7 @@ struct HomeView: View {
     @State private var flows: [RecordingFlow] = RecordingFlowStore.loadFlows()
     @State private var selectedFlowId: String = RecordingFlowStore.selectedFlowId()
     @State private var showAudioImporter = false
+    @State private var watchRecordingInboxItems: [WatchRecordingInboxItem] = WatchRecordingInbox.shared.load()
 
     @AppStorage("discordPromoDismissed") private var discordPromoDismissed = false
     @Environment(\.openURL) private var openURL
@@ -103,7 +104,11 @@ struct HomeView: View {
         }
         .onAppear {
             reloadFlows()
+            reloadWatchRecordingInbox()
             consumePendingWidgetRecordIfNeeded()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: WatchRecordingInbox.didChangeNotification)) { _ in
+            reloadWatchRecordingInbox()
         }
         .task {
             let granted = await AudioRecorder.requestMicrophonePermission()
@@ -331,6 +336,8 @@ struct HomeView: View {
             recordingView
         } else if persistentRecorder.isTranscribing {
             transcribingView
+        } else if !watchRecordingInboxItems.isEmpty {
+            watchRecordingInboxView
         } else if let error = persistentRecorder.lastError {
             errorView(error)
         } else if let result = persistentRecorder.lastTranscriptionResult {
@@ -532,6 +539,74 @@ struct HomeView: View {
         .padding(.horizontal, 24)
     }
 
+    // MARK: Watch Inbox
+
+    private var watchRecordingInboxView: some View {
+        VStack(spacing: 20) {
+            BrutalSectionLabel(number: "01", title: "Watch Queue")
+            VStack(spacing: 8) {
+                Text("WATCH AUDIO.")
+                    .font(Brutal.display(46))
+                    .foregroundColor(Brutal.text)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.3)
+                Text(watchInboxSubtitle)
+                    .font(Brutal.body())
+                    .foregroundColor(Brutal.muted)
+                    .multilineTextAlignment(.center)
+            }
+
+            if let item = watchRecordingInboxItems.first {
+                VStack(spacing: 8) {
+                    Text(item.createdAt, style: .relative)
+                        .font(Brutal.caption())
+                        .foregroundColor(Brutal.muted)
+                    if let duration = item.duration {
+                        Text(formatDuration(duration))
+                            .font(Brutal.display(36))
+                            .foregroundColor(Brutal.text)
+                            .monospacedDigit()
+                    }
+                }
+                .padding(14)
+                .frame(maxWidth: 260)
+                .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+
+                HStack(spacing: 12) {
+                    Button(action: { processWatchRecording(item) }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "waveform")
+                                .font(.system(.footnote))
+                            Text(usageTracker.isAtLimit ? "UNLOCK" : "PROCESS")
+                        }
+                    }
+                    .buttonStyle(BrutalButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .primary))
+
+                    Button(action: { discardWatchRecording(item) }) {
+                        Image(systemName: "trash")
+                            .font(.system(.callout, weight: .semibold))
+                            .foregroundColor(Brutal.text)
+                            .frame(width: 52, height: 52)
+                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Discard Watch recording")
+                }
+                .frame(maxWidth: 300)
+            }
+        }
+        .padding(.horizontal, 24)
+    }
+
+    private var watchInboxSubtitle: String {
+        let count = watchRecordingInboxItems.count
+        if count == 1 {
+            return "1 Watch recording is waiting to be transcribed on this iPhone."
+        }
+        return "\(count) Watch recordings are waiting to be transcribed on this iPhone."
+    }
+
     // MARK: - Bottom Area
 
     private var bottomArea: some View {
@@ -596,6 +671,10 @@ struct HomeView: View {
         selectedFlowId = RecordingFlowStore.selectedFlowId()
     }
 
+    private func reloadWatchRecordingInbox() {
+        watchRecordingInboxItems = WatchRecordingInbox.shared.load()
+    }
+
     private func selectFlow(_ flow: RecordingFlow) {
         RecordingFlowStore.selectFlow(id: flow.id)
         selectedFlowId = flow.id
@@ -614,6 +693,25 @@ struct HomeView: View {
     private func presentPaywall(context: OnboardingAnalyticsPaywallContext) {
         paywallContext = context
         showPaywall = true
+    }
+
+    private func processWatchRecording(_ item: WatchRecordingInboxItem) {
+        if usageTracker.isAtLimit {
+            presentPaywall(context: .recording)
+            return
+        }
+        guard !persistentRecorder.isSegmentActive, !persistentRecorder.isTranscribing else {
+            persistentRecorder.lastError = "Wait for the current recording to finish"
+            return
+        }
+        persistentRecorder.importAudioFile(from: item.fileURL)
+        WatchRecordingInbox.shared.remove(item)
+        reloadWatchRecordingInbox()
+    }
+
+    private func discardWatchRecording(_ item: WatchRecordingInboxItem) {
+        WatchRecordingInbox.shared.remove(item)
+        reloadWatchRecordingInbox()
     }
 
     private func startRecording() {

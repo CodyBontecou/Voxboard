@@ -85,10 +85,15 @@ public struct RecordingCommand: Codable, Sendable {
 public struct ListeningState: Codable, Sendable {
     public let isListening: Bool
     public let startedAt: TimeInterval
+    /// Updated periodically while the host app is alive and the persistent
+    /// recorder is running. The keyboard uses this to avoid sending commands to
+    /// a stale `isListening=true` file left behind after iOS kills the app.
+    public let lastHeartbeatAt: TimeInterval?
 
-    public init(isListening: Bool, startedAt: TimeInterval = 0) {
+    public init(isListening: Bool, startedAt: TimeInterval = 0, lastHeartbeatAt: TimeInterval? = nil) {
         self.isListening = isListening
         self.startedAt = startedAt
+        self.lastHeartbeatAt = lastHeartbeatAt
     }
 }
 
@@ -167,6 +172,22 @@ public enum TranscriptionIPC {
 
     /// Whether the IPC directory has already been verified to exist this session.
     private static var directoryEnsured = false
+
+    /// How long the keyboard should trust a positive listening state without a
+    /// heartbeat from the main app. This must be longer than the recorder's
+    /// heartbeat interval so background timer jitter doesn't cause false opens.
+    public static let listeningStateFreshnessInterval: TimeInterval = 45
+
+    public static func isListeningStateFresh(
+        _ state: ListeningState?,
+        now: TimeInterval = Date().timeIntervalSince1970,
+        freshnessInterval: TimeInterval = listeningStateFreshnessInterval
+    ) -> Bool {
+        guard let state, state.isListening else { return false }
+        let heartbeat = state.lastHeartbeatAt ?? state.startedAt
+        guard heartbeat > 0 else { return false }
+        return now - heartbeat <= freshnessInterval
+    }
 
     public static func ensureDirectory() {
         guard !directoryEnsured else { return }

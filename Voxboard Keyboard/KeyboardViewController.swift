@@ -87,9 +87,30 @@ class KeyboardViewController: KeyboardInputViewController {
 
     // MARK: - Open URL via Responder Chain
 
-    /// Walk the responder chain to find a responder that can open URLs.
+    /// Open the containing Voxboard app.
     /// Used only for the one-time "open app to start listening" prompt.
     private func openAppURL(_ url: URL) {
+        log.log("openAppURL — opening: \(url.absoluteString)")
+
+        if let extensionContext {
+            extensionContext.open(url) { [weak self] success in
+                DispatchQueue.main.async {
+                    log.log("openAppURL — extensionContext completion: success=\(success)")
+                    if !success {
+                        self?.openAppURLViaResponderChain(url)
+                    }
+                }
+            }
+            return
+        }
+
+        openAppURLViaResponderChain(url)
+    }
+
+    /// Fallback for iOS builds/keyboard contexts where NSExtensionContext refuses
+    /// to open custom URLs. This keeps the existing responder-chain behavior, but
+    /// only after the supported API has had the first chance.
+    private func openAppURLViaResponderChain(_ url: URL) {
         log.log("openAppURL — walking responder chain for: \(url.absoluteString)")
 
         let selector = NSSelectorFromString("openURL:options:completionHandler:")
@@ -106,7 +127,7 @@ class KeyboardViewController: KeyboardInputViewController {
                 let openURL = unsafeBitCast(imp, to: OpenURLFunc.self)
                 openURL(current, selector, url, nil) { success in
                     DispatchQueue.main.async {
-                        log.log("openAppURL — completion: success=\(success)")
+                        log.log("openAppURL — responder completion: success=\(success)")
                     }
                 }
                 return

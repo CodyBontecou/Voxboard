@@ -1,0 +1,22 @@
+{
+  "renders": [
+    {
+      "id": "00-watch-feature-reel",
+      "title": "Voxboard Watch feature reel with widget tap",
+      "spec": "artifacts/feature-demo/clipwright/specs/00-watch-feature-reel.clipwright.json",
+      "output": "artifacts/feature-demo/clipwright/renders/00-watch-feature-reel.mp4"
+    },
+    {
+      "id": "01-watch-local-recording",
+      "title": "Watch widget starts recording",
+      "spec": "artifacts/feature-demo/clipwright/specs/01-watch-local-recording.clipwright.json",
+      "output": "artifacts/feature-demo/clipwright/renders/01-watch-local-recording.mp4"
+    },
+    {
+      "id": "02-watch-queue-sync",
+      "title": "Watch queue sync",
+      "spec": "artifacts/feature-demo/clipwright/specs/02-watch-queue-sync.clipwright.json",
+      "output": "artifacts/feature-demo/clipwright/renders/02-watch-queue-sync.mp4"
+    }
+  ]
+}

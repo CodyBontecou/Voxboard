@@ -8,27 +8,57 @@
 
 /* Begin PBXBuildFile section */
 		154ED7783EDFF91EC1D07921 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B42D87F76743327017AE80B3 /* Assets.xcassets */; };
+		1A730FB345D4C90BB942A23D /* WatchPhoneBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */; };
+		2A924FF497500A771ED48B42 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 008ECCDCB83672995A1B5957 /* Assets.xcassets */; };
+		31E8A2E9C0A2A47C51EAEE2B /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B2716061A8670082BD64BD6 /* AppIntents.framework */; };
+		36A8248FC9457C0B6D996F12 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B87E2AD42AFB283F1BE3A874 /* Assets.xcassets */; };
+		3AA4E43629BFE12F579EB244 /* VoxboardWatchRecordWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F926D3AB92C2D7C92D46C11 /* VoxboardWatchRecordWidget.swift */; };
+		4194BC44272718BE147A0F85 /* Voxboard Watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 0F9B6BE6CEFCD7819FE5AE0E /* Voxboard Watch.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		429202882094E3CB01FC0A93 /* VoxboardWatchWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA22FA2307DC310880D98478 /* VoxboardWatchWidgetBundle.swift */; };
 		4C3693BE5FAD3AE5C0A78C74 /* BrutalTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */; };
-		AB2600022F901000AABB0002 /* FoundationModelsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */; };
+		589961863954D6E337BBE873 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C812F78B09600FDC4CA /* SwiftUI.framework */; };
 		622B4C802F78B09600FDC4CA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */; };
 		622B4C822F78B09600FDC4CA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C812F78B09600FDC4CA /* SwiftUI.framework */; };
 		622B4C8D2F78B09700FDC4CA /* Voxboard WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		62C952292F393361001F79DF /* Voxboard Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 62C952222F393361001F79DF /* Voxboard Keyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		62C952852F393BB1001F79DF /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = 62C952842F393BB1001F79DF /* KeyboardKit */; };
 		643BAC287FB3B9EB19C8A1D8 /* MacStoreManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CA2E8D9B126FE68EF96A0C1 /* MacStoreManager.swift */; };
+		648A49CD4D1ACFCFBB67F7A0 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C812F78B09600FDC4CA /* SwiftUI.framework */; };
+		7F2CEC8256690C8C2D92E97D /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CCFF1BCDC1C2D04F6D843F7 /* AVFoundation.framework */; };
+		9741189007D83392AC69265E /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AB9642BD71C79ACF551A1DD /* WatchConnectivity.framework */; };
 		980C04404AB6C692BDA12016 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64622CB3BC5428FC2A2BD2EC /* Cocoa.framework */; };
+		9A88FFAAB233EA68275E8015 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B2716061A8670082BD64BD6 /* AppIntents.framework */; };
 		9B15EF5409110CBDF04C40C5 /* MacRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C52E8DD3842F298B7583550 /* MacRecorder.swift */; };
+		9FB3CC3FCE8835EF0A18652A /* WatchPhoneBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */; };
 		AA0000042F394000AABBCC04 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000022F394000AABBCC02 /* VoxboardShared */; };
 		AA0000052F394000AABBCC05 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000032F394000AABBCC03 /* VoxboardShared */; };
 		AA0000082F394000AABBCC08 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000092F394000AABBCC09 /* VoxboardShared */; };
 		AA9000012F900000AABB0001 /* Notelet in Frameworks */ = {isa = PBXBuildFile; productRef = AA9000032F900000AABB0003 /* Notelet */; };
+		AB147B12EBE0E233F987E666 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AB9642BD71C79ACF551A1DD /* WatchConnectivity.framework */; };
+		AB2600022F901000AABB0002 /* FoundationModelsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */; };
+		B2D00855F0FF7DCEB1C58193 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */; };
+		B697081A9BF8FA5A952C4260 /* WatchRecorderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 614794E6E2D71284FDBD73B5 /* WatchRecorderView.swift */; };
+		C2ADED8731A64AD5B9C71C98 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B2716061A8670082BD64BD6 /* AppIntents.framework */; };
+		C7E080794026AF997D984BA1 /* VoxboardWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4C522195CC549F948AD39CA /* VoxboardWatchApp.swift */; };
 		E00A9CF58799DA14B1DFFCCD /* VoxboardMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC7E10646EA0B56748352D67 /* VoxboardMacApp.swift */; };
+		E219DDE37D467A68C647AB0F /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B2716061A8670082BD64BD6 /* AppIntents.framework */; };
+		E5ADFAECC2FC2EB297721E61 /* Voxboard Watch WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 858885847BF7D36167D58E66 /* Voxboard Watch WidgetExtension.appex */; platformFilter = watchos; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E6BDE22432705EE570DD1FA2 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AB9642BD71C79ACF551A1DD /* WatchConnectivity.framework */; };
+		F3691CC13571407D4CB11C0E /* WatchLocalRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BFB1830AF373999FB394750 /* WatchLocalRecorder.swift */; };
 		F714E206EA01CB59CAD495BC /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AB3B931CCF85C9706AD3C0 /* MacRootView.swift */; };
 		F88C80553313A5C2CF7A42D2 /* ggml-base.bin in Resources */ = {isa = PBXBuildFile; fileRef = ACD6D7FCBB7B20FF8F653162 /* ggml-base.bin */; };
 		FB3BB675A89471D862FE7343 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5DCFFC6C307F334D1C010608 /* VoxboardShared */; };
+		FFE3EC5B7FB2E36AFE75DDD9 /* WatchRecordIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF80EC2190458FB40F6EABF8 /* WatchRecordIntent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		5273E0FB3CF7859C6AA99258 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 62C951722F392ADB001F79DF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F0DA80EAA05F61E44B2AA91C;
+			remoteInfo = "Voxboard Watch";
+		};
 		622B4C8B2F78B09700FDC4CA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 62C951722F392ADB001F79DF /* Project object */;
@@ -43,9 +73,27 @@
 			remoteGlobalIDString = 62C952212F393361001F79DF;
 			remoteInfo = "Voxboard Keyboard";
 		};
+		81431388DDED46BAA888D9A5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 62C951722F392ADB001F79DF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0E3F2B4FB4813EC6D280C148;
+			remoteInfo = "Voxboard Watch WidgetExtension";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		23F0D913E193F30F556C2E5D /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				4194BC44272718BE147A0F85 /* Voxboard Watch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		62C9522E2F393361001F79DF /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -58,11 +106,32 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7FFB9ECF00B5C81A90766E72 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E5ADFAECC2FC2EB297721E61 /* Voxboard Watch WidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		008ECCDCB83672995A1B5957 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0F926D3AB92C2D7C92D46C11 /* VoxboardWatchRecordWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoxboardWatchRecordWidget.swift; sourceTree = "<group>"; };
+		0F9B6BE6CEFCD7819FE5AE0E /* Voxboard Watch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Voxboard Watch.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1926268D6D235EA2E6308151 /* VoxboardMac.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = VoxboardMac.entitlements; path = "Voxboard Mac/VoxboardMac.entitlements"; sourceTree = "<group>"; };
+		304CB27C4D83F560F24800DE /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		323F2282E73DC8ACFDBBBA81 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		39AB3B931CCF85C9706AD3C0 /* MacRootView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacRootView.swift; path = "Voxboard Mac/MacRootView.swift"; sourceTree = "<group>"; };
+		4ACEA78712DEF9F37B567D0B /* VoxboardWatchWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = VoxboardWatchWidget.entitlements; sourceTree = "<group>"; };
+		4BFB1830AF373999FB394750 /* WatchLocalRecorder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchLocalRecorder.swift; sourceTree = "<group>"; };
+		4CCFF1BCDC1C2D04F6D843F7 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		5B2716061A8670082BD64BD6 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
+		614794E6E2D71284FDBD73B5 /* WatchRecorderView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchRecorderView.swift; sourceTree = "<group>"; };
 		622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Voxboard WidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		622B4C812F78B09600FDC4CA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -70,14 +139,22 @@
 		62C9517A2F392ADB001F79DF /* Voxboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Voxboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		62C952222F393361001F79DF /* Voxboard Keyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Voxboard Keyboard.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		64622CB3BC5428FC2A2BD2EC /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		7AB9642BD71C79ACF551A1DD /* WatchConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WatchConnectivity.framework; path = System/Library/Frameworks/WatchConnectivity.framework; sourceTree = SDKROOT; };
+		858885847BF7D36167D58E66 /* Voxboard Watch WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Voxboard Watch WidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8CA2E8D9B126FE68EF96A0C1 /* MacStoreManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacStoreManager.swift; path = "Voxboard Mac/MacStoreManager.swift"; sourceTree = "<group>"; };
 		9C52E8DD3842F298B7583550 /* MacRecorder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacRecorder.swift; path = "Voxboard Mac/MacRecorder.swift"; sourceTree = "<group>"; };
+		AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FoundationModelsBackend.swift; path = Voxboard/FoundationModelsBackend.swift; sourceTree = "<group>"; };
 		ACD6D7FCBB7B20FF8F653162 /* ggml-base.bin */ = {isa = PBXFileReference; includeInIndex = 1; name = "ggml-base.bin"; path = "Voxboard/ggml-base.bin"; sourceTree = "<group>"; };
+		B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchPhoneBridge.swift; sourceTree = "<group>"; };
 		B42D87F76743327017AE80B3 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Voxboard/Assets.xcassets; sourceTree = "<group>"; };
 		B7CCD1646C8EA9E9C4F0979E /* Voxboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Voxboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B87E2AD42AFB283F1BE3A874 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BF80EC2190458FB40F6EABF8 /* WatchRecordIntent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchRecordIntent.swift; sourceTree = "<group>"; };
 		DC7E10646EA0B56748352D67 /* VoxboardMacApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoxboardMacApp.swift; path = "Voxboard Mac/VoxboardMacApp.swift"; sourceTree = "<group>"; };
+		E411D9457307404E47BB31B1 /* VoxboardWatch.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = VoxboardWatch.entitlements; sourceTree = "<group>"; };
+		E4C522195CC549F948AD39CA /* VoxboardWatchApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoxboardWatchApp.swift; sourceTree = "<group>"; };
 		F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BrutalTheme.swift; path = Voxboard/BrutalTheme.swift; sourceTree = "<group>"; };
-		AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FoundationModelsBackend.swift; path = Voxboard/FoundationModelsBackend.swift; sourceTree = "<group>"; };
+		FA22FA2307DC310880D98478 /* VoxboardWatchWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoxboardWatchWidgetBundle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -141,6 +218,17 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		6124A4EA07B4304C9A8E0A2D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				648A49CD4D1ACFCFBB67F7A0 /* SwiftUI.framework in Frameworks */,
+				B2D00855F0FF7DCEB1C58193 /* WidgetKit.framework in Frameworks */,
+				E219DDE37D467A68C647AB0F /* AppIntents.framework in Frameworks */,
+				E6BDE22432705EE570DD1FA2 /* WatchConnectivity.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		622B4C7A2F78B09600FDC4CA /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -148,6 +236,7 @@
 				622B4C822F78B09600FDC4CA /* SwiftUI.framework in Frameworks */,
 				622B4C802F78B09600FDC4CA /* WidgetKit.framework in Frameworks */,
 				AA0000082F394000AABBCC08 /* VoxboardShared in Frameworks */,
+				C2ADED8731A64AD5B9C71C98 /* AppIntents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -158,6 +247,8 @@
 				62C952852F393BB1001F79DF /* KeyboardKit in Frameworks */,
 				AA9000012F900000AABB0001 /* Notelet in Frameworks */,
 				AA0000042F394000AABBCC04 /* VoxboardShared in Frameworks */,
+				AB147B12EBE0E233F987E666 /* WatchConnectivity.framework in Frameworks */,
+				9A88FFAAB233EA68275E8015 /* AppIntents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -166,6 +257,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0000052F394000AABBCC05 /* VoxboardShared in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		808C6DEEE40F2454C1B625AE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				589961863954D6E337BBE873 /* SwiftUI.framework in Frameworks */,
+				9741189007D83392AC69265E /* WatchConnectivity.framework in Frameworks */,
+				31E8A2E9C0A2A47C51EAEE2B /* AppIntents.framework in Frameworks */,
+				7F2CEC8256690C8C2D92E97D /* AVFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -208,6 +310,10 @@
 				622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */,
 				622B4C812F78B09600FDC4CA /* SwiftUI.framework */,
 				4E73D3BA542E2D5EDB72EF9B /* OS X */,
+				91F916A3B2CE78A07AA19C23 /* watchOS */,
+				5B2716061A8670082BD64BD6 /* AppIntents.framework */,
+				7AB9642BD71C79ACF551A1DD /* WatchConnectivity.framework */,
+				4CCFF1BCDC1C2D04F6D843F7 /* AVFoundation.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -225,6 +331,9 @@
 				F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */,
 				AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */,
 				ACD6D7FCBB7B20FF8F653162 /* ggml-base.bin */,
+				E7FA8828C3CD57B5295A6C02 /* Voxboard Watch Shared */,
+				B0142BC822AB83EF750ED30C /* Voxboard Watch */,
+				6EC8A447993E0439CE87DF71 /* Voxboard Watch Widget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -235,13 +344,76 @@
 				62C952222F393361001F79DF /* Voxboard Keyboard.appex */,
 				622B4C7D2F78B09600FDC4CA /* Voxboard WidgetExtension.appex */,
 				B7CCD1646C8EA9E9C4F0979E /* Voxboard.app */,
+				0F9B6BE6CEFCD7819FE5AE0E /* Voxboard Watch.app */,
+				858885847BF7D36167D58E66 /* Voxboard Watch WidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		6EC8A447993E0439CE87DF71 /* Voxboard Watch Widget */ = {
+			isa = PBXGroup;
+			children = (
+				FA22FA2307DC310880D98478 /* VoxboardWatchWidgetBundle.swift */,
+				0F926D3AB92C2D7C92D46C11 /* VoxboardWatchRecordWidget.swift */,
+				BF80EC2190458FB40F6EABF8 /* WatchRecordIntent.swift */,
+				008ECCDCB83672995A1B5957 /* Assets.xcassets */,
+				304CB27C4D83F560F24800DE /* Info.plist */,
+				4ACEA78712DEF9F37B567D0B /* VoxboardWatchWidget.entitlements */,
+			);
+			name = "Voxboard Watch Widget";
+			path = "Voxboard Watch Widget";
+			sourceTree = "<group>";
+		};
+		91F916A3B2CE78A07AA19C23 /* watchOS */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = watchOS;
+			sourceTree = "<group>";
+		};
+		B0142BC822AB83EF750ED30C /* Voxboard Watch */ = {
+			isa = PBXGroup;
+			children = (
+				E4C522195CC549F948AD39CA /* VoxboardWatchApp.swift */,
+				614794E6E2D71284FDBD73B5 /* WatchRecorderView.swift */,
+				B87E2AD42AFB283F1BE3A874 /* Assets.xcassets */,
+				323F2282E73DC8ACFDBBBA81 /* Info.plist */,
+				E411D9457307404E47BB31B1 /* VoxboardWatch.entitlements */,
+				4BFB1830AF373999FB394750 /* WatchLocalRecorder.swift */,
+			);
+			name = "Voxboard Watch";
+			path = "Voxboard Watch";
+			sourceTree = "<group>";
+		};
+		E7FA8828C3CD57B5295A6C02 /* Voxboard Watch Shared */ = {
+			isa = PBXGroup;
+			children = (
+				B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */,
+			);
+			name = "Voxboard Watch Shared";
+			path = "Voxboard Watch Shared";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0E3F2B4FB4813EC6D280C148 /* Voxboard Watch WidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 73E1E58815E2033E10F7EAB2 /* Build configuration list for PBXNativeTarget "Voxboard Watch WidgetExtension" */;
+			buildPhases = (
+				D7349EF029212F9D1D4EB969 /* Sources */,
+				6124A4EA07B4304C9A8E0A2D /* Frameworks */,
+				D122628C86B6EDB5B6374F13 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Voxboard Watch WidgetExtension";
+			productName = "Voxboard Watch WidgetExtension";
+			productReference = 858885847BF7D36167D58E66 /* Voxboard Watch WidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		622B4C7C2F78B09600FDC4CA /* Voxboard WidgetExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 622B4C902F78B09700FDC4CA /* Build configuration list for PBXNativeTarget "Voxboard WidgetExtension" */;
@@ -273,12 +445,14 @@
 				62C951772F392ADB001F79DF /* Frameworks */,
 				62C951782F392ADB001F79DF /* Resources */,
 				62C9522E2F393361001F79DF /* Embed Foundation Extensions */,
+				23F0D913E193F30F556C2E5D /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				62C952282F393361001F79DF /* PBXTargetDependency */,
 				622B4C8C2F78B09700FDC4CA /* PBXTargetDependency */,
+				833123CB6096C1BFD9300F78 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				62C9517C2F392ADB001F79DF /* Voxboard */,
@@ -336,6 +510,25 @@
 			productReference = B7CCD1646C8EA9E9C4F0979E /* Voxboard.app */;
 			productType = "com.apple.product-type.application";
 		};
+		F0DA80EAA05F61E44B2AA91C /* Voxboard Watch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 306038AFBB249D3B4642CA39 /* Build configuration list for PBXNativeTarget "Voxboard Watch" */;
+			buildPhases = (
+				368489E2B6B641D7DAFE1B40 /* Sources */,
+				808C6DEEE40F2454C1B625AE /* Frameworks */,
+				D23DF9636EE2216AD7AA22D4 /* Resources */,
+				7FFB9ECF00B5C81A90766E72 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				833FF0A7E1CC4DD5036D043E /* PBXTargetDependency */,
+			);
+			name = "Voxboard Watch";
+			productName = "Voxboard Watch";
+			productReference = 0F9B6BE6CEFCD7819FE5AE0E /* Voxboard Watch.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -346,6 +539,9 @@
 				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
+					0E3F2B4FB4813EC6D280C148 = {
+						CreatedOnToolsVersion = 26.3;
+					};
 					622B4C7C2F78B09600FDC4CA = {
 						CreatedOnToolsVersion = 26.3;
 					};
@@ -354,6 +550,9 @@
 					};
 					62C952212F393361001F79DF = {
 						CreatedOnToolsVersion = 26.2;
+					};
+					F0DA80EAA05F61E44B2AA91C = {
+						CreatedOnToolsVersion = 26.3;
 					};
 				};
 			};
@@ -402,6 +601,8 @@
 				62C952212F393361001F79DF /* Voxboard Keyboard */,
 				622B4C7C2F78B09600FDC4CA /* Voxboard WidgetExtension */,
 				6DF3EC8D8CB741DA65803ECF /* Voxboard Mac */,
+				F0DA80EAA05F61E44B2AA91C /* Voxboard Watch */,
+				0E3F2B4FB4813EC6D280C148 /* Voxboard Watch WidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -428,6 +629,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D122628C86B6EDB5B6374F13 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2A924FF497500A771ED48B42 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D23DF9636EE2216AD7AA22D4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				36A8248FC9457C0B6D996F12 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DBA7562BACCFD97B4C9947AA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -440,6 +657,17 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		368489E2B6B641D7DAFE1B40 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A730FB345D4C90BB942A23D /* WatchPhoneBridge.swift in Sources */,
+				C7E080794026AF997D984BA1 /* VoxboardWatchApp.swift in Sources */,
+				B697081A9BF8FA5A952C4260 /* WatchRecorderView.swift in Sources */,
+				F3691CC13571407D4CB11C0E /* WatchLocalRecorder.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		622B4C792F78B09600FDC4CA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -474,6 +702,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D7349EF029212F9D1D4EB969 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9FB3CC3FCE8835EF0A18652A /* WatchPhoneBridge.swift in Sources */,
+				429202882094E3CB01FC0A93 /* VoxboardWatchWidgetBundle.swift in Sources */,
+				3AA4E43629BFE12F579EB244 /* VoxboardWatchRecordWidget.swift in Sources */,
+				FFE3EC5B7FB2E36AFE75DDD9 /* WatchRecordIntent.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -487,9 +726,53 @@
 			target = 62C952212F393361001F79DF /* Voxboard Keyboard */;
 			targetProxy = 62C952272F393361001F79DF /* PBXContainerItemProxy */;
 		};
+		833123CB6096C1BFD9300F78 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Voxboard Watch";
+			target = F0DA80EAA05F61E44B2AA91C /* Voxboard Watch */;
+			targetProxy = 5273E0FB3CF7859C6AA99258 /* PBXContainerItemProxy */;
+		};
+		833FF0A7E1CC4DD5036D043E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Voxboard Watch WidgetExtension";
+			target = 0E3F2B4FB4813EC6D280C148 /* Voxboard Watch WidgetExtension */;
+			targetProxy = 81431388DDED46BAA888D9A5 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		340AC23AE55129D57C3BC903 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch Widget/VoxboardWatchWidget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 23;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Watch Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Voxboard;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.9.4;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 		622B4C8E2F78B09700FDC4CA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -497,7 +780,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard WidgetExtension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
@@ -508,7 +791,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -528,7 +811,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard WidgetExtension.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
@@ -539,7 +822,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -680,7 +963,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Voxboard/Voxboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -696,7 +979,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.4;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -716,7 +999,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Voxboard/Voxboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -732,7 +1015,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.4;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -750,7 +1033,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Keyboard/Info.plist";
@@ -762,7 +1045,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Keyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -780,7 +1063,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Keyboard/Info.plist";
@@ -792,7 +1075,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Keyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -805,6 +1088,37 @@
 			};
 			name = Release;
 		};
+		6392940EB81E09E4DF2B5762 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch Widget/VoxboardWatchWidget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 23;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Watch Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Voxboard;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.9.4;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
 		676BEA7B1F1FA9DCDF69EF69 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -814,7 +1128,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Mac/VoxboardMac.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -830,7 +1144,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.4;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = Voxboard;
 				SDKROOT = macosx;
@@ -843,6 +1157,39 @@
 			};
 			name = Debug;
 		};
+		750FCA8DEE2C70EFEC3F0A7D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch/VoxboardWatch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 23;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Watch/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Voxboard;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = bontecou.Voxboard;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.9.4;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 		8FCF66A232DA8B6B108CC645 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -852,7 +1199,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Mac/VoxboardMac.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 23;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -868,7 +1215,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.9.3;
+				MARKETING_VERSION = 1.9.4;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = Voxboard;
 				SDKROOT = macosx;
@@ -881,9 +1228,50 @@
 			};
 			name = Release;
 		};
+		E6C9F0C68E9EA69156AB523A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch/VoxboardWatch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 23;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Watch/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Voxboard;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = bontecou.Voxboard;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.9.4;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		306038AFBB249D3B4642CA39 /* Build configuration list for PBXNativeTarget "Voxboard Watch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				750FCA8DEE2C70EFEC3F0A7D /* Release */,
+				E6C9F0C68E9EA69156AB523A /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		622B4C902F78B09700FDC4CA /* Build configuration list for PBXNativeTarget "Voxboard WidgetExtension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -916,6 +1304,15 @@
 			buildConfigurations = (
 				62C9522C2F393361001F79DF /* Debug */,
 				62C9522D2F393361001F79DF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		73E1E58815E2033E10F7EAB2 /* Build configuration list for PBXNativeTarget "Voxboard Watch WidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				340AC23AE55129D57C3BC903 /* Release */,
+				6392940EB81E09E4DF2B5762 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

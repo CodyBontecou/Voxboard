@@ -1,0 +1,50 @@
+{
+  "app": {
+    "name": "Voxboard Watch",
+    "scheme": "Voxboard Watch",
+    "bundleID": "bontecou.Voxboard.watchkitapp",
+    "simulator": "Apple Watch Ultra 3 (49mm)",
+    "simulatorUDID": "91AFFCAE-0DB7-4971-B587-FD609AC919C2",
+    "runtime": "watchOS 26.5"
+  },
+  "baseline": "uncommitted Apple Watch targets in the working tree after 1.9.3 checkpoint",
+  "launchArgs": ["--voxboard-demo"],
+  "rendering": {
+    "renderer": "Clipwright",
+    "background": "#FFFFFF",
+    "textOverlays": false,
+    "audio": "muted"
+  },
+  "features": [
+    {
+      "id": "watch-local-recording",
+      "title": "Apple Watch recording lifecycle",
+      "rawVideo": "videos/01-watch-local-recording.mp4",
+      "launchArgs": ["--voxboard-demo", "record-flow"],
+      "steps": [
+        { "action": "launch", "bundleID": "bontecou.Voxboard.watchkitapp", "args": ["--voxboard-demo", "record-flow"] },
+        { "action": "wait", "seconds": 10 }
+      ],
+      "clipwright": {
+        "background": "#FFFFFF",
+        "effects": ["zoom_center"],
+        "textOverlays": false
+      }
+    },
+    {
+      "id": "watch-queue-sync",
+      "title": "Watch offline queue sync",
+      "rawVideo": "videos/02-watch-queue-sync.mp4",
+      "launchArgs": ["--voxboard-demo", "queue-flow"],
+      "steps": [
+        { "action": "launch", "bundleID": "bontecou.Voxboard.watchkitapp", "args": ["--voxboard-demo", "queue-flow"] },
+        { "action": "wait", "seconds": 8 }
+      ],
+      "clipwright": {
+        "background": "#FFFFFF",
+        "effects": ["zoom_center"],
+        "textOverlays": false
+      }
+    }
+  ]
+}

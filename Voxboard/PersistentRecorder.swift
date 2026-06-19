@@ -83,6 +83,8 @@ final class PersistentRecorder {
     // MARK: - Timers
 
     private var durationTimer: Timer?
+    private var listeningHeartbeatTimer: Timer?
+    private var listeningStartedAt: TimeInterval?
 
     /// Shared transcript store — injected so saved transcripts appear in the UI immediately.
     private let transcriptStore: TranscriptStore
@@ -126,7 +128,10 @@ final class PersistentRecorder {
         // If the app was killed/crashed while listening, the IPC file still says
         // isListening=true. Clearing it here ensures the keyboard extension won't
         // try to record against a non-existent recorder and time out after 30s.
-        TranscriptionIPC.writeListeningState(ListeningState(isListening: false))
+        TranscriptionIPC.writeListeningState(ListeningState(
+            isListening: false,
+            lastHeartbeatAt: Date().timeIntervalSince1970
+        ))
         TranscriptionIPC.postListeningStateNotification()
         WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
     }
@@ -254,14 +259,16 @@ final class PersistentRecorder {
         audioEngine = engine
         isListening = true
         lastError = nil
+        listeningStartedAt = Date().timeIntervalSince1970
 
-        // Write listening state for the keyboard to read
-        TranscriptionIPC.writeListeningState(ListeningState(
-            isListening: true,
-            startedAt: Date().timeIntervalSince1970
-        ))
-        TranscriptionIPC.postListeningStateNotification()
+        // Write listening state for the keyboard to read and keep it fresh with
+        // a heartbeat while the recorder is actually alive. Without this, a
+        // killed background app can leave behind `isListening=true`, causing the
+        // keyboard mic to appear to record while no app is receiving commands.
+        writeListeningHeartbeat(postNotification: true)
+        startListeningHeartbeat()
         WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
+        WatchRecordingController.shared.publishState()
         LiveActivityController.shared.startIfNeeded()
 
         // Start listening for commands from the keyboard
@@ -280,6 +287,39 @@ final class PersistentRecorder {
 
         log.log("[PersistentRecorder] ✅ Listening started, waiting for keyboard commands")
         return true
+    }
+
+    private func startListeningHeartbeat() {
+        stopListeningHeartbeat(resetStartedAt: false)
+
+        let timer = Timer(timeInterval: 5, repeats: true) { [weak self] _ in
+            guard let self, self.isListening else { return }
+            self.writeListeningHeartbeat(postNotification: false)
+        }
+        listeningHeartbeatTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    private func stopListeningHeartbeat(resetStartedAt: Bool = true) {
+        listeningHeartbeatTimer?.invalidate()
+        listeningHeartbeatTimer = nil
+        if resetStartedAt {
+            listeningStartedAt = nil
+        }
+    }
+
+    private func writeListeningHeartbeat(postNotification: Bool) {
+        let now = Date().timeIntervalSince1970
+        let startedAt = listeningStartedAt ?? now
+        listeningStartedAt = startedAt
+        TranscriptionIPC.writeListeningState(ListeningState(
+            isListening: true,
+            startedAt: startedAt,
+            lastHeartbeatAt: now
+        ))
+        if postNotification {
+            TranscriptionIPC.postListeningStateNotification()
+        }
     }
 
     /// Pre-load the selected model in the background so it's ready for the first transcription.
@@ -469,15 +509,20 @@ final class PersistentRecorder {
         }
 
         isListening = false
+        stopListeningHeartbeat()
 
         // Deactivate audio session
         let session = AVAudioSession.sharedInstance()
         try? session.setActive(false, options: .notifyOthersOnDeactivation)
 
         // Update IPC
-        TranscriptionIPC.writeListeningState(ListeningState(isListening: false))
+        TranscriptionIPC.writeListeningState(ListeningState(
+            isListening: false,
+            lastHeartbeatAt: Date().timeIntervalSince1970
+        ))
         TranscriptionIPC.postListeningStateNotification()
         WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
+        WatchRecordingController.shared.publishState()
         if endLiveActivity {
             LiveActivityController.shared.end()
         }
@@ -791,6 +836,7 @@ final class PersistentRecorder {
         ))
 
         LiveActivityController.shared.update(isSegmentActive: true, startedAt: segmentStartedAt)
+        WatchRecordingController.shared.publishState()
 
         log.log("[PersistentRecorder] ✅ Segment started at buffer index \(segmentStartIndex) (pre-roll: \(preRollSamples) samples)")
     }
@@ -877,6 +923,7 @@ final class PersistentRecorder {
             phase: .transcribing
         ))
         LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: true, startedAt: nil)
+        WatchRecordingController.shared.publishState()
 
         // Request background time before deactivating the audio session. One-shot
         // recordings may be stopped from the Lock Screen/Dynamic Island while the
@@ -913,6 +960,7 @@ final class PersistentRecorder {
             await MainActor.run {
                 self?.isTranscribing = false
                 self?.finishLiveActivityAfterTranscription()
+                WatchRecordingController.shared.publishState()
                 if bgTask != .invalid {
                     UIApplication.shared.endBackgroundTask(bgTask)
                 }
@@ -931,6 +979,7 @@ final class PersistentRecorder {
             stopListening()
         } else {
             LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: false, startedAt: nil)
+            WatchRecordingController.shared.publishState()
         }
     }
 
@@ -963,6 +1012,7 @@ final class PersistentRecorder {
 
         TranscriptionIPC.clearStatus()
         LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: false, startedAt: nil)
+        WatchRecordingController.shared.publishState()
     }
 
     // MARK: - Transcription
@@ -1464,6 +1514,7 @@ final class PersistentRecorder {
         guard !requestId.hasPrefix("inapp-") else {
             TranscriptionIPC.clearStatus()
             lastError = message
+            WatchRecordingController.shared.publishState()
             return
         }
         let response = TranscriptionResponse(requestId: requestId, error: message)
@@ -1474,6 +1525,7 @@ final class PersistentRecorder {
             phase: .error,
             message: message
         ))
+        WatchRecordingController.shared.publishState()
     }
 
     private func ensureRecordingsDirectory() {

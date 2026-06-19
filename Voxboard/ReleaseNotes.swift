@@ -8,6 +8,41 @@ import VoxboardShared
 enum VoxboardReleaseNotes {
     static let notes: [NoteletVersionNotes] = [
         .init(
+            version: "1.9.4",
+            items: [
+                .list(
+                    title: "What’s new in Voxboard",
+                    rows: [
+                        .init(
+                            symbolSystemName: "applewatch",
+                            title: "Record on Apple Watch",
+                            description: "Capture voice notes from your wrist with the new Voxboard Watch app. Start recording, stop when you’re done, and keep moving without reaching for your iPhone."
+                        ),
+                        .init(
+                            symbolSystemName: "arrow.triangle.2.circlepath",
+                            title: "Watch recordings sync back",
+                            description: "Recordings are saved on Apple Watch and sent to your iPhone queue when the devices reconnect, so you can process them whenever you’re ready."
+                        ),
+                        .init(
+                            symbolSystemName: "tray.full",
+                            title: "New Watch Queue on iPhone",
+                            description: "Home now shows incoming Watch audio with recording time, a Process action, and a discard button before Voxboard transcribes it."
+                        ),
+                        .init(
+                            symbolSystemName: "app.badge",
+                            title: "Watch face shortcut",
+                            description: "Add the Voxboard recording widget to supported Apple Watch faces for faster access to the Watch recorder."
+                        ),
+                        .init(
+                            symbolSystemName: "iphone.radiowaves.left.and.right",
+                            title: "Clearer recording status",
+                            description: "Apple Watch and iPhone now share listening, recording, transcribing, Quick Record, and unlock-limit messages so you always know what needs attention."
+                        )
+                    ]
+                )
+            ]
+        ),
+        .init(
             version: "1.9",
             items: [
                 .list(

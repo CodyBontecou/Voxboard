@@ -1,0 +1,123 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "Watch widget starts recording",
+    "createdWith": "Clipwright",
+    "seed": 111,
+    "notes": "Apple Watch simulator capture with watch-face widget tap intro. White background and no added captions."
+  },
+  "canvas": {
+    "aspectRatio": "9:16",
+    "size": {
+      "width": 1080,
+      "height": 1920
+    },
+    "safeArea": {
+      "top": 0,
+      "leading": 0,
+      "bottom": 0,
+      "trailing": 0
+    }
+  },
+  "device": {
+    "id": "apple-watch-ultra-3",
+    "color": "natural-titanium",
+    "scale": 1.1
+  },
+  "background": {
+    "kind": "solid",
+    "color": "#FFFFFF",
+    "colors": []
+  },
+  "audio": {
+    "mode": "muted",
+    "volume": 0
+  },
+  "export": {
+    "preset": "vertical_9x16",
+    "width": 1080,
+    "height": 1920,
+    "frameRate": 30,
+    "bitrate": 14000000,
+    "format": "mp4",
+    "deterministicSeed": 111
+  },
+  "media": [
+    {
+      "id": "watch-face",
+      "kind": "image",
+      "path": "/Users/codybontecou/projects/Voxboard/artifacts/feature-demo/watch-face-widget.png",
+      "storage": "external",
+      "hasAudio": false
+    },
+    {
+      "id": "recording",
+      "kind": "video",
+      "path": "/Users/codybontecou/projects/Voxboard/artifacts/feature-demo/videos/01-watch-local-recording.mp4",
+      "storage": "external",
+      "duration": 12.85,
+      "naturalSize": {
+        "width": 422,
+        "height": 514
+      },
+      "frameRate": 60,
+      "hasAudio": false
+    }
+  ],
+  "timeline": {
+    "duration": 12.95,
+    "primaryMediaID": "recording",
+    "segments": [
+      {
+        "id": "watch-face-intro",
+        "mediaID": "watch-face",
+        "start": 0,
+        "duration": 1.55,
+        "trimStart": 0
+      },
+      {
+        "id": "recording-flow",
+        "mediaID": "recording",
+        "start": 1.55,
+        "duration": 11.399999999999999,
+        "trimStart": 1.3,
+        "trimEnd": 12.7
+      }
+    ]
+  },
+  "effects": [
+    {
+      "id": "widget-tap-ring",
+      "type": "tap_indicator",
+      "start": 0.62,
+      "duration": 1.0,
+      "targetMediaID": "watch-face",
+      "parameters": {
+        "x": 0.5,
+        "y": 0.276,
+        "radius": 0.2,
+        "color": "#FFFFFF"
+      }
+    },
+    {
+      "id": "widget-intro-push",
+      "type": "zoom_center",
+      "start": 0,
+      "duration": 1.55,
+      "targetMediaID": "watch-face",
+      "parameters": {
+        "scale": 1.04
+      }
+    },
+    {
+      "id": "recording-gentle-push",
+      "type": "zoom_center",
+      "start": 1.7,
+      "duration": 11.099999999999998,
+      "targetMediaID": "recording",
+      "parameters": {
+        "scale": 1.1
+      }
+    }
+  ]
+}

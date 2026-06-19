@@ -1,0 +1,23 @@
+diff --git a/Sources/ClipwrightCore/Catalogs.swift b/Sources/ClipwrightCore/Catalogs.swift
+index 835068e..17846bf 100644
+--- a/Sources/ClipwrightCore/Catalogs.swift
++++ b/Sources/ClipwrightCore/Catalogs.swift
+@@ -132,6 +132,18 @@ public enum DeviceCatalog {
+             colors: ["black-titanium", "white-titanium", "blue-titanium", "natural-titanium"],
+             frameAssetPrefix: "iphone-15-pro"
+         ),
++        DevicePreset(
++            id: "apple-watch-ultra-3",
++            name: "Apple Watch Ultra 3 (49mm)",
++            family: "Apple Watch",
++            screenSize: PixelSize(width: 422, height: 514),
++            frameSize: PixelSize(width: 520, height: 620),
++            cornerRadius: 112,
++            screenCornerRadius: 90,
++            bezelWidth: 48,
++            colors: ["natural-titanium", "black", "silver"],
++            screenFrame: DeviceScreenFrame(x: 49, y: 53, width: 422, height: 514)
++        ),
+         DevicePreset(
+             id: "ipad-pro-13",
+             name: "iPad Pro 13-inch",

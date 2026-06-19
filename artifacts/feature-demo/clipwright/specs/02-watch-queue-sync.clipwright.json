@@ -1,0 +1,86 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "Watch queue sync",
+    "createdWith": "Clipwright",
+    "seed": 102,
+    "notes": "Apple Watch simulator capture. White background and no added captions."
+  },
+  "media": [
+    {
+      "id": "primary",
+      "kind": "video",
+      "path": "/Users/codybontecou/projects/Voxboard/artifacts/feature-demo/videos/02-watch-queue-sync.mp4",
+      "storage": "external",
+      "duration": 8.888333,
+      "naturalSize": {
+        "width": 422,
+        "height": 514
+      },
+      "frameRate": 60,
+      "hasAudio": false
+    }
+  ],
+  "canvas": {
+    "aspectRatio": "9:16",
+    "size": {
+      "width": 1080,
+      "height": 1920
+    },
+    "safeArea": {
+      "top": 0,
+      "leading": 0,
+      "bottom": 0,
+      "trailing": 0
+    }
+  },
+  "device": {
+    "id": "apple-watch-ultra-3",
+    "color": "natural-titanium",
+    "scale": 1.1
+  },
+  "background": {
+    "kind": "solid",
+    "color": "#FFFFFF",
+    "colors": []
+  },
+  "timeline": {
+    "duration": 6.938332999999999,
+    "primaryMediaID": "primary",
+    "segments": [
+      {
+        "id": "main",
+        "mediaID": "primary",
+        "start": 0,
+        "duration": 6.938332999999999,
+        "trimStart": 1.8,
+        "trimEnd": 8.738332999999999
+      }
+    ]
+  },
+  "effects": [
+    {
+      "id": "gentle-watch-push",
+      "type": "zoom_center",
+      "start": 0.15,
+      "duration": 6.638332999999999,
+      "targetMediaID": "primary",
+      "parameters": {
+        "scale": 1.1
+      }
+    }
+  ],
+  "audio": {
+    "mode": "muted",
+    "volume": 0
+  },
+  "export": {
+    "preset": "vertical_9x16",
+    "width": 1080,
+    "height": 1920,
+    "frameRate": 30,
+    "bitrate": 14000000,
+    "format": "mp4",
+    "deterministicSeed": 102
+  }
+}

@@ -219,11 +219,14 @@ final class VoiceKeyboardState {
             return
         }
 
-        // Check if app is listening (cached — fast read)
+        // Check if app is listening (cached — fast read). Require a fresh
+        // heartbeat so we don't send commands to a stale state file left behind
+        // after iOS kills the background app.
         let listeningState = TranscriptionIPC.readListeningState()
-        guard listeningState?.isListening == true else {
+        guard TranscriptionIPC.isListeningStateFresh(listeningState) else {
             status = .appNotListening
-            log.log("❌ App is not listening — user needs to open Voxboard once")
+            log.log("❌ App is not listening or heartbeat is stale — opening Voxboard once")
+            openApp(hasFullAccess: hasFullAccess)
             return
         }
 
@@ -319,7 +322,8 @@ final class VoiceKeyboardState {
 
     private func refreshListeningState() {
         let state = TranscriptionIPC.readListeningState()
-        if state?.isListening != true {
+        let isFreshListening = TranscriptionIPC.isListeningStateFresh(state)
+        if !isFreshListening {
             // Only show appNotListening if we're idle (don't interrupt active operations)
             if case .idle = status {
                 // Do nothing — leave idle, the toolbar will check
@@ -343,7 +347,7 @@ final class VoiceKeyboardState {
                 }
             }
         }
-        log.log("refreshListeningState — isListening=\(state?.isListening ?? false), status=\(status)")
+        log.log("refreshListeningState — isListening=\(state?.isListening ?? false), fresh=\(isFreshListening), status=\(status)")
     }
 
     // MARK: - Check for Existing Session
@@ -373,8 +377,16 @@ final class VoiceKeyboardState {
 
         guard let ipcStatus = TranscriptionIPC.readStatus() else { return }
 
+        let hasFreshListener = TranscriptionIPC.isListeningStateFresh(TranscriptionIPC.readListeningState())
+
         switch ipcStatus.phase {
         case .recording:
+            guard hasFreshListener else {
+                log.log("♻️ Clearing stale recording session — listening heartbeat missing")
+                TranscriptionIPC.clearStatus()
+                status = .appNotListening
+                return
+            }
             log.log("♻️ Reconnecting to existing segment: \(ipcStatus.requestId)")
             pendingRequestId = ipcStatus.requestId
             recordingStartedAt = ipcStatus.recordingStartedAt
@@ -388,6 +400,10 @@ final class VoiceKeyboardState {
                Date().timeIntervalSince1970 - startedAt > 120 {
                 log.log("♻️ Clearing stale transcription session (>2 min old)")
                 TranscriptionIPC.clearStatus()
+            } else if !hasFreshListener {
+                log.log("♻️ Clearing stale transcription session — listening heartbeat missing")
+                TranscriptionIPC.clearStatus()
+                status = .appNotListening
             } else {
                 log.log("♻️ Reconnecting to existing transcription: \(ipcStatus.requestId)")
                 pendingRequestId = ipcStatus.requestId
@@ -404,7 +420,10 @@ final class VoiceKeyboardState {
             TranscriptionIPC.clearStatus()
 
         case .listening:
-            status = .idle
+            status = hasFreshListener ? .idle : .appNotListening
+            if !hasFreshListener {
+                TranscriptionIPC.clearStatus()
+            }
         }
     }
 

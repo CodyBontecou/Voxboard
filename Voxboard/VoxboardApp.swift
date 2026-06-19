@@ -49,12 +49,15 @@ struct VoxboardApp: App {
             enricher = nil
         }
 
-        _persistentRecorder = State(initialValue: PersistentRecorder(
+        let recorder = PersistentRecorder(
             transcriptStore: store,
             usageTracker: usage,
             transcriptEnricher: enricher
-        ))
+        )
+        _persistentRecorder = State(initialValue: recorder)
+        WatchRecordingController.shared.configure(recorder: recorder, usageTracker: usage)
     }
+
     @Environment(\.scenePhase) private var scenePhase
 
     /// Handles transcription requests from the keyboard extension (legacy IPC flow).
@@ -73,6 +76,7 @@ struct VoxboardApp: App {
             .environment(storeManager)
             .voxboardReleaseNotesSheet()
             .onAppear {
+                WatchRecordingController.shared.configure(recorder: persistentRecorder, usageTracker: usageTracker)
                 consumePendingWidgetRecordIfNeeded()
 
                 modelManager.copyBundledModelIfNeeded()
