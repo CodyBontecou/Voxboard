@@ -9,6 +9,7 @@ enum WatchRecordingPayloadKey {
     static let isQuickRecordEnabled = "isQuickRecordEnabled"
     static let recordingStartedAt = "recordingStartedAt"
     static let message = "message"
+    static let queuedCount = "queuedCount"
     static let sentAt = "sentAt"
 }
 
@@ -53,6 +54,7 @@ enum WatchRecordingPhase: String {
     case idle
     case listening
     case recording
+    case syncing
     case transcribing
     case pending
     case error
@@ -63,31 +65,36 @@ struct WatchRecordingSnapshot: Equatable {
     let isQuickRecordEnabled: Bool
     let recordingStartedAt: TimeInterval?
     let message: String?
+    let queuedCount: Int
 
     static let unavailable = WatchRecordingSnapshot(
         phase: .unavailable,
         isQuickRecordEnabled: true,
         recordingStartedAt: nil,
-        message: "Open Voxboard on iPhone once."
+        message: "Open Voxboard on iPhone once.",
+        queuedCount: 0
     )
 
     static let pending = WatchRecordingSnapshot(
         phase: .pending,
         isQuickRecordEnabled: true,
         recordingStartedAt: nil,
-        message: "Sent to iPhone"
+        message: "Sent to iPhone",
+        queuedCount: 0
     )
 
     init(
         phase: WatchRecordingPhase,
         isQuickRecordEnabled: Bool,
         recordingStartedAt: TimeInterval? = nil,
-        message: String? = nil
+        message: String? = nil,
+        queuedCount: Int = 0
     ) {
         self.phase = phase
         self.isQuickRecordEnabled = isQuickRecordEnabled
         self.recordingStartedAt = recordingStartedAt
         self.message = message
+        self.queuedCount = max(0, queuedCount)
     }
 
     init(dictionary: [String: Any]) {
@@ -96,11 +103,13 @@ struct WatchRecordingSnapshot: Equatable {
         let isQuickRecordEnabled = dictionary[WatchRecordingPayloadKey.isQuickRecordEnabled] as? Bool ?? true
         let recordingStartedAt = dictionary[WatchRecordingPayloadKey.recordingStartedAt] as? TimeInterval
         let message = dictionary[WatchRecordingPayloadKey.message] as? String
+        let queuedCount = dictionary[WatchRecordingPayloadKey.queuedCount] as? Int ?? 0
         self.init(
             phase: phase,
             isQuickRecordEnabled: isQuickRecordEnabled,
             recordingStartedAt: recordingStartedAt,
-            message: message
+            message: message,
+            queuedCount: queuedCount
         )
     }
 
@@ -116,25 +125,33 @@ struct WatchRecordingSnapshot: Equatable {
         if let message, !message.isEmpty {
             payload[WatchRecordingPayloadKey.message] = message
         }
+        if queuedCount > 0 {
+            payload[WatchRecordingPayloadKey.queuedCount] = queuedCount
+        }
         return payload
     }
 
     var title: String {
         switch phase {
         case .recording: return "Recording"
+        case .syncing: return "Syncing"
         case .transcribing: return "Processing"
         case .listening: return "Ready"
         case .pending: return "Sent"
         case .error: return "Needs attention"
-        case .idle, .unavailable: return "Voxboard"
+        case .idle, .unavailable: return queuedCount > 0 ? "Saved" : "Voxboard"
         }
     }
 
     var subtitle: String {
         if !isQuickRecordEnabled { return "Quick Record off" }
         if let message, !message.isEmpty { return message }
+        if queuedCount > 0 {
+            return queuedCount == 1 ? "1 saved on Watch" : "\(queuedCount) saved on Watch"
+        }
         switch phase {
         case .recording: return "Tap to stop"
+        case .syncing: return "Syncing to iPhone"
         case .transcribing: return "Transcribing on iPhone"
         case .listening: return "Tap to record"
         case .pending: return "Waiting for iPhone"
@@ -149,11 +166,41 @@ struct WatchRecordingSnapshot: Equatable {
     }
 
     var actionSymbol: String {
-        phase == .recording ? "stop.fill" : "mic.fill"
+        switch phase {
+        case .recording:
+            return "stop.fill"
+        case .syncing:
+            return "arrow.triangle.2.circlepath"
+        case .transcribing:
+            return "hourglass"
+        case .error, .unavailable:
+            return "exclamationmark.triangle.fill"
+        default:
+            return "mic.fill"
+        }
     }
 
     var shouldShowTimer: Bool {
         phase == .recording && recordingStartedAt != nil
+    }
+}
+
+enum WatchLocalSnapshotStore {
+    private static let suiteName = "group.bontecou.Voxboard"
+    private static let snapshotKey = "watchLocalRecordingSnapshot"
+
+    private static var defaults: UserDefaults {
+        UserDefaults(suiteName: suiteName) ?? .standard
+    }
+
+    static func save(_ snapshot: WatchRecordingSnapshot) {
+        defaults.set(snapshot.dictionary, forKey: snapshotKey)
+        defaults.synchronize()
+    }
+
+    static func load() -> WatchRecordingSnapshot? {
+        guard let dictionary = defaults.dictionary(forKey: snapshotKey) else { return nil }
+        return WatchRecordingSnapshot(dictionary: dictionary)
     }
 }
 

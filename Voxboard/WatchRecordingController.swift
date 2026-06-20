@@ -1,6 +1,7 @@
 import Foundation
 import os.log
 import UIKit
+import UserNotifications
 import VoxboardShared
 import WatchConnectivity
 
@@ -147,6 +148,38 @@ final class WatchRecordingController: NSObject {
     private func currentRecordingStartedAt() -> TimeInterval? {
         TranscriptionIPC.readStatus()?.recordingStartedAt
     }
+
+    @MainActor
+    private func notifyWatchRecordingReadyIfNeeded() {
+        guard UIApplication.shared.applicationState != .active else { return }
+
+        let count = WatchRecordingInbox.shared.load().count
+        guard count > 0 else { return }
+
+        Task {
+            let center = UNUserNotificationCenter.current()
+            let settings = await center.notificationSettings()
+            guard settings.authorizationStatus == .authorized
+                    || settings.authorizationStatus == .provisional
+                    || settings.authorizationStatus == .ephemeral else {
+                return
+            }
+
+            let content = UNMutableNotificationContent()
+            content.title = count == 1 ? "Watch recording ready" : "Watch recordings ready"
+            content.body = count == 1
+                ? "Open Voxboard to transcribe your Apple Watch recording."
+                : "Open Voxboard to transcribe \(count) Apple Watch recordings."
+            content.sound = .default
+
+            let request = UNNotificationRequest(
+                identifier: "watch-recording-ready",
+                content: content,
+                trigger: nil
+            )
+            try? await center.add(request)
+        }
+    }
 }
 
 extension WatchRecordingController: WCSessionDelegate {
@@ -207,6 +240,7 @@ extension WatchRecordingController: WCSessionDelegate {
             logger.notice("Queued watch recording: \(item.id, privacy: .public)")
             Task { @MainActor in
                 WatchRecordingController.shared.publishState()
+                WatchRecordingController.shared.notifyWatchRecordingReadyIfNeeded()
             }
         } catch {
             logger.error("Failed to queue watch recording: \(String(describing: error))")

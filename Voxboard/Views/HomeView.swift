@@ -110,9 +110,11 @@ struct HomeView: View {
             reloadFlows()
             reloadWatchRecordingInbox()
             consumePendingWidgetRecordIfNeeded()
+            autoProcessWatchRecordingQueueIfPossible()
         }
         .onReceive(NotificationCenter.default.publisher(for: WatchRecordingInbox.didChangeNotification)) { _ in
             reloadWatchRecordingInbox()
+            autoProcessWatchRecordingQueueIfPossible()
         }
         .task {
             let granted = await AudioRecorder.requestMicrophonePermission()
@@ -149,6 +151,7 @@ struct HomeView: View {
         .onChange(of: persistentRecorder.isTranscribing) { _, isTranscribing in
             guard !isTranscribing else { return }
             processNextQueuedWatchRecordingIfNeeded()
+            autoProcessWatchRecordingQueueIfPossible()
         }
         .task(id: fileExportToast?.id) {
             guard fileExportToast != nil else { return }
@@ -716,6 +719,14 @@ struct HomeView: View {
     private func presentPaywall(context: OnboardingAnalyticsPaywallContext) {
         paywallContext = context
         showPaywall = true
+    }
+
+    private func autoProcessWatchRecordingQueueIfPossible() {
+        guard !isProcessingWatchRecordingQueue else { return }
+        guard !watchRecordingInboxItems.isEmpty else { return }
+        guard !usageTracker.isAtLimit else { return }
+        guard !persistentRecorder.isSegmentActive, !persistentRecorder.isTranscribing else { return }
+        processWatchRecordingQueue()
     }
 
     private func processWatchRecordingQueue() {

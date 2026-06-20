@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import WidgetKit
 
 @MainActor
 final class WatchLocalRecorder: ObservableObject {
@@ -22,17 +23,18 @@ final class WatchLocalRecorder: ObservableObject {
         }
     }
 
-    @Published private(set) var phase: Phase = .idle
-    @Published private(set) var startedAt: Date?
+    @Published private(set) var phase: Phase = .idle { didSet { publishWidgetSnapshot() } }
+    @Published private(set) var startedAt: Date? { didSet { publishWidgetSnapshot() } }
     @Published private(set) var duration: TimeInterval = 0
-    @Published private(set) var message: String?
-    @Published private(set) var queuedRecordings: [QueuedRecording]
+    @Published private(set) var message: String? { didSet { publishWidgetSnapshot() } }
+    @Published private(set) var queuedRecordings: [QueuedRecording] { didSet { publishWidgetSnapshot() } }
 
     private var recorder: AVAudioRecorder?
     private var currentRecordingID: String?
     private var timer: Timer?
     private var transferObserver: NSObjectProtocol?
     private var inFlightTransferIDs = Set<String>()
+    private var transientSuccessResetTask: Task<Void, Never>?
 
     #if DEBUG
     private var demoTask: Task<Void, Never>?
@@ -49,9 +51,11 @@ final class WatchLocalRecorder: ObservableObject {
                 self?.handleTransferFinished(notification)
             }
         }
+        publishWidgetSnapshot()
     }
 
     deinit {
+        transientSuccessResetTask?.cancel()
         if let transferObserver {
             NotificationCenter.default.removeObserver(transferObserver)
         }
@@ -121,6 +125,33 @@ final class WatchLocalRecorder: ObservableObject {
         queuedCount == 1 ? "1 recording saved on Watch." : "\(queuedCount) recordings saved on Watch."
     }
 
+    private var widgetPhase: WatchRecordingPhase {
+        switch phase {
+        case .idle:
+            return .idle
+        case .recording:
+            return .recording
+        case .transferring:
+            return .syncing
+        case .transferred:
+            return .pending
+        case .error:
+            return .error
+        }
+    }
+
+    private func publishWidgetSnapshot() {
+        let snapshot = WatchRecordingSnapshot(
+            phase: widgetPhase,
+            isQuickRecordEnabled: true,
+            recordingStartedAt: startedAt?.timeIntervalSince1970,
+            message: message,
+            queuedCount: queuedCount
+        )
+        WatchLocalSnapshotStore.save(snapshot)
+        WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardWatchRecordWidget")
+    }
+
     func toggle(using bridge: WatchPhoneBridge) async {
         if isRecording {
             await stopAndQueue(using: bridge)
@@ -147,6 +178,7 @@ final class WatchLocalRecorder: ObservableObject {
 
     func start() async {
         guard !isRecording else { return }
+        cancelTransientSuccessReset()
 
         let hasPermission = await requestMicrophonePermission()
         guard hasPermission else {
@@ -183,6 +215,7 @@ final class WatchLocalRecorder: ObservableObject {
 
     func stopAndQueue(using bridge: WatchPhoneBridge) async {
         guard let recorder else { return }
+        cancelTransientSuccessReset()
 
         let url = recorder.url
         let id = currentRecordingID ?? url.deletingPathExtension().lastPathComponent
@@ -214,6 +247,7 @@ final class WatchLocalRecorder: ObservableObject {
     }
 
     func syncPending(using bridge: WatchPhoneBridge) {
+        cancelTransientSuccessReset()
         pruneMissingQueuedRecordings()
 
         guard !queuedRecordings.isEmpty else {
@@ -272,17 +306,38 @@ final class WatchLocalRecorder: ObservableObject {
             if queuedRecordings.isEmpty {
                 phase = .transferred
                 message = "Synced to iPhone queue. You can record another."
+                scheduleTransientSuccessReset()
             } else {
                 phase = .idle
                 message = queueSummary + " Tap Sync Queue to continue."
             }
         } else {
             guard !isRecording else { return }
+            cancelTransientSuccessReset()
             let errorMessage = notification.userInfo?[WatchRecordingTransferNotificationKey.errorMessage] as? String
             phase = .error("Saved on Watch, sync failed.")
             message = errorMessage.map { "Saved on Watch. Sync failed: \($0)" }
                 ?? "Saved on Watch. Tap Sync Queue after your iPhone is nearby."
         }
+    }
+
+    private func scheduleTransientSuccessReset(after delay: TimeInterval = 3.5) {
+        cancelTransientSuccessReset()
+        transientSuccessResetTask = Task { @MainActor [weak self] in
+            let nanoseconds = UInt64(delay * 1_000_000_000)
+            try? await Task.sleep(nanoseconds: nanoseconds)
+            guard !Task.isCancelled, let self else { return }
+            guard case .transferred = self.phase else { return }
+
+            self.message = nil
+            self.phase = .idle
+            self.transientSuccessResetTask = nil
+        }
+    }
+
+    private func cancelTransientSuccessReset() {
+        transientSuccessResetTask?.cancel()
+        transientSuccessResetTask = nil
     }
 
     #if DEBUG
@@ -359,6 +414,7 @@ final class WatchLocalRecorder: ObservableObject {
         setDemoQueue(count: 0)
         phase = .transferred
         message = "Synced to iPhone queue. You can record another."
+        scheduleTransientSuccessReset()
     }
 
     private func runDemoQueueFlow() async {
@@ -378,6 +434,7 @@ final class WatchLocalRecorder: ObservableObject {
         setDemoQueue(count: 0)
         phase = .transferred
         message = "Synced to iPhone queue. You can record another."
+        scheduleTransientSuccessReset()
     }
 
     private func resetDemoState(phase: Phase, queuedCount: Int, message: String?) {
@@ -535,6 +592,7 @@ final class WatchLocalRecorder: ObservableObject {
     }
 
     private func setError(_ error: String) {
+        cancelTransientSuccessReset()
         phase = .error(error)
         message = error
         recorder = nil

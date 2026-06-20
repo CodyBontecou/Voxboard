@@ -1,6 +1,14 @@
 import SwiftUI
 import WidgetKit
 
+private enum WatchWidgetBrutal {
+    static let error = Color(red: 1.0, green: 0.271, blue: 0.227)
+
+    static func label(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
+        .system(size: size, weight: weight, design: .monospaced)
+    }
+}
+
 struct VoxboardWatchRecordEntry: TimelineEntry {
     let date: Date
     let snapshot: WatchRecordingSnapshot
@@ -15,12 +23,16 @@ struct VoxboardWatchRecordProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (VoxboardWatchRecordEntry) -> Void) {
-        completion(VoxboardWatchRecordEntry(date: .now, snapshot: WatchPhoneBridge.cachedSnapshot()))
+        completion(VoxboardWatchRecordEntry(date: .now, snapshot: currentSnapshot()))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<VoxboardWatchRecordEntry>) -> Void) {
-        let entry = VoxboardWatchRecordEntry(date: .now, snapshot: WatchPhoneBridge.cachedSnapshot())
+        let entry = VoxboardWatchRecordEntry(date: .now, snapshot: currentSnapshot())
         completion(Timeline(entries: [entry], policy: .after(Date().addingTimeInterval(60))))
+    }
+
+    private func currentSnapshot() -> WatchRecordingSnapshot {
+        WatchLocalSnapshotStore.load() ?? WatchPhoneBridge.cachedSnapshot()
     }
 }
 
@@ -62,7 +74,10 @@ struct VoxboardWatchRecordWidgetView: View {
         RecordIntentButton {
             ZStack {
                 AccessoryWidgetBackground()
-                appIcon(size: 30, cornerRadius: 7)
+                Image(systemName: stateSymbolName)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(stateColor)
+                    .widgetAccentable()
             }
         }
         .buttonStyle(.plain)
@@ -71,13 +86,19 @@ struct VoxboardWatchRecordWidgetView: View {
     private var rectangular: some View {
         RecordIntentButton {
             HStack(spacing: 8) {
-                appIcon(size: 24, cornerRadius: 6)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("VOXBOARD")
-                        .font(.caption2.weight(.bold))
-                        .widgetAccentable()
-                    Text("Record to Voxboard")
-                        .font(.caption2)
+                appIcon(size: 24, cornerRadius: 3)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 4) {
+                        Rectangle()
+                            .fill(stateColor)
+                            .frame(width: 4, height: 4)
+                            .widgetAccentable()
+                        Text("VOXBOARD")
+                            .font(WatchWidgetBrutal.label(11, weight: .bold))
+                            .widgetAccentable()
+                    }
+                    subtitleText
+                        .font(WatchWidgetBrutal.label(10, weight: .regular))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
@@ -89,9 +110,13 @@ struct VoxboardWatchRecordWidgetView: View {
     private var inline: some View {
         RecordIntentButton {
             Label {
-                Text(inlineTitle)
+                if entry.snapshot.shouldShowTimer, let started = entry.snapshot.recordingStartedAt {
+                    Text(Date(timeIntervalSince1970: started), style: .timer)
+                } else {
+                    Text(inlineTitle)
+                }
             } icon: {
-                appIcon(size: 14, cornerRadius: 3)
+                Image(systemName: stateSymbolName)
             }
         }
         .buttonStyle(.plain)
@@ -99,11 +124,24 @@ struct VoxboardWatchRecordWidgetView: View {
 
     private var corner: some View {
         RecordIntentButton {
-            appIcon(size: 26, cornerRadius: 6)
+            Image(systemName: stateSymbolName)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(stateColor)
+                .widgetAccentable()
         }
         .buttonStyle(.plain)
         .widgetLabel {
-            Text("Record")
+            Text(cornerLabel)
+        }
+    }
+
+    @ViewBuilder
+    private var subtitleText: some View {
+        if entry.snapshot.shouldShowTimer, let started = entry.snapshot.recordingStartedAt {
+            Text(Date(timeIntervalSince1970: started), style: .timer)
+                .monospacedDigit()
+        } else {
+            Text(entry.snapshot.subtitle)
         }
     }
 
@@ -116,8 +154,53 @@ struct VoxboardWatchRecordWidgetView: View {
             .unredacted()
     }
 
+    private var stateSymbolName: String {
+        entry.snapshot.actionSymbol
+    }
+
+    private var stateColor: Color {
+        switch entry.snapshot.phase {
+        case .recording, .error, .unavailable:
+            return WatchWidgetBrutal.error
+        default:
+            return .primary
+        }
+    }
+
     private var inlineTitle: String {
-        "Record to Voxboard"
+        switch entry.snapshot.phase {
+        case .recording:
+            return "Recording"
+        case .syncing:
+            return "Syncing"
+        case .transcribing:
+            return "Processing"
+        case .pending:
+            return "Synced"
+        case .error:
+            return "Check Voxboard"
+        case .unavailable:
+            return "Open iPhone"
+        case .idle, .listening:
+            return entry.snapshot.queuedCount > 0 ? entry.snapshot.subtitle : "Record to Voxboard"
+        }
+    }
+
+    private var cornerLabel: String {
+        switch entry.snapshot.phase {
+        case .recording:
+            return "Stop"
+        case .syncing:
+            return "Sync"
+        case .transcribing:
+            return "Work"
+        case .pending:
+            return "Sent"
+        case .error, .unavailable:
+            return "Open"
+        default:
+            return entry.snapshot.queuedCount > 0 ? "Sync" : "Record"
+        }
     }
 }
 
