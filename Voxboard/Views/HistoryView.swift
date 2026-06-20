@@ -4,6 +4,7 @@ import VoxboardShared
 struct HistoryView: View {
     @Environment(TranscriptStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @State private var showClearHistoryConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -35,15 +36,26 @@ struct HistoryView: View {
                 }
                 if !store.transcripts.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("CLEAR ALL") { store.clear() }
-                            .font(Brutal.label())
-                            .foregroundColor(Brutal.error)
-                            .buttonStyle(.plain)
+                        Button(role: .destructive) {
+                            showClearHistoryConfirmation = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(Brutal.error)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Clear all history")
                     }
                 }
             }
             .toolbarBackground(Brutal.bg, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .alert("Clear all history?", isPresented: $showClearHistoryConfirmation) {
+                Button("Cancel", role: .cancel) {}
+                Button("Clear All", role: .destructive) { store.clear() }
+            } message: {
+                Text("Do you really want to clear all of your history? This can't be undone.")
+            }
         }
         .preferredColorScheme(.dark)
         .onAppear { store.reload() }
@@ -117,15 +129,6 @@ struct HistoryView: View {
                         Text(transcript.language.uppercased())
                             .font(Brutal.caption())
                             .foregroundColor(Brutal.muted)
-                    }
-                    if let category = transcript.category, !category.isEmpty {
-                        Text("·").font(Brutal.caption()).foregroundColor(Brutal.muted)
-                        Text(category.uppercased())
-                            .font(Brutal.caption())
-                            .foregroundColor(Brutal.text)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
                     }
                     Spacer()
                     copyMenu(for: transcript)
