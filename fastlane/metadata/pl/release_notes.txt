@@ -1,5 +1,6 @@
+Nagrywaj notatki głosowe na Apple Watch, a Voxboard zsynchronizuje je z iPhonem po ponownym połączeniu.
+
 Nowości w tej aktualizacji:
-• Haptyczny feedback klawiatury — dotknięcia mają teraz domyślnie dotykową odpowiedź z przełącznikiem w Ustawieniach do wyłączenia.
-• Długie naciśnięcie wyskakujących akcentów — przytrzymaj klawisz w językach łacińskich, aby uzyskać dostęp do wariantów akcentów (à, é, ñ, ü, itp.).
-• Zlokalizowane komunikaty statusu na pasku narzędzi klawiatury we wszystkich obsługiwanych językach.
-• Poprawka błędu dla nagrań w aplikacji, które mogły wyzwalać zduplikowane odpowiedzi IPC.
+• Nagrywanie na Apple Watch — rozpoczynaj i kończ lokalne notatki głosowe na zegarku bez sięgania po iPhone’a.
+• Kolejka Watch — nagrania pozostają zapisane na Apple Watch i trafiają do kolejki iPhone’a, gdy urządzenia połączą się ponownie.
+• Czytelniejszy status — odświeżone stany Gotowe, Nagrywanie, Synchronizacja, W kolejce i Wysłano ułatwiają sprawdzenie, co się dzieje.

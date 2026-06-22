@@ -6,7 +6,48 @@ import VoxboardShared
 // MARK: - In-app release notes
 
 enum VoxboardReleaseNotes {
+    private static var watchFeatureVideoURL: URL {
+        Bundle.main.url(forResource: "voxboard-watch-notelet-square-mobile", withExtension: "mp4")
+            ?? Bundle.main.bundleURL.appendingPathComponent("voxboard-watch-notelet-square-mobile.mp4")
+    }
+
     static let notes: [NoteletVersionNotes] = [
+        .init(
+            version: "1.9.5",
+            items: [
+                .media(
+                    kind: .video,
+                    url: watchFeatureVideoURL,
+                    title: "Voxboard now records from Apple Watch",
+                    description: "See the new Watch flow: record from your wrist, save locally, then sync back to the iPhone queue when you reconnect."
+                ),
+                .list(
+                    title: "What’s new in Voxboard",
+                    rows: [
+                        .init(
+                            symbolSystemName: "applewatch",
+                            title: "Record on Apple Watch",
+                            description: "Start and stop voice notes directly from Voxboard on Apple Watch without reaching for your iPhone."
+                        ),
+                        .init(
+                            symbolSystemName: "tray.full",
+                            title: "Saved Watch queue",
+                            description: "Watch recordings stay saved locally and appear in your iPhone queue when your devices reconnect."
+                        ),
+                        .init(
+                            symbolSystemName: "rectangle.grid.1x2",
+                            title: "Clearer Watch status",
+                            description: "The Watch recorder now shows bold Ready, Recording, Syncing, Queued, and Sent states so you always know what is happening."
+                        ),
+                        .init(
+                            symbolSystemName: "app.badge",
+                            title: "Faster Watch access",
+                            description: "Add the Voxboard Watch face shortcut for a quick path into recording from supported Apple Watch faces."
+                        )
+                    ]
+                )
+            ]
+        ),
         .init(
             version: "1.9.4",
             items: [

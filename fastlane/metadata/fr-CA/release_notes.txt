@@ -1,5 +1,6 @@
+Enregistrez des notes vocales depuis votre Apple Watch, puis laissez Voxboard les synchroniser vers votre iPhone à la reconnexion.
+
 Nouveau dans cette mise à jour :
-• Retour haptique du clavier — les appuis ont maintenant un retour tactile par défaut, avec un bouton dans Réglages pour le désactiver.
-• Appui long pour accents — maintenez une touche sur les langues à script latin pour accéder aux variantes accentuées (à, é, ñ, ü, etc.).
-• Messages de statut localisés dans la barre d'outils du clavier pour toutes les langues prises en charge.
-• Correction de bug pour les enregistrements in-app qui pouvaient déclencher des réponses IPC dupliquées.
+• Enregistrement Apple Watch — démarrez et arrêtez des notes vocales locales sur la Watch sans prendre votre iPhone.
+• File d’attente Watch — les enregistrements restent sauvegardés sur l’Apple Watch et arrivent dans la file de votre iPhone quand les appareils se reconnectent.
+• Statuts plus clairs — les états Prêt, Enregistrement, Synchronisation, En file et Envoyé ont été repensés pour mieux comprendre ce qui se passe.

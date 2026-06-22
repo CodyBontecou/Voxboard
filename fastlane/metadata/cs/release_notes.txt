@@ -1,5 +1,6 @@
+Nahrávejte hlasové poznámky na Apple Watch a nechte Voxboard synchronizovat je do iPhonu po opětovném připojení.
+
 Novinky v této aktualizaci:
-• Haptická odezva klávesnice — stisknutí nyní mají ve výchozím nastavení hmatovou odezvu s přepínačem v Nastavení pro vypnutí.
-• Nabídky akcentů dlouhým stiskem — podržte klávesu v jazycích s latinkou pro přístup k variantám s akcenty (à, é, ñ, ü, atd.).
-• Lokalizované stavové zprávy na panelu nástrojů klávesnice ve všech podporovaných jazycích.
-• Oprava chyby pro nahrávání v aplikaci, která mohla spustit duplicitní IPC odpovědi.
+• Nahrávání na Apple Watch — spusťte a zastavte místní hlasové poznámky na hodinkách bez iPhonu.
+• Fronta Watch — nahrávky zůstávají uložené na Apple Watch a objeví se ve frontě iPhonu, jakmile se zařízení znovu spojí.
+• Jasnější stav — přepracované stavy Připraveno, Nahrávání, Synchronizace, Ve frontě a Odesláno lépe ukazují, co se děje.

@@ -668,6 +668,17 @@ final class PersistentRecorder {
             lastTranscriptionResult = nil
             lastError = nil
 
+            // File imports do not keep an audio session alive, so iOS is free to
+            // suspend the app as soon as the user locks the device or switches
+            // apps. Ask for finite background execution time so user-initiated
+            // import conversion + transcription can finish like live recordings.
+            var bgTask: UIBackgroundTaskIdentifier = .invalid
+            bgTask = UIApplication.shared.beginBackgroundTask {
+                log.log("[PersistentRecorder] ⚠️ Import background task expired")
+                UIApplication.shared.endBackgroundTask(bgTask)
+                bgTask = .invalid
+            }
+
             Task.detached(priority: .userInitiated) { [weak self] in
                 do {
                     let workingURL = try AudioFileConverter.convertToWhisperWAV(
@@ -697,7 +708,13 @@ final class PersistentRecorder {
                     try? FileManager.default.removeItem(at: sourceCopy)
                     try? FileManager.default.removeItem(at: wavURL)
                 }
-                await MainActor.run { self?.isTranscribing = false }
+                await MainActor.run {
+                    self?.isTranscribing = false
+                    if bgTask != .invalid {
+                        UIApplication.shared.endBackgroundTask(bgTask)
+                        bgTask = .invalid
+                    }
+                }
             }
             return true
         } catch {

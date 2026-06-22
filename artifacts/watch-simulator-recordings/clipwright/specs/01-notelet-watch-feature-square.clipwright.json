@@ -1,0 +1,131 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "Voxboard Watch Notelet Square Snippet",
+    "createdWith": "Clipwright",
+    "seed": 621,
+    "notes": "1:1 Notelet-ready Apple Watch feature snippet from the Voxboard Watch simulator recording. Audio muted."
+  },
+  "canvas": {
+    "aspectRatio": "1:1",
+    "size": {
+      "width": 1080,
+      "height": 1080
+    },
+    "safeArea": {
+      "top": 0,
+      "leading": 0,
+      "bottom": 0,
+      "trailing": 0
+    }
+  },
+  "device": {
+    "id": "apple-watch-s11-46mm-sport-band",
+    "color": "aluminum-jet-black-sport-band-black",
+    "scale": 0.72
+  },
+  "background": {
+    "kind": "gradient",
+    "color": "#F5F5F7",
+    "colors": [
+      "#FFFFFF",
+      "#F5F5F7",
+      "#D7FF2F"
+    ]
+  },
+  "audio": {
+    "mode": "muted",
+    "volume": 0
+  },
+  "export": {
+    "preset": "square_1x1",
+    "width": 1080,
+    "height": 1080,
+    "frameRate": 30,
+    "bitrate": 14000000,
+    "format": "mp4",
+    "deterministicSeed": 621
+  },
+  "media": [
+    {
+      "id": "primary",
+      "kind": "video",
+      "path": "/Users/codybontecou/projects/Voxboard/artifacts/watch-simulator-recordings/clipwright/01-notelet-watch-feature-source.mp4",
+      "storage": "external",
+      "duration": 8.866667,
+      "naturalSize": {
+        "width": 422,
+        "height": 514
+      },
+      "frameRate": 30,
+      "hasAudio": false
+    }
+  ],
+  "timeline": {
+    "duration": 8.866667,
+    "primaryMediaID": "primary",
+    "segments": [
+      {
+        "id": "main",
+        "mediaID": "primary",
+        "start": 0,
+        "duration": 8.866667,
+        "trimStart": 0,
+        "trimEnd": 8.866667
+      }
+    ]
+  },
+  "effects": [
+    {
+      "id": "headline",
+      "type": "text_label",
+      "start": 0.0,
+      "duration": 8.866667,
+      "parameters": {
+        "text": "Voxboard on Watch",
+        "x": 0.5,
+        "y": 0.935,
+        "color": "#111111",
+        "fontName": "Helvetica-Bold",
+        "fontSize": 54,
+        "letterSpacing": 0.2,
+        "coordinateSpace": "canvas"
+      }
+    },
+    {
+      "id": "subtitle",
+      "type": "text_label",
+      "start": 0.0,
+      "duration": 8.866667,
+      "parameters": {
+        "text": "Record now. Sync to iPhone.",
+        "x": 0.5,
+        "y": 0.07,
+        "color": "#333333",
+        "fontName": "Helvetica-Bold",
+        "fontSize": 34,
+        "letterSpacing": 0.4,
+        "coordinateSpace": "canvas"
+      }
+    },
+    {
+      "id": "subtle-watch-push",
+      "type": "zoom_center",
+      "start": 0.25,
+      "duration": 8.316667,
+      "targetMediaID": "primary",
+      "parameters": {
+        "scale": 1.025
+      }
+    },
+    {
+      "id": "fade-in",
+      "type": "transition",
+      "start": 0,
+      "duration": 0.45,
+      "parameters": {
+        "transitionKind": "in"
+      }
+    }
+  ]
+}

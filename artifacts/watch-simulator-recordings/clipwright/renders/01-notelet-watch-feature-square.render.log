@@ -1,0 +1,31 @@
+{"totalFrames":267,"frame":0,"progress":0,"event":"started"}
+{"totalFrames":267,"frame":1,"progress":0.003745318352059925,"event":"progress"}
+{"totalFrames":267,"frame":14,"progress":0.052434456928838954,"event":"progress"}
+{"totalFrames":267,"frame":27,"progress":0.10112359550561797,"event":"progress"}
+{"totalFrames":267,"frame":40,"progress":0.149812734082397,"event":"progress"}
+{"totalFrames":267,"frame":53,"progress":0.19850187265917604,"event":"progress"}
+{"totalFrames":267,"frame":66,"progress":0.24719101123595505,"event":"progress"}
+{"progress":0.2958801498127341,"event":"progress","frame":79,"totalFrames":267}
+{"progress":0.3445692883895131,"event":"progress","frame":92,"totalFrames":267}
+{"progress":0.39325842696629215,"event":"progress","frame":105,"totalFrames":267}
+{"progress":0.4419475655430712,"event":"progress","frame":118,"totalFrames":267}
+{"progress":0.49063670411985016,"event":"progress","frame":131,"totalFrames":267}
+{"progress":0.5393258426966292,"event":"progress","frame":144,"totalFrames":267}
+{"progress":0.5880149812734082,"event":"progress","frame":157,"totalFrames":267}
+{"progress":0.6367041198501873,"event":"progress","frame":170,"totalFrames":267}
+{"progress":0.6853932584269663,"event":"progress","frame":183,"totalFrames":267}
+{"progress":0.7340823970037453,"event":"progress","frame":196,"totalFrames":267}
+{"progress":0.7827715355805244,"event":"progress","frame":209,"totalFrames":267}
+{"progress":0.8314606741573034,"event":"progress","frame":222,"totalFrames":267}
+{"progress":0.8801498127340824,"event":"progress","frame":235,"totalFrames":267}
+{"progress":0.9288389513108615,"event":"progress","frame":248,"totalFrames":267}
+{"progress":0.9775280898876404,"event":"progress","frame":261,"totalFrames":267}
+{"progress":1,"event":"progress","frame":267,"totalFrames":267}
+{"totalFrames":267,"progress":1,"event":"completed","frame":267}
+{
+  "duration" : 8.866667,
+  "frames" : 267,
+  "height" : 1080,
+  "outputPath" : "/Users/codybontecou/projects/Voxboard/artifacts/watch-simulator-recordings/clipwright/renders/01-notelet-watch-feature-square.mp4",
+  "width" : 1080
+}

@@ -1,5 +1,6 @@
+Record voice notes from your Apple Watch, then let Voxboard sync them back to your iPhone when you reconnect.
+
 New in this update:
-• Keyboard haptic feedback — taps now have tactile feedback by default, with a Settings toggle to turn it off.
-• Long-press accent callouts — hold a key on Latin-script languages to access accented variants (à, é, ñ, ü, etc.).
-• Localised status messages on the keyboard toolbar across all supported languages.
-• Bug fix for in-app recordings that could trigger duplicate IPC responses.
+• Apple Watch recording — start and stop local Watch voice notes without reaching for your phone.
+• Watch queue sync — recordings stay saved on Apple Watch and appear in your iPhone queue when the devices reconnect.
+• Clearer status — redesigned Ready, Recording, Syncing, Queued, and Sent states make it easier to trust what is happening.

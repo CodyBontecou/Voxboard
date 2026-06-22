@@ -1,5 +1,6 @@
+Optag stemmenoter fra Apple Watch, og lad Voxboard synkronisere dem til din iPhone, når enhederne forbindes igen.
+
 Nyt i denne opdatering:
-• Tastatur haptisk feedback — tryk har nu taktil feedback som standard, med en indstillingsknap til at slå det fra.
-• Langt tryk accent-pop-ups — hold en tast nede på latin-baserede sprog for at få adgang til accentvarianter (à, é, ñ, ü, osv.).
-• Lokaliserede statusbeskeder på tastaturværktøjslinjen på tværs af alle understøttede sprog.
-• Fejlrettelse for in-app optagelser, der kunne udløse duplicate IPC-svar.
+• Apple Watch-optagelse — start og stop lokale stemmenoter på uret uden at tage din iPhone frem.
+• Watch-kø — optagelser gemmes på Apple Watch og vises i iPhone-køen, når enhederne forbindes igen.
+• Tydeligere status — Klar, Optager, Synkroniserer, I kø og Sendt er redesignet, så du nemmere kan se, hvad der sker.

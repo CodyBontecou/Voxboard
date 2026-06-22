@@ -1,5 +1,6 @@
+Rögzítsen hangjegyzeteket Apple Watchon, és a Voxboard újracsatlakozáskor szinkronizálja őket az iPhone-ra.
+
 Újdonságok ebben a frissítésben:
-• Billentyűzet haptikus visszajelzés — a koppintások mostantól alapértelmezetten tapintható visszajelzéssel rendelkeznek, bekapcsoló a Beállításokban a kikapcsolásához.
-• Hosszú nyomás ékezetes felugró ablakok — tartsa lenyomva egy billentyűt latin írásos nyelveknél az ékezetes variánsok eléréséhez (à, é, ñ, ü, stb.).
-• Honosított állapot üzenetek a billentyűzet eszköztárában az összes támogatott nyelven.
-• Hibajavítás az alkalmazáson belüli felvételekhez, amelyek duplikált IPC válaszokat indíthattak el.
+• Apple Watch-felvétel — indítson és állítson le helyi hangjegyzeteket az órán, iPhone nélkül.
+• Watch-sor — a felvételek az Apple Watchon maradnak, majd az iPhone sorában jelennek meg, amikor az eszközök újra kapcsolódnak.
+• Egyértelműbb állapot — a Kész, Felvétel, Szinkronizálás, Sorban és Elküldve állapotok áttekinthetőbbek lettek.

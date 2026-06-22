@@ -237,7 +237,6 @@ struct WatchRecorderView: View {
 
                     VStack(spacing: 8) {
                         mainStatusPanel
-                        primaryActionButton
 
                         if shouldShowSecondaryAction {
                             secondarySyncButton
@@ -267,11 +266,16 @@ struct WatchRecorderView: View {
         HStack(spacing: 8) {
             WatchStatusBadge(label: phaseBadgeLabel, isActive: statusBadgeIsActive)
             Spacer(minLength: 4)
-            Text("VOXBOARD")
-                .font(WatchBrutal.label(.caption))
-                .foregroundStyle(WatchBrutal.text)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+            Image("WatchTopBarIcon")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 18, height: 18)
+                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .stroke(WatchBrutal.borderHi.opacity(0.45), lineWidth: 0.5)
+                )
+                .accessibilityLabel("Voxboard")
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
@@ -279,6 +283,18 @@ struct WatchRecorderView: View {
     }
 
     private var mainStatusPanel: some View {
+        Button {
+            Task { await toggleRecording() }
+        } label: {
+            mainStatusPanelContent
+        }
+        .buttonStyle(.plain)
+        .disabled(isSending)
+        .accessibilityLabel(accessibilityStatusLabel)
+        .accessibilityHint(localRecorder.isRecording ? "Stops and saves the Watch recording." : "Starts a local Watch recording.")
+    }
+
+    private var mainStatusPanelContent: some View {
         HStack(spacing: 10) {
             ZStack {
                 Rectangle()
@@ -308,6 +324,12 @@ struct WatchRecorderView: View {
                         .monospacedDigit()
                         .lineLimit(1)
                         .minimumScaleFactor(0.62)
+
+                    Text("Tap again to stop.")
+                        .font(WatchBrutal.caption())
+                        .foregroundStyle(WatchBrutal.muted)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                 } else {
                     Text(mainSubtitle)
                         .font(WatchBrutal.caption())
@@ -321,25 +343,8 @@ struct WatchRecorderView: View {
         .padding(9)
         .background(WatchBrutal.bg.opacity(0.58))
         .overlay(Rectangle().stroke(WatchBrutal.border, lineWidth: 1))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityStatusLabel)
-    }
-
-    private var primaryActionButton: some View {
-        Button {
-            Task { await toggleRecording() }
-        } label: {
-            Label {
-                Text(primaryActionTitle)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.58)
-            } icon: {
-                Image(systemName: localRecorder.actionSymbol)
-            }
-        }
-        .buttonStyle(WatchBrutalButtonStyle(variant: localRecorder.isRecording ? .destructive : .primary))
-        .disabled(isSending)
-        .accessibilityHint(localRecorder.isRecording ? "Stops and saves the Watch recording." : "Starts a local Watch recording.")
+        .contentShape(Rectangle())
+        .opacity(isSending ? 0.7 : 1.0)
     }
 
     private var secondarySyncButton: some View {
@@ -457,7 +462,7 @@ struct WatchRecorderView: View {
     private var mainSubtitle: String {
         switch localRecorder.phase {
         case .recording:
-            return "Tap stop when captured."
+            return "Tap again to stop."
         case .transferring:
             return "Sending to iPhone…"
         case .transferred:
@@ -465,7 +470,7 @@ struct WatchRecorderView: View {
         case .error:
             return localRecorder.queuedCount > 0 ? "Saved locally. Retry sync." : "Tap sync to refresh."
         case .idle:
-            return localRecorder.queuedCount > 0 ? "\(localRecorder.queuedCount) saved on Watch." : "Tap start."
+            return localRecorder.queuedCount > 0 ? "\(localRecorder.queuedCount) saved on Watch." : "Tap to start."
         }
     }
 
@@ -511,10 +516,6 @@ struct WatchRecorderView: View {
         case .idle, .recording:
             return localRecorder.queuedCount > 0 ? "Wait" : "Ready"
         }
-    }
-
-    private var primaryActionTitle: String {
-        localRecorder.isRecording ? "STOP + SAVE" : "START RECORDING"
     }
 
     private var phaseWordColor: Color {

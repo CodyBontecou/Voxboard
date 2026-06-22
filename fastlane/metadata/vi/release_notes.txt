@@ -1,5 +1,6 @@
+Ghi chú thoại từ Apple Watch và để Voxboard đồng bộ về iPhone khi thiết bị kết nối lại.
+
 Mới trong bản cập nhật này:
-• Phản hồi xúc giác bàn phím — các lần chạm hiện có phản hồi xúc giác theo mặc định, với công tắc trong Cài đặt để tắt.
-• Gọi ra dấu trọng âm nhấn giữ — giữ một phím trên các ngôn ngữ chữ Latin để truy cập các biến thể có dấu (à, é, ñ, ü, v.v.).
-• Thông báo trạng thái được bản địa hóa trên thanh công cụ bàn phím trên tất cả các ngôn ngữ được hỗ trợ.
-• Sửa lỗi cho các bản ghi trong ứng dụng có thể kích hoạt phản hồi IPC trùng lặp.
+• Ghi âm trên Apple Watch — bắt đầu và dừng ghi chú thoại cục bộ trên Watch mà không cần cầm iPhone.
+• Hàng đợi Watch — bản ghi vẫn được lưu trên Apple Watch và xuất hiện trong hàng đợi iPhone khi thiết bị kết nối lại.
+• Trạng thái rõ hơn — Sẵn sàng, Đang ghi, Đang đồng bộ, Đang chờ và Đã gửi được thiết kế lại để dễ hiểu hơn.

@@ -1,0 +1,35 @@
+Building for production...
+[0/2] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'clipwright' complete! (0.12s)
+{"progress":0,"totalFrames":198,"frame":0,"event":"started"}
+{"progress":0.005050505050505051,"totalFrames":198,"frame":1,"event":"progress"}
+{"progress":0.050505050505050504,"totalFrames":198,"frame":10,"event":"progress"}
+{"progress":0.09595959595959595,"totalFrames":198,"frame":19,"event":"progress"}
+{"progress":0.1414141414141414,"totalFrames":198,"frame":28,"event":"progress"}
+{"progress":0.18686868686868688,"totalFrames":198,"frame":37,"event":"progress"}
+{"progress":0.23232323232323232,"totalFrames":198,"frame":46,"event":"progress"}
+{"progress":0.2777777777777778,"totalFrames":198,"frame":55,"event":"progress"}
+{"progress":0.32323232323232326,"totalFrames":198,"frame":64,"event":"progress"}
+{"progress":0.3686868686868687,"totalFrames":198,"frame":73,"event":"progress"}
+{"progress":0.41414141414141414,"totalFrames":198,"frame":82,"event":"progress"}
+{"progress":0.4595959595959596,"totalFrames":198,"frame":91,"event":"progress"}
+{"progress":0.5050505050505051,"totalFrames":198,"frame":100,"event":"progress"}
+{"progress":0.5505050505050505,"totalFrames":198,"frame":109,"event":"progress"}
+{"progress":0.5959595959595959,"totalFrames":198,"frame":118,"event":"progress"}
+{"progress":0.6414141414141414,"totalFrames":198,"frame":127,"event":"progress"}
+{"progress":0.6868686868686869,"totalFrames":198,"frame":136,"event":"progress"}
+{"progress":0.7323232323232324,"totalFrames":198,"frame":145,"event":"progress"}
+{"progress":0.7777777777777778,"totalFrames":198,"frame":154,"event":"progress"}
+{"progress":0.8232323232323232,"totalFrames":198,"frame":163,"event":"progress"}
+{"progress":0.8686868686868687,"totalFrames":198,"frame":172,"event":"progress"}
+{"progress":0.9141414141414141,"totalFrames":198,"frame":181,"event":"progress"}
+{"progress":0.9595959595959596,"totalFrames":198,"frame":190,"event":"progress"}
+{"progress":1,"totalFrames":198,"frame":198,"event":"progress"}
+{"frame":198,"progress":1,"event":"completed","totalFrames":198}
+{
+  "duration" : 6.6,
+  "frames" : 198,
+  "height" : 1080,
+  "outputPath" : "/Users/codybontecou/projects/Voxboard/artifacts/watch-simulator-recordings/clipwright/renders/01-notelet-watch-white-strong-zoom.mp4",
+  "width" : 1080
+}

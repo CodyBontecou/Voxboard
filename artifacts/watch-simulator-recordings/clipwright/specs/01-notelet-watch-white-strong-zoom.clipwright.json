@@ -1,0 +1,88 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "Voxboard Watch quick record snippet",
+    "createdWith": "Clipwright",
+    "seed": 621,
+    "notes": "1:1 Notelet-ready Apple Watch snippet. Pure white background, no text overlays, muted audio, strong push-in zoom that holds through the final frame."
+  },
+  "canvas": {
+    "aspectRatio": "1:1",
+    "size": {
+      "width": 1080,
+      "height": 1080
+    },
+    "safeArea": {
+      "top": 0,
+      "leading": 0,
+      "bottom": 0,
+      "trailing": 0
+    }
+  },
+  "device": {
+    "id": "apple-watch-s11-46mm-sport-band",
+    "color": "aluminum-jet-black-sport-band-black",
+    "scale": 0.86
+  },
+  "background": {
+    "kind": "solid",
+    "color": "#FFFFFF",
+    "colors": []
+  },
+  "audio": {
+    "mode": "muted",
+    "volume": 0
+  },
+  "export": {
+    "preset": "square_1x1",
+    "width": 1080,
+    "height": 1080,
+    "frameRate": 30,
+    "bitrate": 12000000,
+    "format": "mp4",
+    "deterministicSeed": 621
+  },
+  "media": [
+    {
+      "id": "primary",
+      "kind": "video",
+      "path": "/Users/codybontecou/projects/Voxboard/artifacts/watch-simulator-recordings/clipwright/01-notelet-watch-white-zoom-source.mp4",
+      "storage": "external",
+      "duration": 6.6,
+      "naturalSize": {
+        "width": 422,
+        "height": 514
+      },
+      "frameRate": 30,
+      "hasAudio": false
+    }
+  ],
+  "timeline": {
+    "duration": 6.6,
+    "primaryMediaID": "primary",
+    "segments": [
+      {
+        "id": "main",
+        "mediaID": "primary",
+        "start": 0,
+        "duration": 6.6,
+        "trimStart": 0,
+        "trimEnd": 6.6
+      }
+    ]
+  },
+  "effects": [
+    {
+      "id": "strong-one-way-watch-push-in",
+      "type": "manual_zoom",
+      "start": 0,
+      "duration": 6.6,
+      "targetMediaID": "primary",
+      "parameters": {
+        "scale": 1.72,
+        "x": 0.5,
+        "y": 0.47
+      }
+    }
+  ]
+}

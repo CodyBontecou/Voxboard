@@ -1,5 +1,6 @@
-Novo nesta actualização:
-• Resposta háptica do teclado — toques agora têm resposta táctil por defeito, com um interruptor nas Definições para desactivá-la.
-• Toque longo para acentos — mantenha uma tecla em idiomas de escrita latina para aceder a variantes acentuadas (à, é, ñ, ü, etc.).
-• Mensagens de estado localizadas na barra de ferramentas do teclado em todos os idiomas suportados.
-• Correcção de erro para gravações dentro da aplicação que podiam disparar respostas IPC duplicadas.
+Grave notas de voz no Apple Watch e deixe o Voxboard sincronizá-las com o iPhone quando os dispositivos se voltarem a ligar.
+
+Novidades nesta atualização:
+• Gravação no Apple Watch — inicie e pare notas de voz locais no Watch sem pegar no iPhone.
+• Fila do Watch — as gravações ficam guardadas no Apple Watch e aparecem na fila do iPhone quando os dispositivos se voltam a ligar.
+• Estado mais claro — os estados Pronto, A gravar, A sincronizar, Em fila e Enviado foram redesenhados para mostrar melhor o que está a acontecer.

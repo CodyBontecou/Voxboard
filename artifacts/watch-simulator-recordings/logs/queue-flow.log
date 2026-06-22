@@ -1,0 +1,14 @@
+Recording demo mode 'queue-flow' to artifacts/watch-simulator-recordings/videos/02-watch-queue-sync.mp4
+An error was encountered processing the command (domain=NSPOSIXErrorDomain, code=3):
+Simulator device failed to terminate bontecou.Voxboard.watchkitapp.
+found nothing to terminate
+Underlying error (domain=NSPOSIXErrorDomain, code=3):
+	The request to terminate "bontecou.Voxboard.watchkitapp" failed. found nothing to terminate
+	found nothing to terminate
+Note: No display specified. Defaulting to display: 45C12462-615E-44F7-A525-06265205D4BA (screenID: 1, name: LCD)
+Recording started
+Launching bontecou.Voxboard.watchkitapp --voxboard-demo queue-flow
+bontecou.Voxboard.watchkitapp: 23045
+Recording completed. Writing to disk.
+
+Wrote video to: /Users/codybontecou/projects/Voxboard/artifacts/watch-simulator-recordings/videos/02-watch-queue-sync.mp4

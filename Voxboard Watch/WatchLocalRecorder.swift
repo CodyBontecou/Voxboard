@@ -99,7 +99,7 @@ final class WatchLocalRecorder: ObservableObject {
             }
             return "Record on this Watch. Syncs to iPhone later."
         case .recording:
-            return "Tap stop when your thought is captured."
+            return "Tap the status card to stop when your thought is captured."
         case .transferring:
             return "Sending Watch recordings to the iPhone queue."
         case .transferred:

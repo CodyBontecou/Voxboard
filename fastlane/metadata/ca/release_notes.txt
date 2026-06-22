@@ -1,5 +1,6 @@
-Novetats d'aquesta actualització:
-• Retroalimentació hàptica del teclat — ara les pulsacions tenen retroalimentació tàctil per defecte, amb un botó a Configuració per desactivar-ho.
-• Callouts d'accents amb pressió llarga — manteniu premuda una tecla en idiomes d'escriptura llatina per accedir a variants amb accents (à, é, ñ, ü, etc.).
-• Missatges d'estat localitzats a la barra d'eines del teclat en tots els idiomes compatibles.
-• Correcció d'error per a gravacions dins de l'app que podien activar respostes IPC duplicades.
+Enregistreu notes de veu des de l’Apple Watch i deixeu que Voxboard les sincronitzi amb l’iPhone quan es torni a connectar.
+
+Novetats d’aquesta actualització:
+• Enregistrament a l’Apple Watch — inicieu i atureu notes de veu locals al rellotge sense agafar l’iPhone.
+• Cua del Watch — els enregistraments queden desats a l’Apple Watch i apareixen a la cua de l’iPhone quan els dispositius es reconnecten.
+• Estat més clar — els estats A punt, Enregistrant, Sincronitzant, En cua i Enviat s’han redissenyat perquè sigui més fàcil saber què passa.

@@ -1,5 +1,6 @@
+Neem spraaknotities op vanaf uw Apple Watch en laat Voxboard ze met uw iPhone synchroniseren zodra u weer verbonden bent.
+
 Nieuw in deze update:
-• Toetsenbord haptische feedback — tikken hebben nu standaard tactiele feedback, met een schakelaar in Instellingen om het uit te zetten.
-• Lang indrukken accent pop-ups — houd een toets ingedrukt bij Latijnse talen om toegang te krijgen tot accenten varianten (à, é, ñ, ü, enz.).
-• Gelokaliseerde statusberichten op de toetsenbord werkbalk in alle ondersteunde talen.
-• Bugfix voor in-app opnames die dubbele IPC-reacties konden triggeren.
+• Apple Watch-opname — start en stop lokale spraaknotities op de Watch zonder uw iPhone te pakken.
+• Watch-wachtrij — opnames blijven op de Apple Watch bewaard en verschijnen in de iPhone-wachtrij wanneer de apparaten opnieuw verbinden.
+• Duidelijkere status — Vernieuwd voor Gereed, Opnemen, Synchroniseren, In wachtrij en Verzonden, zodat u beter ziet wat er gebeurt.

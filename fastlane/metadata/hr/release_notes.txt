@@ -1,5 +1,6 @@
-Novo u ovoj aktualizaciji:
-• Haptički odgovor tipkovnice — dodiri sada imaju taktilni odgovor prema zadanim postavkama, s prekidačem u Postavkama za isključivanje.
-• Pop-upovi naglasaka dugim pritiskom — držite tipku na jezicima latinskog pisma za pristup varijantama s naglascima (à, é, ñ, ü, itd.).
-• Lokalizirane statusne poruke na traci alata tipkovnice preko svih podržanih jezika.
-• Ispravka greške za snimke u aplikaciji koje su mogle pokrenuti duplicirane IPC odgovore.
+Snimajte glasovne bilješke na Apple Watchu, a Voxboard će ih sinkronizirati s iPhoneom kad se uređaji ponovno povežu.
+
+Novo u ovom ažuriranju:
+• Snimanje na Apple Watchu — pokrenite i zaustavite lokalne glasovne bilješke na satu bez iPhonea.
+• Red čekanja Watcha — snimke ostaju spremljene na Apple Watchu i pojavljuju se u redu čekanja iPhonea kad se uređaji ponovno povežu.
+• Jasniji status — stanja Spremno, Snimanje, Sinkronizacija, U redu i Poslano redizajnirana su radi lakšeg praćenja.

@@ -1,5 +1,6 @@
+Grave notas de voz no Apple Watch e deixe o Voxboard sincronizá-las com o iPhone quando os dispositivos se reconectarem.
+
 Novo nesta atualização:
-• Feedback háptico do teclado — toques agora têm feedback tátil por padrão, com um interruptor nas Configurações para desativá-lo.
-• Toque longo para acentos — segure uma tecla em idiomas de escrita latina para acessar variantes acentuadas (à, é, ñ, ü, etc.).
-• Mensagens de status localizadas na barra de ferramentas do teclado em todos os idiomas suportados.
-• Correção de bug para gravações dentro do aplicativo que podiam disparar respostas IPC duplicadas.
+• Gravação no Apple Watch — inicie e pare notas de voz locais no Watch sem pegar o iPhone.
+• Fila do Watch — as gravações ficam salvas no Apple Watch e aparecem na fila do iPhone quando os dispositivos se reconectam.
+• Status mais claro — os estados Pronto, Gravando, Sincronizando, Na fila e Enviado foram redesenhados para mostrar melhor o que está acontecendo.

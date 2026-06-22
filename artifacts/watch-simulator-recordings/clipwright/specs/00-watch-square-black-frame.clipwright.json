@@ -1,0 +1,86 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "title": "Voxboard Watch square lifecycle",
+    "createdWith": "Clipwright",
+    "seed": 320,
+    "notes": "Square 1:1 render using Clipwright's black Apple Watch frame. No text overlays; audio muted."
+  },
+  "canvas": {
+    "aspectRatio": "1:1",
+    "size": {
+      "width": 1080,
+      "height": 1080
+    },
+    "safeArea": {
+      "top": 0,
+      "leading": 0,
+      "bottom": 0,
+      "trailing": 0
+    }
+  },
+  "device": {
+    "id": "apple-watch-s11-46mm-sport-band",
+    "color": "aluminum-jet-black-sport-band-black",
+    "scale": 1.02
+  },
+  "background": {
+    "kind": "solid",
+    "color": "#F5F5F7",
+    "colors": []
+  },
+  "audio": {
+    "mode": "muted",
+    "volume": 0
+  },
+  "export": {
+    "preset": "square_1x1",
+    "width": 1080,
+    "height": 1080,
+    "frameRate": 30,
+    "bitrate": 14000000,
+    "format": "mp4",
+    "deterministicSeed": 320
+  },
+  "media": [
+    {
+      "id": "primary",
+      "kind": "video",
+      "path": "/Users/codybontecou/projects/Voxboard/artifacts/watch-simulator-recordings/clipwright/00-watch-square-source-lifecycle-clean.mp4",
+      "storage": "external",
+      "duration": 11.066667,
+      "naturalSize": {
+        "width": 422,
+        "height": 514
+      },
+      "frameRate": 30,
+      "hasAudio": false
+    }
+  ],
+  "timeline": {
+    "duration": 11.066667,
+    "primaryMediaID": "primary",
+    "segments": [
+      {
+        "id": "main",
+        "mediaID": "primary",
+        "start": 0,
+        "duration": 11.066667,
+        "trimStart": 0,
+        "trimEnd": 11.066667
+      }
+    ]
+  },
+  "effects": [
+    {
+      "id": "subtle-watch-push",
+      "type": "zoom_center",
+      "start": 0.2,
+      "duration": 10.666667,
+      "targetMediaID": "primary",
+      "parameters": {
+        "scale": 1.035
+      }
+    }
+  ]
+}

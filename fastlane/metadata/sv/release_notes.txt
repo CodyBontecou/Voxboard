@@ -1,5 +1,6 @@
-Nytt i denna uppdatering:
-• Tangentbord haptisk återkoppling — tryckningar har nu taktil återkoppling som standard, med en växlare i Inställningar för att stänga av det.
-• Långtryck accent pop-ups — håll ned en tangent på latinska skriftspråk för att komma åt accent-varianter (à, é, ñ, ü, osv.).
-• Lokaliserade statusmeddelanden på tangentbordets verktygsfält för alla språk som stöds.
-• Buggfix för in-app inspelningar som kunde utlösa duplicerade IPC-svar.
+Spela in röstanteckningar från Apple Watch och låt Voxboard synka dem till din iPhone när enheterna ansluts igen.
+
+Nytt i den här uppdateringen:
+• Apple Watch-inspelning — starta och stoppa lokala röstanteckningar på klockan utan att ta fram iPhone.
+• Watch-kö — inspelningar sparas på Apple Watch och visas i iPhone-kön när enheterna ansluts igen.
+• Tydligare status — statuslägena Redo, Spelar in, Synkar, I kö och Skickat har fått en tydligare design.

@@ -1,5 +1,6 @@
+Tallenna äänimuistiinpanoja Apple Watchilla ja anna Voxboardin synkronoida ne iPhoneen, kun laitteet yhdistyvät uudelleen.
+
 Uutta tässä päivityksessä:
-• Näppäimistön haptinen palaute — napautuksilla on nyt taktiilinen palaute oletuksena, Asetuksista voi kytkeä pois päältä.
-• Pitkän painalluksen aksenttivalikot — pidä näppäintä pohjassa latinalaisissa kielissä päästäksesi aksenttivariantteihin (à, é, ñ, ü, jne.).
-• Lokalisoidut tilaviestit näppäimistön työkalurivissä kaikilla tuetuilla kielillä.
-• Virheen korjaus sovelluksen sisäisille tallenteille, jotka saattoivat laukaista kaksinkertaisia IPC-vastauksia.
+• Apple Watch -tallennus — aloita ja lopeta paikalliset äänimuistiinpanot kellosta ilman iPhonea.
+• Watch-jono — tallenteet pysyvät Apple Watchissa ja ilmestyvät iPhonen jonoon, kun laitteet yhdistyvät uudelleen.
+• Selkeämpi tila — Valmis-, Tallennus-, Synkronointi-, Jonossa- ja Lähetetty-tilat on uudistettu ymmärrettävämmiksi.

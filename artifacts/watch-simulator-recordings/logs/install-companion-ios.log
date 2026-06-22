@@ -1,0 +1,24 @@
+Booting paired iPhone simulator 47234253-0237-4B17-AF1E-A7118087858E at Sat Jun 20 10:19:54 AST 2026
+Monitoring boot status for iPhone 17 (47234253-0237-4B17-AF1E-A7118087858E).
+[2026-06-20 14:19:56 +0000] Status=2, isTerminal=NO, Elapsed=00:01.
+	Waiting on Data Migration
+		Reason:(null)
+		Migration Elapsed:00:00 seconds
+
+[2026-06-20 14:20:02 +0000] Status=4, isTerminal=NO, Elapsed=00:08.
+	Waiting on System App
+
+[2026-06-20 14:20:02 +0000] Status=4, isTerminal=NO, Elapsed=00:08.
+	Waiting on System App
+
+[2026-06-20 14:20:03 +0000] Status=4, isTerminal=NO, Elapsed=00:08.
+	Waiting on System App
+
+[2026-06-20 14:20:04 +0000] Status=4, isTerminal=NO, Elapsed=00:09.
+	Waiting on System App
+
+[2026-06-20 14:20:05 +0000] Status=4294967295, isTerminal=YES, Elapsed=00:10.
+	Finished
+
+Installing companion iOS app: /tmp/voxboard-watch-sim-derived/Build/Products/Debug-iphonesimulator/Voxboard.app
+Installed bontecou.Voxboard

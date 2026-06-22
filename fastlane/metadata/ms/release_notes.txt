@@ -1,5 +1,6 @@
+Rakam nota suara daripada Apple Watch, kemudian biarkan Voxboard menyegerakkannya ke iPhone apabila peranti bersambung semula.
+
 Baharu dalam kemas kini ini:
-• Maklum balas haptik papan kekunci — ketikan kini mempunyai maklum balas taktil secara lalai, dengan togol Tetapan untuk mematikannya.
-• Panggilan aksen tekan-lama — tahan kekunci pada bahasa skrip Latin untuk mengakses varian beraksen (à, é, ñ, ü, dll.).
-• Mesej status berlokal pada bar alat papan kekunci merentas semua bahasa yang disokong.
-• Pembetulan pepijat untuk rakaman dalam-apl yang boleh mencetuskan respons IPC pendua.
+• Rakaman Apple Watch — mula dan hentikan nota suara setempat pada Watch tanpa mengambil iPhone.
+• Giliran Watch — rakaman kekal disimpan pada Apple Watch dan muncul dalam giliran iPhone apabila peranti bersambung semula.
+• Status lebih jelas — Sedia, Merakam, Menyegerak, Dalam Giliran dan Dihantar telah direka semula supaya lebih mudah difahami.

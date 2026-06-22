@@ -1,5 +1,6 @@
-Nou în această actualizare:
-• Feedback haptic tastatură — atingerile au acum feedback tactil implicit, cu comutator în Setări pentru a-l dezactiva.
-• Pop-up-uri accente apăsare lungă — țineți apăsată o tastă pe limbile cu scriere latină pentru a accesa variante cu accente (à, é, ñ, ü, etc.).
-• Mesaje de stare localizate pe bara de instrumente a tastaturii pentru toate limbile acceptate.
-• Corectare eroare pentru înregistrările in-app care puteau declanșa răspunsuri IPC duplicate.
+Înregistrați note vocale de pe Apple Watch, iar Voxboard le sincronizează pe iPhone când dispozitivele se reconectează.
+
+Noutăți în această actualizare:
+• Înregistrare pe Apple Watch — porniți și opriți note vocale locale pe ceas fără să luați iPhone-ul.
+• Coadă Watch — înregistrările rămân salvate pe Apple Watch și apar în coada iPhone-ului când dispozitivele se reconectează.
+• Stare mai clară — stările Gata, Înregistrare, Sincronizare, În coadă și Trimis au fost reproiectate pentru claritate.

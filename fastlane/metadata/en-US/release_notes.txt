@@ -1,6 +1,6 @@
-This update adds smarter review timing and Mac workflow improvements.
+Record voice notes from your Apple Watch, then let Voxboard sync them back to your iPhone when you reconnect.
 
 New in this update:
-• App Store reviews — Voxboard now asks for feedback only after you’ve had time to use it: after five successful transcriptions across at least two days.
-• Mac global keybind — start recording from anywhere on macOS, then press the same shortcut to stop and transcribe.
-• Mac Vox icons — choose custom Vox symbols with a searchable icon picker instead of typing SF Symbol names.
+• Apple Watch recording — start and stop local Watch voice notes without reaching for your phone.
+• Watch queue sync — recordings stay saved on Apple Watch and appear in your iPhone queue when the devices reconnect.
+• Clearer status — redesigned Ready, Recording, Syncing, Queued, and Sent states make it easier to trust what is happening.
