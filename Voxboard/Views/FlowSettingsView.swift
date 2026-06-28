@@ -71,7 +71,7 @@ struct FlowSettingsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Label("What is a Vox?", systemImage: "waveform.circle")
                     .font(.headline)
-                Text("A Vox is a reusable voice workflow. Choose one before recording and Voxboard uses it to decide how the transcript is cleaned, what frontmatter is added, and where the note or audio is saved.")
+                Text("A Vox is a reusable voice workflow. Choose one before recording and Vox.md uses it to decide how the transcript is cleaned, what frontmatter is added, and where the note or audio is saved.")
                 Text("Make different Vox's for meetings, journal entries, task capture, ideas, or any folder and template setup you use often.")
             }
             .font(.subheadline)
@@ -196,7 +196,7 @@ private struct FlowEditorView: View {
             if flow.postProcessingMode == .custom {
                 TextEditor(text: $flow.customPostProcessingInstruction)
                     .frame(minHeight: 90)
-                Text("Describe exactly how Voxboard should shape the cleaned/exported transcript. Leave blank to fall back to the normal cleanup path when AI enrichment is available.")
+                Text("Describe exactly how Vox.md should shape the cleaned/exported transcript. Leave blank to fall back to the normal cleanup path when AI enrichment is available.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -704,11 +704,11 @@ private extension RecordingFlowPostProcessingMode {
         case .clean:
             return "Uses the standard cleanup path when AI enrichment is available: fixes casing and punctuation, trims light filler words, and preserves the speaker's meaning. Without enrichment, the transcript remains raw."
         case .todoList:
-            return "Turns spoken tasks into `- [ ]` Markdown items. Voxboard reshapes only what you said and avoids inventing new tasks."
+            return "Turns spoken tasks into `- [ ]` Markdown items. Vox.md reshapes only what you said and avoids inventing new tasks."
         case .meetingNotes:
             return "Builds Markdown meeting notes with useful sections and best-effort action items. It keeps details grounded in the transcript and does not invent speakers or decisions."
         case .custom:
-            return "When on-device AI enrichment is available, Voxboard follows your instruction for the cleaned/exported text. Use it for formats like standup notes, journal prompts, summaries, or call follow-ups."
+            return "When on-device AI enrichment is available, Vox.md follows your instruction for the cleaned/exported text. Use it for formats like standup notes, journal prompts, summaries, or call follow-ups."
         }
     }
 }

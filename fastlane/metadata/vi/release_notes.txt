@@ -1,4 +1,4 @@
-Ghi chú thoại từ Apple Watch và để Voxboard đồng bộ về iPhone khi thiết bị kết nối lại.
+Ghi chú thoại từ Apple Watch và để Vox.md đồng bộ về iPhone khi thiết bị kết nối lại.
 
 Mới trong bản cập nhật này:
 • Ghi âm trên Apple Watch — bắt đầu và dừng ghi chú thoại cục bộ trên Watch mà không cần cầm iPhone.

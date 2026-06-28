@@ -86,7 +86,7 @@ final class MacStoreManager {
             try await AppStore.sync()
             await syncCurrentEntitlements()
             if !usageTracker.hasUnlocked {
-                errorMessage = "No Voxboard Unlimited purchase was found."
+                errorMessage = "No Vox.md Unlimited purchase was found."
             }
         } catch {
             errorMessage = "Restore failed: \(error.localizedDescription)"

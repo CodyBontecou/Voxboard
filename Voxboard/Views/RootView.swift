@@ -175,7 +175,7 @@ struct RootView: View {
             .listStyle(.sidebar)
             .scrollContentBackground(.hidden)
             .background(Brutal.bg)
-            .navigationTitle("VOXBOARD")
+            .navigationTitle("VOX.MD")
             .toolbarBackground(Brutal.bg, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         } detail: {

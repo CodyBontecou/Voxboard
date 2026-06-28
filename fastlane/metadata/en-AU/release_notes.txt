@@ -1,4 +1,4 @@
-Record voice notes from your Apple Watch, then let Voxboard sync them back to your iPhone when you reconnect.
+Record voice notes from your Apple Watch, then let Vox.md sync them back to your iPhone when you reconnect.
 
 New in this update:
 • Apple Watch recording — start and stop local Watch voice notes without reaching for your phone.

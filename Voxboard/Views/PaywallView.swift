@@ -66,7 +66,7 @@ struct PaywallView: View {
         HStack {
             BrutalStatusBadge(label: statusBadgeLabel, isActive: !usageTracker.isAtLimit)
             Spacer()
-            Text("VOXBOARD")
+            Text("VOX.MD")
                 .font(Brutal.label(.headline))
                 .foregroundColor(Brutal.text)
             Spacer()

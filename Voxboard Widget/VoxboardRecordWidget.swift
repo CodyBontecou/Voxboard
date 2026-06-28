@@ -77,7 +77,7 @@ struct VoxboardRecordWidget: Widget {
                 .widgetURL(entry.isQuickRecordEnabled ? URL(string: "voxboard://widget-record") : nil)
         }
         .configurationDisplayName("Quick Record")
-        .description("Tap to open Voxboard and start recording.")
+        .description("Tap to open Vox.md and start recording.")
         .supportedFamilies([.accessoryCircular, .accessoryRectangular, .systemSmall])
     }
 }

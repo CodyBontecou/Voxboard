@@ -1,4 +1,4 @@
-Nahrávejte hlasové poznámky na Apple Watch a nechte Voxboard synchronizovat je do iPhonu po opětovném připojení.
+Nahrávejte hlasové poznámky na Apple Watch a nechte Vox.md synchronizovat je do iPhonu po opětovném připojení.
 
 Novinky v této aktualizaci:
 • Nahrávání na Apple Watch — spusťte a zastavte místní hlasové poznámky na hodinkách bez iPhonu.

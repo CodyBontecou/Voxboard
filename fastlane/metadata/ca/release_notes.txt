@@ -1,4 +1,4 @@
-Enregistreu notes de veu des de l’Apple Watch i deixeu que Voxboard les sincronitzi amb l’iPhone quan es torni a connectar.
+Enregistreu notes de veu des de l’Apple Watch i deixeu que Vox.md les sincronitzi amb l’iPhone quan es torni a connectar.
 
 Novetats d’aquesta actualització:
 • Enregistrament a l’Apple Watch — inicieu i atureu notes de veu locals al rellotge sense agafar l’iPhone.

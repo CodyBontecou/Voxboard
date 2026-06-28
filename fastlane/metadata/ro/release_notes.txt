@@ -1,4 +1,4 @@
-Înregistrați note vocale de pe Apple Watch, iar Voxboard le sincronizează pe iPhone când dispozitivele se reconectează.
+Înregistrați note vocale de pe Apple Watch, iar Vox.md le sincronizează pe iPhone când dispozitivele se reconectează.
 
 Noutăți în această actualizare:
 • Înregistrare pe Apple Watch — porniți și opriți note vocale locale pe ceas fără să luați iPhone-ul.

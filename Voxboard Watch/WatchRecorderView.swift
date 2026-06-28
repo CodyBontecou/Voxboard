@@ -275,7 +275,7 @@ struct WatchRecorderView: View {
                     RoundedRectangle(cornerRadius: 5, style: .continuous)
                         .stroke(WatchBrutal.borderHi.opacity(0.45), lineWidth: 0.5)
                 )
-                .accessibilityLabel("Voxboard")
+                .accessibilityLabel("Vox.md")
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
@@ -556,9 +556,9 @@ struct WatchRecorderView: View {
     private var accessibilityStatusLabel: String {
         if localRecorder.isRecording, let startedAt = localRecorder.startedAt {
             let elapsed = Date().timeIntervalSince(startedAt)
-            return "Voxboard recording for \(Int(elapsed)) seconds."
+            return "Vox.md recording for \(Int(elapsed)) seconds."
         }
-        return "Voxboard Watch status: \(phaseBadgeLabel). \(localRecorder.subtitle)"
+        return "Vox.md Watch status: \(phaseBadgeLabel). \(localRecorder.subtitle)"
     }
 
     private func toggleRecording() async {

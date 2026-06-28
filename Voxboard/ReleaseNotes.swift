@@ -18,16 +18,16 @@ enum VoxboardReleaseNotes {
                 .media(
                     kind: .video,
                     url: watchFeatureVideoURL,
-                    title: "Voxboard now records from Apple Watch",
+                    title: "Vox.md now records from Apple Watch",
                     description: "See the new Watch flow: record from your wrist, save locally, then sync back to the iPhone queue when you reconnect."
                 ),
                 .list(
-                    title: "What’s new in Voxboard",
+                    title: "What’s new in Vox.md",
                     rows: [
                         .init(
                             symbolSystemName: "applewatch",
                             title: "Record on Apple Watch",
-                            description: "Start and stop voice notes directly from Voxboard on Apple Watch without reaching for your iPhone."
+                            description: "Start and stop voice notes directly from Vox.md on Apple Watch without reaching for your iPhone."
                         ),
                         .init(
                             symbolSystemName: "tray.full",
@@ -42,7 +42,7 @@ enum VoxboardReleaseNotes {
                         .init(
                             symbolSystemName: "app.badge",
                             title: "Faster Watch access",
-                            description: "Add the Voxboard Watch face shortcut for a quick path into recording from supported Apple Watch faces."
+                            description: "Add the Vox.md Watch face shortcut for a quick path into recording from supported Apple Watch faces."
                         )
                     ]
                 )
@@ -52,12 +52,12 @@ enum VoxboardReleaseNotes {
             version: "1.9.4",
             items: [
                 .list(
-                    title: "What’s new in Voxboard",
+                    title: "What’s new in Vox.md",
                     rows: [
                         .init(
                             symbolSystemName: "applewatch",
                             title: "Record on Apple Watch",
-                            description: "Capture voice notes from your wrist with the new Voxboard Watch app. Start recording, stop when you’re done, and keep moving without reaching for your iPhone."
+                            description: "Capture voice notes from your wrist with the new Vox.md Watch app. Start recording, stop when you’re done, and keep moving without reaching for your iPhone."
                         ),
                         .init(
                             symbolSystemName: "arrow.triangle.2.circlepath",
@@ -67,12 +67,12 @@ enum VoxboardReleaseNotes {
                         .init(
                             symbolSystemName: "tray.full",
                             title: "New Watch Queue on iPhone",
-                            description: "Home now shows incoming Watch audio with recording time, a Process action, and a discard button before Voxboard transcribes it."
+                            description: "Home now shows incoming Watch audio with recording time, a Process action, and a discard button before Vox.md transcribes it."
                         ),
                         .init(
                             symbolSystemName: "app.badge",
                             title: "Watch face shortcut",
-                            description: "Add the Voxboard recording widget to supported Apple Watch faces for faster access to the Watch recorder."
+                            description: "Add the Vox.md recording widget to supported Apple Watch faces for faster access to the Watch recorder."
                         ),
                         .init(
                             symbolSystemName: "iphone.radiowaves.left.and.right",
@@ -87,7 +87,7 @@ enum VoxboardReleaseNotes {
             version: "1.9",
             items: [
                 .list(
-                    title: "What’s new in Voxboard",
+                    title: "What’s new in Vox.md",
                     rows: [
                         .init(
                             symbolSystemName: "keyboard",
@@ -107,7 +107,7 @@ enum VoxboardReleaseNotes {
                         .init(
                             symbolSystemName: "mic.badge.plus",
                             title: "Voxes for every workflow",
-                            description: "Create named Vox presets for different kinds of dictation—journal entries, meeting notes, task capture, or anything custom. Pick one before recording and Voxboard applies its formatting, cleanup, frontmatter, export, and audio rules."
+                            description: "Create named Vox presets for different kinds of dictation—journal entries, meeting notes, task capture, or anything custom. Pick one before recording and Vox.md applies its formatting, cleanup, frontmatter, export, and audio rules."
                         ),
                         .init(
                             symbolSystemName: "folder.badge.gearshape",

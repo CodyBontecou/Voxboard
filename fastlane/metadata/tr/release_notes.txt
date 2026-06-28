@@ -1,4 +1,4 @@
-Apple Watch’ta sesli notlar kaydedin; Voxboard yeniden bağlandığınızda bunları iPhone’unuza eşitlesin.
+Apple Watch’ta sesli notlar kaydedin; Vox.md yeniden bağlandığınızda bunları iPhone’unuza eşitlesin.
 
 Bu güncellemedeki yenilikler:
 • Apple Watch kaydı — iPhone’u elinize almadan Watch’ta yerel sesli notları başlatın ve durdurun.

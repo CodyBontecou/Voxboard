@@ -5,7 +5,7 @@ import VoxboardShared
 @available(iOS 17.0, *)
 struct StartRecordingLiveActivityIntent: LiveActivityIntent {
     static let title: LocalizedStringResource = "Start Recording"
-    static let description = IntentDescription("Starts a Voxboard recording segment.")
+    static let description = IntentDescription("Starts a Vox.md recording segment.")
 
     init() {}
 
@@ -28,7 +28,7 @@ struct StartRecordingLiveActivityIntent: LiveActivityIntent {
 @available(iOS 17.0, *)
 struct StopRecordingLiveActivityIntent: LiveActivityIntent {
     static let title: LocalizedStringResource = "Stop Recording"
-    static let description = IntentDescription("Stops the active Voxboard recording segment.")
+    static let description = IntentDescription("Stops the active Vox.md recording segment.")
 
     init() {}
 

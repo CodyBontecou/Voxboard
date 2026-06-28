@@ -1,4 +1,4 @@
-Voxboard é um teclado de voz para texto offline para reconhecimento de voz e escrita por voz — sem internet, sem servidores, sem subscrição.
+Vox.md é um teclado de voz para texto offline para reconhecimento de voz e escrita por voz — sem internet, sem servidores, sem subscrição.
 
 Toque no botão do microfone em qualquer aplicação, fale naturalmente, e as suas palavras aparecem como texto. Tudo é processado no dispositivo usando Apple Silicon, portanto nada sai jamais do seu telefone.
 
@@ -6,7 +6,7 @@ Toque no botão do microfone em qualquer aplicação, fale naturalmente, e as su
 
 COMO FUNCIONA
 
-Voxboard adiciona um botão de voz ao seu teclado iOS. Quando quer ditar, toque no microfone, fale, e Voxboard transcreve a sua voz directamente no campo de texto — em Mensagens, Notas, Safari, ou qualquer aplicação que aceita um teclado.
+Vox.md adiciona um botão de voz ao seu teclado iOS. Quando quer ditar, toque no microfone, fale, e Vox.md transcreve a sua voz directamente no campo de texto — em Mensagens, Notas, Safari, ou qualquer aplicação que aceita um teclado.
 
 —
 
@@ -23,7 +23,7 @@ FUNCIONALIDADES
 
 NÍVEL GRATUITO
 
-Novos utilizadores ganham 15 minutos de transcrição gratuita para experimentar tudo. Actualize para Voxboard Unlimited com uma única compra única para remover todos os limites.
+Novos utilizadores ganham 15 minutos de transcrição gratuita para experimentar tudo. Actualize para Vox.md Unlimited com uma única compra única para remover todos os limites.
 
 —
 

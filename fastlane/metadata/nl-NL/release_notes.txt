@@ -1,4 +1,4 @@
-Neem spraaknotities op vanaf uw Apple Watch en laat Voxboard ze met uw iPhone synchroniseren zodra u weer verbonden bent.
+Neem spraaknotities op vanaf uw Apple Watch en laat Vox.md ze met uw iPhone synchroniseren zodra u weer verbonden bent.
 
 Nieuw in deze update:
 • Apple Watch-opname — start en stop lokale spraaknotities op de Watch zonder uw iPhone te pakken.

@@ -73,8 +73,8 @@ struct VoxEntityQuery: EntityQuery, EnumerableEntityQuery {
 
 @available(iOS 18.0, *)
 struct OpenVoxboardRecordIntent: AppIntent {
-    static let title: LocalizedStringResource = "Record with Voxboard"
-    static let description: IntentDescription = "Opens Voxboard and starts recording with the selected Vox."
+    static let title: LocalizedStringResource = "Record with Vox.md"
+    static let description: IntentDescription = "Opens Vox.md and starts recording with the selected Vox."
     static var openAppWhenRun: Bool = true
 
     @Parameter(title: "Vox", description: "The Vox preset to use for this recording.")

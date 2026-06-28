@@ -145,146 +145,146 @@
         }
       }
     },
-    "Limit reached — open Voxboard to unlock" : {
+    "Limit reached — open Vox.md to unlock" : {
       "comment" : "Error status shown in the keyboard toolbar when the free-tier limit is hit",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limit reached — open Voxboard to unlock"
+            "value" : "Limit reached — open Vox.md to unlock"
           }
         },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "تم الوصول إلى الحد — افتح Voxboard لإلغاء القفل"
+            "value" : "تم الوصول إلى الحد — افتح Vox.md لإلغاء القفل"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "সীমা পূর্ণ — আনলক করতে Voxboard খুলুন"
+            "value" : "সীমা পূর্ণ — আনলক করতে Vox.md খুলুন"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limit erreicht — öffne Voxboard zum Entsperren"
+            "value" : "Limit erreicht — öffne Vox.md zum Entsperren"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Límite alcanzado — abre Voxboard para desbloquear"
+            "value" : "Límite alcanzado — abre Vox.md para desbloquear"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limite atteinte — ouvrez Voxboard pour débloquer"
+            "value" : "Limite atteinte — ouvrez Vox.md pour débloquer"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "सीमा पूरी हो गई — अनलॉक करने के लिए Voxboard खोलें"
+            "value" : "सीमा पूरी हो गई — अनलॉक करने के लिए Vox.md खोलें"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Batas tercapai — buka Voxboard untuk membuka"
+            "value" : "Batas tercapai — buka Vox.md untuk membuka"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limite raggiunto — apri Voxboard per sbloccare"
+            "value" : "Limite raggiunto — apri Vox.md per sbloccare"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "上限に達しました — Voxboard を開いて解除してください"
+            "value" : "上限に達しました — Vox.md を開いて解除してください"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "한도에 도달했습니다 — 잠금을 해제하려면 Voxboard를 여세요"
+            "value" : "한도에 도달했습니다 — 잠금을 해제하려면 Vox.md를 여세요"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limiet bereikt — open Voxboard om te ontgrendelen"
+            "value" : "Limiet bereikt — open Vox.md om te ontgrendelen"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Osiągnięto limit — otwórz Voxboard, aby odblokować"
+            "value" : "Osiągnięto limit — otwórz Vox.md, aby odblokować"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limite atingido — abra o Voxboard para desbloquear"
+            "value" : "Limite atingido — abra o Vox.md para desbloquear"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Лимит достигнут — откройте Voxboard, чтобы разблокировать"
+            "value" : "Лимит достигнут — откройте Vox.md, чтобы разблокировать"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "வரம்பு எட்டியது — திறக்க Voxboard ஐத் திறக்கவும்"
+            "value" : "வரம்பு எட்டியது — திறக்க Vox.md ஐத் திறக்கவும்"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ถึงขีดจำกัดแล้ว — เปิด Voxboard เพื่อปลดล็อก"
+            "value" : "ถึงขีดจำกัดแล้ว — เปิด Vox.md เพื่อปลดล็อก"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sınıra ulaşıldı — kilidi açmak için Voxboard'u açın"
+            "value" : "Sınıra ulaşıldı — kilidi açmak için Vox.md'u açın"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ліміт досягнуто — відкрийте Voxboard, щоб розблокувати"
+            "value" : "Ліміт досягнуто — відкрийте Vox.md, щоб розблокувати"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "حد مکمل ہو گئی — غیر مقفل کرنے کے لیے Voxboard کھولیں"
+            "value" : "حد مکمل ہو گئی — غیر مقفل کرنے کے لیے Vox.md کھولیں"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đã đạt giới hạn — mở Voxboard để mở khóa"
+            "value" : "Đã đạt giới hạn — mở Vox.md để mở khóa"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已达上限 — 打开 Voxboard 以解锁"
+            "value" : "已达上限 — 打开 Vox.md 以解锁"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已達上限 — 開啟 Voxboard 解鎖"
+            "value" : "已達上限 — 開啟 Vox.md 解鎖"
           }
         }
       }
@@ -577,146 +577,146 @@
         }
       }
     },
-    "OPEN VOXBOARD" : {
-      "comment" : "Keyboard toolbar status prompting the user to open the main Voxboard app",
+    "OPEN VOX.MD" : {
+      "comment" : "Keyboard toolbar status prompting the user to open the main Vox.md app",
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OPEN VOXBOARD"
+            "value" : "OPEN VOX.MD"
           }
         },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "افتح VOXBOARD"
+            "value" : "افتح VOX.MD"
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VOXBOARD খুলুন"
+            "value" : "VOX.MD খুলুন"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VOXBOARD ÖFFNEN"
+            "value" : "VOX.MD ÖFFNEN"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ABRIR VOXBOARD"
+            "value" : "ABRIR VOX.MD"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OUVRIR VOXBOARD"
+            "value" : "OUVRIR VOX.MD"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VOXBOARD खोलें"
+            "value" : "VOX.MD खोलें"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "BUKA VOXBOARD"
+            "value" : "BUKA VOX.MD"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "APRI VOXBOARD"
+            "value" : "APRI VOX.MD"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VOXBOARD を開く"
+            "value" : "VOX.MD を開く"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VOXBOARD 열기"
+            "value" : "VOX.MD 열기"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OPEN VOXBOARD"
+            "value" : "OPEN VOX.MD"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OTWÓRZ VOXBOARD"
+            "value" : "OTWÓRZ VOX.MD"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ABRIR VOXBOARD"
+            "value" : "ABRIR VOX.MD"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ОТКРЫТЬ VOXBOARD"
+            "value" : "ОТКРЫТЬ VOX.MD"
           }
         },
         "ta" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VOXBOARD ஐத் திற"
+            "value" : "VOX.MD ஐத் திற"
           }
         },
         "th" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "เปิด VOXBOARD"
+            "value" : "เปิด VOX.MD"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VOXBOARD'U AÇ"
+            "value" : "VOX.MD'U AÇ"
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ВІДКРИТИ VOXBOARD"
+            "value" : "ВІДКРИТИ VOX.MD"
           }
         },
         "ur" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VOXBOARD کھولیں"
+            "value" : "VOX.MD کھولیں"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "MỞ VOXBOARD"
+            "value" : "MỞ VOX.MD"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开 VOXBOARD"
+            "value" : "打开 VOX.MD"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "開啟 VOXBOARD"
+            "value" : "開啟 VOX.MD"
           }
         }
       }

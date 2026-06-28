@@ -1,4 +1,4 @@
-Voxboard is een offline, on-device spraak-naar-tekst toetsenbord voor spraak naar tekst en stemtypen — geen internet, geen servers, geen abonnement.
+Vox.md is een offline, on-device spraak-naar-tekst toetsenbord voor spraak naar tekst en stemtypen — geen internet, geen servers, geen abonnement.
 
 Tik op de microfoonknop in elke app, spreek natuurlijk en uw woorden verschijnen als tekst. Alles wordt verwerkt op het apparaat met Apple Silicon, dus niets verlaat ooit uw telefoon.
 
@@ -6,7 +6,7 @@ Tik op de microfoonknop in elke app, spreek natuurlijk en uw woorden verschijnen
 
 HOE HET WERKT
 
-Voxboard voegt een stemknop toe aan uw iOS-toetsenbord. Wanneer u wilt dicteren, tikt u op de microfoon, spreekt u en Voxboard transcribeert uw stem direct in het tekstveld — in Berichten, Notities, Safari of elke app die een toetsenbord accepteert.
+Vox.md voegt een stemknop toe aan uw iOS-toetsenbord. Wanneer u wilt dicteren, tikt u op de microfoon, spreekt u en Vox.md transcribeert uw stem direct in het tekstveld — in Berichten, Notities, Safari of elke app die een toetsenbord accepteert.
 
 —
 
@@ -23,7 +23,7 @@ FUNCTIES
 
 GRATIS NIVEAU
 
-Nieuwe gebruikers krijgen 15 minuten gratis transcriptie om alles uit te proberen. Upgrade naar Voxboard Unlimited met één eenmalige aankoop om alle beperkingen weg te nemen.
+Nieuwe gebruikers krijgen 15 minuten gratis transcriptie om alles uit te proberen. Upgrade naar Vox.md Unlimited met één eenmalige aankoop om alle beperkingen weg te nemen.
 
 —
 

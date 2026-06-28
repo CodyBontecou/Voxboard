@@ -53,7 +53,7 @@ struct VoxboardMacApp: App {
     }
 
     var body: some Scene {
-        WindowGroup("Voxboard", id: "main") {
+        WindowGroup("Vox.md", id: "main") {
             MacRootView(recorder: recorder)
                 .environment(modelManager)
                 .environment(transcriptStore)
@@ -71,7 +71,7 @@ struct VoxboardMacApp: App {
                 }
         }
         .commands {
-            CommandMenu("Voxboard") {
+            CommandMenu("Vox.md") {
                 Button("Reveal Data Folder") {
                     if let url = AppConstants.sharedContainerURL {
                         NSWorkspace.shared.activateFileViewerSelecting([url])
@@ -117,9 +117,9 @@ struct VoxboardMacApp: App {
     }
 
     private var menuBarStatusText: String {
-        if recorder.isRecording { return "Voxboard is recording" }
-        if recorder.isTranscribing { return "Voxboard is transcribing" }
-        return "Voxboard"
+        if recorder.isRecording { return "Vox.md is recording" }
+        if recorder.isTranscribing { return "Vox.md is transcribing" }
+        return "Vox.md"
     }
 
     private func configureGlobalHotKey() {
@@ -482,7 +482,7 @@ final class MacGlobalHotKeyCenter {
             &eventHandlerRef
         )
         if status != noErr {
-            lastRegistrationError = "Could not install Voxboard hotkey listener. (OSStatus \(status))"
+            lastRegistrationError = "Could not install Vox.md hotkey listener. (OSStatus \(status))"
             KeyboardDebugLog.shared.log("[MacHotKey] ❌ InstallEventHandler failed: \(status)")
         }
     }
@@ -573,7 +573,7 @@ private struct MacMenuBarMenu: View {
         Button {
             showMainWindow()
         } label: {
-            Label("Show Voxboard", systemImage: "macwindow")
+            Label("Show Vox.md", systemImage: "macwindow")
         }
         .keyboardShortcut("0")
 
@@ -587,7 +587,7 @@ private struct MacMenuBarMenu: View {
 
         Divider()
 
-        Button("Quit Voxboard") {
+        Button("Quit Vox.md") {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q")
@@ -599,9 +599,9 @@ private struct MacMenuBarMenu: View {
     }
 
     private var statusTitle: String {
-        if recorder.isRecording { return "Voxboard — Recording" }
-        if recorder.isTranscribing { return "Voxboard — Transcribing" }
-        return "Voxboard — Ready"
+        if recorder.isRecording { return "Vox.md — Recording" }
+        if recorder.isTranscribing { return "Vox.md — Transcribing" }
+        return "Vox.md — Ready"
     }
 
     private var recordButtonTitle: String {

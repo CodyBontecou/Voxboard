@@ -16,7 +16,7 @@ class KeyboardViewController: KeyboardInputViewController {
         log.log("viewDidLoad — keyboard extension loaded")
 
         // Give the voice state a way to open URLs via our responder chain.
-        // Only used for the one-time "Open Voxboard to start listening" prompt.
+        // Only used for the one-time "Open Vox.md to start listening" prompt.
         voiceState.urlOpener = { [weak self] url in
             self?.openAppURL(url)
         }
@@ -87,7 +87,7 @@ class KeyboardViewController: KeyboardInputViewController {
 
     // MARK: - Open URL via Responder Chain
 
-    /// Open the containing Voxboard app.
+    /// Open the containing Vox.md app.
     /// Used only for the one-time "open app to start listening" prompt.
     private func openAppURL(_ url: URL) {
         log.log("openAppURL — opening: \(url.absoluteString)")

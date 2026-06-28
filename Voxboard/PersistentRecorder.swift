@@ -548,7 +548,7 @@ final class PersistentRecorder {
         }
         if usageTracker.isAtLimit {
             needsUnlock = true
-            lastError = "Free limit reached — unlock Voxboard to keep recording"
+            lastError = "Free limit reached — unlock Vox.md to keep recording"
             return false
         }
 
@@ -634,7 +634,7 @@ final class PersistentRecorder {
         }
         if usageTracker.isAtLimit {
             needsUnlock = true
-            lastError = "Free limit reached — unlock Voxboard to import audio"
+            lastError = "Free limit reached — unlock Vox.md to import audio"
             return false
         }
         guard let dir = AppConstants.recordingsDirectoryURL else {
@@ -749,7 +749,7 @@ final class PersistentRecorder {
         if UsageTracker.staticIsAtLimit {
             log.log("[PersistentRecorder] 🔒 Fast-path: Free limit reached — blocking segment")
             DispatchQueue.main.async { [weak self] in
-                self?.writeErrorResponse(requestId: command.requestId, message: "Free limit reached — open Voxboard to unlock")
+                self?.writeErrorResponse(requestId: command.requestId, message: "Free limit reached — open Vox.md to unlock")
                 self?.needsUnlock = true
             }
             return
@@ -809,7 +809,7 @@ final class PersistentRecorder {
         // Paywall check — block if free tier exhausted
         if usageTracker.isAtLimit {
             log.log("[PersistentRecorder] 🔒 Free limit reached — blocking segment")
-            writeErrorResponse(requestId: command.requestId, message: "Free limit reached — open Voxboard to unlock")
+            writeErrorResponse(requestId: command.requestId, message: "Free limit reached — open Vox.md to unlock")
             needsUnlock = true
             return
         }

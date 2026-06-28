@@ -71,7 +71,7 @@ struct WatchRecordingSnapshot: Equatable {
         phase: .unavailable,
         isQuickRecordEnabled: true,
         recordingStartedAt: nil,
-        message: "Open Voxboard on iPhone once.",
+        message: "Open Vox.md on iPhone once.",
         queuedCount: 0
     )
 
@@ -139,7 +139,7 @@ struct WatchRecordingSnapshot: Equatable {
         case .listening: return "Ready"
         case .pending: return "Sent"
         case .error: return "Needs attention"
-        case .idle, .unavailable: return queuedCount > 0 ? "Saved" : "Voxboard"
+        case .idle, .unavailable: return queuedCount > 0 ? "Saved" : "Vox.md"
         }
     }
 
@@ -260,7 +260,7 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
             setSnapshot(WatchRecordingSnapshot(
                 phase: .error,
                 isQuickRecordEnabled: true,
-                message: "Install Voxboard on iPhone"
+                message: "Install Vox.md on iPhone"
             ))
             return false
         }
@@ -313,7 +313,7 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
             let unavailable = WatchRecordingSnapshot(
                 phase: .unavailable,
                 isQuickRecordEnabled: true,
-                message: "Install Voxboard on iPhone"
+                message: "Install Vox.md on iPhone"
             )
             setSnapshot(unavailable)
             return unavailable
@@ -352,7 +352,7 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
             let blocked = WatchRecordingSnapshot(
                 phase: .error,
                 isQuickRecordEnabled: snapshot.isQuickRecordEnabled,
-                message: "Open Voxboard or leave Keyboard mic on."
+                message: "Open Vox.md or leave Keyboard mic on."
             )
             setSnapshot(blocked)
             return blocked

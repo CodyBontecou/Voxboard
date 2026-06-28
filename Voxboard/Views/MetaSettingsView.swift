@@ -84,7 +84,7 @@ struct MetaSettingsView: View {
 
     private var upgradeSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("—", "Voxboard Unlimited")
+            sectionHeader("—", "Vox.md Unlimited")
             BrutalDivider()
 
             if usageTracker.hasUnlocked {
@@ -187,7 +187,7 @@ struct MetaSettingsView: View {
                     Text("LIVE ACTIVITY MONITOR")
                         .font(Brutal.label())
                         .foregroundColor(Brutal.text)
-                    Text("Show Voxboard status and Record/Stop controls on the Lock Screen and Dynamic Island while listening.")
+                    Text("Show Vox.md status and Record/Stop controls on the Lock Screen and Dynamic Island while listening.")
                         .font(Brutal.caption())
                         .foregroundColor(Brutal.muted)
                 }
@@ -217,7 +217,7 @@ struct MetaSettingsView: View {
                     Text("LOCK SCREEN RECORD BUTTON")
                         .font(Brutal.label())
                         .foregroundColor(Brutal.text)
-                    Text("Allow the Quick Record widget/control to open Voxboard and immediately start recording.")
+                    Text("Allow the Quick Record widget/control to open Vox.md and immediately start recording.")
                         .font(Brutal.caption())
                         .foregroundColor(Brutal.muted)
                 }
@@ -303,7 +303,7 @@ struct MetaSettingsView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Join our Discord")
-            .accessibilityHint("Opens the Voxboard Discord community in your browser")
+            .accessibilityHint("Opens the Vox.md Discord community in your browser")
 
             BrutalDivider()
 

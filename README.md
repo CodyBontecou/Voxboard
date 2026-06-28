@@ -1,4 +1,4 @@
-# Voxboard
+# Vox.md
 
 > **Open source, privacy-first voice-to-text for iOS and macOS — on-device transcription that works anywhere you type.**
 
@@ -6,7 +6,7 @@
 [![Platform](https://img.shields.io/badge/platform-iOS%2017.6%2B%20%7C%20iPadOS-lightgrey)](#tech-stack)
 [![Swift](https://img.shields.io/badge/swift-5-orange)](#tech-stack)
 
-Voxboard is a custom iOS keyboard, iOS transcription app, and macOS companion app for turning speech into text without sending audio to the cloud. It runs Whisper and Parakeet models on-device, saves transcript history locally, and can auto-export notes to files for workflows like Obsidian. No accounts. No ads. No servers for your voice or transcript data. Just your keyboard, your models, and your words.
+Vox.md is a custom iOS keyboard, iOS transcription app, and macOS companion app for turning speech into text without sending audio to the cloud. It runs Whisper and Parakeet models on-device, saves transcript history locally, and can auto-export notes to files for workflows like Obsidian. No accounts. No ads. No servers for your voice or transcript data. Just your keyboard, your models, and your words.
 
 **[🌐 Website](https://voxboard-app.vercel.app/)** · **[📲 Download](https://voxboard-app.vercel.app/)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[💬 Discussions](https://github.com/CodyBontecou/Voxboard/discussions)** · **[👥 Discord](https://discord.gg/RaQYS4t6gn)** · **[⭐ Star this repo](https://github.com/CodyBontecou/Voxboard)**
 
@@ -14,18 +14,18 @@ Voxboard is a custom iOS keyboard, iOS transcription app, and macOS companion ap
 
 | Voice to text | Works in any app | Auto-save transcripts |
 |---|---|---|
-| ![Voxboard home screen with recording controls](screenshots/01-home.png) | ![Voxboard keyboard transcribing in Safari](screenshots/06-keyboard-safari.png) | ![Voxboard settings and file export options](screenshots/05-settings-scrolled.png) |
+| ![Vox.md home screen with recording controls](screenshots/01-home.png) | ![Vox.md keyboard transcribing in Safari](screenshots/06-keyboard-safari.png) | ![Vox.md settings and file export options](screenshots/05-settings-scrolled.png) |
 
 ## Features
 
 ### Voice Keyboard
-Add the Voxboard keyboard to iOS and dictate into any text field — Messages, Notes, Safari, or any app that accepts a keyboard. The keyboard toolbar controls recording and inserts finished transcripts directly where you are typing.
+Add the Vox.md keyboard to iOS and dictate into any text field — Messages, Notes, Safari, or any app that accepts a keyboard. The keyboard toolbar controls recording and inserts finished transcripts directly where you are typing.
 
 ### On-Device Transcription
 Speech recognition runs locally using `whisper.cpp` and Core ML/FluidAudio-backed Parakeet models. Audio and transcripts stay on the device. The app only uses the network for optional model downloads and normal App Store purchase flows.
 
 ### One-Shot Recording + Keyboard Listening
-Tap **Start Recording** in the app, from Shortcuts, or from a widget to record one segment, process it locally, and automatically return the microphone session to idle. Keyboard users can still open Voxboard from the keyboard to start persistent listening, then mark recording segments from any text field.
+Tap **Start Recording** in the app, from Shortcuts, or from a widget to record one segment, process it locally, and automatically return the microphone session to idle. Keyboard users can still open Vox.md from the keyboard to start persistent listening, then mark recording segments from any text field.
 
 ### Model Picker
 Download and switch between multiple local models: Whisper Tiny, Base, Small, Medium, Large v3 Turbo, plus Parakeet v2/v3. Pick lighter models for speed or larger models for accuracy.
@@ -37,7 +37,7 @@ Every transcription is stored locally in the shared App Group container. Browse 
 Automatically save transcripts after each session as TXT, Markdown, or YAML. Choose a destination folder, use filename templates, append to a single file, render Markdown templates, and enable Obsidian-friendly frontmatter.
 
 ### Apple Intelligence Enrichment
-On iOS 26+ devices and macOS 26+ Macs with Apple Intelligence, Voxboard can generate titles, tags, categories, cleaned-up text, and smart folder routing — still locally on-device through Apple's Foundation Models framework.
+On iOS 26+ devices and macOS 26+ Macs with Apple Intelligence, Vox.md can generate titles, tags, categories, cleaned-up text, and smart folder routing — still locally on-device through Apple's Foundation Models framework.
 
 ### Widgets & Live Activities
 Start or monitor recording from widgets, Live Activities, the lock screen, and Dynamic Island. The widget target shares state through the same private App Group container.
@@ -47,7 +47,7 @@ Record directly on your Mac, import audio or video files, pick local Whisper or 
 
 ## Pricing
 
-Voxboard includes **15 minutes of free transcription** so you can test the full flow.
+Vox.md includes **15 minutes of free transcription** so you can test the full flow.
 
 Unlimited transcription is a one-time **$9.99** unlock. No subscription, no renewal, no ads. Users who bought the original paid app build are automatically grandfathered into unlimited access.
 
@@ -149,7 +149,7 @@ website/                            # Static marketing, privacy, and terms pages
 1. Clone the repo:
    ```bash
    git clone https://github.com/CodyBontecou/Voxboard.git
-   cd Voxboard
+   cd Vox.md
    ```
 2. Open `Voxboard.xcodeproj` in Xcode 26.2+.
 3. Select the **Voxboard** scheme for iOS or **Voxboard Mac** for the macOS companion.
@@ -175,7 +175,7 @@ The app requests the following permissions/settings at runtime:
 
 The app registers the `voxboard://` URL scheme:
 
-- `voxboard://listen` — opens Voxboard and starts the keyboard launch/listening flow.
+- `voxboard://listen` — opens Vox.md and starts the keyboard launch/listening flow.
 - `voxboard://record` — legacy keyboard record entry point, redirected to listening mode.
 - `voxboard://widget-record` — widget entry point for starting a recording flow.
 
@@ -187,4 +187,4 @@ If you want to chat about the project, design decisions, or what to build next, 
 
 ## License
 
-Voxboard is licensed under the [GNU Affero General Public License v3.0](LICENSE). The AGPL ensures that any modified version of Voxboard — including ones run as a hosted service — must also be open source. This protects the privacy-first promise: nobody can take Voxboard, bolt on invasive tracking or cloud transcription, and ship it as a closed product.
+Vox.md is licensed under the [GNU Affero General Public License v3.0](LICENSE). The AGPL ensures that any modified version of Vox.md — including ones run as a hosted service — must also be open source. This protects the privacy-first promise: nobody can take Vox.md, bolt on invasive tracking or cloud transcription, and ship it as a closed product.

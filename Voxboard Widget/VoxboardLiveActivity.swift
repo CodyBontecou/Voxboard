@@ -79,7 +79,7 @@ private struct LockScreenBanner: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Voxboard")
+                Text("Vox.md")
                     .font(.headline)
                     .foregroundStyle(.white)
                 if let started = state.segmentStartedAt, state.isSegmentActive {
@@ -150,7 +150,7 @@ private extension VoxboardLiveActivityState {
     var activityTitle: String {
         if isSegmentActive { return "Recording" }
         if isTranscribing { return "Processing" }
-        return "Voxboard"
+        return "Vox.md"
     }
 
     var activityTint: Color {

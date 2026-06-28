@@ -4,7 +4,7 @@ Copy everything below the `---` line and paste it into Claude with computer use 
 
 ---
 
-You are going to set up an iOS app called **Voxboard** in App Store Connect by clicking through the UI yourself. Do NOT describe steps or give instructions — actually navigate, click, type, and fill in every field. After each action, take a screenshot to confirm what happened before moving on.
+You are going to set up an iOS app called **Vox.md** in App Store Connect by clicking through the UI yourself. Do NOT describe steps or give instructions — actually navigate, click, type, and fill in every field. After each action, take a screenshot to confirm what happened before moving on.
 
 ## Step 0 — Sign In
 
@@ -14,14 +14,14 @@ You are going to set up an iOS app called **Voxboard** in App Store Connect by c
 
 ## Step 1 — Create the App
 
-If an app named "Voxboard" already exists in the app list, click it and skip to Step 2.
+If an app named "Vox.md" already exists in the app list, click it and skip to Step 2.
 
 Otherwise:
 
 1. Click the **+** button near the top-left → **New App**
 2. Fill in the dialog:
    - **Platforms:** check **iOS** only
-   - **Name:** `Voxboard`
+   - **Name:** `Vox.md`
    - **Primary Language:** `English (U.S.)`
    - **Bundle ID:** select `bontecou.Voxboard` from the dropdown (it is already registered in the developer portal)
    - **SKU:** `bontecou.Voxboard`
@@ -64,13 +64,13 @@ Click **App Privacy** in the left sidebar.
      - Purpose: **Analytics**
      - Linked to user: **No**
      - Used for tracking: **No**
-   - **Identifiers → User ID** (anonymous Voxboard install UUID used only for onboarding funnel counts)
+   - **Identifiers → User ID** (anonymous Vox.md install UUID used only for onboarding funnel counts)
      - Purpose: **Analytics**
      - Linked to user: **No**
      - Used for tracking: **No**
 4. Confirm / Save / Publish the privacy responses
 
-This is accurate for the production onboarding analytics engine: Voxboard sends minimal first-party onboarding events and an anonymous app-install ID to understand setup friction. Do **not** disclose audio, transcripts, keystrokes, user content, contacts, location, diagnostics, advertising data, or third-party tracking for this analytics path.
+This is accurate for the production onboarding analytics engine: Vox.md sends minimal first-party onboarding events and an anonymous app-install ID to understand setup friction. Do **not** disclose audio, transcripts, keystrokes, user content, contacts, location, diagnostics, advertising data, or third-party tracking for this analytics path.
 
 ## Step 5 — Version 1.0 Metadata
 
@@ -82,11 +82,11 @@ Scroll to the **App Previews and Screenshots** section. Select the **6.5-Inch Di
 
 Upload these 5 screenshot files **in this exact order**. They are on the local filesystem — drag or upload them one at a time:
 
-1. `/Users/codybontecou/dev/Voxboard/output/appstore-slide-1.png`
-2. `/Users/codybontecou/dev/Voxboard/output/appstore-slide-2.png`
-3. `/Users/codybontecou/dev/Voxboard/output/appstore-slide-3.png`
-4. `/Users/codybontecou/dev/Voxboard/output/appstore-slide-4.png`
-5. `/Users/codybontecou/dev/Voxboard/output/appstore-slide-5.png`
+1. `/Users/codybontecou/dev/Vox.md/output/appstore-slide-1.png`
+2. `/Users/codybontecou/dev/Vox.md/output/appstore-slide-2.png`
+3. `/Users/codybontecou/dev/Vox.md/output/appstore-slide-3.png`
+4. `/Users/codybontecou/dev/Vox.md/output/appstore-slide-4.png`
+5. `/Users/codybontecou/dev/Vox.md/output/appstore-slide-5.png`
 
 All are 1242×2688 PNG (the correct 6.5-inch format).
 
@@ -103,10 +103,10 @@ On-device voice transcription powered by Whisper AI. No cloud transcription, no 
 
 **Description:**
 ```
-Voxboard turns your voice into text — entirely on your device. Powered by whisper.cpp, it delivers fast, accurate speech-to-text without ever sending your audio to the cloud.
+Vox.md turns your voice into text — entirely on your device. Powered by whisper.cpp, it delivers fast, accurate speech-to-text without ever sending your audio to the cloud.
 
 CUSTOM KEYBOARD
-Install the Voxboard keyboard and transcribe your voice in any app — Safari, Notes, Messages, and more. Tap the microphone, speak, and watch your words appear.
+Install the Vox.md keyboard and transcribe your voice in any app — Safari, Notes, Messages, and more. Tap the microphone, speak, and watch your words appear.
 
 ALWAYS-ON LISTENING
 Start listening once in the app, then switch to whatever you're doing. The keyboard controls recording — tap Start to capture a segment, tap Stop to transcribe. No need to keep the app open.
@@ -115,7 +115,7 @@ CHOOSE YOUR MODEL
 Pick from 5 Whisper AI models ranging from 75 MB (Tiny — fast and light) to 1.6 GB (Large — maximum accuracy). Download only what you need.
 
 COMPLETE PRIVACY
-All speech processing happens on your iPhone using whisper.cpp. Audio recordings, transcripts, keystrokes, and exported note contents stay on your device. Voxboard collects only minimal, privacy-safe onboarding analytics to understand setup friction. No accounts or cloud transcription.
+All speech processing happens on your iPhone using whisper.cpp. Audio recordings, transcripts, keystrokes, and exported note contents stay on your device. Vox.md collects only minimal, privacy-safe onboarding analytics to understand setup friction. No accounts or cloud transcription.
 
 FEATURES
 • Custom iOS keyboard with voice transcription
@@ -174,14 +174,14 @@ Scroll to the **App Review Information** section (near the bottom of the version
 
 - **Notes:**
 ```
-Voxboard is a custom keyboard extension with voice transcription powered by whisper.cpp (on-device ML).
+Vox.md is a custom keyboard extension with voice transcription powered by whisper.cpp (on-device ML).
 
 To test the keyboard:
 1. Launch the app and grant microphone permission when prompted.
 2. Tap "Start Listening" to activate always-on background audio capture.
-3. Go to Settings → General → Keyboard → Keyboards → Add New Keyboard → select "Voxboard".
-4. Tap the Voxboard keyboard entry → enable "Allow Full Access" (required for microphone access in keyboard extensions).
-5. Open any text field (e.g., Notes app), switch to the Voxboard keyboard using the globe icon.
+3. Go to Settings → General → Keyboard → Keyboards → Add New Keyboard → select "Vox.md".
+4. Tap the Vox.md keyboard entry → enable "Allow Full Access" (required for microphone access in keyboard extensions).
+5. Open any text field (e.g., Notes app), switch to the Vox.md keyboard using the globe icon.
 6. Tap the Record button on the keyboard toolbar, speak, then tap Stop. Your speech will be transcribed and inserted as text.
 
 The app ships with the Whisper "Base" model (142 MB) bundled. Additional models can be downloaded from Settings within the app. Speech processing is done on-device. Production builds also send minimal, first-party onboarding analytics events to understand setup friction; these events never include audio, transcripts, keystrokes, file paths, template text, exported note contents, or user-entered content.
@@ -222,7 +222,7 @@ Fill in everything and save, but do **not** submit. I want to review it all manu
 
 | Field | Value |
 |---|---|
-| App Name | Voxboard |
+| App Name | Vox.md |
 | Bundle ID | bontecou.Voxboard |
 | SKU | bontecou.Voxboard |
 | Primary Language | English (U.S.) |

@@ -1,4 +1,4 @@
-Optag stemmenoter fra Apple Watch, og lad Voxboard synkronisere dem til din iPhone, når enhederne forbindes igen.
+Optag stemmenoter fra Apple Watch, og lad Vox.md synkronisere dem til din iPhone, når enhederne forbindes igen.
 
 Nyt i denne opdatering:
 • Apple Watch-optagelse — start og stop lokale stemmenoter på uret uden at tage din iPhone frem.

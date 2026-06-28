@@ -38,7 +38,7 @@ final class MacRecorder {
         guard !isRecording, !isTranscribing else { return }
         guard !usageTracker.isAtLimit else {
             needsUnlock = true
-            lastError = "Free limit reached — unlock Voxboard to keep recording."
+            lastError = "Free limit reached — unlock Vox.md to keep recording."
             return
         }
         guard validateSelectedModel(modelManager.selectedModel) else { return }
@@ -83,7 +83,7 @@ final class MacRecorder {
         }
         guard !usageTracker.isAtLimit else {
             needsUnlock = true
-            lastError = "Free limit reached — unlock Voxboard to import audio."
+            lastError = "Free limit reached — unlock Vox.md to import audio."
             return
         }
         guard validateSelectedModel(modelManager.selectedModel) else { return }
@@ -398,7 +398,7 @@ final class MacRecorder {
         guard resolveSecurityScopedURL(from: flow.exportSettings.folderBookmark) == nil else { return flow }
         guard let selection = requestDirectoryAccess(
             title: "Choose Export Folder",
-            message: "Voxboard needs permission to save notes for the \"\(flow.displayName)\" Vox."
+            message: "Vox.md needs permission to save notes for the \"\(flow.displayName)\" Vox."
         ) else {
             KeyboardDebugLog.shared.log("[MacRecorder] Export folder selection cancelled for flow \(flow.id)")
             return flow
@@ -417,7 +417,7 @@ final class MacRecorder {
               resolveSecurityScopedURL(from: defaults.data(forKey: AppConstants.fileExportBookmarkKey)) == nil,
               let selection = requestDirectoryAccess(
                 title: "Choose Export Folder",
-                message: "Voxboard needs permission to save transcript files."
+                message: "Vox.md needs permission to save transcript files."
               ) else {
             return
         }

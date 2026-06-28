@@ -213,7 +213,7 @@ final class VoiceKeyboardState {
 
         // Check if free tier is exhausted
         if UsageTracker.staticIsAtLimit {
-            status = .error(String(localized: "Limit reached — open Voxboard to unlock"))
+            status = .error(String(localized: "Limit reached — open Vox.md to unlock"))
             log.log("🔒 startRecording blocked — free tier limit reached")
             resetErrorAfterDelay()
             return
@@ -225,7 +225,7 @@ final class VoiceKeyboardState {
         let listeningState = TranscriptionIPC.readListeningState()
         guard TranscriptionIPC.isListeningStateFresh(listeningState) else {
             status = .appNotListening
-            log.log("❌ App is not listening or heartbeat is stale — opening Voxboard once")
+            log.log("❌ App is not listening or heartbeat is stale — opening Vox.md once")
             openApp(hasFullAccess: hasFullAccess)
             return
         }

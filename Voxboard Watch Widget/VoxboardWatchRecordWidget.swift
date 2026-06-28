@@ -17,7 +17,7 @@ struct VoxboardWatchRecordEntry: TimelineEntry {
 
 struct VoxboardWatchRecordConfigurationIntent: WidgetConfigurationIntent {
     static let title: LocalizedStringResource = "Record voice note"
-    static let description = IntentDescription("Start a local Watch recording and sync it to Voxboard.")
+    static let description = IntentDescription("Start a local Watch recording and sync it to Vox.md.")
 }
 
 struct VoxboardWatchRecordProvider: AppIntentTimelineProvider {
@@ -71,7 +71,7 @@ struct VoxboardWatchRecordWidget: Widget {
                 .widgetURL(WatchRecordingDeepLink.toggleURL)
         }
         .configurationDisplayName("Record voice note")
-        .description("Start a voice note from your Apple Watch face and sync it to Voxboard on iPhone.")
+        .description("Start a voice note from your Apple Watch face and sync it to Vox.md on iPhone.")
         .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline, .accessoryCorner])
     }
 }
@@ -156,7 +156,7 @@ struct VoxboardWatchRecordWidgetView: View {
                             .fill(stateColor)
                             .frame(width: 4, height: 4)
                             .widgetAccentable()
-                        Text("VOXBOARD")
+                        Text("VOX.MD")
                             .font(WatchWidgetBrutal.label(11, weight: .bold))
                             .widgetAccentable()
                     }
@@ -230,11 +230,11 @@ struct VoxboardWatchRecordWidgetView: View {
         case .pending:
             return "Synced"
         case .error:
-            return "Check Voxboard"
+            return "Check Vox.md"
         case .unavailable:
             return "Open iPhone"
         case .idle, .listening:
-            return entry.snapshot.queuedCount > 0 ? entry.snapshot.subtitle : "Record to Voxboard"
+            return entry.snapshot.queuedCount > 0 ? entry.snapshot.subtitle : "Record to Vox.md"
         }
     }
 

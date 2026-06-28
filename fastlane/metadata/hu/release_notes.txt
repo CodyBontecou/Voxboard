@@ -1,4 +1,4 @@
-Rögzítsen hangjegyzeteket Apple Watchon, és a Voxboard újracsatlakozáskor szinkronizálja őket az iPhone-ra.
+Rögzítsen hangjegyzeteket Apple Watchon, és a Vox.md újracsatlakozáskor szinkronizálja őket az iPhone-ra.
 
 Újdonságok ebben a frissítésben:
 • Apple Watch-felvétel — indítson és állítson le helyi hangjegyzeteket az órán, iPhone nélkül.

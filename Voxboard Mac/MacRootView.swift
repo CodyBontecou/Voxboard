@@ -30,7 +30,7 @@ struct MacRootView: View {
     var body: some View {
         NavigationSplitView {
             List(selection: $selection) {
-                Section("VOXBOARD") {
+                Section("VOX.MD") {
                     ForEach(MacDestination.allCases) { destination in
                         NavigationLink(value: destination) {
                             Label(destination.rawValue, systemImage: destination.symbol)
@@ -131,7 +131,7 @@ private struct MacHomeView: View {
                     isActive: recorder.isRecording || recorder.isTranscribing
                 )
                 Spacer()
-                Text("VOXBOARD MAC")
+                Text("VOX.MD MAC")
                     .font(Brutal.label(.headline))
                     .foregroundColor(Brutal.text)
                 Spacer()
@@ -187,7 +187,7 @@ private struct MacHomeView: View {
     private var centerContent: some View {
         if !micPermissionGranted {
             VStack(spacing: 20) {
-                statusBlock(number: "01", title: "Status", headline: "NO MIC.", detail: "Enable microphone access for Voxboard in macOS Privacy & Security, then start recording again.", color: Brutal.error)
+                statusBlock(number: "01", title: "Status", headline: "NO MIC.", detail: "Enable microphone access for Vox.md in macOS Privacy & Security, then start recording again.", color: Brutal.error)
                 Button("OPEN PRIVACY SETTINGS") { openMicrophonePrivacySettings() }
                     .buttonStyle(BrutalButtonStyle(variant: .secondary))
                     .frame(maxWidth: 260)
@@ -1128,7 +1128,7 @@ private struct MacSettingsView: View {
             Brutal.surface.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 0) {
-                    sectionHeader("—", "Voxboard Unlimited")
+                    sectionHeader("—", "Vox.md Unlimited")
                     settingsRow(title: usageTracker.hasUnlocked ? "UNLIMITED UNLOCKED" : "UNLOCK UNLIMITED", detail: usageTracker.hasUnlocked ? "Lifetime access — no limits" : String(format: "%.1f / 15 min free used", usageTracker.minutesUsed), trailing: usageTracker.hasUnlocked ? "PURCHASED" : storeManager.displayPrice)
                     if !usageTracker.hasUnlocked {
                         Button("VIEW UPGRADE OPTIONS") { showPaywall = true }
@@ -1181,13 +1181,13 @@ private struct MacSettingsView: View {
     private var visibilityFootnote: String {
         switch visibilityMode {
         case .dockAndMenuBar:
-            return "Default. Click “Show Voxboard” from the menu bar or use Cmd-Tab."
+            return "Default. Click “Show Vox.md” from the menu bar or use Cmd-Tab."
         case .menuBarOnly:
-            return "No Dock icon or Cmd-Tab entry. Click the menu bar item to reveal Voxboard."
+            return "No Dock icon or Cmd-Tab entry. Click the menu bar item to reveal Vox.md."
         case .dockOnly:
-            return "Use the Dock icon or Cmd-Tab to bring Voxboard forward."
+            return "Use the Dock icon or Cmd-Tab to bring Vox.md forward."
         case .hidden:
-            return "Fully hidden. Reopen Voxboard from Spotlight, Finder, or Launchpad to access it again."
+            return "Fully hidden. Reopen Vox.md from Spotlight, Finder, or Launchpad to access it again."
         }
     }
 
@@ -1209,7 +1209,7 @@ private struct MacSettingsView: View {
         VStack(spacing: 0) {
             BrutalDivider()
             VStack(alignment: .leading, spacing: 14) {
-                Text("Choose where Voxboard appears. macOS controls the Dock icon and Cmd-Tab entry together.")
+                Text("Choose where Vox.md appears. macOS controls the Dock icon and Cmd-Tab entry together.")
                     .font(Brutal.caption())
                     .foregroundColor(Brutal.muted)
 
@@ -1348,7 +1348,7 @@ private struct MacHotKeyRecorderSheet: View {
                 Text("SET GLOBAL KEYBIND")
                     .font(Brutal.heading(.title2))
                     .foregroundColor(Brutal.text)
-                Text("Choose a shortcut Voxboard will listen for while the Mac app is running.")
+                Text("Choose a shortcut Vox.md will listen for while the Mac app is running.")
                     .font(Brutal.body())
                     .foregroundColor(Brutal.muted)
                     .multilineTextAlignment(.center)
@@ -1491,10 +1491,10 @@ private struct MacPaywallView: View {
 
     var body: some View {
         VStack(spacing: 22) {
-            Text("VOXBOARD UNLIMITED")
+            Text("VOX.MD UNLIMITED")
                 .font(Brutal.heading(.title))
                 .foregroundColor(Brutal.text)
-            Text("Unlock unlimited local transcription across Voxboard. No subscription, no server, no ads.")
+            Text("Unlock unlimited local transcription across Vox.md. No subscription, no server, no ads.")
                 .font(Brutal.body())
                 .foregroundColor(Brutal.muted)
                 .multilineTextAlignment(.center)

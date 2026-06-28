@@ -1,4 +1,4 @@
-Voxboard ialah papan kekunci suara-ke-teks luar talian dan dalam-peranti untuk speech-to-text dan voice typing — tiada internet, tiada pelayan, tiada langganan.
+Vox.md ialah papan kekunci suara-ke-teks luar talian dan dalam-peranti untuk speech-to-text dan voice typing — tiada internet, tiada pelayan, tiada langganan.
 
 Ketik butang mikrofon dalam mana-mana apl, bertutur secara semula jadi, dan perkataan anda muncul sebagai teks. Semua diproses dalam-peranti menggunakan Apple Silicon, jadi tiada apa-apa yang meninggalkan telefon anda.
 
@@ -6,7 +6,7 @@ Ketik butang mikrofon dalam mana-mana apl, bertutur secara semula jadi, dan perk
 
 BAGAIMANA IA BERFUNGSI
 
-Voxboard menambah butang suara pada papan kekunci iOS anda. Apabila anda ingin mendiktekan, ketik mikrofon, bertutur, dan Voxboard menyalin suara anda terus ke medan teks — dalam Messages, Notes, Safari, atau mana-mana apl yang menerima papan kekunci.
+Vox.md menambah butang suara pada papan kekunci iOS anda. Apabila anda ingin mendiktekan, ketik mikrofon, bertutur, dan Vox.md menyalin suara anda terus ke medan teks — dalam Messages, Notes, Safari, atau mana-mana apl yang menerima papan kekunci.
 
 —
 
@@ -23,7 +23,7 @@ CIRI-CIRI
 
 TAHAP PERCUMA
 
-Pengguna baru mendapat 15 minit transkripsi percuma untuk mencuba semuanya. Naik taraf ke Voxboard Unlimited dengan satu pembelian sekali untuk mengeluarkan semua had.
+Pengguna baru mendapat 15 minit transkripsi percuma untuk mencuba semuanya. Naik taraf ke Vox.md Unlimited dengan satu pembelian sekali untuk mengeluarkan semua had.
 
 —
 

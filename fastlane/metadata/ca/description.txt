@@ -1,4 +1,4 @@
-Voxboard és un teclat de veu a text offline que funciona al dispositiu per a la transcripció de veu i l'escriptura per veu — sense internet, sense servidors, sense subscripció.
+Vox.md és un teclat de veu a text offline que funciona al dispositiu per a la transcripció de veu i l'escriptura per veu — sense internet, sense servidors, sense subscripció.
 
 Toqueu el botó del micròfon en qualsevol app, parleu de forma natural i les vostres paraules apareixen com a text. Tot es processa al dispositiu amb Apple Silicon, així que res no surt mai del vostre telèfon.
 
@@ -6,7 +6,7 @@ Toqueu el botó del micròfon en qualsevol app, parleu de forma natural i les vo
 
 COM FUNCIONA
 
-Voxboard afegeix un botó de veu al vostre teclat d'iOS. Quan vulgueu dictar, toqueu el micròfon, parleu i Voxboard transcriu la vostra veu directament al camp de text — en Missatges, Notes, Safari o qualsevol app que accepti un teclat.
+Vox.md afegeix un botó de veu al vostre teclat d'iOS. Quan vulgueu dictar, toqueu el micròfon, parleu i Vox.md transcriu la vostra veu directament al camp de text — en Missatges, Notes, Safari o qualsevol app que accepti un teclat.
 
 —
 
@@ -23,7 +23,7 @@ CARACTERÍSTIQUES
 
 NIVELL GRATUÏT
 
-Els nous usuaris obtenen 15 minuts de transcripció gratuïta per provar-ho tot. Actualitzeu a Voxboard Unlimited amb una sola compra única per eliminar tots els límits.
+Els nous usuaris obtenen 15 minuts de transcripció gratuïta per provar-ho tot. Actualitzeu a Vox.md Unlimited amb una sola compra única per eliminar tots els límits.
 
 —
 

@@ -1,4 +1,4 @@
-Apple Watchで音声メモを録音し、再接続するとVoxboardがiPhoneへ同期します。
+Apple Watchで音声メモを録音し、再接続するとVox.mdがiPhoneへ同期します。
 
 このアップデートの新機能:
 • Apple Watch録音 — iPhoneを取り出さずに、Watch上でローカル音声メモを開始・停止できます。

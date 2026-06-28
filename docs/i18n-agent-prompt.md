@@ -1,11 +1,11 @@
-# Voxboard — Add Localization for {{LANGUAGE_NAME}} ({{LANGUAGE_CODE}})
+# Vox.md — Add Localization for {{LANGUAGE_NAME}} ({{LANGUAGE_CODE}})
 
 ## Your assignment
 
-You are adding a single language translation to the Voxboard iOS app.
+You are adding a single language translation to the Vox.md iOS app.
 **Your language: {{LANGUAGE_NAME}} — locale code `{{LANGUAGE_CODE}}`**
 
-Work entirely within the repo at `/Users/codybontecou/projects/Voxboard`.
+Work entirely within the repo at `/Users/codybontecou/projects/Vox.md`.
 Create a branch, add translations to two JSON files, register the locale in
 the Xcode project, commit, and stop. Do not change any Swift source files.
 
@@ -46,7 +46,7 @@ Run one agent per row. Each agent substitutes its row's values for
 ## Step 1 — Create a feature branch
 
 ```bash
-cd /Users/codybontecou/projects/Voxboard
+cd /Users/codybontecou/projects/Vox.md
 git checkout main
 git pull
 git checkout -b i18n/{{LANGUAGE_CODE}}
@@ -171,7 +171,7 @@ Smaller file — only 4 strings. Same format as above.
 
 | Key | English value | Context |
 |---|---|---|
-| `Limit reached — open Voxboard to unlock` | `Limit reached — open Voxboard to unlock` | Keyboard toolbar error — free limit hit |
+| `Limit reached — open Vox.md to unlock` | `Limit reached — open Vox.md to unlock` | Keyboard toolbar error — free limit hit |
 | `No Model` | `No Model` | Keyboard toolbar — no model downloaded |
 | `No speech detected` | `No speech detected` | Transcription error in keyboard extension |
 | `Transcription timed out — try again` | `Transcription timed out — try again` | Keyboard toolbar error — timeout |
@@ -222,7 +222,7 @@ Both must print their `OK` line. Fix any JSON syntax errors before continuing.
 ## Step 5 — Commit
 
 ```bash
-cd /Users/codybontecou/projects/Voxboard
+cd /Users/codybontecou/projects/Vox.md
 git add Voxboard/Localizable.xcstrings \
         "Voxboard Keyboard/Localizable.xcstrings" \
         Voxboard.xcodeproj/project.pbxproj

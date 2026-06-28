@@ -1,4 +1,4 @@
-# Voxboard — Setup Guide
+# Vox.md — Setup Guide
 
 Voice-to-text iOS keyboard powered by whisper.cpp (on-device transcription).
 
@@ -61,7 +61,7 @@ With file-system sync, it should be auto-included since it's in the `Voxboard/` 
 
 ### Test the Keyboard
 1. Open any text field (Notes, Messages, etc.)
-2. Switch to Voxboard keyboard (globe icon)
+2. Switch to Vox.md keyboard (globe icon)
 3. Use `<` `>` arrows to select a model
 4. Tap **Start** → speak → tap **Stop**
 5. Text appears in the input field
@@ -127,11 +127,11 @@ curl -L -o Voxboard/ggml-base.bin https://huggingface.co/ggerganov/whisper.cpp/r
 
 ## Troubleshooting
 
-**"Open Voxboard to set up"** in keyboard toolbar:
+**"Open Vox.md to set up"** in keyboard toolbar:
 → Launch the main app at least once so it copies the model to the shared container.
 
 **"Enable Full Access in Settings"**:
-→ Settings → General → Keyboard → Keyboards → Voxboard Keyboard → Allow Full Access.
+→ Settings → General → Keyboard → Keyboards → Vox.md Keyboard → Allow Full Access.
 
 **Keyboard crashes on transcription**:
 → Switch to Tiny model in the app's Settings. Base model may exceed memory limits on older devices.

@@ -1,4 +1,4 @@
-Voxboard este o tastatură voce-în-text offline, pe dispozitiv pentru recunoașterea vocii și tastarea vocală — fără internet, fără servere, fără abonament.
+Vox.md este o tastatură voce-în-text offline, pe dispozitiv pentru recunoașterea vocii și tastarea vocală — fără internet, fără servere, fără abonament.
 
 Atingeți butonul microfonului în orice aplicație, vorbiți natural și cuvintele dvs. apar ca text. Tot se procesează pe dispozitiv folosind Apple Silicon, deci nimic nu părăsește vreodată telefonul dvs.
 
@@ -6,7 +6,7 @@ Atingeți butonul microfonului în orice aplicație, vorbiți natural și cuvint
 
 CUM FUNCȚIONEAZĂ
 
-Voxboard adaugă un buton de voce la tastatura dvs. iOS. Când doriți să dictați, atingeți microfonul, vorbiți și Voxboard transcrie vocea dvs. direct în câmpul de text — în Mesaje, Notițe, Safari sau orice aplicație care acceptă o tastatură.
+Vox.md adaugă un buton de voce la tastatura dvs. iOS. Când doriți să dictați, atingeți microfonul, vorbiți și Vox.md transcrie vocea dvs. direct în câmpul de text — în Mesaje, Notițe, Safari sau orice aplicație care acceptă o tastatură.
 
 —
 
@@ -23,7 +23,7 @@ FUNCȚII
 
 NIVEL GRATUIT
 
-Utilizatorii noi primesc 15 minute de transcriere gratuită pentru a încerca totul. Actualizați la Voxboard Unlimited cu o singură achiziție unică pentru a elimina toate limitările.
+Utilizatorii noi primesc 15 minute de transcriere gratuită pentru a încerca totul. Actualizați la Vox.md Unlimited cu o singură achiziție unică pentru a elimina toate limitările.
 
 —
 

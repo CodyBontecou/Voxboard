@@ -1,6 +1,6 @@
 # ExportKit integration
 
-Voxboard uses the standalone MIT SwiftPM package [`ExportKit`](https://github.com/CodyBontecou/ExportKit) for reusable export orchestration, path planning, preview building, and destination writing. Voxboard does **not** currently use `ExportAutomationKit`: exports are synchronous after a transcript is saved, and there is no scheduled/pending export or export-notification flow.
+Vox.md uses the standalone MIT SwiftPM package [`ExportKit`](https://github.com/CodyBontecou/ExportKit) for reusable export orchestration, path planning, preview building, and destination writing. Vox.md does **not** currently use `ExportAutomationKit`: exports are synchronous after a transcript is saved, and there is no scheduled/pending export or export-notification flow.
 
 ## Audit summary
 
@@ -9,8 +9,8 @@ Voxboard uses the standalone MIT SwiftPM package [`ExportKit`](https://github.co
 - **Existing settings:** Global export settings live in `AppConstants` UserDefaults keys and per-flow overrides live in `RecordingFlowExportSettings`.
 - **Destinations:** Security-scoped folder bookmarks are resolved by `TranscriptFileExporter.exportIfEnabled(...)`; the resolved folder becomes an `ExportDestination`.
 - **Formats:** `txt`, `md`, `json`, and `yaml` remain app-owned `ExportFileFormat` cases. YAML can still write `.md` frontmatter for Obsidian Bases.
-- **Preview UI:** Voxboard does not have a user-facing export preview screen yet. `TranscriptExportPreviewFactory` now exposes an ExportKit-backed no-write preview builder for future UI.
-- **Scheduling/notifications:** No scheduled export, pending export, background export, or export notification logic exists in Voxboard, so `ExportAutomationKit` is intentionally not linked.
+- **Preview UI:** Vox.md does not have a user-facing export preview screen yet. `TranscriptExportPreviewFactory` now exposes an ExportKit-backed no-write preview builder for future UI.
+- **Scheduling/notifications:** No scheduled export, pending export, background export, or export notification logic exists in Vox.md, so `ExportAutomationKit` is intentionally not linked.
 
 ## Adapter mapping
 
@@ -22,7 +22,7 @@ All app-specific export decisions stay in VoxboardShared:
 | `TranscriptExportConfiguration` | App-owned settings snapshot; exposes a domain-free `PortableExportProfileSnapshot` |
 | `ExportFileFormat.exportKitDescriptor(...)` | Format descriptors for TXT/Markdown/JSON/YAML |
 | `TranscriptExportRenderer` | Renders using Voxboard's existing formatting/template/enrichment logic |
-| `TranscriptExportPathPlanner` | Applies Voxboard filename defaults, token rendering, sanitization, uniquing, and ExportKit path safety |
+| `TranscriptExportPathPlanner` | Applies Vox.md filename defaults, token rendering, sanitization, uniquing, and ExportKit path safety |
 | `TranscriptDestinationWriter` | Writes `PlannedExportFile` values through `ExportFileWriter` |
 | `TranscriptExportRun` | Single-transcript export wrapper used by `TranscriptFileExporter.export(...)` |
 | `TranscriptExportPreviewFactory` | No-write ExportKit preview builder |
@@ -48,4 +48,4 @@ ExportKit adapter coverage lives in `Packages/VoxboardShared/Tests/VoxboardShare
 - new-file uniquing and append/update merge strategies
 - preview generation without writing
 - batch orchestration progress/result success
-- a non-Voxboard sample `ExportRecord` proving ExportKit remains generic
+- a non-Vox.md sample `ExportRecord` proving ExportKit remains generic

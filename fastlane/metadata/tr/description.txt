@@ -1,4 +1,4 @@
-Voxboard, konuşmayı yazıya çevirme ve sesli yazım için çevrimdışı, cihaz üzerinde çalışan bir sesli yazım klavyesidir — internet yok, sunucu yok, abonelik yok.
+Vox.md, konuşmayı yazıya çevirme ve sesli yazım için çevrimdışı, cihaz üzerinde çalışan bir sesli yazım klavyesidir — internet yok, sunucu yok, abonelik yok.
 
 Herhangi bir uygulamada mikrofon düğmesine dokunun, doğal bir şekilde konuşun ve sözleriniz metin olarak görünsün. Her şey Apple Silicon kullanarak cihazınızda işlenir, böylece hiçbir şey telefonunuzdan ayrılmaz.
 
@@ -6,7 +6,7 @@ Herhangi bir uygulamada mikrofon düğmesine dokunun, doğal bir şekilde konuş
 
 NASIL ÇALIŞIR
 
-Voxboard, iOS klavyenize bir ses düğmesi ekler. Dikte etmek istediğinizde mikrofona dokunun, konuşun ve Voxboard sesinizi doğrudan metin alanına çevirir — Messages, Notes, Safari veya klavye kabul eden herhangi bir uygulamada.
+Vox.md, iOS klavyenize bir ses düğmesi ekler. Dikte etmek istediğinizde mikrofona dokunun, konuşun ve Vox.md sesinizi doğrudan metin alanına çevirir — Messages, Notes, Safari veya klavye kabul eden herhangi bir uygulamada.
 
 —
 
@@ -23,7 +23,7 @@ Voxboard, iOS klavyenize bir ses düğmesi ekler. Dikte etmek istediğinizde mik
 
 ÜCRETSİZ SEVİYE
 
-Yeni kullanıcılar her şeyi denemek için 15 dakika ücretsiz transkripsiyon alır. Tüm sınırları kaldırmak için tek seferlik bir satın alma ile Voxboard Unlimited'e yükseltin.
+Yeni kullanıcılar her şeyi denemek için 15 dakika ücretsiz transkripsiyon alır. Tüm sınırları kaldırmak için tek seferlik bir satın alma ile Vox.md Unlimited'e yükseltin.
 
 —
 

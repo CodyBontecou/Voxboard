@@ -1,4 +1,4 @@
-Voxboard adalah keyboard suara-ke-teks offline dan lokal untuk speech-to-text dan voice typing — tanpa internet, tanpa server, tanpa berlangganan.
+Vox.md adalah keyboard suara-ke-teks offline dan lokal untuk speech-to-text dan voice typing — tanpa internet, tanpa server, tanpa berlangganan.
 
 Ketuk tombol mic di aplikasi apa pun, bicara secara alami, dan kata-kata Anda muncul sebagai teks. Semua diproses secara lokal menggunakan Apple Silicon, sehingga tidak ada yang pernah meninggalkan ponsel Anda.
 
@@ -6,7 +6,7 @@ Ketuk tombol mic di aplikasi apa pun, bicara secara alami, dan kata-kata Anda mu
 
 CARA KERJA
 
-Voxboard menambahkan tombol suara ke keyboard iOS Anda. Ketika Anda ingin mendiktekan, ketuk mic, bicara, dan Voxboard mentranskripsikan suara Anda langsung ke bidang teks — di Messages, Notes, Safari, atau aplikasi apa pun yang menerima keyboard.
+Vox.md menambahkan tombol suara ke keyboard iOS Anda. Ketika Anda ingin mendiktekan, ketuk mic, bicara, dan Vox.md mentranskripsikan suara Anda langsung ke bidang teks — di Messages, Notes, Safari, atau aplikasi apa pun yang menerima keyboard.
 
 —
 
@@ -23,7 +23,7 @@ FITUR
 
 TIER GRATIS
 
-Pengguna baru mendapat 15 menit transkripsi gratis untuk mencoba semuanya. Upgrade ke Voxboard Unlimited dengan satu pembelian satu kali untuk menghapus semua batasan.
+Pengguna baru mendapat 15 menit transkripsi gratis untuk mencoba semuanya. Upgrade ke Vox.md Unlimited dengan satu pembelian satu kali untuk menghapus semua batasan.
 
 —
 

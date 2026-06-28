@@ -11,7 +11,7 @@ Set up NanoClaw (a lightweight Claude agent platform) to automatically monitor m
 - **Node.js 20+** installed
 - **Docker** installed and running
 - **App details:**
-  - App name: Voxboard
+  - App name: Vox.md
   - Bundle ID: `bontecou.Voxboard`
   - Team ID: `67KC823C9A`
   - App Store Connect API Key ID: `DY7NA59TDP`
@@ -70,7 +70,7 @@ When the API polling detects a `REJECTED` status, the agent should use Playwrigh
    - If 2FA is triggered, **message me via the messaging channel** asking for the code, wait for my reply, then enter it
    - Save the authenticated session/cookies for reuse
 4. **Navigate to the app's Resolution Center:**
-   - Go to My Apps → Voxboard → App Review / Resolution Center
+   - Go to My Apps → Vox.md → App Review / Resolution Center
    - Or directly to `https://appstoreconnect.apple.com/apps/<APP_ID>/resolution-center`
 5. **Extract the rejection details:**
    - All guideline citations (e.g., "Guideline 2.3.7")
@@ -95,13 +95,13 @@ Set up a NanoClaw scheduled task that:
 2. **Calls the API polling script** first (lightweight check)
 3. **If status changed:**
    - If `REJECTED` → run the Playwright script to get full rejection details, then message me with everything
-   - If `IN_REVIEW` → message me: "Voxboard is now being reviewed"
-   - If `READY_FOR_DISTRIBUTION` or `PENDING_DEVELOPER_RELEASE` → message me: "🎉 Voxboard has been approved!"
+   - If `IN_REVIEW` → message me: "Vox.md is now being reviewed"
+   - If `READY_FOR_DISTRIBUTION` or `PENDING_DEVELOPER_RELEASE` → message me: "🎉 Vox.md has been approved!"
    - For any other state change → message me the old and new states
 4. **If status unchanged:** do nothing (no message)
 
 Tell the agent via the main channel, something like:
-> @Andy every 30 minutes, run the App Store review status check for Voxboard. Only message me if something changed. If rejected, use the browser to get the full rejection details from the Resolution Center.
+> @Andy every 30 minutes, run the App Store review status check for Vox.md. Only message me if something changed. If rejected, use the browser to get the full rejection details from the Resolution Center.
 
 ### Phase 5 — Testing
 
@@ -140,6 +140,6 @@ nanoclaw/
 
 I submit a build to App Store Connect, and without touching ASC myself, I get messages like:
 
-- "⏳ Voxboard is now IN_REVIEW"
-- "🎉 Voxboard has been APPROVED! Status: PENDING_DEVELOPER_RELEASE"
-- Or the big one: "🔴 Voxboard was REJECTED. Here are the full reviewer comments: [complete text of all guideline issues, next steps, review device, etc.] [screenshot attached]"
+- "⏳ Vox.md is now IN_REVIEW"
+- "🎉 Vox.md has been APPROVED! Status: PENDING_DEVELOPER_RELEASE"
+- Or the big one: "🔴 Vox.md was REJECTED. Here are the full reviewer comments: [complete text of all guideline issues, next steps, review device, etc.] [screenshot attached]"

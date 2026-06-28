@@ -230,7 +230,7 @@ struct HomeView: View {
                     isActive: statusBadgeIsActive
                 )
                 Spacer()
-                Text("VOXBOARD")
+                Text("VOX.MD")
                     .font(Brutal.label(.headline))
                     .foregroundColor(Brutal.text)
                 Spacer()

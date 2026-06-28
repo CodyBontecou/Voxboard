@@ -1,4 +1,4 @@
-Voxboard es un teclado de voz a texto sin conexión para el reconocimiento de voz y escritura por voz — sin internet, sin servidores, sin suscripción.
+Vox.md es un teclado de voz a texto sin conexión para el reconocimiento de voz y escritura por voz — sin internet, sin servidores, sin suscripción.
 
 Pulse el botón del micrófono en cualquier aplicación, hable con naturalidad, y sus palabras aparecen como texto. Todo se procesa en el dispositivo usando Apple Silicon, por lo que nada sale jamás de su teléfono.
 
@@ -6,7 +6,7 @@ Pulse el botón del micrófono en cualquier aplicación, hable con naturalidad, 
 
 CÓMO FUNCIONA
 
-Voxboard añade un botón de voz a su teclado iOS. Cuando quiera dictar, pulse el micrófono, hable, y Voxboard transcribe su voz directamente en el campo de texto — en Mensajes, Notas, Safari, o cualquier aplicación que acepte un teclado.
+Vox.md añade un botón de voz a su teclado iOS. Cuando quiera dictar, pulse el micrófono, hable, y Vox.md transcribe su voz directamente en el campo de texto — en Mensajes, Notas, Safari, o cualquier aplicación que acepte un teclado.
 
 —
 
@@ -23,7 +23,7 @@ CARACTERÍSTICAS
 
 NIVEL GRATUITO
 
-Los nuevos usuarios obtienen 15 minutos de transcripción gratuita para probarlo todo. Actualice a Voxboard Unlimited con una sola compra única para eliminar todos los límites.
+Los nuevos usuarios obtienen 15 minutos de transcripción gratuita para probarlo todo. Actualice a Vox.md Unlimited con una sola compra única para eliminar todos los límites.
 
 —
 

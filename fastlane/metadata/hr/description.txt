@@ -1,4 +1,4 @@
-Voxboard je offline tipkovnica za pretvaranje govora u tekst koja radi na uređaju za govor u tekst i glasovno tipkanje — bez interneta, bez servera, bez pretplate.
+Vox.md je offline tipkovnica za pretvaranje govora u tekst koja radi na uređaju za govor u tekst i glasovno tipkanje — bez interneta, bez servera, bez pretplate.
 
 Dodirnite dugme mikrofona u bilo kojoj aplikaciji, govorite prirodno i vaše riječi će se pojaviti kao tekst. Sve se obrađuje na uređaju koristeći Apple Silicon, tako da ništa nikada ne napušta vaš telefon.
 
@@ -6,7 +6,7 @@ Dodirnite dugme mikrofona u bilo kojoj aplikaciji, govorite prirodno i vaše rij
 
 KAKO FUNKCIONIŠE
 
-Voxboard dodaje dugme za glas na vašu iOS tipkovnicu. Kada želite diktirati, dodirnite mikrofon, govorite i Voxboard će transkribirati vaš glas direktno u tekstno polje — u Porukama, Bilješkama, Safari ili bilo kojoj aplikaciji koja prima tipkovnicu.
+Vox.md dodaje dugme za glas na vašu iOS tipkovnicu. Kada želite diktirati, dodirnite mikrofon, govorite i Vox.md će transkribirati vaš glas direktno u tekstno polje — u Porukama, Bilješkama, Safari ili bilo kojoj aplikaciji koja prima tipkovnicu.
 
 —
 
@@ -23,7 +23,7 @@ FUNKCIJE
 
 BESPLATNA RAZINA
 
-Novi korisnici dobivaju 15 minuta besplatnog transkribovanja da isprobaju sve. Nadogradite na Voxboard Unlimited jednom jednosatnom kupovinom da uklonite sva ograničenja.
+Novi korisnici dobivaju 15 minuta besplatnog transkribovanja da isprobaju sve. Nadogradite na Vox.md Unlimited jednom jednosatnom kupovinom da uklonite sva ograničenja.
 
 —
 

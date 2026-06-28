@@ -1,4 +1,4 @@
-Nehmen Sie Sprachnotizen auf der Apple Watch auf und lassen Sie Voxboard sie beim erneuten Verbinden zurück auf Ihr iPhone synchronisieren.
+Nehmen Sie Sprachnotizen auf der Apple Watch auf und lassen Sie Vox.md sie beim erneuten Verbinden zurück auf Ihr iPhone synchronisieren.
 
 Neu in diesem Update:
 • Apple Watch-Aufnahme — starten und stoppen Sie lokale Sprachnotizen auf der Watch, ohne zum iPhone zu greifen.

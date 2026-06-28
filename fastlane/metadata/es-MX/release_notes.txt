@@ -1,4 +1,4 @@
-Grabe notas de voz desde el Apple Watch y deje que Voxboard las sincronice con su iPhone cuando vuelva a conectarse.
+Grabe notas de voz desde el Apple Watch y deje que Vox.md las sincronice con su iPhone cuando vuelva a conectarse.
 
 Nuevo en esta actualización:
 • Grabación en Apple Watch — inicie y detenga notas de voz locales en el Watch sin tomar el iPhone.

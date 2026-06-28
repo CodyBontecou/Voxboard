@@ -126,7 +126,7 @@ struct VoiceToolbarView: View {
             case .idle:
                 Text(voiceState.currentModelName.uppercased())
             case .appNotListening:
-                Text("OPEN VOXBOARD")
+                Text("OPEN VOX.MD")
             case .recording:
                 Text(formatDuration(voiceState.recordingDuration))
                     .monospacedDigit()
@@ -136,7 +136,7 @@ struct VoiceToolbarView: View {
                 Text(msg.uppercased())
                     .foregroundColor(K.error)
             case .noModel:
-                Text("OPEN VOXBOARD")
+                Text("OPEN VOX.MD")
                     .foregroundColor(K.error)
             case .needsFullAccess:
                 Text("ENABLE FULL ACCESS")

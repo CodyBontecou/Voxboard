@@ -48,7 +48,7 @@ struct RectangularWidgetView: View {
                 .font(.system(size: 20, weight: .semibold))
                 .widgetAccentable()
             VStack(alignment: .leading, spacing: 2) {
-                Text("VOXBOARD")
+                Text("VOX.MD")
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .widgetAccentable()
                 Text(entry.isQuickRecordEnabled ? (entry.isListening ? "Listening" : "Tap to record") : "Disabled")

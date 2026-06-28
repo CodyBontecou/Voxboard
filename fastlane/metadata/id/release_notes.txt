@@ -1,4 +1,4 @@
-Rekam catatan suara dari Apple Watch, lalu biarkan Voxboard menyinkronkannya ke iPhone saat perangkat terhubung kembali.
+Rekam catatan suara dari Apple Watch, lalu biarkan Vox.md menyinkronkannya ke iPhone saat perangkat terhubung kembali.
 
 Baru dalam pembaruan ini:
 • Perekaman Apple Watch — mulai dan hentikan catatan suara lokal di Watch tanpa mengambil iPhone.

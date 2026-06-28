@@ -105,7 +105,7 @@ struct ModelTabView: View {
             BrutalDivider()
 
             if modelManager.selectedModel?.engine.isParakeet == true {
-                footerNote("Parakeet currently auto-detects language in Voxboard. Manual language hints are not yet supported by the current engine API.")
+                footerNote("Parakeet currently auto-detects language in Vox.md. Manual language hints are not yet supported by the current engine API.")
             } else {
                 Picker("Transcription Language", selection: Binding(
                     get: { modelManager.selectedLanguage },

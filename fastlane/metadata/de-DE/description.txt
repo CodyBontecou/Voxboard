@@ -1,4 +1,4 @@
-Voxboard ist eine Offline-Sprache-zu-Text-Tastatur für Spracherkennung und Spracheingabe — ohne Internet, ohne Server, ohne Abonnement.
+Vox.md ist eine Offline-Sprache-zu-Text-Tastatur für Spracherkennung und Spracheingabe — ohne Internet, ohne Server, ohne Abonnement.
 
 Tippen Sie auf das Mikrofon-Symbol in jeder App, sprechen Sie natürlich, und Ihre Worte erscheinen als Text. Alles wird direkt auf dem Gerät mit Apple Silicon verarbeitet, sodass nichts jemals Ihr Telefon verlässt.
 
@@ -6,7 +6,7 @@ Tippen Sie auf das Mikrofon-Symbol in jeder App, sprechen Sie natürlich, und Ih
 
 SO FUNKTIONIERT ES
 
-Voxboard fügt eine Sprachtaste zu Ihrer iOS-Tastatur hinzu. Wenn Sie diktieren möchten, tippen Sie auf das Mikrofon, sprechen Sie, und Voxboard transkribiert Ihre Sprache direkt in das Textfeld — in Nachrichten, Notizen, Safari oder jeder App mit Tastaturunterstützung.
+Vox.md fügt eine Sprachtaste zu Ihrer iOS-Tastatur hinzu. Wenn Sie diktieren möchten, tippen Sie auf das Mikrofon, sprechen Sie, und Vox.md transkribiert Ihre Sprache direkt in das Textfeld — in Nachrichten, Notizen, Safari oder jeder App mit Tastaturunterstützung.
 
 —
 
@@ -23,7 +23,7 @@ FUNKTIONEN
 
 KOSTENLOSE VERSION
 
-Neue Nutzer erhalten 15 Minuten kostenlose Transkription zum Ausprobieren. Upgraden Sie auf Voxboard Unlimited mit einem einmaligen Kauf, um alle Grenzen zu entfernen.
+Neue Nutzer erhalten 15 Minuten kostenlose Transkription zum Ausprobieren. Upgraden Sie auf Vox.md Unlimited mit einem einmaligen Kauf, um alle Grenzen zu entfernen.
 
 —
 

@@ -1,4 +1,4 @@
-Voxboard är ett offline, på-enhet röst-till-text-tangentbord för taligenkänning och röstskrivning — inget internet, inga servrar, ingen prenumeration.
+Vox.md är ett offline, på-enhet röst-till-text-tangentbord för taligenkänning och röstskrivning — inget internet, inga servrar, ingen prenumeration.
 
 Tryck på mikrofonknappen i vilken app som helst, tala naturligt och dina ord visas som text. Allt bearbetas på enheten med Apple Silicon, så inget lämnar någonsin din telefon.
 
@@ -6,7 +6,7 @@ Tryck på mikrofonknappen i vilken app som helst, tala naturligt och dina ord vi
 
 HUR DET FUNGERAR
 
-Voxboard lägger till en röstknapp till ditt iOS-tangentbord. När du vill diktera, tryck på mikrofonen, tala och Voxboard transkriberar din röst direkt i textfältet — i Meddelanden, Anteckningar, Safari eller vilken app som helst som accepterar ett tangentbord.
+Vox.md lägger till en röstknapp till ditt iOS-tangentbord. När du vill diktera, tryck på mikrofonen, tala och Vox.md transkriberar din röst direkt i textfältet — i Meddelanden, Anteckningar, Safari eller vilken app som helst som accepterar ett tangentbord.
 
 —
 
@@ -23,7 +23,7 @@ FUNKTIONER
 
 GRATIS NIVÅ
 
-Nya användare får 15 minuter gratis transkribering för att prova allt. Uppgradera till Voxboard Unlimited med ett enda engångsköp för att ta bort alla begränsningar.
+Nya användare får 15 minuter gratis transkribering för att prova allt. Uppgradera till Vox.md Unlimited med ett enda engångsköp för att ta bort alla begränsningar.
 
 —
 

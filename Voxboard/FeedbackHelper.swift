@@ -90,7 +90,7 @@ enum FeedbackHelper {
             return name
         }
 
-        return "Voxboard"
+        return "Vox.md"
     }
 }
 

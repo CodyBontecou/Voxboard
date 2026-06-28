@@ -1,4 +1,4 @@
-Rakam nota suara daripada Apple Watch, kemudian biarkan Voxboard menyegerakkannya ke iPhone apabila peranti bersambung semula.
+Rakam nota suara daripada Apple Watch, kemudian biarkan Vox.md menyegerakkannya ke iPhone apabila peranti bersambung semula.
 
 Baharu dalam kemas kini ini:
 • Rakaman Apple Watch — mula dan hentikan nota suara setempat pada Watch tanpa mengambil iPhone.

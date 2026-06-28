@@ -1,4 +1,4 @@
-Voxboard on offline-ääni-tekstiksi-näppäimistö, joka toimii laitteessa puheentunnistusta ja äänellä kirjoittamista varten — ei internettiä, ei palvelimia, ei tilausta.
+Vox.md on offline-ääni-tekstiksi-näppäimistö, joka toimii laitteessa puheentunnistusta ja äänellä kirjoittamista varten — ei internettiä, ei palvelimia, ei tilausta.
 
 Napauta mikrofonikuvaketta missä tahansa sovelluksessa, puhu luonnollisesti, ja sanasi ilmestyvät tekstinä. Kaikki käsitellään laitteessa Apple Siliconin avulla, joten mikään ei koskaan poistu puhelimestasi.
 
@@ -6,7 +6,7 @@ Napauta mikrofonikuvaketta missä tahansa sovelluksessa, puhu luonnollisesti, ja
 
 KUIKA SE TOIMII
 
-Voxboard lisää äänipainikkeen iOS-näppäimistöösi. Kun haluat sanella, napauta mikrofonia, puhu, ja Voxboard litteroi äänesi suoraan tekstikenttään — Viesteissä, Muistiinpanoissa, Safarissa tai missä tahansa sovelluksessa, joka hyväksyy näppäimistön.
+Vox.md lisää äänipainikkeen iOS-näppäimistöösi. Kun haluat sanella, napauta mikrofonia, puhu, ja Vox.md litteroi äänesi suoraan tekstikenttään — Viesteissä, Muistiinpanoissa, Safarissa tai missä tahansa sovelluksessa, joka hyväksyy näppäimistön.
 
 —
 
@@ -23,7 +23,7 @@ OMINAISUUDET
 
 ILMAINEN TASO
 
-Uudet käyttäjät saavat 15 minuuttia ilmaista transkriptiota kokeillakseen kaikkea. Päivitä Voxboard Unlimitediin yhdellä kertamaksulla poistaaksesi kaikki rajoitukset.
+Uudet käyttäjät saavat 15 minuuttia ilmaista transkriptiota kokeillakseen kaikkea. Päivitä Vox.md Unlimitediin yhdellä kertamaksulla poistaaksesi kaikki rajoitukset.
 
 —
 

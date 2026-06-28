@@ -1,4 +1,4 @@
-Spela in röstanteckningar från Apple Watch och låt Voxboard synka dem till din iPhone när enheterna ansluts igen.
+Spela in röstanteckningar från Apple Watch och låt Vox.md synka dem till din iPhone när enheterna ansluts igen.
 
 Nytt i den här uppdateringen:
 • Apple Watch-inspelning — starta och stoppa lokala röstanteckningar på klockan utan att ta fram iPhone.

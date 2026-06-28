@@ -2,8 +2,8 @@ import AppIntents
 import WidgetKit
 
 struct ToggleVoxboardWatchRecordingIntent: AppIntent {
-    static let title: LocalizedStringResource = "Record to Voxboard"
-    static let description = IntentDescription("Opens Voxboard on Apple Watch to record a voice note locally.")
+    static let title: LocalizedStringResource = "Record to Vox.md"
+    static let description = IntentDescription("Opens Vox.md on Apple Watch to record a voice note locally.")
     static var openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
@@ -13,8 +13,8 @@ struct ToggleVoxboardWatchRecordingIntent: AppIntent {
 }
 
 struct StartVoxboardWatchRecordingIntent: AppIntent {
-    static let title: LocalizedStringResource = "Record to Voxboard"
-    static let description = IntentDescription("Opens Voxboard on Apple Watch to start a local voice note.")
+    static let title: LocalizedStringResource = "Record to Vox.md"
+    static let description = IntentDescription("Opens Vox.md on Apple Watch to start a local voice note.")
     static var openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
@@ -24,8 +24,8 @@ struct StartVoxboardWatchRecordingIntent: AppIntent {
 }
 
 struct StopVoxboardWatchRecordingIntent: AppIntent {
-    static let title: LocalizedStringResource = "Record to Voxboard"
-    static let description = IntentDescription("Opens Voxboard on Apple Watch to stop or manage a local voice note.")
+    static let title: LocalizedStringResource = "Record to Vox.md"
+    static let description = IntentDescription("Opens Vox.md on Apple Watch to stop or manage a local voice note.")
     static var openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {

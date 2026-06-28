@@ -2,7 +2,7 @@
 
 ## Summary
 
-Voxboard can ship a useful meeting/call import MVP now, but accurate line-by-line `Speaker 1` / `Speaker 2` diarization should be treated as a separate research/model dependency.
+Vox.md can ship a useful meeting/call import MVP now, but accurate line-by-line `Speaker 1` / `Speaker 2` diarization should be treated as a separate research/model dependency.
 
 The implemented MVP path is:
 
@@ -74,4 +74,4 @@ Defer these:
 
 ## Platform/legal note
 
-iOS does not provide a general-purpose API for silently recording phone calls, and call recording laws vary by jurisdiction. Voxboard should frame this feature as importing recordings the user already has permission to record/transcribe, not as built-in phone call recording.
+iOS does not provide a general-purpose API for silently recording phone calls, and call recording laws vary by jurisdiction. Vox.md should frame this feature as importing recordings the user already has permission to record/transcribe, not as built-in phone call recording.

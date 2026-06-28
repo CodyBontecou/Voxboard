@@ -1,4 +1,4 @@
-Voxboard to offline klawiatura mowy na tekst działająca na urządzeniu do rozpoznawania mowy i głosowego pisania — bez internetu, bez serwerów, bez subskrypcji.
+Vox.md to offline klawiatura mowy na tekst działająca na urządzeniu do rozpoznawania mowy i głosowego pisania — bez internetu, bez serwerów, bez subskrypcji.
 
 Dotknij przycisku mikrofonu w dowolnej aplikacji, mów naturalnie, a Twoje słowa pojawią się jako tekst. Wszystko jest przetwarzane na urządzeniu przy użyciu Apple Silicon, więc nic nigdy nie opuszcza Twojego telefonu.
 
@@ -6,7 +6,7 @@ Dotknij przycisku mikrofonu w dowolnej aplikacji, mów naturalnie, a Twoje słow
 
 JAK TO DZIAŁA
 
-Voxboard dodaje przycisk głosu do Twojej klawiatury iOS. Kiedy chcesz dyktować, dotknij mikrofonu, mów, a Voxboard przepisze Twój głos bezpośrednio do pola tekstowego — w Wiadomościach, Notatkach, Safari lub dowolnej aplikacji akceptującej klawiaturę.
+Vox.md dodaje przycisk głosu do Twojej klawiatury iOS. Kiedy chcesz dyktować, dotknij mikrofonu, mów, a Vox.md przepisze Twój głos bezpośrednio do pola tekstowego — w Wiadomościach, Notatkach, Safari lub dowolnej aplikacji akceptującej klawiaturę.
 
 —
 
@@ -23,7 +23,7 @@ FUNKCJE
 
 DARMOWY POZIOM
 
-Nowi użytkownicy otrzymują 15 minut darmowej transkrypcji, aby wypróbować wszystko. Przejdź na Voxboard Unlimited jednym jednorazowym zakupem, aby usunąć wszystkie ograniczenia.
+Nowi użytkownicy otrzymują 15 minut darmowej transkrypcji, aby wypróbować wszystko. Przejdź na Vox.md Unlimited jednym jednorazowym zakupem, aby usunąć wszystkie ograniczenia.
 
 —
 

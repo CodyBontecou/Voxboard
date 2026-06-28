@@ -1,4 +1,4 @@
-Voxboard er et offline, on-device stemme-til-tekst tastatur til talediktering og stemmeindtastning — intet internet, ingen servere, intet abonnement.
+Vox.md er et offline, on-device stemme-til-tekst tastatur til talediktering og stemmeindtastning — intet internet, ingen servere, intet abonnement.
 
 Tryk på mikrofonknappen i enhver app, tal naturligt, og dine ord vises som tekst. Alt behandles på enheden ved hjælp af Apple Silicon, så intet forlader nogensinde din telefon.
 
@@ -6,7 +6,7 @@ Tryk på mikrofonknappen i enhver app, tal naturligt, og dine ord vises som teks
 
 SÅDAN FUNGERER DET
 
-Voxboard tilføjer en stemmeknap til dit iOS-tastatur. Når du vil diktere, tryk på mikrofonen, tal, og Voxboard transskriberer din stemme direkte ind i tekstfeltet — i Beskeder, Noter, Safari eller enhver app, der accepterer et tastatur.
+Vox.md tilføjer en stemmeknap til dit iOS-tastatur. Når du vil diktere, tryk på mikrofonen, tal, og Vox.md transskriberer din stemme direkte ind i tekstfeltet — i Beskeder, Noter, Safari eller enhver app, der accepterer et tastatur.
 
 —
 
@@ -23,7 +23,7 @@ FUNKTIONER
 
 GRATIS NIVEAU
 
-Nye brugere får 15 minutters gratis transskription til at prøve alt. Opgrader til Voxboard Unlimited med et enkelt engangskøb for at fjerne alle begrænsninger.
+Nye brugere får 15 minutters gratis transskription til at prøve alt. Opgrader til Vox.md Unlimited med et enkelt engangskøb for at fjerne alle begrænsninger.
 
 —
 

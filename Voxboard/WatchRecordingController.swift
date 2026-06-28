@@ -67,7 +67,7 @@ final class WatchRecordingController: NSObject {
 
     private func startRecordingFromWatch() {
         guard AppConstants.lockScreenQuickRecordEnabled else {
-            recorder?.lastError = "Quick Record is disabled in Voxboard Settings"
+            recorder?.lastError = "Quick Record is disabled in Vox.md Settings"
             return
         }
         guard let recorder else {
@@ -82,7 +82,7 @@ final class WatchRecordingController: NSObject {
         // iPhone microphone from an arbitrary background Watch command. If the
         // persistent listener is already active, starting a segment is safe.
         guard recorder.isListening || UIApplication.shared.applicationState == .active else {
-            recorder.lastError = "iOS blocks background mic start. Open Voxboard or leave Keyboard mic on."
+            recorder.lastError = "iOS blocks background mic start. Open Vox.md or leave Keyboard mic on."
             watchLog.warning("Watch start rejected because iPhone app is not active and recorder is not already listening")
             return
         }
@@ -111,15 +111,15 @@ final class WatchRecordingController: NSObject {
             return WatchRecordingSnapshot(
                 phase: .unavailable,
                 isQuickRecordEnabled: AppConstants.lockScreenQuickRecordEnabled,
-                message: "Open Voxboard on iPhone once to pair recording controls."
+                message: "Open Vox.md on iPhone once to pair recording controls."
             ).dictionary
         }
 
         let message: String?
         if !AppConstants.lockScreenQuickRecordEnabled {
-            message = "Quick Record is disabled in Voxboard Settings."
+            message = "Quick Record is disabled in Vox.md Settings."
         } else if usageTracker?.isAtLimit == true || recorder.needsUnlock {
-            message = "Free limit reached — unlock Voxboard on iPhone."
+            message = "Free limit reached — unlock Vox.md on iPhone."
         } else {
             message = recorder.lastError
         }
@@ -168,8 +168,8 @@ final class WatchRecordingController: NSObject {
             let content = UNMutableNotificationContent()
             content.title = count == 1 ? "Watch recording ready" : "Watch recordings ready"
             content.body = count == 1
-                ? "Open Voxboard to transcribe your Apple Watch recording."
-                : "Open Voxboard to transcribe \(count) Apple Watch recordings."
+                ? "Open Vox.md to transcribe your Apple Watch recording."
+                : "Open Vox.md to transcribe \(count) Apple Watch recordings."
             content.sound = .default
 
             let request = UNNotificationRequest(

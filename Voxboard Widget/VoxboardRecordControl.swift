@@ -19,12 +19,12 @@ struct VoxboardRecordControl: ControlWidget {
                 .controlWidgetActionHint(
                     state.isEnabled
                         ? "Record with \(state.vox.name)"
-                        : "Disabled in Voxboard Settings"
+                        : "Disabled in Vox.md Settings"
                 )
             }
             .disabled(!state.isEnabled)
         }
-        .displayName("Voxboard Record")
+        .displayName("Vox.md Record")
         .description("Start recording with a configurable Vox preset.")
         .promptsForUserConfiguration()
     }

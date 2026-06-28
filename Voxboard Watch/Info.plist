@@ -7,7 +7,7 @@
     <key>WKWatchOnly</key>
     <false/>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Voxboard records voice notes on Apple Watch and syncs them to your iPhone for transcription.</string>
+    <string>Vox.md records voice notes on Apple Watch and syncs them to your iPhone for transcription.</string>
     <key>UIBackgroundModes</key>
     <array>
         <string>audio</string>

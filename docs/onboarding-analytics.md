@@ -1,6 +1,6 @@
 # Onboarding Analytics
 
-Voxboard has an app-side, privacy-safe onboarding analytics engine modeled after the Health.md pricing analytics client.
+Vox.md has an app-side, privacy-safe onboarding analytics engine modeled after the Health.md pricing analytics client.
 
 ## Production status
 
@@ -39,7 +39,7 @@ App Store Connect App Privacy is now published for app `6758967337` with the can
 
 - Product Interaction → Analytics → Not Linked to You
 - Purchase History → Analytics → Not Linked to You
-- User ID (anonymous Voxboard install UUID) → Analytics → Not Linked to You
+- User ID (anonymous Vox.md install UUID) → Analytics → Not Linked to You
 
 All entries are first-party analytics only and not used for tracking. Do not mark audio data, transcripts, keystrokes, contacts, location, diagnostics, or user content as collected for this analytics path.
 

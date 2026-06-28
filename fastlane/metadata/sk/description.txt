@@ -1,4 +1,4 @@
-Voxboard je offline klávesnica hlas na text fungujúca na zariadení pre rozpoznávanie reči a hlasové písanie — bez internetu, bez serverov, bez predplatného.
+Vox.md je offline klávesnica hlas na text fungujúca na zariadení pre rozpoznávanie reči a hlasové písanie — bez internetu, bez serverov, bez predplatného.
 
 Dotkite sa tlačidla mikrofónu v akejkoľvek aplikácii, hovorte prirodzene a vaše slová sa objavia ako text. Všetko sa spracováva na zariadení pomocou Apple Silicon, takže nič nikdy neopustí váš telefón.
 
@@ -6,7 +6,7 @@ Dotkite sa tlačidla mikrofónu v akejkoľvek aplikácii, hovorte prirodzene a v
 
 AKO TO FUNGUJE
 
-Voxboard pridáva hlasové tlačidlo na vašu iOS klávesnicu. Keď chcete diktovať, dotkite sa mikrofónu, hovorte a Voxboard prepíše váš hlas priamo do textového poľa — v Správach, Poznámkach, Safari alebo akejkoľvek aplikácii, ktorá prijíma klávesnicu.
+Vox.md pridáva hlasové tlačidlo na vašu iOS klávesnicu. Keď chcete diktovať, dotkite sa mikrofónu, hovorte a Vox.md prepíše váš hlas priamo do textového poľa — v Správach, Poznámkach, Safari alebo akejkoľvek aplikácii, ktorá prijíma klávesnicu.
 
 —
 
@@ -23,7 +23,7 @@ FUNKCIE
 
 BEZPLATNÁ ÚROVEŇ
 
-Noví používatelia získajú 15 minút bezplatného prepisu na vyskúšanie všetkého. Inovujte na Voxboard Unlimited jednou jednorazovou kúpou na odstránenie všetkých obmedzení.
+Noví používatelia získajú 15 minút bezplatného prepisu na vyskúšanie všetkého. Inovujte na Vox.md Unlimited jednou jednorazovou kúpou na odstránenie všetkých obmedzení.
 
 —
 

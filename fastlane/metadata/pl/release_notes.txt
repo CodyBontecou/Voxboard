@@ -1,4 +1,4 @@
-Nagrywaj notatki głosowe na Apple Watch, a Voxboard zsynchronizuje je z iPhonem po ponownym połączeniu.
+Nagrywaj notatki głosowe na Apple Watch, a Vox.md zsynchronizuje je z iPhonem po ponownym połączeniu.
 
 Nowości w tej aktualizacji:
 • Nagrywanie na Apple Watch — rozpoczynaj i kończ lokalne notatki głosowe na zegarku bez sięgania po iPhone’a.

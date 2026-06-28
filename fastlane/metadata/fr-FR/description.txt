@@ -1,4 +1,4 @@
-Voxboard est un clavier vocal-texte hors ligne pour la reconnaissance vocale et la saisie vocale — sans internet, sans serveurs, sans abonnement.
+Vox.md est un clavier vocal-texte hors ligne pour la reconnaissance vocale et la saisie vocale — sans internet, sans serveurs, sans abonnement.
 
 Appuyez sur le bouton micro dans n'importe quelle app, parlez naturellement, et vos mots apparaissent sous forme de texte. Tout est traité sur l'appareil avec Apple Silicon, donc rien ne quitte jamais votre téléphone.
 
@@ -6,7 +6,7 @@ Appuyez sur le bouton micro dans n'importe quelle app, parlez naturellement, et 
 
 COMMENT ÇA FONCTIONNE
 
-Voxboard ajoute un bouton vocal à votre clavier iOS. Quand vous voulez dicter, appuyez sur le micro, parlez, et Voxboard transcrit votre voix directement dans le champ texte — dans Messages, Notes, Safari, ou toute app qui accepte un clavier.
+Vox.md ajoute un bouton vocal à votre clavier iOS. Quand vous voulez dicter, appuyez sur le micro, parlez, et Vox.md transcrit votre voix directement dans le champ texte — dans Messages, Notes, Safari, ou toute app qui accepte un clavier.
 
 —
 
@@ -23,7 +23,7 @@ FONCTIONNALITÉS
 
 VERSION GRATUITE
 
-Les nouveaux utilisateurs obtiennent 15 minutes de transcription gratuite pour tout essayer. Passez à Voxboard Unlimited avec un seul achat unique pour supprimer toutes les limites.
+Les nouveaux utilisateurs obtiennent 15 minutes de transcription gratuite pour tout essayer. Passez à Vox.md Unlimited avec un seul achat unique pour supprimer toutes les limites.
 
 —
 

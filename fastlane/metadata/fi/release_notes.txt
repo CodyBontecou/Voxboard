@@ -1,4 +1,4 @@
-Tallenna äänimuistiinpanoja Apple Watchilla ja anna Voxboardin synkronoida ne iPhoneen, kun laitteet yhdistyvät uudelleen.
+Tallenna äänimuistiinpanoja Apple Watchilla ja anna Vox.mdin synkronoida ne iPhoneen, kun laitteet yhdistyvät uudelleen.
 
 Uutta tässä päivityksessä:
 • Apple Watch -tallennus — aloita ja lopeta paikalliset äänimuistiinpanot kellosta ilman iPhonea.

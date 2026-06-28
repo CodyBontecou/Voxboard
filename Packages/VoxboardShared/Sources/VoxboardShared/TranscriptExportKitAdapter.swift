@@ -76,7 +76,7 @@ public struct TranscriptExportConfiguration: Equatable, Sendable {
             aggregateFilenameTemplate: "{filenameBase}",
             writeMode: writeMode,
             metadata: [
-                "app": "Voxboard",
+                "app": "Vox.md",
                 "domain": "transcript",
                 "mode": mode.rawValue
             ]

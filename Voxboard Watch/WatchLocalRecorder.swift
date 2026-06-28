@@ -78,7 +78,7 @@ final class WatchLocalRecorder: ObservableObject {
     var title: String {
         switch phase {
         case .idle:
-            return queuedCount > 0 ? "Saved" : "Voxboard"
+            return queuedCount > 0 ? "Saved" : "Vox.md"
         case .recording:
             return "Recording"
         case .transferring:
@@ -103,7 +103,7 @@ final class WatchLocalRecorder: ObservableObject {
         case .transferring:
             return "Sending Watch recordings to the iPhone queue."
         case .transferred:
-            return "Open Voxboard on iPhone to process. You can record another."
+            return "Open Vox.md on iPhone to process. You can record another."
         case .error(let error):
             return error
         }

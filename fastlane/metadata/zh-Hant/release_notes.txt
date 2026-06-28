@@ -1,4 +1,4 @@
-在 Apple Watch 上錄製語音筆記，重新連線後由 Voxboard 同步回 iPhone。
+在 Apple Watch 上錄製語音筆記，重新連線後由 Vox.md 同步回 iPhone。
 
 本次更新：
 • Apple Watch 錄音 — 無需拿起 iPhone，即可在 Watch 上開始和停止本機語音筆記。

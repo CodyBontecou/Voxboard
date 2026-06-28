@@ -1,6 +1,6 @@
-# Contributing to Voxboard
+# Contributing to Vox.md
 
-Thanks for your interest in contributing! Voxboard is open source under the [AGPL-3.0](LICENSE), and we welcome bug reports, feature ideas, design feedback, accessibility fixes, translations, and pull requests.
+Thanks for your interest in contributing! Vox.md is open source under the [AGPL-3.0](LICENSE), and we welcome bug reports, feature ideas, design feedback, accessibility fixes, translations, and pull requests.
 
 ## Ways to contribute
 
@@ -22,7 +22,7 @@ Thanks for your interest in contributing! Voxboard is open source under the [AGP
 
 ```bash
 git clone https://github.com/CodyBontecou/Voxboard.git
-cd Voxboard
+cd Vox.md
 open Voxboard.xcodeproj
 ```
 
@@ -48,9 +48,9 @@ The app, keyboard, and widget share models, transcripts, settings, and IPC files
 2. Choose your physical device.
 3. Press ⌘R to build and run.
 4. Grant microphone permission.
-5. Enable the keyboard in **Settings → General → Keyboard → Keyboards → Add New Keyboard → Voxboard**.
+5. Enable the keyboard in **Settings → General → Keyboard → Keyboards → Add New Keyboard → Vox.md**.
 6. Enable **Allow Full Access** for the keyboard so it can participate in the microphone/shared-container workflow.
-7. Open a text field, switch to Voxboard, start listening from the app if prompted, and test a record/stop transcription segment.
+7. Open a text field, switch to Vox.md, start listening from the app if prompted, and test a record/stop transcription segment.
 
 ## Testing notes
 
@@ -82,4 +82,4 @@ Be kind. Assume good faith. Disagree with ideas, not people. If something feels 
 
 ## License
 
-By contributing to Voxboard you agree that your contribution will be licensed under the [AGPL-3.0](LICENSE).
+By contributing to Vox.md you agree that your contribution will be licensed under the [AGPL-3.0](LICENSE).

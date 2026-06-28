@@ -21,6 +21,6 @@
 		<string>$(PRODUCT_MODULE_NAME).KeyboardViewController</string>
 	</dict>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Voxboard needs microphone access to transcribe your voice into text.</string>
+	<string>Vox.md needs microphone access to transcribe your voice into text.</string>
 </dict>
 </plist>

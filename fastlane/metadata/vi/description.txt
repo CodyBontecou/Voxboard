@@ -1,4 +1,4 @@
-Voxboard là bàn phím giọng nói thành văn bản ngoại tuyến, trên thiết bị để chuyển đổi giọng nói thành văn bản và gõ bằng giọng nói — không cần internet, không cần máy chủ, không cần đăng ký.
+Vox.md là bàn phím giọng nói thành văn bản ngoại tuyến, trên thiết bị để chuyển đổi giọng nói thành văn bản và gõ bằng giọng nói — không cần internet, không cần máy chủ, không cần đăng ký.
 
 Chạm vào nút micro trong bất kỳ ứng dụng nào, nói tự nhiên và lời nói của bạn xuất hiện dưới dạng văn bản. Mọi thứ được xử lý trên thiết bị sử dụng Apple Silicon, vì vậy không có gì rời khỏi điện thoại của bạn.
 
@@ -6,7 +6,7 @@ Chạm vào nút micro trong bất kỳ ứng dụng nào, nói tự nhiên và 
 
 CÁCH HOẠT ĐỘNG
 
-Voxboard thêm một nút giọng nói vào bàn phím iOS của bạn. Khi bạn muốn đọc chính tả, chạm vào micro, nói, và Voxboard sẽ phiên âm giọng nói của bạn trực tiếp vào trường văn bản — trong Messages, Notes, Safari hoặc bất kỳ ứng dụng nào chấp nhận bàn phím.
+Vox.md thêm một nút giọng nói vào bàn phím iOS của bạn. Khi bạn muốn đọc chính tả, chạm vào micro, nói, và Vox.md sẽ phiên âm giọng nói của bạn trực tiếp vào trường văn bản — trong Messages, Notes, Safari hoặc bất kỳ ứng dụng nào chấp nhận bàn phím.
 
 —
 
@@ -23,7 +23,7 @@ TÍNH NĂNG
 
 CẤP MIỄN PHÍ
 
-Người dùng mới nhận được 15 phút phiên âm miễn phí để thử nghiệm mọi thứ. Nâng cấp lên Voxboard Unlimited với một lần mua duy nhất để loại bỏ mọi giới hạn.
+Người dùng mới nhận được 15 phút phiên âm miễn phí để thử nghiệm mọi thứ. Nâng cấp lên Vox.md Unlimited với một lần mua duy nhất để loại bỏ mọi giới hạn.
 
 —
 
