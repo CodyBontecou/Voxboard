@@ -73,171 +73,7 @@
   }
   </script>
 
-  <style>
-    :root {
-      --bg: #000000;
-      --surface: #111111;
-      --surface-2: #1a1a1a;
-      --surface-3: #0a0f0c;
-      --border: #2a2a2a;
-      --border-hi: #444444;
-      --text: #FFFFFF;
-      --muted: #9a9a9a;
-      --faint: #555555;
-      --success: #30D158;
-      --success-dim: rgba(48, 209, 88, 0.14);
-      --danger: #ff5f57;
-      --font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
-      --track: 0.15em;
-      --track-xl: 0.25em;
-    }
-
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    a { color: inherit; text-decoration: none; }
-    img { max-width: 100%; height: auto; display: block; }
-    html { scroll-behavior: smooth; overflow-x: hidden; }
-    body {
-      background:
-        radial-gradient(circle at 78% 8%, rgba(48,209,88,0.08), transparent 28rem),
-        radial-gradient(circle at 8% 14%, rgba(255,255,255,0.05), transparent 20rem),
-        var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      line-height: 1.7;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
-    ::selection { background: var(--text); color: var(--bg); }
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-    .article-container { max-width: 920px; margin: 0 auto; padding: 0 24px; }
-
-    nav {
-      position: fixed; top: 0; left: 0; right: 0;
-      z-index: 1000;
-      background: rgba(0,0,0,0.9);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid var(--border);
-    }
-    .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; max-width: 1200px; margin: 0 auto; gap: 24px; }
-    .logo { font-size: 13px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; display: flex; align-items: center; gap: 12px; }
-    .logo-mark { width: 28px; height: 28px; border: 1px solid var(--border-hi); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); }
-    .nav-links { display: flex; gap: 28px; list-style: none; align-items: center; }
-    .nav-links a { color: var(--muted); font-size: 11px; letter-spacing: var(--track); text-transform: uppercase; transition: color 0.15s; }
-    .nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--text); }
-
-    .hero { padding: 132px 0 76px; position: relative; overflow: hidden; border-bottom: 1px solid var(--border); }
-    .hero-grid-bg {
-      position: absolute; inset: 0;
-      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 60px 60px;
-      opacity: 0.28;
-      mask-image: radial-gradient(ellipse at 50% 28%, black 0%, transparent 72%);
-      -webkit-mask-image: radial-gradient(ellipse at 50% 28%, black 0%, transparent 72%);
-    }
-    .hero-inner { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr); gap: 58px; align-items: end; }
-    .eyebrow { font-size: 11px; letter-spacing: var(--track-xl); text-transform: uppercase; color: var(--muted); margin-bottom: 22px; display: flex; align-items: center; gap: 12px; }
-    .eyebrow::before { content: ''; width: 40px; height: 1px; background: var(--border-hi); }
-    .hero-title { font-size: clamp(42px, 7vw, 86px); font-weight: 800; line-height: 0.98; letter-spacing: -0.045em; text-transform: uppercase; max-width: 860px; }
-    .hero-subtitle { font-size: 14px; color: var(--muted); max-width: 720px; line-height: 1.9; margin-top: 28px; }
-    .meta-card { border: 1px solid rgba(48,209,88,0.42); background: var(--surface-3); padding: 24px; box-shadow: 12px 12px 0 rgba(48,209,88,0.08); }
-    .meta-label { font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; color: var(--success); margin-bottom: 14px; }
-    .meta-card dl { display: grid; gap: 12px; }
-    .meta-card div { display: flex; justify-content: space-between; gap: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; }
-    .meta-card div:last-child { border-bottom: 0; padding-bottom: 0; }
-    .meta-card dt { color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; }
-    .meta-card dd { color: var(--text); font-size: 11px; text-align: right; }
-
-    .lead-strip { border-bottom: 1px solid var(--border); background: rgba(17,17,17,0.5); }
-    .lead-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
-    .lead-card { background: var(--bg); padding: 22px; min-height: 142px; }
-    .lead-card strong { display: block; color: var(--text); font-size: 12px; letter-spacing: var(--track); text-transform: uppercase; margin-bottom: 12px; }
-    .lead-card span { color: var(--muted); font-size: 12px; line-height: 1.7; }
-
-    article { padding: 72px 0 108px; }
-    .article-body { color: var(--muted); font-size: 16px; line-height: 1.9; }
-    .article-body p { margin: 0 0 24px; }
-    .article-body a { color: var(--text); border-bottom: 1px solid var(--border-hi); }
-    .article-body a:hover { border-bottom-color: var(--success); }
-    .article-body h2 { color: var(--text); font-size: clamp(28px, 4vw, 44px); line-height: 1.08; letter-spacing: -0.035em; text-transform: uppercase; margin: 70px 0 22px; }
-    .article-body h3 { color: var(--text); font-size: 18px; letter-spacing: var(--track); text-transform: uppercase; margin: 34px 0 12px; }
-    .article-body ul, .article-body ol { margin: 0 0 28px 24px; }
-    .article-body li { margin: 10px 0; padding-left: 6px; }
-    .article-body strong { color: var(--text); }
-    .article-body hr { border: 0; border-top: 1px solid var(--border); margin: 56px 0; }
-
-    .toc { border: 1px solid var(--border); background: rgba(0,0,0,0.75); padding: 22px; margin: 0 0 42px; }
-    .toc-title { color: var(--faint); font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; margin-bottom: 12px; }
-    .toc ol { display: grid; gap: 8px; list-style-position: inside; margin: 0; color: var(--muted); font-size: 12px; letter-spacing: 0.02em; }
-    .toc a { border-bottom: 0; color: var(--text); }
-
-    .answer-box { border: 1px solid rgba(48,209,88,0.42); background: linear-gradient(135deg, rgba(48,209,88,0.13), rgba(17,17,17,0.72)); padding: 28px; margin: 36px 0; }
-    .answer-box .label { color: var(--success); font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; margin-bottom: 14px; }
-    .answer-box p:last-child { margin-bottom: 0; }
-
-    .comparison { width: 100%; border-collapse: collapse; margin: 34px 0; border: 1px solid var(--border); font-size: 13px; }
-    .comparison th, .comparison td { border: 1px solid var(--border); padding: 16px; vertical-align: top; text-align: left; }
-    .comparison th { color: var(--text); background: var(--surface); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; }
-    .comparison td { color: var(--muted); }
-    .comparison td:first-child { color: var(--text); font-weight: 700; }
-
-    .screenshot-feature { margin: 44px 0; display: grid; grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1fr); gap: 28px; align-items: center; }
-    .phone-frame { border: 1px solid var(--border-hi); background: var(--surface); padding: 10px; box-shadow: 10px 10px 0 rgba(255,255,255,0.04); }
-    .phone-frame img { border: 1px solid var(--border); background: #050505; }
-    .screenshot-note { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 22px 0; }
-    .screenshot-note .num { color: var(--success); font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; margin-bottom: 12px; }
-    .screenshot-note h3 { margin-top: 0; }
-    .screenshot-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; margin: 34px 0; }
-    figure { margin: 0; }
-    figcaption { color: var(--faint); font-size: 11px; letter-spacing: var(--track); text-transform: uppercase; margin-top: 14px; line-height: 1.6; }
-
-    .checklist { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 34px 0; }
-    .check-row { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 1px; background: var(--border); }
-    .check-row strong, .check-row span { background: var(--bg); padding: 18px; }
-    .check-row strong { color: var(--text); font-size: 11px; letter-spacing: var(--track); text-transform: uppercase; }
-    .check-row span { color: var(--muted); }
-
-    .cta { margin-top: 64px; border: 1px solid var(--border-hi); background: var(--surface-3); padding: 34px; display: grid; gap: 20px; }
-    .cta h2 { margin: 0; }
-    .cta p { margin-bottom: 0; }
-    .button-row { display: flex; flex-wrap: wrap; gap: 12px; }
-    .btn-primary, .btn-secondary { display: inline-flex; align-items: center; justify-content: center; padding: 14px 20px; font-size: 11px; font-weight: 800; letter-spacing: var(--track); text-transform: uppercase; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s; }
-    .btn-primary { background: var(--text); color: var(--bg); }
-    .btn-primary:hover { transform: translate(-3px,-3px); box-shadow: 3px 3px 0 var(--text); }
-    .btn-secondary { border: 1px solid var(--border); color: var(--text); }
-    .btn-secondary:hover { border-color: var(--text); background: var(--surface-2); }
-
-    footer { padding: 48px 0; border-top: 1px solid var(--border); }
-    .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-    .footer-links { display: flex; gap: 32px; list-style: none; flex-wrap: wrap; }
-    .footer-links a { color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; transition: color 0.15s; }
-    .footer-links a:hover, .footer-links a[aria-current="page"] { color: var(--text); }
-    .footer-copy { font-size: 10px; color: var(--faint); letter-spacing: var(--track); }
-
-    @media (max-width: 900px) {
-      .hero-inner, .screenshot-feature { grid-template-columns: 1fr; }
-      .lead-grid { grid-template-columns: repeat(2, 1fr); }
-      .meta-card { max-width: 520px; }
-    }
-    @media (max-width: 720px) {
-      .comparison { display: block; overflow-x: auto; white-space: nowrap; }
-      .screenshot-grid { grid-template-columns: 1fr; }
-      .check-row { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 640px) {
-      .container, .article-container { padding: 0 18px; }
-      .nav-inner { padding: 12px 18px; }
-      .nav-links { display: none; }
-      .hero { padding: 100px 0 56px; }
-      .eyebrow { font-size: 10px; line-height: 1.5; align-items: flex-start; }
-      .eyebrow::before { width: 24px; margin-top: 8px; flex: 0 0 auto; }
-      .lead-grid { grid-template-columns: 1fr; }
-      article { padding: 56px 0 82px; }
-      .article-body { font-size: 15px; }
-      .phone-frame { max-width: 340px; margin: 0 auto; }
-      .footer-inner { flex-direction: column; text-align: center; }
-      .footer-links { justify-content: center; gap: 22px; }
-    }
-  </style>
+  <link rel="stylesheet" href="../../geist.css">
 </head>
 <body>
 
@@ -248,11 +84,12 @@
       <span>Vox.md</span>
     </a>
     <ul class="nav-links">
-      <li><a href="../../index.html#how">How it works</a></li>
+      <li><a href="../../index.html#how">How It Works</a></li>
       <li><a href="../" aria-current="page">Blog</a></li>
       <li><a href="../../privacy.html">Privacy</a></li>
       <li><a href="../../terms.html">Terms</a></li>
     </ul>
+    <a href="https://apps.apple.com/us/app/voxboard/id6758967337" class="nav-cta" target="_blank" rel="noopener">Download Vox.md</a>
   </div>
 </nav>
 
@@ -261,19 +98,19 @@
   <div class="container">
     <div class="hero-inner">
       <div>
-        <div class="eyebrow">Private dictation · iPhone keyboard · Local workflow</div>
+        <div class="eyebrow">Private Dictation · iPhone Keyboard · Local Workflow</div>
         <h1 class="hero-title">Best Voice-to-Text Keyboard for iPhone</h1>
         <p class="hero-subtitle">The best iPhone voice-to-text keyboard is the one you can use in the apps where you already write, without sending your audio away or turning on unnecessary keyboard permissions.</p>
       </div>
       <aside class="meta-card" aria-label="Article metadata">
-        <div class="meta-label">Guide status</div>
+        <div class="meta-label">Guide Status</div>
         <dl>
           <div>
             <dt>Published</dt>
             <dd>June 13, 2026</dd>
           </div>
           <div>
-            <dt>Reading time</dt>
+            <dt>Reading Time</dt>
             <dd>6 minutes</dd>
           </div>
           <div>
@@ -289,10 +126,10 @@
 <section class="lead-strip" aria-label="Quick criteria">
   <div class="container">
     <div class="lead-grid">
-      <div class="lead-card"><strong>Works anywhere</strong><span>Use dictation in Safari, Messages, Notes, Mail, Slack, forms, and search boxes.</span></div>
+      <div class="lead-card"><strong>Works Anywhere</strong><span>Use dictation in Safari, Messages, Notes, Mail, Slack, forms, and search boxes.</span></div>
       <div class="lead-card"><strong>No Full Access</strong><span>The core keyboard workflow should not require Apple's Full Access switch.</span></div>
-      <div class="lead-card"><strong>No audio uploads</strong><span>Prefer local transcription so microphone audio is processed on your iPhone.</span></div>
-      <div class="lead-card"><strong>Local history</strong><span>Keep a local record of transcripts you can review, copy, or delete.</span></div>
+      <div class="lead-card"><strong>No Audio Uploads</strong><span>Prefer local transcription so microphone audio is processed on your iPhone.</span></div>
+      <div class="lead-card"><strong>Local History</strong><span>Keep a local record of transcripts you can review, copy, or delete.</span></div>
     </div>
   </div>
 </section>
@@ -301,13 +138,13 @@
   <article>
     <div class="article-container article-body">
       <nav class="toc" aria-label="Table of contents">
-        <div class="toc-title">In this guide</div>
+        <div class="toc-title">In This Guide</div>
         <ol>
-          <li><a href="#short-answer">Short answer</a></li>
-          <li><a href="#what-matters">What matters in an iPhone voice keyboard</a></li>
-          <li><a href="#voxboard-workflow">How Vox.md handles private dictation</a></li>
-          <li><a href="#use-cases">Best use cases</a></li>
-          <li><a href="#choose">How to choose</a></li>
+          <li><a href="#short-answer">Short Answer</a></li>
+          <li><a href="#what-matters">What Matters in an iPhone Voice Keyboard</a></li>
+          <li><a href="#voxboard-workflow">How Vox.md Handles Private Dictation</a></li>
+          <li><a href="#use-cases">Best Use Cases</a></li>
+          <li><a href="#choose">How to Choose</a></li>
         </ol>
       </nav>
 
@@ -316,7 +153,7 @@
       <p>That distinction matters. A voice memo app records audio. A transcription app creates a document you copy from later. A voice-to-text keyboard should behave like a keyboard: open the text field, switch keyboards, tap the microphone, speak, and insert the text where your cursor already is.</p>
 
       <div class="answer-box" id="short-answer">
-        <div class="label">Short answer</div>
+        <div class="label">Short Answer</div>
         <p><strong>Vox.md is built for people who want private iPhone dictation in every app.</strong> It adds a microphone keyboard to iOS, uses on-device transcription after setup with an installed model, does not require Full Access for core dictation, and keeps transcripts in local history instead of sending your spoken text to a server.</p>
       </div>
 
@@ -325,23 +162,23 @@
           <img src="assets/voxboard-main.png" alt="Vox.md main screen standing by for local voice-to-text recording" width="1206" height="2622" decoding="async">
         </figure>
         <div class="screenshot-note">
-          <div class="num">Fresh simulator capture · 01</div>
-          <h3 id="main-screenshot-title">Start from a private recording surface.</h3>
+          <div class="num">Fresh Simulator Capture · 01</div>
+          <h3 id="main-screenshot-title">Start From a Private Recording Surface</h3>
           <p>The main Vox.md app gives you a clear standby state, quick recording control, model selection, and a path into history. The keyboard extension is for typing into other apps; the main app is where setup, review, and local transcript management live.</p>
         </div>
       </section>
 
-      <h2 id="what-matters">What matters in an iPhone voice-to-text keyboard?</h2>
+      <h2 id="what-matters">What Matters in an iPhone Voice-to-Text Keyboard?</h2>
 
       <p>There are plenty of ways to dictate on an iPhone, including Apple's built-in keyboard microphone. But when you are choosing a dedicated voice-to-text keyboard, the important criteria are practical and privacy-specific.</p>
 
       <div class="checklist" aria-label="Voice keyboard checklist">
         <div class="check-row">
-          <strong>Keyboard first</strong>
+          <strong>Keyboard First</strong>
           <span>It should insert text into the active field instead of forcing a copy-paste round trip through a separate transcription document.</span>
         </div>
         <div class="check-row">
-          <strong>Private by default</strong>
+          <strong>Private by Default</strong>
           <span>Audio, transcripts, keystrokes, and dictated text should stay on the device whenever possible.</span>
         </div>
         <div class="check-row">
@@ -349,11 +186,11 @@
           <span>Full Access gives a third-party keyboard broader capabilities. For a privacy-focused dictation keyboard, core typing should work without it.</span>
         </div>
         <div class="check-row">
-          <strong>Transparent setup</strong>
+          <strong>Transparent Setup</strong>
           <span>iOS keyboard permissions are confusing. A good app should explain exactly what to enable and what can stay off.</span>
         </div>
         <div class="check-row">
-          <strong>Recoverable text</strong>
+          <strong>Recoverable Text</strong>
           <span>Local transcript history helps when you want to reuse a phrase, copy a previous note, or confirm what was inserted.</span>
         </div>
       </div>
@@ -387,7 +224,7 @@
         </tbody>
       </table>
 
-      <h2 id="voxboard-workflow">How Vox.md handles private dictation</h2>
+      <h2 id="voxboard-workflow">How Vox.md Handles Private Dictation</h2>
 
       <p>Vox.md is an iOS app and keyboard extension. After installing the app, you enable the Vox.md keyboard in iOS Settings. Then, anywhere the iPhone keyboard appears, you can switch to Vox.md and dictate text directly into the field.</p>
 
@@ -398,9 +235,9 @@
       <div class="screenshot-grid" aria-label="Vox.md app screenshots">
         <figure>
           <div class="phone-frame">
-            <img src="assets/voxboard-history.png" alt="Vox.md local transcript history with copy actions and tags" width="1206" height="2622" loading="lazy" decoding="async">
+            <img src="assets/voxboard-history.png" alt="Vox.md empty local transcript history with private search" width="1206" height="2622" loading="lazy" decoding="async">
           </div>
-          <figcaption>Local history keeps previous transcripts available for review, copy, and deletion.</figcaption>
+          <figcaption>Local history keeps transcripts private and points you to the first recording when empty.</figcaption>
         </figure>
         <figure>
           <div class="phone-frame">
@@ -412,21 +249,21 @@
 
       <p>The local history view is useful for real work. If a transcript matters, you can return to it. If it does not, delete it. This is the difference between dictation as a disposable keyboard action and dictation as a recoverable writing workflow.</p>
 
-      <h2 id="use-cases">Best iPhone voice-to-text keyboard use cases</h2>
+      <h2 id="use-cases">Best iPhone Voice-to-Text Keyboard Use Cases</h2>
 
-      <h3>Messages and short replies</h3>
+      <h3>Messages and Short Replies</h3>
       <p>When a reply is too long to thumb-type but too casual for a full recording workflow, a keyboard-based dictation app is the fastest path. Open the thread, switch to Vox.md, speak, and send after reviewing the text.</p>
 
-      <h3>Safari forms and search boxes</h3>
+      <h3>Safari Forms and Search Boxes</h3>
       <p>Most transcription apps are awkward for web forms because they put the transcript somewhere else. Vox.md's keyboard approach is meant for the active field: search queries, support forms, product feedback, account notes, and any browser text box.</p>
 
-      <h3>Notes, drafts, and outlines</h3>
+      <h3>Notes, Drafts, and Outlines</h3>
       <p>Voice is excellent for first drafts. Use Vox.md when you want to capture a thought in Notes, start an email, rough out a paragraph, or leave yourself a local transcript you can clean up later.</p>
 
-      <h3>Work chat without a cloud dictation service</h3>
+      <h3>Work Chat Without a Cloud Dictation Service</h3>
       <p>For Slack, Discord, email, and project tools, privacy expectations can be higher than in a casual note. Vox.md is designed for people who prefer local transcription and do not want their raw audio uploaded just to get words into a field.</p>
 
-      <h2 id="choose">How to choose the best voice-to-text keyboard for your iPhone</h2>
+      <h2 id="choose">How to Choose the Best Voice-to-Text Keyboard for Your iPhone</h2>
 
       <p>Use Apple's built-in dictation if you want the default option and do not need a separate local history or custom keyboard workflow. Use a cloud transcription product if you need meeting notes, summaries, speaker labels, or team collaboration around long recordings.</p>
 
@@ -435,12 +272,12 @@
       <p>One final note: speech recognition is still machine learning. Transcription quality can vary based on model choice, microphone quality, background noise, accent, cadence, and the words being spoken. Always review important text before sending it, and do not rely on any dictation tool for critical legal, medical, safety, or emergency transcription without independent verification.</p>
 
       <section class="cta" aria-labelledby="cta-title">
-        <h2 id="cta-title">Try private voice-to-text on iPhone.</h2>
+        <h2 id="cta-title">Try Private Voice-to-Text on iPhone</h2>
         <p>Install Vox.md, enable the keyboard, keep Full Access off for core dictation, and start speaking into the places you already type.</p>
         <div class="button-row">
-          <a class="btn-primary" href="https://apps.apple.com/us/app/voxboard/id6758967337" target="_blank" rel="noopener">Download on App Store</a>
-          <a class="btn-secondary" href="../../privacy.html">Read privacy policy</a>
-          <a class="btn-secondary" href="../../index.html#how">See how it works</a>
+          <a class="btn-primary" href="https://apps.apple.com/us/app/voxboard/id6758967337" target="_blank" rel="noopener">Download Vox.md</a>
+          <a class="btn-secondary" href="../../privacy.html">Read Privacy Policy</a>
+          <a class="btn-secondary" href="../../index.html#how">See How It Works</a>
         </div>
       </section>
     </div>
@@ -458,7 +295,7 @@
         <li><a href="mailto:codybontecou@gmail.com">Support</a></li>
         <li><a href="https://apps.apple.com/us/app/voxboard/id6758967337" target="_blank" rel="noopener">App Store</a></li>
       </ul>
-      <div class="footer-copy">© 2026 Vox.md · Private iPhone dictation · No audio uploads.</div>
+      <div class="footer-copy">© 2026 Vox.md · Quick capture for local notes · No content uploads.</div>
     </div>
   </div>
 </footer>

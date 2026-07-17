@@ -94,10 +94,10 @@ struct CaptureInternalLinkPicker: View {
                             Text("Indexing filenames on device…")
                         }
                     } else if let errorMessage {
-                        Text(errorMessage).foregroundStyle(Brutal.error)
+                        Text(errorMessage).foregroundStyle(Geist.error)
                     } else if filteredNotes.isEmpty {
                         Text(rootURL == nil ? "Choose a destination first." : "No Markdown notes found.")
-                            .foregroundStyle(Brutal.muted)
+                            .foregroundStyle(Geist.muted)
                     } else {
                         ForEach(filteredNotes) { note in
                             Button {
@@ -107,7 +107,7 @@ struct CaptureInternalLinkPicker: View {
                                     Text(note.displayName)
                                     Text(note.relativePath)
                                         .font(.caption.monospaced())
-                                        .foregroundStyle(Brutal.muted)
+                                        .foregroundStyle(Geist.muted)
                                 }
                             }
                         }

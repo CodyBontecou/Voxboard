@@ -1,10 +1,7 @@
 import SwiftUI
 import VoxboardShared
 
-// MARK: - ModelTabView
-
-/// Tab 2 — download, select, and delete Whisper / Parakeet models;
-/// also exposes the transcription language picker.
+/// Download and select the on-device speech recognition model.
 struct ModelTabView: View {
     @Environment(ModelManager.self) private var modelManager
 
@@ -17,243 +14,205 @@ struct ModelTabView: View {
     }
 
     var body: some View {
-        ZStack {
-            Brutal.surface.ignoresSafeArea()
-
-            ScrollView {
-                VStack(spacing: 0) {
-                    pageHeader
-                    BrutalDivider()
-                    whisperSection
-                    BrutalDivider()
-                    parakeetSection
-                    BrutalDivider()
-                    languageSection
-                }
+        ScrollView {
+            VStack(alignment: .leading, spacing: Geist.Spacing.eight) {
+                header
+                modelSection(title: "Whisper", description: "General-purpose multilingual models.", models: whisperModels)
+                modelSection(title: "Parakeet", description: "Fast, optimized speech recognition models.", models: parakeetModels)
+                languageSection
             }
+            .padding(.horizontal, Geist.Spacing.four)
+            .padding(.vertical, Geist.Spacing.six)
+            .frame(maxWidth: 760)
+            .frame(maxWidth: .infinity)
         }
-        .navigationTitle("")
+        .background(Geist.Palette.background200.ignoresSafeArea())
+        .navigationTitle("Models")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text("MODEL")
-                    .font(Brutal.label(.headline))
-                    .foregroundColor(Brutal.text)
-            }
-        }
-        .toolbarBackground(Brutal.bg, for: .navigationBar)
+        .toolbarBackground(Geist.Palette.background100, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
     }
 
-    // MARK: - Page header
-
-    private var pageHeader: some View {
-        Text("Download and select the speech recognition model used for transcription. Larger models are more accurate but require more memory and take longer to load.")
-            .font(Brutal.caption())
-            .foregroundColor(Brutal.muted)
-            .lineSpacing(3)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Brutal.bg)
-    }
-
-    // MARK: - Section header helper
-
-    private func sectionHeader(_ number: String, _ title: LocalizedStringKey) -> some View {
-        HStack {
-            BrutalSectionLabel(number: number, title: title)
-            Spacer()
+    private var header: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.two) {
+            Text("On-Device Models")
+                .font(Geist.heading(.title))
+                .tracking(-0.96)
+                .foregroundStyle(Geist.text)
+            Text("Choose the model Vox.md uses for transcription. Larger downloads can improve accuracy but need more memory and load more slowly.")
+                .font(Geist.body())
+                .foregroundStyle(Geist.muted)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 28)
-        .padding(.bottom, 16)
-        .background(Brutal.bg)
     }
 
-    // MARK: - Whisper models
-
-    private var whisperSection: some View {
-        VStack(spacing: 0) {
-            sectionHeader("01", "Whisper Models")
-            BrutalDivider()
-            ForEach(whisperModels) { model in
-                modelRow(for: model)
-                BrutalDivider()
+    private func modelSection(
+        title: LocalizedStringKey,
+        description: LocalizedStringKey,
+        models: [WhisperModelInfo]
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                Text(title)
+                    .font(Geist.heading(.headline))
+                    .foregroundStyle(Geist.text)
+                Text(description)
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.muted)
             }
-        }
-    }
 
-    // MARK: - Parakeet models
-
-    private var parakeetSection: some View {
-        VStack(spacing: 0) {
-            sectionHeader("02", "Parakeet Models")
-            BrutalDivider()
-            ForEach(parakeetModels) { model in
-                modelRow(for: model)
-                BrutalDivider()
-            }
-        }
-    }
-
-    // MARK: - Language picker
-
-    private var languageSection: some View {
-        VStack(spacing: 0) {
-            sectionHeader("03", "Language")
-            BrutalDivider()
-
-            if modelManager.selectedModel?.engine.isParakeet == true {
-                footerNote("Parakeet currently auto-detects language in Vox.md. Manual language hints are not yet supported by the current engine API.")
-            } else {
-                Picker("Transcription Language", selection: Binding(
-                    get: { modelManager.selectedLanguage },
-                    set: { modelManager.selectedLanguage = $0 }
-                )) {
-                    ForEach(modelManager.availableLanguages, id: \.code) { lang in
-                        Text(lang.name).tag(lang.code)
-                    }
+            VStack(spacing: 0) {
+                ForEach(Array(models.enumerated()), id: \.element.id) { index, model in
+                    modelRow(for: model)
+                    if index < models.count - 1 { GeistDivider() }
                 }
-                .pickerStyle(.wheel)
-                .frame(height: 140)
-                .background(Brutal.bg)
-                .tint(Brutal.text)
             }
+            .background(Geist.Palette.background100)
+            .overlay(
+                RoundedRectangle(cornerRadius: Geist.Radius.medium, style: .continuous)
+                    .stroke(Geist.border, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.medium, style: .continuous))
         }
     }
-
-    // MARK: - Row builders
 
     private func modelRow(for model: WhisperModelInfo) -> some View {
-        HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
-                    Text(model.name.uppercased())
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.text)
+        HStack(alignment: .center, spacing: Geist.Spacing.four) {
+            VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                HStack(spacing: Geist.Spacing.two) {
+                    Text(model.name)
+                        .font(Geist.label(.body))
+                        .foregroundStyle(Geist.text)
                     if model.isBundled {
-                        Text("BUNDLED")
-                            .font(Brutal.caption())
-                            .foregroundColor(Brutal.muted)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                        Text("Bundled")
+                            .font(Geist.caption(.caption))
+                            .foregroundStyle(Geist.muted)
+                            .padding(.horizontal, Geist.Spacing.two)
+                            .frame(height: 24)
+                            .background(Geist.Palette.gray100)
+                            .clipShape(Capsule())
                     }
                 }
-                Text(model.sizeLabel.uppercased())
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
+
+                Text(model.sizeLabel)
+                    .font(Geist.mono())
+                    .foregroundStyle(Geist.muted)
 
                 if let modelDescription = model.modelDescription {
                     Text(modelDescription)
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.muted)
                         .lineLimit(2)
                 }
             }
-            Spacer()
+
+            Spacer(minLength: Geist.Spacing.two)
             modelActionView(for: model)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-        .background(Brutal.bg)
+        .padding(Geist.Spacing.four)
+        .frame(minHeight: 88)
     }
 
     @ViewBuilder
     private func modelActionView(for model: WhisperModelInfo) -> some View {
         if model.isDownloaded {
-            HStack(spacing: 12) {
+            HStack(spacing: Geist.Spacing.two) {
                 if modelManager.selectedModelId == model.id {
-                    HStack(spacing: 6) {
-                        Rectangle()
-                            .fill(Brutal.text)
-                            .frame(width: 6, height: 6)
-                        Text("SELECTED")
-                            .font(Brutal.caption())
-                            .foregroundColor(Brutal.text)
-                    }
+                    Label("Selected", systemImage: "checkmark.circle.fill")
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.Palette.blue900)
+                        .padding(.horizontal, Geist.Spacing.three)
+                        .frame(height: Geist.ControlHeight.small)
+                        .background(Geist.Palette.blue100)
+                        .clipShape(Capsule())
                 } else {
-                    Button("SELECT") {
+                    Button("Select Model") {
                         modelManager.selectedModelId = model.id
                         OnboardingAnalyticsClient.shared.trackModelSetupCompleted(
                             metadata: OnboardingAnalyticsModelMetadata(model: model)
                         )
                     }
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
-                    .buttonStyle(.plain)
+                    .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+                    .frame(width: 104)
                 }
 
                 Button {
                     modelManager.deleteModel(model)
                 } label: {
-                    Text("DELETE")
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.error)
+                    Image(systemName: "trash")
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(GeistButtonStyle(variant: .tertiary, size: .small))
+                .frame(width: Geist.ControlHeight.small)
+                .accessibilityLabel("Delete \(model.name) model")
             }
         } else if modelManager.isDownloading[model.id] == true {
             downloadingView(for: model)
         } else {
-            Button {
+            Button("Download Model") {
                 modelManager.startDownload(model)
-            } label: {
-                Text("↓ DOWNLOAD")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.text)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+            .frame(width: 128)
         }
     }
 
     private func downloadingView(for model: WhisperModelInfo) -> some View {
-        let pct = Int((modelManager.downloadProgress[model.id] ?? 0) * 100)
-        return HStack(spacing: 10) {
-            VStack(alignment: .trailing, spacing: 4) {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Rectangle().fill(Brutal.border).frame(height: 2)
-                        Rectangle()
-                            .fill(Brutal.text)
-                            .frame(
-                                width: geo.size.width * CGFloat(modelManager.downloadProgress[model.id] ?? 0),
-                                height: 2
-                            )
-                    }
-                }
-                .frame(width: 72, height: 2)
-
-                Text("\(pct)%")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
-                    .monospacedDigit()
+        let progress = modelManager.downloadProgress[model.id] ?? 0
+        return HStack(spacing: Geist.Spacing.two) {
+            VStack(alignment: .trailing, spacing: Geist.Spacing.one) {
+                ProgressView(value: progress)
+                    .progressViewStyle(.linear)
+                    .tint(Geist.Palette.blue700)
+                    .frame(width: 88)
+                Text("\(Int(progress * 100))%")
+                    .font(Geist.mono())
+                    .foregroundStyle(Geist.muted)
             }
             Button {
                 modelManager.cancelDownload(model)
             } label: {
-                Text("✕")
-                    .font(Brutal.label())
-                    .foregroundColor(Brutal.muted)
+                Image(systemName: "xmark")
             }
-            .buttonStyle(.plain)
+            .buttonStyle(GeistButtonStyle(variant: .tertiary, size: .small))
+            .frame(width: Geist.ControlHeight.small)
+            .accessibilityLabel("Cancel \(model.name) download")
         }
     }
 
-    // MARK: - Helpers
+    private var languageSection: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            Text("Transcription Language")
+                .font(Geist.heading(.headline))
+                .foregroundStyle(Geist.text)
 
-    private func footerNote(_ text: String) -> some View {
-        Text(text)
-            .font(Brutal.caption())
-            .foregroundColor(Brutal.muted)
-            .lineSpacing(3)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Brutal.bg)
+            Group {
+                if modelManager.selectedModel?.engine.isParakeet == true {
+                    Text("Parakeet detects language automatically. Manual language hints are unavailable for this engine.")
+                        .font(Geist.body())
+                        .foregroundStyle(Geist.muted)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .geistCard(padding: Geist.Spacing.four)
+                } else {
+                    Picker("Transcription Language", selection: Binding(
+                        get: { modelManager.selectedLanguage },
+                        set: { modelManager.selectedLanguage = $0 }
+                    )) {
+                        ForEach(modelManager.availableLanguages, id: \.code) { language in
+                            Text(language.name).tag(language.code)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .font(Geist.body())
+                    .tint(Geist.text)
+                    .frame(maxWidth: .infinity, minHeight: Geist.ControlHeight.large, alignment: .leading)
+                    .padding(.horizontal, Geist.Spacing.four)
+                    .background(Geist.Palette.background100)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous)
+                            .stroke(Geist.border, lineWidth: 1)
+                    )
+                }
+            }
+        }
     }
 }

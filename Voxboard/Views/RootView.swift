@@ -56,7 +56,6 @@ enum AppTab: Hashable, CaseIterable {
 /// • iPad / regular width   → `NavigationSplitView` with a sidebar.
 struct RootView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @Environment(\.colorScheme) private var colorScheme
 
     @Bindable var persistentRecorder: PersistentRecorder
     @Bindable var quickCaptureViewModel: QuickCaptureViewModel
@@ -72,7 +71,7 @@ struct RootView: View {
                 regularLayout
             }
         }
-        .preferredColorScheme(.dark)
+        .background(Geist.Palette.background100)
         .onAppear {
             if pendingWidgetRecord || pendingKeyboardLaunch {
                 focusListenTab()
@@ -139,8 +138,8 @@ struct RootView: View {
             .accessibilityIdentifier(AppTab.settings.accessibilityIdentifier)
             .accessibilityHint(AppTab.settings.accessibilityHint)
         }
-        .tint(colorScheme == .dark ? Brutal.text : Brutal.bg)
-        .toolbarBackground(Brutal.bg, for: .tabBar)
+        .tint(Geist.Palette.gray1000)
+        .toolbarBackground(Geist.Palette.background100, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
     }
 
@@ -155,15 +154,15 @@ struct RootView: View {
             List(selection: sidebarSelection) {
                 ForEach(AppTab.allCases, id: \.self) { tab in
                     Label(tab.label, systemImage: tab.inactiveSymbol)
-                        .font(Brutal.label())
+                        .font(Geist.label())
                         .tag(tab)
                 }
             }
             .listStyle(.sidebar)
             .scrollContentBackground(.hidden)
-            .background(Brutal.bg)
-            .navigationTitle("VOX.MD")
-            .toolbarBackground(Brutal.bg, for: .navigationBar)
+            .background(Geist.Palette.background100)
+            .navigationTitle("Vox.md")
+            .toolbarBackground(Geist.Palette.background100, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         } detail: {
             switch selectedTab {

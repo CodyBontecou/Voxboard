@@ -61,15 +61,12 @@ struct QuickCaptureView: View {
 
     private var captureContent: some View {
         ZStack(alignment: .top) {
-            Brutal.bg.ignoresSafeArea()
-            BrutalGridBackground()
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
+            Geist.Palette.background100.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 if viewModel.destinations.isEmpty {
                     emptyDestinationBanner
-                    BrutalDivider()
+                    GeistDivider()
                 }
 
                 composer
@@ -77,11 +74,11 @@ struct QuickCaptureView: View {
 
                 if !viewModel.draft.additionalPayloads.isEmpty {
                     attachmentStrip
-                    BrutalDivider()
+                    GeistDivider()
                 }
 
                 routeRow
-                BrutalDivider()
+                GeistDivider()
                 primaryActionRow
                 CaptureEditorToolbar(
                     command: handleToolbarCommand,
@@ -103,20 +100,20 @@ struct QuickCaptureView: View {
             }
 
             if showsSentToast {
-                Text("Sent")
-                    .font(Brutal.label())
-                    .foregroundStyle(Brutal.bg)
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 10)
-                    .background(Brutal.text)
-                    .overlay(Rectangle().stroke(Brutal.bg, lineWidth: 1))
+                Label("Capture Sent", systemImage: "checkmark.circle.fill")
+                    .font(Geist.label())
+                    .foregroundStyle(Geist.Palette.background100)
+                    .padding(.horizontal, Geist.Spacing.four)
+                    .frame(height: Geist.ControlHeight.medium)
+                    .background(Geist.Palette.gray1000)
+                    .clipShape(Capsule())
                     .padding(.top, 12)
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .zIndex(4)
                     .accessibilityIdentifier("capture_sent_toast")
             }
         }
-        .navigationTitle("CAPTURE")
+        .navigationTitle("Capture")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -136,9 +133,9 @@ struct QuickCaptureView: View {
                         if viewModel.failedInboxCount > 0 {
                             Text("\(min(viewModel.failedInboxCount, 9))")
                                 .font(.system(size: 8, weight: .bold))
-                                .foregroundStyle(Brutal.bg)
+                                .foregroundStyle(Geist.bg)
                                 .frame(width: 14, height: 14)
-                                .background(Brutal.error)
+                                .background(Geist.error)
                                 .clipShape(Circle())
                                 .offset(x: 7, y: -6)
                         }
@@ -151,7 +148,7 @@ struct QuickCaptureView: View {
                 )
             }
         }
-        .toolbarBackground(Brutal.bg, for: .navigationBar)
+        .toolbarBackground(Geist.Palette.background100, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
     }
 
@@ -319,12 +316,12 @@ struct QuickCaptureView: View {
             controller: composerController
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Brutal.bg.opacity(0.96))
+        .background(Geist.Palette.background100)
         .overlay(alignment: .center) {
             if viewModel.draft.text.isEmpty && viewModel.draft.additionalPayloads.isEmpty {
-                Text("Capture your ideas, tasks, links, and files…")
-                    .font(Brutal.body())
-                    .foregroundStyle(Brutal.faint)
+                Text("Capture ideas, tasks, links, and files…")
+                    .font(Geist.body())
+                    .foregroundStyle(Geist.faint)
                     .allowsHitTesting(false)
                     .padding(.horizontal, 28)
                     .accessibilityHidden(true)
@@ -337,12 +334,12 @@ struct QuickCaptureView: View {
             CaptureDestinationLibraryView(viewModel: viewModel)
         } label: {
             Label("Choose a local Markdown destination to begin", systemImage: "folder.badge.plus")
-                .font(Brutal.caption())
+                .font(Geist.caption())
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(12)
         }
-        .foregroundStyle(Brutal.text)
-        .background(Brutal.surface)
+        .foregroundStyle(Geist.text)
+        .background(Geist.surface)
     }
 
     private var routeRow: some View {
@@ -387,11 +384,11 @@ struct QuickCaptureView: View {
                 .accessibilityLabel("Reset capture route overrides")
             }
         }
-        .font(Brutal.caption())
-        .foregroundStyle(Brutal.muted)
-        .padding(.horizontal, 12)
-        .frame(minHeight: 44)
-        .background(Brutal.bg)
+        .font(Geist.caption())
+        .foregroundStyle(Geist.muted)
+        .padding(.horizontal, Geist.Spacing.three)
+        .frame(minHeight: Geist.ControlHeight.large)
+        .background(Geist.Palette.background200)
     }
 
     private var primaryActionRow: some View {
@@ -418,14 +415,15 @@ struct QuickCaptureView: View {
             } label: {
                 HStack(spacing: 8) {
                     if viewModel.isSubmitting {
-                        ProgressView().tint(Brutal.bg)
+                        ProgressView().tint(Geist.Palette.background100)
                     }
-                    Text(viewModel.isSubmitting ? "SENDING" : "SEND")
+                    Text(viewModel.isSubmitting ? "Sending…" : "Send Capture")
                 }
-                .font(Brutal.label())
-                .foregroundStyle(Brutal.bg)
-                .frame(maxWidth: .infinity, minHeight: 48)
-                .background(Brutal.text)
+                .font(Geist.label(.body))
+                .foregroundStyle(Geist.Palette.background100)
+                .frame(maxWidth: .infinity, minHeight: Geist.ControlHeight.large)
+                .background(Geist.Palette.gray1000)
+                .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
             }
             .disabled(!viewModel.canSubmit)
             .opacity(viewModel.canSubmit ? 1 : 0.35)
@@ -444,9 +442,9 @@ struct QuickCaptureView: View {
                 primaryIcon("Voice recording", systemImage: "waveform.badge.mic")
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(Brutal.bg)
+        .padding(.horizontal, Geist.Spacing.three)
+        .padding(.vertical, Geist.Spacing.two)
+        .background(Geist.Palette.background100)
         .disabled(isProcessingMedia)
     }
 
@@ -465,34 +463,34 @@ struct QuickCaptureView: View {
                         }
                         .accessibilityLabel("Remove \(payloadLabel(payload))")
                     }
-                    .font(Brutal.caption())
-                    .foregroundStyle(Brutal.text)
-                    .padding(.horizontal, 10)
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.text)
+                    .padding(.horizontal, Geist.Spacing.three)
                     .frame(height: 36)
-                    .background(Brutal.surface)
-                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                    .background(Geist.Palette.gray100)
+                    .clipShape(Capsule())
                 }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 7)
         }
-        .background(Brutal.bg)
+        .background(Geist.Palette.background100)
         .accessibilityLabel("Capture attachments")
     }
 
     private func errorBanner(_ message: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(Brutal.error)
+                .foregroundStyle(Geist.error)
             VStack(alignment: .leading, spacing: 4) {
                 Text(message)
-                    .font(Brutal.caption())
-                    .foregroundStyle(Brutal.text)
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.text)
                 if viewModel.failedInboxCount > 0 {
                     Button("Retry queued captures") {
                         Task { await viewModel.retryFailedInbox() }
                     }
-                    .font(Brutal.caption())
+                    .font(Geist.caption())
                 }
             }
             Spacer()
@@ -503,17 +501,23 @@ struct QuickCaptureView: View {
             }
             .accessibilityLabel("Dismiss error")
         }
-        .padding(12)
-        .background(Brutal.surface2)
-        .overlay(Rectangle().stroke(Brutal.error, lineWidth: 1))
+        .padding(Geist.Spacing.three)
+        .background(Geist.Palette.red100)
+        .overlay(
+            RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous)
+                .stroke(Geist.Palette.red400, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
     }
 
     private func primaryIcon(_ label: String, systemImage: String) -> some View {
         Image(systemName: systemImage)
-            .font(.system(size: 20, weight: .medium))
-            .foregroundStyle(Brutal.text)
-            .frame(width: 44, height: 48)
-            .contentShape(Rectangle())
+            .font(.system(size: 18, weight: .medium))
+            .foregroundStyle(Geist.text)
+            .frame(width: 44, height: Geist.ControlHeight.large)
+            .background(Geist.Palette.gray100)
+            .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
             .accessibilityLabel(label)
     }
 

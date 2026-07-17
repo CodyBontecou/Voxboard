@@ -1,29 +1,29 @@
 import SwiftUI
 import VoxboardShared
 
-// MARK: - Local design tokens (keyboard extension cannot import BrutalTheme from main app)
+// MARK: - Geist dark-theme tokens
 
 private enum K {
-    static let bg       = Color(red: 0,    green: 0,    blue: 0)
-    static let surface  = Color(white: 0.08)
-    static let border   = Color(white: 0.18)
-    static let borderHi = Color(white: 0.32)
-    static let text     = Color.white
-    static let muted    = Color(white: 0.72)
-    static let faint    = Color(white: 0.60)
-    static let error    = Color(red: 1.0, green: 0.271, blue: 0.227)
+    static let bg       = Color.black
+    static let surface  = Color(red: 0.102, green: 0.102, blue: 0.102)
+    static let border   = Color.white.opacity(0.141)
+    static let borderHi = Color.white.opacity(0.239)
+    static let text     = Color(red: 0.929, green: 0.929, blue: 0.929)
+    static let muted    = Color(red: 0.627, green: 0.627, blue: 0.627)
+    static let faint    = Color(red: 0.561, green: 0.561, blue: 0.561)
+    static let error    = Color(red: 1.0, green: 0.337, blue: 0.373)
 
     static func label(_ style: Font.TextStyle = .callout) -> Font {
-        .system(style, design: .monospaced, weight: .semibold)
+        .system(style, design: .default, weight: .medium)
     }
     static func caption(_ style: Font.TextStyle = .footnote) -> Font {
-        .system(style, design: .monospaced, weight: .regular)
+        .system(style, design: .default, weight: .regular)
     }
 }
 
 // MARK: - Toolbar View
 
-/// Brutal keyboard toolbar: model navigator · status · waveform · action button.
+/// Compact Geist toolbar: model navigator, status, waveform, and action.
 struct VoiceToolbarView: View {
     @Bindable var voiceState: VoiceKeyboardState
     let hasFullAccess: Bool
@@ -112,7 +112,12 @@ struct VoiceToolbarView: View {
                 .lineLimit(1)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 4)
-                .overlay(Rectangle().stroke(K.borderHi, lineWidth: 1))
+                .background(K.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .stroke(K.borderHi, lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Recording Vox: \(voiceState.currentFlowName). Tap to change Vox.")
@@ -124,22 +129,22 @@ struct VoiceToolbarView: View {
         Group {
             switch voiceState.status {
             case .idle:
-                Text(voiceState.currentModelName.uppercased())
+                Text(voiceState.currentModelName)
             case .appNotListening:
-                Text("OPEN VOX.MD")
+                Text("Open Vox.md")
             case .recording:
                 Text(formatDuration(voiceState.recordingDuration))
                     .monospacedDigit()
             case .transcribing:
-                Text("TRANSCRIBING...")
+                Text("Transcribing…")
             case .error(let msg):
-                Text(msg.uppercased())
+                Text(msg)
                     .foregroundColor(K.error)
             case .noModel:
-                Text("OPEN VOX.MD")
+                Text("Open Vox.md")
                     .foregroundColor(K.error)
             case .needsFullAccess:
-                Text("ENABLE FULL ACCESS")
+                Text("Enable Full Access")
                     .foregroundColor(K.error)
             }
         }

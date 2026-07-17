@@ -2,11 +2,11 @@ import AppIntents
 import SwiftUI
 import WidgetKit
 
-private enum WatchWidgetBrutal {
-    static let error = Color(red: 1.0, green: 0.271, blue: 0.227)
+private enum WatchWidgetGeist {
+    static let error = Color(red: 1.0, green: 0.337, blue: 0.373)
 
-    static func label(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
-        .system(size: size, weight: weight, design: .monospaced)
+    static func label(_ size: CGFloat, weight: Font.Weight = .medium) -> Font {
+        .system(size: size, weight: weight, design: .default)
     }
 }
 
@@ -67,7 +67,7 @@ struct VoxboardWatchRecordWidget: Widget {
             provider: VoxboardWatchRecordProvider()
         ) { entry in
             VoxboardWatchRecordWidgetView(entry: entry)
-                .containerBackground(.black, for: .widget)
+                .containerBackground(.background, for: .widget)
                 .widgetURL(WatchRecordingDeepLink.toggleURL)
         }
         .configurationDisplayName("Record voice note")
@@ -114,12 +114,12 @@ struct VoxboardWatchRecordWidgetView: View {
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Record voice note")
-                                .font(WatchWidgetBrutal.label(12, weight: .bold))
+                                .font(WatchWidgetGeist.label(12, weight: .bold))
                                 .widgetAccentable()
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.68)
                             Text("Tap to start")
-                                .font(WatchWidgetBrutal.label(10, weight: .regular))
+                                .font(WatchWidgetGeist.label(10, weight: .regular))
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.7)
@@ -156,12 +156,12 @@ struct VoxboardWatchRecordWidgetView: View {
                             .fill(stateColor)
                             .frame(width: 4, height: 4)
                             .widgetAccentable()
-                        Text("VOX.MD")
-                            .font(WatchWidgetBrutal.label(11, weight: .bold))
+                        Text("Vox.md")
+                            .font(WatchWidgetGeist.label(11, weight: .bold))
                             .widgetAccentable()
                     }
                     subtitleText
-                        .font(WatchWidgetBrutal.label(10, weight: .regular))
+                        .font(WatchWidgetGeist.label(10, weight: .regular))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
@@ -213,7 +213,7 @@ struct VoxboardWatchRecordWidgetView: View {
     private var stateColor: Color {
         switch entry.snapshot.phase {
         case .recording, .error, .unavailable:
-            return WatchWidgetBrutal.error
+            return WatchWidgetGeist.error
         default:
             return .primary
         }
@@ -296,7 +296,7 @@ private struct VoxboardComplicationMark: View {
     private var dotColor: Color {
         switch phase {
         case .recording, .error, .unavailable:
-            return WatchWidgetBrutal.error
+            return WatchWidgetGeist.error
         case .syncing, .transcribing:
             return .cyan
         case .pending:

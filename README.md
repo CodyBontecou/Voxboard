@@ -1,20 +1,20 @@
 # Vox.md
 
-> **Open source, privacy-first voice-to-text for iOS and macOS — on-device transcription that works anywhere you type.**
+> **Open source, local-first quick capture for Obsidian and Markdown on iOS and macOS.**
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-iOS%2017.6%2B%20%7C%20iPadOS-lightgrey)](#tech-stack)
 [![Swift](https://img.shields.io/badge/swift-5-orange)](#tech-stack)
 
-Vox.md is a custom iOS keyboard, iOS transcription app, and macOS companion app for turning speech into text without sending audio to the cloud. It runs Whisper and Parakeet models on-device, saves transcript history locally, and can auto-export notes to files for workflows like Obsidian. No accounts. No ads. No servers for your voice or transcript data. Just your keyboard, your models, and your words.
+Vox.md gets text, links, photos, files, scans, sketches, and voice into Obsidian vaults or local Markdown folders with minimal friction. Reusable routes can create a note, update a rolling note, target an existing file, or insert beneath a heading. Voice transcription remains available in the app and keyboard, runs on device with Whisper or Parakeet, and never uploads audio to Vox.md servers.
 
 **[🌐 Website](https://voxboard-app.vercel.app/)** · **[📲 Download](https://voxboard-app.vercel.app/)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[💬 Discussions](https://github.com/CodyBontecou/Voxboard/discussions)** · **[👥 Discord](https://discord.gg/RaQYS4t6gn)** · **[⭐ Star this repo](https://github.com/CodyBontecou/Voxboard)**
 
 ## Screenshots
 
-| Voice to text | Works in any app | Auto-save transcripts |
+| Quick Capture | Works in any text field | Local settings |
 |---|---|---|
-| ![Vox.md home screen with recording controls](screenshots/01-home.png) | ![Vox.md keyboard transcribing in Safari](screenshots/06-keyboard-safari.png) | ![Vox.md settings and file export options](screenshots/05-settings-scrolled.png) |
+| ![Vox.md Markdown capture composer](website/screenshots/00-capture-light.png) | ![Vox.md keyboard transcribing in Safari](screenshots/06-keyboard-safari.png) | ![Vox.md local storage and privacy settings](website/screenshots/05-settings-scrolled.png) |
 
 ## Features
 

@@ -56,7 +56,7 @@ struct MacRootView: View {
                 MacSettingsView(recorder: recorder)
             }
         }
-        .preferredColorScheme(.dark)
+        .tint(Geist.Palette.gray1000)
         .frame(minWidth: 980, minHeight: 680)
     }
 }
@@ -80,17 +80,17 @@ private struct MacHomeView: View {
 
     var body: some View {
         ZStack {
-            Brutal.bg.ignoresSafeArea()
-            BrutalGridBackground().ignoresSafeArea().allowsHitTesting(false)
+            Geist.bg.ignoresSafeArea()
+            GeistGridBackground().ignoresSafeArea().allowsHitTesting(false)
 
             VStack(spacing: 0) {
                 topBar
-                BrutalDivider()
+                GeistDivider()
                 Spacer(minLength: 24)
                 centerContent
                     .frame(maxWidth: 720)
                 Spacer(minLength: 24)
-                BrutalDivider()
+                GeistDivider()
                 bottomBar
             }
 
@@ -126,26 +126,26 @@ private struct MacHomeView: View {
     private var topBar: some View {
         VStack(spacing: 0) {
             HStack {
-                BrutalStatusBadge(
+                GeistStatusBadge(
                     label: recorder.isRecording ? "Recording" : recorder.isTranscribing ? "Transcribing" : "Ready",
                     isActive: recorder.isRecording || recorder.isTranscribing
                 )
                 Spacer()
-                Text("VOX.MD MAC")
-                    .font(Brutal.label(.headline))
-                    .foregroundColor(Brutal.text)
+                Text("Vox.md for Mac")
+                    .font(Geist.label(.headline))
+                    .foregroundColor(Geist.text)
                 Spacer()
-                Text(modelManager.selectedModel?.name.uppercased() ?? "NO MODEL")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
+                Text(modelManager.selectedModel?.name ?? "No Model")
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 14)
 
             HStack(spacing: 10) {
-                Text("VOX")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
+                Text("Vox")
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
                 Picker("Vox", selection: $selectedFlowId) {
                     ForEach(enabledFlows) { flow in
                         Label(flow.displayName, systemImage: MacFlowIconPickerView.iconName(for: flow.symbolName)).tag(flow.id)
@@ -163,7 +163,7 @@ private struct MacHomeView: View {
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 10)
-            .background(Brutal.surface.opacity(0.45))
+            .background(Geist.surface.opacity(0.45))
         }
     }
 
@@ -171,13 +171,13 @@ private struct MacHomeView: View {
         Button { showPaywall = true } label: {
             HStack(spacing: 10) {
                 Text(usageTracker.isAtLimit ? "LIMIT REACHED — UNLOCK" : String(format: "%.1f / 15 MIN FREE", usageTracker.minutesUsed))
-                    .font(Brutal.caption())
-                    .foregroundColor(usageTracker.isAtLimit ? Brutal.error : Brutal.muted)
+                    .font(Geist.caption())
+                    .foregroundColor(usageTracker.isAtLimit ? Geist.error : Geist.muted)
                     .monospacedDigit()
                 ProgressView(value: usageTracker.fractionUsed)
                     .progressViewStyle(.linear)
                     .frame(width: 120)
-                    .tint(usageTracker.isAtLimit ? Brutal.error : Brutal.text)
+                    .tint(usageTracker.isAtLimit ? Geist.error : Geist.text)
             }
         }
         .buttonStyle(.plain)
@@ -187,93 +187,93 @@ private struct MacHomeView: View {
     private var centerContent: some View {
         if !micPermissionGranted {
             VStack(spacing: 20) {
-                statusBlock(number: "01", title: "Status", headline: "NO MIC.", detail: "Enable microphone access for Vox.md in macOS Privacy & Security, then start recording again.", color: Brutal.error)
-                Button("OPEN PRIVACY SETTINGS") { openMicrophonePrivacySettings() }
-                    .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                statusBlock(number: "01", title: "Status", headline: "NO MIC.", detail: "Enable microphone access for Vox.md in macOS Privacy & Security, then start recording again.", color: Geist.error)
+                Button("Open Privacy Settings") { openMicrophonePrivacySettings() }
+                    .buttonStyle(GeistButtonStyle(variant: .secondary))
                     .frame(maxWidth: 260)
             }
         } else if let error = recorder.lastError, !recorder.isRecording, !recorder.isTranscribing {
             VStack(spacing: 20) {
-                statusBlock(number: "01", title: "Status", headline: "ERROR.", detail: error, color: Brutal.error)
+                statusBlock(number: "01", title: "Status", headline: "ERROR.", detail: error, color: Geist.error)
                 HStack(spacing: 12) {
                     if recorder.failedCaptureCount > 0 {
                         Button(recorder.isRetryingCaptures ? "RETRYING…" : "RETRY CAPTURES") {
                             Task { await recorder.processPendingCaptureInbox(retryFailed: true) }
                         }
-                        .buttonStyle(BrutalButtonStyle(variant: .primary))
+                        .buttonStyle(GeistButtonStyle(variant: .primary))
                         .disabled(recorder.isRetryingCaptures)
                     }
-                    Button("DISMISS") { recorder.lastError = nil }
-                        .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                    Button("Dismiss Error") { recorder.lastError = nil }
+                        .buttonStyle(GeistButtonStyle(variant: .secondary))
                 }
                 .frame(maxWidth: 440)
             }
         } else if recorder.isRecording {
             VStack(spacing: 24) {
-                BrutalSectionLabel(number: "01", title: "Status")
-                Text("RECORDING.")
-                    .font(Brutal.display(56))
-                    .foregroundColor(Brutal.text)
+                GeistSectionLabel(number: "01", title: "Status")
+                Text("Recording")
+                    .font(Geist.display(56))
+                    .foregroundColor(Geist.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.35)
                 Text(formatDuration(recorder.recordingDuration))
-                    .font(Brutal.display(64))
-                    .foregroundColor(Brutal.text)
+                    .font(Geist.display(64))
+                    .foregroundColor(Geist.text)
                     .monospacedDigit()
                 Text("Audio is captured locally and transcribed on this Mac.")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
             }
         } else if recorder.isTranscribing {
             VStack(spacing: 24) {
-                BrutalSectionLabel(number: "01", title: "Status")
+                GeistSectionLabel(number: "01", title: "Status")
                 TranscribingDotsView()
                 Text("Processing audio on-device")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
             }
         } else if let result = recorder.lastTranscriptionResult {
             VStack(spacing: 24) {
-                BrutalSectionLabel(number: "01", title: "Status")
-                Text("DONE.")
-                    .font(Brutal.display(56))
-                    .foregroundColor(Brutal.text)
+                GeistSectionLabel(number: "01", title: "Status")
+                Text("Transcript Ready")
+                    .font(Geist.display(56))
+                    .foregroundColor(Geist.text)
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("TRANSCRIPT")
-                            .font(Brutal.label())
-                            .foregroundColor(Brutal.muted)
+                        Text("Transcript")
+                            .font(Geist.label())
+                            .foregroundColor(Geist.muted)
                         Spacer()
-                        Button("COPY") { copyToPasteboard(result) }
-                            .font(Brutal.label())
-                            .foregroundColor(Brutal.text)
+                        Button("Copy") { copyToPasteboard(result) }
+                            .font(Geist.label())
+                            .foregroundColor(Geist.text)
                             .buttonStyle(.plain)
-                        Button("CLEAR") { recorder.lastTranscriptionResult = nil }
-                            .font(Brutal.label())
-                            .foregroundColor(Brutal.muted)
+                        Button("Clear") { recorder.lastTranscriptionResult = nil }
+                            .font(Geist.label())
+                            .foregroundColor(Geist.muted)
                             .buttonStyle(.plain)
                     }
                     Text(result)
-                        .font(Brutal.body())
-                        .foregroundColor(Brutal.text)
+                        .font(Geist.body())
+                        .foregroundColor(Geist.text)
                         .lineSpacing(4)
                         .textSelection(.enabled)
                 }
                 .padding(16)
-                .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
             }
         } else {
             VStack(spacing: 28) {
-                BrutalSectionLabel(number: "01", title: "Status")
-                Text("STANDBY.")
-                    .font(Brutal.display(64))
-                    .foregroundColor(Brutal.text)
+                GeistSectionLabel(number: "01", title: "Status")
+                Text("Ready to Record")
+                    .font(Geist.display(64))
+                    .foregroundColor(Geist.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.35)
                 IdleWaveformView()
                 Text("Record in-app or import an audio/video file. Vox settings, history, local models, and file exports match the iOS app.")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }
@@ -286,25 +286,25 @@ private struct MacHomeView: View {
                 Button {
                     recorder.stopAndTranscribe(modelManager: modelManager, flowId: selectedFlowId)
                 } label: {
-                    Label("STOP + TRANSCRIBE", systemImage: "stop.fill")
+                    Label("Stop and Transcribe", systemImage: "stop.fill")
                 }
-                .buttonStyle(BrutalButtonStyle(variant: .destructive))
+                .buttonStyle(GeistButtonStyle(variant: .destructive))
             } else {
                 Button {
                     beginRecording()
                 } label: {
                     Label(recordButtonTitle, systemImage: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
                 }
-                .buttonStyle(BrutalButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .primary))
+                .buttonStyle(GeistButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .primary))
                 .disabled(recorder.isTranscribing || isRequestingMicPermission)
             }
 
             Button {
                 chooseImport()
             } label: {
-                Label("IMPORT AUDIO", systemImage: "waveform")
+                Label("Import Audio", systemImage: "waveform")
             }
-            .buttonStyle(BrutalButtonStyle(variant: .secondary))
+            .buttonStyle(GeistButtonStyle(variant: .secondary))
             .disabled(recorder.isRecording || recorder.isTranscribing)
         }
         .padding(.horizontal, 24)
@@ -374,7 +374,7 @@ private struct MacModelView: View {
 
     var body: some View {
         ZStack {
-            Brutal.surface.ignoresSafeArea()
+            Geist.surface.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 0) {
                     pageHeader("Download and select the local speech model used by macOS recordings and imports. Whisper models run through whisper.cpp + Metal on this Mac.")
@@ -389,21 +389,21 @@ private struct MacModelView: View {
 
     private func pageHeader(_ text: String) -> some View {
         Text(text)
-            .font(Brutal.caption())
-            .foregroundColor(Brutal.muted)
+            .font(Geist.caption())
+            .foregroundColor(Geist.muted)
             .lineSpacing(3)
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Brutal.bg)
+            .background(Geist.bg)
     }
 
     private func modelSection(_ number: String, _ title: LocalizedStringKey, models: [WhisperModelInfo]) -> some View {
         VStack(spacing: 0) {
             sectionHeader(number, title)
-            BrutalDivider()
+            GeistDivider()
             ForEach(models) { model in
                 modelRow(model)
-                BrutalDivider()
+                GeistDivider()
             }
         }
     }
@@ -411,11 +411,11 @@ private struct MacModelView: View {
     private var languageSection: some View {
         VStack(spacing: 0) {
             sectionHeader("03", "Language")
-            BrutalDivider()
+            GeistDivider()
             HStack {
-                Text("TRANSCRIPTION LANGUAGE")
-                    .font(Brutal.label())
-                    .foregroundColor(Brutal.text)
+                Text("Transcription Language")
+                    .font(Geist.label())
+                    .foregroundColor(Geist.text)
                 Spacer()
                 Picker("Language", selection: Binding(
                     get: { modelManager.selectedLanguage },
@@ -428,7 +428,7 @@ private struct MacModelView: View {
                 .frame(width: 220)
             }
             .padding(20)
-            .background(Brutal.bg)
+            .background(Geist.bg)
         }
     }
 
@@ -436,40 +436,40 @@ private struct MacModelView: View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 5) {
                 HStack(spacing: 8) {
-                    Text(model.name.uppercased())
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.text)
+                    Text(model.name)
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
                     if model.isBundled {
-                        Text("BUNDLED")
-                            .font(Brutal.caption())
-                            .foregroundColor(Brutal.muted)
+                        Text("Bundled")
+                            .font(Geist.caption())
+                            .foregroundColor(Geist.muted)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                            .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
                     }
                     if model.engine.isParakeet {
-                        Text("CORE ML")
-                            .font(Brutal.caption())
-                            .foregroundColor(Brutal.muted)
+                        Text("Core ML")
+                            .font(Geist.caption())
+                            .foregroundColor(Geist.muted)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
                     }
                 }
-                Text(model.sizeLabel.uppercased())
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
+                Text(model.sizeLabel)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
                 if let description = model.modelDescription {
                     Text(description)
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
                 }
             }
             Spacer()
             modelAction(model)
         }
         .padding(20)
-        .background(Brutal.bg)
+        .background(Geist.bg)
     }
 
     @ViewBuilder
@@ -477,41 +477,41 @@ private struct MacModelView: View {
         if model.isDownloaded {
             HStack(spacing: 12) {
                 if modelManager.selectedModelId == model.id {
-                    Text("SELECTED")
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.text)
+                    Text("Selected")
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.text)
                 } else {
-                    Button("SELECT") { modelManager.selectedModelId = model.id }
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.text)
+                    Button("Select Model") { modelManager.selectedModelId = model.id }
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.text)
                         .buttonStyle(.plain)
                 }
-                Button("DELETE") { modelManager.deleteModel(model) }
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.error)
+                Button("Delete") { modelManager.deleteModel(model) }
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.error)
                     .buttonStyle(.plain)
             }
         } else if modelManager.isDownloading[model.id] == true {
             HStack(spacing: 8) {
                 ProgressView(value: modelManager.downloadProgress[model.id] ?? 0)
                     .frame(width: 110)
-                    .tint(Brutal.text)
+                    .tint(Geist.text)
                 Text("\(Int((modelManager.downloadProgress[model.id] ?? 0) * 100))%")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
-                Button("CANCEL") { modelManager.cancelDownload(model) }
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.error)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
+                Button("Cancel") { modelManager.cancelDownload(model) }
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.error)
                     .buttonStyle(.plain)
             }
         } else {
             Button("↓ DOWNLOAD") { modelManager.startDownload(model) }
-                .font(Brutal.caption())
-                .foregroundColor(Brutal.text)
+                .font(Geist.caption())
+                .foregroundColor(Geist.text)
                 .buttonStyle(.plain)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
         }
     }
 }
@@ -527,14 +527,14 @@ private struct MacVoxSettingsView: View {
             VStack(spacing: 0) {
                 HStack {
                     Text("YOUR VOX'S")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.text)
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
                     Spacer()
                     Button { addFlow() } label: { Image(systemName: "plus") }
                         .buttonStyle(.plain)
                 }
                 .padding(16)
-                BrutalDivider()
+                GeistDivider()
                 List(selection: $selectedFlowId) {
                     ForEach(flows) { flow in
                         Label(flow.displayName, systemImage: MacFlowIconPickerView.iconName(for: flow.symbolName))
@@ -544,20 +544,19 @@ private struct MacVoxSettingsView: View {
                 .listStyle(.sidebar)
             }
             .frame(width: 260)
-            BrutalDivider().frame(width: 1)
+            GeistDivider().frame(width: 1)
 
             if let index = flows.firstIndex(where: { $0.id == selectedFlowId }) {
                 MacFlowEditor(flow: $flows[index], onDelete: { delete(flows[index]) })
                     .id(flows[index].id)
             } else {
                 Text("Select a Vox")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .navigationTitle("Vox")
-        .preferredColorScheme(.dark)
         .onAppear { reload() }
         .onChange(of: flows) { _, newValue in RecordingFlowStore.saveFlows(newValue) }
         .onChange(of: selectedFlowId) { _, id in RecordingFlowStore.selectFlow(id: id) }
@@ -757,14 +756,12 @@ private struct MacFlowEditor: View {
         .sheet(isPresented: $isIconPickerPresented) {
             MacFlowIconPickerView(symbolName: $flow.symbolName)
                 .frame(minWidth: 540, minHeight: 620)
-                .preferredColorScheme(.dark)
         }
         .sheet(isPresented: $isManagingCaptureDestinations, onDismiss: {
             Task { await loadCaptureDestinations() }
         }) {
             MacCaptureDestinationLibraryView()
                 .frame(minWidth: 760, minHeight: 620)
-                .preferredColorScheme(.dark)
         }
         .task { await loadCaptureDestinations() }
         .onAppear { flow.exportSettings.usesCustomExportSettings = true }
@@ -886,23 +883,23 @@ private struct MacFlowIconPickerView: View {
     var body: some View {
         VStack(spacing: 0) {
             header
-            BrutalDivider()
+            GeistDivider()
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 20) {
                     selectedIconPreview
 
                     if filteredCategories.isEmpty {
                         Text("No matching icons")
-                            .font(Brutal.body())
-                            .foregroundColor(Brutal.muted)
+                            .font(Geist.body())
+                            .foregroundColor(Geist.muted)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.top, 48)
                     } else {
                         ForEach(filteredCategories) { category in
                             VStack(alignment: .leading, spacing: 10) {
-                                Text(category.title.uppercased())
-                                    .font(Brutal.caption())
-                                    .foregroundColor(Brutal.faint)
+                                Text(category.title)
+                                    .font(Geist.caption())
+                                    .foregroundColor(Geist.faint)
 
                                 LazyVGrid(columns: columns, spacing: 12) {
                                     ForEach(category.options) { option in
@@ -915,42 +912,42 @@ private struct MacFlowIconPickerView: View {
                 }
                 .padding(20)
             }
-            .background(Brutal.bg)
+            .background(Geist.bg)
         }
-        .background(Brutal.bg)
+        .background(Geist.bg)
     }
 
     private var header: some View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Choose Icon")
-                    .font(Brutal.label(.title3))
-                    .foregroundColor(Brutal.text)
+                    .font(Geist.label(.title3))
+                    .foregroundColor(Geist.text)
                 Text("Pick the symbol shown for this Vox.")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
             }
 
             Spacer()
 
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(Brutal.faint)
+                    .foregroundColor(Geist.faint)
                 TextField("Search icons", text: $searchText)
                     .textFieldStyle(.plain)
-                    .font(Brutal.body(.callout))
+                    .font(Geist.body(.callout))
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
             .frame(width: 230)
-            .background(Brutal.surface2)
-            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+            .background(Geist.surface2)
+            .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
 
             Button("Done") { dismiss() }
                 .buttonStyle(.bordered)
         }
         .padding(20)
-        .background(Brutal.surface)
+        .background(Geist.surface)
     }
 
     private var filteredCategories: [MacFlowIconCategory] {
@@ -961,23 +958,23 @@ private struct MacFlowIconPickerView: View {
         HStack(spacing: 12) {
             Image(systemName: Self.iconName(for: symbolName))
                 .font(.title2)
-                .foregroundColor(Brutal.text)
+                .foregroundColor(Geist.text)
                 .frame(width: 48, height: 48)
-                .background(Brutal.surface2)
-                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                .background(Geist.surface2)
+                .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
             VStack(alignment: .leading, spacing: 3) {
                 Text("Selected Icon")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
                 Text(Self.title(for: symbolName))
-                    .font(Brutal.label())
-                    .foregroundColor(Brutal.text)
+                    .font(Geist.label())
+                    .foregroundColor(Geist.text)
             }
             Spacer()
         }
         .padding(14)
-        .background(Brutal.surface)
-        .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+        .background(Geist.surface)
+        .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
     }
 
     private func iconButton(_ option: MacFlowIconOption) -> some View {
@@ -990,16 +987,16 @@ private struct MacFlowIconPickerView: View {
                 Image(systemName: option.symbolName)
                     .font(.title2)
                 Text(option.title)
-                    .font(Brutal.caption())
+                    .font(Geist.caption())
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.75)
             }
-            .foregroundColor(selected ? Brutal.text : Brutal.muted)
+            .foregroundColor(selected ? Geist.text : Geist.muted)
             .frame(maxWidth: .infinity, minHeight: 82)
             .padding(.vertical, 8)
-            .background(selected ? Brutal.surface2 : Brutal.surface)
-            .overlay(Rectangle().stroke(selected ? Brutal.text : Brutal.border, lineWidth: selected ? 2 : 1))
+            .background(selected ? Geist.surface2 : Geist.surface)
+            .overlay(Rectangle().stroke(selected ? Geist.text : Geist.border, lineWidth: selected ? 2 : 1))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(option.title)
@@ -1141,45 +1138,45 @@ private struct MacHistoryView: View {
 
     var body: some View {
         ZStack {
-            Brutal.bg.ignoresSafeArea()
+            Geist.bg.ignoresSafeArea()
             if store.transcripts.isEmpty {
                 VStack(spacing: 18) {
-                    BrutalSectionLabel(number: "—", title: "Empty")
-                    Text("NO TRANSCRIPTS.")
-                        .font(Brutal.display(44))
-                        .foregroundColor(Brutal.muted)
+                    GeistSectionLabel(number: "—", title: "Empty")
+                    Text("No Transcripts Yet")
+                        .font(Geist.display(44))
+                        .foregroundColor(Geist.muted)
                     Text("Record or import audio to build a local transcript history.")
-                        .font(Brutal.body())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.body())
+                        .foregroundColor(Geist.muted)
                 }
             } else {
                 List {
                     ForEach(store.transcripts) { transcript in
                         VStack(alignment: .leading, spacing: 10) {
                             HStack {
-                                Text(transcript.title?.uppercased() ?? relativeDate(transcript.date).uppercased())
-                                    .font(Brutal.label(.headline))
-                                    .foregroundColor(Brutal.text)
+                                Text(transcript.title ?? relativeDate(transcript.date))
+                                    .font(Geist.label(.headline))
+                                    .foregroundColor(Geist.text)
                                 Spacer()
-                                Button("COPY") { copyToPasteboard(transcript.cleanedText ?? transcript.text) }
-                                    .font(Brutal.caption())
+                                Button("Copy") { copyToPasteboard(transcript.cleanedText ?? transcript.text) }
+                                    .font(Geist.caption())
                                     .buttonStyle(.plain)
-                                Button("DELETE") { delete(transcript) }
-                                    .font(Brutal.caption())
-                                    .foregroundColor(Brutal.error)
+                                Button("Delete") { delete(transcript) }
+                                    .font(Geist.caption())
+                                    .foregroundColor(Geist.error)
                                     .buttonStyle(.plain)
                             }
                             Text("\(relativeDate(transcript.date)) · \(transcript.modelUsed) · \(formatDurationShort(transcript.duration))")
-                                .font(Brutal.caption())
-                                .foregroundColor(Brutal.muted)
+                                .font(Geist.caption())
+                                .foregroundColor(Geist.muted)
                             Text(transcript.cleanedText ?? transcript.text)
-                                .font(Brutal.body())
-                                .foregroundColor(Brutal.text)
+                                .font(Geist.body())
+                                .foregroundColor(Geist.text)
                                 .lineLimit(6)
                                 .textSelection(.enabled)
                         }
                         .padding(.vertical, 10)
-                        .listRowBackground(Brutal.bg)
+                        .listRowBackground(Geist.bg)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -1217,14 +1214,14 @@ private struct MacSettingsView: View {
 
     var body: some View {
         ZStack {
-            Brutal.surface.ignoresSafeArea()
+            Geist.surface.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 0) {
                     sectionHeader("—", "Vox.md Unlimited")
                     settingsRow(title: usageTracker.hasUnlocked ? "UNLIMITED UNLOCKED" : "UNLOCK UNLIMITED", detail: usageTracker.hasUnlocked ? "Lifetime access — no limits" : String(format: "%.1f / 15 min free used", usageTracker.minutesUsed), trailing: usageTracker.hasUnlocked ? "PURCHASED" : storeManager.displayPrice)
                     if !usageTracker.hasUnlocked {
-                        Button("VIEW UPGRADE OPTIONS") { showPaywall = true }
-                            .buttonStyle(BrutalButtonStyle(variant: .primary))
+                        Button("View Upgrade Options") { showPaywall = true }
+                            .buttonStyle(GeistButtonStyle(variant: .primary))
                             .padding(20)
                     }
                     sectionHeader("01", "Mac Companion")
@@ -1240,8 +1237,8 @@ private struct MacSettingsView: View {
                     settingsRow(title: "VERSION", detail: appVersionString, trailing: "")
                     settingsRow(title: "PROCESSING", detail: "Voice and text stay on-device.", trailing: "PRIVATE")
                     sectionHeader("05", "Debug")
-                    Button("VIEW DEBUG LOG") { showDebug = true }
-                        .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                    Button("View Debug Log") { showDebug = true }
+                        .buttonStyle(GeistButtonStyle(variant: .secondary))
                         .padding(20)
                 }
             }
@@ -1299,11 +1296,11 @@ private struct MacSettingsView: View {
 
     private var visibilitySettings: some View {
         VStack(spacing: 0) {
-            BrutalDivider()
+            GeistDivider()
             VStack(alignment: .leading, spacing: 14) {
                 Text("Choose where Vox.md appears. macOS controls the Dock icon and Cmd-Tab entry together.")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
 
                 VStack(spacing: 8) {
                     ForEach(MacAppVisibilityMode.allCases) { mode in
@@ -1312,11 +1309,11 @@ private struct MacSettingsView: View {
                 }
 
                 Text(visibilityFootnote)
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.faint)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.faint)
             }
             .padding(20)
-            .background(Brutal.bg)
+            .background(Geist.bg)
         }
     }
 
@@ -1331,16 +1328,16 @@ private struct MacSettingsView: View {
             HStack(spacing: 12) {
                 Image(systemName: mode.systemImage)
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(isSelected ? Brutal.bg : Brutal.faint)
+                    .foregroundColor(isSelected ? Geist.bg : Geist.faint)
                     .frame(width: 28)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(mode.title.uppercased())
-                        .font(Brutal.label())
-                        .foregroundColor(isSelected ? Brutal.bg : Brutal.text)
+                    Text(mode.title)
+                        .font(Geist.label())
+                        .foregroundColor(isSelected ? Geist.bg : Geist.text)
                     Text(mode.summary)
-                        .font(Brutal.caption())
-                        .foregroundColor(isSelected ? Brutal.bg.opacity(0.72) : Brutal.muted)
+                        .font(Geist.caption())
+                        .foregroundColor(isSelected ? Geist.bg.opacity(0.72) : Geist.muted)
                 }
 
                 Spacer()
@@ -1348,56 +1345,56 @@ private struct MacSettingsView: View {
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(Brutal.bg)
+                        .foregroundColor(Geist.bg)
                 }
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
-            .background(isSelected ? Brutal.text : Brutal.surface)
-            .overlay(Rectangle().stroke(isSelected ? Brutal.text : Brutal.border, lineWidth: 1))
+            .background(isSelected ? Geist.text : Geist.surface)
+            .overlay(Rectangle().stroke(isSelected ? Geist.text : Geist.border, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
 
     private var hotKeySettings: some View {
         VStack(spacing: 0) {
-            BrutalDivider()
+            GeistDivider()
             VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 16) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("START / STOP LISTENING")
-                            .font(Brutal.label())
-                            .foregroundColor(Brutal.text)
+                        Text("Start or Stop Listening")
+                            .font(Geist.label())
+                            .foregroundColor(Geist.text)
                         Text("Press your keybind from anywhere on macOS to start recording; press it again to stop and transcribe.")
-                            .font(Brutal.caption())
-                            .foregroundColor(Brutal.muted)
+                            .font(Geist.caption())
+                            .foregroundColor(Geist.muted)
                     }
                     Spacer()
                     Text(currentHotKey?.displayString ?? "OFF")
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.text)
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.text)
                 }
 
                 HStack(spacing: 12) {
                     Button(currentHotKey == nil ? "SET KEYBIND" : "CHANGE KEYBIND") {
                         showHotKeyRecorder = true
                     }
-                    .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                    .buttonStyle(GeistButtonStyle(variant: .secondary))
 
-                    Button("CLEAR") { clearHotKey() }
+                    Button("Clear") { clearHotKey() }
                         .buttonStyle(.plain)
-                        .foregroundColor(Brutal.error)
+                        .foregroundColor(Geist.error)
                         .disabled(currentHotKey == nil)
                 }
 
                 if let hotKeyStatusMessage {
                     Text(hotKeyStatusMessage)
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.error)
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.error)
                 }
             }
             .padding(20)
-            .background(Brutal.bg)
+            .background(Geist.bg)
         }
     }
 
@@ -1437,60 +1434,60 @@ private struct MacHotKeyRecorderSheet: View {
     var body: some View {
         VStack(spacing: 22) {
             VStack(spacing: 8) {
-                Text("SET GLOBAL KEYBIND")
-                    .font(Brutal.heading(.title2))
-                    .foregroundColor(Brutal.text)
+                Text("Set Global Keybind")
+                    .font(Geist.heading(.title2))
+                    .foregroundColor(Geist.text)
                 Text("Choose a shortcut Vox.md will listen for while the Mac app is running.")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
                     .multilineTextAlignment(.center)
             }
 
             VStack(spacing: 10) {
                 Text(capturedShortcut?.displayString ?? "PRESS A KEYBIND")
-                    .font(Brutal.display(42))
-                    .foregroundColor(Brutal.text)
+                    .font(Geist.display(42))
+                    .foregroundColor(Geist.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.45)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 28)
-                    .background(Brutal.surface2)
-                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 2))
+                    .background(Geist.surface2)
+                    .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 2))
 
                 Text("Use a letter, number, Space, arrow, or function key with ⌃ Control, ⌥ Option, or ⌘ Command. ⇧ Shift can be combined. Press Esc to cancel.")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
                     .multilineTextAlignment(.center)
             }
 
             if let errorMessage {
                 Text(errorMessage)
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.error)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.error)
             }
 
             HStack(spacing: 12) {
-                Button("CANCEL") { dismiss() }
-                    .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                Button("Cancel") { dismiss() }
+                    .buttonStyle(GeistButtonStyle(variant: .secondary))
 
-                Button("CLEAR") { onClear() }
+                Button("Clear") { onClear() }
                     .buttonStyle(.plain)
-                    .foregroundColor(Brutal.error)
+                    .foregroundColor(Geist.error)
                     .disabled(currentShortcut == nil && capturedShortcut == nil)
 
                 Spacer()
 
-                Button("SAVE") {
+                Button("Save Keybind") {
                     guard let capturedShortcut else { return }
                     onSave(capturedShortcut)
                 }
-                .buttonStyle(BrutalButtonStyle(variant: .primary))
+                .buttonStyle(GeistButtonStyle(variant: .primary))
                 .disabled(capturedShortcut == nil)
             }
         }
         .padding(30)
         .frame(width: 560)
-        .background(Brutal.bg)
+        .background(Geist.bg)
         .background(
             MacHotKeyCaptureView(
                 onKeyDown: handleKeyDown,
@@ -1498,7 +1495,6 @@ private struct MacHotKeyRecorderSheet: View {
             )
             .frame(width: 0, height: 0)
         )
-        .preferredColorScheme(.dark)
         .onAppear {
             capturedShortcut = currentShortcut
         }
@@ -1583,43 +1579,42 @@ private struct MacPaywallView: View {
 
     var body: some View {
         VStack(spacing: 22) {
-            Text("VOX.MD UNLIMITED")
-                .font(Brutal.heading(.title))
-                .foregroundColor(Brutal.text)
+            Text("Vox.md Unlimited")
+                .font(Geist.heading(.title))
+                .foregroundColor(Geist.text)
             Text("Unlock unlimited local transcription across Vox.md. No subscription, no server, no ads.")
-                .font(Brutal.body())
-                .foregroundColor(Brutal.muted)
+                .font(Geist.body())
+                .foregroundColor(Geist.muted)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 420)
             if usageTracker.hasUnlocked {
-                Text("UNLIMITED UNLOCKED")
-                    .font(Brutal.label())
-                    .foregroundColor(Brutal.text)
+                Text("Unlimited Unlocked")
+                    .font(Geist.label())
+                    .foregroundColor(Geist.text)
             } else {
                 Button(storeManager.isPurchasing ? "PURCHASING…" : "UNLOCK — \(storeManager.displayPrice)") {
                     Task { await storeManager.purchase() }
                 }
-                .buttonStyle(BrutalButtonStyle(variant: .primary))
+                .buttonStyle(GeistButtonStyle(variant: .primary))
                 .frame(maxWidth: 360)
                 Button(storeManager.isRestoring ? "RESTORING…" : "RESTORE PURCHASE") {
                     Task { await storeManager.restore() }
                 }
-                .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                .buttonStyle(GeistButtonStyle(variant: .secondary))
                 .frame(maxWidth: 360)
             }
             if let error = storeManager.errorMessage {
                 Text(error)
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.error)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.error)
             }
-            Button("DONE") { dismiss() }
+            Button("Done") { dismiss() }
                 .buttonStyle(.plain)
-                .foregroundColor(Brutal.muted)
+                .foregroundColor(Geist.muted)
         }
         .padding(36)
         .frame(width: 520)
-        .background(Brutal.bg)
-        .preferredColorScheme(.dark)
+        .background(Geist.Palette.background100)
     }
 }
 
@@ -1630,29 +1625,28 @@ private struct MacDebugLogView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Button("CLEAR") {
+                Button("Clear") {
                     KeyboardDebugLog.shared.clear()
                     logText = "(cleared)"
                 }
-                .foregroundColor(Brutal.error)
+                .foregroundColor(Geist.error)
                 Spacer()
-                Button("COPY") { copyToPasteboard(logText) }
-                Button("DONE") { dismiss() }
+                Button("Copy") { copyToPasteboard(logText) }
+                Button("Done") { dismiss() }
             }
             .padding(12)
-            BrutalDivider()
+            GeistDivider()
             ScrollView {
                 Text(logText.isEmpty ? "(empty)" : logText)
                     .font(.system(.footnote, design: .monospaced))
-                    .foregroundColor(Brutal.text)
+                    .foregroundColor(Geist.text)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(16)
             }
         }
         .frame(width: 760, height: 520)
-        .background(Brutal.bg)
-        .preferredColorScheme(.dark)
+        .background(Geist.Palette.background100)
     }
 }
 
@@ -1677,50 +1671,50 @@ private extension RecordingFlowPostProcessingMode {
 
 private func sectionHeader(_ number: String, _ title: LocalizedStringKey) -> some View {
     HStack {
-        BrutalSectionLabel(number: number, title: title)
+        GeistSectionLabel(number: number, title: title)
         Spacer()
     }
     .padding(.horizontal, 20)
     .padding(.top, 28)
     .padding(.bottom, 16)
-    .background(Brutal.bg)
+    .background(Geist.bg)
 }
 
 private func settingsRow(title: String, detail: String, trailing: String) -> some View {
     VStack(spacing: 0) {
-        BrutalDivider()
+        GeistDivider()
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(Brutal.label())
-                    .foregroundColor(Brutal.text)
+                    .font(Geist.label())
+                    .foregroundColor(Geist.text)
                 Text(detail)
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
             }
             Spacer()
             if !trailing.isEmpty {
                 Text(trailing)
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.text)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.text)
             }
         }
         .padding(20)
-        .background(Brutal.bg)
+        .background(Geist.bg)
     }
 }
 
 private func statusBlock(number: String, title: LocalizedStringKey, headline: String, detail: String, color: Color) -> some View {
     VStack(spacing: 18) {
-        BrutalSectionLabel(number: number, title: title)
+        GeistSectionLabel(number: number, title: title)
         Text(headline)
-            .font(Brutal.display(56))
+            .font(Geist.display(56))
             .foregroundColor(color)
             .lineLimit(1)
             .minimumScaleFactor(0.35)
         Text(detail)
-            .font(Brutal.body())
-            .foregroundColor(Brutal.muted)
+            .font(Geist.body())
+            .foregroundColor(Geist.muted)
             .multilineTextAlignment(.center)
     }
 }
@@ -1734,21 +1728,21 @@ private struct MacExportToast: View {
             HStack(spacing: 10) {
                 Image(systemName: "checkmark.circle.fill")
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("EXPORTED")
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.muted)
+                    Text("Export Ready")
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
                     Text(url.lastPathComponent)
-                        .font(Brutal.body())
-                        .foregroundColor(Brutal.text)
+                        .font(Geist.body())
+                        .foregroundColor(Geist.text)
                         .lineLimit(1)
                 }
-                Text("REVEAL")
-                    .font(Brutal.label())
-                    .foregroundColor(Brutal.text)
+                Text("Reveal File")
+                    .font(Geist.label())
+                    .foregroundColor(Geist.text)
             }
             .padding(12)
-            .background(Brutal.surface2)
-            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+            .background(Geist.surface2)
+            .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }

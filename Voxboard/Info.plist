@@ -2,6 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Geist-Regular.ttf</string>
+		<string>Geist-Medium.ttf</string>
+		<string>Geist-SemiBold.ttf</string>
+		<string>GeistMono-Regular.ttf</string>
+		<string>GeistMono-Medium.ttf</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

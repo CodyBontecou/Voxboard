@@ -242,7 +242,7 @@ private struct MacCaptureDestinationEditor: View {
         NavigationStack {
             Form {
                 Section("Identity") {
-                    TextField("Route Name", text: $name)
+                    TextField("Route Name (Optional)", text: $name)
                     Button { chooseFolder() } label: {
                         LabeledContent("Vault / Folder", value: rootName.isEmpty ? "Choose…" : rootName)
                     }
@@ -392,10 +392,10 @@ private struct MacCaptureDestinationEditor: View {
 
     private func save() async {
         do {
-            let routeName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
             let routePath = path.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !routeName.isEmpty else { throw MacCaptureRouteError.nameRequired }
             guard !rootBookmark.isEmpty else { throw MacCaptureRouteError.folderRequired }
+            let routeName = trimmedName.isEmpty ? rootName : trimmedName
             try CapturePathValidation.validateRelativePath(routePath)
             if !attachmentsFolder.isEmpty { try CapturePathValidation.validateRelativePath(attachmentsFolder) }
             let target: CaptureNoteTarget = switch targetKind {
@@ -440,13 +440,12 @@ private struct MacCaptureDestinationEditor: View {
 }
 
 private enum MacCaptureRouteError: Error, LocalizedError {
-    case storageUnavailable, nameRequired, folderRequired, headingRequired, folderPermissionExpired, noteOutsideRoot
+    case storageUnavailable, folderRequired, headingRequired, folderPermissionExpired, noteOutsideRoot
     case existingNoteMissing(String), destinationQueued(Int), destinationProcessing(Int)
 
     var errorDescription: String? {
         switch self {
         case .storageUnavailable: "Shared capture storage is unavailable."
-        case .nameRequired: "Enter a route name."
         case .folderRequired: "Choose a vault or folder."
         case .headingRequired: "Enter a heading title."
         case .folderPermissionExpired: "The selected vault or folder permission expired. Choose it again."

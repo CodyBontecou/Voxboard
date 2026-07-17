@@ -3,38 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vox.md — Private voice-to-text keyboard for iPhone</title>
-  <meta name="description" content="Vox.md is a private iPhone voice-to-text keyboard that works in every app. No Full Access required, no audio uploads, no account, and local transcription after setup.">
+  <title>Vox.md: Quick Capture for Obsidian and Local Notes</title>
+  <meta name="description" content="Capture text, links, photos, files, scans, sketches, and private voice notes into Obsidian vaults or local Markdown files on iPhone.">
   <link rel="canonical" href="https://voxboard.isolated.tech/">
 
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Vox.md">
-  <meta property="og:title" content="Vox.md — Private voice-to-text in every iPhone app">
-  <meta property="og:description" content="Speak into Safari, Messages, Notes, email, Slack, and any iOS text field. Vox.md transcribes locally on your iPhone without Full Access or audio uploads.">
+  <meta property="og:title" content="Vox.md: Fast Capture for Obsidian and Markdown">
+  <meta property="og:description" content="Send each idea to the right vault, note, or heading without opening Obsidian. Voice transcription stays on your device.">
   <meta property="og:url" content="https://voxboard.isolated.tech/">
-  <meta property="og:image" content="https://voxboard.isolated.tech/screenshots/00-standby.png">
+  <meta property="og:image" content="https://voxboard.isolated.tech/screenshots/00-capture-light.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Vox.md — Private voice-to-text in every iPhone app">
-  <meta name="twitter:description" content="A private iPhone keyboard for voice-to-text anywhere you can type. No Full Access required. No audio uploads.">
-  <meta name="twitter:image" content="https://voxboard.isolated.tech/screenshots/00-standby.png">
+  <meta name="twitter:title" content="Vox.md: Quick Capture for Obsidian and Local Notes">
+  <meta name="twitter:description" content="Capture first, then let precise Markdown routes put everything in the right note.">
+  <meta name="twitter:image" content="https://voxboard.isolated.tech/screenshots/00-capture-light.png">
 
   <link rel="icon" href="favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="preload" as="image" href="screenshots/optimized/00-standby-640.webp" type="image/webp" fetchpriority="high">
+  <link rel="preload" as="image" href="screenshots/optimized/00-capture-light-640.webp" type="image/webp" media="(prefers-color-scheme: light)" fetchpriority="high">
+  <link rel="preload" as="image" href="screenshots/optimized/00-capture-dark-640.webp" type="image/webp" media="(prefers-color-scheme: dark)" fetchpriority="high">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "Vox.md",
-    "applicationCategory": "UtilitiesApplication",
+    "applicationCategory": "ProductivityApplication",
     "operatingSystem": "iOS 17+",
-    "description": "Private voice-to-text keyboard for iPhone that works across iOS apps with on-device transcription and no Full Access requirement.",
+    "description": "Quick capture for Obsidian vaults and local Markdown notes, with text, links, media, document scans, sketches, and private on-device voice transcription.",
     "url": "https://voxboard.isolated.tech/",
     "downloadUrl": "https://apps.apple.com/us/app/voxboard/id6758967337",
-    "image": "https://voxboard.isolated.tech/screenshots/00-standby.png",
+    "image": "https://voxboard.isolated.tech/screenshots/00-capture-light.png",
     "author": {
       "@type": "Person",
       "name": "Cody Bontecou"
@@ -46,451 +47,17 @@
       "availability": "https://schema.org/InStock"
     },
     "featureList": [
-      "iOS keyboard extension for voice-to-text in any text field",
-      "No Full Access required",
-      "Audio is processed on-device and not uploaded",
-      "Local transcript history",
-      "Multiple Whisper model sizes"
+      "Capture text, links, photos, files, document scans, sketches, and voice",
+      "Write standard Markdown into Obsidian vaults or Files folders",
+      "Create new notes, update rolling notes, or target existing notes",
+      "Insert at the top, bottom, or beneath a chosen heading",
+      "Use widgets, Shortcuts, the share extension, or the keyboard",
+      "Transcribe voice on device without audio uploads"
     ]
   }
   </script>
 
-  <style>
-    :root {
-      --bg:        #000000;
-      --surface:   #111111;
-      --surface-2: #1a1a1a;
-      --surface-3: #0a0f0c;
-      --border:    #2a2a2a;
-      --border-hi: #444444;
-      --text:      #FFFFFF;
-      --muted:     #9a9a9a;
-      --faint:     #555555;
-      --success:   #30D158;
-      --success-dim: rgba(48, 209, 88, 0.14);
-      --font:      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
-      --track:     0.15em;
-      --track-xl:  0.25em;
-    }
-
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    a { color: inherit; text-decoration: none; }
-    img { max-width: 100%; height: auto; }
-    html { scroll-behavior: smooth; overflow-x: hidden; }
-
-    body {
-      background:
-        radial-gradient(circle at 78% 8%, rgba(48,209,88,0.08), transparent 28rem),
-        radial-gradient(circle at 8% 14%, rgba(255,255,255,0.05), transparent 20rem),
-        var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      line-height: 1.6;
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    ::selection { background: var(--text); color: var(--bg); }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border); }
-    ::-webkit-scrollbar-thumb:hover { background: var(--border-hi); }
-
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-
-    nav {
-      position: fixed; top: 0; left: 0; right: 0;
-      z-index: 1000;
-      background: rgba(0,0,0,0.88);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid var(--border);
-    }
-    .nav-inner {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 16px 24px; max-width: 1200px; margin: 0 auto;
-    }
-    .logo {
-      font-size: 13px; font-weight: 700;
-      letter-spacing: var(--track); text-transform: uppercase;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .logo-mark {
-      width: 28px; height: 28px;
-      border: 1px solid var(--border-hi);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 800;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
-    }
-    .nav-links { display: flex; gap: 32px; list-style: none; }
-    .nav-links a {
-      color: var(--muted); font-size: 11px;
-      letter-spacing: var(--track); text-transform: uppercase;
-      transition: color 0.15s;
-    }
-    .nav-links a:hover { color: var(--text); }
-    .nav-cta {
-      background: var(--text); color: var(--bg);
-      padding: 10px 18px; font-family: var(--font);
-      font-size: 11px; font-weight: 700;
-      letter-spacing: var(--track); text-transform: uppercase;
-      border: none; cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-      white-space: nowrap;
-    }
-    .nav-cta:hover { transform: translate(-3px,-3px); box-shadow: 3px 3px 0 var(--text); }
-
-    .btn-primary, .btn-secondary {
-      display: inline-flex; align-items: center; justify-content: center; gap: 12px;
-      padding: 16px 28px; font-family: var(--font);
-      font-size: 12px; font-weight: 700;
-      letter-spacing: var(--track); text-transform: uppercase;
-      border: none; cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s, background 0.15s;
-      text-decoration: none;
-    }
-    .btn-primary { background: var(--text); color: var(--bg); }
-    .btn-primary:hover { transform: translate(-4px,-4px); box-shadow: 4px 4px 0 var(--text); }
-    .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
-    .btn-secondary:hover { border-color: var(--text); background: var(--surface); }
-    .btn-note { display: block; color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; margin-top: 12px; }
-
-    .hero {
-      min-height: 100vh;
-      display: flex; align-items: center;
-      padding: 118px 0 74px;
-      position: relative; overflow: hidden;
-      border-top: none;
-    }
-    .hero-grid-bg {
-      position: absolute; inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 60px 60px;
-      opacity: 0.32;
-      mask-image: radial-gradient(ellipse at 50% 28%, black 0%, transparent 72%);
-      -webkit-mask-image: radial-gradient(ellipse at 50% 28%, black 0%, transparent 72%);
-    }
-    .hero-inner {
-      position: relative; z-index: 1;
-      display: grid; grid-template-columns: minmax(0, 1.04fr) minmax(300px, 0.78fr);
-      align-items: center; gap: 64px;
-    }
-    .hero-label {
-      font-size: 11px; letter-spacing: var(--track-xl);
-      text-transform: uppercase; color: var(--muted);
-      margin-bottom: 22px;
-      display: flex; align-items: center; gap: 12px;
-    }
-    .hero-label::before { content: ''; width: 40px; height: 1px; background: var(--border-hi); }
-    .hero-title {
-      font-size: clamp(42px, 6.3vw, 86px);
-      font-weight: 800; line-height: 0.94;
-      letter-spacing: -0.045em; margin-bottom: 28px;
-      text-transform: uppercase;
-    }
-    .hero-title .line { display: block; overflow: hidden; }
-    .hero-title .line > span {
-      display: block;
-      animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) forwards;
-      transform: translateY(105%);
-    }
-    .hero-title .line:nth-child(2) > span { animation-delay: 0.08s; }
-    .hero-title .line:nth-child(3) > span { animation-delay: 0.16s; }
-    .hero-title .line:nth-child(4) > span { animation-delay: 0.24s; }
-    @keyframes slideUp { to { transform: translateY(0); } }
-
-    .glitch { position: relative; display: inline-block; }
-    .glitch::before, .glitch::after {
-      content: attr(data-text);
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 100%; opacity: 0;
-    }
-    .glitch:hover::before { animation: g1 0.4s linear; color: var(--success); opacity: 0.55; }
-    .glitch:hover::after  { animation: g2 0.4s linear; color: #ffffff; opacity: 0.35; }
-    @keyframes g1 {
-      0%,100%{transform:translate(0)} 20%{transform:translate(-3px,2px)}
-      40%{transform:translate(-2px,-2px)} 60%{transform:translate(3px,2px)} 80%{transform:translate(2px,-2px)}
-    }
-    @keyframes g2 {
-      0%,100%{transform:translate(0)} 20%{transform:translate(3px,-2px)}
-      40%{transform:translate(2px,2px)} 60%{transform:translate(-3px,-2px)} 80%{transform:translate(-2px,2px)}
-    }
-    .cursor {
-      display: inline-block; width: 3px; height: 0.85em;
-      background: var(--text); margin-left: 2px;
-      animation: blink 1s step-end infinite;
-      vertical-align: text-bottom;
-    }
-    @keyframes blink { 50% { opacity: 0; } }
-
-    .hero-subtitle {
-      font-size: 14px; color: var(--muted);
-      max-width: 640px; margin-bottom: 30px;
-      letter-spacing: 0.01em; line-height: 1.9;
-    }
-    .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 28px; }
-    .trust-grid {
-      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 1px; background: var(--border);
-      border: 1px solid var(--border);
-      max-width: 860px;
-    }
-    .trust-card { background: rgba(0,0,0,0.84); padding: 18px; min-height: 116px; }
-    .trust-card strong { display: block; font-size: 12px; letter-spacing: var(--track); text-transform: uppercase; margin-bottom: 8px; color: var(--text); }
-    .trust-card span { display: block; font-size: 11px; color: var(--muted); line-height: 1.65; }
-
-    .hero-visual { position: relative; min-height: 650px; display: flex; align-items: center; justify-content: center; }
-    .phone-shell {
-      width: min(360px, 82vw);
-      position: relative; z-index: 2;
-      border: 1px solid var(--border-hi);
-      border-radius: 44px;
-      padding: 10px;
-      background: linear-gradient(145deg, #1d1d1d, #050505);
-      box-shadow: 0 42px 120px rgba(0,0,0,0.72), 0 0 0 1px rgba(255,255,255,0.05);
-      transform: rotate(1.4deg);
-    }
-    .phone-shell::before {
-      content: 'KEYBOARD LIVE IN SAFARI';
-      position: absolute; left: -22px; top: 42px;
-      writing-mode: vertical-rl; transform: rotate(180deg);
-      color: var(--faint); font-size: 9px; letter-spacing: var(--track-xl); text-transform: uppercase;
-    }
-    .phone-shell img {
-      display: block; width: 100%; border-radius: 34px;
-      border: 1px solid rgba(255,255,255,0.09);
-    }
-    .terminal-card {
-      position: absolute; right: 0; top: 88px; z-index: 3;
-      width: 220px; padding: 18px;
-      border: 1px solid var(--border-hi);
-      background: rgba(0,0,0,0.88);
-      box-shadow: 12px 12px 0 rgba(255,255,255,0.08);
-    }
-    .terminal-card .k { color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; }
-    .terminal-card .v { color: var(--success); font-size: 12px; font-weight: 700; margin-top: 6px; }
-    .privacy-rail {
-      position: absolute; left: 0; bottom: 74px; z-index: 3;
-      width: 238px; background: var(--surface-3);
-      border: 1px solid rgba(48,209,88,0.42);
-      padding: 16px 18px;
-      box-shadow: -10px 10px 0 rgba(48,209,88,0.08);
-    }
-    .rail-row { display: flex; justify-content: space-between; gap: 12px; font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; padding: 8px 0; border-bottom: 1px solid rgba(48,209,88,0.16); }
-    .rail-row:last-child { border-bottom: none; }
-    .rail-row span:first-child { color: var(--muted); }
-    .rail-row span:last-child { color: var(--success); font-weight: 700; }
-
-    section { border-top: 1px solid var(--border); }
-    .how-section, .features-section, .screenshots-section, .models-section, .specs-section, .privacy-section, .faq-section, .cta-section { content-visibility: auto; contain-intrinsic-size: 1px 900px; }
-    .section-label { font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; color: var(--faint); margin-bottom: 16px; }
-    .section-title { font-size: clamp(30px,5vw,56px); font-weight: 800; line-height: 1.06; max-width: 720px; text-transform: uppercase; letter-spacing: -0.03em; }
-    .section-kicker { font-size: 13px; color: var(--muted); line-height: 1.9; max-width: 650px; margin-top: 20px; }
-    .section-header { margin-bottom: 72px; }
-
-    .how-section { padding: 118px 0; background: var(--surface); }
-    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 40px; margin-top: 72px; }
-    .step { position: relative; }
-    .step-number {
-      font-size: 96px; font-weight: 800;
-      color: var(--surface-2); line-height: 1; margin-bottom: 24px;
-      -webkit-text-stroke: 1px var(--border-hi);
-    }
-    .step-title { font-size: 13px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; margin-bottom: 12px; }
-    .step-desc { font-size: 12px; color: var(--muted); line-height: 1.8; }
-    .step-arrow { position: absolute; top: 48px; right: -20px; color: var(--border-hi); font-size: 20px; }
-
-    .features-section { padding: 118px 0; }
-    .features-grid {
-      display: grid; grid-template-columns: repeat(3,1fr);
-      gap: 1px; background: var(--border);
-      border: 1px solid var(--border); margin-top: 72px;
-    }
-    .feature-card {
-      background: var(--bg); padding: 38px;
-      display: flex; flex-direction: column; gap: 18px;
-      transition: background 0.25s, transform 0.25s;
-    }
-    .feature-card:hover { background: var(--surface); transform: translateY(-2px); }
-    .feature-num { font-size: 10px; color: var(--faint); letter-spacing: var(--track); }
-    .feature-icon {
-      width: 46px; height: 46px;
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 10px; letter-spacing: 0.08em; color: var(--text);
-      background: rgba(255,255,255,0.02);
-    }
-    .feature-title { font-size: 13px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; }
-    .feature-desc { font-size: 12px; color: var(--muted); line-height: 1.8; }
-
-    .screenshots-section { padding: 118px 0; background: var(--surface); }
-    .screenshots-scroll {
-      display: flex; gap: 24px; padding: 0 24px 6px;
-      overflow-x: auto; scroll-snap-type: x mandatory;
-      -ms-overflow-style: none; scrollbar-width: none;
-      margin-top: 72px;
-    }
-    .screenshots-scroll::-webkit-scrollbar { display: none; }
-    .screenshot-item { flex: 0 0 auto; scroll-snap-align: start; display: flex; flex-direction: column; gap: 14px; }
-    .screenshot-frame { width: 240px; border: 1px solid var(--border); position: relative; background: #050505; }
-    .screenshot-frame img { width: 100%; height: auto; display: block; filter: grayscale(16%); transition: filter 0.3s; }
-    .screenshot-item:hover .screenshot-frame img { filter: grayscale(0%); }
-    .screenshot-label { font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; color: var(--faint); }
-    .screenshot-label strong { color: var(--text); display: block; margin-bottom: 2px; }
-
-    .models-section { padding: 118px 0; }
-    .models-grid {
-      display: grid; grid-template-columns: repeat(5,1fr);
-      gap: 1px; background: var(--border);
-      border: 1px solid var(--border); margin-top: 72px;
-    }
-    .model-card {
-      background: var(--bg); padding: 32px 20px;
-      text-align: center; display: flex; flex-direction: column;
-      gap: 12px; transition: background 0.25s; position: relative;
-    }
-    .model-card:hover { background: var(--surface); }
-    .model-card.bundled::before {
-      content: 'BUNDLED';
-      position: absolute; top: 0; right: 0;
-      background: var(--text); color: var(--bg);
-      padding: 6px 12px; font-size: 9px; font-weight: 700;
-      letter-spacing: var(--track-xl);
-    }
-    .model-name { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.01em; }
-    .model-size { font-size: 11px; color: var(--muted); }
-    .model-bar { height: 2px; background: var(--border); }
-    .model-bar-fill { height: 100%; background: var(--text); }
-    .model-label { font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; color: var(--faint); }
-
-    .specs-section { padding: 118px 0; background: var(--surface); }
-    .specs-table { display: grid; grid-template-columns: 1fr 1fr; max-width: 900px; margin-top: 72px; border: 1px solid var(--border); }
-    .spec-row { display: contents; }
-    .spec-key, .spec-val { padding: 18px 24px; border-bottom: 1px solid var(--border); font-size: 12px; }
-    .spec-key { color: var(--muted); letter-spacing: var(--track); text-transform: uppercase; border-right: 1px solid var(--border); }
-    .spec-val { color: var(--text); font-weight: 600; }
-
-    .privacy-section { padding: 146px 0; text-align: center; }
-    .privacy-eyebrow {
-      font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; color: var(--faint);
-      margin-bottom: 24px;
-      display: flex; align-items: center; justify-content: center; gap: 12px;
-    }
-    .privacy-eyebrow::before, .privacy-eyebrow::after { content: ''; width: 40px; height: 1px; background: var(--border-hi); }
-    .privacy-title {
-      font-size: clamp(38px,7vw,86px); font-weight: 800;
-      line-height: 0.95; letter-spacing: -0.035em;
-      margin-bottom: 32px; text-transform: uppercase;
-    }
-    .privacy-desc { font-size: 13px; color: var(--muted); max-width: 620px; margin: 0 auto; line-height: 1.9; }
-
-    .faq-section { padding: 118px 0; background: var(--surface); }
-    .faq-grid { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 56px; align-items: start; }
-    .faq-list { border: 1px solid var(--border); background: var(--bg); }
-    details { border-bottom: 1px solid var(--border); }
-    details:last-child { border-bottom: none; }
-    summary {
-      list-style: none; cursor: pointer; padding: 24px 28px;
-      display: flex; align-items: center; justify-content: space-between; gap: 18px;
-      color: var(--text); font-size: 13px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase;
-    }
-    summary::-webkit-details-marker { display: none; }
-    summary::after { content: '+'; color: var(--faint); font-size: 18px; }
-    details[open] summary::after { content: '−'; color: var(--text); }
-    details p { color: var(--muted); font-size: 12px; line-height: 1.85; padding: 0 28px 26px; }
-    details a { color: var(--text); border-bottom: 1px solid var(--border-hi); }
-
-    .cta-section { padding: 150px 0; text-align: center; position: relative; overflow: hidden; }
-    .cta-section::before {
-      content: ''; position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%,-50%);
-      width: 620px; height: 620px;
-      background: radial-gradient(circle, rgba(48,209,88,0.08) 0%, transparent 68%);
-      pointer-events: none;
-    }
-    .cta-section .container { position: relative; z-index: 1; }
-    .cta-title {
-      font-size: clamp(48px,9vw,94px); font-weight: 800;
-      line-height: 0.98; margin-bottom: 32px;
-      text-transform: uppercase; letter-spacing: -0.035em;
-    }
-    .cta-sub { font-size: 13px; color: var(--muted); max-width: 500px; margin: 0 auto 34px; line-height: 1.9; }
-
-    footer { padding: 48px 0; border-top: 1px solid var(--border); }
-    .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-    .footer-links { display: flex; gap: 32px; list-style: none; flex-wrap: wrap; }
-    .footer-links a { color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; transition: color 0.15s; }
-    .footer-links a:hover { color: var(--text); }
-    .footer-copy { font-size: 10px; color: var(--faint); letter-spacing: var(--track); }
-
-    @media (prefers-reduced-motion: no-preference) {
-      .js .reveal { opacity: 0; transform: translateY(20px); animation: fadeInUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; animation-play-state: paused; }
-      .js .reveal.visible { animation-play-state: running; }
-      .rd1{animation-delay:.1s} .rd2{animation-delay:.2s} .rd3{animation-delay:.3s}
-      .rd4{animation-delay:.4s} .rd5{animation-delay:.5s} .rd6{animation-delay:.6s}
-      .rd7{animation-delay:.7s}
-      @keyframes fadeInUp { to { opacity:1; transform:translateY(0); } }
-
-      .js .feature-card, .js .step, .js .model-card {
-        opacity: 0; transform: translateY(20px);
-        animation: fadeInUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
-        animation-play-state: paused;
-      }
-    }
-
-    @media (max-width: 1040px) {
-      .hero-inner { grid-template-columns: 1fr; gap: 46px; }
-      .hero { min-height: auto; padding-bottom: 90px; }
-      .hero-visual { min-height: auto; justify-content: flex-start; padding-left: 36px; }
-      .trust-grid { grid-template-columns: repeat(2, 1fr); }
-      .faq-grid { grid-template-columns: 1fr; gap: 34px; }
-    }
-    @media (max-width: 960px) {
-      .nav-links { display: none; }
-      .steps { grid-template-columns: 1fr; }
-      .step-arrow { display: none; }
-      .features-grid { grid-template-columns: 1fr 1fr; }
-      .models-grid { grid-template-columns: repeat(3,1fr); }
-    }
-    @media (max-width: 640px) {
-      .container { padding: 0 18px; }
-      .nav-inner { padding: 12px 18px; }
-      .logo { font-size: 12px; gap: 10px; }
-      .nav-cta { padding: 9px 12px; font-size: 10px; }
-      .hero { padding: 94px 0 60px; }
-      .hero-label { font-size: 10px; line-height: 1.5; align-items: flex-start; }
-      .hero-label::before { width: 24px; margin-top: 8px; flex: 0 0 auto; }
-      .hero-title { font-size: clamp(34px, 11.4vw, 46px); line-height: 0.98; margin-bottom: 22px; }
-      .hero-subtitle { font-size: 13px; line-height: 1.75; }
-      .hero-actions { display: grid; grid-template-columns: 1fr; }
-      .btn-primary, .btn-secondary { width: 100%; padding: 15px 18px; }
-      .trust-grid { grid-template-columns: 1fr; }
-      .trust-card { min-height: auto; }
-      .hero-visual { padding-left: 0; justify-content: center; flex-direction: column; }
-      .phone-shell { order: 1; width: min(310px, 86vw); transform: none; border-radius: 38px; }
-      .phone-shell img { border-radius: 28px; }
-      .phone-shell::before { display: none; }
-      .terminal-card { order: 2; position: static; width: min(310px, 86vw); margin: -18px auto 0; }
-      .privacy-rail { order: 3; position: static; width: min(310px, 86vw); margin: 14px auto 0; }
-      .how-section, .features-section, .screenshots-section, .models-section, .specs-section, .faq-section { padding: 84px 0; }
-      .section-header { margin-bottom: 48px; }
-      .features-grid { grid-template-columns: 1fr; margin-top: 48px; }
-      .feature-card { padding: 30px; }
-      .models-grid { grid-template-columns: 1fr 1fr; }
-      .specs-table { grid-template-columns: 1fr; margin-top: 48px; }
-      .spec-key { border-right: none; border-bottom: none; padding-bottom: 4px; }
-      .spec-val { padding-top: 4px; }
-      .screenshots-scroll { padding: 0 18px 6px; gap: 16px; }
-      .screenshot-frame { width: 206px; }
-      summary { padding: 22px 20px; font-size: 12px; line-height: 1.5; }
-      details p { padding: 0 20px 24px; }
-      .privacy-section, .cta-section { padding: 104px 0; }
-      .footer-inner { flex-direction: column; text-align: center; }
-      .footer-links { justify-content: center; gap: 22px; }
-    }
-  </style>
+  <link rel="stylesheet" href="geist.css">
 </head>
 <body>
 
@@ -501,32 +68,28 @@
       <span>Vox.md</span>
     </a>
     <ul class="nav-links">
-      <li><a href="#how">How it works</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#features">Capture</a></li>
+      <li><a href="#destinations">Routes</a></li>
       <li><a href="#privacy">Privacy</a></li>
-      <li><a href="#faq">FAQ</a></li>
-      <li><a href="#specs">Specs</a></li>
       <li><a href="blog/">Blog</a></li>
     </ul>
-    <a href="https://apps.apple.com/us/app/voxboard/id6758967337" class="nav-cta" target="_blank" rel="noopener">Free download</a>
+    <a href="https://apps.apple.com/us/app/voxboard/id6758967337" class="nav-cta" target="_blank" rel="noopener">Download Vox.md</a>
   </div>
 </nav>
 
+<main>
 <section class="hero" aria-labelledby="hero-title">
   <div class="hero-grid-bg"></div>
   <div class="container">
     <div class="hero-inner">
       <div class="hero-content">
-        <div class="hero-label">iPhone keyboard · Free download · Private dictation</div>
+        <div class="hero-label">Quick Capture for iPhone · Obsidian Ready · Local Markdown</div>
 
-        <h1 class="hero-title" id="hero-title">
-          <span class="line"><span class="glitch" data-text="Private">Private</span></span>
-          <span class="line"><span class="glitch" data-text="voice-to-text">voice-to-text</span></span>
-          <span class="line"><span class="glitch" data-text="in every">in every</span></span>
-          <span class="line"><span class="glitch" data-text="iPhone app.">iPhone app.<span class="cursor"></span></span></span>
-        </h1>
+        <h1 class="hero-title" id="hero-title">Capture Now. File It Exactly Where It Belongs.</h1>
 
         <p class="hero-subtitle">
-          Vox.md adds a microphone keyboard to iOS, so you can speak into Safari, Messages, Notes, email, Slack, and any text field. Your audio is transcribed locally on your iPhone instead of being uploaded to a server.
+          Type a thought, save a link, add a photo or file, scan a document, sketch, or dictate. Vox.md writes clean Markdown into the Obsidian vault or Files folder you choose.
         </p>
 
         <div class="hero-actions">
@@ -535,36 +98,37 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
               </svg>
-              Download on the App Store
+              Download Vox.md
             </a>
             <span class="btn-note">Free download · iOS 17+</span>
           </div>
-          <a href="#how" class="btn-secondary">See how it works</a>
+          <a href="#how" class="btn-secondary">Explore Capture</a>
         </div>
 
-        <div class="trust-grid" aria-label="Privacy and trust facts">
-          <div class="trust-card"><strong>No Full Access</strong><span>Vox.md's keyboard does not require Apple's Full Access switch.</span></div>
-          <div class="trust-card"><strong>No audio uploads</strong><span>Microphone audio is processed locally and discarded after transcription.</span></div>
-          <div class="trust-card"><strong>No account</strong><span>Start dictating without creating a profile or handing over an email.</span></div>
-          <div class="trust-card"><strong>Offline core</strong><span>Voice-to-text can run after setup with a local model on the device.</span></div>
+        <div class="trust-grid" aria-label="Capture and storage facts">
+          <div class="trust-card"><strong>Any Capture</strong><span>Text, links, photos, files, scans, sketches, and voice all start in one composer.</span></div>
+          <div class="trust-card"><strong>Precise Routes</strong><span>Send each item to a new note, a rolling note, or an existing document.</span></div>
+          <div class="trust-card"><strong>Obsidian Native</strong><span>Keep standard Markdown, wikilinks, and embedded attachments in your vault.</span></div>
+          <div class="trust-card"><strong>Local by Default</strong><span>Drafts and voice processing stay on the device. You choose the destination folder.</span></div>
         </div>
       </div>
 
-      <div class="hero-visual" aria-label="Vox.md app standing by to record private voice-to-text">
+      <div class="hero-visual" aria-label="Vox.md quick capture composer for local Markdown notes">
         <div class="terminal-card" aria-hidden="true">
-          <div class="k">recording status</div>
-          <div class="v">standby · local</div>
+          <div class="k">Capture Route</div>
+          <div class="v">Vault · Inbox.md</div>
         </div>
         <div class="phone-shell">
           <picture>
-            <source srcset="screenshots/optimized/00-standby-640.webp" type="image/webp">
-            <img src="screenshots/00-standby.png" alt="Vox.md app standby screen with a Start Recording button and private local transcription controls" width="1206" height="2622" fetchpriority="high" decoding="async">
+            <source srcset="screenshots/optimized/00-capture-dark-640.webp" media="(prefers-color-scheme: dark)" type="image/webp">
+            <source srcset="screenshots/optimized/00-capture-light-640.webp" type="image/webp">
+            <img src="screenshots/00-capture-light.png" alt="Vox.md Capture screen with Markdown tools and destination controls" width="1206" height="2622" fetchpriority="high" decoding="async">
           </picture>
         </div>
         <div class="privacy-rail" aria-hidden="true">
-          <div class="rail-row"><span>Full access</span><span>off</span></div>
-          <div class="rail-row"><span>Audio uploads</span><span>0</span></div>
-          <div class="rail-row"><span>Account</span><span>none</span></div>
+          <div class="rail-row"><span>Format</span><span>Markdown</span></div>
+          <div class="rail-row"><span>Destination</span><span>Obsidian</span></div>
+          <div class="rail-row"><span>Draft</span><span>Local</span></div>
         </div>
       </div>
     </div>
@@ -574,27 +138,46 @@
 <section class="how-section" id="how">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">01 / How it works</div>
-      <h2 class="section-title">Dictate where you already type.</h2>
-      <p class="section-kicker">Vox.md is not another notes app you have to copy from. It is an iOS keyboard, so the words land directly in the app you are using.</p>
+      <div class="section-label">01 / How It Works</div>
+      <h2 class="section-title">Get It Into Your Notes Before the Moment Passes</h2>
+      <p class="section-kicker">Opening a vault, finding a note, and choosing the right spot is too much work for a fleeting thought. Set the route once, then capture.</p>
+    </div>
+    <div class="workflow-rail reveal rd2" aria-label="Capture workflow">
+      <div class="workflow-step">
+        <div class="workflow-step-label">Input</div>
+        <strong>Capture</strong>
+        <span>Text · Media · Voice</span>
+      </div>
+      <div class="workflow-connector" aria-hidden="true">→</div>
+      <div class="workflow-step">
+        <div class="workflow-step-label">Rule</div>
+        <strong>Route</strong>
+        <span>Vault · Note · Heading</span>
+      </div>
+      <div class="workflow-connector" aria-hidden="true">→</div>
+      <div class="workflow-step">
+        <div class="workflow-step-label">Output</div>
+        <strong>Markdown</strong>
+        <span>Your folder · Your file</span>
+      </div>
     </div>
     <div class="steps">
       <div class="step">
         <div class="step-number">01</div>
-        <div class="step-title">Install the keyboard</div>
-        <p class="step-desc">Download Vox.md, enable the keyboard in iOS Settings, and keep Full Access off. The app guides you through the setup.</p>
+        <div class="step-title">Connect a Vault or Folder</div>
+        <p class="step-desc">Choose an Obsidian vault or any writable folder in Files. Vox.md works with the Markdown files you already own.</p>
         <div class="step-arrow" aria-hidden="true">→</div>
       </div>
       <div class="step">
         <div class="step-number">02</div>
-        <div class="step-title">Open any text field</div>
-        <p class="step-desc">Use it in Safari, Messages, Notes, Mail, Slack, forms, search boxes, or anywhere the iPhone keyboard appears.</p>
+        <div class="step-title">Capture What You Have</div>
+        <p class="step-desc">Write, paste a link, add media or a file, scan a document, sketch, or record a private voice note.</p>
         <div class="step-arrow" aria-hidden="true">→</div>
       </div>
       <div class="step">
         <div class="step-number">03</div>
-        <div class="step-title">Tap mic and speak</div>
-        <p class="step-desc">Vox.md listens, transcribes locally, and inserts the text in place. No copy-paste round trip through another app.</p>
+        <div class="step-title">Let the Route File It</div>
+        <p class="step-desc">Create a note, update a rolling note, or target an existing one. Place the capture at the top, bottom, or under a heading.</p>
       </div>
     </div>
   </div>
@@ -603,46 +186,46 @@
 <section class="features-section" id="features">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">02 / Proof</div>
-      <h2 class="section-title">Made for private everyday dictation.</h2>
-      <p class="section-kicker">The value is simple: faster typing without turning your voice into someone else's cloud data.</p>
+      <div class="section-label">02 / Capture</div>
+      <h2 class="section-title">A Capture Tool for Markdown People</h2>
+      <p class="section-kicker">Vox.md treats your notes as files. It writes readable Markdown and Obsidian-style links directly into folders you control.</p>
     </div>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-num">001</div>
-        <div class="feature-icon">LOCK</div>
-        <div class="feature-title">Privacy by default</div>
-        <p class="feature-desc">Audio, transcripts, keystrokes, and dictated text are not collected by Vox.md. Transcription happens on the device.</p>
+        <div class="feature-icon">Vaults</div>
+        <div class="feature-title">Obsidian Ready</div>
+        <p class="feature-desc">Choose an Obsidian vault through Files and write to it directly. You do not need a plugin or a Vox.md cloud account.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">002</div>
-        <div class="feature-icon">KEY</div>
-        <div class="feature-title">Real iOS keyboard</div>
-        <p class="feature-desc">Switch to Vox.md with the globe key and insert text directly into the field you are editing.</p>
+        <div class="feature-icon">Placement</div>
+        <div class="feature-title">Precise Note Placement</div>
+        <p class="feature-desc">Insert at the top or bottom of a note, or place the capture beneath a heading that Vox.md can create when needed.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">003</div>
-        <div class="feature-icon">APP</div>
-        <div class="feature-title">Works across apps</div>
-        <p class="feature-desc">Use one dictation workflow for browsers, messages, notes, email, chat tools, and long web forms.</p>
+        <div class="feature-icon">Inputs</div>
+        <div class="feature-title">More Than Text</div>
+        <p class="feature-desc">Capture links, photos, files, document scans with extracted text, editable sketches, and voice alongside typed notes.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">004</div>
-        <div class="feature-icon">LANG</div>
-        <div class="feature-title">99+ languages</div>
-        <p class="feature-desc">Automatic language detection is available, or you can choose a preferred language for a more predictable workflow.</p>
+        <div class="feature-icon">Rolling Notes</div>
+        <div class="feature-title">Daily Notes and Beyond</div>
+        <p class="feature-desc">Route captures into daily, weekly, monthly, quarterly, or yearly notes with predictable filename templates.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">005</div>
-        <div class="feature-icon">HIST</div>
-        <div class="feature-title">Local history</div>
-        <p class="feature-desc">Review previous transcripts in the app and delete local data when you no longer need it.</p>
+        <div class="feature-icon">Templates</div>
+        <div class="feature-title">Reusable Entry Formats</div>
+        <p class="feature-desc">Wrap each capture in reusable Markdown or YAML. Add date, time, source, and identifier tokens automatically.</p>
       </div>
       <div class="feature-card">
         <div class="feature-num">006</div>
-        <div class="feature-icon">SIZE</div>
-        <div class="feature-title">Choose storage tradeoffs</div>
-        <p class="feature-desc">Start with the bundled Base model, then download larger models only if you want more accuracy and have space.</p>
+        <div class="feature-icon">Voice</div>
+        <div class="feature-title">Private Voice When You Want It</div>
+        <p class="feature-desc">Record from the composer or keyboard. Transcription runs on the device, and Vox.md does not upload the audio.</p>
       </div>
     </div>
   </div>
@@ -651,80 +234,154 @@
 <section class="screenshots-section" id="screenshots">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">03 / Product tour</div>
-      <h2 class="section-title">Recording, keyboard, models, Vox workflows, and history.</h2>
-      <p class="section-kicker">No mystery landing-page mockups: these are fresh simulator captures of the actual iPhone surfaces people use.</p>
+      <div class="section-label">03 / See It in Action</div>
+      <h2 class="section-title">The Full Capture Workflow, From Draft to Destination</h2>
+      <p class="section-kicker">These are real app screens. Each panel shows where a capture starts, how it is routed, and which local tools are available when you need them.</p>
     </div>
-  </div>
-  <div class="screenshots-scroll" aria-label="Vox.md screenshots">
-    <div class="screenshot-item reveal rd1">
-      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/00-standby-360.webp" type="image/webp"><img src="screenshots/00-standby.png" alt="Vox.md standby screen ready to start recording" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
-      <div class="screenshot-label"><strong>01 — Standby</strong>Start a private recording</div>
-    </div>
-    <div class="screenshot-item reveal rd2">
-      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/04-listening-360.webp" type="image/webp"><img src="screenshots/04-listening.png" alt="Vox.md recording screen showing an active local transcription session" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
-      <div class="screenshot-label"><strong>02 — Recording</strong>One-shot capture in progress</div>
-    </div>
-    <div class="screenshot-item reveal rd3">
-      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/06-keyboard-safari-360.webp" type="image/webp"><img src="screenshots/06-keyboard-safari.png" alt="Vox.md keyboard transcribing in Safari" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
-      <div class="screenshot-label"><strong>03 — Keyboard</strong>Dictate in Safari and any text field</div>
-    </div>
-    <div class="screenshot-item reveal rd4">
-      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/02-settings-360.webp" type="image/webp"><img src="screenshots/02-settings.png" alt="Vox.md model picker with Whisper and Parakeet models" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
-      <div class="screenshot-label"><strong>04 — Models</strong>Whisper and Parakeet options</div>
-    </div>
-    <div class="screenshot-item reveal rd5">
-      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/07-vox-360.webp" type="image/webp"><img src="screenshots/07-vox.png" alt="Vox.md Vox workflow preset manager" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
-      <div class="screenshot-label"><strong>05 — Vox</strong>Reusable voice workflows</div>
-    </div>
-    <div class="screenshot-item reveal rd6">
-      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/03-history-360.webp" type="image/webp"><img src="screenshots/03-history.png" alt="Vox.md local transcript history with tags and copy actions" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
-      <div class="screenshot-label"><strong>06 — History</strong>Local transcripts and tags</div>
-    </div>
-    <div class="screenshot-item reveal rd7">
-      <div class="screenshot-frame"><picture><source srcset="screenshots/optimized/05-settings-scrolled-360.webp" type="image/webp"><img src="screenshots/05-settings-scrolled.png" alt="Vox.md privacy and technical settings" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
-      <div class="screenshot-label"><strong>07 — Privacy</strong>Device-only controls</div>
+
+    <div class="visual-grid" aria-label="Vox.md capability screenshots">
+      <article class="visual-panel visual-panel-capture reveal rd1">
+        <div class="visual-panel-copy">
+          <div class="visual-panel-index">01 / Composer</div>
+          <h3>One Draft for Anything You Need to Save</h3>
+          <p>Start with Markdown, then add the material that belongs with it.</p>
+        </div>
+        <ul class="capture-chip-list" aria-label="Supported capture types">
+          <li>Text</li><li>Links</li><li>Photos</li><li>Files</li><li>Scans</li><li>Sketches</li><li>Voice</li>
+        </ul>
+        <div class="visual-phone visual-phone-capture">
+          <picture>
+            <source srcset="screenshots/optimized/00-capture-dark-640.webp" media="(prefers-color-scheme: dark)" type="image/webp">
+            <source srcset="screenshots/optimized/00-capture-light-640.webp" type="image/webp">
+            <img src="screenshots/00-capture-light.png" alt="Vox.md composer with Markdown, photo, file, scan, sketch, and voice controls" width="1206" height="2622" loading="lazy" decoding="async">
+          </picture>
+        </div>
+      </article>
+
+      <article class="visual-panel visual-panel-route reveal rd2">
+        <div class="visual-panel-copy">
+          <div class="visual-panel-index">02 / Route</div>
+          <h3>Choose the Note and the Exact Insertion Point</h3>
+          <p>New, rolling, or existing note. Bottom, top, or beneath a heading.</p>
+        </div>
+        <div class="route-option-stack" aria-hidden="true">
+          <span>Rolling Note</span>
+          <span>Daily</span>
+          <span>Heading Level 2</span>
+        </div>
+        <div class="visual-phone visual-phone-route">
+          <picture>
+            <source srcset="screenshots/optimized/01-route-heading-dark-640.webp" media="(prefers-color-scheme: dark)" type="image/webp">
+            <source srcset="screenshots/optimized/01-route-heading-light-640.webp" type="image/webp">
+            <img src="screenshots/01-route-heading-light.png" alt="Vox.md destination editor showing rolling notes and heading placement" width="1206" height="2622" loading="lazy" decoding="async">
+          </picture>
+        </div>
+      </article>
+
+      <article class="visual-panel visual-panel-anywhere reveal rd3">
+        <div class="visual-panel-copy">
+          <div class="visual-panel-index">03 / Anywhere</div>
+          <h3>Capture Without Changing What You Are Doing</h3>
+          <p>Use the keyboard in any text field, or send content through widgets, Shortcuts, and the share sheet.</p>
+        </div>
+        <div class="entry-point-list" aria-label="System capture entry points">
+          <span>Keyboard</span><span>Widget</span><span>Shortcut</span><span>Share Sheet</span>
+        </div>
+        <div class="visual-phone visual-phone-keyboard">
+          <picture>
+            <source srcset="screenshots/optimized/06-keyboard-safari-360.webp" type="image/webp">
+            <img src="screenshots/06-keyboard-safari.png" alt="Vox.md keyboard capturing text in Safari" width="1206" height="2622" loading="lazy" decoding="async">
+          </picture>
+        </div>
+      </article>
+
+      <article class="visual-panel visual-panel-voice reveal rd4">
+        <div class="visual-panel-copy">
+          <div class="visual-panel-index">04 / Private Voice</div>
+          <h3>Speak When Typing Is Slower</h3>
+          <p>Record a voice capture, transcribe it on the device, and send the result through the same Markdown routes.</p>
+        </div>
+        <div class="local-status" aria-hidden="true"><span></span>On-device transcription</div>
+        <div class="visual-phone visual-phone-recording">
+          <picture>
+            <source srcset="screenshots/optimized/04-listening-360.webp" type="image/webp">
+            <img src="screenshots/04-listening.png" alt="Vox.md active local voice recording" width="1206" height="2622" loading="lazy" decoding="async">
+          </picture>
+        </div>
+        <div class="visual-phone visual-phone-models">
+          <picture>
+            <source srcset="screenshots/optimized/02-settings-360.webp" type="image/webp">
+            <img src="screenshots/02-settings.png" alt="Vox.md local Whisper and Parakeet model picker" width="1206" height="2622" loading="lazy" decoding="async">
+          </picture>
+        </div>
+      </article>
+
+      <article class="visual-panel visual-panel-local reveal rd5">
+        <div class="visual-panel-copy">
+          <div class="visual-panel-index">05 / Local Control</div>
+          <h3>Search, Review, and Manage Everything on Your Device</h3>
+          <p>Keep local history for recovery and review, choose speech models, and control privacy-sensitive settings yourself.</p>
+        </div>
+        <div class="local-screen-stack" aria-label="Local history and settings screens">
+          <div class="visual-phone"><picture><source srcset="screenshots/optimized/03-history-360.webp" type="image/webp"><img src="screenshots/03-history.png" alt="Vox.md local searchable history" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
+          <div class="visual-phone"><picture><source srcset="screenshots/optimized/05-settings-local-360.webp" type="image/webp"><img src="screenshots/05-settings-local.png" alt="Vox.md local privacy and processing settings" width="1206" height="2622" loading="lazy" decoding="async"></picture></div>
+        </div>
+      </article>
     </div>
   </div>
 </section>
 
-<section class="models-section" id="models">
+<section class="destinations-section" id="destinations">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">04 / Technical proof</div>
-      <h2 class="section-title">Local Whisper models, sized for your device.</h2>
-      <p class="section-kicker">Vox.md uses whisper.cpp and GGML model files under the hood. Keep the small bundled model or trade storage for higher accuracy.</p>
+      <div class="section-label">04 / Routes</div>
+      <h2 class="section-title">Decide Once Where Each Capture Goes</h2>
+      <p class="section-kicker">A destination remembers the vault, note target, placement, attachment folder, and entry format. Pick it from the composer and keep moving.</p>
     </div>
-    <div class="models-grid">
-      <div class="model-card">
-        <div class="model-name">Tiny</div>
-        <div class="model-size">75 MB</div>
-        <div class="model-bar"><div class="model-bar-fill" style="width:20%"></div></div>
-        <div class="model-label">Fastest</div>
+    <div class="route-pipeline reveal rd2" aria-label="Example Markdown route">
+      <div class="route-pipeline-step">
+        <div class="route-pipeline-label">Capture</div>
+        <strong>Book dentist appointment</strong>
+        <span>Typed in the composer</span>
       </div>
-      <div class="model-card bundled">
-        <div class="model-name">Base</div>
-        <div class="model-size">142 MB</div>
-        <div class="model-bar"><div class="model-bar-fill" style="width:36%"></div></div>
-        <div class="model-label">Bundled</div>
+      <div class="route-pipeline-arrow" aria-hidden="true">→</div>
+      <div class="route-pipeline-step selected">
+        <div class="route-pipeline-label">Saved Route</div>
+        <strong>Daily Note · Tasks</strong>
+        <span>Bottom of heading level 2</span>
       </div>
-      <div class="model-card">
-        <div class="model-name">Small</div>
-        <div class="model-size">466 MB</div>
-        <div class="model-bar"><div class="model-bar-fill" style="width:55%"></div></div>
-        <div class="model-label">Accurate</div>
+      <div class="route-pipeline-arrow" aria-hidden="true">→</div>
+      <div class="route-pipeline-step output">
+        <div class="route-pipeline-label">Markdown Output</div>
+        <code>Journal/2026-07-17.md</code>
+        <span>## Tasks<br>- Book dentist appointment</span>
       </div>
-      <div class="model-card">
-        <div class="model-name">Medium</div>
-        <div class="model-size">1.5 GB</div>
-        <div class="model-bar"><div class="model-bar-fill" style="width:78%"></div></div>
-        <div class="model-label">High accuracy</div>
+    </div>
+    <div class="destinations-grid">
+      <div class="destination-card">
+        <div class="destination-name">Existing Note</div>
+        <div class="destination-meta">Projects/Ideas.md</div>
+        <div class="destination-label">Keep adding to a document already in your vault.</div>
       </div>
-      <div class="model-card">
-        <div class="model-name">Large<br>v3 Turbo</div>
-        <div class="model-size">1.6 GB</div>
-        <div class="model-bar"><div class="model-bar-fill" style="width:100%"></div></div>
-        <div class="model-label">Maximum</div>
+      <div class="destination-card featured">
+        <div class="destination-name">Rolling Note</div>
+        <div class="destination-meta">Journal/{period}.md</div>
+        <div class="destination-label">Use daily, weekly, monthly, quarterly, or yearly notes.</div>
+      </div>
+      <div class="destination-card">
+        <div class="destination-name">New Note</div>
+        <div class="destination-meta">Inbox/{timestamp}.md</div>
+        <div class="destination-label">Create a clean file for every new capture.</div>
+      </div>
+      <div class="destination-card">
+        <div class="destination-name">Exact Placement</div>
+        <div class="destination-meta">Top · Bottom · Heading</div>
+        <div class="destination-label">Put the content in the right part of the note.</div>
+      </div>
+      <div class="destination-card">
+        <div class="destination-name">Entry Template</div>
+        <div class="destination-meta">Markdown · YAML · Tokens</div>
+        <div class="destination-label">Keep repeated captures consistent without reformatting them.</div>
       </div>
     </div>
   </div>
@@ -733,34 +390,41 @@
 <section class="specs-section" id="specs">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">05 / Specs</div>
-      <h2 class="section-title">Precise claims, not vague AI promises.</h2>
+      <div class="section-label">05 / Details</div>
+      <h2 class="section-title">Built Around Files You Can Keep</h2>
     </div>
     <div class="specs-table reveal rd2">
-      <div class="spec-row"><div class="spec-key">Engine</div><div class="spec-val">whisper.cpp</div></div>
-      <div class="spec-row"><div class="spec-key">AI model format</div><div class="spec-val">OpenAI Whisper GGML models</div></div>
-      <div class="spec-row"><div class="spec-key">Processing</div><div class="spec-val">On-device transcription</div></div>
-      <div class="spec-row"><div class="spec-key">Acceleration</div><div class="spec-val">Apple Neural Engine + Metal</div></div>
-      <div class="spec-row"><div class="spec-key">Languages</div><div class="spec-val">99+ with auto-detect</div></div>
-      <div class="spec-row"><div class="spec-key">Model sizes</div><div class="spec-val">75 MB to 1.6 GB</div></div>
-      <div class="spec-row"><div class="spec-key">Keyboard type</div><div class="spec-val">iOS system-wide keyboard extension</div></div>
-      <div class="spec-row"><div class="spec-key">Full Access</div><div class="spec-val">Not required</div></div>
+      <div class="spec-row"><div class="spec-key">Capture types</div><div class="spec-val">Text, links, photos, files, scans, sketches, and voice</div></div>
+      <div class="spec-row"><div class="spec-key">Note format</div><div class="spec-val">Standard Markdown</div></div>
+      <div class="spec-row"><div class="spec-key">Destinations</div><div class="spec-val">Obsidian vaults and writable Files folders</div></div>
+      <div class="spec-row"><div class="spec-key">Note targets</div><div class="spec-val">New, rolling, or existing notes</div></div>
+      <div class="spec-row"><div class="spec-key">Placement</div><div class="spec-val">Top, bottom, or beneath a heading</div></div>
+      <div class="spec-row"><div class="spec-key">Rolling periods</div><div class="spec-val">Daily, weekly, monthly, quarterly, and yearly</div></div>
+      <div class="spec-row"><div class="spec-key">Obsidian syntax</div><div class="spec-val">Wikilinks and embedded attachments</div></div>
+      <div class="spec-row"><div class="spec-key">Entry formats</div><div class="spec-val">Reusable Markdown and YAML templates</div></div>
+      <div class="spec-row"><div class="spec-key">System entry points</div><div class="spec-val">App, widgets, Shortcuts, share extension, and keyboard</div></div>
+      <div class="spec-row"><div class="spec-key">Voice processing</div><div class="spec-val">On-device Whisper or Parakeet</div></div>
       <div class="spec-row"><div class="spec-key">Audio uploads</div><div class="spec-val">None for transcription</div></div>
-      <div class="spec-row"><div class="spec-key">Transcript storage</div><div class="spec-val">Local device storage</div></div>
-      <div class="spec-row"><div class="spec-key">Analytics</div><div class="spec-val">Privacy-safe onboarding events only</div></div>
+      <div class="spec-row"><div class="spec-key">Account</div><div class="spec-val">Not required</div></div>
       <div class="spec-row"><div class="spec-key">Platform</div><div class="spec-val">iOS 17+</div></div>
-      <div class="spec-row"><div class="spec-key">Framework</div><div class="spec-val">SwiftUI + KeyboardKit</div></div>
     </div>
   </div>
 </section>
 
 <section class="privacy-section" id="privacy">
   <div class="container reveal rd1">
-    <div class="privacy-eyebrow">Privacy first · Always</div>
-    <h2 class="privacy-title">Your voice<br>stays local.</h2>
+    <div class="privacy-eyebrow">Local First · User Controlled</div>
+    <h2 class="privacy-title">Your Notes<br>Stay Yours</h2>
     <p class="privacy-desc">
-      Vox.md does not collect audio recordings, transcripts, keystrokes, typed text, names, emails, contacts, or advertising identifiers. The keyboard works without Full Access, and microphone audio is discarded after the local transcription finishes.
+      Capture drafts, attachments, note paths, templates, typed text, and transcripts are not sent to Vox.md servers. Files go only to the destination you choose, and voice transcription runs on your device.
     </p>
+    <div class="privacy-flow" aria-label="Local data flow">
+      <div><span>01</span><strong>Capture Draft</strong><small>On your device</small></div>
+      <div class="privacy-flow-arrow" aria-hidden="true">→</div>
+      <div><span>02</span><strong>Local Processing</strong><small>No content upload</small></div>
+      <div class="privacy-flow-arrow" aria-hidden="true">→</div>
+      <div><span>03</span><strong>Chosen Folder</strong><small>Your file provider</small></div>
+    </div>
   </div>
 </section>
 
@@ -769,37 +433,41 @@
     <div class="faq-grid">
       <div class="section-header reveal rd1">
         <div class="section-label">06 / FAQ</div>
-        <h2 class="section-title">What people ask before installing a keyboard.</h2>
-        <p class="section-kicker">The short version: Vox.md is a free download, works inside iOS text fields, and is designed so private dictation does not require cloud transcription.</p>
+        <h2 class="section-title">Questions About Vaults, Files, and Privacy</h2>
+        <p class="section-kicker">Vox.md works directly with Markdown folders you choose. Obsidian is a natural fit, but it is not required.</p>
       </div>
       <div class="faq-list reveal rd2">
         <details open>
-          <summary>Do I need to enable Full Access?</summary>
-          <p>No. Vox.md's keyboard extension does not request or require Apple's Full Access setting. The keyboard is designed to operate without network connectivity.</p>
+          <summary>Does Vox.md work with Obsidian?</summary>
+          <p>Yes. Choose your Obsidian vault through the iOS Files picker, then configure one or more destinations. Vox.md writes standard Markdown, wikilinks, and attachment embeds directly into the vault. It does not require an Obsidian plugin.</p>
         </details>
         <details>
-          <summary>Does Vox.md upload my audio?</summary>
-          <p>No. Microphone audio is processed locally by the on-device transcription engine, is not saved as raw audio, and is not sent to a server or third-party API.</p>
+          <summary>What can I capture?</summary>
+          <p>The composer accepts text, web links, photos, files, document scans, sketches, and voice. Scans can include extracted text, and voice can be transcribed locally.</p>
         </details>
         <details>
-          <summary>Can I use it offline?</summary>
-          <p>Core voice-to-text can run locally after setup with an installed model. The bundled Base model is included; downloading optional larger models, opening the App Store, and some setup analytics require a network connection.</p>
+          <summary>Where can a capture go?</summary>
+          <p>A destination can create a new note, update a rolling daily or periodic note, or write to an existing Markdown file. Each capture can use the destination default or temporarily choose another note.</p>
         </details>
         <details>
-          <summary>Which apps does it work with?</summary>
-          <p>Vox.md works anywhere iOS shows a standard text field: Safari, Messages, Notes, Mail, search boxes, chat apps, forms, and more. Use the globe key to switch keyboards.</p>
+          <summary>Can Vox.md insert beneath a heading?</summary>
+          <p>Yes. A route can prepend, append, or insert beneath a heading from level one through six. You can choose whether a missing heading should stop delivery or be created automatically.</p>
         </details>
         <details>
-          <summary>How accurate is the transcription?</summary>
-          <p>Accuracy depends on the selected model, language, background noise, accent, and microphone quality. Larger models can improve results but use more storage and processing power. Verify critical text before sending.</p>
+          <summary>Can I use it without Obsidian?</summary>
+          <p>Yes. Any writable folder exposed through Files can be a destination. The output is plain Markdown with ordinary attachments, so the notes are not locked to Vox.md.</p>
         </details>
         <details>
-          <summary>How much storage do models need?</summary>
-          <p>The bundled Base model is about 142 MB. Optional models range from Tiny at about 75 MB to Large v3 Turbo at about 1.6 GB. You can choose the model size that fits your device.</p>
+          <summary>Does Vox.md upload my notes or audio?</summary>
+          <p>No capture content is sent to Vox.md servers. Drafts and voice processing stay on the device, while completed files are written to the folder you selected. If that folder belongs to a sync provider, the provider handles it under its own terms.</p>
+        </details>
+        <details>
+          <summary>Can I capture outside the app?</summary>
+          <p>Yes. Vox.md includes widgets, Shortcuts actions, a share extension, and a voice keyboard. These entry points feed the same local capture system.</p>
         </details>
         <details>
           <summary>What does Vox.md cost?</summary>
-          <p>Vox.md is a free download from the App Store. This site does not list paid tiers; check the App Store listing for the current pricing shown by Apple.</p>
+          <p>Vox.md is a free download from the App Store. Check the App Store listing for the current purchase options shown by Apple.</p>
         </details>
       </div>
     </div>
@@ -808,17 +476,18 @@
 
 <section class="cta-section" id="download">
   <div class="container reveal rd1">
-    <h2 class="cta-title">Speak it.<br>Keep it private.</h2>
-    <p class="cta-sub">Download Vox.md and add private voice-to-text to the iPhone apps you already use every day.</p>
+    <h2 class="cta-title">Put the Next Thought<br>in the Right Note</h2>
+    <p class="cta-sub">Connect a vault or local folder once. The next idea can go straight to the note, heading, and format you chose.</p>
     <a href="https://apps.apple.com/us/app/voxboard/id6758967337" class="btn-primary" target="_blank" rel="noopener">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
         <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
       </svg>
-      Download on the App Store
+      Download Vox.md
     </a>
     <span class="btn-note">Free download · no account required</span>
   </div>
 </section>
+</main>
 
 <footer>
   <div class="container">
@@ -830,14 +499,14 @@
         <li><a href="mailto:codybontecou@gmail.com">Support</a></li>
         <li><a href="https://apps.apple.com/us/app/voxboard/id6758967337" target="_blank" rel="noopener">App Store</a></li>
       </ul>
-      <div class="footer-copy">© 2026 Vox.md · Private iPhone dictation · No audio uploads.</div>
+      <div class="footer-copy">© 2026 Vox.md · Quick capture for local notes · No content uploads.</div>
     </div>
   </div>
 </footer>
 
 <script>
   const revealEls = document.querySelectorAll('.reveal');
-  const animatedEls = document.querySelectorAll('.feature-card, .step, .model-card');
+  const animatedEls = document.querySelectorAll('.feature-card, .step, .destination-card');
 
   if ('IntersectionObserver' in window) {
     const obs = new IntersectionObserver((entries) => {

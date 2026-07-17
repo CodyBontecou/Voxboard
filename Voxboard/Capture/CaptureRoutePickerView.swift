@@ -21,7 +21,7 @@ struct CaptureRoutePickerView: View {
                                     Text(destination.name)
                                     Text(destination.rootName)
                                         .font(.caption.monospaced())
-                                        .foregroundStyle(Brutal.muted)
+                                        .foregroundStyle(Geist.muted)
                                 }
                                 Spacer()
                                 if destination.id == viewModel.draft.destinationID {

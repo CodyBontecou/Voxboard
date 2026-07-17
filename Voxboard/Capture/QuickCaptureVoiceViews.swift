@@ -23,7 +23,7 @@ struct QuickCaptureVoiceView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Brutal.bg.ignoresSafeArea())
+            .background(Geist.bg.ignoresSafeArea())
             .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -64,12 +64,12 @@ struct QuickCaptureVoiceView: View {
         VStack(spacing: 28) {
             Spacer()
             Text(session.phase == .recording ? "Start talking…" : "Preparing microphone…")
-                .font(Brutal.heading(.title2))
+                .font(Geist.heading(.title2))
 
             HStack(alignment: .center, spacing: 5) {
                 ForEach(0..<12, id: \.self) { index in
                     Capsule()
-                        .fill(Brutal.text)
+                        .fill(Geist.text)
                         .frame(width: 5, height: barHeight(index))
                         .animation(.easeOut(duration: 0.08), value: session.level)
                 }
@@ -84,14 +84,14 @@ struct QuickCaptureVoiceView: View {
                 .accessibilityLabel("Recording duration \(durationLabel(session.elapsed))")
 
             Toggle("Generate Transcript", isOn: $session.generateTranscript)
-                .tint(Brutal.text)
+                .tint(Geist.text)
                 .disabled(!session.hasDownloadedModel)
                 .padding(.horizontal, 28)
 
             if !session.hasDownloadedModel {
                 Text("Download a model to enable on-device transcription. Audio recording still works.")
-                    .font(Brutal.caption())
-                    .foregroundStyle(Brutal.muted)
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.muted)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 28)
             }
@@ -102,7 +102,7 @@ struct QuickCaptureVoiceView: View {
                 Label("Done", systemImage: "checkmark.circle.fill")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(BrutalButtonStyle(variant: .primary))
+            .buttonStyle(GeistButtonStyle(variant: .primary))
             .disabled(session.phase != .recording)
             .padding(.horizontal, 24)
             .accessibilityIdentifier("capture_voice_done")
@@ -115,7 +115,7 @@ struct QuickCaptureVoiceView: View {
             Spacer()
             ProgressView().controlSize(.large)
             Text("Saving the recording to your durable draft…")
-                .font(Brutal.body())
+                .font(Geist.body())
                 .multilineTextAlignment(.center)
             Spacer()
         }
@@ -127,10 +127,10 @@ struct QuickCaptureVoiceView: View {
             Spacer()
             ProgressView().controlSize(.large)
             Text("Transcribing entirely on this device…")
-                .font(Brutal.body())
+                .font(Geist.body())
             Text("The recording remains available even if transcription fails.")
-                .font(Brutal.caption())
-                .foregroundStyle(Brutal.muted)
+                .font(Geist.caption())
+                .foregroundStyle(Geist.muted)
             Spacer()
         }
         .padding(24)
@@ -143,14 +143,14 @@ struct QuickCaptureVoiceView: View {
             if let transcript = session.transcript {
                 ScrollView {
                     Text(transcript)
-                        .font(Brutal.body())
+                        .font(Geist.body())
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .textSelection(.enabled)
                 }
                 .frame(maxHeight: 280)
                 .padding(14)
-                .background(Brutal.surface)
-                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                .background(Geist.surface)
+                .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
             } else {
                 Image(systemName: "waveform")
                     .font(.system(size: 72, weight: .thin))
@@ -160,8 +160,8 @@ struct QuickCaptureVoiceView: View {
 
             if let message = session.transcriptionMessage {
                 Text(message)
-                    .font(Brutal.caption())
-                    .foregroundStyle(Brutal.muted)
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.muted)
             }
 
             Button {
@@ -175,7 +175,7 @@ struct QuickCaptureVoiceView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .buttonStyle(BrutalButtonStyle(variant: .secondary))
+            .buttonStyle(GeistButtonStyle(variant: .secondary))
 
             HStack(spacing: 10) {
                 Button {
@@ -184,7 +184,7 @@ struct QuickCaptureVoiceView: View {
                     Label("Retry", systemImage: "arrow.clockwise")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                .buttonStyle(GeistButtonStyle(variant: .secondary))
 
                 if let transcript = session.transcript {
                     Button {
@@ -194,7 +194,7 @@ struct QuickCaptureVoiceView: View {
                         Label("Copy", systemImage: "doc.on.doc")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                    .buttonStyle(GeistButtonStyle(variant: .secondary))
                 }
             }
 
@@ -204,7 +204,7 @@ struct QuickCaptureVoiceView: View {
                 Label("Insert", systemImage: "text.badge.plus")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(BrutalButtonStyle(variant: .primary))
+            .buttonStyle(GeistButtonStyle(variant: .primary))
             .disabled(session.stagedAsset == nil)
             .accessibilityIdentifier("capture_voice_insert")
             Spacer()
@@ -218,7 +218,7 @@ struct QuickCaptureVoiceView: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 48))
             Text(message)
-                .font(Brutal.body())
+                .font(Geist.body())
                 .multilineTextAlignment(.center)
             Button {
                 Task { await session.retry() }
@@ -226,7 +226,7 @@ struct QuickCaptureVoiceView: View {
                 Label("Try Again", systemImage: "arrow.clockwise")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(BrutalButtonStyle(variant: .primary))
+            .buttonStyle(GeistButtonStyle(variant: .primary))
             Spacer()
         }
         .padding(24)

@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Terms of Service — Vox.md</title>
-  <meta name="description" content="Vox.md terms of service for the private iOS voice-to-text keyboard, including model downloads, accuracy limits, privacy, and App Store terms.">
+  <meta name="description" content="Vox.md terms for local Markdown capture, user-selected file destinations, attachments, on-device voice transcription, and App Store use.">
   <link rel="canonical" href="https://voxboard.isolated.tech/terms.html">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Terms of Service — Vox.md">
-  <meta property="og:description" content="Terms for using Vox.md, the private iPhone voice-to-text keyboard with on-device transcription.">
+  <meta property="og:description" content="Terms for using Vox.md to capture content into Obsidian vaults and other local Markdown folders.">
   <meta property="og:url" content="https://voxboard.isolated.tech/terms.html">
   <meta name="twitter:card" content="summary">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -16,71 +16,13 @@
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #000000; --surface: #111111; --border: #2a2a2a; --border-hi: #444444;
-      --text: #FFFFFF; --muted: #888888; --faint: #444444;
-      --font: 'JetBrains Mono', monospace; --track: 0.15em; --track-xl: 0.25em;
-    }
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    a { color: inherit; text-decoration: none; }
-    html { scroll-behavior: smooth; overflow-x: hidden; }
-    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-    ::selection { background: var(--text); color: var(--bg); }
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-
-    /* ─── NAV ─── */
-    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: var(--bg); border-bottom: 1px solid var(--border); }
-    .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; max-width: 1200px; margin: 0 auto; }
-    .logo { font-size: 13px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; display: flex; align-items: center; gap: 12px; }
-    .logo-mark { width: 28px; height: 28px; border: 1px solid var(--border-hi); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
-    .nav-links { display: flex; gap: 24px; list-style: none; align-items: center; }
-    .nav-links a { color: var(--muted); font-size: 11px; letter-spacing: var(--track); text-transform: uppercase; transition: color 0.15s; }
-    .nav-links a:hover { color: var(--text); }
-
-    /* ─── HERO ─── */
-    .page-hero { padding: 120px 0 64px; border-bottom: 1px solid var(--border); }
-    .page-eyebrow { font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; color: var(--faint); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
-    .page-eyebrow::before { content: ''; width: 40px; height: 1px; background: var(--border-hi); }
-    .page-title { font-size: clamp(36px, 7vw, 80px); font-weight: 800; line-height: 0.95; letter-spacing: -0.02em; text-transform: uppercase; margin-bottom: 16px; }
-    .page-meta { font-size: 11px; letter-spacing: var(--track); text-transform: uppercase; color: var(--faint); }
-
-    /* ─── CONTENT ─── */
-    .legal-content { max-width: 760px; padding: 80px 0 120px; }
-    .legal-content h2 {
-      font-size: 14px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase;
-      color: var(--text); margin-top: 56px; margin-bottom: 20px;
-      padding-top: 24px; border-top: 1px solid var(--border);
-    }
-    .legal-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
-    .legal-content p { font-size: 13px; color: var(--muted); line-height: 1.9; margin-bottom: 16px; }
-    .legal-content ul { list-style: none; margin-bottom: 16px; }
-    .legal-content li { font-size: 13px; color: var(--muted); line-height: 1.9; padding-left: 20px; position: relative; margin-bottom: 6px; }
-    .legal-content li::before { content: '+'; position: absolute; left: 0; color: var(--faint); font-weight: 700; }
-    .legal-content strong { color: var(--text); font-weight: 600; }
-    .legal-content a { color: var(--text); border-bottom: 1px solid var(--border); transition: border-color 0.15s; }
-    .legal-content a:hover { border-color: var(--text); }
-    .callout { margin: 24px 0; padding: 20px 24px; background: var(--surface); border: 1px solid var(--border); border-left: 2px solid var(--text); }
-    .callout p { color: var(--text); margin-bottom: 0; }
-
-    /* ─── FOOTER ─── */
-    footer { padding: 48px 0; border-top: 1px solid var(--border); }
-    .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-    .footer-links { display: flex; gap: 32px; list-style: none; }
-    .footer-links a { color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; transition: color 0.15s; }
-    .footer-links a:hover { color: var(--text); }
-    .footer-copy { font-size: 10px; color: var(--faint); letter-spacing: var(--track); }
-    @media (max-width: 640px) { .footer-inner { flex-direction: column; text-align: center; } }
-  </style>
+  <link rel="stylesheet" href="geist.css">
 </head>
 <body>
 
-<nav>
+<nav aria-label="Primary navigation">
   <div class="nav-inner">
-    <a href="index.html" class="logo">
+    <a href="index.html" class="logo" aria-label="Vox.md home">
       <div class="logo-mark">V</div>
       <span>Vox.md</span>
     </a>
@@ -89,14 +31,16 @@
       <li><a href="blog/">Blog</a></li>
       <li><a href="privacy.html">Privacy</a></li>
     </ul>
+    <a href="https://apps.apple.com/us/app/voxboard/id6758967337" class="nav-cta" target="_blank" rel="noopener">Download Vox.md</a>
   </div>
 </nav>
 
+<main>
 <section class="page-hero">
   <div class="container">
     <div class="page-eyebrow">Legal · Terms</div>
-    <h1 class="page-title">Terms of<br>Service</h1>
-    <p class="page-meta">Effective: February 9, 2026 · Last updated: February 9, 2026</p>
+    <h1 class="page-title">Terms of Service</h1>
+    <p class="page-meta">Effective: February 9, 2026 · Last updated: July 17, 2026</p>
   </div>
 </section>
 
@@ -107,9 +51,9 @@
     <p>By downloading, installing, or using Vox.md ("the app," "we," "our"), you agree to be bound by these Terms of Service. If you do not agree to these terms, do not use the app.</p>
 
     <h2>Description of Service</h2>
-    <p>Vox.md is an iOS application and keyboard extension that provides on-device voice-to-text transcription. The app uses the whisper.cpp engine — a local implementation of OpenAI's Whisper speech recognition model — to convert spoken audio into text entirely on your device.</p>
+    <p>Vox.md is a quick capture application for iOS and macOS with keyboard, share, widget, and Shortcuts integrations. It writes text, links, images, files, scans, sketches, and voice captures into user-selected Markdown folders, including Obsidian vaults. Optional voice-to-text uses local speech recognition models on your device.</p>
     <div class="callout">
-      <p>Core transcription runs on your device using Apple hardware acceleration. Audio, transcripts, and capture content are not sent to Vox.md servers; production onboarding analytics are disabled by default as described in the Privacy Policy.</p>
+      <p>Capture content and voice transcription are not sent to Vox.md servers. Completed files are written only to destinations you choose, and production onboarding analytics are disabled by default as described in the Privacy Policy.</p>
     </div>
 
     <h2>License</h2>
@@ -130,8 +74,9 @@
     <ul>
       <li>You will use the app in compliance with all applicable laws and regulations</li>
       <li>You will not use the app to transcribe audio without the consent of all parties being recorded, where required by law</li>
-      <li>You are solely responsible for the content you transcribe and how you use transcription output</li>
-      <li>You will ensure appropriate microphone permissions are granted for the app to function</li>
+      <li>You are solely responsible for the content you capture, its destination, and how you use transcription output</li>
+      <li>You will grant only the file, photo, camera, microphone, and location permissions needed for the features you choose</li>
+      <li>You will confirm that important captures reached the intended note before relying on them</li>
     </ul>
 
     <h2>Accuracy Disclaimer</h2>
@@ -146,10 +91,10 @@
 
     <h2>Intellectual Property</h2>
     <p>The Vox.md app, including its design, code, interface, and branding, is the intellectual property of its developer. The whisper.cpp engine and Whisper models are open-source software subject to their respective licenses.</p>
-    <p>You retain full ownership of any audio you record and any text generated by the transcription process. We claim no rights to your content.</p>
+    <p>You retain full ownership of the text, links, media, files, scans, sketches, audio, and generated transcripts you capture. We claim no rights to your content.</p>
 
     <h2>Privacy</h2>
-    <p>Your privacy is fundamental to Vox.md's design. Please review our <a href="privacy.html">Privacy Policy</a> for full details. In summary: your audio, transcripts, keystrokes, capture drafts, and exported content are handled locally; production onboarding analytics are disabled by default.</p>
+    <p>Please review our <a href="privacy.html">Privacy Policy</a> for details. Capture drafts, attachments, file routes, audio, transcripts, keystrokes, and exported content are handled locally; production onboarding analytics are disabled by default.</p>
 
     <h2>Disclaimer of Warranties</h2>
     <p>Vox.md is provided <strong>"as is"</strong> and <strong>"as available"</strong> without warranties of any kind, either express or implied, including but not limited to implied warranties of merchantability, fitness for a particular purpose, and non-infringement.</p>
@@ -160,6 +105,8 @@
     <ul>
       <li>Your use or inability to use the app</li>
       <li>Any inaccuracies in transcription output</li>
+      <li>A failed, delayed, duplicated, or misrouted capture</li>
+      <li>Changes made by Obsidian, Files, or a third-party storage provider</li>
       <li>Unauthorized access to or alteration of your data on your device</li>
       <li>Any other matter relating to the app</li>
     </ul>
@@ -182,6 +129,7 @@
 
   </div>
 </div>
+</main>
 
 <footer>
   <div class="container">
@@ -192,7 +140,7 @@
         <li><a href="privacy.html">Privacy</a></li>
         <li><a href="terms.html">Terms</a></li>
       </ul>
-      <div class="footer-copy">© 2026 Vox.md · On-device AI · No cloud.</div>
+      <div class="footer-copy">© 2026 Vox.md · Local capture · User-controlled files.</div>
     </div>
   </div>
 </footer>

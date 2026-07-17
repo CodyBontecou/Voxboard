@@ -16,6 +16,7 @@ struct VoxboardMacApp: App {
     private var visibilityModeRaw = MacAppVisibilityMode.dockAndMenuBar.rawValue
 
     init() {
+        Geist.registerBundledFonts()
         let store = TranscriptStore()
         let usage = UsageTracker()
         let storeManager = MacStoreManager(usageTracker: usage)

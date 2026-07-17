@@ -28,7 +28,7 @@ struct FlowSettingsView: View {
                             }
                             Spacer()
                             if flow.id == RecordingFlowStore.selectedFlowId() {
-                                Text("SELECTED")
+                                Text("Selected")
                                     .font(.caption2.monospaced().weight(.semibold))
                                     .foregroundStyle(.secondary)
                             }
@@ -43,7 +43,7 @@ struct FlowSettingsView: View {
                     }
                 }
             } header: {
-                Text("Your Vox's")
+                Text("Your Voxes")
             } footer: {
                 Text("Tap a Vox to customize its frontmatter, note folder, audio export, and post-processing rules. Select the active Vox from the Listen screen dropdown before recording.")
             }
@@ -52,12 +52,15 @@ struct FlowSettingsView: View {
                 Button {
                     flows.append(RecordingFlowStore.makeCustomFlow())
                 } label: {
-                    Label("Add Custom Vox", systemImage: "plus")
+                    Label("Add Vox", systemImage: "plus")
                 }
             }
         }
-        .navigationTitle("Manage Vox's")
-        .preferredColorScheme(.dark)
+        .navigationTitle("Manage Voxes")
+        .font(Geist.body())
+        .tint(Geist.Palette.gray1000)
+        .scrollContentBackground(.hidden)
+        .background(Geist.Palette.background200)
         .onChange(of: flows) { _, newValue in
             RecordingFlowStore.saveFlows(newValue)
             if #available(iOS 18.0, *) {
@@ -72,7 +75,7 @@ struct FlowSettingsView: View {
                 Label("What is a Vox?", systemImage: "waveform.circle")
                     .font(.headline)
                 Text("A Vox is a reusable voice workflow. Choose one before recording and Vox.md uses it to decide how the transcript is cleaned, what frontmatter is added, and where the note or audio is saved.")
-                Text("Make different Vox's for meetings, journal entries, task capture, ideas, or any folder and template setup you use often.")
+                Text("Create Voxes for meetings, journal entries, task capture, ideas, or any folder and template setup you use often.")
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
@@ -180,7 +183,7 @@ private struct FlowEditorView: View {
                 }
             }
             Toggle("Enabled", isOn: $flow.isEnabled)
-                .tint(Brutal.muted)
+                .tint(Geist.muted)
         }
     }
 
@@ -265,7 +268,7 @@ private struct FlowEditorView: View {
     private var fileExportSection: some View {
         Section {
             Toggle("Save Notes to Files", isOn: $flow.exportSettings.exportEnabled)
-                .tint(Brutal.muted)
+                .tint(Geist.muted)
                 .onChange(of: flow.exportSettings.exportEnabled) { _, _ in markPerFlow() }
 
             if flow.exportSettings.exportEnabled {
@@ -294,13 +297,13 @@ private struct FlowEditorView: View {
 
                 if flow.exportSettings.format == .md {
                     Toggle("Obsidian Bases", isOn: $flow.exportSettings.mdObsidianEnabled)
-                        .tint(Brutal.muted)
+                        .tint(Geist.muted)
                         .onChange(of: flow.exportSettings.mdObsidianEnabled) { _, _ in markPerFlow() }
                 }
 
                 if flow.exportSettings.format == .yaml {
                     Toggle("Use .md Extension", isOn: $flow.exportSettings.yamlUsesMarkdownExtension)
-                        .tint(Brutal.muted)
+                        .tint(Geist.muted)
                         .onChange(of: flow.exportSettings.yamlUsesMarkdownExtension) { _, _ in markPerFlow() }
                     yamlPropertiesPicker
                 }
@@ -327,7 +330,7 @@ private struct FlowEditorView: View {
                 }
 
                 Toggle("Use Markdown Template", isOn: $flow.exportSettings.markdownTemplateEnabled)
-                    .tint(Brutal.muted)
+                    .tint(Geist.muted)
                     .onChange(of: flow.exportSettings.markdownTemplateEnabled) { _, _ in markPerFlow() }
                 if flow.exportSettings.markdownTemplateEnabled {
                     Button {
@@ -393,7 +396,7 @@ private struct FlowEditorView: View {
 
             if flow.audioSaveMode != .off {
                 Toggle("Embed Audio in Markdown", isOn: $flow.exportSettings.embedAudioInMarkdown)
-                    .tint(Brutal.muted)
+                    .tint(Geist.muted)
                     .disabled(!markdownAudioEmbedAvailable)
                     .onChange(of: flow.exportSettings.embedAudioInMarkdown) { _, _ in markPerFlow() }
 
@@ -459,7 +462,7 @@ private struct FlowEditorView: View {
                     set: { enabled in toggleYAMLProperty(property, enabled: enabled) }
                 )
             )
-            .tint(Brutal.muted)
+            .tint(Geist.muted)
             .disabled(flow.exportSettings.yamlProperties.count == 1 && flow.exportSettings.yamlProperties.contains(property))
         }
     }
@@ -501,7 +504,7 @@ private struct FlowEditorView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
             Image(systemName: systemImage)
-                .foregroundStyle(Brutal.muted)
+                .foregroundStyle(Geist.muted)
         }
         .contentShape(Rectangle())
     }
@@ -592,7 +595,7 @@ private struct FlowIconPickerView: View {
                             Text(category.title)
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(.secondary)
-                                .textCase(.uppercase)
+                                .textCase(nil)
 
                             LazyVGrid(columns: columns, spacing: 12) {
                                 ForEach(category.options) { option in
@@ -608,7 +611,7 @@ private struct FlowIconPickerView: View {
         .navigationTitle("Icon")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search icons")
-        .preferredColorScheme(.dark)
+        .tint(Geist.Palette.gray1000)
     }
 
     private var filteredCategories: [FlowIconCategory] {

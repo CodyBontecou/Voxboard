@@ -18,7 +18,7 @@ struct HistoryView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Brutal.bg.ignoresSafeArea()
+                Geist.Palette.background200.ignoresSafeArea()
                 if store.transcripts.isEmpty {
                     emptyState
                 } else if filteredTranscripts.isEmpty {
@@ -32,15 +32,15 @@ struct HistoryView: View {
             .searchable(text: $searchText, prompt: "Search transcripts")
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("HISTORY")
-                        .font(Brutal.label(.headline))
-                        .foregroundColor(Brutal.text)
+                    Text("History")
+                        .font(Geist.heading(.headline))
+                        .foregroundColor(Geist.text)
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(Brutal.muted)
+                            .foregroundColor(Geist.muted)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Close")
@@ -52,14 +52,14 @@ struct HistoryView: View {
                         } label: {
                             Image(systemName: "trash")
                                 .font(.system(size: 16, weight: .bold))
-                                .foregroundColor(Brutal.error)
+                                .foregroundColor(Geist.error)
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Clear all history")
                     }
                 }
             }
-            .toolbarBackground(Brutal.bg, for: .navigationBar)
+            .toolbarBackground(Geist.bg, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .alert("Clear all history?", isPresented: $showClearHistoryConfirmation) {
                 Button("Cancel", role: .cancel) {}
@@ -68,7 +68,7 @@ struct HistoryView: View {
                 Text("Do you really want to clear all of your history? This can't be undone.")
             }
             .alert("History Error", isPresented: errorPresented) {
-                Button("OK") {
+                Button("Dismiss Error") {
                     exportError = nil
                     store.clearPersistenceError()
                 }
@@ -85,7 +85,6 @@ struct HistoryView: View {
                     .ignoresSafeArea()
             }
         }
-        .preferredColorScheme(.dark)
         .onAppear { store.reload() }
     }
 
@@ -103,13 +102,13 @@ struct HistoryView: View {
 
     private var emptyState: some View {
         VStack(spacing: 24) {
-            BrutalSectionLabel(number: "—", title: "Empty")
-            Text("NO TRANSCRIPTS.")
-                .font(Brutal.display(36))
-                .foregroundColor(Brutal.muted)
-            Text("Use the keyboard mic in any app\nto see transcripts here.")
-                .font(Brutal.body())
-                .foregroundColor(Brutal.muted)
+            GeistSectionLabel(number: "—", title: "Empty")
+            Text("No Transcripts Yet")
+                .font(Geist.heading(.title))
+                .foregroundColor(Geist.text)
+            Text("Start a recording to create your first transcript.")
+                .font(Geist.body())
+                .foregroundColor(Geist.muted)
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 24)
@@ -117,14 +116,14 @@ struct HistoryView: View {
 
     private var noSearchResults: some View {
         ContentUnavailableView.search(text: searchText)
-            .foregroundStyle(Brutal.muted)
+            .foregroundStyle(Geist.muted)
     }
 
     private var transcriptList: some View {
         List {
             ForEach(filteredTranscripts) { transcript in
                 transcriptRow(transcript)
-                    .listRowBackground(Brutal.bg)
+                    .listRowBackground(Geist.Palette.background200)
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
                     .contextMenu {
@@ -147,60 +146,58 @@ struct HistoryView: View {
             }
         }
         .listStyle(.plain)
-        .background(Brutal.bg)
+        .background(Geist.Palette.background200)
         .scrollContentBackground(.hidden)
     }
 
     private func transcriptRow(_ transcript: Transcript) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            BrutalDivider()
-            VStack(alignment: .leading, spacing: 12) {
-                if let title = transcript.title, !title.isEmpty {
-                    Text(title.uppercased())
-                        .font(Brutal.label(.headline))
-                        .foregroundColor(Brutal.text)
-                        .lineLimit(2)
-                }
-
-                HStack(spacing: 6) {
-                    Text(relativeDate(transcript.date))
-                    Text("·")
-                    Text(transcript.modelUsed.uppercased())
-                    Text("·")
-                    Text(formatDuration(transcript.duration).uppercased())
-                    if transcript.language != "auto" {
-                        Text("·")
-                        Text(transcript.language.uppercased())
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            HStack(alignment: .top, spacing: Geist.Spacing.three) {
+                VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                    if let title = transcript.title, !title.isEmpty {
+                        Text(title)
+                            .font(Geist.heading(.headline))
+                            .foregroundStyle(Geist.text)
+                            .lineLimit(2)
                     }
-                    Spacer()
-                    copyMenu(for: transcript)
-                    actionMenu(for: transcript)
+                    HStack(spacing: Geist.Spacing.two) {
+                        Text(relativeDate(transcript.date))
+                        Text(transcript.modelUsed)
+                        Text(formatDuration(transcript.duration))
+                        if transcript.language != "auto" { Text(transcript.language) }
+                    }
+                    .font(Geist.mono())
+                    .foregroundStyle(Geist.muted)
                 }
-                .font(Brutal.caption())
-                .foregroundColor(Brutal.muted)
+                Spacer()
+                copyMenu(for: transcript)
+                actionMenu(for: transcript)
+            }
 
-                Text(transcript.cleanedText ?? transcript.text)
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.text)
-                    .lineSpacing(4)
-                    .lineLimit(5)
+            Text(transcript.cleanedText ?? transcript.text)
+                .font(Geist.body())
+                .foregroundStyle(Geist.text)
+                .lineLimit(5)
 
-                if let tags = transcript.tags, !tags.isEmpty {
-                    HStack(spacing: 6) {
+            if let tags = transcript.tags, !tags.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: Geist.Spacing.two) {
                         ForEach(tags.prefix(5), id: \.self) { tag in
-                            Text("#\(tag)".uppercased())
-                                .font(Brutal.caption())
-                                .foregroundColor(Brutal.muted)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            Text("#\(tag)")
+                                .font(Geist.caption())
+                                .foregroundStyle(Geist.muted)
+                                .padding(.horizontal, Geist.Spacing.two)
+                                .frame(height: 28)
+                                .background(Geist.Palette.gray100)
+                                .clipShape(Capsule())
                         }
                     }
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
         }
+        .geistCard(padding: Geist.Spacing.four)
+        .padding(.horizontal, Geist.Spacing.four)
+        .padding(.vertical, Geist.Spacing.two)
         .contentShape(Rectangle())
     }
 
@@ -211,11 +208,11 @@ struct HistoryView: View {
                 Button("Copy cleaned") { UIPasteboard.general.string = cleaned }
                 Button("Copy raw") { UIPasteboard.general.string = transcript.text }
             } label: {
-                historyActionLabel("COPY")
+                historyActionLabel("Copy")
             }
         } else {
             Button { UIPasteboard.general.string = transcript.text } label: {
-                historyActionLabel("COPY")
+                historyActionLabel("Copy")
             }
             .buttonStyle(.plain)
         }
@@ -230,19 +227,21 @@ struct HistoryView: View {
             }
         } label: {
             Image(systemName: "ellipsis")
-                .foregroundStyle(Brutal.text)
-                .frame(width: 30, height: 26)
-                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                .foregroundStyle(Geist.text)
+                .frame(width: 32, height: 32)
+                .background(Geist.Palette.gray100)
+                .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
         }
     }
 
     private func historyActionLabel(_ label: String) -> some View {
-        Text(label)
-            .font(Brutal.caption())
-            .foregroundColor(Brutal.text)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+        Text(label.capitalized)
+            .font(Geist.label(.footnote))
+            .foregroundStyle(Geist.text)
+            .padding(.horizontal, Geist.Spacing.two)
+            .frame(height: Geist.ControlHeight.small)
+            .background(Geist.Palette.gray100)
+            .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
     }
 
     private func export(_ transcript: Transcript) {
@@ -341,7 +340,6 @@ private struct TranscriptEditView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
     }
 
     private func nilIfEmpty(_ value: String) -> String? {

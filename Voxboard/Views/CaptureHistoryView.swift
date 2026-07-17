@@ -62,21 +62,21 @@ struct CaptureHistoryView: View {
     private func historyRow(_ record: CaptureHistoryRecord) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: record.outcome == .delivered ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                .foregroundStyle(record.outcome == .delivered ? Brutal.text : Brutal.error)
+                .foregroundStyle(record.outcome == .delivered ? Geist.text : Geist.error)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
                     Text(record.destinationName)
-                        .font(Brutal.label())
+                        .font(Geist.label())
                     Spacer()
                     Text(record.deliveredAt ?? record.createdAt, style: .relative)
-                        .font(Brutal.caption())
-                        .foregroundStyle(Brutal.muted)
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.muted)
                 }
                 if let path = record.relativeNotePath {
                     Text(path)
                         .font(.caption.monospaced())
-                        .foregroundStyle(Brutal.muted)
+                        .foregroundStyle(Geist.muted)
                         .lineLimit(2)
                 }
                 HStack(spacing: 8) {
@@ -88,8 +88,8 @@ struct CaptureHistoryView: View {
                         Text(failure.displayName)
                     }
                 }
-                .font(Brutal.caption())
-                .foregroundStyle(record.outcome == .failed ? Brutal.error : Brutal.faint)
+                .font(Geist.caption())
+                .foregroundStyle(record.outcome == .failed ? Geist.error : Geist.faint)
             }
         }
         .accessibilityElement(children: .combine)

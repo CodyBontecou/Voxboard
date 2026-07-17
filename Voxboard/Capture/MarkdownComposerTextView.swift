@@ -88,13 +88,13 @@ struct MarkdownComposerTextView: UIViewRepresentable {
         let textView = UITextView()
         textView.delegate = context.coordinator
         textView.backgroundColor = .clear
-        textView.textColor = UIColor(Brutal.text)
-        textView.tintColor = UIColor(Brutal.text)
-        textView.font = UIFontMetrics(forTextStyle: .body).scaledFont(
-            for: UIFont.monospacedSystemFont(ofSize: 18, weight: .regular)
-        )
+        textView.textColor = UIColor(Geist.text)
+        textView.tintColor = UIColor(Geist.focus)
+        let baseFont = UIFont(name: "GeistMono-Regular", size: 16)
+            ?? UIFont.monospacedSystemFont(ofSize: 16, weight: .regular)
+        textView.font = UIFontMetrics(forTextStyle: .body).scaledFont(for: baseFont)
         textView.adjustsFontForContentSizeCategory = true
-        textView.textContainerInset = UIEdgeInsets(top: 16, left: 14, bottom: 18, right: 14)
+        textView.textContainerInset = UIEdgeInsets(top: 24, left: 16, bottom: 24, right: 16)
         textView.keyboardDismissMode = .interactive
         textView.smartQuotesType = .no
         textView.smartDashesType = .no

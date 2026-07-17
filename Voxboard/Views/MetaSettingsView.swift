@@ -23,20 +23,20 @@ struct MetaSettingsView: View {
 
     var body: some View {
         ZStack {
-            Brutal.surface.ignoresSafeArea()
+            Geist.Palette.background200.ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 0) {
                     upgradeSection
-                    BrutalDivider()
+                    GeistDivider()
                     keyboardSection
-                    BrutalDivider()
+                    GeistDivider()
                     lockScreenSection
-                    BrutalDivider()
+                    GeistDivider()
                     aboutSection
-                    BrutalDivider()
+                    GeistDivider()
                     feedbackSection
-                    BrutalDivider()
+                    GeistDivider()
                     debugSection
                 }
             }
@@ -45,12 +45,12 @@ struct MetaSettingsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text("SETTINGS")
-                    .font(Brutal.label(.headline))
-                    .foregroundColor(Brutal.text)
+                Text("Settings")
+                    .font(Geist.heading(.headline))
+                    .foregroundColor(Geist.text)
             }
         }
-        .toolbarBackground(Brutal.bg, for: .navigationBar)
+        .toolbarBackground(Geist.bg, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .sheet(isPresented: $showPaywall) {
             PaywallView(context: .settings)
@@ -71,13 +71,13 @@ struct MetaSettingsView: View {
 
     private func sectionHeader(_ number: String, _ title: LocalizedStringKey) -> some View {
         HStack {
-            BrutalSectionLabel(number: number, title: title)
+            GeistSectionLabel(number: number, title: title)
             Spacer()
         }
         .padding(.horizontal, 20)
         .padding(.top, 28)
         .padding(.bottom, 16)
-        .background(Brutal.bg)
+        .background(Geist.bg)
     }
 
     // MARK: - Upgrade Section
@@ -85,46 +85,46 @@ struct MetaSettingsView: View {
     private var upgradeSection: some View {
         VStack(spacing: 0) {
             sectionHeader("—", "Vox.md Unlimited")
-            BrutalDivider()
+            GeistDivider()
 
             if usageTracker.hasUnlocked {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("UNLIMITED UNLOCKED")
-                            .font(Brutal.label())
-                            .foregroundColor(Brutal.text)
+                        Text("Unlimited Unlocked")
+                            .font(Geist.label())
+                            .foregroundColor(Geist.text)
                         Text("Lifetime access — no limits")
-                            .font(Brutal.caption())
-                            .foregroundColor(Brutal.muted)
+                            .font(Geist.caption())
+                            .foregroundColor(Geist.muted)
                     }
                     Spacer()
                     HStack(spacing: 6) {
                         Rectangle()
-                            .fill(Brutal.text)
+                            .fill(Geist.text)
                             .frame(width: 6, height: 6)
-                        Text("PURCHASED")
-                            .font(Brutal.caption())
-                            .foregroundColor(Brutal.text)
+                        Text("Purchased")
+                            .font(Geist.caption())
+                            .foregroundColor(Geist.text)
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
-                .background(Brutal.bg)
+                .background(Geist.bg)
             } else {
                 VStack(spacing: 16) {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("UNLOCK UNLIMITED")
-                                .font(Brutal.label())
-                                .foregroundColor(Brutal.text)
+                            Text("Unlock Unlimited")
+                                .font(Geist.label())
+                                .foregroundColor(Geist.text)
                             Text(String(format: String(localized: "%.1f / 15 min free used"), usageTracker.minutesUsed))
-                                .font(Brutal.caption())
-                                .foregroundColor(Brutal.muted)
+                                .font(Geist.caption())
+                                .foregroundColor(Geist.muted)
                         }
                         Spacer()
                         Text(storeManager.displayPrice)
-                            .font(Brutal.label(.headline))
-                            .foregroundColor(Brutal.text)
+                            .font(Geist.label(.headline))
+                            .foregroundColor(Geist.text)
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 16)
@@ -133,14 +133,14 @@ struct MetaSettingsView: View {
                         HStack(spacing: 8) {
                             Image(systemName: "lock.open.fill")
                                 .font(.system(.subheadline))
-                            Text("VIEW UPGRADE OPTIONS")
+                            Text("View Upgrade Options")
                         }
                     }
-                    .buttonStyle(BrutalButtonStyle(variant: .primary))
+                    .buttonStyle(GeistButtonStyle(variant: .primary))
                     .padding(.horizontal, 20)
                     .padding(.bottom, 16)
                 }
-                .background(Brutal.bg)
+                .background(Geist.bg)
             }
         }
     }
@@ -150,28 +150,28 @@ struct MetaSettingsView: View {
     private var keyboardSection: some View {
         VStack(spacing: 0) {
             sectionHeader("01", "Keyboard")
-            BrutalDivider()
+            GeistDivider()
 
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("HAPTIC FEEDBACK")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.text)
+                    Text("Haptic Feedback")
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
                     Text("Vibrate on key press. Requires Allow Full Access.")
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
                 }
                 Spacer()
                 Toggle("", isOn: $hapticsEnabled)
                     .labelsHidden()
-                    .tint(Brutal.muted)
+                    .tint(Geist.muted)
                     .onChange(of: hapticsEnabled) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.hapticsEnabledKey)
                     }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
-            .background(Brutal.bg)
+            .background(Geist.bg)
         }
     }
 
@@ -180,21 +180,21 @@ struct MetaSettingsView: View {
     private var lockScreenSection: some View {
         VStack(spacing: 0) {
             sectionHeader("02", "Lock Screen")
-            BrutalDivider()
+            GeistDivider()
 
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("LIVE ACTIVITY MONITOR")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.text)
+                    Text("Live Activity Monitor")
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
                     Text("Show Vox.md status and Record/Stop controls on the Lock Screen and Dynamic Island while listening.")
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
                 }
                 Spacer()
                 Toggle("", isOn: $liveActivityMonitorEnabled)
                     .labelsHidden()
-                    .tint(Brutal.muted)
+                    .tint(Geist.muted)
                     .onChange(of: liveActivityMonitorEnabled) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.liveActivityMonitorEnabledKey)
                         if val {
@@ -208,23 +208,23 @@ struct MetaSettingsView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
-            .background(Brutal.bg)
+            .background(Geist.bg)
 
-            BrutalDivider()
+            GeistDivider()
 
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("LOCK SCREEN RECORD BUTTON")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.text)
+                    Text("Lock Screen Record Button")
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
                     Text("Allow the Quick Record widget/control to open Vox.md and immediately start recording.")
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
                 }
                 Spacer()
                 Toggle("", isOn: $lockScreenQuickRecordEnabled)
                     .labelsHidden()
-                    .tint(Brutal.muted)
+                    .tint(Geist.muted)
                     .onChange(of: lockScreenQuickRecordEnabled) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.lockScreenQuickRecordEnabledKey)
                         WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
@@ -235,7 +235,7 @@ struct MetaSettingsView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 14)
-            .background(Brutal.bg)
+            .background(Geist.bg)
         }
     }
 
@@ -244,7 +244,7 @@ struct MetaSettingsView: View {
     private var aboutSection: some View {
         VStack(spacing: 0) {
             sectionHeader("03", "About")
-            BrutalDivider()
+            GeistDivider()
 
             var rows: [(String, String)] = [
                 ("Whisper engine", "whisper.cpp"),
@@ -264,18 +264,18 @@ struct MetaSettingsView: View {
 
             ForEach(rows, id: \.0) { key, val in
                 HStack {
-                    Text(key.uppercased())
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.muted)
+                    Text(key)
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
                     Spacer()
                     Text(val)
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.text)
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.text)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 14)
-                .background(Brutal.bg)
-                BrutalDivider()
+                .background(Geist.bg)
+                GeistDivider()
             }
         }
     }
@@ -285,41 +285,41 @@ struct MetaSettingsView: View {
     private var feedbackSection: some View {
         VStack(spacing: 0) {
             sectionHeader("04", "Feedback")
-            BrutalDivider()
+            GeistDivider()
 
             Button(action: openDiscord) {
                 HStack {
-                    Text("JOIN OUR DISCORD")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.text)
+                    Text("Join Our Discord")
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
                     Spacer()
                     Text("→")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.label())
+                        .foregroundColor(Geist.muted)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
-                .background(Brutal.bg)
+                .background(Geist.bg)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Join our Discord")
             .accessibilityHint("Opens the Vox.md Discord community in your browser")
 
-            BrutalDivider()
+            GeistDivider()
 
             Button(action: sendFeedback) {
                 HStack {
-                    Text("SEND FEEDBACK")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.text)
+                    Text("Send Feedback")
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
                     Spacer()
                     Text("→")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.label())
+                        .foregroundColor(Geist.muted)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
-                .background(Brutal.bg)
+                .background(Geist.bg)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Send Feedback")
@@ -337,23 +337,23 @@ struct MetaSettingsView: View {
     private var debugSection: some View {
         VStack(spacing: 0) {
             sectionHeader("05", "Debug")
-            BrutalDivider()
+            GeistDivider()
 
             Button {
                 showDebugLog = true
             } label: {
                 HStack {
-                    Text("VIEW DEBUG LOG")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.text)
+                    Text("View Debug Log")
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
                     Spacer()
                     Text("→")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.label())
+                        .foregroundColor(Geist.muted)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
-                .background(Brutal.bg)
+                .background(Geist.bg)
             }
             .buttonStyle(.plain)
         }
@@ -391,11 +391,11 @@ struct SettingsDebugLogView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                Geist.Palette.background100.ignoresSafeArea()
                 ScrollView {
                     Text(logText.isEmpty ? String(localized: "(empty)") : logText)
                         .font(.system(.footnote, design: .monospaced))
-                        .foregroundColor(Brutal.text)
+                        .foregroundColor(Geist.text)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)
                         .textSelection(.enabled)
@@ -405,17 +405,17 @@ struct SettingsDebugLogView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("DEBUG LOG")
-                        .font(Brutal.label(.headline))
-                        .foregroundColor(Brutal.text)
+                    Text("Debug Log")
+                        .font(Geist.heading(.headline))
+                        .foregroundColor(Geist.text)
                 }
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("CLEAR") {
+                    Button("Clear Log") {
                         KeyboardDebugLog.shared.clear()
                         logText = String(localized: "(cleared)")
                     }
-                    .font(Brutal.label())
-                    .foregroundColor(Brutal.error)
+                    .font(Geist.label())
+                    .foregroundColor(Geist.error)
                     .buttonStyle(.plain)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -424,29 +424,28 @@ struct SettingsDebugLogView: View {
                             logText = KeyboardDebugLog.shared.read()
                         } label: {
                             Text("↺")
-                                .font(Brutal.label(.title3))
-                                .foregroundColor(Brutal.muted)
+                                .font(Geist.label(.title3))
+                                .foregroundColor(Geist.muted)
                         }
                         .buttonStyle(.plain)
                         Button {
                             UIPasteboard.general.string = logText
                         } label: {
-                            Text("COPY")
-                                .font(Brutal.label())
-                                .foregroundColor(Brutal.muted)
+                            Text("Copy Log")
+                                .font(Geist.label())
+                                .foregroundColor(Geist.muted)
                         }
                         .buttonStyle(.plain)
-                        Button("DONE") { dismiss() }
-                            .font(Brutal.label())
-                            .foregroundColor(Brutal.muted)
+                        Button("Done") { dismiss() }
+                            .font(Geist.label())
+                            .foregroundColor(Geist.muted)
                             .buttonStyle(.plain)
                     }
                 }
             }
-            .toolbarBackground(Brutal.bg, for: .navigationBar)
+            .toolbarBackground(Geist.bg, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
         }
-        .preferredColorScheme(.dark)
         .onAppear { logText = KeyboardDebugLog.shared.read() }
     }
 }

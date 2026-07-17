@@ -55,14 +55,14 @@ private struct VoxboardCaptureWidgetView: View {
                     Image(systemName: "square.and.pencil")
                         .widgetAccentable()
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("CAPTURE").font(.caption.bold())
+                        Text("Capture").font(.caption.bold())
                         Text("Markdown note").font(.caption2)
                     }
                 }
             }
         case .systemMedium:
             VStack(alignment: .leading, spacing: 12) {
-                Text("QUICK CAPTURE").font(.caption.bold())
+                Text("Quick Capture").font(.caption.bold())
                 HStack(spacing: 8) {
                     action("Note", icon: "square.and.pencil", url: captureURL())
                     action("Photo", icon: "photo", url: captureURL(action: "photos"))
@@ -73,7 +73,7 @@ private struct VoxboardCaptureWidgetView: View {
             }
         case .systemLarge:
             VStack(alignment: .leading, spacing: 12) {
-                Text("QUICK CAPTURE").font(.headline.bold())
+                Text("Quick Capture").font(.headline.bold())
                 Text("Local drafts → precise Markdown routes")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -96,7 +96,7 @@ private struct VoxboardCaptureWidgetView: View {
                         .font(.title.bold())
                         .widgetAccentable()
                     Spacer()
-                    Text("QUICK CAPTURE")
+                    Text("Quick Capture")
                         .font(.caption.bold())
                     Text("Text, links & files")
                         .font(.caption2)
@@ -113,7 +113,7 @@ private struct VoxboardCaptureWidgetView: View {
                 Image(systemName: icon)
                     .font(.title3.bold())
                     .widgetAccentable()
-                Text(title.uppercased())
+                Text(title)
                     .font(.system(size: 9, weight: .bold))
                     .lineLimit(1)
             }

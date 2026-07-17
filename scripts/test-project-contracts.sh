@@ -5,7 +5,9 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$ROOT/Voxboard.xcodeproj/project.pbxproj"
 
 python3 - "$ROOT" "$PROJECT" <<'PY'
+from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urlsplit
 import re
 import sys
 
@@ -265,6 +267,109 @@ if (
     or 'Reusable entry templates' not in template_ui
 ):
     errors.append('live reusable entry-template model/UI contract is missing')
+
+website_root = root / 'website'
+website_css = website_root / 'geist.css'
+website_pages = [
+    website_root / 'index.html',
+    website_root / 'privacy.html',
+    website_root / 'terms.html',
+    website_root / 'blog/index.html',
+    website_root / 'blog/best-voice-to-text-keyboard-iphone/index.html',
+]
+
+for font_name in [
+    'Geist-Regular.ttf',
+    'Geist-Medium.ttf',
+    'Geist-SemiBold.ttf',
+    'GeistMono-Regular.ttf',
+    'GeistMono-Medium.ttf',
+    'LICENSE.txt',
+]:
+    if not (website_root / 'fonts' / font_name).exists():
+        errors.append(f'website is missing bundled Geist font asset {font_name}')
+
+if not website_css.exists():
+    errors.append('website is missing its shared Geist stylesheet')
+else:
+    css = website_css.read_text()
+    for required in [
+        '--background-100: #ffffff',
+        '--gray-1000: #171717',
+        '--background-100: #000000',
+        '--gray-1000: #ededed',
+        '--font-sans: "Geist Sans"',
+        '--font-mono: "Geist Mono"',
+        '@media (prefers-color-scheme: dark)',
+        '@media (prefers-reduced-motion: reduce)',
+        ':focus-visible',
+    ]:
+        if required not in css:
+            errors.append(f'website Geist stylesheet is missing {required}')
+    for forbidden in ['JetBrains Mono', '#30D158', 'text-transform: uppercase']:
+        if forbidden in css:
+            errors.append(f'website Geist stylesheet still contains legacy styling {forbidden}')
+    for asset in re.findall(r'url\(["\']?([^"\')]+)', css):
+        parsed = urlsplit(asset)
+        if parsed.scheme or asset.startswith('data:'):
+            continue
+        if not (website_css.parent / parsed.path).resolve().exists():
+            errors.append(f'website stylesheet references missing asset {asset}')
+
+class WebsiteHTMLContractParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.main_count = 0
+        self.h1_count = 0
+        self.ids: list[str] = []
+        self.references: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attributes = dict(attrs)
+        if tag == 'main':
+            self.main_count += 1
+        if tag == 'h1':
+            self.h1_count += 1
+        if attributes.get('id'):
+            self.ids.append(attributes['id'])
+        for name in ['href', 'src']:
+            if attributes.get(name):
+                self.references.append(attributes[name])
+        if attributes.get('srcset'):
+            self.references.extend(
+                candidate.strip().split()[0]
+                for candidate in attributes['srcset'].split(',')
+            )
+
+for page in website_pages:
+    if not page.exists():
+        errors.append(f'website page is missing: {page.relative_to(root)}')
+        continue
+    html = page.read_text()
+    parser = WebsiteHTMLContractParser()
+    parser.feed(html)
+    if '<style>' in html:
+        errors.append(f'{page.relative_to(root)} contains a legacy inline stylesheet')
+    if 'geist.css' not in html:
+        errors.append(f'{page.relative_to(root)} does not load the shared Geist stylesheet')
+    if parser.main_count != 1:
+        errors.append(f'{page.relative_to(root)} must contain exactly one main landmark')
+    if parser.h1_count != 1:
+        errors.append(f'{page.relative_to(root)} must contain exactly one h1')
+    duplicate_ids = {value for value in parser.ids if parser.ids.count(value) > 1}
+    if duplicate_ids:
+        errors.append(f'{page.relative_to(root)} has duplicate IDs: {sorted(duplicate_ids)}')
+    for reference in parser.references:
+        parsed = urlsplit(reference)
+        if parsed.scheme or reference.startswith(('#', 'mailto:', 'tel:', 'data:')):
+            continue
+        referenced_path = (page.parent / parsed.path).resolve()
+        if parsed.path.endswith('/'):
+            referenced_path /= 'index.html'
+        if not referenced_path.exists():
+            errors.append(
+                f'{page.relative_to(root)} references missing local asset {reference}'
+            )
 
 if errors:
     print('Project contract failures:', file=sys.stderr)

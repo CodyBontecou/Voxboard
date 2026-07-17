@@ -159,7 +159,7 @@ final class RecordingFlowController {
     }
 }
 
-// MARK: - View (fully redesigned — brutal aesthetic)
+// MARK: - View (fully redesigned — Geist design system)
 
 struct RecordingFlowView: View {
     let controller: RecordingFlowController
@@ -167,18 +167,18 @@ struct RecordingFlowView: View {
 
     var body: some View {
         ZStack {
-            Brutal.bg.ignoresSafeArea()
-            BrutalGridBackground().ignoresSafeArea().allowsHitTesting(false)
+            Geist.bg.ignoresSafeArea()
+            GeistGridBackground().ignoresSafeArea().allowsHitTesting(false)
 
             VStack(spacing: 0) {
                 // Top rule
-                BrutalDivider()
+                GeistDivider()
 
                 Spacer()
                 phaseContent
                 Spacer()
 
-                BrutalDivider()
+                GeistDivider()
                 actionBar
             }
             .padding(.horizontal, 24)
@@ -193,29 +193,29 @@ struct RecordingFlowView: View {
         switch controller.phase {
         case .starting:
             VStack(spacing: 20) {
-                BrutalSectionLabel(number: "01", title: "Status")
-                Text("STARTING.")
-                    .font(Brutal.display(52))
-                    .foregroundColor(Brutal.muted)
+                GeistSectionLabel(number: "01", title: "Status")
+                Text("Starting…")
+                    .font(Geist.display(52))
+                    .foregroundColor(Geist.muted)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                 ProgressView()
                     .scaleEffect(1.2)
-                    .tint(Brutal.text)
+                    .tint(Geist.text)
             }
 
         case .recording:
             VStack(spacing: 24) {
-                BrutalSectionLabel(number: "01", title: "Status")
+                GeistSectionLabel(number: "01", title: "Status")
                 VStack(spacing: 12) {
-                    Text("RECORDING.")
-                        .font(Brutal.display(48))
-                        .foregroundColor(Brutal.text)
+                    Text("Recording")
+                        .font(Geist.display(48))
+                        .foregroundColor(Geist.text)
                         .lineLimit(1)
                         .minimumScaleFactor(0.3)
                     Text(formatDuration(controller.recordingDuration))
-                        .font(Brutal.display(54))
-                        .foregroundColor(Brutal.text)
+                        .font(Geist.display(54))
+                        .foregroundColor(Geist.text)
                         .monospacedDigit()
                 }
 
@@ -223,64 +223,64 @@ struct RecordingFlowView: View {
                 VStack(spacing: 8) {
                     HStack(spacing: 6) {
                         Text("←")
-                            .font(Brutal.label(.headline))
-                        Text("SWIPE BACK TO YOUR APP")
-                            .font(Brutal.label())
+                            .font(Geist.label(.headline))
+                        Text("Return to Your App")
+                            .font(Geist.label())
                     }
-                    .foregroundColor(Brutal.text)
+                    .foregroundColor(Geist.text)
                     Text("Recording continues. Tap Stop on the keyboard when done.")
-                        .font(Brutal.body())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.body())
+                        .foregroundColor(Geist.muted)
                         .multilineTextAlignment(.center)
                         .lineSpacing(3)
                 }
                 .padding(16)
-                .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
             }
 
         case .transcribing:
             VStack(spacing: 24) {
-                BrutalSectionLabel(number: "01", title: "Status")
+                GeistSectionLabel(number: "01", title: "Status")
                 TranscribingDotsView()
                 Text("Processing audio on-device")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
             }
 
         case .done:
             VStack(spacing: 24) {
-                BrutalSectionLabel(number: "01", title: "Status")
-                Text("DONE.")
-                    .font(Brutal.display(52))
-                    .foregroundColor(Brutal.text)
+                GeistSectionLabel(number: "01", title: "Status")
+                Text("Transcript Ready")
+                    .font(Geist.display(52))
+                    .foregroundColor(Geist.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                 if let result = controller.transcriptionResult {
                     Text(result)
-                        .font(Brutal.body())
-                        .foregroundColor(Brutal.text)
+                        .font(Geist.body())
+                        .foregroundColor(Geist.text)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
                         .lineLimit(5)
                         .padding(16)
-                        .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                        .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
                 }
             }
 
         case .error:
             VStack(spacing: 20) {
-                BrutalSectionLabel(number: "01", title: "Status")
-                Text("ERROR.")
-                    .font(Brutal.display(52))
-                    .foregroundColor(Brutal.error)
+                GeistSectionLabel(number: "01", title: "Status")
+                Text("Transcription Error")
+                    .font(Geist.display(52))
+                    .foregroundColor(Geist.error)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                 Text(controller.errorMessage ?? String(localized: "Something went wrong"))
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
                     .multilineTextAlignment(.center)
                     .padding(16)
-                    .overlay(Rectangle().stroke(Brutal.error.opacity(0.4), lineWidth: 1))
+                    .overlay(Rectangle().stroke(Geist.error.opacity(0.4), lineWidth: 1))
             }
         }
     }
@@ -295,17 +295,17 @@ struct RecordingFlowView: View {
                 Button(action: { controller.stopAndTranscribe() }) {
                     HStack(spacing: 8) {
                         Image(systemName: "stop.fill").font(.system(.footnote))
-                        Text("STOP + TRANSCRIBE")
+                        Text("Stop and Transcribe")
                     }
                 }
-                .buttonStyle(BrutalButtonStyle(variant: .destructive))
+                .buttonStyle(GeistButtonStyle(variant: .destructive))
 
             case .done, .error:
                 Button(action: { onDismiss() }) {
                     Image(systemName: "xmark")
                         .font(.system(.body, weight: .bold))
                 }
-                .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                .buttonStyle(GeistButtonStyle(variant: .secondary))
                 .accessibilityLabel("Close")
 
             default:

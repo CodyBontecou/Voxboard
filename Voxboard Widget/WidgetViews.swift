@@ -48,11 +48,11 @@ struct RectangularWidgetView: View {
                 .font(.system(size: 20, weight: .semibold))
                 .widgetAccentable()
             VStack(alignment: .leading, spacing: 2) {
-                Text("VOX.MD")
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                Text("Vox.md")
+                    .font(.system(size: 12, weight: .semibold, design: .default))
                     .widgetAccentable()
                 Text(entry.isQuickRecordEnabled ? (entry.isListening ? "Listening" : "Tap to record") : "Disabled")
-                    .font(.system(size: 10, weight: .regular, design: .monospaced))
+                    .font(.system(size: 10, weight: .regular, design: .default))
                     .foregroundStyle(.secondary)
             }
         }
@@ -66,25 +66,25 @@ struct SmallWidgetView: View {
 
     var body: some View {
         ZStack {
-            Color.black
+            Color.clear
             VStack(spacing: 12) {
                 HStack {
                     Circle()
-                        .fill(entry.isQuickRecordEnabled && entry.isListening ? Color.white : Color.gray)
+                        .fill(entry.isQuickRecordEnabled && entry.isListening ? Color.accentColor : Color.secondary)
                         .frame(width: 6, height: 6)
-                    Text(entry.isQuickRecordEnabled ? (entry.isListening ? "LISTENING" : "OFF") : "DISABLED")
-                        .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                        .foregroundColor(entry.isQuickRecordEnabled && entry.isListening ? .white : .gray)
+                    Text(entry.isQuickRecordEnabled ? (entry.isListening ? "Listening" : "Ready") : "Disabled")
+                        .font(.system(size: 9, weight: .medium, design: .default))
+                        .foregroundStyle(entry.isQuickRecordEnabled && entry.isListening ? .primary : .secondary)
                     Spacer()
                 }
                 Spacer()
                 Image(systemName: "mic.fill")
                     .font(.system(size: 36, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundStyle(.primary)
                 Spacer()
-                Text(entry.isQuickRecordEnabled ? "TAP TO RECORD" : "OFF IN SETTINGS")
-                    .font(.system(size: 9, weight: .bold, design: .monospaced))
-                    .foregroundColor(Color(white: 0.5))
+                Text(entry.isQuickRecordEnabled ? "Tap to Record" : "Enable in Settings")
+                    .font(.system(size: 9, weight: .medium, design: .default))
+                    .foregroundStyle(.secondary)
             }
             .padding(16)
         }

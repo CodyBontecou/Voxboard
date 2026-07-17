@@ -79,9 +79,9 @@ struct CaptureEditorToolbar: View {
             }
             .padding(.horizontal, 8)
         }
-        .frame(minHeight: 48)
-        .background(Brutal.surface)
-        .overlay(alignment: .top) { Rectangle().fill(Brutal.border).frame(height: 1) }
+        .frame(minHeight: Geist.ControlHeight.large)
+        .background(Geist.Palette.background200)
+        .overlay(alignment: .top) { Rectangle().fill(Geist.border).frame(height: 1) }
         .accessibilityLabel("Markdown and capture tools")
     }
 
@@ -104,15 +104,17 @@ struct CaptureEditorToolbar: View {
         Group {
             if let icon {
                 Image(systemName: icon)
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
             } else {
                 Text(textIcon ?? "")
-                    .font(.system(size: 15, weight: .semibold, design: .monospaced))
+                    .font(Geist.mono(.footnote, medium: true))
             }
         }
-        .foregroundStyle(Brutal.text)
-        .frame(width: 44, height: 44)
-        .contentShape(Rectangle())
+        .foregroundStyle(Geist.text)
+        .frame(width: 40, height: 40)
+        .background(Geist.Palette.background100)
+        .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
         .accessibilityLabel(accessibilityLabel)
     }
 }

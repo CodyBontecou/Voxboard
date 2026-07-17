@@ -32,15 +32,15 @@ struct CaptureDueDateSheet: View {
                     .datePickerStyle(.graphical)
                     .labelsHidden()
                     .padding(10)
-                    .background(Brutal.surface)
-                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                    .background(Geist.surface)
+                    .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
 
                     VStack(spacing: 12) {
                         Toggle(isOn: $includesTime) {
                             Label("Time", systemImage: "clock")
-                                .font(Brutal.body())
+                                .font(Geist.body())
                         }
-                        .tint(Brutal.text)
+                        .tint(Geist.text)
 
                         if includesTime {
                             DatePicker(
@@ -54,8 +54,8 @@ struct CaptureDueDateSheet: View {
                         }
                     }
                     .padding(14)
-                    .background(Brutal.surface)
-                    .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                    .background(Geist.surface)
+                    .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
 
                     Button {
                         onInsert(selectedDate, includesTime)
@@ -64,12 +64,12 @@ struct CaptureDueDateSheet: View {
                         Label(insertLabel, systemImage: "calendar.badge.plus")
                             .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(BrutalButtonStyle(variant: .primary))
+                    .buttonStyle(GeistButtonStyle(variant: .primary))
                     .accessibilityIdentifier("capture_due_date_insert")
                 }
                 .padding(16)
             }
-            .background(Brutal.bg.ignoresSafeArea())
+            .background(Geist.bg.ignoresSafeArea())
             .navigationTitle("Set due date")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -95,14 +95,14 @@ struct CaptureDueDateSheet: View {
         } label: {
             VStack(spacing: 3) {
                 Text(title)
-                    .font(Brutal.caption())
+                    .font(Geist.caption())
                 Text(date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day()))
                     .font(.caption2.monospaced())
-                    .foregroundStyle(Brutal.muted)
+                    .foregroundStyle(Geist.muted)
             }
             .frame(maxWidth: .infinity, minHeight: 52)
         }
-        .buttonStyle(BrutalButtonStyle(variant: .secondary))
+        .buttonStyle(GeistButtonStyle(variant: .secondary))
     }
 
     private var timeAdjustments: some View {
@@ -123,8 +123,8 @@ struct CaptureDueDateSheet: View {
         Button(title) {
             selectedDate = insertionFormatter.adjusting(selectedDate, by: minutes, unit: .minute)
         }
-        .font(Brutal.caption())
-        .buttonStyle(BrutalButtonStyle(variant: .secondary))
+        .font(Geist.caption())
+        .buttonStyle(GeistButtonStyle(variant: .secondary))
         .accessibilityLabel("Adjust due time by \(title)")
     }
 

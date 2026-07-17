@@ -4,7 +4,7 @@ import UIKit
 import UniformTypeIdentifiers
 import VoxboardShared
 
-/// Main screen — brutal black/white aesthetic matching imghost.isolated.tech.
+/// Main recording screen, built from the vendored Geist design tokens.
 struct HomeView: View {
     @Environment(ModelManager.self) private var modelManager
     @Environment(TranscriptStore.self) private var transcriptStore
@@ -43,11 +43,7 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            Brutal.bg.ignoresSafeArea()
-
-            BrutalGridBackground()
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
+            Geist.Palette.background200.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 if !discordPromoDismissed {
@@ -55,11 +51,14 @@ struct HomeView: View {
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 topBar
-                BrutalDivider()
-                Spacer()
+                GeistDivider()
+                Spacer(minLength: Geist.Spacing.four)
                 centerContent
-                Spacer()
-                BrutalDivider()
+                    .frame(maxWidth: 560)
+                    .geistCard(padding: Geist.Spacing.eight)
+                    .padding(.horizontal, Geist.Spacing.four)
+                Spacer(minLength: Geist.Spacing.four)
+                GeistDivider()
                 bottomArea
             }
 
@@ -176,27 +175,27 @@ struct HomeView: View {
                     HStack(spacing: 12) {
                         Image(systemName: "bubble.left.and.bubble.right.fill")
                             .font(.system(.callout))
-                            .foregroundColor(Brutal.text)
+                            .foregroundColor(Geist.text)
                             .frame(width: 28, height: 28)
-                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("JOIN THE COMMUNITY")
-                                .font(Brutal.label(.footnote))
-                                .foregroundColor(Brutal.text)
+                            Text("Join the Community")
+                                .font(Geist.label(.footnote))
+                                .foregroundColor(Geist.text)
                             Text("Chat with us on Discord")
-                                .font(Brutal.caption())
-                                .foregroundColor(Brutal.muted)
+                                .font(Geist.caption())
+                                .foregroundColor(Geist.muted)
                         }
 
                         Spacer(minLength: 8)
 
-                        Text("JOIN")
-                            .font(Brutal.caption())
-                            .foregroundColor(Brutal.text)
+                        Text("Join Discord")
+                            .font(Geist.caption())
+                            .foregroundColor(Geist.text)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
-                            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                            .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
                     }
                 }
                 .buttonStyle(.plain)
@@ -206,7 +205,7 @@ struct HomeView: View {
                 Button(action: { discordPromoDismissed = true }) {
                     Image(systemName: "xmark")
                         .font(.system(.footnote, weight: .medium))
-                        .foregroundColor(Brutal.muted)
+                        .foregroundColor(Geist.muted)
                         .frame(width: 28, height: 28)
                         .contentShape(Rectangle())
                 }
@@ -215,9 +214,9 @@ struct HomeView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
-            .background(Brutal.surface2)
+            .background(Geist.surface2)
 
-            BrutalDivider()
+            GeistDivider()
         }
     }
 
@@ -229,30 +228,32 @@ struct HomeView: View {
     // MARK: - Top Bar
 
     private var topBar: some View {
-        VStack(spacing: 0) {
-            HStack {
-                BrutalStatusBadge(
+        VStack(alignment: .leading, spacing: Geist.Spacing.four) {
+            HStack(alignment: .top, spacing: Geist.Spacing.four) {
+                VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                    Text("Listen")
+                        .font(Geist.heading(.title2))
+                        .foregroundStyle(Geist.text)
+                    Text("Record and transcribe on device")
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.muted)
+                }
+                Spacer()
+                GeistStatusBadge(
                     label: statusBadgeLabel,
                     isActive: statusBadgeIsActive
                 )
-                Spacer()
-                Text("VOX.MD")
-                    .font(Brutal.label(.headline))
-                    .foregroundColor(Brutal.text)
-                Spacer()
-                // Settings lives in its own tab — keep top bar balanced with a spacer
-                Color.clear.frame(width: 34, height: 34)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
 
             flowSelectorBar
 
-            // Usage bar — only shown to free-tier users
             if !usageTracker.hasUnlocked {
                 usageMeterBar
             }
         }
+        .padding(.horizontal, Geist.Spacing.four)
+        .padding(.vertical, Geist.Spacing.four)
+        .background(Geist.Palette.background100)
     }
 
     private var usageMeterBar: some View {
@@ -261,9 +262,9 @@ struct HomeView: View {
                 // Progress track
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        Rectangle().fill(Brutal.surface).frame(height: 2)
+                        Rectangle().fill(Geist.surface).frame(height: 2)
                         Rectangle()
-                            .fill(usageTracker.isAtLimit ? Brutal.error : Brutal.text)
+                            .fill(usageTracker.isAtLimit ? Geist.error : Geist.text)
                             .frame(width: geo.size.width * usageTracker.fractionUsed, height: 2)
                     }
                 }
@@ -271,15 +272,15 @@ struct HomeView: View {
 
                 // Label
                 if usageTracker.isAtLimit {
-                    Text("LIMIT REACHED — UNLOCK →")
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.error)
+                    Text("Limit reached · Unlock")
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.error)
                         .lineLimit(1)
                         .fixedSize()
                 } else {
-                    Text(String(format: String(localized: "%.1f / 15 MIN FREE"), usageTracker.minutesUsed))
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.muted)
+                    Text(String(format: String(localized: "%.1f / 15 min free"), usageTracker.minutesUsed))
+                        .font(Geist.mono())
+                        .foregroundColor(Geist.muted)
                         .monospacedDigit()
                         .lineLimit(1)
                         .fixedSize()
@@ -287,16 +288,16 @@ struct HomeView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 8)
-            .background(Brutal.surface.opacity(0.5))
+            .background(Geist.surface.opacity(0.5))
         }
         .buttonStyle(.plain)
     }
 
     private var flowSelectorBar: some View {
         HStack(spacing: 10) {
-            Text("VOX")
-                .font(Brutal.caption())
-                .foregroundColor(Brutal.muted)
+            Text("Vox")
+                .font(Geist.caption())
+                .foregroundColor(Geist.muted)
             Menu {
                 ForEach(enabledFlows) { flow in
                     Button(flow.displayName) {
@@ -307,22 +308,27 @@ struct HomeView: View {
                 HStack(spacing: 8) {
                     Image(systemName: selectedFlow.symbolName)
                         .font(.system(.caption, weight: .semibold))
-                    Text(selectedFlow.displayName.uppercased())
-                        .font(Brutal.caption())
+                    Text(selectedFlow.displayName)
+                        .font(Geist.label())
                         .lineLimit(1)
                     Image(systemName: "chevron.down")
                         .font(.system(size: 9, weight: .bold))
                 }
-                .foregroundColor(Brutal.text)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                .foregroundColor(Geist.text)
+                .padding(.horizontal, Geist.Spacing.three)
+                .frame(height: Geist.ControlHeight.medium)
+                .background(Geist.Palette.background100)
+                .overlay(
+                    RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous)
+                        .stroke(Geist.border, lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
             }
             Spacer()
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 8)
-        .background(Brutal.surface.opacity(0.35))
+        .padding(Geist.Spacing.two)
+        .background(Geist.Palette.background200)
+        .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
     }
 
     private var enabledFlows: [RecordingFlow] {
@@ -371,36 +377,40 @@ struct HomeView: View {
     // MARK: Standby
 
     private var standbyView: some View {
-        VStack(spacing: 28) {
-            BrutalSectionLabel(number: "01", title: "Status")
-            VStack(spacing: 8) {
-                Text("STANDBY.")
-                    .font(Brutal.display(60))
-                    .foregroundColor(Brutal.text)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.3)
-                Text("Tap START RECORDING below")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+        VStack(spacing: Geist.Spacing.six) {
+            Image(systemName: "waveform.badge.mic")
+                .font(.system(size: 32, weight: .medium))
+                .foregroundStyle(Geist.Palette.blue700)
+                .frame(width: 64, height: 64)
+                .background(Geist.Palette.blue100)
+                .clipShape(Circle())
+            VStack(spacing: Geist.Spacing.two) {
+                Text("Ready to Record")
+                    .font(Geist.heading(.largeTitle))
+                    .foregroundStyle(Geist.text)
+                    .multilineTextAlignment(.center)
+                Text("Start a recording or import an audio file.")
+                    .font(Geist.body())
+                    .foregroundStyle(Geist.muted)
+                    .multilineTextAlignment(.center)
             }
         }
-        .padding(.horizontal, 24)
     }
 
     // MARK: No Mic
 
     private var noMicView: some View {
         VStack(spacing: 20) {
-            BrutalSectionLabel(number: "01", title: "Status")
+            GeistSectionLabel(number: "01", title: "Status")
             VStack(spacing: 8) {
-                Text("NO MIC.")
-                    .font(Brutal.display(52))
-                    .foregroundColor(Brutal.muted)
+                Text("Microphone Unavailable")
+                    .font(Geist.heading(.title))
+                    .foregroundColor(Geist.muted)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
-                Text("Enable microphone access in Settings")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                Text("Enable microphone access in Settings to record audio.")
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
             }
         }
         .padding(.horizontal, 24)
@@ -408,20 +418,20 @@ struct HomeView: View {
 
     private func errorView(_ message: String) -> some View {
         VStack(spacing: 20) {
-            BrutalSectionLabel(number: "01", title: "Status")
-            Text("ERROR.")
-                .font(Brutal.display(52))
-                .foregroundColor(Brutal.error)
+            GeistSectionLabel(number: "01", title: "Status")
+            Text("Recording Error")
+                .font(Geist.heading(.title))
+                .foregroundColor(Geist.error)
                 .lineLimit(1)
                 .minimumScaleFactor(0.3)
             Text(message)
-                .font(Brutal.body())
-                .foregroundColor(Brutal.muted)
+                .font(Geist.body())
+                .foregroundColor(Geist.muted)
                 .multilineTextAlignment(.center)
-            Button("DISMISS") {
+            Button("Dismiss Error") {
                 persistentRecorder.lastError = nil
             }
-            .buttonStyle(BrutalButtonStyle(variant: .secondary))
+            .buttonStyle(GeistButtonStyle(variant: .secondary))
             .frame(maxWidth: 220)
         }
         .padding(.horizontal, 24)
@@ -444,26 +454,26 @@ struct HomeView: View {
 
     private var listeningIdleView: some View {
         VStack(spacing: 28) {
-            BrutalSectionLabel(number: "01", title: "Status")
+            GeistSectionLabel(number: "01", title: "Status")
             VStack(spacing: 16) {
-                Text("LISTENING.")
-                    .font(Brutal.display(52))
-                    .foregroundColor(Brutal.text)
+                Text("Listening")
+                    .font(Geist.heading(.largeTitle))
+                    .foregroundColor(Geist.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                 IdleWaveformView()
                 Text("Keyboard mic ready in any app")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
             }
             Button(action: { startRecording() }) {
                 HStack(spacing: 8) {
                     Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
                         .font(.system(.footnote))
-                    Text(usageTracker.isAtLimit ? "UNLOCK TO RECORD" : "RECORD IN APP")
+                    Text(usageTracker.isAtLimit ? "Unlock to Record" : "Record in App")
                 }
             }
-            .buttonStyle(BrutalButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .secondary))
+            .buttonStyle(GeistButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .secondary))
             .frame(maxWidth: 280)
         }
         .padding(.horizontal, 24)
@@ -471,29 +481,29 @@ struct HomeView: View {
 
     private var recordingView: some View {
         VStack(spacing: 24) {
-            BrutalSectionLabel(number: "01", title: "Status")
+            GeistSectionLabel(number: "01", title: "Status")
             VStack(spacing: 10) {
-                Text("RECORDING.")
-                    .font(Brutal.display(48))
-                    .foregroundColor(Brutal.text)
+                Text("Recording")
+                    .font(Geist.heading(.largeTitle))
+                    .foregroundColor(Geist.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                 Text(formatDuration(persistentRecorder.segmentDuration))
-                    .font(Brutal.display(54))
-                    .foregroundColor(Brutal.text)
+                    .font(Geist.mono(size: 48, medium: true))
+                    .foregroundColor(Geist.text)
                     .monospacedDigit()
             }
             Text("Return to your app — recording continues")
-                .font(Brutal.body())
-                .foregroundColor(Brutal.muted)
+                .font(Geist.body())
+                .foregroundColor(Geist.muted)
                 .multilineTextAlignment(.center)
             Button(action: { persistentRecorder.stopInAppSegment() }) {
                 HStack(spacing: 8) {
                     Image(systemName: "stop.fill").font(.system(.footnote))
-                    Text("STOP + TRANSCRIBE")
+                    Text("Stop and Transcribe")
                 }
             }
-            .buttonStyle(BrutalButtonStyle(variant: .destructive))
+            .buttonStyle(GeistButtonStyle(variant: .destructive))
             .frame(maxWidth: 280)
         }
         .padding(.horizontal, 24)
@@ -501,11 +511,11 @@ struct HomeView: View {
 
     private var transcribingView: some View {
         VStack(spacing: 24) {
-            BrutalSectionLabel(number: "01", title: "Status")
+            GeistSectionLabel(number: "01", title: "Status")
             TranscribingDotsView()
             Text(transcribingStatusText)
-                .font(Brutal.body())
-                .foregroundColor(Brutal.muted)
+                .font(Geist.body())
+                .foregroundColor(Geist.muted)
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 24)
@@ -523,45 +533,45 @@ struct HomeView: View {
 
     private func resultView(_ result: String) -> some View {
         VStack(spacing: 24) {
-            BrutalSectionLabel(number: "01", title: "Status")
-            Text("DONE.")
-                .font(Brutal.display(52))
-                .foregroundColor(Brutal.text)
+            GeistSectionLabel(number: "01", title: "Status")
+            Text("Transcript Ready")
+                .font(Geist.heading(.title))
+                .foregroundColor(Geist.text)
                 .lineLimit(1)
                 .minimumScaleFactor(0.3)
 
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("TRANSCRIPT")
-                        .font(Brutal.label())
-                        .foregroundColor(Brutal.muted)
+                    Text("Transcript")
+                        .font(Geist.heading(.footnote))
+                        .foregroundColor(Geist.muted)
                     Spacer()
                     Button(action: {
                         UIPasteboard.general.string = result
                         persistentRecorder.lastTranscriptionResult = nil
                     }) {
-                        Text("COPY + CLEAR")
-                            .font(Brutal.label())
-                            .foregroundColor(Brutal.text)
+                        Text("Copy and Clear")
+                            .font(Geist.label())
+                            .foregroundColor(Geist.text)
                     }
                     .buttonStyle(.plain)
                 }
                 Text(result)
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.text)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.text)
                     .lineSpacing(4)
             }
             .padding(16)
-            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+            .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
 
             Button(action: { startRecording() }) {
                 HStack(spacing: 8) {
                     Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
                         .font(.system(.footnote))
-                    Text(usageTracker.isAtLimit ? "UNLOCK TO RECORD" : "RECORD AGAIN")
+                    Text(usageTracker.isAtLimit ? "Unlock to Record" : "Record Again")
                 }
             }
-            .buttonStyle(BrutalButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .secondary))
+            .buttonStyle(GeistButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .secondary))
             .frame(maxWidth: 280)
         }
         .padding(.horizontal, 24)
@@ -571,34 +581,34 @@ struct HomeView: View {
 
     private var watchRecordingInboxView: some View {
         VStack(spacing: 20) {
-            BrutalSectionLabel(number: "01", title: "Watch Queue")
+            GeistSectionLabel(number: "01", title: "Watch Queue")
             VStack(spacing: 8) {
-                Text("WATCH AUDIO.")
-                    .font(Brutal.display(46))
-                    .foregroundColor(Brutal.text)
+                Text("Watch Recordings")
+                    .font(Geist.heading(.title))
+                    .foregroundColor(Geist.text)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                 Text(watchInboxSubtitle)
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
                     .multilineTextAlignment(.center)
             }
 
             if let item = watchRecordingInboxItems.first {
                 VStack(spacing: 8) {
                     Text(item.createdAt, style: .relative)
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.muted)
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
                     if let duration = item.duration {
                         Text(formatDuration(duration))
-                            .font(Brutal.display(36))
-                            .foregroundColor(Brutal.text)
+                            .font(Geist.mono(size: 36, medium: true))
+                            .foregroundColor(Geist.text)
                             .monospacedDigit()
                     }
                 }
                 .padding(14)
                 .frame(maxWidth: 260)
-                .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
 
                 HStack(spacing: 12) {
                     Button(action: { processWatchRecordingQueue() }) {
@@ -608,14 +618,14 @@ struct HomeView: View {
                             Text(usageTracker.isAtLimit ? "UNLOCK" : watchRecordingProcessButtonTitle)
                         }
                     }
-                    .buttonStyle(BrutalButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .primary))
+                    .buttonStyle(GeistButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .primary))
 
                     Button(action: { discardWatchRecording(item) }) {
                         Image(systemName: "trash")
                             .font(.system(.callout, weight: .semibold))
-                            .foregroundColor(Brutal.text)
+                            .foregroundColor(Geist.text)
                             .frame(width: 52, height: 52)
-                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                            .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -636,7 +646,7 @@ struct HomeView: View {
     }
 
     private var watchRecordingProcessButtonTitle: String {
-        watchRecordingInboxItems.count > 1 ? "PROCESS ALL" : "PROCESS"
+        watchRecordingInboxItems.count > 1 ? "Process All" : "Process Recording"
     }
 
     // MARK: - Bottom Area
@@ -644,18 +654,15 @@ struct HomeView: View {
     private var bottomArea: some View {
         VStack(spacing: 0) {
             Button(action: { showHistory = true }) {
-                HStack(spacing: 5) {
-                    Text("↑")
-                    Text("HISTORY")
-                }
-                .font(Brutal.label())
-                .foregroundColor(Brutal.muted)
+                Label("View History", systemImage: "clock.arrow.circlepath")
+                .font(Geist.label())
+                .foregroundColor(Geist.muted)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
             }
             .buttonStyle(.plain)
 
-            BrutalDivider()
+            GeistDivider()
 
             if !persistentRecorder.isSegmentActive && !persistentRecorder.isTranscribing {
                 HStack(spacing: 12) {
@@ -664,28 +671,33 @@ struct HomeView: View {
                             Button(action: { stopPersistentListening() }) {
                                 HStack(spacing: 8) {
                                     Image(systemName: "stop.fill").font(.system(.footnote))
-                                    Text("STOP LISTENING")
+                                    Text("Stop Listening")
                                 }
                             }
-                            .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                            .buttonStyle(GeistButtonStyle(variant: .secondary))
                         } else {
                             Button(action: { startRecording() }) {
                                 HStack(spacing: 8) {
                                     Image(systemName: usageTracker.isAtLimit ? "lock.fill" : "mic.fill").font(.system(.footnote))
-                                    Text(usageTracker.isAtLimit ? "UNLOCK TO RECORD" : "START RECORDING")
+                                    Text(usageTracker.isAtLimit ? "Unlock to Record" : "Start Recording")
                                 }
                             }
-                            .buttonStyle(BrutalButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .primary))
+                            .buttonStyle(GeistButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .primary))
                         }
                     }
 
                     Button(action: { showAudioImporter = true }) {
                         Image(systemName: "waveform")
                             .font(.system(.callout, weight: .semibold))
-                            .foregroundColor(Brutal.text)
+                            .foregroundColor(Geist.text)
                             .frame(width: 52, height: 52)
-                            .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
-                            .contentShape(Rectangle())
+                            .background(Geist.Palette.background100)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous)
+                                    .stroke(Geist.border, lineWidth: 1)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
+                            .contentShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Import audio")
@@ -903,28 +915,28 @@ private struct FileExportToastView: View {
             HStack(spacing: 10) {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(.subheadline, weight: .semibold))
-                    .foregroundColor(Brutal.text)
+                    .foregroundColor(Geist.text)
 
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("SUCCESS")
-                        .font(Brutal.caption())
-                        .foregroundColor(Brutal.muted)
+                    Text("Export Ready")
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
                     Text(fileName)
-                        .font(Brutal.body())
-                        .foregroundColor(Brutal.text)
+                        .font(Geist.body())
+                        .foregroundColor(Geist.text)
                         .lineLimit(1)
                 }
 
                 Spacer(minLength: 8)
 
-                Text("OPEN")
-                    .font(Brutal.label())
-                    .foregroundColor(Brutal.text)
+                Text("Open File")
+                    .font(Geist.label())
+                    .foregroundColor(Geist.text)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 11)
-            .background(Brutal.surface2)
-            .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+            .background(Geist.surface2)
+            .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
@@ -943,7 +955,7 @@ private struct KeyboardLaunchOverlay: View {
 
     var body: some View {
         ZStack {
-            Brutal.bg.opacity(0.95).ignoresSafeArea()
+            Geist.bg.opacity(0.95).ignoresSafeArea()
             VStack(spacing: 32) {
                 Spacer()
                 phaseIcon
@@ -961,33 +973,33 @@ private struct KeyboardLaunchOverlay: View {
         case .starting:
             ZStack {
                 Rectangle()
-                    .fill(Brutal.surface)
+                    .fill(Geist.surface)
                     .frame(width: 80, height: 80)
-                    .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
+                    .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
                 ProgressView()
                     .scaleEffect(1.5)
-                    .tint(Brutal.text)
+                    .tint(Geist.text)
             }
         case .ready:
             Rectangle()
-                .fill(Brutal.surface)
+                .fill(Geist.surface)
                 .frame(width: 80, height: 80)
                 .overlay(
                     Text("✓")
-                        .font(Brutal.heading(.largeTitle))
-                        .foregroundColor(Brutal.text)
+                        .font(Geist.heading(.largeTitle))
+                        .foregroundColor(Geist.text)
                 )
-                .overlay(Rectangle().stroke(Brutal.borderHi, lineWidth: 1))
+                .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
         case .error:
             Rectangle()
-                .fill(Brutal.surface)
+                .fill(Geist.surface)
                 .frame(width: 80, height: 80)
                 .overlay(
                     Text("!")
-                        .font(Brutal.heading(.largeTitle))
-                        .foregroundColor(Brutal.error)
+                        .font(Geist.heading(.largeTitle))
+                        .foregroundColor(Geist.error)
                 )
-                .overlay(Rectangle().stroke(Brutal.error, lineWidth: 1))
+                .overlay(Rectangle().stroke(Geist.error, lineWidth: 1))
         }
     }
 
@@ -996,32 +1008,32 @@ private struct KeyboardLaunchOverlay: View {
         switch phase {
         case .starting:
             VStack(spacing: 10) {
-                Text("STARTING MIC")
-                    .font(Brutal.heading(.title2))
-                    .foregroundColor(Brutal.text)
+                Text("Starting Microphone…")
+                    .font(Geist.heading(.title2))
+                    .foregroundColor(Geist.text)
                 Text("Setting up always-on listening...")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
             }
         case .ready:
             VStack(spacing: 10) {
-                Text("READY.")
-                    .font(Brutal.heading(.title))
-                    .foregroundColor(Brutal.text)
+                Text("Microphone Ready")
+                    .font(Geist.heading(.title))
+                    .foregroundColor(Geist.text)
                 Text("Return to your app\nand tap Record on the keyboard.")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }
         case .error:
             VStack(spacing: 10) {
-                Text("MIC ERROR.")
-                    .font(Brutal.heading(.title))
-                    .foregroundColor(Brutal.error)
+                Text("Microphone Error")
+                    .font(Geist.heading(.title))
+                    .foregroundColor(Geist.error)
                 Text("Check microphone permissions\nin Settings.")
-                    .font(Brutal.body())
-                    .foregroundColor(Brutal.muted)
+                    .font(Geist.body())
+                    .foregroundColor(Geist.muted)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
             }

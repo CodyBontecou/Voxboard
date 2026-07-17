@@ -1,7 +1,7 @@
 import SwiftUI
 import VoxboardShared
 
-/// Full-screen paywall shown when the user has consumed their 15 free minutes.
+/// One-time purchase screen shown from usage limits and Settings.
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(UsageTracker.self) private var usageTracker
@@ -14,27 +14,33 @@ struct PaywallView: View {
     }
 
     var body: some View {
-        ZStack {
-            Brutal.bg.ignoresSafeArea()
-            BrutalGridBackground().ignoresSafeArea().allowsHitTesting(false)
-
-            VStack(spacing: 0) {
-                header
-                BrutalDivider()
-                ScrollView {
-                    VStack(spacing: 0) {
-                        usageSection
-                        BrutalDivider()
-                        unlockSection
-                        BrutalDivider()
-                        featuresSection
-                        BrutalDivider()
-                        restoreSection
-                    }
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Geist.Spacing.eight) {
+                    hero
+                    usageCard
+                    purchaseCard
+                    features
+                    restorePurchases
+                }
+                .padding(.horizontal, Geist.Spacing.four)
+                .padding(.vertical, Geist.Spacing.six)
+                .frame(maxWidth: 680)
+                .frame(maxWidth: .infinity)
+            }
+            .background(Geist.Palette.background200.ignoresSafeArea())
+            .navigationTitle("Vox.md Unlimited")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Close") { dismiss() }
+                        .font(Geist.label())
+                        .foregroundStyle(Geist.text)
                 }
             }
+            .toolbarBackground(Geist.Palette.background100, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
         }
-        .preferredColorScheme(.dark)
         .onAppear {
             OnboardingAnalyticsClient.shared.trackPaywallShown(
                 context: context,
@@ -44,6 +50,158 @@ struct PaywallView: View {
         .task { await storeManager.loadProducts() }
     }
 
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            GeistStatusBadge(label: statusBadgeLabel, isActive: usageTracker.hasUnlocked)
+
+            Text(usageTracker.hasUnlocked ? "Unlimited Is Unlocked" : "Transcribe Without Limits")
+                .font(Geist.heading(.largeTitle))
+                .tracking(-1.28)
+                .foregroundStyle(Geist.text)
+
+            Text("One purchase unlocks unlimited, private, on-device transcription across Vox.md.")
+                .font(Geist.body())
+                .foregroundStyle(Geist.muted)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var usageCard: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.four) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Free Usage")
+                    .font(Geist.heading(.headline))
+                    .foregroundStyle(Geist.text)
+                Spacer()
+                Text(String(format: "%.1f / 15 min", min(usageTracker.minutesUsed, 15)))
+                    .font(Geist.mono(.footnote, medium: true))
+                    .foregroundStyle(Geist.muted)
+            }
+
+            ProgressView(value: usageTracker.fractionUsed)
+                .progressViewStyle(.linear)
+                .tint(usageTracker.isAtLimit ? Geist.Palette.red800 : Geist.Palette.blue700)
+
+            Text(usageStatusMessage)
+                .font(Geist.caption())
+                .foregroundStyle(usageTracker.isAtLimit ? Geist.error : Geist.muted)
+        }
+        .geistCard(padding: Geist.Spacing.four)
+    }
+
+    private var purchaseCard: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.six) {
+            VStack(alignment: .leading, spacing: Geist.Spacing.two) {
+                Text("Lifetime Access")
+                    .font(Geist.heading(.headline))
+                    .foregroundStyle(Geist.text)
+                HStack(alignment: .lastTextBaseline, spacing: Geist.Spacing.two) {
+                    Text(storeManager.displayPrice)
+                        .font(Geist.heading(.largeTitle))
+                        .tracking(-1.28)
+                        .foregroundStyle(Geist.text)
+                    Text("one time")
+                        .font(Geist.body())
+                        .foregroundStyle(Geist.muted)
+                }
+                Text("No subscription or renewal.")
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.muted)
+            }
+
+            Button {
+                Task { await storeManager.purchase(context: context) }
+            } label: {
+                HStack(spacing: Geist.Spacing.two) {
+                    if storeManager.isPurchasing {
+                        ProgressView().tint(Geist.Palette.background100)
+                        Text("Purchasing…")
+                    } else {
+                        Image(systemName: "lock.open.fill")
+                        Text("Unlock Unlimited")
+                    }
+                }
+            }
+            .buttonStyle(GeistButtonStyle(variant: .primary))
+            .disabled(storeManager.isPurchasing || storeManager.product == nil || usageTracker.hasUnlocked)
+
+            if let error = storeManager.errorMessage {
+                Label(error, systemImage: "exclamationmark.triangle.fill")
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.error)
+            }
+        }
+        .geistCard()
+    }
+
+    private var features: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            Text("Included")
+                .font(Geist.heading(.headline))
+                .foregroundStyle(Geist.text)
+
+            VStack(spacing: 0) {
+                featureRow("Unlimited Transcription", detail: "No time caps", icon: "infinity")
+                GeistDivider()
+                featureRow("On-Device Processing", detail: "Voice data stays on your device", icon: "lock.shield")
+                GeistDivider()
+                featureRow("All Models", detail: "Use every supported local model", icon: "cpu")
+                GeistDivider()
+                featureRow("Keyboard Integration", detail: "Transcribe from other apps", icon: "keyboard")
+                GeistDivider()
+                featureRow("Lifetime Access", detail: "Pay once and keep it", icon: "checkmark.seal")
+            }
+            .background(Geist.Palette.background100)
+            .overlay(
+                RoundedRectangle(cornerRadius: Geist.Radius.medium, style: .continuous)
+                    .stroke(Geist.border, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.medium, style: .continuous))
+        }
+    }
+
+    private func featureRow(_ title: LocalizedStringKey, detail: LocalizedStringKey, icon: String) -> some View {
+        HStack(spacing: Geist.Spacing.three) {
+            Image(systemName: icon)
+                .foregroundStyle(Geist.Palette.blue900)
+                .frame(width: 24)
+            VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                Text(title)
+                    .font(Geist.label())
+                    .foregroundStyle(Geist.text)
+                Text(detail)
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.muted)
+            }
+            Spacer()
+        }
+        .padding(Geist.Spacing.four)
+    }
+
+    private var restorePurchases: some View {
+        VStack(spacing: Geist.Spacing.three) {
+            Button {
+                Task { await storeManager.restorePurchases(context: .restore) }
+            } label: {
+                HStack(spacing: Geist.Spacing.two) {
+                    if storeManager.isRestoring {
+                        ProgressView()
+                        Text("Restoring…")
+                    } else {
+                        Text("Restore Purchase")
+                    }
+                }
+            }
+            .buttonStyle(GeistButtonStyle(variant: .secondary))
+            .disabled(storeManager.isRestoring)
+
+            Text("Restore a previous purchase made with your Apple Account.")
+                .font(Geist.caption())
+                .foregroundStyle(Geist.muted)
+                .multilineTextAlignment(.center)
+        }
+    }
+
     private var statusBadgeLabel: LocalizedStringKey {
         if usageTracker.hasUnlocked { return "Unlimited" }
         return usageTracker.isAtLimit ? "Limit Reached" : "Free Tier"
@@ -51,237 +209,12 @@ struct PaywallView: View {
 
     private var usageStatusMessage: String {
         if usageTracker.hasUnlocked {
-            return String(localized: "Unlimited is already unlocked on this device.")
+            return String(localized: "Unlimited is unlocked on this device.")
         }
         if usageTracker.isAtLimit {
-            return String(localized: "You've used all your free transcription time.")
+            return String(localized: "Free transcription time is used. Unlock Unlimited to keep recording.")
         }
         let remaining = max(0, UsageTracker.freeMinutesLimit - usageTracker.minutesUsed)
-        return String(format: String(localized: "%.1f min free remaining."), remaining)
-    }
-
-    // MARK: - Header
-
-    private var header: some View {
-        HStack {
-            BrutalStatusBadge(label: statusBadgeLabel, isActive: !usageTracker.isAtLimit)
-            Spacer()
-            Text("VOX.MD")
-                .font(Brutal.label(.headline))
-                .foregroundColor(Brutal.text)
-            Spacer()
-            Button(action: { dismiss() }) {
-                Text("✕")
-                    .font(Brutal.label(.headline))
-                    .foregroundColor(Brutal.muted)
-                    .frame(width: 34, height: 34)
-                    .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 14)
-    }
-
-    // MARK: - Usage Section
-
-    private var usageSection: some View {
-        VStack(spacing: 20) {
-            HStack {
-                BrutalSectionLabel(number: "01", title: "Usage")
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 28)
-
-            // Big usage display
-            VStack(spacing: 8) {
-                Text("FREE TIER")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
-                HStack(alignment: .lastTextBaseline, spacing: 4) {
-                    Text(String(format: "%.1f", min(usageTracker.minutesUsed, 15.0)))
-                        .font(Brutal.display(52))
-                        .foregroundColor(Brutal.text)
-                        .monospacedDigit()
-                    Text("/ 15 MIN")
-                        .font(Brutal.label(.headline))
-                        .foregroundColor(Brutal.muted)
-                }
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-            }
-            .padding(.horizontal, 20)
-
-            // Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Rectangle()
-                        .fill(Brutal.surface)
-                        .frame(height: 4)
-                        .overlay(Rectangle().stroke(Brutal.border, lineWidth: 1))
-
-                    Rectangle()
-                        .fill(Brutal.text)
-                        .frame(width: geo.size.width * usageTracker.fractionUsed, height: 4)
-                }
-            }
-            .frame(height: 4)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 8)
-
-            Text(usageStatusMessage)
-                .font(Brutal.body())
-                .foregroundColor(usageTracker.isAtLimit ? Brutal.error : Brutal.muted)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 24)
-        }
-    }
-
-    // MARK: - Unlock Section
-
-    private var unlockSection: some View {
-        VStack(spacing: 0) {
-            HStack {
-                BrutalSectionLabel(number: "02", title: "Unlock")
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 28)
-            .padding(.bottom, 20)
-
-            // Price callout
-            VStack(spacing: 6) {
-                Text("ONE-TIME PURCHASE")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
-                HStack(alignment: .lastTextBaseline, spacing: 4) {
-                    Text(storeManager.displayPrice)
-                        .font(Brutal.display(48))
-                        .foregroundColor(Brutal.text)
-                    Text("forever")
-                        .font(Brutal.body())
-                        .foregroundColor(Brutal.muted)
-                }
-                Text("No subscription. No renewal. Pay once.")
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.muted)
-            }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
-
-            // Buy button
-            Button(action: {
-                Task { await storeManager.purchase(context: context) }
-            }) {
-                Group {
-                    if storeManager.isPurchasing {
-                        HStack(spacing: 10) {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                                .tint(Brutal.bg)
-                            Text("PURCHASING…")
-                        }
-                    } else {
-                        HStack(spacing: 8) {
-                            Image(systemName: "lock.open.fill").font(.system(.subheadline))
-                            Text("UNLOCK UNLIMITED — \(storeManager.displayPrice)")
-                        }
-                    }
-                }
-            }
-            .buttonStyle(BrutalButtonStyle(variant: .primary))
-            .disabled(storeManager.isPurchasing || storeManager.product == nil)
-            .padding(.horizontal, 20)
-
-            if let error = storeManager.errorMessage {
-                Text(error)
-                    .font(Brutal.caption())
-                    .foregroundColor(Brutal.error)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
-            }
-
-            Spacer(minLength: 24)
-        }
-    }
-
-    // MARK: - Features Section
-
-    private var featuresSection: some View {
-        VStack(spacing: 0) {
-            HStack {
-                BrutalSectionLabel(number: "03", title: "What you get")
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 28)
-            .padding(.bottom, 16)
-
-            let features: [(String, String)] = [
-                ("Unlimited transcription", "No time caps, ever"),
-                ("On-device processing",    "Voice data stays on phone"),
-                ("All models included",     "Tiny, Base, Small, and more"),
-                ("Keyboard integration",    "Works in any app"),
-                ("Lifetime access",         "Pay once, use forever"),
-            ]
-
-            ForEach(features, id: \.0) { title, detail in
-                HStack(spacing: 14) {
-                    Rectangle()
-                        .fill(Brutal.text)
-                        .frame(width: 4, height: 4)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(title.uppercased())
-                            .font(Brutal.label())
-                            .foregroundColor(Brutal.text)
-                        Text(detail)
-                            .font(Brutal.caption())
-                            .foregroundColor(Brutal.muted)
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                BrutalDivider()
-            }
-        }
-    }
-
-    // MARK: - Restore Section
-
-    private var restoreSection: some View {
-        VStack(spacing: 16) {
-            Button(action: {
-                Task { await storeManager.restorePurchases(context: .restore) }
-            }) {
-                Group {
-                    if storeManager.isRestoring {
-                        HStack(spacing: 10) {
-                            ProgressView()
-                                .scaleEffect(0.8)
-                                .tint(Brutal.text)
-                            Text("RESTORING…")
-                        }
-                    } else {
-                        Text("RESTORE PREVIOUS PURCHASE")
-                    }
-                }
-            }
-            .buttonStyle(BrutalButtonStyle(variant: .secondary))
-            .disabled(storeManager.isRestoring)
-            .padding(.horizontal, 20)
-
-            Text("Already purchased? Tap to restore your purchase. No charge will be made.")
-                .font(Brutal.caption())
-                .foregroundColor(Brutal.muted)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-
-            Spacer(minLength: 40)
-        }
-        .padding(.top, 24)
+        return String(format: String(localized: "%.1f min free remaining"), remaining)
     }
 }

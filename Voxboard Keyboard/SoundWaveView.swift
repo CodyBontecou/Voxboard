@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Compact waveform — white rectangular bars reacting to audio levels.
-/// Square-cornered, no fill colour — matches brutal aesthetic.
+/// Square-cornered, no fill colour — matches Geist design system.
 struct SoundWaveView: View {
     /// Audio levels 0.0–1.0, one per bar.
     let levels: [Float]

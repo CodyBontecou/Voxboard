@@ -16,7 +16,7 @@
 		3AA4E43629BFE12F579EB244 /* VoxboardWatchRecordWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F926D3AB92C2D7C92D46C11 /* VoxboardWatchRecordWidget.swift */; };
 		4194BC44272718BE147A0F85 /* Voxboard Watch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 0F9B6BE6CEFCD7819FE5AE0E /* Voxboard Watch.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		429202882094E3CB01FC0A93 /* VoxboardWatchWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA22FA2307DC310880D98478 /* VoxboardWatchWidgetBundle.swift */; };
-		4C3693BE5FAD3AE5C0A78C74 /* BrutalTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */; };
+		4C3693BE5FAD3AE5C0A78C74 /* GeistTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90F4D7E07966A9D53BE4311 /* GeistTheme.swift */; };
 		589961863954D6E337BBE873 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C812F78B09600FDC4CA /* SwiftUI.framework */; };
 		622B4C802F78B09600FDC4CA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */; };
 		622B4C822F78B09600FDC4CA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C812F78B09600FDC4CA /* SwiftUI.framework */; };
@@ -54,6 +54,11 @@
 		F88C80553313A5C2CF7A42D2 /* ggml-base.bin in Resources */ = {isa = PBXBuildFile; fileRef = ACD6D7FCBB7B20FF8F653162 /* ggml-base.bin */; };
 		FB3BB675A89471D862FE7343 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5DCFFC6C307F334D1C010608 /* VoxboardShared */; };
 		FFE3EC5B7FB2E36AFE75DDD9 /* WatchRecordIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF80EC2190458FB40F6EABF8 /* WatchRecordIntent.swift */; };
+		AA7100012FA10000AABB0001 /* Geist-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA7200012FA10000AABB0001 /* Geist-Regular.ttf */; };
+		AA7100022FA10000AABB0002 /* Geist-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA7200022FA10000AABB0002 /* Geist-Medium.ttf */; };
+		AA7100032FA10000AABB0003 /* Geist-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA7200032FA10000AABB0003 /* Geist-SemiBold.ttf */; };
+		AA7100042FA10000AABB0004 /* GeistMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA7200042FA10000AABB0004 /* GeistMono-Regular.ttf */; };
+		AA7100052FA10000AABB0005 /* GeistMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA7200052FA10000AABB0005 /* GeistMono-Medium.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -171,8 +176,13 @@
 		DC7E10646EA0B56748352D67 /* VoxboardMacApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoxboardMacApp.swift; path = "Voxboard Mac/VoxboardMacApp.swift"; sourceTree = "<group>"; };
 		E411D9457307404E47BB31B1 /* VoxboardWatch.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = VoxboardWatch.entitlements; sourceTree = "<group>"; };
 		E4C522195CC549F948AD39CA /* VoxboardWatchApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoxboardWatchApp.swift; sourceTree = "<group>"; };
-		F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = BrutalTheme.swift; path = Voxboard/BrutalTheme.swift; sourceTree = "<group>"; };
+		F90F4D7E07966A9D53BE4311 /* GeistTheme.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GeistTheme.swift; path = Voxboard/GeistTheme.swift; sourceTree = "<group>"; };
 		FA22FA2307DC310880D98478 /* VoxboardWatchWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoxboardWatchWidgetBundle.swift; sourceTree = "<group>"; };
+		AA7200012FA10000AABB0001 /* Geist-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Geist-Regular.ttf; path = Voxboard/Fonts/Geist-Regular.ttf; sourceTree = SOURCE_ROOT; };
+		AA7200022FA10000AABB0002 /* Geist-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Geist-Medium.ttf; path = Voxboard/Fonts/Geist-Medium.ttf; sourceTree = SOURCE_ROOT; };
+		AA7200032FA10000AABB0003 /* Geist-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Geist-SemiBold.ttf; path = Voxboard/Fonts/Geist-SemiBold.ttf; sourceTree = SOURCE_ROOT; };
+		AA7200042FA10000AABB0004 /* GeistMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = GeistMono-Regular.ttf; path = Voxboard/Fonts/GeistMono-Regular.ttf; sourceTree = SOURCE_ROOT; };
+		AA7200052FA10000AABB0005 /* GeistMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = GeistMono-Medium.ttf; path = Voxboard/Fonts/GeistMono-Medium.ttf; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -320,6 +330,11 @@
 				1926268D6D235EA2E6308151 /* VoxboardMac.entitlements */,
 				B42D87F76743327017AE80B3 /* Assets.xcassets */,
 				0E677AA769638A47ADF10537 /* MacCaptureDestinationLibraryView.swift */,
+				AA7200012FA10000AABB0001 /* Geist-Regular.ttf */,
+				AA7200022FA10000AABB0002 /* Geist-Medium.ttf */,
+				AA7200032FA10000AABB0003 /* Geist-SemiBold.ttf */,
+				AA7200042FA10000AABB0004 /* GeistMono-Regular.ttf */,
+				AA7200052FA10000AABB0005 /* GeistMono-Medium.ttf */,
 			);
 			name = "Voxboard Mac";
 			sourceTree = "<group>";
@@ -356,7 +371,7 @@
 				622B4C7E2F78B09600FDC4CA /* Frameworks */,
 				62C9517B2F392ADB001F79DF /* Products */,
 				339B9880237B6C686475B64C /* Voxboard Mac */,
-				F90F4D7E07966A9D53BE4311 /* BrutalTheme.swift */,
+				F90F4D7E07966A9D53BE4311 /* GeistTheme.swift */,
 				AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */,
 				ACD6D7FCBB7B20FF8F653162 /* ggml-base.bin */,
 				E7FA8828C3CD57B5295A6C02 /* Voxboard Watch Shared */,
@@ -729,6 +744,11 @@
 			files = (
 				F88C80553313A5C2CF7A42D2 /* ggml-base.bin in Resources */,
 				154ED7783EDFF91EC1D07921 /* Assets.xcassets in Resources */,
+				AA7100012FA10000AABB0001 /* Geist-Regular.ttf in Resources */,
+				AA7100022FA10000AABB0002 /* Geist-Medium.ttf in Resources */,
+				AA7100032FA10000AABB0003 /* Geist-SemiBold.ttf in Resources */,
+				AA7100042FA10000AABB0004 /* GeistMono-Regular.ttf in Resources */,
+				AA7100052FA10000AABB0005 /* GeistMono-Medium.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -775,7 +795,7 @@
 				F714E206EA01CB59CAD495BC /* MacRootView.swift in Sources */,
 				9B15EF5409110CBDF04C40C5 /* MacRecorder.swift in Sources */,
 				643BAC287FB3B9EB19C8A1D8 /* MacStoreManager.swift in Sources */,
-				4C3693BE5FAD3AE5C0A78C74 /* BrutalTheme.swift in Sources */,
+				4C3693BE5FAD3AE5C0A78C74 /* GeistTheme.swift in Sources */,
 				AB2600022F901000AABB0002 /* FoundationModelsBackend.swift in Sources */,
 				BE87FA933F43142EEB43DF34 /* MacCaptureDestinationLibraryView.swift in Sources */,
 			);
@@ -1221,6 +1241,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Mac/VoxboardMac.entitlements";
+				INFOPLIST_KEY_ATSApplicationFontsPath = ".";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 28;
@@ -1292,6 +1313,7 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Mac/VoxboardMac.entitlements";
+				INFOPLIST_KEY_ATSApplicationFontsPath = ".";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 28;

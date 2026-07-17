@@ -2,76 +2,47 @@ import SwiftUI
 
 // MARK: - Watch Design Tokens
 
-private enum WatchBrutal {
+private enum WatchGeist {
+    // Exact Geist dark-theme values from docs/geist/design.dark.md.
     static let bg = Color.black
-    static let surface = Color(white: 0.067)
-    static let surface2 = Color(white: 0.1)
-    static let border = Color(white: 0.165)
-    static let borderHi = Color(white: 0.36)
-    static let text = Color.white
-    static let muted = Color(white: 0.72)
-    static let faint = Color(white: 0.58)
-    static let error = Color(red: 1.0, green: 0.271, blue: 0.227)
+    static let surface = Color(red: 0.102, green: 0.102, blue: 0.102) // gray-100
+    static let surface2 = Color(red: 0.122, green: 0.122, blue: 0.122) // gray-200
+    static let border = Color.white.opacity(0.141) // gray-alpha-400
+    static let borderHi = Color.white.opacity(0.239) // gray-alpha-500
+    static let text = Color(red: 0.929, green: 0.929, blue: 0.929) // gray-1000
+    static let muted = Color(red: 0.627, green: 0.627, blue: 0.627) // gray-900
+    static let faint = Color(red: 0.561, green: 0.561, blue: 0.561) // gray-700
+    static let error = Color(red: 1.0, green: 0.337, blue: 0.373) // red-900
 
     static func display(_ size: CGFloat) -> Font {
-        .system(size: size, weight: .heavy, design: .monospaced)
+        .system(size: size, weight: .semibold, design: .default)
     }
 
     static func label(_ style: Font.TextStyle = .caption) -> Font {
-        .system(style, design: .monospaced, weight: .semibold)
+        .system(style, design: .default, weight: .medium)
     }
 
     static func body(_ style: Font.TextStyle = .footnote) -> Font {
-        .system(style, design: .monospaced, weight: .regular)
+        .system(style, design: .default, weight: .regular)
     }
 
     static func caption(_ style: Font.TextStyle = .caption2) -> Font {
-        .system(style, design: .monospaced, weight: .regular)
+        .system(style, design: .default, weight: .regular)
     }
 }
 
-private struct WatchBrutalGridBackground: View {
+private struct WatchGeistGridBackground: View {
     var spacing: CGFloat = 22
     var lineOpacity: Double = 0.16
 
-    var body: some View {
-        Canvas { context, size in
-            let shading = GraphicsContext.Shading.color(Color.white.opacity(lineOpacity))
+    var body: some View { Color.clear }
 
-            var x: CGFloat = 0
-            while x <= size.width {
-                let path = Path { path in
-                    path.move(to: CGPoint(x: x, y: 0))
-                    path.addLine(to: CGPoint(x: x, y: size.height))
-                }
-                context.stroke(path, with: shading, lineWidth: 0.5)
-                x += spacing
-            }
-
-            var y: CGFloat = 0
-            while y <= size.height {
-                let path = Path { path in
-                    path.move(to: CGPoint(x: 0, y: y))
-                    path.addLine(to: CGPoint(x: size.width, y: y))
-                }
-                context.stroke(path, with: shading, lineWidth: 0.5)
-                y += spacing
-            }
-        }
-        .mask(
-            LinearGradient(
-                colors: [.black.opacity(0.92), .black.opacity(0.35), .clear],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        )
-    }
 }
 
-private struct WatchBrutalDivider: View {
+private struct WatchGeistDivider: View {
     var body: some View {
         Rectangle()
-            .fill(WatchBrutal.border)
+            .fill(WatchGeist.border)
             .frame(height: 1)
     }
 }
@@ -83,17 +54,17 @@ private struct WatchStatusBadge: View {
     var body: some View {
         HStack(spacing: 5) {
             Rectangle()
-                .fill(isActive ? WatchBrutal.text : WatchBrutal.faint)
+                .fill(isActive ? WatchGeist.text : WatchGeist.faint)
                 .frame(width: 5, height: 5)
-            Text(label.uppercased())
-                .font(WatchBrutal.caption())
-                .foregroundStyle(isActive ? WatchBrutal.text : WatchBrutal.faint)
+            Text(label)
+                .font(WatchGeist.caption())
+                .foregroundStyle(isActive ? WatchGeist.text : WatchGeist.faint)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
-        .overlay(Rectangle().stroke(isActive ? WatchBrutal.borderHi : WatchBrutal.border, lineWidth: 1))
+        .overlay(Rectangle().stroke(isActive ? WatchGeist.borderHi : WatchGeist.border, lineWidth: 1))
     }
 }
 
@@ -104,14 +75,14 @@ private struct WatchSectionLabel: View {
     var body: some View {
         HStack(spacing: 6) {
             Text(number)
-                .font(WatchBrutal.caption())
-                .foregroundStyle(WatchBrutal.faint)
+                .font(WatchGeist.caption())
+                .foregroundStyle(WatchGeist.faint)
             Rectangle()
-                .fill(WatchBrutal.border)
+                .fill(WatchGeist.border)
                 .frame(width: 13, height: 1)
-            Text(title.uppercased())
-                .font(WatchBrutal.caption())
-                .foregroundStyle(WatchBrutal.faint)
+            Text(title)
+                .font(WatchGeist.caption())
+                .foregroundStyle(WatchGeist.faint)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
@@ -125,20 +96,20 @@ private struct WatchMetricTile: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(label.uppercased())
-                .font(WatchBrutal.caption())
-                .foregroundStyle(WatchBrutal.faint)
+            Text(label)
+                .font(WatchGeist.caption())
+                .foregroundStyle(WatchGeist.faint)
                 .lineLimit(1)
-            Text(value.uppercased())
-                .font(WatchBrutal.label(.caption2))
-                .foregroundStyle(WatchBrutal.text)
+            Text(value)
+                .font(WatchGeist.label(.caption2))
+                .foregroundStyle(WatchGeist.text)
                 .lineLimit(1)
                 .minimumScaleFactor(0.55)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(8)
-        .background(WatchBrutal.surface.opacity(0.72))
-        .overlay(Rectangle().stroke(WatchBrutal.border, lineWidth: 1))
+        .background(WatchGeist.surface.opacity(0.72))
+        .overlay(Rectangle().stroke(WatchGeist.border, lineWidth: 1))
     }
 }
 
@@ -154,7 +125,7 @@ private struct WatchWaveformView: View {
                     let phase = isActive ? t * 4.5 + Double(index) * 0.62 : Double(index) * 0.45
                     let height = (sin(phase) + 1) / 2 * 18 + 4
                     Rectangle()
-                        .fill(WatchBrutal.text.opacity(isActive ? 0.82 : 0.38))
+                        .fill(WatchGeist.text.opacity(isActive ? 0.82 : 0.38))
                         .frame(width: 3, height: height)
                 }
             }
@@ -164,7 +135,7 @@ private struct WatchWaveformView: View {
     }
 }
 
-private struct WatchBrutalButtonStyle: ButtonStyle {
+private struct WatchGeistButtonStyle: ButtonStyle {
     enum Variant {
         case primary
         case secondary
@@ -176,35 +147,38 @@ private struct WatchBrutalButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(WatchBrutal.label(.footnote))
+            .font(WatchGeist.label(.footnote))
             .foregroundStyle(foregroundColor(isPressed: configuration.isPressed))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 11)
             .background(backgroundColor(isPressed: configuration.isPressed))
-            .overlay(Rectangle().stroke(borderColor(isPressed: configuration.isPressed), lineWidth: 1))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    .stroke(borderColor(isPressed: configuration.isPressed), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             .opacity(isEnabled ? (configuration.isPressed ? 0.82 : 1.0) : 0.45)
-            .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
     }
 
     private func foregroundColor(isPressed: Bool) -> Color {
         switch variant {
         case .primary:
-            return WatchBrutal.bg
+            return WatchGeist.bg
         case .secondary:
-            return isPressed ? WatchBrutal.muted : WatchBrutal.text
+            return isPressed ? WatchGeist.muted : WatchGeist.text
         case .destructive:
-            return WatchBrutal.text
+            return WatchGeist.text
         }
     }
 
     private func backgroundColor(isPressed: Bool) -> Color {
         switch variant {
         case .primary:
-            return isPressed ? Color(white: 0.82) : WatchBrutal.text
+            return isPressed ? Color(white: 0.82) : WatchGeist.text
         case .secondary:
-            return isPressed ? WatchBrutal.surface2 : WatchBrutal.surface.opacity(0.58)
+            return isPressed ? WatchGeist.surface2 : WatchGeist.surface.opacity(0.58)
         case .destructive:
-            return isPressed ? WatchBrutal.error.opacity(0.74) : WatchBrutal.error
+            return isPressed ? WatchGeist.error.opacity(0.74) : WatchGeist.error
         }
     }
 
@@ -213,7 +187,7 @@ private struct WatchBrutalButtonStyle: ButtonStyle {
         case .primary, .destructive:
             return .clear
         case .secondary:
-            return isPressed ? WatchBrutal.borderHi : WatchBrutal.border
+            return isPressed ? WatchGeist.borderHi : WatchGeist.border
         }
     }
 }
@@ -225,15 +199,15 @@ struct WatchRecorderView: View {
 
     var body: some View {
         ZStack {
-            WatchBrutal.bg.ignoresSafeArea()
-            WatchBrutalGridBackground()
+            WatchGeist.bg.ignoresSafeArea()
+            WatchGeistGridBackground()
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
 
             ScrollView(.vertical) {
                 VStack(spacing: 0) {
                     topBar
-                    WatchBrutalDivider()
+                    WatchGeistDivider()
 
                     VStack(spacing: 8) {
                         mainStatusPanel
@@ -273,13 +247,13 @@ struct WatchRecorderView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .stroke(WatchBrutal.borderHi.opacity(0.45), lineWidth: 0.5)
+                        .stroke(WatchGeist.borderHi.opacity(0.45), lineWidth: 0.5)
                 )
                 .accessibilityLabel("Vox.md")
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
-        .background(WatchBrutal.bg.opacity(0.9))
+        .background(WatchGeist.bg.opacity(0.9))
     }
 
     private var mainStatusPanel: some View {
@@ -298,8 +272,8 @@ struct WatchRecorderView: View {
         HStack(spacing: 10) {
             ZStack {
                 Rectangle()
-                    .fill(WatchBrutal.surface.opacity(0.78))
-                    .overlay(Rectangle().stroke(WatchBrutal.border, lineWidth: 1))
+                    .fill(WatchGeist.surface.opacity(0.78))
+                    .overlay(Rectangle().stroke(WatchGeist.border, lineWidth: 1))
 
                 Image(systemName: symbolName)
                     .font(.system(size: 23, weight: .semibold))
@@ -310,7 +284,7 @@ struct WatchRecorderView: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(phaseWord)
-                    .font(WatchBrutal.display(compactDisplaySize))
+                    .font(WatchGeist.display(compactDisplaySize))
                     .foregroundStyle(phaseWordColor)
                     .lineLimit(1)
                     .minimumScaleFactor(0.45)
@@ -319,21 +293,21 @@ struct WatchRecorderView: View {
                 if localRecorder.isRecording,
                    let startedAt = localRecorder.startedAt {
                     Text(startedAt, style: .timer)
-                        .font(WatchBrutal.display(25))
-                        .foregroundStyle(WatchBrutal.text)
+                        .font(WatchGeist.display(25))
+                        .foregroundStyle(WatchGeist.text)
                         .monospacedDigit()
                         .lineLimit(1)
                         .minimumScaleFactor(0.62)
 
                     Text("Tap again to stop.")
-                        .font(WatchBrutal.caption())
-                        .foregroundStyle(WatchBrutal.muted)
+                        .font(WatchGeist.caption())
+                        .foregroundStyle(WatchGeist.muted)
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                 } else {
                     Text(mainSubtitle)
-                        .font(WatchBrutal.caption())
-                        .foregroundStyle(WatchBrutal.muted)
+                        .font(WatchGeist.caption())
+                        .foregroundStyle(WatchGeist.muted)
                         .lineLimit(2)
                         .minimumScaleFactor(0.7)
                 }
@@ -341,8 +315,8 @@ struct WatchRecorderView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(9)
-        .background(WatchBrutal.bg.opacity(0.58))
-        .overlay(Rectangle().stroke(WatchBrutal.border, lineWidth: 1))
+        .background(WatchGeist.bg.opacity(0.58))
+        .overlay(Rectangle().stroke(WatchGeist.border, lineWidth: 1))
         .contentShape(Rectangle())
         .opacity(isSending ? 0.7 : 1.0)
     }
@@ -353,12 +327,12 @@ struct WatchRecorderView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: isSending ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
-                Text(localRecorder.syncTitle.uppercased())
+                Text(localRecorder.syncTitle)
                     .lineLimit(1)
                     .minimumScaleFactor(0.58)
             }
         }
-        .buttonStyle(WatchBrutalButtonStyle(variant: .secondary))
+        .buttonStyle(WatchGeistButtonStyle(variant: .secondary))
         .disabled(isSending || localRecorder.isRecording)
         .accessibilityHint(localRecorder.queuedCount > 0 ? "Sends saved Watch recordings to your iPhone." : "Refreshes the connection with your iPhone.")
     }
@@ -377,8 +351,8 @@ struct WatchRecorderView: View {
         VStack(alignment: .leading, spacing: 7) {
             WatchSectionLabel(number: "01", title: "Details")
             Text(localRecorder.subtitle)
-                .font(WatchBrutal.caption())
-                .foregroundStyle(WatchBrutal.muted)
+                .font(WatchGeist.caption())
+                .foregroundStyle(WatchGeist.muted)
                 .lineLimit(3)
                 .minimumScaleFactor(0.75)
 
@@ -389,8 +363,8 @@ struct WatchRecorderView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(10)
-        .background(WatchBrutal.surface.opacity(0.52))
-        .overlay(Rectangle().stroke(WatchBrutal.border, lineWidth: 1))
+        .background(WatchGeist.surface.opacity(0.52))
+        .overlay(Rectangle().stroke(WatchGeist.border, lineWidth: 1))
     }
 
     private var metricsRow: some View {
@@ -406,21 +380,21 @@ struct WatchRecorderView: View {
         if shouldShowQueueSummary {
             VStack(alignment: .leading, spacing: 7) {
                 WatchSectionLabel(number: "02", title: "Queue")
-                Text(localRecorder.queueSummary.uppercased())
-                    .font(WatchBrutal.caption())
-                    .foregroundStyle(WatchBrutal.text)
+                Text(localRecorder.queueSummary)
+                    .font(WatchGeist.caption())
+                    .foregroundStyle(WatchGeist.text)
                     .lineLimit(2)
                     .minimumScaleFactor(0.75)
                 Text("Saved locally. Sync when your iPhone is nearby.")
-                    .font(WatchBrutal.caption())
-                    .foregroundStyle(WatchBrutal.muted)
+                    .font(WatchGeist.caption())
+                    .foregroundStyle(WatchGeist.muted)
                     .lineLimit(2)
                     .minimumScaleFactor(0.75)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(10)
-            .background(WatchBrutal.surface.opacity(0.52))
-            .overlay(Rectangle().stroke(WatchBrutal.border, lineWidth: 1))
+            .background(WatchGeist.surface.opacity(0.52))
+            .overlay(Rectangle().stroke(WatchGeist.border, lineWidth: 1))
         }
     }
 
@@ -521,9 +495,9 @@ struct WatchRecorderView: View {
     private var phaseWordColor: Color {
         switch localRecorder.phase {
         case .error:
-            return WatchBrutal.error
+            return WatchGeist.error
         default:
-            return WatchBrutal.text
+            return WatchGeist.text
         }
     }
 
@@ -545,11 +519,11 @@ struct WatchRecorderView: View {
     private var symbolColor: Color {
         switch localRecorder.phase {
         case .error:
-            return WatchBrutal.error
+            return WatchGeist.error
         case .idle:
-            return localRecorder.queuedCount > 0 ? WatchBrutal.text : WatchBrutal.muted
+            return localRecorder.queuedCount > 0 ? WatchGeist.text : WatchGeist.muted
         default:
-            return WatchBrutal.text
+            return WatchGeist.text
         }
     }
 

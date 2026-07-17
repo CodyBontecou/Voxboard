@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy — Vox.md</title>
-  <meta name="description" content="Vox.md privacy policy: audio, transcripts, keystrokes, and dictated text stay on your device; Full Access is not required for the keyboard.">
+  <meta name="description" content="How Vox.md handles local capture drafts, Markdown destinations, attachments, keyboard input, and on-device voice transcription.">
   <link rel="canonical" href="https://voxboard.isolated.tech/privacy.html">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Privacy Policy — Vox.md">
-  <meta property="og:description" content="How Vox.md handles private on-device voice-to-text, keyboard access, microphone audio, local storage, and onboarding analytics.">
+  <meta property="og:description" content="Privacy details for quick capture, local Markdown files, attachments, system extensions, and on-device voice transcription.">
   <meta property="og:url" content="https://voxboard.isolated.tech/privacy.html">
   <meta name="twitter:card" content="summary">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -16,71 +16,13 @@
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
   <link rel="icon" type="image/png" sizes="192x192" href="favicon-192x192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #000000; --surface: #111111; --border: #2a2a2a; --border-hi: #444444;
-      --text: #FFFFFF; --muted: #888888; --faint: #444444;
-      --font: 'JetBrains Mono', monospace; --track: 0.15em; --track-xl: 0.25em;
-    }
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    a { color: inherit; text-decoration: none; }
-    html { scroll-behavior: smooth; overflow-x: hidden; }
-    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-    ::selection { background: var(--text); color: var(--bg); }
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-
-    /* ─── NAV ─── */
-    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: var(--bg); border-bottom: 1px solid var(--border); }
-    .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; max-width: 1200px; margin: 0 auto; }
-    .logo { font-size: 13px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase; display: flex; align-items: center; gap: 12px; }
-    .logo-mark { width: 28px; height: 28px; border: 1px solid var(--border-hi); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
-    .nav-links { display: flex; gap: 24px; list-style: none; align-items: center; }
-    .nav-links a { color: var(--muted); font-size: 11px; letter-spacing: var(--track); text-transform: uppercase; transition: color 0.15s; }
-    .nav-links a:hover { color: var(--text); }
-
-    /* ─── HERO ─── */
-    .page-hero { padding: 120px 0 64px; border-bottom: 1px solid var(--border); }
-    .page-eyebrow { font-size: 10px; letter-spacing: var(--track-xl); text-transform: uppercase; color: var(--faint); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
-    .page-eyebrow::before { content: ''; width: 40px; height: 1px; background: var(--border-hi); }
-    .page-title { font-size: clamp(36px, 7vw, 80px); font-weight: 800; line-height: 0.95; letter-spacing: -0.02em; text-transform: uppercase; margin-bottom: 16px; }
-    .page-meta { font-size: 11px; letter-spacing: var(--track); text-transform: uppercase; color: var(--faint); }
-
-    /* ─── CONTENT ─── */
-    .legal-content { max-width: 760px; padding: 80px 0 120px; }
-    .legal-content h2 {
-      font-size: 14px; font-weight: 700; letter-spacing: var(--track); text-transform: uppercase;
-      color: var(--text); margin-top: 56px; margin-bottom: 20px;
-      padding-top: 24px; border-top: 1px solid var(--border);
-    }
-    .legal-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
-    .legal-content p { font-size: 13px; color: var(--muted); line-height: 1.9; margin-bottom: 16px; }
-    .legal-content ul { list-style: none; margin-bottom: 16px; }
-    .legal-content li { font-size: 13px; color: var(--muted); line-height: 1.9; padding-left: 20px; position: relative; margin-bottom: 6px; }
-    .legal-content li::before { content: '+'; position: absolute; left: 0; color: var(--faint); font-weight: 700; }
-    .legal-content strong { color: var(--text); font-weight: 600; }
-    .legal-content a { color: var(--text); border-bottom: 1px solid var(--border); transition: border-color 0.15s; }
-    .legal-content a:hover { border-color: var(--text); }
-    .callout { margin: 24px 0; padding: 20px 24px; background: var(--surface); border: 1px solid var(--border); border-left: 2px solid var(--text); }
-    .callout p { color: var(--text); margin-bottom: 0; }
-
-    /* ─── FOOTER ─── */
-    footer { padding: 48px 0; border-top: 1px solid var(--border); }
-    .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-    .footer-links { display: flex; gap: 32px; list-style: none; }
-    .footer-links a { color: var(--faint); font-size: 10px; letter-spacing: var(--track); text-transform: uppercase; transition: color 0.15s; }
-    .footer-links a:hover { color: var(--text); }
-    .footer-copy { font-size: 10px; color: var(--faint); letter-spacing: var(--track); }
-    @media (max-width: 640px) { .footer-inner { flex-direction: column; text-align: center; } }
-  </style>
+  <link rel="stylesheet" href="geist.css">
 </head>
 <body>
 
-<nav>
+<nav aria-label="Primary navigation">
   <div class="nav-inner">
-    <a href="index.html" class="logo">
+    <a href="index.html" class="logo" aria-label="Vox.md home">
       <div class="logo-mark">V</div>
       <span>Vox.md</span>
     </a>
@@ -89,14 +31,16 @@
       <li><a href="blog/">Blog</a></li>
       <li><a href="terms.html">Terms</a></li>
     </ul>
+    <a href="https://apps.apple.com/us/app/voxboard/id6758967337" class="nav-cta" target="_blank" rel="noopener">Download Vox.md</a>
   </div>
 </nav>
 
+<main>
 <section class="page-hero">
   <div class="container">
     <div class="page-eyebrow">Legal · Privacy</div>
-    <h1 class="page-title">Privacy<br>Policy</h1>
-    <p class="page-meta">Effective: February 9, 2026 · Last updated: May 30, 2026</p>
+    <h1 class="page-title">Privacy Policy</h1>
+    <p class="page-meta">Effective: February 9, 2026 · Last updated: July 17, 2026</p>
   </div>
 </section>
 
@@ -105,7 +49,7 @@
 
     <h2>Overview</h2>
     <div class="callout">
-      <p>Vox.md is built on a simple principle: your voice, transcript, and capture content are processed locally and are never sent to Vox.md servers. Production builds keep onboarding analytics disabled by default.</p>
+      <p>Vox.md keeps capture drafts, attachments, transcripts, and note routes on your device. It sends completed files only to destinations you choose and never sends capture content to Vox.md servers. Production builds keep onboarding analytics disabled by default.</p>
     </div>
     <p>This Privacy Policy describes how Vox.md ("we," "our," or "the app") handles information when you use our iOS and macOS applications and their extensions. Audio, transcripts, keystrokes, capture drafts, attachments, exported file contents, and user-entered text are handled locally. Files are written only to locations you select; your chosen storage provider may sync those files under its own terms.</p>
 
@@ -185,6 +129,7 @@
 
   </div>
 </div>
+</main>
 
 <footer>
   <div class="container">
@@ -195,7 +140,7 @@
         <li><a href="privacy.html">Privacy</a></li>
         <li><a href="terms.html">Terms</a></li>
       </ul>
-      <div class="footer-copy">© 2026 Vox.md · On-device AI · No cloud.</div>
+      <div class="footer-copy">© 2026 Vox.md · Local capture · User-controlled files.</div>
     </div>
   </div>
 </footer>

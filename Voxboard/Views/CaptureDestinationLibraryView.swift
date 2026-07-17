@@ -96,7 +96,10 @@ struct CaptureDestinationLibraryView: View {
             }
         }
         .navigationTitle("Destinations")
-        .preferredColorScheme(.dark)
+        .font(Geist.body())
+        .tint(Geist.Palette.gray1000)
+        .scrollContentBackground(.hidden)
+        .background(Geist.Palette.background200)
         .sheet(isPresented: $isAddingDestination) {
             NavigationStack {
                 CaptureDestinationEditorView(existing: nil, templates: viewModel.entryTemplates) { destination in
@@ -306,7 +309,7 @@ private struct CaptureDestinationEditorView: View {
     var body: some View {
         Form {
             Section("Identity") {
-                TextField("Destination Name", text: $name)
+                TextField("Destination Name (Optional)", text: $name)
                 Button {
                     isChoosingFolder = true
                 } label: {
@@ -528,8 +531,8 @@ private struct CaptureDestinationEditorView: View {
     private func save() async {
         do {
             let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !trimmedName.isEmpty else { throw DestinationEditorError.nameRequired }
             guard !rootBookmark.isEmpty else { throw DestinationEditorError.folderRequired }
+            let destinationName = trimmedName.isEmpty ? rootName : trimmedName
             let trimmedPath = pathTemplate.trimmingCharacters(in: .whitespacesAndNewlines)
             try CapturePathValidation.validateRelativePath(trimmedPath)
             if !attachmentsFolderName.isEmpty {
@@ -568,7 +571,7 @@ private struct CaptureDestinationEditorView: View {
             isSaving = true
             try await onSave(CaptureDestination(
                 id: existing?.id ?? UUID(),
-                name: trimmedName,
+                name: destinationName,
                 rootBookmark: rootBookmark,
                 rootName: rootName,
                 noteTarget: target,
@@ -702,7 +705,6 @@ private struct CaptureEntryTemplateEditorView: View {
 }
 
 private enum DestinationEditorError: Error, LocalizedError {
-    case nameRequired
     case folderRequired
     case headingRequired
     case existingNoteMissing(String)
@@ -711,7 +713,6 @@ private enum DestinationEditorError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .nameRequired: return "Enter a destination name."
         case .folderRequired: return "Choose a vault or folder."
         case .headingRequired: return "Enter the Markdown heading to capture beneath."
         case .existingNoteMissing(let path): return "The existing note ‘\(path)’ was not found in the selected vault or folder."
