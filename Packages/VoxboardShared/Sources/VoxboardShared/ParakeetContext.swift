@@ -81,7 +81,7 @@ public final class ParakeetContext: @unchecked Sendable {
             let result = try await manager.transcribe(audioURL, source: .microphone)
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
-            log.log("[ParakeetContext] ✅ Done in \(String(format: "%.2f", elapsed))s — \"\(text.prefix(60))\"")
+            log.log("[ParakeetContext] ✅ Done in \(String(format: "%.2f", elapsed))s — \(text.count) chars")
             return text.isEmpty ? nil : text
         } catch {
             log.log("[ParakeetContext] ❌ Transcription failed: \(error)")

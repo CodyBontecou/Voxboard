@@ -18,7 +18,13 @@
 		<string>audio</string>
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Vox.md needs microphone access to transcribe your voice into text.</string>
+	<string>Vox.md uses the microphone when you choose to transcribe speech or attach a voice recording to a local Markdown note.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Vox.md uses your location only when you choose to insert a map link into a local Markdown draft.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Vox.md uses the camera only when you choose to capture a photo or scan into your local Markdown notes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Vox.md reads only the photos you choose for a local Markdown capture.</string>
 	<key>ONBOARDING_ANALYTICS_ENDPOINT_URL</key>
 	<string>https://voxboard-onboarding-analytics.costream.workers.dev</string>
 	<key>NSSupportsLiveActivities</key>

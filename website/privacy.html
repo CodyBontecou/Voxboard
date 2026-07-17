@@ -105,24 +105,25 @@
 
     <h2>Overview</h2>
     <div class="callout">
-      <p>Vox.md is built on a simple principle: your voice and transcript data never leave your device. We collect only minimal, privacy-safe onboarding analytics so we can understand setup friction without seeing what you say or type.</p>
+      <p>Vox.md is built on a simple principle: your voice, transcript, and capture content are processed locally and are never sent to Vox.md servers. Production builds keep onboarding analytics disabled by default.</p>
     </div>
-    <p>This Privacy Policy describes how Vox.md ("we," "our," or "the app") handles information when you use our iOS application and keyboard extension. We are committed to transparency: audio, transcripts, keystrokes, exported file contents, and user-entered text stay on your device.</p>
+    <p>This Privacy Policy describes how Vox.md ("we," "our," or "the app") handles information when you use our iOS and macOS applications and their extensions. Audio, transcripts, keystrokes, capture drafts, attachments, exported file contents, and user-entered text are handled locally. Files are written only to locations you select; your chosen storage provider may sync those files under its own terms.</p>
 
     <h2>Information We Do Not Collect</h2>
-    <p>Vox.md does not collect, transmit, or have access to any of the following:</p>
+    <p>Vox.md does not collect or transmit any of the following to Vox.md or third-party servers:</p>
     <ul>
       <li>Audio recordings or voice data</li>
       <li>Transcribed text or transcription history</li>
       <li>Keystrokes, typed text, or keyboard input</li>
       <li>Personal information such as your name, email, or phone number</li>
-      <li>Precise location data, contacts, photos, or other unrelated on-device data</li>
+      <li>Location data, contacts, or unrelated on-device data sent to Vox.md servers</li>
+      <li>Photos, scans, sketches, audio, and files you explicitly select for a local capture</li>
       <li>File names, folder paths, template text, exported note contents, or model file paths</li>
       <li>Advertising identifiers, raw IP address storage, or third-party tracking identifiers</li>
     </ul>
 
     <h2>Privacy-Safe Onboarding Analytics</h2>
-    <p>Vox.md sends a small set of first-party onboarding events to help us understand where setup succeeds or fails. These events are intentionally coarse and are not used for advertising or cross-app tracking.</p>
+    <p>Production builds do not send onboarding analytics by default. Development builds can explicitly enable a small first-party event set for setup testing. These events are intentionally coarse and are not used for advertising or cross-app tracking.</p>
     <p>Onboarding analytics may include:</p>
     <ul>
       <li>An anonymous Vox.md install ID used only to count funnel progress</li>
@@ -133,8 +134,8 @@
     <p>These analytics never include audio, transcripts, dictated text, keystrokes, file/folder paths, template text, model file paths, names, email addresses, raw dates, raw IP addresses, or device names.</p>
 
     <h2>On-Device Processing</h2>
-    <p>All voice-to-text transcription is performed entirely on your device using the <strong>whisper.cpp</strong> engine — a local implementation of OpenAI's Whisper model optimised for Apple Silicon. Audio captured by the microphone is processed in real-time by the on-device model and is never transmitted over a network connection.</p>
-    <p>Transcription results are stored locally on your device within the app's sandboxed container and shared App Group. This data is accessible only to the Vox.md app and its keyboard extension. No external service, server, or third party can access this data.</p>
+    <p>All voice-to-text transcription is performed entirely on your device using <strong>whisper.cpp</strong> or a local Parakeet model optimized for Apple Silicon. Audio captured by the microphone is processed by the selected on-device model and is never transmitted over a network connection.</p>
+    <p>Transcription results, capture drafts, and retry requests are stored locally within the app's sandboxed container and shared App Group. This data is accessible only to signed Vox.md app components such as the app, keyboard, widgets, and share extension. No Vox.md service or server can access it.</p>
 
     <h2>Keyboard Extension</h2>
     <p>Vox.md includes a custom keyboard extension that enables voice-to-text input across all apps on your device. Apple requires us to disclose the following about keyboard extensions:</p>
@@ -148,21 +149,26 @@
     <p>Vox.md requests microphone access to capture audio for voice transcription. Microphone audio is:</p>
     <ul>
       <li>Processed locally by the whisper.cpp engine on your device</li>
-      <li>Never recorded to persistent storage as raw audio files</li>
+      <li>Written temporarily only when local transcription requires a file</li>
       <li>Never transmitted to any server, API, or third-party service</li>
-      <li>Discarded immediately after transcription is complete</li>
+      <li>Removed after transcription unless you explicitly configure a Vox preset to retain audio or insert a voice recording into a capture draft</li>
     </ul>
+
+    <h2>Location Usage</h2>
+    <p>Vox.md requests location access only after you tap the location command in the Capture editor. It performs a one-time lookup and can reverse-geocode a short place label, then inserts the coordinates into a Google Maps link in your local Markdown draft. Vox.md does not monitor location in the background, retain separate location history, include coordinates in analytics or logs, or send location to a Vox.md server. The coordinates become part of the note you chose to create, and Apple and your selected file-sync provider may process data under their own terms.</p>
 
     <h2>Whisper Models</h2>
     <p>Vox.md ships with a bundled Base model and allows you to download additional Whisper models of varying sizes. These model files are downloaded from open-source distribution sources and stored locally on your device. No account or personal information is required to download models.</p>
 
     <h2>Third-Party Services</h2>
-    <p>Vox.md does not integrate with third-party analytics SDKs, advertising networks, crash-reporting SDKs, or cross-app tracking services. Privacy-safe onboarding events are sent directly to a first-party Cloudflare Worker endpoint operated for Vox.md and stored in Cloudflare D1 with the strict allowlist described above.</p>
+    <p>Vox.md does not integrate with third-party analytics SDKs, advertising networks, crash-reporting SDKs, or cross-app tracking services. If first-party onboarding events are explicitly enabled in a development build, they are sent directly to a Vox.md Cloudflare Worker with the strict allowlist described above.</p>
 
     <h2>Data Storage &amp; Deletion</h2>
-    <p>All data — including transcription history, downloaded models, and settings — is stored locally on your device. You can delete this data at any time by:</p>
+    <p>All app data — including transcription history, capture drafts, staged attachments, downloaded models, templates, and settings — is stored locally on your device or in a file destination you explicitly choose.</p>
+    <p>The local Recent Captures list contains delivery metadata only: outcome, source, destination identifier and display name, relative note path, attachment count, timestamps, and a coarse failure category. It never duplicates note text, links, coordinates, bookmarks, absolute paths, or attachment filenames. Pending and failed captures retain only the content needed for local recovery. After successful delivery, the recoverable request is immediately replaced by an identifier-and-timestamp-only tombstone; upgrades also sanitize legacy completed requests.</p>
+    <p>You can delete this data at any time by:</p>
     <ul>
-      <li>Deleting individual transcriptions from the history view within the app</li>
+      <li>Deleting individual transcriptions or clearing Recent Capture metadata from the history views within the app</li>
       <li>Removing downloaded models from Settings</li>
       <li>Uninstalling the Vox.md app, which removes all associated data from your device</li>
     </ul>

@@ -8,6 +8,7 @@ let package = Package(
         .macOS(.v14),
     ],
     products: [
+        .library(name: "VoxboardCaptureCore", targets: ["VoxboardCaptureCore"]),
         .library(name: "VoxboardShared", targets: ["VoxboardShared"]),
     ],
     dependencies: [
@@ -16,8 +17,12 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "VoxboardCaptureCore"
+        ),
+        .target(
             name: "VoxboardShared",
             dependencies: [
+                "VoxboardCaptureCore",
                 .target(name: "whisper", condition: .when(platforms: [.iOS, .macOS])),
                 .product(name: "FluidAudio", package: "FluidAudio", condition: .when(platforms: [.iOS, .macOS])),
                 .product(name: "ExportKit", package: "ExportKit"),
@@ -32,6 +37,10 @@ let package = Package(
         .binaryTarget(
             name: "whisper",
             path: "../../whisper.xcframework"
+        ),
+        .testTarget(
+            name: "VoxboardCaptureCoreTests",
+            dependencies: ["VoxboardCaptureCore"]
         ),
         .testTarget(
             name: "VoxboardSharedTests",

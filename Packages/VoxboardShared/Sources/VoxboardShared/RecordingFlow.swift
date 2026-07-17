@@ -17,6 +17,9 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
     public var customPostProcessingInstruction: String
     public var audioSaveMode: RecordingFlowAudioSaveMode
     public var attachmentsFolderName: String
+    /// Optional precise Markdown route shared with typed, share-sheet, and widget captures.
+    /// Nil preserves the legacy per-Vox export settings.
+    public var captureDestinationID: UUID?
 
     public init(
         id: String,
@@ -30,7 +33,8 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
         postProcessingMode: RecordingFlowPostProcessingMode = .clean,
         customPostProcessingInstruction: String = "",
         audioSaveMode: RecordingFlowAudioSaveMode = .off,
-        attachmentsFolderName: String = "attachments"
+        attachmentsFolderName: String = "attachments",
+        captureDestinationID: UUID? = nil
     ) {
         self.id = id
         self.name = name
@@ -44,6 +48,7 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
         self.customPostProcessingInstruction = customPostProcessingInstruction
         self.audioSaveMode = audioSaveMode
         self.attachmentsFolderName = attachmentsFolderName
+        self.captureDestinationID = captureDestinationID
     }
 
     public var displayName: String {
@@ -419,6 +424,23 @@ public enum RecordingFlowStore {
     public static func saveFlows(_ flows: [RecordingFlow], defaults: UserDefaults? = AppConstants.sharedDefaults) {
         guard let defaults, let data = try? JSONEncoder().encode(flows) else { return }
         defaults.set(data, forKey: flowsKey)
+    }
+
+    /// Removes stale precise routes when a capture destination is deleted.
+    /// Legacy per-flow export settings remain untouched as a safe fallback.
+    @discardableResult
+    public static func clearCaptureDestination(
+        _ destinationID: UUID,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) -> Int {
+        var flows = loadFlows(defaults: defaults)
+        var cleared = 0
+        for index in flows.indices where flows[index].captureDestinationID == destinationID {
+            flows[index].captureDestinationID = nil
+            cleared += 1
+        }
+        if cleared > 0 { saveFlows(flows, defaults: defaults) }
+        return cleared
     }
 
     public static func selectedFlowId(defaults: UserDefaults? = AppConstants.sharedDefaults) -> String {

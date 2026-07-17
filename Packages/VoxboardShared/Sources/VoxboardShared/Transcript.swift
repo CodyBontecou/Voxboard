@@ -1,7 +1,7 @@
 import Foundation
 
 /// A single voice transcription record, persisted as JSON in the App Group container.
-public struct Transcript: Identifiable, Codable, Sendable {
+public struct Transcript: Identifiable, Codable, Equatable, Sendable {
     public let id: UUID
     public let text: String
     public let date: Date
@@ -58,6 +58,29 @@ public struct Transcript: Identifiable, Codable, Sendable {
         self.tags = tags
         self.category = category
         self.cleanedText = cleanedText
+    }
+
+    /// Returns a copy with user-edited text and metadata while preserving the
+    /// recording identity, date, duration, model, and language.
+    public func withEdits(
+        text: String,
+        title: String?,
+        tags: [String]?,
+        category: String?,
+        cleanedText: String?
+    ) -> Transcript {
+        Transcript(
+            id: id,
+            text: text,
+            date: date,
+            duration: duration,
+            modelUsed: modelUsed,
+            language: language,
+            title: title,
+            tags: tags,
+            category: category,
+            cleanedText: cleanedText
+        )
     }
 
     /// Returns a copy with enrichment fields replaced. Identity and raw content

@@ -146,7 +146,13 @@ struct HomeView: View {
         }
         .onChange(of: persistentRecorder.lastFileExportEvent) { _, event in
             guard let event else { return }
-            fileExportToast = FileExportToast(url: event.url)
+            switch event.result {
+            case .success(let url):
+                fileExportToast = FileExportToast(url: url)
+            case .failure(let message):
+                fileExportToast = nil
+                persistentRecorder.lastError = "Your transcript was saved locally, but file export failed. \(message)"
+            }
         }
         .onChange(of: persistentRecorder.isTranscribing) { _, isTranscribing in
             guard !isTranscribing else { return }

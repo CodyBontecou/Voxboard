@@ -286,33 +286,62 @@ public struct TranscriptDestinationWriter {
         if configuration.format == .json {
             return TranscriptJSONAppendMergeStrategy()
         }
+        let isMarkdownDocument = configuration.format == .md
+            || (configuration.format == .yaml && configuration.yamlUsesMarkdownExtension)
         return TranscriptSeparatorAppendMergeStrategy(
             separator: configuration.appendSeparator,
-            stripLeadingMarkdownFrontmatterFromNewContent: configuration.format == .md && !configuration.mdObsidianEnabled
+            mergeMarkdownDocument: isMarkdownDocument,
+            insertHorizontalRule: configuration.format == .md && !configuration.mdObsidianEnabled
         )
     }
 }
 
 public struct TranscriptSeparatorAppendMergeStrategy: ExportMergeStrategy, Sendable {
     public var separator: String
-    public var stripLeadingMarkdownFrontmatterFromNewContent: Bool
+    public var mergeMarkdownDocument: Bool
+    public var insertHorizontalRule: Bool
 
     public init(
         separator: String,
-        stripLeadingMarkdownFrontmatterFromNewContent: Bool = false
+        mergeMarkdownDocument: Bool = false,
+        insertHorizontalRule: Bool = false
     ) {
         self.separator = separator
-        self.stripLeadingMarkdownFrontmatterFromNewContent = stripLeadingMarkdownFrontmatterFromNewContent
+        self.mergeMarkdownDocument = mergeMarkdownDocument
+        self.insertHorizontalRule = insertHorizontalRule
     }
 
     public func merge(existing: String, new: String, file: PlannedExportFile) throws -> String {
-        let contentToAppend = stripLeadingMarkdownFrontmatterFromNewContent
-            ? TranscriptFileExporter.exportKitRemovingLeadingMarkdownFrontmatter(from: new)
-            : new
-        guard !contentToAppend.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        guard !new.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return existing
         }
-        return existing + separator + contentToAppend
+        if mergeMarkdownDocument {
+            let recordID = String(file.id.prefix(36))
+            let requestID = UUID(uuidString: recordID) ?? stableUUID(for: file.id)
+            return try MarkdownDocumentEditor().applying(
+                MarkdownCaptureMutation(
+                    requestID: requestID,
+                    entry: new,
+                    placement: .append,
+                    entryPrefix: insertHorizontalRule ? "---\n\n" : ""
+                ),
+                to: existing
+            )
+        }
+        return existing + separator + new
+    }
+
+    private func stableUUID(for value: String) -> UUID {
+        var bytes = [UInt8](repeating: 0, count: 16)
+        for (index, byte) in value.utf8.enumerated() {
+            bytes[index % 16] = bytes[index % 16] &+ byte &+ UInt8(truncatingIfNeeded: index)
+        }
+        return UUID(uuid: (
+            bytes[0], bytes[1], bytes[2], bytes[3],
+            bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[8], bytes[9], bytes[10], bytes[11],
+            bytes[12], bytes[13], bytes[14], bytes[15]
+        ))
     }
 }
 

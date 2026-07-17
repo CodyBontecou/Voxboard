@@ -12,6 +12,8 @@ final class MacRecorder {
     var lastTranscriptionResult: String?
     var lastError: String?
     var lastExportURL: URL?
+    var failedCaptureCount = 0
+    var isRetryingCaptures = false
     var needsUnlock = false
 
     private let recorder = AudioRecorder()
@@ -32,6 +34,28 @@ final class MacRecorder {
         self.transcriptStore = transcriptStore
         self.usageTracker = usageTracker
         self.transcriptEnricher = transcriptEnricher
+    }
+
+    func processPendingCaptureInbox(retryFailed: Bool = false) async {
+        guard let captureRootURL = AppConstants.captureDirectoryURL else { return }
+        isRetryingCaptures = true
+        defer { isRetryingCaptures = false }
+        let result = await CaptureInboxDeliveryService.drain(
+            captureRootURL: captureRootURL,
+            retryFailed: retryFailed
+        )
+        if let receipt = result.receipts.last {
+            lastExportURL = receipt.noteURL
+        }
+        let inbox = CaptureInbox(rootDirectoryURL: captureRootURL)
+        failedCaptureCount = (try? await inbox.requestIDs(in: .failed).count) ?? result.failedRequestIDs.count
+        if let setupError = result.setupError {
+            lastError = "Capture retry is unavailable: \(setupError)"
+        } else if failedCaptureCount > 0 {
+            lastError = "\(failedCaptureCount) capture\(failedCaptureCount == 1 ? "" : "s") still need a destination or Files permission."
+        } else if retryFailed, !result.receipts.isEmpty {
+            lastError = nil
+        }
     }
 
     func startRecording(modelManager: ModelManager, flowId: String) {
@@ -298,8 +322,12 @@ final class MacRecorder {
         let recorderForExport = self
 
         Task.detached(priority: .utility) { [recorderForExport] in
+            // Keep the only retained recording when precise audio staging
+            // fails. Remove it only after delivery or an exact audio-bearing
+            // inbox request becomes durable.
+            var canRemoveRetainedAudio = flowForExport.captureDestinationID == nil
             defer {
-                if let retainedAudioURL {
+                if canRemoveRetainedAudio, let retainedAudioURL {
                     try? FileManager.default.removeItem(at: retainedAudioURL)
                 }
             }
@@ -310,6 +338,32 @@ final class MacRecorder {
 
             let latest = await MainActor.run {
                 store.transcripts.first(where: { $0.id == savedId }) ?? initialTranscript
+            }
+
+            if let captureDestinationID = flowForExport.captureDestinationID {
+                do {
+                    let receipt = try await ConfiguredTranscriptCaptureDestinationExporter.export(
+                        transcript: latest,
+                        flow: flowForExport,
+                        destinationID: captureDestinationID,
+                        audioSourceURL: retainedAudioURL
+                    )
+                    canRemoveRetainedAudio = true
+                    await MainActor.run {
+                        recorderForExport.lastExportURL = receipt.noteURL
+                    }
+                } catch {
+                    if let configuredError = error as? ConfiguredTranscriptCaptureError,
+                       case .queuedForRetry = configuredError {
+                        canRemoveRetainedAudio = true
+                    }
+                    KeyboardDebugLog.shared.log("[MacRecorder] Precise capture routing failed: \(error)")
+                    await MainActor.run {
+                        recorderForExport.lastError = "Your transcript was saved locally. \(error.localizedDescription)"
+                        recorderForExport.lastExportURL = nil
+                    }
+                }
+                return
             }
 
             var folderOverride: URL?
@@ -351,12 +405,27 @@ final class MacRecorder {
                 }
             }
 
-            let exportURL = TranscriptFileExporter.exportIfEnabled(
-                latest,
-                folderURLOverride: folderOverride,
-                autoOrganizeSubfolder: autoOrganizeSubfolder,
-                flow: flowForExport
-            )
+            let exportURL: URL?
+            do {
+                switch try TranscriptFileExporter.exportConfigured(
+                    latest,
+                    folderURLOverride: folderOverride,
+                    autoOrganizeSubfolder: autoOrganizeSubfolder,
+                    flow: flowForExport
+                ) {
+                case .disabled:
+                    exportURL = nil
+                case .exported(let url):
+                    exportURL = url
+                }
+            } catch {
+                KeyboardDebugLog.shared.log("[MacRecorder] File export failed: \(error)")
+                await MainActor.run {
+                    recorderForExport.lastError = "Your transcript was saved locally, but file export failed. \(error.localizedDescription)"
+                    recorderForExport.lastExportURL = nil
+                }
+                return
+            }
 
             if let exportURL, let retainedAudioURL {
                 let noteFolderScopeURL = folderOverride ?? TranscriptFileExporter.resolveExportFolderURL(flow: flowForExport)
@@ -378,6 +447,9 @@ final class MacRecorder {
                     }
                 } catch {
                     KeyboardDebugLog.shared.log("[MacRecorder] Audio export failed: \(error)")
+                    await MainActor.run {
+                        recorderForExport.lastError = "The note was saved, but its audio attachment failed. \(error.localizedDescription)"
+                    }
                 }
             }
 
@@ -390,6 +462,7 @@ final class MacRecorder {
     }
 
     private func prepareFlowForFileExportIfNeeded(_ flow: RecordingFlow) -> RecordingFlow {
+        guard flow.captureDestinationID == nil else { return flow }
         guard flow.exportSettings.usesCustomExportSettings else {
             prepareGlobalExportFolderIfNeeded()
             return flow

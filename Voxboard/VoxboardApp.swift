@@ -9,6 +9,8 @@ struct VoxboardApp: App {
     @State private var persistentRecorder: PersistentRecorder
     @State private var usageTracker = UsageTracker()
     @State private var storeManager: StoreManager
+    @State private var quickCaptureViewModel = QuickCaptureViewModel()
+    @State private var selectedTab: AppTab = .capture
 
     /// Set to true when the app is opened via the keyboard's "Open" button.
     /// HomeView reads this to show the loading overlay.
@@ -67,6 +69,8 @@ struct VoxboardApp: App {
         WindowGroup {
             RootView(
                 persistentRecorder: persistentRecorder,
+                quickCaptureViewModel: quickCaptureViewModel,
+                selectedTab: $selectedTab,
                 pendingKeyboardLaunch: $pendingKeyboardLaunch,
                 pendingWidgetRecord: $pendingWidgetRecord
             )
@@ -78,6 +82,8 @@ struct VoxboardApp: App {
             .onAppear {
                 WatchRecordingController.shared.configure(recorder: persistentRecorder, usageTracker: usageTracker)
                 consumePendingWidgetRecordIfNeeded()
+                consumePendingQuickCaptureOpenIfNeeded()
+                Task { await quickCaptureViewModel.processPendingInbox() }
 
                 modelManager.copyBundledModelIfNeeded()
                 transcriptionServer.start()
@@ -101,6 +107,8 @@ struct VoxboardApp: App {
                 usageTracker.reload()
 
                 consumePendingWidgetRecordIfNeeded()
+                consumePendingQuickCaptureOpenIfNeeded()
+                Task { await quickCaptureViewModel.processPendingInbox() }
                 ReviewPromptManager.shared.recordAppUsageDay()
                 ReviewPromptManager.shared.requestPendingPromptIfPossible()
 
@@ -124,6 +132,23 @@ struct VoxboardApp: App {
         }
     }
 
+    private func consumePendingQuickCaptureOpenIfNeeded() {
+        let key = "pendingOpenQuickCapture"
+        guard AppConstants.sharedDefaults?.bool(forKey: key) == true else { return }
+        AppConstants.sharedDefaults?.set(false, forKey: key)
+        if let rawSource = AppConstants.sharedDefaults?.string(forKey: "pendingQuickCaptureSource"),
+           let source = CaptureSource(rawValue: rawSource) {
+            AppConstants.sharedDefaults?.removeObject(forKey: "pendingQuickCaptureSource")
+            quickCaptureViewModel.requestCaptureSource(source)
+        }
+        if let rawInput = AppConstants.sharedDefaults?.string(forKey: "pendingQuickCaptureInput"),
+           let input = CaptureRequestedInput(rawValue: rawInput) {
+            AppConstants.sharedDefaults?.removeObject(forKey: "pendingQuickCaptureInput")
+            quickCaptureViewModel.requestedInput = input
+        }
+        selectedTab = .capture
+    }
+
     // MARK: - Onboarding Analytics
 
     private func trackInitialOnboardingStartIfNeeded() {
@@ -141,7 +166,9 @@ struct VoxboardApp: App {
 
     private func handleURL(_ url: URL) {
         let log = KeyboardDebugLog.shared
-        log.log("[App] onOpenURL: \(url.absoluteString)")
+        // Never persist query values: capture deep links may contain private
+        // note text or URLs. Host-level diagnostics are sufficient.
+        log.log("[App] onOpenURL host=\(url.host ?? "nil")")
 
         guard url.scheme == AppConstants.urlScheme else {
             log.log("[App] ❌ Wrong scheme: \(url.scheme ?? "nil")")
@@ -149,6 +176,18 @@ struct VoxboardApp: App {
         }
 
         switch url.host {
+        case "capture", "capture-request":
+            do {
+                let action = try CaptureDeepLinkParser().parse(url)
+                log.log("[App] Quick capture request — opening capture tab")
+                selectedTab = .capture
+                Task { await quickCaptureViewModel.handleDeepLink(action) }
+            } catch {
+                log.log("[App] ❌ Invalid capture link: \(error)")
+                selectedTab = .capture
+                quickCaptureViewModel.errorMessage = error.localizedDescription
+            }
+
         case "listen":
             // Keyboard prompted user to open the app to start listening
             log.log("[App] Listen request — triggering keyboard launch flow")

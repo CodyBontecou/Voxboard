@@ -23,6 +23,29 @@ final class RecordingFlowTests: XCTestCase {
         XCTAssertTrue(flow.usesAIEnrichment)
     }
 
+    func test_clearCaptureDestinationRemovesDeletedRouteFromEveryFlow() throws {
+        let suiteName = "test.flow.clear-route.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let deletedID = UUID()
+        let retainedID = UUID()
+        var deletedRoute = RecordingFlowStore.defaultFlow
+        deletedRoute.captureDestinationID = deletedID
+        var retainedRoute = RecordingFlowStore.makeCustomFlow()
+        retainedRoute.captureDestinationID = retainedID
+        RecordingFlowStore.saveFlows([deletedRoute, retainedRoute], defaults: defaults)
+
+        let cleared = RecordingFlowStore.clearCaptureDestination(
+            deletedID,
+            defaults: defaults
+        )
+        let flows = RecordingFlowStore.loadFlows(defaults: defaults)
+
+        XCTAssertEqual(cleared, 1)
+        XCTAssertNil(flows.first { $0.id == deletedRoute.id }?.captureDestinationID)
+        XCTAssertEqual(flows.first { $0.id == retainedRoute.id }?.captureDestinationID, retainedID)
+    }
+
     func test_exportSettingsDecodeMissingAudioEmbedFieldsWithSafeDefaults() throws {
         let settings = try JSONDecoder().decode(RecordingFlowExportSettings.self, from: Data("{}".utf8))
 
@@ -220,6 +243,51 @@ final class RecordingFlowTests: XCTestCase {
         XCTAssertTrue(content.contains("mood: \"strange\""))
         XCTAssertTrue(content.contains("tags: [\"dream\"]"))
         XCTAssertTrue(content.contains("I was flying over a city"))
+    }
+
+    func test_legacyRecordingFlowFixture_decodesWithoutCaptureSchema() throws {
+        let fixture = """
+        {
+          "id": "custom-legacy-fixture",
+          "name": "Legacy Fixture",
+          "symbolName": "waveform",
+          "isEnabled": true,
+          "isBuiltIn": false,
+          "kind": "custom",
+          "exportSettings": {
+            "usesCustomExportSettings": true,
+            "exportEnabled": true,
+            "format": "md",
+            "mode": "append",
+            "folderName": "Notes",
+            "audioFolderName": "",
+            "newFileNameTemplate": "vox-{timestamp}",
+            "appendFileName": "Inbox",
+            "markdownTemplateEnabled": false,
+            "markdownTemplateName": "",
+            "mdObsidianEnabled": true,
+            "yamlUsesMarkdownExtension": false,
+            "yamlProperties": ["text"],
+            "embedAudioInMarkdown": false,
+            "audioEmbedPlacement": "bottom"
+          },
+          "staticFrontmatter": {"type":"voice-note"},
+          "postProcessingMode": "clean",
+          "customPostProcessingInstruction": "",
+          "audioSaveMode": "off",
+          "attachmentsFolderName": "attachments"
+        }
+        """.data(using: .utf8)!
+
+        let flow = try JSONDecoder().decode(RecordingFlow.self, from: fixture)
+        let encodedObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(flow)) as? [String: Any]
+        )
+
+        XCTAssertEqual(flow.id, "custom-legacy-fixture")
+        XCTAssertEqual(flow.exportSettings.mode, .append)
+        XCTAssertNil(encodedObject["captureDestinationID"])
+        XCTAssertNil(encodedObject["captureSchema"])
     }
 
     #if canImport(AVFoundation)

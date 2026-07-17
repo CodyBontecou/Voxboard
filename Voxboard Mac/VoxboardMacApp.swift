@@ -65,6 +65,7 @@ struct VoxboardMacApp: App {
                     transcriptStore.reload()
                     usageTracker.reload()
                     configureGlobalHotKey()
+                    Task { await recorder.processPendingCaptureInbox() }
                 }
                 .onChange(of: visibilityModeRaw) { _, _ in
                     visibilityMode.apply()

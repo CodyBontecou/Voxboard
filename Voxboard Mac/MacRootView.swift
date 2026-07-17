@@ -195,9 +195,18 @@ private struct MacHomeView: View {
         } else if let error = recorder.lastError, !recorder.isRecording, !recorder.isTranscribing {
             VStack(spacing: 20) {
                 statusBlock(number: "01", title: "Status", headline: "ERROR.", detail: error, color: Brutal.error)
-                Button("DISMISS") { recorder.lastError = nil }
-                    .buttonStyle(BrutalButtonStyle(variant: .secondary))
-                    .frame(maxWidth: 220)
+                HStack(spacing: 12) {
+                    if recorder.failedCaptureCount > 0 {
+                        Button(recorder.isRetryingCaptures ? "RETRYING…" : "RETRY CAPTURES") {
+                            Task { await recorder.processPendingCaptureInbox(retryFailed: true) }
+                        }
+                        .buttonStyle(BrutalButtonStyle(variant: .primary))
+                        .disabled(recorder.isRetryingCaptures)
+                    }
+                    Button("DISMISS") { recorder.lastError = nil }
+                        .buttonStyle(BrutalButtonStyle(variant: .secondary))
+                }
+                .frame(maxWidth: 440)
             }
         } else if recorder.isRecording {
             VStack(spacing: 24) {
@@ -577,6 +586,9 @@ private struct MacFlowEditor: View {
     let onDelete: () -> Void
     @State private var frontmatterText: String
     @State private var isIconPickerPresented = false
+    @State private var captureDestinations: [CaptureDestination] = []
+    @State private var captureDestinationLoadError: String?
+    @State private var isManagingCaptureDestinations = false
 
     init(flow: Binding<RecordingFlow>, onDelete: @escaping () -> Void) {
         self._flow = flow
@@ -626,7 +638,38 @@ private struct MacFlowEditor: View {
                     .foregroundStyle(.secondary)
             }
 
-            Section("File Export") {
+            Section("Unified Capture Route") {
+                Picker("Markdown Route", selection: $flow.captureDestinationID) {
+                    Text("Legacy Vox Export").tag(Optional<UUID>.none)
+                    ForEach(captureDestinations) { destination in
+                        Text(destination.name).tag(Optional(destination.id))
+                    }
+                }
+                if let destinationID = flow.captureDestinationID,
+                   let destination = captureDestinations.first(where: { $0.id == destinationID }) {
+                    Text("\(destination.rootName) · \(captureDestinationSummary(destination))")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else if flow.captureDestinationID != nil {
+                    Text("This destination is missing. Choose another route or use Legacy Vox Export.")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+                if let captureDestinationLoadError {
+                    Text(captureDestinationLoadError)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+                Button("Manage Capture Routes…") {
+                    isManagingCaptureDestinations = true
+                }
+                Text("Unified routes add rolling notes, prepend, heading insertion, conflict-safe writes, and durable retries on this Mac and iOS.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            if flow.captureDestinationID == nil {
+                Section("File Export") {
                 Toggle("Save Notes to Files", isOn: $flow.exportSettings.exportEnabled)
                     .onChange(of: flow.exportSettings.exportEnabled) { _, _ in markPerFlow() }
                 if flow.exportSettings.exportEnabled {
@@ -655,6 +698,7 @@ private struct MacFlowEditor: View {
                         }
                     }
                 }
+                }
             }
 
             Section("Frontmatter") {
@@ -671,10 +715,17 @@ private struct MacFlowEditor: View {
                     }
                 }
                 if flow.audioSaveMode == .attachmentsFolder {
-                    Button { chooseFolder(.audioFolder) } label: {
-                        settingRow("Audio Export Directory", value: flow.exportSettings.audioFolderName, image: "folder")
+                    if flow.captureDestinationID != nil {
+                        TextField("Attachments Folder", text: $flow.attachmentsFolderName)
+                        Text("Relative to the unified Markdown destination. Leave blank to use its default attachment folder.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Button { chooseFolder(.audioFolder) } label: {
+                            settingRow("Audio Export Directory", value: flow.exportSettings.audioFolderName, image: "folder")
+                        }
+                        TextField("Attachments Folder", text: $flow.attachmentsFolderName)
                     }
-                    TextField("Attachments Folder", text: $flow.attachmentsFolderName)
                 }
                 if flow.audioSaveMode != .off {
                     Toggle("Embed Audio in Markdown", isOn: $flow.exportSettings.embedAudioInMarkdown)
@@ -708,12 +759,49 @@ private struct MacFlowEditor: View {
                 .frame(minWidth: 540, minHeight: 620)
                 .preferredColorScheme(.dark)
         }
+        .sheet(isPresented: $isManagingCaptureDestinations, onDismiss: {
+            Task { await loadCaptureDestinations() }
+        }) {
+            MacCaptureDestinationLibraryView()
+                .frame(minWidth: 760, minHeight: 620)
+                .preferredColorScheme(.dark)
+        }
+        .task { await loadCaptureDestinations() }
         .onAppear { flow.exportSettings.usesCustomExportSettings = true }
         .onDisappear { flow.staticFrontmatter = Self.parseFrontmatter(frontmatterText) }
     }
 
     private enum BookmarkKind {
         case exportFolder, audioFolder, markdownTemplate
+    }
+
+    private func loadCaptureDestinations() async {
+        guard let url = AppConstants.captureLibraryURL else {
+            captureDestinationLoadError = "Shared capture storage is unavailable."
+            return
+        }
+        do {
+            captureDestinations = try await CaptureLibraryStore(fileURL: url).load().destinations
+            captureDestinationLoadError = nil
+        } catch {
+            captureDestinationLoadError = error.localizedDescription
+        }
+    }
+
+    private func captureDestinationSummary(_ destination: CaptureDestination) -> String {
+        let target: String
+        switch destination.noteTarget {
+        case .newNote(let path): target = path
+        case .rollingNote(let path, let period): target = "\(period.rawValue.capitalized): \(path)"
+        case .existingNote(let path): target = path
+        }
+        let placement: String
+        switch destination.placement {
+        case .append: placement = "append"
+        case .prepend: placement = "prepend"
+        case .beneathHeading(let heading, _): placement = "under \(heading.title)"
+        }
+        return "\(target) · \(placement)"
     }
 
     private func settingRow(_ title: String, value: String, image: String) -> some View {
@@ -727,6 +815,7 @@ private struct MacFlowEditor: View {
     }
 
     private var markdownAudioEmbedAvailable: Bool {
+        if flow.captureDestinationID != nil { return true }
         guard flow.exportSettings.exportEnabled else { return false }
         if flow.exportSettings.markdownTemplateEnabled { return true }
         if flow.exportSettings.format == .md { return true }
@@ -734,6 +823,9 @@ private struct MacFlowEditor: View {
     }
 
     private var markdownAudioEmbedHelpText: String {
+        if flow.captureDestinationID != nil {
+            return "Adds an Obsidian-style audio link to the unified Markdown note at the selected position."
+        }
         guard markdownAudioEmbedAvailable else {
             return "Audio embeds require a Markdown note export. Switch this Vox to MD, a Markdown template, or YAML with the .md extension."
         }

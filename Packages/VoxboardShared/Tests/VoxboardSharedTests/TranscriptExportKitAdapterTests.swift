@@ -112,6 +112,87 @@ final class TranscriptExportKitAdapterTests: XCTestCase {
         XCTAssertEqual(decoded.map(\.text), ["First", "Second"])
     }
 
+    func test_obsidianMarkdownAppend_keepsSingleFrontmatterAndBothTranscripts() throws {
+        let first = Transcript(text: "First Obsidian", duration: 1, modelUsed: "base", language: "en")
+        let second = Transcript(text: "Second Obsidian", duration: 2, modelUsed: "base", language: "en")
+        let config = TranscriptExportConfiguration(
+            format: .md,
+            mode: .append,
+            mdObsidianEnabled: true,
+            staticFrontmatter: ["type": "voice-note", "tags": "[manual]"]
+        )
+        let run = TranscriptExportRun(configuration: config)
+
+        let url = try run.export(first, to: tempFolder)
+        _ = try run.export(second, to: tempFolder)
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertEqual(content.components(separatedBy: "---").count - 1, 2)
+        XCTAssertEqual(content.components(separatedBy: "type:").count - 1, 1)
+        XCTAssertTrue(content.contains("First Obsidian"))
+        XCTAssertTrue(content.contains("Second Obsidian"))
+    }
+
+    func test_yamlMarkdownAppend_keepsSingleFrontmatterAndBothTranscripts() throws {
+        let first = Transcript(text: "First YAML Markdown", duration: 1, modelUsed: "base", language: "en")
+        let second = Transcript(text: "Second YAML Markdown", duration: 2, modelUsed: "small", language: "fr")
+        let config = TranscriptExportConfiguration(
+            format: .yaml,
+            mode: .append,
+            yamlUsesMarkdownExtension: true,
+            staticFrontmatter: ["type": "voice-note"]
+        )
+        let run = TranscriptExportRun(configuration: config)
+
+        let url = try run.export(first, to: tempFolder)
+        _ = try run.export(second, to: tempFolder)
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertEqual(url.pathExtension, "md")
+        XCTAssertEqual(content.components(separatedBy: "---").count - 1, 2)
+        XCTAssertTrue(content.contains("First YAML Markdown"))
+        XCTAssertTrue(content.contains("Second YAML Markdown"))
+    }
+
+    func test_markdownAppend_mergesTagsAndAudioWithoutDuplicates() throws {
+        let first = Transcript(
+            text: "First",
+            duration: 1,
+            modelUsed: "base",
+            language: "en"
+        ).withEnrichment(title: nil, tags: ["manual", "voice"], category: nil, cleanedText: nil)
+        let second = Transcript(
+            text: "Second",
+            duration: 1,
+            modelUsed: "base",
+            language: "en"
+        ).withEnrichment(title: nil, tags: ["voice", "idea"], category: nil, cleanedText: nil)
+        let firstConfig = TranscriptExportConfiguration(
+            format: .md,
+            mode: .append,
+            mdObsidianEnabled: true,
+            staticFrontmatter: ["tags": "[manual]"],
+            audioAttachmentRelativePath: "first.m4a"
+        )
+        let secondConfig = TranscriptExportConfiguration(
+            format: .md,
+            mode: .append,
+            mdObsidianEnabled: true,
+            staticFrontmatter: ["tags": "[manual]"],
+            audioAttachmentRelativePath: "second.m4a"
+        )
+
+        let url = try TranscriptExportRun(configuration: firstConfig).export(first, to: tempFolder)
+        _ = try TranscriptExportRun(configuration: secondConfig).export(second, to: tempFolder)
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertEqual(content.components(separatedBy: "tags:").count - 1, 1)
+        XCTAssertEqual(content.components(separatedBy: "audio:").count - 1, 1)
+        for value in ["manual", "voice", "idea", "first.m4a", "second.m4a"] {
+            XCTAssertTrue(content.contains(value), "Missing merged value: \(value)")
+        }
+    }
+
     func test_previewGenerationUsesExportKitPlannedFilesWithoutWriting() async throws {
         let transcripts = [
             Transcript(text: "Older", duration: 1, modelUsed: "base", language: "en"),

@@ -8,10 +8,15 @@ import WidgetKit
 private let log = KeyboardDebugLog.shared
 private let osLog = Logger(subsystem: "bontecou.Voxboard", category: "PersistentRecorder")
 
-/// Emitted when a transcript file export succeeds.
+/// Emitted when a configured transcript export succeeds or fails.
 struct FileExportEvent: Equatable {
+    enum Result: Equatable {
+        case success(URL)
+        case failure(String)
+    }
+
     let id = UUID()
-    let url: URL
+    let result: Result
 }
 
 /// Always-on audio recorder that captures microphone input into a circular buffer.
@@ -39,7 +44,7 @@ final class PersistentRecorder {
     /// Last transcription result from an in-app recording. Observable for UI display.
     var lastTranscriptionResult: String?
 
-    /// Updated every time a transcript file is successfully exported.
+    /// Updated every time a configured transcript export succeeds or fails.
     var lastFileExportEvent: FileExportEvent?
 
     // MARK: - Audio Engine
@@ -1135,8 +1140,45 @@ final class PersistentRecorder {
                 }()
 
                 let runExport: @Sendable () async -> Void = { [weak self] in
+                    // Legacy exports consume this private working copy. Precise
+                    // capture exports keep it until either delivery succeeds or
+                    // an exact audio-bearing inbox request is durable.
+                    var canRemoveRetainedAudio = flowForExport.captureDestinationID == nil
+                    defer {
+                        if canRemoveRetainedAudio, let audioSourceForExport {
+                            try? FileManager.default.removeItem(at: audioSourceForExport)
+                        }
+                    }
                     let latest = await MainActor.run {
                         store.transcripts.first(where: { $0.id == savedId }) ?? initialTranscript
+                    }
+
+                    if let captureDestinationID = flowForExport.captureDestinationID {
+                        do {
+                            let receipt = try await ConfiguredTranscriptCaptureDestinationExporter.export(
+                                transcript: latest,
+                                flow: flowForExport,
+                                destinationID: captureDestinationID,
+                                audioSourceURL: audioSourceForExport
+                            )
+                            canRemoveRetainedAudio = true
+                            await MainActor.run {
+                                self?.lastFileExportEvent = FileExportEvent(result: .success(receipt.noteURL))
+                            }
+                        } catch {
+                            if let configuredError = error as? ConfiguredTranscriptCaptureError,
+                               case .queuedForRetry = configuredError {
+                                // The queued request references its own complete
+                                // staged audio copy, so this working copy is no
+                                // longer the only surviving recording.
+                                canRemoveRetainedAudio = true
+                            }
+                            log.log("[PersistentRecorder] ❌ Precise capture routing failed: \(error)")
+                            await MainActor.run {
+                                self?.lastFileExportEvent = FileExportEvent(result: .failure(error.localizedDescription))
+                            }
+                        }
+                        return
                     }
 
                     var folderOverride: URL? = nil
@@ -1177,12 +1219,26 @@ final class PersistentRecorder {
                         }
                     }
 
-                    guard let url = TranscriptFileExporter.exportIfEnabled(
-                        latest,
-                        folderURLOverride: folderOverride,
-                        autoOrganizeSubfolder: autoOrganizeSubfolder,
-                        flow: flowForExport
-                    ) else { return }
+                    let url: URL
+                    do {
+                        switch try TranscriptFileExporter.exportConfigured(
+                            latest,
+                            folderURLOverride: folderOverride,
+                            autoOrganizeSubfolder: autoOrganizeSubfolder,
+                            flow: flowForExport
+                        ) {
+                        case .disabled:
+                            return
+                        case .exported(let exportedURL):
+                            url = exportedURL
+                        }
+                    } catch {
+                        log.log("[PersistentRecorder] ❌ File export failed: \(error)")
+                        await MainActor.run {
+                            self?.lastFileExportEvent = FileExportEvent(result: .failure(error.localizedDescription))
+                        }
+                        return
+                    }
 
                     if let audioSourceForExport {
                         let noteFolderScopeURL = folderOverride ?? TranscriptFileExporter.resolveExportFolderURL(flow: flowForExport)
@@ -1204,11 +1260,18 @@ final class PersistentRecorder {
                             }
                         } catch {
                             log.log("[PersistentRecorder] ⚠️ Audio export failed: \(error)")
+                            await MainActor.run {
+                                self?.lastFileExportEvent = FileExportEvent(
+                                    result: .failure("The note was saved, but its audio attachment failed: \(error.localizedDescription)")
+                                )
+                            }
+                            return
                         }
-                        try? FileManager.default.removeItem(at: audioSourceForExport)
                     }
 
-                    await MainActor.run { self?.lastFileExportEvent = FileExportEvent(url: url) }
+                    await MainActor.run {
+                        self?.lastFileExportEvent = FileExportEvent(result: .success(url))
+                    }
                 }
 
                 if let enricher = self.transcriptEnricher, flowForExport.usesAIEnrichment {

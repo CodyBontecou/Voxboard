@@ -93,6 +93,8 @@ private struct FlowEditorView: View {
     @State private var frontmatterText: String
     @State private var showBookmarkPicker = false
     @State private var bookmarkPickerKind: BookmarkKind = .exportFolder
+    @State private var captureDestinations: [CaptureDestination] = []
+    @State private var captureDestinationLoadError: String?
 
     private enum BookmarkKind {
         case exportFolder
@@ -118,7 +120,10 @@ private struct FlowEditorView: View {
         Form {
             identitySection
             postProcessingSection
-            fileExportSection
+            preciseCaptureRoutingSection
+            if flow.captureDestinationID == nil {
+                fileExportSection
+            }
             if showsFrontmatterSection {
                 frontmatterSection
             }
@@ -126,6 +131,7 @@ private struct FlowEditorView: View {
         }
         .navigationTitle(flow.displayName)
         .navigationBarTitleDisplayMode(.inline)
+        .task { await loadCaptureDestinations() }
         .onAppear {
             // File export now lives on each flow. Mark old flow records as
             // per-flow when the user opens them so later edits do not fall back
@@ -146,6 +152,7 @@ private struct FlowEditorView: View {
     }
 
     private var showsFrontmatterSection: Bool {
+        if flow.captureDestinationID != nil { return true }
         guard flow.exportSettings.exportEnabled else { return false }
         switch flow.exportSettings.format {
         case .md, .yaml:
@@ -204,6 +211,40 @@ private struct FlowEditorView: View {
             Text("Post-Processing")
         } footer: {
             Text("This per-Vox mode controls whether Apple Intelligence runs and how the cleaned copy is shaped. Keyboard insertion and the in-app Done screen still show the raw transcript immediately.")
+        }
+    }
+
+    private var preciseCaptureRoutingSection: some View {
+        Section {
+            Picker("Markdown Route", selection: $flow.captureDestinationID) {
+                Text("Legacy Vox Export").tag(Optional<UUID>.none)
+                ForEach(captureDestinations) { destination in
+                    Text(destination.name).tag(Optional(destination.id))
+                }
+            }
+
+            if let destinationID = flow.captureDestinationID,
+               let destination = captureDestinations.first(where: { $0.id == destinationID }) {
+                Label(destination.rootName, systemImage: "arrow.triangle.branch")
+                    .foregroundStyle(.secondary)
+                Text(captureDestinationSummary(destination))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else if flow.captureDestinationID != nil {
+                Text("This destination is missing. Choose another route or use Legacy Vox Export.")
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+
+            if let captureDestinationLoadError {
+                Text(captureDestinationLoadError)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+        } header: {
+            Text("Unified Capture Route")
+        } footer: {
+            Text("A unified route gives this Vox the same rolling notes, prepend, heading insertion, attachment folder, conflict-safe writes, and retries as Quick Capture. Create routes from Capture → sliders.")
         }
     }
 
@@ -320,24 +361,33 @@ private struct FlowEditorView: View {
             }
 
             if flow.audioSaveMode == .attachmentsFolder {
-                Button {
-                    openBookmarkPicker(.audioFolder)
-                } label: {
-                    folderRow(title: "Audio Export Directory", value: flow.exportSettings.audioFolderName)
-                }
-                .buttonStyle(.plain)
-
-                if !flow.exportSettings.audioFolderName.isEmpty {
-                    Button("Clear Audio Directory", role: .destructive) {
-                        flow.exportSettings.audioFolderBookmark = nil
-                        flow.exportSettings.audioFolderName = ""
-                    }
-                }
-
-                if flow.exportSettings.audioFolderName.isEmpty {
+                if flow.captureDestinationID != nil {
                     TextField("Attachments Folder", text: $flow.attachmentsFolderName)
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
+                    Text("Relative to the unified Markdown destination. Leave blank to use that destination’s default attachment folder.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Button {
+                        openBookmarkPicker(.audioFolder)
+                    } label: {
+                        folderRow(title: "Audio Export Directory", value: flow.exportSettings.audioFolderName)
+                    }
+                    .buttonStyle(.plain)
+
+                    if !flow.exportSettings.audioFolderName.isEmpty {
+                        Button("Clear Audio Directory", role: .destructive) {
+                            flow.exportSettings.audioFolderBookmark = nil
+                            flow.exportSettings.audioFolderName = ""
+                        }
+                    }
+
+                    if flow.exportSettings.audioFolderName.isEmpty {
+                        TextField("Attachments Folder", text: $flow.attachmentsFolderName)
+                            .textInputAutocapitalization(.never)
+                            .disableAutocorrection(true)
+                    }
                 }
             }
 
@@ -372,13 +422,18 @@ private struct FlowEditorView: View {
         case .off:
             return "Turn this on to save a copy of the recorded audio when a note is exported."
         case .alongsideTranscript:
-            return "Saved audio uses the same export directory and base filename as the note."
+            return flow.captureDestinationID == nil
+                ? "Saved audio uses the same legacy export directory and base filename as the note."
+                : "Saved audio is placed alongside the unified Markdown note."
         case .attachmentsFolder:
-            return "When no audio export directory is set, saved audio uses this Vox's note export folder. Attachments Folder creates a subfolder next to the note."
+            return flow.captureDestinationID == nil
+                ? "When no audio export directory is set, saved audio uses this Vox's legacy note export folder."
+                : "Saved audio uses a subfolder inside the unified Markdown destination, and that route survives deferred retries."
         }
     }
 
     private var markdownAudioEmbedAvailable: Bool {
+        if flow.captureDestinationID != nil { return true }
         guard flow.exportSettings.exportEnabled else { return false }
         if flow.exportSettings.markdownTemplateEnabled { return true }
         if flow.exportSettings.format == .md { return true }
@@ -386,6 +441,9 @@ private struct FlowEditorView: View {
     }
 
     private var markdownAudioEmbedHelpText: String {
+        if flow.captureDestinationID != nil {
+            return "Adds an Obsidian-style audio link to the unified Markdown note at the selected position."
+        }
         guard markdownAudioEmbedAvailable else {
             return "Audio embeds require a Markdown note export. Switch this Vox to MD, a Markdown template, or YAML with the .md extension."
         }
@@ -404,6 +462,35 @@ private struct FlowEditorView: View {
             .tint(Brutal.muted)
             .disabled(flow.exportSettings.yamlProperties.count == 1 && flow.exportSettings.yamlProperties.contains(property))
         }
+    }
+
+    private func loadCaptureDestinations() async {
+        guard let url = AppConstants.captureLibraryURL else {
+            captureDestinationLoadError = String(localized: "Shared capture storage is unavailable.")
+            return
+        }
+        do {
+            captureDestinations = try await CaptureLibraryStore(fileURL: url).load().destinations
+            captureDestinationLoadError = nil
+        } catch {
+            captureDestinationLoadError = error.localizedDescription
+        }
+    }
+
+    private func captureDestinationSummary(_ destination: CaptureDestination) -> String {
+        let target: String
+        switch destination.noteTarget {
+        case .newNote(let path): target = path
+        case .rollingNote(let path, let period): target = "\(period.rawValue.capitalized): \(path)"
+        case .existingNote(let path): target = path
+        }
+        let placement: String
+        switch destination.placement {
+        case .append: placement = String(localized: "append")
+        case .prepend: placement = String(localized: "prepend")
+        case .beneathHeading(let heading, _): placement = String(localized: "under \(heading.title)")
+        }
+        return "\(target) · \(placement)"
     }
 
     private func folderRow(title: LocalizedStringKey, value: String, systemImage: String = "folder") -> some View {

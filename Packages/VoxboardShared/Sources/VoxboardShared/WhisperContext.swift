@@ -108,19 +108,17 @@ public final class WhisperContext: @unchecked Sendable {
         }
 
         let trimmed = transcription.trimmingCharacters(in: .whitespacesAndNewlines)
-        log.log("[WhisperContext] Raw transcription (\(nSegments) segments): \"\(trimmed)\"")
-        print("[WhisperContext] Raw transcription (\(nSegments) segments): \"\(trimmed)\"")
+        log.log("[WhisperContext] Transcription produced \(nSegments) segments, \(trimmed.count) chars")
 
         guard !trimmed.isEmpty else { return nil }
 
         // Filter out common whisper hallucinations on silent/noisy audio
         if Self.isHallucination(trimmed) {
-            log.log("[WhisperContext] ⚠️ Filtered hallucination: \"\(trimmed)\"")
-            print("[WhisperContext] Filtered hallucination: \"\(trimmed)\"")
+            log.log("[WhisperContext] ⚠️ Filtered likely hallucination (\(trimmed.count) chars)")
             return nil
         }
 
-        log.log("[WhisperContext] ✅ Transcription result: \"\(trimmed)\"")
+        log.log("[WhisperContext] ✅ Transcription result: \(trimmed.count) chars")
         return trimmed
     }
 

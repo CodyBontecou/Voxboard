@@ -46,4 +46,18 @@ final class AppConstantsTests: XCTestCase {
     func test_pendingWidgetRecordFlowIdKey_isDefined() {
         XCTAssertFalse(AppConstants.pendingWidgetRecordFlowIdKey.isEmpty)
     }
+
+    func test_captureStorageUsesVersionedStableNames() {
+        XCTAssertEqual(AppConstants.captureDirectoryName, "Capture")
+        XCTAssertEqual(AppConstants.captureLibraryFilename, "capture-library-v1.json")
+        XCTAssertEqual(
+            AppConstants.captureLibraryURL?.lastPathComponent,
+            AppConstants.captureLibraryFilename
+        )
+        XCTAssertEqual(AppConstants.captureHistoryFilename, "capture-history-v1.json")
+        XCTAssertEqual(
+            AppConstants.captureHistoryURL?.lastPathComponent,
+            AppConstants.captureHistoryFilename
+        )
+    }
 }

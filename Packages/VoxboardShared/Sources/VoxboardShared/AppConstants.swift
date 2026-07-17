@@ -6,6 +6,9 @@ public enum AppConstants: Sendable {
     public static let appGroupIdentifier = "group.bontecou.Voxboard"
     public static let modelsDirectoryName = "WhisperModels"
     public static let recordingsDirectoryName = "Recordings"
+    public static let captureDirectoryName = "Capture"
+    public static let captureLibraryFilename = CaptureLibraryStore.defaultFilename
+    public static let captureHistoryFilename = "capture-history-v1.json"
     public static let selectedModelKey = "selectedWhisperModel"
     public static let selectedLanguageKey = "selectedLanguage"
     public static let defaultModelName = "ggml-base"
@@ -55,6 +58,18 @@ public enum AppConstants: Sendable {
 
     public static var recordingsDirectoryURL: URL? {
         sharedContainerURL?.appendingPathComponent(recordingsDirectoryName)
+    }
+
+    public static var captureDirectoryURL: URL? {
+        sharedContainerURL?.appendingPathComponent(captureDirectoryName, isDirectory: true)
+    }
+
+    public static var captureLibraryURL: URL? {
+        captureDirectoryURL?.appendingPathComponent(captureLibraryFilename)
+    }
+
+    public static var captureHistoryURL: URL? {
+        captureDirectoryURL?.appendingPathComponent(captureHistoryFilename)
     }
 
     // File export settings

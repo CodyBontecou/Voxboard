@@ -269,6 +269,59 @@ final class TranscriptFileExporterTests: XCTestCase {
 
     // MARK: - exportIfEnabled
 
+    func test_exportConfigured_returnsDisabledWithoutTreatingItAsFailure() throws {
+        let suiteName = "test.export.outcome.disabled.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.set(false, forKey: AppConstants.fileExportEnabledKey)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let outcome = try TranscriptFileExporter.exportConfigured(
+            Transcript(text: "Disabled", duration: 1, modelUsed: "base", language: "en"),
+            defaults: defaults
+        )
+
+        XCTAssertEqual(outcome, .disabled)
+    }
+
+    func test_exportConfigured_reportsMissingAndInvalidDestinationBookmarks() throws {
+        let suiteName = "test.export.outcome.destination.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.set(true, forKey: AppConstants.fileExportEnabledKey)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let transcript = Transcript(text: "Needs destination", duration: 1, modelUsed: "base", language: "en")
+
+        XCTAssertThrowsError(try TranscriptFileExporter.exportConfigured(transcript, defaults: defaults)) { error in
+            XCTAssertEqual(error as? TranscriptConfiguredExportError, .missingDestination)
+        }
+
+        defaults.set(Data("not-a-bookmark".utf8), forKey: AppConstants.fileExportBookmarkKey)
+        XCTAssertThrowsError(try TranscriptFileExporter.exportConfigured(transcript, defaults: defaults)) { error in
+            XCTAssertEqual(error as? TranscriptConfiguredExportError, .invalidDestinationBookmark)
+        }
+    }
+
+    func test_exportConfigured_reportsWriteFailure() throws {
+        let suiteName = "test.export.outcome.write.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.set(true, forKey: AppConstants.fileExportEnabledKey)
+        defaults.set("txt", forKey: AppConstants.fileExportFormatKey)
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let occupied = tempFolder.appendingPathComponent("not-a-directory")
+        try "occupied".write(to: occupied, atomically: true, encoding: .utf8)
+        defaults.set(try occupied.bookmarkData(), forKey: AppConstants.fileExportBookmarkKey)
+
+        XCTAssertThrowsError(
+            try TranscriptFileExporter.exportConfigured(
+                Transcript(text: "Cannot write", duration: 1, modelUsed: "base", language: "en"),
+                defaults: defaults
+            )
+        ) { error in
+            guard case .writeFailed = error as? TranscriptConfiguredExportError else {
+                return XCTFail("Expected typed write failure, got \(error)")
+            }
+        }
+    }
+
     func test_exportIfEnabled_doesNothing_whenDisabled() {
         let suiteName = "test.export.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -412,6 +465,41 @@ final class TranscriptFileExporterTests: XCTestCase {
         let content = try String(contentsOf: files[0], encoding: .utf8)
         XCTAssertTrue(content.contains("First"))
         XCTAssertTrue(content.contains("Second"))
+    }
+
+    func test_templateAppend_honorsAppendModeAndAppendFilename() throws {
+        let suiteName = "test.template.append.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let templateURL = tempFolder.appendingPathComponent("template.md")
+        try "# Captured".write(to: templateURL, atomically: true, encoding: .utf8)
+
+        var flow = RecordingFlowStore.makeCustomFlow()
+        flow.exportSettings.exportEnabled = true
+        flow.exportSettings.format = .md
+        flow.exportSettings.mode = .append
+        flow.exportSettings.folderBookmark = try tempFolder.bookmarkData()
+        flow.exportSettings.appendFileName = "Daily Template"
+        flow.exportSettings.markdownTemplateEnabled = true
+        flow.exportSettings.markdownTemplateBookmark = try templateURL.bookmarkData()
+        flow.exportSettings.markdownTemplateName = templateURL.lastPathComponent
+
+        let firstURL = TranscriptFileExporter.exportIfEnabled(
+            Transcript(text: "First template entry", duration: 1, modelUsed: "base", language: "en"),
+            flow: flow,
+            defaults: defaults
+        )
+        let secondURL = TranscriptFileExporter.exportIfEnabled(
+            Transcript(text: "Second template entry", duration: 1, modelUsed: "base", language: "en"),
+            flow: flow,
+            defaults: defaults
+        )
+
+        XCTAssertEqual(firstURL, secondURL)
+        XCTAssertEqual(firstURL?.lastPathComponent, "Daily-Template.md")
+        let content = try String(contentsOf: XCTUnwrap(firstURL), encoding: .utf8)
+        XCTAssertTrue(content.contains("First template entry"))
+        XCTAssertTrue(content.contains("Second template entry"))
     }
 
     private func occurrences(of needle: String, in haystack: String) -> Int {

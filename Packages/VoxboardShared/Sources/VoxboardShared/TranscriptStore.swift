@@ -1,48 +1,91 @@
 import Foundation
 
+public struct TranscriptStorePersistenceError: Error, Equatable, LocalizedError, Sendable {
+    public enum Operation: String, Sendable {
+        case load
+        case add
+        case update
+        case delete
+        case clear
+    }
+
+    public var operation: Operation
+    public var message: String
+
+    public init(operation: Operation, message: String) {
+        self.operation = operation
+        self.message = message
+    }
+
+    public var errorDescription: String? {
+        "Transcript history \(operation.rawValue) failed: \(message)"
+    }
+}
+
 /// Persists transcription history as JSON in the App Group shared container.
-/// Survives app restarts. Used by both the main app and keyboard extension.
+/// Every mutation reloads the latest coordinated disk value before writing so
+/// the app, keyboard, and extensions cannot silently overwrite one another.
 @Observable
 public final class TranscriptStore {
     public var transcripts: [Transcript] = []
+    public private(set) var lastPersistenceError: TranscriptStorePersistenceError?
 
     private let fileURL: URL?
+    private let coordinator: any CaptureFileCoordinating
+    private let fileManager: FileManager
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
 
     public convenience init() {
         self.init(fileURL: AppConstants.sharedContainerURL?.appendingPathComponent("transcripts.json"))
     }
 
-    init(fileURL: URL?) {
+    init(
+        fileURL: URL?,
+        coordinator: any CaptureFileCoordinating = NSFileCoordinatorCaptureFileCoordinator.shared,
+        fileManager: FileManager = .default
+    ) {
         self.fileURL = fileURL
+        self.coordinator = coordinator
+        self.fileManager = fileManager
         load()
     }
 
     public func add(_ transcript: Transcript) {
-        transcripts.insert(transcript, at: 0)
-        save()
+        mutate(operation: .add) { latest in
+            latest.removeAll { $0.id == transcript.id }
+            latest.insert(transcript, at: 0)
+        }
     }
 
     /// Replace an existing transcript by id. No-op if the id is unknown.
-    /// Used by `TranscriptEnricher` to write back title/tags/category/cleanedText
-    /// once on-device LLM enrichment finishes.
     public func update(_ transcript: Transcript) {
-        guard let index = transcripts.firstIndex(where: { $0.id == transcript.id }) else {
-            return
+        mutate(operation: .update) { latest in
+            guard let index = latest.firstIndex(where: { $0.id == transcript.id }) else { return }
+            latest[index] = transcript
         }
-        transcripts[index] = transcript
-        save()
     }
 
     public func delete(at offsets: IndexSet) {
-        for index in offsets.sorted().reversed() {
-            transcripts.remove(at: index)
+        let ids = Set(offsets.compactMap { index in
+            transcripts.indices.contains(index) ? transcripts[index].id : nil
+        })
+        delete(ids: ids)
+    }
+
+    public func delete(ids: Set<UUID>) {
+        guard !ids.isEmpty else { return }
+        mutate(operation: .delete) { latest in
+            latest.removeAll { ids.contains($0.id) }
         }
-        save()
     }
 
     public func clear() {
-        transcripts.removeAll()
-        save()
+        mutate(operation: .clear) { $0.removeAll() }
+    }
+
+    public func clearPersistenceError() {
+        lastPersistenceError = nil
     }
 
     /// Re-read transcripts from disk (e.g. after another process wrote new data).
@@ -50,26 +93,58 @@ public final class TranscriptStore {
         load()
     }
 
-    // MARK: - Persistence
+    private func mutate(
+        operation: TranscriptStorePersistenceError.Operation,
+        _ mutation: (inout [Transcript]) -> Void
+    ) {
+        guard let url = fileURL else {
+            mutation(&transcripts)
+            lastPersistenceError = nil
+            return
+        }
 
-    private func save() {
-        guard let url = fileURL else { return }
         do {
-            let data = try JSONEncoder().encode(transcripts)
-            try data.write(to: url, options: .atomic)
+            let updated = try coordinator.coordinateWriting(at: url) { coordinatedURL in
+                var latest = try read(from: coordinatedURL)
+                mutation(&latest)
+                try persist(latest, to: coordinatedURL)
+                return latest
+            }
+            transcripts = updated
+            lastPersistenceError = nil
         } catch {
-            print("[TranscriptStore] Save failed: \(error)")
+            lastPersistenceError = TranscriptStorePersistenceError(
+                operation: operation,
+                message: error.localizedDescription
+            )
         }
     }
 
     private func load() {
-        guard let url = fileURL,
-              FileManager.default.fileExists(atPath: url.path) else { return }
+        guard let url = fileURL else { return }
         do {
-            let data = try Data(contentsOf: url)
-            transcripts = try JSONDecoder().decode([Transcript].self, from: data)
+            transcripts = try coordinator.coordinateWriting(at: url) { coordinatedURL in
+                try read(from: coordinatedURL)
+            }
+            lastPersistenceError = nil
         } catch {
-            print("[TranscriptStore] Load failed: \(error)")
+            lastPersistenceError = TranscriptStorePersistenceError(
+                operation: .load,
+                message: error.localizedDescription
+            )
         }
+    }
+
+    private func read(from url: URL) throws -> [Transcript] {
+        guard fileManager.fileExists(atPath: url.path) else { return [] }
+        return try decoder.decode([Transcript].self, from: Data(contentsOf: url))
+    }
+
+    private func persist(_ value: [Transcript], to url: URL) throws {
+        try fileManager.createDirectory(
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try encoder.encode(value).write(to: url, options: .atomic)
     }
 }

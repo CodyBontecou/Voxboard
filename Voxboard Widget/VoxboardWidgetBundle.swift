@@ -5,6 +5,7 @@ import SwiftUI
 struct VoxboardWidgetBundle: WidgetBundle {
     var body: some Widget {
         VoxboardRecordWidget()
+        VoxboardCaptureWidget()
         if #available(iOSApplicationExtension 17.0, *) {
             VoxboardLiveActivity()
         }

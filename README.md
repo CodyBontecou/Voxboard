@@ -18,11 +18,20 @@ Vox.md is a custom iOS keyboard, iOS transcription app, and macOS companion app 
 
 ## Features
 
+### Universal Quick Capture
+Capture typed text, links, photos, selected screenshots, camera images, arbitrary files, document scans with on-device OCR/PDF generation, PencilKit sketches, and voice attachments. Drafts and staged attachments are saved locally before export, so a permission or sync failure can be retried instead of losing the capture. Optional voice transcription runs on device; the audio remains usable if transcription is unavailable or fails.
+
+The capture-first composer is a raw, selection-aware Markdown editor with undo plus bold, italic, headings, hashtags, tasks, bullets, links, wiki links, due-date tokens, timestamps, case transformations, and paste controls. Location is an explicit one-shot action that inserts a Google Maps link; Vox.md does not monitor location or keep separate coordinate history.
+
+Reusable destinations can point at multiple Obsidian vaults or Files folders and route to new notes, existing notes, one-off notes chosen from a vault, or daily/weekly/monthly/quarterly/yearly rolling notes. Each destination supports append, prepend, insertion beneath a Markdown heading, multiline YAML/Markdown entry formatting, reusable named templates with local date/source tokens, attachment subfolders, and a resolved path preview.
+
+Quick Capture is available from the app, actionable home-screen and lock-screen widgets, App Shortcuts for text/link/file/screenshot/voice input, deep links, and the iOS share sheet. Named voice Vox presets can opt into the same precise routing pipeline. Recent Capture history stores delivery metadata only—never note text, URLs, coordinates, bookmarks, absolute paths, or attachment filenames. Pending and failed inbox items retain the content required for recovery; immediately after delivery, Vox.md replaces each request with an ID-and-timestamp-only idempotency tombstone and sanitizes legacy completed requests on upgrade.
+
 ### Voice Keyboard
 Add the Vox.md keyboard to iOS and dictate into any text field — Messages, Notes, Safari, or any app that accepts a keyboard. The keyboard toolbar controls recording and inserts finished transcripts directly where you are typing.
 
 ### On-Device Transcription
-Speech recognition runs locally using `whisper.cpp` and Core ML/FluidAudio-backed Parakeet models. Audio and transcripts stay on the device. The app only uses the network for optional model downloads and normal App Store purchase flows.
+Speech recognition runs locally using `whisper.cpp` and Core ML/FluidAudio-backed Parakeet models. Audio, transcripts, capture drafts, and templates stay on the device. Release analytics are disabled by default; the app only uses the network for optional model downloads and normal App Store purchase flows.
 
 ### One-Shot Recording + Keyboard Listening
 Tap **Start Recording** in the app, from Shortcuts, or from a widget to record one segment, process it locally, and automatically return the microphone session to idle. Keyboard users can still open Vox.md from the keyboard to start persistent listening, then mark recording segments from any text field.
@@ -31,7 +40,7 @@ Tap **Start Recording** in the app, from Shortcuts, or from a widget to record o
 Download and switch between multiple local models: Whisper Tiny, Base, Small, Medium, Large v3 Turbo, plus Parakeet v2/v3. Pick lighter models for speed or larger models for accuracy.
 
 ### Transcript History
-Every transcription is stored locally in the shared App Group container. Browse previous transcripts, copy cleaned or raw text, and keep a searchable record of what you dictated.
+Every transcription is stored locally in the shared App Group container. Search raw text, cleaned text, titles, tags, and categories; edit saved transcripts; delete filtered selections safely; and share or export previous captures. Cross-process writes are coordinated so app and extension updates do not silently overwrite one another.
 
 ### File Export
 Automatically save transcripts after each session as TXT, Markdown, or YAML. Choose a destination folder, use filename templates, append to a single file, render Markdown templates, and enable Obsidian-friendly frontmatter.
@@ -40,10 +49,10 @@ Automatically save transcripts after each session as TXT, Markdown, or YAML. Cho
 On iOS 26+ devices and macOS 26+ Macs with Apple Intelligence, Vox.md can generate titles, tags, categories, cleaned-up text, and smart folder routing — still locally on-device through Apple's Foundation Models framework.
 
 ### Widgets & Live Activities
-Start or monitor recording from widgets, Live Activities, the lock screen, and Dynamic Island. The widget target shares state through the same private App Group container.
+Open a durable Quick Capture draft or start and monitor recording from widgets, Live Activities, the lock screen, and Dynamic Island. The widget target shares state through the same private App Group container.
 
 ### macOS Companion
-Record directly on your Mac, import audio or video files, pick local Whisper or Parakeet models, manage Vox export presets, browse/copy transcript history, run Apple Intelligence enrichment on macOS 26+ capable Macs, and export TXT/Markdown/JSON/YAML notes with optional audio attachments. The macOS app uses the same shared model/history/export stack as iOS, with a local Application Support fallback for unsigned development builds.
+Record directly on your Mac, import audio or video files, pick local Whisper or Parakeet models, manage Vox export presets and precise Markdown capture routes, browse/copy transcript history, run Apple Intelligence enrichment on macOS 26+ capable Macs, and export TXT/Markdown/JSON/YAML notes with optional audio attachments. The Mac drains the same durable retry inbox as iOS and can reroute failed captures after a folder permission changes. It uses the shared model/history/export stack with a local Application Support fallback for unsigned development builds.
 
 ## Pricing
 
@@ -67,7 +76,9 @@ Unlimited transcription is a one-time **$9.99** unlock. No subscription, no rene
 
 | Framework | Purpose |
 |-----------|---------|
-| AVFoundation | Microphone capture and background audio recording |
+| AVFoundation | Microphone capture, voice attachments, playback, and background audio recording |
+| CoreLocation | Explicit one-shot map-link insertion |
+| PhotosUI | User-selected photos and screenshot-filtered input |
 | KeyboardKit | Custom keyboard UI foundation |
 | WidgetKit | Home screen widgets and control widgets |
 | ActivityKit | Live Activities on lock screen and Dynamic Island |
@@ -84,10 +95,13 @@ Voxboard/
     RootView.swift                  # Adaptive tab/sidebar shell
     HomeView.swift                  # Recording controls and listening state
     ModelTabView.swift              # Download/select Whisper and Parakeet models
-    FlowSettingsView.swift          # Manage Vox presets, exports, templates, and audio routing
-    HistoryView.swift               # Local transcript history
+    FlowSettingsView.swift          # Manage Vox presets, unified destinations, templates, and audio routing
+    QuickCaptureView.swift          # Durable multimodal Markdown composer
+    CaptureDestinationLibraryView.swift # Vault, note, placement, and heading routes
+    HistoryView.swift               # Searchable/editable local transcript history
     MetaSettingsView.swift          # Preferences, upgrade, feedback, about
     PaywallView.swift               # One-time unlimited unlock
+  Capture/                          # App Intents, durable draft VM, camera/scan/sketch adapters
   PersistentRecorder.swift          # Background recorder and segment capture
   TranscriptionServer.swift         # App/keyboard IPC transcription pipeline
   FoundationModelsBackend.swift     # Apple Intelligence enrichment backend
@@ -103,8 +117,12 @@ Voxboard Keyboard/
   SoundWaveView.swift               # Audio-level visualization
   VoxboardKeyboard.entitlements     # Keyboard App Group entitlement
 
+Voxboard Share Extension/
+  ShareViewController.swift         # Text/link/media/file share-sheet inbox
+
 Voxboard Widget/
-  VoxboardRecordWidget.swift        # Widget entry point
+  VoxboardCaptureWidget.swift       # Home/lock-screen Quick Capture entry
+  VoxboardRecordWidget.swift        # Recording widget entry point
   VoxboardRecordControl.swift       # Control widget for starting recording
   VoxboardLiveActivity.swift        # Live Activity views
   WidgetViews.swift                 # Shared widget UI
@@ -117,6 +135,8 @@ Voxboard Mac/
   VoxboardMac.entitlements          # macOS sandbox, app group, mic, file access
 
 Packages/VoxboardShared/
+  Sources/VoxboardCaptureCore/      # Versioned payloads, routing, Markdown edits, inbox, retries
+  Tests/VoxboardCaptureCoreTests/   # Framework-independent red/green capture tests
   Sources/VoxboardShared/
     AppConstants.swift              # App Group, URL scheme, shared keys
     AudioRecorder.swift             # 16kHz mono PCM capture
@@ -142,6 +162,7 @@ website/                            # Static marketing, privacy, and terms pages
 | Voxboard | `bontecou.Voxboard` | iOS / iPadOS |
 | Voxboard Keyboard | `bontecou.Voxboard.Voxboard-Keyboard` | iOS keyboard extension |
 | Voxboard WidgetExtension | `bontecou.Voxboard.Voxboard-Widget` | iOS widgets / Live Activities |
+| Voxboard Share Extension | `bontecou.Voxboard.ShareExtension` | iOS share sheet |
 | Voxboard Mac | `bontecou.Voxboard.mac` | macOS companion app |
 
 ## Setup
@@ -161,13 +182,15 @@ website/                            # Static marketing, privacy, and terms pages
 
 The app requests the following permissions/settings at runtime:
 
-- **Microphone** — records speech for local transcription.
+- **Microphone** — records speech for local transcription or a user-requested Capture voice attachment.
+- **Camera / selected photos** — used only when explicitly adding local capture media, selected screenshots, or scans.
+- **Location When In Use** — requested only after tapping the location tool to insert one map link; no continuous monitoring or separate location history.
 - **Keyboard Full Access** — required by iOS for the keyboard extension to access the shared container and microphone workflow.
 - **Background Audio** — keeps the listening session alive while you switch apps.
 
 ### Entitlements
 
-- App Groups (`group.bontecou.Voxboard`) — shared models, transcripts, settings, and IPC between the app, keyboard, and widgets.
+- App Groups (`group.bontecou.Voxboard`) — shared models, transcripts, settings, durable capture inbox data, and IPC between the app, keyboard, widgets, and share extension.
 - Background Modes: Audio — persistent listening while moving between apps.
 - Live Activities — lock screen and Dynamic Island controls.
 
@@ -178,6 +201,10 @@ The app registers the `voxboard://` URL scheme:
 - `voxboard://listen` — opens Vox.md and starts the keyboard launch/listening flow.
 - `voxboard://record` — legacy keyboard record entry point, redirected to listening mode.
 - `voxboard://widget-record` — widget entry point for starting a recording flow.
+- `voxboard://capture` — opens the durable Quick Capture composer.
+- `voxboard://capture?action=photos|screenshots|camera|files|link|scan|sketch|voice` — opens the composer and requests that exact local input.
+- `voxboard://capture?text=...&url=...&destination=...` — validates bounded input and opens an incoming draft.
+- `voxboard://capture-request?id=...` — claims an App Group inbox request from Shortcuts/share sheet.
 
 ## Contributing
 
