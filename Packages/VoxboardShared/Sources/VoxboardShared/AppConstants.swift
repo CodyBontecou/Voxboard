@@ -103,6 +103,11 @@ public enum AppConstants: Sendable {
     public static let pendingWidgetRecordKey = "pendingWidgetRecord"
     public static let pendingWidgetRecordFlowIdKey = "pendingWidgetRecordFlowId"
 
+    // Cross-process Quick Capture launch requests from Shortcuts and controls.
+    public static let pendingQuickCaptureOpenKey = "pendingOpenQuickCapture"
+    public static let pendingQuickCaptureInputKey = "pendingQuickCaptureInput"
+    public static let pendingQuickCaptureSourceKey = "pendingQuickCaptureSource"
+
     // Smart folder routing (Apple Intelligence routes transcripts to the best folder).
     public static let smartFoldersEnabledKey = "smartFoldersEnabled"
     public static let smartFoldersKey = "smartFolders"

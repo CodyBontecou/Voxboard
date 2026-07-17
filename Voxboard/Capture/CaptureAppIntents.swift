@@ -180,17 +180,16 @@ struct OpenCaptureScreenshotIntent: AppIntent {
 
 @available(iOS 17.0, *)
 enum CaptureIntentSupport {
-    static let pendingOpenComposerKey = "pendingOpenQuickCapture"
-    static let pendingComposerInputKey = "pendingQuickCaptureInput"
-    static let pendingComposerSourceKey = "pendingQuickCaptureSource"
-
     static func requestComposer(input: CaptureRequestedInput? = nil) {
-        AppConstants.sharedDefaults?.set(true, forKey: pendingOpenComposerKey)
-        AppConstants.sharedDefaults?.set(CaptureSource.shortcut.rawValue, forKey: pendingComposerSourceKey)
+        AppConstants.sharedDefaults?.set(true, forKey: AppConstants.pendingQuickCaptureOpenKey)
+        AppConstants.sharedDefaults?.set(
+            CaptureSource.shortcut.rawValue,
+            forKey: AppConstants.pendingQuickCaptureSourceKey
+        )
         if let input {
-            AppConstants.sharedDefaults?.set(input.rawValue, forKey: pendingComposerInputKey)
+            AppConstants.sharedDefaults?.set(input.rawValue, forKey: AppConstants.pendingQuickCaptureInputKey)
         } else {
-            AppConstants.sharedDefaults?.removeObject(forKey: pendingComposerInputKey)
+            AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureInputKey)
         }
     }
 

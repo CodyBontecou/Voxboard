@@ -196,6 +196,7 @@
 		622B4C9F2F78B61A00FDC4CA /* Exceptions for "Voxboard" folder in "Voxboard WidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				OpenVoxboardQuickCaptureIntent.swift,
 				OpenVoxboardRecordIntent.swift,
 				LiveActivityRecordingIntents.swift,
 			);

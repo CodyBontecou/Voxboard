@@ -133,17 +133,16 @@ struct VoxboardApp: App {
     }
 
     private func consumePendingQuickCaptureOpenIfNeeded() {
-        let key = "pendingOpenQuickCapture"
-        guard AppConstants.sharedDefaults?.bool(forKey: key) == true else { return }
-        AppConstants.sharedDefaults?.set(false, forKey: key)
-        if let rawSource = AppConstants.sharedDefaults?.string(forKey: "pendingQuickCaptureSource"),
+        guard AppConstants.sharedDefaults?.bool(forKey: AppConstants.pendingQuickCaptureOpenKey) == true else { return }
+        AppConstants.sharedDefaults?.set(false, forKey: AppConstants.pendingQuickCaptureOpenKey)
+        if let rawSource = AppConstants.sharedDefaults?.string(forKey: AppConstants.pendingQuickCaptureSourceKey),
            let source = CaptureSource(rawValue: rawSource) {
-            AppConstants.sharedDefaults?.removeObject(forKey: "pendingQuickCaptureSource")
+            AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureSourceKey)
             quickCaptureViewModel.requestCaptureSource(source)
         }
-        if let rawInput = AppConstants.sharedDefaults?.string(forKey: "pendingQuickCaptureInput"),
+        if let rawInput = AppConstants.sharedDefaults?.string(forKey: AppConstants.pendingQuickCaptureInputKey),
            let input = CaptureRequestedInput(rawValue: rawInput) {
-            AppConstants.sharedDefaults?.removeObject(forKey: "pendingQuickCaptureInput")
+            AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureInputKey)
             quickCaptureViewModel.requestedInput = input
         }
         selectedTab = .capture

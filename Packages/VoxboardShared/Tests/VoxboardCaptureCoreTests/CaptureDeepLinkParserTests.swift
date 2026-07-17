@@ -20,6 +20,15 @@ final class CaptureDeepLinkParserTests: XCTestCase {
         )
     }
 
+    func test_widgetControlCanOpenComposerWithoutSubmitting() throws {
+        let url = try XCTUnwrap(URL(string: "voxboard://capture?source=widget"))
+
+        XCTAssertEqual(
+            try CaptureDeepLinkParser().parse(url),
+            .openComposer(CaptureDeepLinkDraft(source: .widget))
+        )
+    }
+
     func test_widgetActionCanRequestAComposerInputWithoutSubmitting() throws {
         for input in CaptureRequestedInput.allCases {
             let url = try XCTUnwrap(URL(string: "voxboard://capture?action=\(input.rawValue)&source=widget"))
