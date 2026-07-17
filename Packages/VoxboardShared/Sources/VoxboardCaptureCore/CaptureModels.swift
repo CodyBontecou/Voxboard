@@ -437,6 +437,10 @@ public struct CaptureDestination: Identifiable, Codable, Equatable, Sendable {
     /// retained as a safe snapshot if the template is later removed.
     public var entryTemplateID: UUID?
     public var attachmentsFolderName: String
+    /// Adds a request-ID HTML comment to each capture so retries can be
+    /// detected without duplicating note content. Disabled by default to keep
+    /// user-authored Markdown free of Vox.md metadata.
+    public var retryProtectionEnabled: Bool
 
     public init(
         id: UUID = UUID(),
@@ -448,7 +452,8 @@ public struct CaptureDestination: Identifiable, Codable, Equatable, Sendable {
         entryPrefix: String = "",
         entrySuffix: String = "",
         entryTemplateID: UUID? = nil,
-        attachmentsFolderName: String = "attachments"
+        attachmentsFolderName: String = "attachments",
+        retryProtectionEnabled: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -460,6 +465,7 @@ public struct CaptureDestination: Identifiable, Codable, Equatable, Sendable {
         self.entrySuffix = entrySuffix
         self.entryTemplateID = entryTemplateID
         self.attachmentsFolderName = attachmentsFolderName
+        self.retryProtectionEnabled = retryProtectionEnabled
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -473,6 +479,7 @@ public struct CaptureDestination: Identifiable, Codable, Equatable, Sendable {
         case entrySuffix
         case entryTemplateID
         case attachmentsFolderName
+        case retryProtectionEnabled
     }
 
     public init(from decoder: Decoder) throws {
@@ -487,7 +494,8 @@ public struct CaptureDestination: Identifiable, Codable, Equatable, Sendable {
             entryPrefix: try container.decodeIfPresent(String.self, forKey: .entryPrefix) ?? "",
             entrySuffix: try container.decodeIfPresent(String.self, forKey: .entrySuffix) ?? "",
             entryTemplateID: try container.decodeIfPresent(UUID.self, forKey: .entryTemplateID),
-            attachmentsFolderName: try container.decodeIfPresent(String.self, forKey: .attachmentsFolderName) ?? "attachments"
+            attachmentsFolderName: try container.decodeIfPresent(String.self, forKey: .attachmentsFolderName) ?? "attachments",
+            retryProtectionEnabled: try container.decodeIfPresent(Bool.self, forKey: .retryProtectionEnabled) ?? false
         )
     }
 }

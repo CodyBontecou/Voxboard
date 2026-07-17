@@ -129,6 +129,7 @@ public actor CapturePipeline {
                 placement: effectiveDestination.placement,
                 entryPrefix: templateRenderer.render(effectiveDestination.entryPrefix, for: request),
                 entrySuffix: templateRenderer.render(effectiveDestination.entrySuffix, for: request),
+                retryProtectionEnabled: effectiveDestination.retryProtectionEnabled,
                 destinationRootURL: rootURL,
                 relativeNotePath: relativeNotePath
             )

@@ -77,12 +77,16 @@ final class CoordinatedCaptureWriterTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: outside.appendingPathComponent("Inbox.md").path))
     }
 
-    func test_retryDoesNotDuplicateEntry() async throws {
+    func test_retryProtectionDoesNotDuplicateEntry() async throws {
         let folder = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: folder) }
         let file = folder.appendingPathComponent("Inbox.md")
         let writer = CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared)
-        let capture = mutation(id: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE", entry: "Once")
+        let capture = mutation(
+            id: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+            entry: "Once",
+            retryProtectionEnabled: true
+        )
 
         let first = try await writer.write(capture, to: file)
         let second = try await writer.write(capture, to: file)
@@ -91,13 +95,36 @@ final class CoordinatedCaptureWriterTests: XCTestCase {
         XCTAssertTrue(second.wasAlreadyApplied)
         let content = try String(contentsOf: file, encoding: .utf8)
         XCTAssertEqual(content.components(separatedBy: "Once").count - 1, 1)
+        XCTAssertTrue(content.contains("<!-- vox-capture:"))
     }
 
-    private func mutation(id: String, entry: String) -> MarkdownCaptureMutation {
+    func test_defaultRetryAddsContentAgainWithoutMetadata() async throws {
+        let folder = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("Inbox.md")
+        let writer = CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared)
+        let capture = mutation(id: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE", entry: "Again")
+
+        let first = try await writer.write(capture, to: file)
+        let second = try await writer.write(capture, to: file)
+
+        XCTAssertFalse(first.wasAlreadyApplied)
+        XCTAssertFalse(second.wasAlreadyApplied)
+        let content = try String(contentsOf: file, encoding: .utf8)
+        XCTAssertEqual(content.components(separatedBy: "Again").count - 1, 2)
+        XCTAssertFalse(content.contains("vox-capture"))
+    }
+
+    private func mutation(
+        id: String,
+        entry: String,
+        retryProtectionEnabled: Bool = false
+    ) -> MarkdownCaptureMutation {
         MarkdownCaptureMutation(
             requestID: UUID(uuidString: id)!,
             entry: entry,
-            placement: .append
+            placement: .append,
+            retryProtectionEnabled: retryProtectionEnabled
         )
     }
 

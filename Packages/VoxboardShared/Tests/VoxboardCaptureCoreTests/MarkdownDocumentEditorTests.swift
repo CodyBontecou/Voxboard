@@ -172,12 +172,30 @@ final class MarkdownDocumentEditorTests: XCTestCase {
         XCTAssertFalse(result.contains("- [ ] Existing note."))
     }
 
-    func test_retryWithSameRequestID_isIdempotent() throws {
-        let once = try edit("# Inbox", entry: "Only once", placement: .append)
-        let twice = try edit(once, entry: "Only once", placement: .append)
+    func test_retryProtectionWithSameRequestID_isIdempotent() throws {
+        let once = try edit(
+            "# Inbox",
+            entry: "Only once",
+            placement: .append,
+            retryProtectionEnabled: true
+        )
+        let twice = try edit(
+            once,
+            entry: "Only once",
+            placement: .append,
+            retryProtectionEnabled: true
+        )
 
         XCTAssertEqual(twice, once)
         XCTAssertEqual(twice.components(separatedBy: "Only once").count - 1, 1)
+        XCTAssertTrue(twice.contains("<!-- vox-capture:"))
+    }
+
+    func test_defaultWriteDoesNotAddCaptureMetadata() throws {
+        let result = try edit("# Inbox", entry: "Clean note", placement: .append)
+
+        XCTAssertEqual(result, "# Inbox\n\nClean note")
+        XCTAssertFalse(result.contains("vox-capture"))
     }
 
     func test_crlfInput_isNormalizedWithoutCorruptingContent() throws {
@@ -185,8 +203,9 @@ final class MarkdownDocumentEditorTests: XCTestCase {
 
         XCTAssertFalse(result.contains("\r"))
         XCTAssertTrue(result.contains("title: Inbox"))
-        XCTAssertTrue(result.contains("New\n\n<!-- vox-capture:"))
+        XCTAssertTrue(result.contains("New"))
         XCTAssertTrue(result.contains("Existing"))
+        XCTAssertFalse(result.contains("vox-capture"))
     }
 
     private func edit(
@@ -194,7 +213,8 @@ final class MarkdownDocumentEditorTests: XCTestCase {
         entry: String,
         placement: CapturePlacement,
         prefix: String = "",
-        suffix: String = ""
+        suffix: String = "",
+        retryProtectionEnabled: Bool = false
     ) throws -> String {
         try MarkdownDocumentEditor().applying(
             MarkdownCaptureMutation(
@@ -202,7 +222,8 @@ final class MarkdownDocumentEditorTests: XCTestCase {
                 entry: entry,
                 placement: placement,
                 entryPrefix: prefix,
-                entrySuffix: suffix
+                entrySuffix: suffix,
+                retryProtectionEnabled: retryProtectionEnabled
             ),
             to: document
         )

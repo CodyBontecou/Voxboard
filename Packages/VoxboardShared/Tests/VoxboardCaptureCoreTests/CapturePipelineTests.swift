@@ -29,6 +29,7 @@ final class CapturePipelineTests: XCTestCase {
         XCTAssertEqual(receipt.noteURL.standardizedFileURL, note.standardizedFileURL)
         let content = try String(contentsOf: note, encoding: .utf8)
         XCTAssertLessThan(try index(of: "New idea", in: content), try index(of: "Older", in: content))
+        XCTAssertFalse(content.contains("vox-capture"))
     }
 
     func test_destinationEntryTemplateTokensRenderWithoutChangingPayloadText() async throws {
@@ -82,7 +83,10 @@ final class CapturePipelineTests: XCTestCase {
     func test_retryOfAppliedNewNoteRequestReusesOriginalNote() async throws {
         let root = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: root) }
-        let destination = destination(target: .newNote(pathTemplate: "Inbox/capture.md"))
+        let destination = destination(
+            target: .newNote(pathTemplate: "Inbox/capture.md"),
+            retryProtectionEnabled: true
+        )
         let request = CaptureRequest(
             source: .shareExtension,
             destinationID: destination.id,
@@ -330,7 +334,10 @@ final class CapturePipelineTests: XCTestCase {
             originalFilename: "photo.jpg",
             contentTypeIdentifier: "public.jpeg"
         )
-        let destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        let destination = destination(
+            target: .existingNote(relativePath: "Inbox.md"),
+            retryProtectionEnabled: true
+        )
         let request = CaptureRequest(
             source: .shareExtension,
             destinationID: destination.id,
@@ -371,7 +378,10 @@ final class CapturePipelineTests: XCTestCase {
             originalFilename: "photo.jpg",
             contentTypeIdentifier: "public.jpeg"
         )
-        let destination = destination(target: .newNote(pathTemplate: "Inbox/capture.md"))
+        let destination = destination(
+            target: .newNote(pathTemplate: "Inbox/capture.md"),
+            retryProtectionEnabled: true
+        )
         let request = CaptureRequest(
             source: .shareExtension,
             destinationID: destination.id,
@@ -472,14 +482,16 @@ final class CapturePipelineTests: XCTestCase {
 
     private func destination(
         target: CaptureNoteTarget,
-        placement: CapturePlacement = .append
+        placement: CapturePlacement = .append,
+        retryProtectionEnabled: Bool = false
     ) -> CaptureDestination {
         CaptureDestination(
             name: "Inbox",
             rootBookmark: Data([1]),
             rootName: "Vault",
             noteTarget: target,
-            placement: placement
+            placement: placement,
+            retryProtectionEnabled: retryProtectionEnabled
         )
     }
 

@@ -76,6 +76,23 @@ final class CaptureModelCodableTests: XCTestCase {
         XCTAssertEqual(destination.placement, .append)
         XCTAssertEqual(destination.attachmentsFolderName, "attachments")
         XCTAssertNil(destination.entryTemplateID)
+        XCTAssertFalse(destination.retryProtectionEnabled)
+    }
+
+    func test_destinationRetryProtectionOptInRoundTrips() throws {
+        let destination = CaptureDestination(
+            name: "Inbox",
+            rootBookmark: Data([1, 2, 3]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md"),
+            retryProtectionEnabled: true
+        )
+
+        let data = try JSONEncoder.captureCore.encode(destination)
+        let decoded = try JSONDecoder.captureCore.decode(CaptureDestination.self, from: data)
+
+        XCTAssertTrue(decoded.retryProtectionEnabled)
+        XCTAssertEqual(decoded, destination)
     }
 
     func test_destinationTemplateBindingResolvesLatestReusableTemplateContent() throws {

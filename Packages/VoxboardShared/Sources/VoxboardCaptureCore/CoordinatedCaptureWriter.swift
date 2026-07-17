@@ -168,7 +168,13 @@ public actor CoordinatedCaptureWriter: CaptureMutationWriting {
             } else {
                 verified = try String(contentsOf: coordinatedURL, encoding: .utf8)
             }
-            guard verified.contains(marker) else {
+            let writeWasVerified: Bool
+            if wasAlreadyApplied || mutation.retryProtectionEnabled {
+                writeWasVerified = verified.contains(marker)
+            } else {
+                writeWasVerified = verified == edited
+            }
+            guard writeWasVerified else {
                 throw CaptureWriteError.verificationFailed(mutation.requestID)
             }
             return CaptureWriteReceipt(

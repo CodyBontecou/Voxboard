@@ -237,6 +237,7 @@ private struct CaptureDestinationEditorView: View {
     @State private var entryPrefix: String
     @State private var entrySuffix: String
     @State private var attachmentsFolderName: String
+    @State private var retryProtectionEnabled: Bool
     @State private var isChoosingFolder = false
     @State private var isChoosingExistingNote = false
     @State private var isSaving = false
@@ -304,6 +305,7 @@ private struct CaptureDestinationEditorView: View {
         _entryPrefix = State(initialValue: selectedTemplate?.entryPrefix ?? existing?.entryPrefix ?? "")
         _entrySuffix = State(initialValue: selectedTemplate?.entrySuffix ?? existing?.entrySuffix ?? "")
         _attachmentsFolderName = State(initialValue: existing?.attachmentsFolderName ?? "attachments")
+        _retryProtectionEnabled = State(initialValue: existing?.retryProtectionEnabled ?? false)
     }
 
     var body: some View {
@@ -410,6 +412,13 @@ private struct CaptureDestinationEditorView: View {
                 TextField("Attachments Folder", text: $attachmentsFolderName)
                     .textInputAutocapitalization(.never)
                     .disableAutocorrection(true)
+            }
+
+            Section("Delivery") {
+                Toggle("Retry Protection", isOn: $retryProtectionEnabled)
+                Text("Prevents duplicate entries when delivery is retried. This adds a vox-capture HTML comment to each captured entry, which may be visible while editing Markdown.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             if let errorMessage {
@@ -579,7 +588,8 @@ private struct CaptureDestinationEditorView: View {
                 entryPrefix: entryPrefix,
                 entrySuffix: entrySuffix,
                 entryTemplateID: selectedTemplateID,
-                attachmentsFolderName: attachmentsFolderName
+                attachmentsFolderName: attachmentsFolderName,
+                retryProtectionEnabled: retryProtectionEnabled
             ))
             dismiss()
         } catch {

@@ -198,6 +198,7 @@ private struct MacCaptureDestinationEditor: View {
     @State private var prefix: String
     @State private var suffix: String
     @State private var attachmentsFolder: String
+    @State private var retryProtectionEnabled: Bool
     @State private var isSaving = false
     @State private var errorMessage: String?
 
@@ -236,6 +237,7 @@ private struct MacCaptureDestinationEditor: View {
         _prefix = State(initialValue: bound?.entryPrefix ?? existing?.entryPrefix ?? "")
         _suffix = State(initialValue: bound?.entrySuffix ?? existing?.entrySuffix ?? "")
         _attachmentsFolder = State(initialValue: existing?.attachmentsFolderName ?? "attachments")
+        _retryProtectionEnabled = State(initialValue: existing?.retryProtectionEnabled ?? false)
     }
 
     var body: some View {
@@ -293,6 +295,12 @@ private struct MacCaptureDestinationEditor: View {
                     Text("Suffix").font(.caption).foregroundStyle(.secondary)
                     TextEditor(text: $suffix).frame(minHeight: 60).disabled(templateID != nil)
                     TextField("Attachments Folder", text: $attachmentsFolder)
+                }
+                Section("Delivery") {
+                    Toggle("Retry Protection", isOn: $retryProtectionEnabled)
+                    Text("Prevents duplicate entries when delivery is retried. This adds a vox-capture HTML comment to each captured entry, which may be visible while editing Markdown.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
                 if let errorMessage { Text(errorMessage).foregroundStyle(.red) }
             }
@@ -429,7 +437,8 @@ private struct MacCaptureDestinationEditor: View {
                 entryPrefix: prefix,
                 entrySuffix: suffix,
                 entryTemplateID: templateID,
-                attachmentsFolderName: attachmentsFolder
+                attachmentsFolderName: attachmentsFolder,
+                retryProtectionEnabled: retryProtectionEnabled
             ))
             dismiss()
         } catch {

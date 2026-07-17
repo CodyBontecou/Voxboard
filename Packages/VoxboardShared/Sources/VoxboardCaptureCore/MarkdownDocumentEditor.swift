@@ -20,6 +20,7 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
     public var placement: CapturePlacement
     public var entryPrefix: String
     public var entrySuffix: String
+    public var retryProtectionEnabled: Bool
     /// Production pipeline writes include an authorized root and relative path
     /// so the writer can use descriptor-relative, no-symlink I/O.
     public var destinationRootURL: URL?
@@ -31,6 +32,7 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
         placement: CapturePlacement,
         entryPrefix: String = "",
         entrySuffix: String = "",
+        retryProtectionEnabled: Bool = false,
         destinationRootURL: URL? = nil,
         relativeNotePath: String? = nil
     ) {
@@ -39,6 +41,7 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
         self.placement = placement
         self.entryPrefix = entryPrefix
         self.entrySuffix = entrySuffix
+        self.retryProtectionEnabled = retryProtectionEnabled
         self.destinationRootURL = destinationRootURL
         self.relativeNotePath = relativeNotePath
     }
@@ -70,7 +73,12 @@ public struct MarkdownDocumentEditor: Sendable {
         )
 
         let wrappedEntry = trimBoundaryNewlines(wrappedParts.body)
-        let captureBlock = wrappedEntry.isEmpty ? marker : wrappedEntry + "\n\n" + marker
+        let captureBlock: String
+        if mutation.retryProtectionEnabled {
+            captureBlock = wrappedEntry.isEmpty ? marker : wrappedEntry + "\n\n" + marker
+        } else {
+            captureBlock = wrappedEntry
+        }
 
         let editedBody: String
         switch mutation.placement {
