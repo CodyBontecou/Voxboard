@@ -20,6 +20,15 @@ final class CaptureDeepLinkParserTests: XCTestCase {
         )
     }
 
+    func test_voxCanBeSelectedWithoutForcingDestinationOverride() throws {
+        let url = try XCTUnwrap(URL(string: "voxboard://capture?vox=custom-journal&text=Today"))
+
+        XCTAssertEqual(
+            try CaptureDeepLinkParser().parse(url),
+            .openComposer(CaptureDeepLinkDraft(text: "Today", voxID: "custom-journal"))
+        )
+    }
+
     func test_widgetControlCanOpenComposerWithoutSubmitting() throws {
         let url = try XCTUnwrap(URL(string: "voxboard://capture?source=widget"))
 

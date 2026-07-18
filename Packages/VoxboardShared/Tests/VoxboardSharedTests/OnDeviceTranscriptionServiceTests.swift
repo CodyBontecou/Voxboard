@@ -1,0 +1,145 @@
+import XCTest
+@testable import VoxboardShared
+
+final class OnDeviceTranscriptionServiceTests: XCTestCase {
+    func testAutomaticUsesAvailableSystemBackendAndReportsActualBackend() async throws {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .ready,
+            result: .success(SystemTranscriptionOutput(text: "Native transcript", language: "en-US"))
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        let result = try await service.transcribeResult(
+            audioURL: URL(fileURLWithPath: "/tmp/ignored.wav"),
+            modelID: TranscriptionBackendID.automatic,
+            language: "auto"
+        )
+
+        XCTAssertEqual(result.text, "Native transcript")
+        XCTAssertEqual(result.backendID, TranscriptionBackendID.appleSpeech)
+        XCTAssertEqual(result.backendName, "Apple Speech")
+        XCTAssertEqual(result.backendKind, .appleSpeech)
+        XCTAssertEqual(result.language, "en-US")
+        let callCount = await backend.transcriptionCallCount
+        XCTAssertEqual(callCount, 1)
+    }
+
+    func testSupportedButUninstalledSystemAssetIsNotReportedReady() async {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .supported,
+            result: .failure(FakeError.failed)
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        let ready = await service.canTranscribe(
+            modelID: TranscriptionBackendID.automatic,
+            language: "en"
+        )
+
+        XCTAssertFalse(ready)
+    }
+
+    func testAutomaticWithoutSystemOrDownloadedFallbackIsActionable() async {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .unavailable,
+            result: .failure(FakeError.failed)
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        do {
+            _ = try await service.transcribeResult(
+                audioURL: URL(fileURLWithPath: "/tmp/ignored.wav"),
+                modelID: TranscriptionBackendID.automatic
+            )
+            XCTFail("Expected noAvailableBackend")
+        } catch {
+            XCTAssertEqual(error as? OnDeviceTranscriptionError, .noAvailableBackend)
+        }
+        let callCount = await backend.transcriptionCallCount
+        XCTAssertEqual(callCount, 0)
+    }
+
+    func testNoSpeechDoesNotRetryAnotherBackend() async {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .ready,
+            result: .failure(OnDeviceTranscriptionError.noSpeechDetected)
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        do {
+            _ = try await service.transcribeResult(
+                audioURL: URL(fileURLWithPath: "/tmp/ignored.wav"),
+                modelID: TranscriptionBackendID.automatic
+            )
+            XCTFail("Expected noSpeechDetected")
+        } catch {
+            XCTAssertEqual(error as? OnDeviceTranscriptionError, .noSpeechDetected)
+        }
+        let callCount = await backend.transcriptionCallCount
+        XCTAssertEqual(callCount, 1)
+    }
+
+    func testExplicitMissingLocalModelBypassesSystemBackend() async {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .ready,
+            result: .success(SystemTranscriptionOutput(text: "Should not run", language: "en-US"))
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        do {
+            _ = try await service.transcribeResult(
+                audioURL: URL(fileURLWithPath: "/tmp/ignored.wav"),
+                modelID: "missing-local-model"
+            )
+            XCTFail("Expected modelUnavailable")
+        } catch {
+            XCTAssertEqual(error as? OnDeviceTranscriptionError, .modelUnavailable)
+        }
+        let callCount = await backend.transcriptionCallCount
+        XCTAssertEqual(callCount, 0)
+    }
+}
+
+private enum FakeError: Error, Sendable {
+    case failed
+}
+
+private actor FakeSystemTranscriptionBackend: SystemTranscriptionBackend {
+    let configuredAvailability: SystemTranscriptionAvailability
+    let result: Result<SystemTranscriptionOutput, Error>
+    private(set) var transcriptionCallCount = 0
+
+    init(
+        availability: SystemTranscriptionAvailability,
+        result: Result<SystemTranscriptionOutput, Error>
+    ) {
+        self.configuredAvailability = availability
+        self.result = result
+    }
+
+    func availability(language: String) async -> SystemTranscriptionAvailability {
+        configuredAvailability
+    }
+
+    func prepare(language: String) async throws {}
+
+    func transcribe(audioURL: URL, language: String) async throws -> SystemTranscriptionOutput {
+        transcriptionCallCount += 1
+        return try result.get()
+    }
+}

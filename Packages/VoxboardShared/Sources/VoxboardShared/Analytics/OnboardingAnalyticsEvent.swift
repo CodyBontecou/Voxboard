@@ -154,6 +154,8 @@ public enum OnboardingAnalyticsPropertyKey: String, CaseIterable, Sendable {
     case fileExportMode
     case freeMinutesUsedBucket
     case freeMinutesRemainingBucket
+    case freeCapturesUsedBucket
+    case freeCapturesRemainingBucket
     case paywallContext
     case productId
     case purchaseOutcome
@@ -212,6 +214,8 @@ public struct OnboardingAnalyticsProperties: Equatable, Sendable {
     private let fileExportMode: OnboardingAnalyticsFileExportMode?
     private let freeMinutesUsedBucket: OnboardingAnalyticsUsageBucket?
     private let freeMinutesRemainingBucket: OnboardingAnalyticsUsageBucket?
+    private let freeCapturesUsedBucket: OnboardingAnalyticsCaptureUsageBucket?
+    private let freeCapturesRemainingBucket: OnboardingAnalyticsCaptureUsageBucket?
     private let paywallContext: OnboardingAnalyticsPaywallContext?
     private let productId: OnboardingAnalyticsProductID?
     private let purchaseOutcome: OnboardingAnalyticsPurchaseOutcome?
@@ -231,6 +235,8 @@ public struct OnboardingAnalyticsProperties: Equatable, Sendable {
         fileExportMode: OnboardingAnalyticsFileExportMode? = nil,
         freeMinutesUsedBucket: OnboardingAnalyticsUsageBucket? = nil,
         freeMinutesRemainingBucket: OnboardingAnalyticsUsageBucket? = nil,
+        freeCapturesUsedBucket: OnboardingAnalyticsCaptureUsageBucket? = nil,
+        freeCapturesRemainingBucket: OnboardingAnalyticsCaptureUsageBucket? = nil,
         paywallContext: OnboardingAnalyticsPaywallContext? = nil,
         productId: OnboardingAnalyticsProductID? = nil,
         purchaseOutcome: OnboardingAnalyticsPurchaseOutcome? = nil,
@@ -249,6 +255,8 @@ public struct OnboardingAnalyticsProperties: Equatable, Sendable {
         self.fileExportMode = fileExportMode
         self.freeMinutesUsedBucket = freeMinutesUsedBucket
         self.freeMinutesRemainingBucket = freeMinutesRemainingBucket
+        self.freeCapturesUsedBucket = freeCapturesUsedBucket
+        self.freeCapturesRemainingBucket = freeCapturesRemainingBucket
         self.paywallContext = paywallContext
         self.productId = productId
         self.purchaseOutcome = purchaseOutcome
@@ -271,6 +279,8 @@ public struct OnboardingAnalyticsProperties: Equatable, Sendable {
         encode(fileExportMode?.rawValue, for: .fileExportMode, into: &encoded)
         encode(freeMinutesUsedBucket?.rawValue, for: .freeMinutesUsedBucket, into: &encoded)
         encode(freeMinutesRemainingBucket?.rawValue, for: .freeMinutesRemainingBucket, into: &encoded)
+        encode(freeCapturesUsedBucket?.rawValue, for: .freeCapturesUsedBucket, into: &encoded)
+        encode(freeCapturesRemainingBucket?.rawValue, for: .freeCapturesRemainingBucket, into: &encoded)
         encode(paywallContext?.rawValue, for: .paywallContext, into: &encoded)
         encode(productId?.rawValue, for: .productId, into: &encoded)
         encode(purchaseOutcome?.rawValue, for: .purchaseOutcome, into: &encoded)
@@ -315,6 +325,7 @@ public enum OnboardingAnalyticsPermissionStatus: String, CaseIterable, Sendable 
 public enum OnboardingAnalyticsModelEngine: String, CaseIterable, Sendable {
     case whisper
     case parakeet
+    case appleSpeech = "apple_speech"
     case unknown
 }
 
@@ -352,11 +363,22 @@ public enum OnboardingAnalyticsUsageBucket: String, CaseIterable, Sendable {
     case unknown
 }
 
+public enum OnboardingAnalyticsCaptureUsageBucket: String, CaseIterable, Sendable {
+    case zero = "0"
+    case oneToThree = "1_3"
+    case fourToSeven = "4_7"
+    case eightToNine = "8_9"
+    case tenPlus = "10_plus"
+    case unlimited
+    case unknown
+}
+
 public enum OnboardingAnalyticsPaywallContext: String, CaseIterable, Sendable {
     case onboarding
     case usageMeter = "usage_meter"
     case limit
     case recording
+    case captureLimit = "capture_limit"
     case keyboard
     case widget
     case settings

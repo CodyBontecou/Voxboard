@@ -38,17 +38,49 @@ struct CaptureDestinationEntityQuery: EntityQuery, EnumerableEntityQuery {
         try await destinations()
     }
 
-    func defaultResult() async -> CaptureDestinationEntity? {
-        guard let library = try? await CaptureIntentSupport.loadLibrary(),
-              let id = library.defaultDestinationID,
-              let destination = library.destinations.first(where: { $0.id == id }) else {
-            return nil
-        }
-        return CaptureDestinationEntity(destination: destination)
-    }
-
     private func destinations() async throws -> [CaptureDestinationEntity] {
         try await CaptureIntentSupport.loadLibrary().destinations.map(CaptureDestinationEntity.init)
+    }
+}
+
+@available(iOS 17.0, *)
+struct CaptureVoxEntity: AppEntity, Identifiable, Hashable {
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Capture Vox"
+    static var defaultQuery = CaptureVoxEntityQuery()
+
+    let id: String
+    let name: String
+    let symbolName: String
+
+    var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(title: "\(name)", image: .init(systemName: symbolName))
+    }
+
+    init(profile: CaptureVoxProfile) {
+        id = profile.id
+        name = profile.displayName
+        symbolName = profile.symbolName
+    }
+}
+
+@available(iOS 17.0, *)
+struct CaptureVoxEntityQuery: EntityQuery, EnumerableEntityQuery {
+    func entities(for identifiers: [String]) async throws -> [CaptureVoxEntity] {
+        let requested = Set(identifiers)
+        return profiles().filter { requested.contains($0.id) }
+    }
+
+    func suggestedEntities() async throws -> [CaptureVoxEntity] { profiles() }
+    func allEntities() async throws -> [CaptureVoxEntity] { profiles() }
+
+    func defaultResult() async -> CaptureVoxEntity? {
+        let selectedID = CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults)
+        return profiles().first(where: { $0.id == selectedID }) ?? profiles().first
+    }
+
+    private func profiles() -> [CaptureVoxEntity] {
+        CaptureVoxProfileStore.enabledProfiles(defaults: AppConstants.sharedDefaults)
+            .map(CaptureVoxEntity.init(profile:))
     }
 }
 
@@ -61,13 +93,21 @@ struct CaptureTextIntent: AppIntent {
     @Parameter(title: "Text")
     var text: String
 
-    @Parameter(title: "Destination")
+    @Parameter(title: "Vox", description: "The reusable workflow that processes and routes this capture.")
+    var vox: CaptureVoxEntity?
+
+    @Parameter(title: "Destination", description: "Optional one-time route override.")
     var destination: CaptureDestinationEntity?
 
     init() {}
 
-    init(text: String, destination: CaptureDestinationEntity? = nil) {
+    init(
+        text: String,
+        vox: CaptureVoxEntity? = nil,
+        destination: CaptureDestinationEntity? = nil
+    ) {
         self.text = text
+        self.vox = vox
         self.destination = destination
     }
 
@@ -77,6 +117,7 @@ struct CaptureTextIntent: AppIntent {
         }
         try await CaptureIntentSupport.enqueue(
             payloads: [.text(text)],
+            voxEntity: vox,
             destinationEntity: destination
         )
         return .result()
@@ -92,13 +133,21 @@ struct CaptureURLIntent: AppIntent {
     @Parameter(title: "URL")
     var url: URL
 
-    @Parameter(title: "Destination")
+    @Parameter(title: "Vox", description: "The reusable workflow that processes and routes this capture.")
+    var vox: CaptureVoxEntity?
+
+    @Parameter(title: "Destination", description: "Optional one-time route override.")
     var destination: CaptureDestinationEntity?
 
     init() {}
 
-    init(url: URL, destination: CaptureDestinationEntity? = nil) {
+    init(
+        url: URL,
+        vox: CaptureVoxEntity? = nil,
+        destination: CaptureDestinationEntity? = nil
+    ) {
         self.url = url
+        self.vox = vox
         self.destination = destination
     }
 
@@ -108,6 +157,7 @@ struct CaptureURLIntent: AppIntent {
         }
         try await CaptureIntentSupport.enqueue(
             payloads: [.url(url, title: nil)],
+            voxEntity: vox,
             destinationEntity: destination
         )
         return .result()
@@ -123,18 +173,30 @@ struct CaptureFileIntent: AppIntent {
     @Parameter(title: "File")
     var file: IntentFile
 
-    @Parameter(title: "Destination")
+    @Parameter(title: "Vox", description: "The reusable workflow that processes and routes this capture.")
+    var vox: CaptureVoxEntity?
+
+    @Parameter(title: "Destination", description: "Optional one-time route override.")
     var destination: CaptureDestinationEntity?
 
     init() {}
 
-    init(file: IntentFile, destination: CaptureDestinationEntity? = nil) {
+    init(
+        file: IntentFile,
+        vox: CaptureVoxEntity? = nil,
+        destination: CaptureDestinationEntity? = nil
+    ) {
         self.file = file
+        self.vox = vox
         self.destination = destination
     }
 
     func perform() async throws -> some IntentResult {
-        try await CaptureIntentSupport.enqueue(file: file, destinationEntity: destination)
+        try await CaptureIntentSupport.enqueue(
+            file: file,
+            voxEntity: vox,
+            destinationEntity: destination
+        )
         return .result()
     }
 }
@@ -142,12 +204,21 @@ struct CaptureFileIntent: AppIntent {
 @available(iOS 17.0, *)
 struct OpenQuickCaptureIntent: AppIntent {
     static let title: LocalizedStringResource = "Open Quick Capture"
-    static let description = IntentDescription("Opens the durable Vox.md quick-capture composer.")
+    static let description = IntentDescription("Opens the durable Vox.md quick-capture composer with a reusable Vox workflow.")
     static var openAppWhenRun = true
+
+    @Parameter(title: "Vox")
+    var vox: CaptureVoxEntity?
+
+    init() {}
+
+    init(vox: CaptureVoxEntity?) {
+        self.vox = vox
+    }
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        CaptureIntentSupport.requestComposer()
+        CaptureIntentSupport.requestComposer(voxEntity: vox)
         return .result()
     }
 }
@@ -155,12 +226,21 @@ struct OpenQuickCaptureIntent: AppIntent {
 @available(iOS 17.0, *)
 struct OpenCaptureVoiceIntent: AppIntent {
     static let title: LocalizedStringResource = "Record a Capture"
-    static let description = IntentDescription("Opens Quick Capture and starts a voice attachment entirely on device.")
+    static let description = IntentDescription("Opens Quick Capture and records into the selected Vox entirely on device.")
     static var openAppWhenRun = true
+
+    @Parameter(title: "Vox")
+    var vox: CaptureVoxEntity?
+
+    init() {}
+
+    init(vox: CaptureVoxEntity?) {
+        self.vox = vox
+    }
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        CaptureIntentSupport.requestComposer(input: .voice)
+        CaptureIntentSupport.requestComposer(input: .voice, voxEntity: vox)
         return .result()
     }
 }
@@ -168,19 +248,31 @@ struct OpenCaptureVoiceIntent: AppIntent {
 @available(iOS 17.0, *)
 struct OpenCaptureScreenshotIntent: AppIntent {
     static let title: LocalizedStringResource = "Capture a Screenshot"
-    static let description = IntentDescription("Opens Quick Capture and shows screenshots you can add to Markdown.")
+    static let description = IntentDescription("Opens Quick Capture and adds screenshots through the selected Vox.")
     static var openAppWhenRun = true
+
+    @Parameter(title: "Vox")
+    var vox: CaptureVoxEntity?
+
+    init() {}
+
+    init(vox: CaptureVoxEntity?) {
+        self.vox = vox
+    }
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        CaptureIntentSupport.requestComposer(input: .screenshots)
+        CaptureIntentSupport.requestComposer(input: .screenshots, voxEntity: vox)
         return .result()
     }
 }
 
 @available(iOS 17.0, *)
 enum CaptureIntentSupport {
-    static func requestComposer(input: CaptureRequestedInput? = nil) {
+    static func requestComposer(
+        input: CaptureRequestedInput? = nil,
+        voxEntity: CaptureVoxEntity? = nil
+    ) {
         AppConstants.sharedDefaults?.set(true, forKey: AppConstants.pendingQuickCaptureOpenKey)
         AppConstants.sharedDefaults?.set(
             CaptureSource.shortcut.rawValue,
@@ -190,6 +282,12 @@ enum CaptureIntentSupport {
             AppConstants.sharedDefaults?.set(input.rawValue, forKey: AppConstants.pendingQuickCaptureInputKey)
         } else {
             AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureInputKey)
+        }
+        if let voxID = resolvedProfile(for: voxEntity)?.id {
+            AppConstants.sharedDefaults?.set(voxID, forKey: CaptureVoxProfileStore.selectedCaptureProfileIDKey)
+            AppConstants.sharedDefaults?.set(voxID, forKey: AppConstants.pendingQuickCaptureVoxIdKey)
+        } else {
+            AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureVoxIdKey)
         }
     }
 
@@ -202,24 +300,37 @@ enum CaptureIntentSupport {
 
     static func enqueue(
         payloads: [CapturePayload],
+        voxEntity: CaptureVoxEntity?,
         destinationEntity: CaptureDestinationEntity?,
         requestID: UUID = UUID()
     ) async throws {
         guard let root = AppConstants.captureDirectoryURL else {
             throw CaptureIntentError.storageUnavailable
         }
-        let selectedID = try await selectedDestinationID(for: destinationEntity)
+        let profile = resolvedProfile(for: voxEntity)
+        let selectedID = try await selectedDestinationID(
+            for: destinationEntity,
+            profile: profile
+        )
+        let processingState: CaptureVoxProcessingState = profile?.captureProcessingEnabled == true
+            && profile?.postProcessingMode != CaptureVoxProcessingMode.none
+            ? .pending
+            : (profile == nil ? .notRequested : .applied)
         let request = CaptureRequest(
             id: requestID,
             source: .shortcut,
             destinationID: selectedID,
-            payloads: payloads
+            payloads: payloads,
+            frontmatter: profile?.staticFrontmatter ?? [:],
+            voxProfile: profile,
+            voxProcessingState: processingState
         )
         try await CaptureInbox(rootDirectoryURL: root).enqueue(request)
     }
 
     static func enqueue(
         file: IntentFile,
+        voxEntity: CaptureVoxEntity?,
         destinationEntity: CaptureDestinationEntity?
     ) async throws {
         guard let root = AppConstants.captureDirectoryURL else {
@@ -251,6 +362,7 @@ enum CaptureIntentSupport {
             }
             try await enqueue(
                 payloads: [payload],
+                voxEntity: voxEntity,
                 destinationEntity: destinationEntity,
                 requestID: requestID
             )
@@ -261,18 +373,37 @@ enum CaptureIntentSupport {
     }
 
     private static func selectedDestinationID(
-        for destinationEntity: CaptureDestinationEntity?
+        for destinationEntity: CaptureDestinationEntity?,
+        profile: CaptureVoxProfile?
     ) async throws -> UUID {
         let library = try await loadLibrary()
+        RecordingFlowStore.migrateLegacyCaptureBindings(library.legacyFlowBindings)
+        var routeProfile = profile
+        if routeProfile?.captureDestinationID == nil, let profileID = routeProfile?.id {
+            routeProfile?.captureDestinationID = library.legacyFlowBindings[profileID]
+        }
         let entityID = destinationEntity.flatMap { UUID(uuidString: $0.destinationIDString) }
-        let selectedID = entityID
-            ?? library.defaultDestinationID
-            ?? library.destinations.first?.id
+        let selectedID = CaptureVoxRouteResolver.destinationID(
+            selectionMode: entityID == nil ? .inherited : .explicit,
+            explicitDestinationID: entityID,
+            profile: routeProfile,
+            destinations: library.destinations,
+            libraryDefaultDestinationID: library.defaultDestinationID
+        )
         guard let selectedID,
               library.destinations.contains(where: { $0.id == selectedID }) else {
             throw CaptureIntentError.destinationRequired
         }
         return selectedID
+    }
+
+    private static func resolvedProfile(for entity: CaptureVoxEntity?) -> CaptureVoxProfile? {
+        let requestedID = entity?.id
+            ?? CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults)
+        return CaptureVoxProfileStore.profile(
+            id: requestedID,
+            defaults: AppConstants.sharedDefaults
+        )
     }
 }
 

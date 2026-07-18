@@ -76,6 +76,24 @@ test("accepts onboarding events and stores coarse columns", async () => {
   assert.equal(JSON.parse(payloadJson).properties.modelSizeBucket, "bundled");
 });
 
+test("accepts Apple Speech as a coarse model engine", async () => {
+  const { db, response, json } = await postEvents({
+    installId,
+    eventId: "00000000-0000-4000-8000-000000000105",
+    eventName: "onboarding_model_setup_completed",
+    properties: baseProperties({
+      onboardingStep: "model_setup",
+      modelEngine: "apple_speech",
+      modelSizeBucket: "unknown",
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(json, { ok: true, accepted: 1 });
+  const payload = JSON.parse(db.statements[0].values.at(-1));
+  assert.equal(payload.properties.modelEngine, "apple_speech");
+});
+
 test("rejects onboardingStep values outside the coarse allowlist", async () => {
   const { response, json } = await postEvents({
     installId,
@@ -107,11 +125,13 @@ test("accepts paywall context on purchase events", async () => {
     eventName: "onboarding_purchase_finished",
     properties: baseProperties({
       onboardingStep: "unlock",
-      paywallContext: "settings",
+      paywallContext: "capture_limit",
       productId: "bontecou.Voxboard.unlock",
       purchaseOutcome: "succeeded",
       freeMinutesUsedBucket: "15_plus_min",
       freeMinutesRemainingBucket: "0",
+      freeCapturesUsedBucket: "10_plus",
+      freeCapturesRemainingBucket: "0",
     }),
   });
 
@@ -120,7 +140,9 @@ test("accepts paywall context on purchase events", async () => {
 
   const payload = JSON.parse(db.statements[0].values.at(-1));
   assert.equal(payload.eventName, "onboarding_purchase_finished");
-  assert.equal(payload.properties.paywallContext, "settings");
+  assert.equal(payload.properties.paywallContext, "capture_limit");
+  assert.equal(payload.properties.freeCapturesUsedBucket, "10_plus");
+  assert.equal(payload.properties.freeCapturesRemainingBucket, "0");
 });
 
 test("honors optional bearer token", async () => {

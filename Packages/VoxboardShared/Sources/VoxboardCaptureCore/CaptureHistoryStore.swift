@@ -67,6 +67,8 @@ public struct CaptureHistoryRecord: Identifiable, Codable, Equatable, Sendable {
     public var outcome: CaptureHistoryOutcome
     public var destinationID: UUID
     public var destinationName: String
+    public var voxID: String?
+    public var voxName: String?
     public var relativeNotePath: String?
     public var attachmentCount: Int
     public var failureCategory: CaptureHistoryFailureCategory?
@@ -98,6 +100,8 @@ public struct CaptureHistoryRecord: Identifiable, Codable, Equatable, Sendable {
         outcome: CaptureHistoryOutcome,
         destinationID: UUID,
         destinationName: String,
+        voxID: String? = nil,
+        voxName: String? = nil,
         relativeNotePath: String?,
         attachmentCount: Int,
         failureCategory: CaptureHistoryFailureCategory? = nil
@@ -111,6 +115,8 @@ public struct CaptureHistoryRecord: Identifiable, Codable, Equatable, Sendable {
         self.outcome = outcome
         self.destinationID = destinationID
         self.destinationName = destinationName
+        self.voxID = voxID
+        self.voxName = voxName
         self.relativeNotePath = relativeNotePath
         self.attachmentCount = attachmentCount
         self.failureCategory = failureCategory
@@ -125,6 +131,8 @@ public struct CaptureHistoryRecord: Identifiable, Codable, Equatable, Sendable {
         case outcome
         case destinationID
         case destinationName
+        case voxID
+        case voxName
         case relativeNotePath
         case attachmentCount
         case failureCategory
@@ -145,6 +153,8 @@ public struct CaptureHistoryRecord: Identifiable, Codable, Equatable, Sendable {
             outcome: container.decode(CaptureHistoryOutcome.self, forKey: .outcome),
             destinationID: container.decode(UUID.self, forKey: .destinationID),
             destinationName: container.decode(String.self, forKey: .destinationName),
+            voxID: container.decodeIfPresent(String.self, forKey: .voxID),
+            voxName: container.decodeIfPresent(String.self, forKey: .voxName),
             relativeNotePath: container.decodeIfPresent(String.self, forKey: .relativeNotePath),
             attachmentCount: container.decode(Int.self, forKey: .attachmentCount),
             failureCategory: container.decodeIfPresent(
@@ -168,6 +178,8 @@ public struct CaptureHistoryRecord: Identifiable, Codable, Equatable, Sendable {
         try container.encode(outcome, forKey: .outcome)
         try container.encode(destinationID, forKey: .destinationID)
         try container.encode(destinationName, forKey: .destinationName)
+        try container.encodeIfPresent(voxID, forKey: .voxID)
+        try container.encodeIfPresent(voxName, forKey: .voxName)
         try container.encodeIfPresent(relativeNotePath, forKey: .relativeNotePath)
         try container.encode(attachmentCount, forKey: .attachmentCount)
         try container.encodeIfPresent(failureCategory, forKey: .failureCategory)

@@ -19,4 +19,8 @@ final class WhisperModelInfoTests: XCTestCase {
     func test_parakeetCompleteness_requiresVocabularyFile() {
         XCTAssertEqual(ModelEngine.parakeetVocabularyFile, "parakeet_vocab.json")
     }
+
+    func test_allLocalModelsRequireExplicitDownload() {
+        XCTAssertTrue(WhisperModelInfo.availableModels.allSatisfy { !$0.isBundled })
+    }
 }

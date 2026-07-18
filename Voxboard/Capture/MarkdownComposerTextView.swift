@@ -13,10 +13,6 @@ final class MarkdownComposerController {
     var text: String { textView?.text ?? "" }
     var selection: NSRange { textView?.selectedRange ?? NSRange(location: 0, length: 0) }
 
-    func focus() {
-        textView?.becomeFirstResponder()
-    }
-
     func dismissKeyboard() {
         textView?.resignFirstResponder()
     }
@@ -65,6 +61,14 @@ final class MarkdownComposerController {
         publishText?(textView.text ?? "")
         publishSelection?(textView.selectedRange)
         publishFocus?(textView.isFirstResponder)
+    }
+
+    fileprivate func disconnect(_ textView: UITextView) {
+        guard self.textView === textView else { return }
+        self.textView = nil
+        publishText = nil
+        publishSelection = nil
+        publishFocus = nil
     }
 
     fileprivate static func clamped(_ range: NSRange, utf16Count: Int) -> NSRange {
@@ -122,10 +126,26 @@ struct MarkdownComposerTextView: UIViewRepresentable {
             textView.selectedRange = desired
         }
         if isFocused, !textView.isFirstResponder {
-            DispatchQueue.main.async { textView.becomeFirstResponder() }
+            // Focus is queued so UIKit sees an attached view. Re-check the binding
+            // because navigation can dismiss the composer before this block runs.
+            let coordinator = context.coordinator
+            DispatchQueue.main.async { [weak textView, weak coordinator] in
+                guard let textView,
+                      let coordinator,
+                      coordinator.parent.isFocused,
+                      textView.window != nil else { return }
+                textView.becomeFirstResponder()
+            }
         } else if !isFocused, textView.isFirstResponder {
             textView.resignFirstResponder()
         }
+    }
+
+    static func dismantleUIView(_ textView: UITextView, coordinator: Coordinator) {
+        if textView.isFirstResponder {
+            textView.resignFirstResponder()
+        }
+        coordinator.parent.controller.disconnect(textView)
     }
 
     private func connect(_ textView: UITextView, coordinator: Coordinator) {

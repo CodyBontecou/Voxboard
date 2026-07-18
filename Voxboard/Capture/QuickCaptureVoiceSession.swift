@@ -39,20 +39,27 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
 
     init(
         microphoneIsBusy: @escaping () -> Bool,
-        transcriptionService: OnDeviceTranscriptionService = OnDeviceTranscriptionService(),
+        transcriptionService: OnDeviceTranscriptionService? = nil,
         stageRecording: @escaping (URL, String?) async -> CaptureAssetReference? = { _, _ in nil },
         updateRecording: @escaping (CaptureAssetReference, String?) async -> Bool = { _, _ in false },
         removeRecording: @escaping (CaptureAssetReference) async -> Bool = { _ in true }
     ) {
         self.microphoneIsBusy = microphoneIsBusy
-        self.transcriptionService = transcriptionService
+        self.transcriptionService = transcriptionService ?? AppTranscriptionServices.shared
         self.stageRecording = stageRecording
         self.updateRecording = updateRecording
         self.removeRecording = removeRecording
         let selectedID = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-            ?? AppConstants.defaultModelName
-        self.generateTranscript = WhisperModelInfo.availableModels
-            .first(where: { $0.id == selectedID })?.isDownloaded == true
+            ?? AppConstants.defaultTranscriptionBackendID
+        if selectedID == TranscriptionBackendID.automatic {
+            // Automatic resolves availability asynchronously when recording opens.
+            // Start from the user's default intent to include a transcript, then
+            // disable it below only if no on-device backend is actually available.
+            self.generateTranscript = true
+        } else {
+            self.generateTranscript = WhisperModelInfo.availableModels
+                .first(where: { $0.id == selectedID })?.isDownloaded == true
+        }
         super.init()
     }
 
@@ -61,15 +68,35 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
         if let player { return player.duration }
         return elapsed
     }
-    var hasDownloadedModel: Bool {
+    var hasTranscriptionBackend: Bool {
         let selectedID = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-            ?? AppConstants.defaultModelName
+            ?? AppConstants.defaultTranscriptionBackendID
+        if selectedID == TranscriptionBackendID.automatic {
+            return AppConstants.sharedDefaults?.bool(forKey: AppConstants.automaticBackendReadyKey) == true
+                || WhisperModelInfo.availableModels.contains(where: { $0.isDownloaded })
+        }
         return WhisperModelInfo.availableModels.first(where: { $0.id == selectedID })?.isDownloaded == true
     }
 
     func start() async {
         cleanupPlayback()
         purgeStaleTemporaryAudio()
+
+        let selectedID = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+            ?? AppConstants.defaultTranscriptionBackendID
+        let selectedLanguage = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey) ?? "auto"
+        let backendReady = await transcriptionService.canTranscribe(
+            modelID: selectedID,
+            fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
+            language: selectedLanguage
+        )
+        if selectedID == TranscriptionBackendID.automatic {
+            AppConstants.sharedDefaults?.set(backendReady, forKey: AppConstants.automaticBackendReadyKey)
+        }
+        // Each voice note defaults to including a transcript whenever the selected
+        // on-device backend is ready. The recording-screen toggle remains a
+        // per-note override after recording starts.
+        generateTranscript = backendReady
         transcript = nil
         transcriptionMessage = nil
         stagedAsset = nil
@@ -78,7 +105,7 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
 
         guard !microphoneIsBusy() else {
             _ = lifecycle.fail(generation: generation, with: .microphoneBusy)
-            phase = .error(String(localized: "Stop Listen before starting a Capture voice recording."))
+            phase = .error(String(localized: "Stop keyboard listening or finish the current recording before adding a voice attachment."))
             return
         }
 
@@ -155,7 +182,7 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
             fileExists: temporaryAudioURL.map { FileManager.default.fileExists(atPath: $0.path) } == true,
             fileByteCount: audioFileByteCount,
             wantsTranscript: generateTranscript,
-            modelAvailable: hasDownloadedModel
+            modelAvailable: hasTranscriptionBackend
         )
         switch action {
         case .ignore:
@@ -166,15 +193,15 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
             return
         case .reviewAudio:
             guard await persistCurrentRecording(generation: generation) else { return }
-            if generateTranscript, !hasDownloadedModel {
-                transcriptionMessage = String(localized: "Download a model to generate a transcript. The audio is ready to insert.")
+            if generateTranscript, !hasTranscriptionBackend {
+                transcriptionMessage = String(localized: "Download the selected local model to generate a transcript. The audio is ready to add.")
             }
         case .transcribeAudio:
             guard await persistCurrentRecording(generation: generation),
                   let url = temporaryAudioURL else { return }
             phase = .transcribing
             let modelID = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-                ?? AppConstants.defaultModelName
+                ?? AppConstants.defaultTranscriptionBackendID
             let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
                 ?? "auto"
             let result: Result<String, Error>
@@ -244,9 +271,9 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
         }
     }
 
-    func markInsertedAndCleanup() {
+    func commitStagedRecordingAndCleanup() {
         // The durable draft now owns the staged asset. Only the disposable
-        // recorder working file should be removed when the user confirms.
+        // recorder working file should be removed when the recording is added.
         stagedAsset = nil
         cleanup(removeAudio: true)
         lifecycle.inserted()
@@ -267,7 +294,7 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
     func handleAppBackgrounding() async {
         guard let recorder, let generation = activeGeneration else { return }
         await finalizeInterruptedRecording(
-            message: String(localized: "Recording stopped when Vox.md left the foreground. The audio is ready to insert."),
+            message: String(localized: "Recording stopped when Vox.md left the foreground. The audio is ready to add."),
             expectedGeneration: generation,
             expectedRecorder: recorder
         )
@@ -312,7 +339,7 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
                   AVAudioSession.InterruptionType(rawValue: rawValue) == .began else { return }
             Task { @MainActor [weak self] in
                 await self?.finalizeInterruptedRecording(
-                    message: String(localized: "Recording stopped because another audio session needed the microphone. The audio is ready to insert."),
+                    message: String(localized: "Recording stopped because another audio session needed the microphone. The audio is ready to add."),
                     expectedGeneration: generation,
                     expectedRecorder: recorder
                 )
@@ -451,7 +478,7 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
             player.prepareToPlay()
             self.player = player
         } catch {
-            transcriptionMessage = String(localized: "Playback is unavailable, but the audio can still be inserted.")
+            transcriptionMessage = String(localized: "Playback is unavailable, but the audio can still be added.")
         }
     }
 

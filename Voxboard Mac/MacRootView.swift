@@ -105,7 +105,13 @@ private struct MacHomeView: View {
             }
         }
         .navigationTitle("Listen")
-        .onAppear { reloadFlows() }
+        .onAppear {
+            reloadFlows()
+            if recorder.needsUnlock {
+                recorder.needsUnlock = false
+                showPaywall = true
+            }
+        }
         .sheet(isPresented: $showPaywall) {
             MacPaywallView()
                 .environment(usageTracker)
@@ -170,14 +176,26 @@ private struct MacHomeView: View {
     private var usageMeter: some View {
         Button { showPaywall = true } label: {
             HStack(spacing: 10) {
-                Text(usageTracker.isAtLimit ? "LIMIT REACHED — UNLOCK" : String(format: "%.1f / 15 MIN FREE", usageTracker.minutesUsed))
+                Text(
+                    usageTracker.isAtLimit || usageTracker.isCaptureAtLimit
+                        ? "LIMIT REACHED — UNLOCK"
+                        : String(
+                            format: "%.1f / 15 MIN · %d / 10 CAPTURES",
+                            usageTracker.minutesUsed,
+                            usageTracker.successfulCapturesUsed
+                        )
+                )
                     .font(Geist.caption())
-                    .foregroundColor(usageTracker.isAtLimit ? Geist.error : Geist.muted)
+                    .foregroundColor(
+                        usageTracker.isAtLimit || usageTracker.isCaptureAtLimit ? Geist.error : Geist.muted
+                    )
                     .monospacedDigit()
-                ProgressView(value: usageTracker.fractionUsed)
+                ProgressView(value: max(usageTracker.fractionUsed, usageTracker.captureFractionUsed))
                     .progressViewStyle(.linear)
                     .frame(width: 120)
-                    .tint(usageTracker.isAtLimit ? Geist.error : Geist.text)
+                    .tint(
+                        usageTracker.isAtLimit || usageTracker.isCaptureAtLimit ? Geist.error : Geist.text
+                    )
             }
         }
         .buttonStyle(.plain)
@@ -526,7 +544,7 @@ private struct MacVoxSettingsView: View {
         HStack(spacing: 0) {
             VStack(spacing: 0) {
                 HStack {
-                    Text("YOUR VOX'S")
+                    Text("YOUR VOXES")
                         .font(Geist.label())
                         .foregroundColor(Geist.text)
                     Spacer()
@@ -586,8 +604,13 @@ private struct MacFlowEditor: View {
     @State private var frontmatterText: String
     @State private var isIconPickerPresented = false
     @State private var captureDestinations: [CaptureDestination] = []
+    @State private var captureEntryTemplates: [CaptureEntryTemplate] = []
     @State private var captureDestinationLoadError: String?
     @State private var isManagingCaptureDestinations = false
+    @AppStorage(
+        CaptureVoxProfileStore.selectedCaptureProfileIDKey,
+        store: AppConstants.sharedDefaults
+    ) private var selectedCaptureVoxID = ""
 
     init(flow: Binding<RecordingFlow>, onDelete: @escaping () -> Void) {
         self._flow = flow
@@ -620,9 +643,23 @@ private struct MacFlowEditor: View {
                 }
                 .buttonStyle(.plain)
                 Toggle("Enabled", isOn: $flow.isEnabled)
+                if selectedCaptureVoxID == flow.id {
+                    Label("Default for Capture", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                } else {
+                    Button("Use as Capture Default") {
+                        CaptureVoxProfileStore.selectCaptureProfile(
+                            id: flow.id,
+                            defaults: AppConstants.sharedDefaults
+                        )
+                        selectedCaptureVoxID = flow.id
+                    }
+                    .disabled(!flow.isEnabled)
+                }
             }
 
-            Section("Post-Processing") {
+            Section("Capture Processing") {
+                Toggle("Apply to Capture Text", isOn: $flow.captureProcessingEnabled)
                 Picker("Mode", selection: $flow.postProcessingMode) {
                     ForEach(RecordingFlowPostProcessingMode.allCases) { mode in
                         Text(mode.displayName).tag(mode)
@@ -632,6 +669,7 @@ private struct MacFlowEditor: View {
                     TextEditor(text: $flow.customPostProcessingInstruction)
                         .frame(minHeight: 90)
                 }
+                TextField("Empty Capture Prompt", text: $flow.capturePrompt)
                 Text(flow.postProcessingMode.helpText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -639,7 +677,7 @@ private struct MacFlowEditor: View {
 
             Section("Unified Capture Route") {
                 Picker("Markdown Route", selection: $flow.captureDestinationID) {
-                    Text("Legacy Vox Export").tag(Optional<UUID>.none)
+                    Text("App Default / Legacy Voice Export").tag(Optional<UUID>.none)
                     ForEach(captureDestinations) { destination in
                         Text(destination.name).tag(Optional(destination.id))
                     }
@@ -649,8 +687,19 @@ private struct MacFlowEditor: View {
                     Text("\(destination.rootName) · \(captureDestinationSummary(destination))")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    Picker("Default Placement", selection: capturePlacementBinding) {
+                        Text("Route Default").tag(MacVoxCapturePlacementChoice.routeDefault)
+                        Text("Top").tag(MacVoxCapturePlacementChoice.top)
+                        Text("Bottom").tag(MacVoxCapturePlacementChoice.bottom)
+                    }
+                    Picker("Default Entry Template", selection: $flow.captureEntryTemplateID) {
+                        Text("Route Default").tag(UUID?.none)
+                        ForEach(captureEntryTemplates) { template in
+                            Text(template.name).tag(Optional(template.id))
+                        }
+                    }
                 } else if flow.captureDestinationID != nil {
-                    Text("This destination is missing. Choose another route or use Legacy Vox Export.")
+                    Text("This destination is missing. Choose another route or use the app default.")
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
@@ -662,13 +711,13 @@ private struct MacFlowEditor: View {
                 Button("Manage Capture Routes…") {
                     isManagingCaptureDestinations = true
                 }
-                Text("Unified routes add rolling notes, prepend, heading insertion, conflict-safe writes, and durable retries on this Mac and iOS.")
+                Text("This route is inherited by typed, shared, scanned, file, and voice captures. One-capture overrides never mutate the Vox.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             if flow.captureDestinationID == nil {
-                Section("File Export") {
+                Section("Legacy Voice File Export") {
                 Toggle("Save Notes to Files", isOn: $flow.exportSettings.exportEnabled)
                     .onChange(of: flow.exportSettings.exportEnabled) { _, _ in markPerFlow() }
                 if flow.exportSettings.exportEnabled {
@@ -700,14 +749,24 @@ private struct MacFlowEditor: View {
                 }
             }
 
-            Section("Frontmatter") {
+            Section("Metadata") {
+                Picker("Scope", selection: $flow.metadataScope) {
+                    ForEach(CaptureVoxMetadataScope.allCases) { scope in
+                        Text(scope.displayName).tag(scope)
+                    }
+                }
+                Text(flow.metadataScope == .document
+                     ? "Use note frontmatter for one-note-per-capture routes."
+                     : "Use inline key:: value fields to keep rolling-note entries separate.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 TextEditor(text: $frontmatterText)
                     .font(.system(.body, design: .monospaced))
                     .frame(minHeight: 110)
                     .onChange(of: frontmatterText) { _, text in flow.staticFrontmatter = Self.parseFrontmatter(text) }
             }
 
-            Section("Audio Export") {
+            Section("Voice Audio") {
                 Picker("Save Audio", selection: $flow.audioSaveMode) {
                     ForEach(RecordingFlowAudioSaveMode.allCases) { mode in
                         Text(mode.displayName).tag(mode)
@@ -768,8 +827,31 @@ private struct MacFlowEditor: View {
         .onDisappear { flow.staticFrontmatter = Self.parseFrontmatter(frontmatterText) }
     }
 
+    private enum MacVoxCapturePlacementChoice: String, Hashable {
+        case routeDefault, top, bottom
+    }
+
     private enum BookmarkKind {
         case exportFolder, audioFolder, markdownTemplate
+    }
+
+    private var capturePlacementBinding: Binding<MacVoxCapturePlacementChoice> {
+        Binding(
+            get: {
+                switch flow.capturePlacementOverride {
+                case nil, .beneathHeading: return .routeDefault
+                case .prepend: return .top
+                case .append: return .bottom
+                }
+            },
+            set: { choice in
+                switch choice {
+                case .routeDefault: flow.capturePlacementOverride = nil
+                case .top: flow.capturePlacementOverride = .prepend
+                case .bottom: flow.capturePlacementOverride = .append
+                }
+            }
+        )
     }
 
     private func loadCaptureDestinations() async {
@@ -778,7 +860,17 @@ private struct MacFlowEditor: View {
             return
         }
         do {
-            captureDestinations = try await CaptureLibraryStore(fileURL: url).load().destinations
+            let store = CaptureLibraryStore(fileURL: url)
+            let library = try await store.load()
+            captureDestinations = library.destinations
+            captureEntryTemplates = library.entryTemplates
+            if !library.legacyFlowBindings.isEmpty {
+                _ = RecordingFlowStore.migrateLegacyCaptureBindings(library.legacyFlowBindings)
+                try await store.save(library)
+                if let refreshed = RecordingFlowStore.flow(id: flow.id) {
+                    flow = refreshed
+                }
+            }
             captureDestinationLoadError = nil
         } catch {
             captureDestinationLoadError = error.localizedDescription
@@ -1218,7 +1310,17 @@ private struct MacSettingsView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     sectionHeader("—", "Vox.md Unlimited")
-                    settingsRow(title: usageTracker.hasUnlocked ? "UNLIMITED UNLOCKED" : "UNLOCK UNLIMITED", detail: usageTracker.hasUnlocked ? "Lifetime access — no limits" : String(format: "%.1f / 15 min free used", usageTracker.minutesUsed), trailing: usageTracker.hasUnlocked ? "PURCHASED" : storeManager.displayPrice)
+                    settingsRow(
+                        title: usageTracker.hasUnlocked ? "UNLIMITED UNLOCKED" : "UNLOCK UNLIMITED",
+                        detail: usageTracker.hasUnlocked
+                            ? "Lifetime access — no limits"
+                            : String(
+                                format: "%.1f / 15 min · %d / 10 captures used",
+                                usageTracker.minutesUsed,
+                                usageTracker.successfulCapturesUsed
+                            ),
+                        trailing: usageTracker.hasUnlocked ? "PURCHASED" : storeManager.displayPrice
+                    )
                     if !usageTracker.hasUnlocked {
                         Button("View Upgrade Options") { showPaywall = true }
                             .buttonStyle(GeistButtonStyle(variant: .primary))
@@ -1582,11 +1684,20 @@ private struct MacPaywallView: View {
             Text("Vox.md Unlimited")
                 .font(Geist.heading(.title))
                 .foregroundColor(Geist.text)
-            Text("Unlock unlimited local transcription across Vox.md. No subscription, no server, no ads.")
+            Text("Unlock unlimited local Capture and private, on-device transcription across Vox.md. No subscription, no server, no ads.")
                 .font(Geist.body())
                 .foregroundColor(Geist.muted)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 420)
+            if !usageTracker.hasUnlocked {
+                Text(String(
+                    format: "%.1f / 15 min transcription · %d / 10 captures used",
+                    usageTracker.minutesUsed,
+                    usageTracker.successfulCapturesUsed
+                ))
+                    .font(Geist.mono(.footnote, medium: true))
+                    .foregroundColor(Geist.muted)
+            }
             if usageTracker.hasUnlocked {
                 Text("Unlimited Unlocked")
                     .font(Geist.label())
@@ -1654,15 +1765,15 @@ private extension RecordingFlowPostProcessingMode {
     var helpText: String {
         switch self {
         case .none:
-            return "Saves the recognized text exactly as transcribed and skips Apple Intelligence enrichment for this Vox."
+            return "Keeps typed Markdown, OCR, and voice text exactly as captured."
         case .clean:
-            return "Uses Apple Intelligence cleanup when available. Without enrichment, the transcript remains raw."
+            return "Improves casing and punctuation on device while preserving meaning and Markdown structure."
         case .todoList:
-            return "Turns spoken tasks into `- [ ]` Markdown checklist items without inventing new tasks."
+            return "Turns captured tasks into `- [ ]` Markdown checklist items without inventing new tasks."
         case .meetingNotes:
-            return "Builds Markdown meeting notes with useful sections and best-effort action items."
+            return "Builds grounded Markdown meeting notes from typed text, OCR, or voice."
         case .custom:
-            return "Follows your instruction when Apple Intelligence enrichment is available."
+            return "Follows your instruction on device for any Capture text when enabled."
         }
     }
 }

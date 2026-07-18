@@ -14,6 +14,54 @@ public enum CapturePipelineError: Error, Equatable, LocalizedError, Sendable {
     }
 }
 
+public enum CaptureDeliveryQuotaError: Error, Equatable, LocalizedError, Sendable {
+    case limitReached(limit: Int)
+
+    public var errorDescription: String? {
+        switch self {
+        case .limitReached(let limit):
+            return "You've used all \(limit) free captures. Unlock Vox.md Unlimited to keep capturing."
+        }
+    }
+}
+
+/// A durable claim on one free Capture delivery. Accounting implementations
+/// use request IDs for idempotency and tokens so one failed duplicate cannot
+/// release another caller's in-flight reservation.
+public enum CaptureDeliveryReservation: Equatable, Sendable {
+    case bypassed(requestID: UUID)
+    case alreadyCounted(requestID: UUID)
+    case reserved(requestID: UUID, token: UUID)
+
+    public var requestID: UUID {
+        switch self {
+        case .bypassed(let requestID),
+             .alreadyCounted(let requestID),
+             .reserved(let requestID, _):
+            return requestID
+        }
+    }
+}
+
+public protocol CaptureDeliveryAccounting: Sendable {
+    func reserve(for request: CaptureRequest) async throws -> CaptureDeliveryReservation
+    func commit(_ reservation: CaptureDeliveryReservation) async throws
+    func release(_ reservation: CaptureDeliveryReservation) async
+}
+
+/// Core and isolated tests remain unmetered unless a production accounting
+/// implementation is explicitly injected.
+public struct UnmeteredCaptureDeliveryAccounting: CaptureDeliveryAccounting {
+    public init() {}
+
+    public func reserve(for request: CaptureRequest) async throws -> CaptureDeliveryReservation {
+        .bypassed(requestID: request.id)
+    }
+
+    public func commit(_ reservation: CaptureDeliveryReservation) async throws {}
+    public func release(_ reservation: CaptureDeliveryReservation) async {}
+}
+
 public struct CaptureReceipt: Equatable, Sendable {
     public var requestID: UUID
     public var destinationID: UUID
@@ -47,6 +95,7 @@ public actor CapturePipeline {
     private let templateRenderer: CaptureEntryTemplateRenderer
     private let writer: any CaptureMutationWriting
     private let fileManager: FileManager
+    private let deliveryAccounting: any CaptureDeliveryAccounting
 
     public init(
         pathPlanner: CapturePathPlanner = CapturePathPlanner(),
@@ -54,7 +103,8 @@ public actor CapturePipeline {
         attachmentWriter: CaptureAttachmentWriter = CaptureAttachmentWriter(),
         templateRenderer: CaptureEntryTemplateRenderer? = nil,
         writer: any CaptureMutationWriting = CoordinatedCaptureWriter(),
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        deliveryAccounting: any CaptureDeliveryAccounting = UnmeteredCaptureDeliveryAccounting()
     ) {
         self.pathPlanner = pathPlanner
         self.renderer = renderer
@@ -62,6 +112,7 @@ public actor CapturePipeline {
         self.templateRenderer = templateRenderer ?? CaptureEntryTemplateRenderer(calendar: pathPlanner.calendar)
         self.writer = writer
         self.fileManager = fileManager
+        self.deliveryAccounting = deliveryAccounting
     }
 
     public func capture(
@@ -71,13 +122,49 @@ public actor CapturePipeline {
         assetRootURL: URL? = nil
     ) async throws -> CaptureReceipt {
         await CapturePipelineGate.shared.acquire()
+
+        let reservation: CaptureDeliveryReservation
         do {
-            let receipt = try await captureLocked(
+            reservation = try await deliveryAccounting.reserve(for: request)
+        } catch {
+            await CapturePipelineGate.shared.release()
+            throw error
+        }
+
+        if case .alreadyCounted(let requestID) = reservation {
+            // Accounting commits happen only after a verified destination
+            // write. A committed ID is therefore an idempotency receipt, not
+            // permission to mutate the destination again. This remains true
+            // even when user-facing HTML retry markers are disabled.
+            let receipt = alreadyCountedReceipt(
+                requestID: requestID,
+                request: request,
+                destination: destination,
+                rootURL: rootURL
+            )
+            await CapturePipelineGate.shared.release()
+            return receipt
+        }
+
+        let receipt: CaptureReceipt
+        do {
+            receipt = try await captureLocked(
                 request,
                 destination: destination,
                 rootURL: rootURL,
                 assetRootURL: assetRootURL
             )
+        } catch {
+            await deliveryAccounting.release(reservation)
+            await CapturePipelineGate.shared.release()
+            throw error
+        }
+
+        do {
+            // A verified destination write is the only success boundary. If
+            // final accounting fails, retain the reservation so a retry with
+            // the same stable request ID can finish without opening a slot.
+            try await deliveryAccounting.commit(reservation)
             await CapturePipelineGate.shared.release()
             return receipt
         } catch {
@@ -129,6 +216,7 @@ public actor CapturePipeline {
                 placement: effectiveDestination.placement,
                 entryPrefix: templateRenderer.render(effectiveDestination.entryPrefix, for: request),
                 entrySuffix: templateRenderer.render(effectiveDestination.entrySuffix, for: request),
+                frontmatter: request.voxProfile?.metadataScope == .entry ? [:] : request.frontmatter,
                 retryProtectionEnabled: effectiveDestination.retryProtectionEnabled,
                 destinationRootURL: rootURL,
                 relativeNotePath: relativeNotePath
@@ -145,6 +233,33 @@ public actor CapturePipeline {
             attachments.rollback(fileManager: fileManager)
             throw error
         }
+    }
+
+    private func alreadyCountedReceipt(
+        requestID: UUID,
+        request: CaptureRequest,
+        destination: CaptureDestination,
+        rootURL: URL
+    ) -> CaptureReceipt {
+        let relativePath = request.relativeNotePathOverride
+            ?? (try? pathPlanner.relativePath(for: request, destination: destination))
+        let noteURL = relativePath.flatMap {
+            try? containedNoteURL(relativePath: $0, root: rootURL)
+        } ?? rootURL
+        let byteCount = (try? Data(contentsOf: noteURL).count) ?? 0
+        let writeReceipt = CaptureWriteReceipt(
+            fileURL: noteURL,
+            requestID: requestID,
+            byteCount: byteCount,
+            wasAlreadyApplied: true
+        )
+        return CaptureReceipt(
+            requestID: requestID,
+            destinationID: destination.id,
+            noteURL: noteURL,
+            attachmentURLs: [],
+            writeReceipt: writeReceipt
+        )
     }
 
     private func availableNotePath(

@@ -1,20 +1,23 @@
 import Foundation
 
-/// Tracks cumulative transcription usage and purchase unlock state.
-/// Persisted in the shared App Group UserDefaults so both the main app
-/// and the keyboard extension can read it.
+/// Tracks the independent free transcription and successful-Capture meters,
+/// plus the shared lifetime purchase state. Transcription and UI mirrors live
+/// in App Group defaults; authoritative Capture accounting is coordinated by
+/// `CaptureDeliveryUsageStore` and backed by a Keychain high-water mark.
 @Observable
 public final class UsageTracker {
 
     // MARK: - Constants
 
     public static let freeMinutesLimit: Double = 15.0
+    public static let freeCaptureLimit: Int = 10
     private static let usageSecondsKey = "totalTranscriptionSeconds"
-    private static let hasUnlockedKey  = "hasUnlocked"
+    static let hasUnlockedKey = "hasUnlocked"
 
     // MARK: - Observable State
 
     public var totalSecondsUsed: Double = 0
+    public var successfulCapturesUsed: Int = 0
     public var hasUnlocked: Bool = false
 
     // MARK: - Derived
@@ -22,15 +25,26 @@ public final class UsageTracker {
     public var minutesUsed: Double { totalSecondsUsed / 60.0 }
     public var secondsRemaining: Double { max(0, Self.freeMinutesLimit * 60 - totalSecondsUsed) }
     public var minutesRemaining: Double { secondsRemaining / 60.0 }
+    public var capturesRemaining: Int { max(0, Self.freeCaptureLimit - successfulCapturesUsed) }
 
     /// True when the free tier is exhausted and the user hasn't purchased.
     public var isAtLimit: Bool {
         !hasUnlocked && totalSecondsUsed >= Self.freeMinutesLimit * 60
     }
 
-    /// 0…1 fraction of free tier consumed.
+    /// True when the free Capture allowance is exhausted and the user hasn't purchased.
+    public var isCaptureAtLimit: Bool {
+        !hasUnlocked && successfulCapturesUsed >= Self.freeCaptureLimit
+    }
+
+    /// 0…1 fraction of free transcription consumed.
     public var fractionUsed: Double {
         min(1.0, totalSecondsUsed / (Self.freeMinutesLimit * 60))
+    }
+
+    /// 0…1 fraction of free Capture deliveries consumed.
+    public var captureFractionUsed: Double {
+        min(1.0, Double(successfulCapturesUsed) / Double(Self.freeCaptureLimit))
     }
 
     // MARK: - Init
@@ -57,7 +71,14 @@ public final class UsageTracker {
     /// changes written by the keyboard extension).
     public func reload() {
         totalSecondsUsed = AppConstants.sharedDefaults?.double(forKey: Self.usageSecondsKey) ?? 0
-        hasUnlocked      = AppConstants.sharedDefaults?.bool(forKey: Self.hasUnlockedKey) ?? false
+        let mirroredCaptures = AppConstants.sharedDefaults?.integer(
+            forKey: AppConstants.captureUsageMirrorKey
+        ) ?? 0
+        successfulCapturesUsed = max(
+            mirroredCaptures,
+            CaptureDeliveryUsageStore.persistedHighWaterCount
+        )
+        hasUnlocked = AppConstants.sharedDefaults?.bool(forKey: Self.hasUnlockedKey) ?? false
     }
 
     // MARK: - Fast static check (no @Observable overhead)

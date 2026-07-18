@@ -3,8 +3,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 import VoxboardShared
 
-/// Manage v2md-style recording flows: named presets that control export,
-/// frontmatter, audio retention, and post-processing.
+/// Manage reusable Vox capture workflows across text, links, media, scans,
+/// files, and voice recordings.
 struct FlowSettingsView: View {
     @State private var flows: [RecordingFlow] = RecordingFlowStore.loadFlows()
 
@@ -27,8 +27,12 @@ struct FlowSettingsView: View {
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
-                            if flow.id == RecordingFlowStore.selectedFlowId() {
-                                Text("Selected")
+                            if flow.id == CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) {
+                                Text("Capture")
+                                    .font(.caption2.monospaced().weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                            } else if flow.id == RecordingFlowStore.selectedFlowId() {
+                                Text("Keyboard")
                                     .font(.caption2.monospaced().weight(.semibold))
                                     .foregroundStyle(.secondary)
                             }
@@ -45,7 +49,7 @@ struct FlowSettingsView: View {
             } header: {
                 Text("Your Voxes")
             } footer: {
-                Text("Tap a Vox to customize its frontmatter, note folder, audio export, and post-processing rules. Select the active Vox from the Listen screen dropdown before recording.")
+                Text("Tap a Vox to customize how every Capture is processed, formatted, and routed. Voice-only audio and legacy export options remain available inside each Vox.")
             }
 
             Section {
@@ -74,8 +78,8 @@ struct FlowSettingsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Label("What is a Vox?", systemImage: "waveform.circle")
                     .font(.headline)
-                Text("A Vox is a reusable voice workflow. Choose one before recording and Vox.md uses it to decide how the transcript is cleaned, what frontmatter is added, and where the note or audio is saved.")
-                Text("Create Voxes for meetings, journal entries, task capture, ideas, or any folder and template setup you use often.")
+                Text("A Vox is a reusable capture workflow. Choose one in Capture and Vox.md uses it for typed Markdown, links, photos, files, scans, sketches, and voice.")
+                Text("Create Voxes for meetings, journal entries, task capture, ideas, or any route and template setup you use often.")
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
@@ -85,8 +89,15 @@ struct FlowSettingsView: View {
 
     private func delete(_ flow: RecordingFlow) {
         flows.removeAll { $0.id == flow.id }
+        let fallbackID = flows.first?.id ?? RecordingFlowStore.generalId
         if RecordingFlowStore.selectedFlowId() == flow.id {
-            RecordingFlowStore.selectFlow(id: flows.first?.id ?? RecordingFlowStore.generalId)
+            RecordingFlowStore.selectFlow(id: fallbackID)
+        }
+        if CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) == flow.id {
+            CaptureVoxProfileStore.selectCaptureProfile(
+                id: fallbackID,
+                defaults: AppConstants.sharedDefaults
+            )
         }
     }
 }
@@ -97,7 +108,14 @@ private struct FlowEditorView: View {
     @State private var showBookmarkPicker = false
     @State private var bookmarkPickerKind: BookmarkKind = .exportFolder
     @State private var captureDestinations: [CaptureDestination] = []
+    @State private var captureEntryTemplates: [CaptureEntryTemplate] = []
     @State private var captureDestinationLoadError: String?
+
+    private enum VoxCapturePlacementChoice: String, Hashable {
+        case routeDefault
+        case top
+        case bottom
+    }
 
     private enum BookmarkKind {
         case exportFolder
@@ -154,16 +172,7 @@ private struct FlowEditorView: View {
         }
     }
 
-    private var showsFrontmatterSection: Bool {
-        if flow.captureDestinationID != nil { return true }
-        guard flow.exportSettings.exportEnabled else { return false }
-        switch flow.exportSettings.format {
-        case .md, .yaml:
-            return true
-        case .txt, .json:
-            return false
-        }
-    }
+    private var showsFrontmatterSection: Bool { true }
 
     private var identitySection: some View {
         Section("Identity") {
@@ -189,6 +198,9 @@ private struct FlowEditorView: View {
 
     private var postProcessingSection: some View {
         Section {
+            Toggle("Apply to Capture Text", isOn: $flow.captureProcessingEnabled)
+                .tint(Geist.muted)
+
             Picker("Mode", selection: $flow.postProcessingMode) {
                 ForEach(RecordingFlowPostProcessingMode.allCases) { mode in
                     Text(mode.displayName).tag(mode)
@@ -206,21 +218,27 @@ private struct FlowEditorView: View {
             if flow.postProcessingMode == .custom {
                 TextEditor(text: $flow.customPostProcessingInstruction)
                     .frame(minHeight: 90)
-                Text("Describe exactly how Vox.md should shape the cleaned/exported transcript. Leave blank to fall back to the normal cleanup path when AI enrichment is available.")
+                Text("Describe exactly how Vox.md should shape captured text. Leave blank to preserve the original when AI enrichment is unavailable.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+
+            TextField("Empty Capture Prompt", text: $flow.capturePrompt, axis: .vertical)
+                .lineLimit(2...4)
+            Text("Example: What do you want to remember?")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         } header: {
-            Text("Post-Processing")
+            Text("Capture Processing")
         } footer: {
-            Text("This per-Vox mode controls whether Apple Intelligence runs and how the cleaned copy is shaped. Keyboard insertion and the in-app Done screen still show the raw transcript immediately.")
+            Text("Voice runs always use the selected mode. Applying it to Capture Text is opt-in so existing typed Markdown is never rewritten unexpectedly. Processing runs on device and falls back to deterministic or original text.")
         }
     }
 
     private var preciseCaptureRoutingSection: some View {
         Section {
             Picker("Markdown Route", selection: $flow.captureDestinationID) {
-                Text("Legacy Vox Export").tag(Optional<UUID>.none)
+                Text("App Default / Legacy Voice Export").tag(Optional<UUID>.none)
                 ForEach(captureDestinations) { destination in
                     Text(destination.name).tag(Optional(destination.id))
                 }
@@ -233,8 +251,21 @@ private struct FlowEditorView: View {
                 Text(captureDestinationSummary(destination))
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                Picker("Default Placement", selection: capturePlacementBinding) {
+                    Text("Route Default").tag(VoxCapturePlacementChoice.routeDefault)
+                    Text("Top").tag(VoxCapturePlacementChoice.top)
+                    Text("Bottom").tag(VoxCapturePlacementChoice.bottom)
+                }
+
+                Picker("Default Entry Template", selection: $flow.captureEntryTemplateID) {
+                    Text("Route Default").tag(UUID?.none)
+                    ForEach(captureEntryTemplates) { template in
+                        Text(template.name).tag(Optional(template.id))
+                    }
+                }
             } else if flow.captureDestinationID != nil {
-                Text("This destination is missing. Choose another route or use Legacy Vox Export.")
+                Text("This destination is missing. Choose another route or use the app default.")
                     .font(.caption)
                     .foregroundStyle(.red)
             }
@@ -252,8 +283,18 @@ private struct FlowEditorView: View {
     }
 
     private var frontmatterSection: some View {
-        Section("Frontmatter") {
-            Text("One `key: value` per line. Example: `tags: [dream, voice]`.")
+        Section("Metadata") {
+            Picker("Scope", selection: $flow.metadataScope) {
+                ForEach(CaptureVoxMetadataScope.allCases) { scope in
+                    Text(scope.displayName).tag(scope)
+                }
+            }
+            Text(flow.metadataScope == .document
+                 ? "Note Frontmatter is best for one note per capture. On rolling notes, later captures may update the note-wide values."
+                 : "Inline Entry Fields writes queryable `key:: value` lines with each entry, keeping rolling-note metadata separate.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text("One `key: value` per line. Example: `tags: [journal, idea]`.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             TextEditor(text: $frontmatterText)
@@ -342,9 +383,9 @@ private struct FlowEditorView: View {
                 }
             }
         } header: {
-            Text("File Export")
+            Text("Legacy Voice File Export")
         } footer: {
-            Text("These settings apply only when this Vox is selected before recording. Choose a different export directory for each Vox to route notes into separate folders.")
+            Text("These compatibility settings apply to direct voice runs only when no unified Capture route is selected.")
         }
     }
 
@@ -414,7 +455,7 @@ private struct FlowEditorView: View {
                     .foregroundStyle(.secondary)
             }
         } header: {
-            Text("Audio Export")
+            Text("Voice Audio")
         } footer: {
             Text(audioExportFooterText)
         }
@@ -467,13 +508,34 @@ private struct FlowEditorView: View {
         }
     }
 
+    private var capturePlacementBinding: Binding<VoxCapturePlacementChoice> {
+        Binding(
+            get: {
+                switch flow.capturePlacementOverride {
+                case nil, .beneathHeading: return .routeDefault
+                case .prepend: return .top
+                case .append: return .bottom
+                }
+            },
+            set: { choice in
+                switch choice {
+                case .routeDefault: flow.capturePlacementOverride = nil
+                case .top: flow.capturePlacementOverride = .prepend
+                case .bottom: flow.capturePlacementOverride = .append
+                }
+            }
+        )
+    }
+
     private func loadCaptureDestinations() async {
         guard let url = AppConstants.captureLibraryURL else {
             captureDestinationLoadError = String(localized: "Shared capture storage is unavailable.")
             return
         }
         do {
-            captureDestinations = try await CaptureLibraryStore(fileURL: url).load().destinations
+            let library = try await CaptureLibraryStore(fileURL: url).load()
+            captureDestinations = library.destinations
+            captureEntryTemplates = library.entryTemplates
             captureDestinationLoadError = nil
         } catch {
             captureDestinationLoadError = error.localizedDescription
@@ -775,7 +837,7 @@ private extension RecordingFlowPostProcessingMode {
     var helpTitle: String {
         switch self {
         case .none:
-            return "Skips Vox-specific formatting"
+            return "Preserves captured text"
         case .clean:
             return "Cleans prose without changing intent"
         case .todoList:
@@ -790,15 +852,15 @@ private extension RecordingFlowPostProcessingMode {
     var helpText: String {
         switch self {
         case .none:
-            return "Saves the recognized text exactly as transcribed and skips Apple Intelligence enrichment for this Vox. No title, tags, category, or cleaned copy are generated unless provided by frontmatter/export settings."
+            return "Keeps typed Markdown, OCR, and voice text exactly as captured. Static frontmatter and route settings still apply."
         case .clean:
-            return "Uses the standard cleanup path when AI enrichment is available: fixes casing and punctuation, trims light filler words, and preserves the speaker's meaning. Without enrichment, the transcript remains raw."
+            return "Fixes casing and punctuation while preserving meaning and Markdown structure. Without on-device enrichment, the original text is retained."
         case .todoList:
-            return "Turns spoken tasks into `- [ ]` Markdown items. Vox.md reshapes only what you said and avoids inventing new tasks."
+            return "Turns captured tasks into `- [ ]` Markdown items without inventing new work. A deterministic local fallback is always available."
         case .meetingNotes:
-            return "Builds Markdown meeting notes with useful sections and best-effort action items. It keeps details grounded in the transcript and does not invent speakers or decisions."
+            return "Builds Markdown meeting notes with useful sections and grounded action items from typed text, OCR, or voice."
         case .custom:
-            return "When on-device AI enrichment is available, Vox.md follows your instruction for the cleaned/exported text. Use it for formats like standup notes, journal prompts, summaries, or call follow-ups."
+            return "When on-device AI is available, Vox.md follows your instruction for captured text. Use it for standups, journal prompts, summaries, or call follow-ups."
         }
     }
 }

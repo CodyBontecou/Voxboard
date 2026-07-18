@@ -124,7 +124,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
             fileName: "ggml-base.bin",
             sizeLabel: "142 MB",
             downloadURL: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin")!,
-            isBundled: true
+            isBundled: false
         ),
         WhisperModelInfo(
             id: "ggml-small",

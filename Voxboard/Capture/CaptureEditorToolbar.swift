@@ -25,64 +25,144 @@ struct CaptureEditorToolbar: View {
     var showDueDate: () -> Void
     var insertLocation: () -> Void
     var showSketch: () -> Void
+    var showCamera: () -> Void
+    var showPhotos: () -> Void
+    var showScreenshots: () -> Void
+    var showLinkPrompt: () -> Void
+    var showFiles: () -> Void
     var showScan: () -> Void
-    var dismissKeyboard: () -> Void
+    var isProcessingMedia: Bool
     var isFindingLocation: Bool
+
+    @State private var preferences = CaptureToolbarPreferences()
+    @State private var showsSettings = false
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 4) {
-                toolbarButton("Undo", icon: "arrow.uturn.backward") { command(.undo) }
-
-                Menu {
-                    Button("Bold") { command(.bold) }
-                    Button("Italic") { command(.italic) }
-                    Button("Hashtag") { command(.hashtag) }
-                    Divider()
-                    ForEach(1...6, id: \.self) { level in
-                        Button("Heading \(level)") { command(.heading(level)) }
-                    }
-                } label: {
-                    toolbarLabel("Format Markdown", icon: "textformat")
-                }
-
-                toolbarButton("Markdown link", icon: "link") { command(.markdownLink) }
-                toolbarButton("Set due date", icon: "alarm") { showDueDate() }
-                toolbarButton("Checklist", icon: "checkmark.square") { command(.checklist) }
-                toolbarButton("Bullet list", icon: "list.bullet") { command(.bulletList) }
-                toolbarButton("Paste", icon: "clipboard") { command(.paste) }
-                toolbarButton("Dismiss keyboard", icon: "keyboard.chevron.compact.down") { dismissKeyboard() }
-                toolbarButton("Internal link", textIcon: "[[") { command(.internalLink) }
-                toolbarButton("Sketch", icon: "pencil.tip") { showSketch() }
-                toolbarButton("Scan document", icon: "viewfinder") { showScan() }
-
-                Button(action: insertLocation) {
-                    toolbarLabel(
-                        "Insert current location",
-                        icon: isFindingLocation ? "location.fill" : "location"
-                    )
-                }
-                .disabled(isFindingLocation)
-
-                toolbarButton("Insert timestamp", icon: "clock") { command(.timestamp) }
-                toolbarButton("Insert date", icon: "calendar") { command(.date) }
-
-                Menu {
-                    Button("Lowercase") { command(.lowercase) }
-                    Button("Uppercase") { command(.uppercase) }
-                    Button("Sentence case") { command(.sentenceCase) }
-                    Button("Capitalize case") { command(.capitalizeWords) }
-                    Button("Slugify case") { command(.slugify) }
-                } label: {
-                    toolbarLabel("Change text case", textIcon: "Abc")
+                ForEach(preferences.visibleActions) { action in
+                    toolbarAction(action)
                 }
             }
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 4)
         }
-        .frame(minHeight: Geist.ControlHeight.large)
-        .background(Geist.Palette.background200)
-        .overlay(alignment: .top) { Rectangle().fill(Geist.border).frame(height: 1) }
+        .frame(height: 48)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
         .accessibilityLabel("Markdown and capture tools")
+        .sheet(isPresented: $showsSettings) {
+            CaptureToolbarSettingsView(preferences: preferences)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+    }
+
+    @ViewBuilder
+    private func toolbarAction(_ action: CaptureToolbarAction) -> some View {
+        switch action {
+        case .addMedia:
+            Menu {
+                Button(action: showSketch) {
+                    Label("Sketch", systemImage: "pencil.tip")
+                }
+                Button(action: showCamera) {
+                    Label("Camera", systemImage: "camera")
+                }
+                Button(action: showPhotos) {
+                    Label("Photo", systemImage: "photo")
+                }
+                Button(action: showScreenshots) {
+                    Label("Screenshot", systemImage: "rectangle.inset.filled.and.person.filled")
+                }
+                Divider()
+                Button(action: showLinkPrompt) {
+                    Label("Web Link", systemImage: "link")
+                }
+            } label: {
+                toolbarLabel(action.accessibilityLabel, icon: action.systemImage)
+            }
+            .disabled(isProcessingMedia)
+
+        case .addFiles:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage, action: showFiles)
+                .disabled(isProcessingMedia)
+
+        case .scanDocument:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage, action: showScan)
+                .disabled(isProcessingMedia)
+
+        case .undo:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage) { command(.undo) }
+
+        case .formatMarkdown:
+            Menu {
+                Button("Bold") { command(.bold) }
+                Button("Italic") { command(.italic) }
+                Button("Hashtag") { command(.hashtag) }
+                Divider()
+                ForEach(1...6, id: \.self) { level in
+                    Button("Heading \(level)") { command(.heading(level)) }
+                }
+            } label: {
+                toolbarLabel(action.accessibilityLabel, icon: action.systemImage)
+            }
+
+        case .markdownLink:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage) { command(.markdownLink) }
+
+        case .dueDate:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage, action: showDueDate)
+
+        case .checklist:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage) { command(.checklist) }
+
+        case .bulletList:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage) { command(.bulletList) }
+
+        case .paste:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage) { command(.paste) }
+
+        case .internalLink:
+            toolbarButton(action.accessibilityLabel, textIcon: action.textIcon) { command(.internalLink) }
+
+        case .sketch:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage, action: showSketch)
+
+        case .currentLocation:
+            Button(action: insertLocation) {
+                toolbarLabel(
+                    action.accessibilityLabel,
+                    icon: isFindingLocation ? "location.fill" : action.systemImage
+                )
+            }
+            .disabled(isFindingLocation)
+
+        case .timestamp:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage) { command(.timestamp) }
+
+        case .date:
+            toolbarButton(action.accessibilityLabel, icon: action.systemImage) { command(.date) }
+
+        case .captureBarSettings:
+            Button {
+                showsSettings = true
+            } label: {
+                toolbarLabel(action.accessibilityLabel, icon: action.systemImage)
+            }
+            .accessibilityIdentifier("capture_toolbar_settings")
+
+        case .textCase:
+            Menu {
+                Button("Lowercase") { command(.lowercase) }
+                Button("Uppercase") { command(.uppercase) }
+                Button("Sentence case") { command(.sentenceCase) }
+                Button("Capitalize case") { command(.capitalizeWords) }
+                Button("Slugify case") { command(.slugify) }
+            } label: {
+                toolbarLabel(action.accessibilityLabel, textIcon: action.textIcon)
+            }
+        }
     }
 
     private func toolbarButton(
@@ -112,9 +192,7 @@ struct CaptureEditorToolbar: View {
         }
         .foregroundStyle(Geist.text)
         .frame(width: 40, height: 40)
-        .background(Geist.Palette.background100)
-        .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
-        .contentShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
+        .contentShape(Rectangle())
         .accessibilityLabel(accessibilityLabel)
     }
 }

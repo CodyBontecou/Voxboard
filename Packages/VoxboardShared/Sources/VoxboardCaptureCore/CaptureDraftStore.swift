@@ -14,16 +14,31 @@ public enum CaptureDraftError: Error, Equatable, LocalizedError, Sendable {
     }
 }
 
+public enum CaptureDestinationSelectionMode: String, Codable, Sendable {
+    /// Resolve through the selected Vox and then the library default.
+    case inherited
+    /// Preserve the destination explicitly chosen for this draft.
+    case explicit
+}
+
 public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
     public var id: UUID
     public var requestID: UUID
     public var createdAt: Date
     public var updatedAt: Date
     public var text: String
+    /// The reusable capture workflow selected for this durable draft.
+    public var voxID: String?
+    /// `destinationID` is authoritative only for explicit selection. Inherited
+    /// drafts resolve Vox → library defaults at display and submission time.
+    public var destinationSelectionMode: CaptureDestinationSelectionMode
     public var destinationID: UUID?
     /// Entry-point provenance retained with the durable draft so history stays
     /// accurate even when the app is suspended before the user submits.
     public var captureSource: CaptureSource?
+    /// Set only after a successful transcription has already consumed the
+    /// independent minute allowance for this draft.
+    public var deliveryKind: CaptureDeliveryKind
     public var placementOverride: CapturePlacement?
     /// A capture-scoped existing Markdown note relative to the selected
     /// destination root. This never mutates the reusable destination.
@@ -37,8 +52,11 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         text: String = "",
+        voxID: String? = nil,
+        destinationSelectionMode: CaptureDestinationSelectionMode? = nil,
         destinationID: UUID? = nil,
         captureSource: CaptureSource? = nil,
+        deliveryKind: CaptureDeliveryKind = .standard,
         placementOverride: CapturePlacement? = nil,
         relativeNotePathOverride: String? = nil,
         entryTemplateID: UUID? = nil,
@@ -49,8 +67,12 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.text = text
+        self.voxID = voxID
+        self.destinationSelectionMode = destinationSelectionMode
+            ?? (destinationID == nil ? .inherited : .explicit)
         self.destinationID = destinationID
         self.captureSource = captureSource
+        self.deliveryKind = deliveryKind
         self.placementOverride = placementOverride
         self.relativeNotePathOverride = relativeNotePathOverride
         self.entryTemplateID = entryTemplateID
@@ -65,8 +87,23 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
     /// Changes the reusable destination without carrying an existing-note
     /// override across vault roots.
     public mutating func selectDestination(_ id: UUID) {
-        guard destinationID != id else { return }
+        guard destinationID != id || destinationSelectionMode != .explicit else { return }
+        destinationSelectionMode = .explicit
         destinationID = id
+        relativeNotePathOverride = nil
+    }
+
+    /// Selects a workflow and returns routing to that Vox's inherited defaults.
+    public mutating func selectVox(_ id: String) {
+        voxID = id
+        useInheritedDestination()
+        placementOverride = nil
+        entryTemplateID = nil
+    }
+
+    public mutating func useInheritedDestination() {
+        destinationSelectionMode = .inherited
+        destinationID = nil
         relativeNotePathOverride = nil
     }
 
@@ -97,8 +134,13 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
             createdAt: now,
             updatedAt: now,
             text: residualText,
+            voxID: voxID,
+            destinationSelectionMode: destinationSelectionMode,
             destinationID: destinationID,
             captureSource: captureSource,
+            // Concurrent residual edits become a new Capture. They must not
+            // inherit a voice exemption from the version already delivered.
+            deliveryKind: .standard,
             placementOverride: placementOverride,
             relativeNotePathOverride: relativeNotePathOverride,
             entryTemplateID: entryTemplateID,
@@ -106,20 +148,85 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         )
     }
 
-    public func makeRequest(source: CaptureSource) throws -> CaptureRequest {
-        guard let destinationID else { throw CaptureDraftError.destinationRequired }
+    public func makeRequest(
+        source: CaptureSource,
+        resolvedDestinationID: UUID? = nil,
+        voxProfile: CaptureVoxProfile? = nil
+    ) throws -> CaptureRequest {
+        guard let destinationID = resolvedDestinationID ?? destinationID else {
+            throw CaptureDraftError.destinationRequired
+        }
         var payloads: [CapturePayload] = []
         let boundaryTrimmedText = text.trimmingCharacters(in: .newlines)
         if !boundaryTrimmedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             payloads.append(.text(boundaryTrimmedText))
         }
         payloads.append(contentsOf: additionalPayloads)
+        let processingState: CaptureVoxProcessingState
+        if let voxProfile {
+            processingState = voxProfile.captureProcessingEnabled
+                && voxProfile.postProcessingMode != .none
+                && voxProfile.resolvedPostProcessingInstruction != nil
+                ? .pending
+                : .applied
+        } else {
+            processingState = .notRequested
+        }
         return CaptureRequest(
             id: requestID,
             createdAt: createdAt,
             source: captureSource ?? source,
+            deliveryKind: deliveryKind,
             destinationID: destinationID,
-            payloads: payloads
+            payloads: payloads,
+            frontmatter: voxProfile?.staticFrontmatter ?? [:],
+            voxProfile: voxProfile,
+            voxProcessingState: processingState,
+            originDraftUpdatedAt: updatedAt,
+            relativeNotePathOverride: relativeNotePathOverride,
+            placementOverride: placementOverride,
+            entryTemplateIDOverride: entryTemplateID
+        )
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case requestID
+        case createdAt
+        case updatedAt
+        case text
+        case voxID
+        case destinationSelectionMode
+        case destinationID
+        case captureSource
+        case deliveryKind
+        case placementOverride
+        case relativeNotePathOverride
+        case entryTemplateID
+        case additionalPayloads
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let decodedDestinationID = try container.decodeIfPresent(UUID.self, forKey: .destinationID)
+        self.init(
+            id: try container.decode(UUID.self, forKey: .id),
+            requestID: try container.decode(UUID.self, forKey: .requestID),
+            createdAt: try container.decode(Date.self, forKey: .createdAt),
+            updatedAt: try container.decode(Date.self, forKey: .updatedAt),
+            text: try container.decodeIfPresent(String.self, forKey: .text) ?? "",
+            voxID: try container.decodeIfPresent(String.self, forKey: .voxID),
+            destinationSelectionMode: try container.decodeIfPresent(
+                CaptureDestinationSelectionMode.self,
+                forKey: .destinationSelectionMode
+            ) ?? (decodedDestinationID == nil ? .inherited : .explicit),
+            destinationID: decodedDestinationID,
+            captureSource: try container.decodeIfPresent(CaptureSource.self, forKey: .captureSource),
+            deliveryKind: try container.decodeIfPresent(CaptureDeliveryKind.self, forKey: .deliveryKind) ?? .standard,
+            placementOverride: try container.decodeIfPresent(CapturePlacement.self, forKey: .placementOverride),
+            relativeNotePathOverride: try container.decodeIfPresent(String.self, forKey: .relativeNotePathOverride),
+            entryTemplateID: try container.decodeIfPresent(UUID.self, forKey: .entryTemplateID),
+            additionalPayloads: try container.decodeIfPresent([CapturePayload].self, forKey: .additionalPayloads) ?? []
         )
     }
 }
@@ -137,6 +244,10 @@ public actor CaptureDraftStore {
 
     private var stagingRootURL: URL {
         rootDirectoryURL.appendingPathComponent("staging", isDirectory: true)
+    }
+
+    private var preparedRequestsDirectoryURL: URL {
+        rootDirectoryURL.appendingPathComponent("prepared-requests", isDirectory: true)
     }
 
     private var corruptDraftsDirectoryURL: URL {
@@ -207,6 +318,7 @@ public actor CaptureDraftStore {
                 try fileManager.removeItem(at: coordinatedURL)
             }
         }
+        try? removePreparedRequest(draftID: draftID)
         let stagingURL = stagingDirectoryURL(for: draftID)
         if fileManager.fileExists(atPath: stagingURL.path) {
             // The capture and draft transition are already committed. Do not
@@ -233,8 +345,45 @@ public actor CaptureDraftStore {
         return result
     }
 
+    /// Persists the exact Vox-processed request before any destination write.
+    /// A failed delivery can therefore retry without rerunning AI or reading
+    /// changed Vox settings.
+    public func savePreparedRequest(_ request: CaptureRequest, draftID: UUID) throws {
+        let url = preparedRequestURL(for: draftID)
+        try coordinator.coordinateWriting(at: url) { coordinatedURL in
+            try fileManager.createDirectory(
+                at: coordinatedURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            try encoder.encode(request).write(to: coordinatedURL, options: .atomic)
+        }
+    }
+
+    public func loadPreparedRequest(draftID: UUID) throws -> CaptureRequest? {
+        let url = preparedRequestURL(for: draftID)
+        return try coordinator.coordinateWriting(at: url) { coordinatedURL in
+            guard fileManager.fileExists(atPath: coordinatedURL.path) else { return nil }
+            return try decoder.decode(CaptureRequest.self, from: Data(contentsOf: coordinatedURL))
+        }
+    }
+
+    public func removePreparedRequest(draftID: UUID) throws {
+        let url = preparedRequestURL(for: draftID)
+        try coordinator.coordinateWriting(at: url) { coordinatedURL in
+            if fileManager.fileExists(atPath: coordinatedURL.path) {
+                try fileManager.removeItem(at: coordinatedURL)
+            }
+        }
+    }
+
     public func stagingDirectoryURL(for draftID: UUID) -> URL {
         stagingRootURL.appendingPathComponent(draftID.uuidString.lowercased(), isDirectory: true)
+    }
+
+    private func preparedRequestURL(for draftID: UUID) -> URL {
+        preparedRequestsDirectoryURL
+            .appendingPathComponent(draftID.uuidString.lowercased())
+            .appendingPathExtension("json")
     }
 
     private func draftFileURL(for id: UUID) -> URL {

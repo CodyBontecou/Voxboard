@@ -3,25 +3,43 @@ import Foundation
 public struct OnboardingAnalyticsQuotaState: Equatable, Sendable {
     public let freeMinutesUsedBucket: OnboardingAnalyticsUsageBucket
     public let freeMinutesRemainingBucket: OnboardingAnalyticsUsageBucket
+    public let freeCapturesUsedBucket: OnboardingAnalyticsCaptureUsageBucket?
+    public let freeCapturesRemainingBucket: OnboardingAnalyticsCaptureUsageBucket?
 
     public init(
         freeMinutesUsedBucket: OnboardingAnalyticsUsageBucket,
-        freeMinutesRemainingBucket: OnboardingAnalyticsUsageBucket
+        freeMinutesRemainingBucket: OnboardingAnalyticsUsageBucket,
+        freeCapturesUsedBucket: OnboardingAnalyticsCaptureUsageBucket? = nil,
+        freeCapturesRemainingBucket: OnboardingAnalyticsCaptureUsageBucket? = nil
     ) {
         self.freeMinutesUsedBucket = freeMinutesUsedBucket
         self.freeMinutesRemainingBucket = freeMinutesRemainingBucket
+        self.freeCapturesUsedBucket = freeCapturesUsedBucket
+        self.freeCapturesRemainingBucket = freeCapturesRemainingBucket
     }
 
-    public init(totalSecondsUsed: Double, freeLimitSeconds: Double, hasUnlocked: Bool) {
+    public init(
+        totalSecondsUsed: Double,
+        freeLimitSeconds: Double,
+        successfulCapturesUsed: Int? = nil,
+        freeCaptureLimit: Int = UsageTracker.freeCaptureLimit,
+        hasUnlocked: Bool
+    ) {
         if hasUnlocked {
             self.freeMinutesUsedBucket = .unlimited
             self.freeMinutesRemainingBucket = .unlimited
+            self.freeCapturesUsedBucket = successfulCapturesUsed == nil ? nil : .unlimited
+            self.freeCapturesRemainingBucket = successfulCapturesUsed == nil ? nil : .unlimited
             return
         }
 
         self.freeMinutesUsedBucket = Self.bucket(forMinutes: totalSecondsUsed / 60.0)
         let remainingSeconds = max(0, freeLimitSeconds - totalSecondsUsed)
         self.freeMinutesRemainingBucket = Self.bucket(forMinutes: remainingSeconds / 60.0)
+        self.freeCapturesUsedBucket = successfulCapturesUsed.map { Self.bucket(forCaptures: $0) }
+        self.freeCapturesRemainingBucket = successfulCapturesUsed.map {
+            Self.bucket(forCaptures: max(0, freeCaptureLimit - $0))
+        }
     }
 
     public static func bucket(forMinutes minutes: Double) -> OnboardingAnalyticsUsageBucket {
@@ -36,6 +54,21 @@ public struct OnboardingAnalyticsQuotaState: Equatable, Sendable {
             return .fiveToFifteenMinutes
         default:
             return .fifteenPlusMinutes
+        }
+    }
+
+    public static func bucket(forCaptures count: Int) -> OnboardingAnalyticsCaptureUsageBucket {
+        switch max(0, count) {
+        case 0:
+            return .zero
+        case 1...3:
+            return .oneToThree
+        case 4...7:
+            return .fourToSeven
+        case 8...9:
+            return .eightToNine
+        default:
+            return .tenPlus
         }
     }
 }
@@ -136,6 +169,8 @@ public extension UsageTracker {
         OnboardingAnalyticsQuotaState(
             totalSecondsUsed: totalSecondsUsed,
             freeLimitSeconds: Self.freeMinutesLimit * 60.0,
+            successfulCapturesUsed: successfulCapturesUsed,
+            freeCaptureLimit: Self.freeCaptureLimit,
             hasUnlocked: hasUnlocked
         )
     }
@@ -354,6 +389,8 @@ public extension OnboardingAnalyticsClient {
             fileExportMode: fileExportMode,
             freeMinutesUsedBucket: quotaState?.freeMinutesUsedBucket,
             freeMinutesRemainingBucket: quotaState?.freeMinutesRemainingBucket,
+            freeCapturesUsedBucket: quotaState?.freeCapturesUsedBucket,
+            freeCapturesRemainingBucket: quotaState?.freeCapturesRemainingBucket,
             paywallContext: paywallContext,
             productId: productId,
             purchaseOutcome: purchaseOutcome,

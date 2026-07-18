@@ -68,10 +68,16 @@ public actor CaptureInbox {
         }
     }
 
-    public func claimNext() throws -> CaptureRequest? {
+    public func claimNext(excludingRequestIDs: Set<UUID> = []) throws -> CaptureRequest? {
         try coordinator.coordinateWriting(at: rootDirectoryURL) { _ in
             try ensureDirectories()
             for pendingURL in try itemURLs(in: .pending) {
+                let filenameID = UUID(
+                    uuidString: pendingURL.deletingPathExtension().lastPathComponent
+                )
+                if let filenameID, excludingRequestIDs.contains(filenameID) {
+                    continue
+                }
                 if let request = try claimPendingURL(pendingURL) { return request }
             }
             return nil
@@ -84,6 +90,20 @@ public actor CaptureInbox {
             let pendingURL = itemURL(for: requestID, state: .pending)
             guard fileManager.fileExists(atPath: pendingURL.path) else { return nil }
             return try claimPendingURL(pendingURL)
+        }
+    }
+
+    /// Atomically replaces a claimed request after Vox processing. The exact
+    /// processed payload is then reused by delivery retries instead of invoking
+    /// a potentially nondeterministic processor again.
+    public func replaceProcessingRequest(_ request: CaptureRequest) throws {
+        try coordinator.coordinateWriting(at: rootDirectoryURL) { _ in
+            try ensureDirectories()
+            let url = itemURL(for: request.id, state: .processing)
+            guard fileManager.fileExists(atPath: url.path) else {
+                throw CaptureInboxError.requestNotProcessing(request.id)
+            }
+            try encoder.encode(request).write(to: url, options: .atomic)
         }
     }
 
@@ -121,6 +141,13 @@ public actor CaptureInbox {
 
     public func fail(requestID: UUID) throws {
         try transition(requestID: requestID, from: .processing, to: .failed)
+    }
+
+    /// Returns a claimed request to the pending queue without classifying a
+    /// freemium quota block as a delivery failure. Its payload and stable
+    /// request ID remain available after purchase or restore.
+    public func returnToPending(requestID: UUID) throws {
+        try transition(requestID: requestID, from: .processing, to: .pending)
     }
 
     public func requestIDs(in state: CaptureInboxState) throws -> [UUID] {

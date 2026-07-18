@@ -131,6 +131,24 @@ app_source = (root / 'Voxboard/VoxboardApp.swift').read_text()
 if 'url.absoluteString' in app_source:
     errors.append('app URL handling can persist private deep-link query values')
 
+root_view_source = (root / 'Voxboard/Views/RootView.swift').read_text()
+if re.search(r'case[^\n]*\blisten\b', root_view_source) or 'case .listen:' in root_view_source:
+    errors.append('Listen must not remain a top-level app destination')
+for required in [
+    'case capture, model, vox, settings',
+    'persistentRecorder: persistentRecorder',
+    'pendingKeyboardLaunch: $pendingKeyboardLaunch',
+]:
+    if required not in root_view_source:
+        errors.append(f'inline Capture recording integration is missing {required}')
+if (root / 'Voxboard/Views/HomeView.swift').exists():
+    errors.append('the standalone Home/Listen recording view must be removed')
+if (root / 'Voxboard/Views/CaptureHistoryView.swift').exists():
+    errors.append('the separate Capture history view must be removed in favor of unified history')
+for required in ['case "listen":', 'selectedTab = .capture', 'pendingKeyboardLaunch = true']:
+    if required not in app_source:
+        errors.append(f'legacy recording launch routing is missing {required}')
+
 analytics_source = (
     root / 'Packages/VoxboardShared/Sources/VoxboardShared/Analytics/OnboardingAnalyticsClient.swift'
 ).read_text()
@@ -160,19 +178,42 @@ for required in [
     'reserveSharedItems(urls.count)',
     'matching: .screenshots',
     'CaptureRoutePickerView(viewModel: viewModel)',
-    'CaptureHistoryView(viewModel: viewModel)',
-    'QuickCaptureVoiceView(session: voiceSession)',
+    'HistoryView(viewModel: viewModel)',
     'locationRequestTask?.cancel()',
+    'voiceCaptureButton',
+    'voiceCaptureDetailsBar',
+    'Long-press for detailed recording controls.',
+    'capture_recording_details',
+    'capture_voice_recording',
+    'Add to Draft',
+    'Send Immediately',
+    'capture_vox_selector',
+    'Use Vox route defaults',
+    'Attach audio to Capture',
+    'capture_keyboard_listening',
+    'capture_audio_import',
+    'Watch Recordings',
 ]:
     if required not in quick_capture_source:
         errors.append(f'Quick Capture hardening is missing {required}')
+
+history_view_source = (root / 'Voxboard/Views/HistoryView.swift').read_text()
+for required in ['UnifiedHistoryItem', 'viewModel.historyRecords', 'Search history', 'viewModel.clearHistory()']:
+    if required not in history_view_source:
+        errors.append(f'unified Capture and transcript history is missing {required}')
 
 composer_source = (root / 'Voxboard/Capture/MarkdownComposerTextView.swift').read_text()
 for required in ['accessibilityLabel = String(localized: "Capture note")', 'quick_capture_text', 'selectedRange']:
     if required not in composer_source:
         errors.append(f'selection-aware Markdown composer is missing {required}')
 
-toolbar_source = (root / 'Voxboard/Capture/CaptureEditorToolbar.swift').read_text()
+toolbar_source = '\n'.join(
+    (root / path).read_text()
+    for path in [
+        'Voxboard/Capture/CaptureEditorToolbar.swift',
+        'Voxboard/Capture/CaptureToolbarPreferences.swift',
+    ]
+)
 for required in ['Set due date', 'Internal link', 'Insert current location', 'Change text case']:
     if required not in toolbar_source:
         errors.append(f'capture Markdown utility toolbar is missing {required}')
@@ -187,6 +228,15 @@ for forbidden in ['startUpdatingLocation()', 'startMonitoringSignificantLocation
     if forbidden in location_source:
         errors.append(f'one-shot location service must not call {forbidden}')
 
+persistent_recorder_source = (root / 'Voxboard/PersistentRecorder.swift').read_text()
+for required in [
+    'case captureDraft(attachAudio: Bool)',
+    'case runVox(flowID: String)',
+    'captureDraftEventHandler?(.audio',
+    'captureDraftEventHandler?(.transcript',
+]:
+    if required not in persistent_recorder_source:
+        errors.append(f'Capture recording completion routing is missing {required}')
 voice_session_source = (root / 'Voxboard/Capture/QuickCaptureVoiceSession.swift').read_text()
 for required in [
     'CaptureVoiceLifecycle()',
@@ -239,10 +289,18 @@ for required in [
     if required not in inbox_source:
         errors.append(f'completed inbox privacy hardening is missing {required}')
 
-if 'source=widget' not in capture_widget:
+if 'URLQueryItem(name: "source", value: "widget")' not in capture_widget:
     errors.append('Quick Capture widget does not retain widget provenance')
+if 'URLQueryItem(name: "vox", value: voxID)' not in capture_widget:
+    errors.append('Quick Capture widget does not retain its selected Vox context')
 quick_capture_model = (root / 'Voxboard/Capture/QuickCaptureViewModel.swift').read_text()
-for required in ['initialLoadTask', 'draft.selectDestination(destinationID)', 'requestCaptureSource']:
+for required in [
+    'initialLoadTask',
+    'draft.selectDestination(destinationID)',
+    'requestCaptureSource',
+    'appendRecordedTranscript',
+    'stageRecordedAudio',
+]:
     if required not in quick_capture_model:
         errors.append(f'Quick Capture cold-launch routing hardening is missing {required}')
 

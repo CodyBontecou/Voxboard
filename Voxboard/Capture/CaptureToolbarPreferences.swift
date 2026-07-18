@@ -1,0 +1,274 @@
+import Observation
+import SwiftUI
+
+enum CapturePreferenceKeys {
+    static let confirmVoiceNoteBeforeAdding = "capture.voice.confirmBeforeAdding.v1"
+}
+
+/// The quick actions users can place in the capture bar.
+enum CaptureToolbarAction: String, CaseIterable, Identifiable {
+    case addMedia
+    case addFiles
+    case scanDocument
+    case undo
+    case formatMarkdown
+    case markdownLink
+    case dueDate
+    case checklist
+    case bulletList
+    case paste
+    case internalLink
+    case sketch
+    case currentLocation
+    case timestamp
+    case date
+    case textCase
+    case captureBarSettings
+
+    var id: String { rawValue }
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .addMedia: "Add Media"
+        case .addFiles: "Add Files"
+        case .scanDocument: "Scan Document"
+        case .undo: "Undo"
+        case .formatMarkdown: "Format Markdown"
+        case .markdownLink: "Markdown Link"
+        case .dueDate: "Set Due Date"
+        case .checklist: "Checklist"
+        case .bulletList: "Bullet List"
+        case .paste: "Paste"
+        case .internalLink: "Internal Link"
+        case .sketch: "Sketch"
+        case .currentLocation: "Current Location"
+        case .timestamp: "Insert Timestamp"
+        case .date: "Insert Date"
+        case .textCase: "Change Text Case"
+        case .captureBarSettings: "Capture Settings"
+        }
+    }
+
+    var accessibilityLabel: String {
+        switch self {
+        case .addMedia: String(localized: "Add media")
+        case .addFiles: String(localized: "Add files")
+        case .scanDocument: String(localized: "Scan document")
+        case .undo: String(localized: "Undo")
+        case .formatMarkdown: String(localized: "Format Markdown")
+        case .markdownLink: String(localized: "Markdown link")
+        case .dueDate: String(localized: "Set due date")
+        case .checklist: String(localized: "Checklist")
+        case .bulletList: String(localized: "Bullet list")
+        case .paste: String(localized: "Paste")
+        case .internalLink: String(localized: "Internal link")
+        case .sketch: String(localized: "Sketch")
+        case .currentLocation: String(localized: "Insert current location")
+        case .timestamp: String(localized: "Insert timestamp")
+        case .date: String(localized: "Insert date")
+        case .textCase: String(localized: "Change text case")
+        case .captureBarSettings: String(localized: "Open capture settings")
+        }
+    }
+
+    var systemImage: String? {
+        switch self {
+        case .addMedia: "photo"
+        case .addFiles: "paperclip"
+        case .scanDocument: "doc.viewfinder"
+        case .undo: "arrow.uturn.backward"
+        case .formatMarkdown: "textformat"
+        case .markdownLink: "link"
+        case .dueDate: "alarm"
+        case .checklist: "checkmark.square"
+        case .bulletList: "list.bullet"
+        case .paste: "clipboard"
+        case .internalLink: nil
+        case .sketch: "pencil.tip"
+        case .currentLocation: "location"
+        case .timestamp: "clock"
+        case .date: "calendar"
+        case .textCase: nil
+        case .captureBarSettings: "gearshape"
+        }
+    }
+
+    var textIcon: String? {
+        switch self {
+        case .internalLink: "[["
+        case .textCase: "Abc"
+        default: nil
+        }
+    }
+}
+
+@MainActor
+@Observable
+final class CaptureToolbarPreferences {
+    private struct StoredConfiguration: Codable {
+        var order: [String]
+        var hidden: [String]
+    }
+
+    private static let storageKey = "capture.toolbar.configuration.v1"
+
+    private let defaults: UserDefaults
+    private(set) var orderedActions: [CaptureToolbarAction]
+    private(set) var hiddenActions: Set<CaptureToolbarAction>
+    private(set) var confirmsVoiceNotesBeforeAdding: Bool
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+
+        let stored = defaults.data(forKey: Self.storageKey)
+            .flatMap { try? JSONDecoder().decode(StoredConfiguration.self, from: $0) }
+
+        var seen = Set<CaptureToolbarAction>()
+        var order = stored?.order
+            .compactMap(CaptureToolbarAction.init(rawValue:))
+            .filter { seen.insert($0).inserted }
+            ?? []
+        order.append(contentsOf: CaptureToolbarAction.allCases.filter { !seen.contains($0) })
+
+        orderedActions = order
+        hiddenActions = Set(stored?.hidden.compactMap(CaptureToolbarAction.init(rawValue:)) ?? [])
+            .subtracting([.captureBarSettings])
+        confirmsVoiceNotesBeforeAdding = defaults.bool(forKey: CapturePreferenceKeys.confirmVoiceNoteBeforeAdding)
+        persist()
+    }
+
+    var visibleActions: [CaptureToolbarAction] {
+        orderedActions.filter { $0 == .captureBarSettings || !hiddenActions.contains($0) }
+    }
+
+    func isVisible(_ action: CaptureToolbarAction) -> Bool {
+        action == .captureBarSettings || !hiddenActions.contains(action)
+    }
+
+    func setVisible(_ isVisible: Bool, for action: CaptureToolbarAction) {
+        guard action != .captureBarSettings else { return }
+        if isVisible {
+            hiddenActions.remove(action)
+        } else {
+            hiddenActions.insert(action)
+        }
+        persist()
+    }
+
+    func moveActions(from source: IndexSet, to destination: Int) {
+        orderedActions.move(fromOffsets: source, toOffset: destination)
+        persist()
+    }
+
+    func setConfirmsVoiceNotesBeforeAdding(_ shouldConfirm: Bool) {
+        confirmsVoiceNotesBeforeAdding = shouldConfirm
+        defaults.set(shouldConfirm, forKey: CapturePreferenceKeys.confirmVoiceNoteBeforeAdding)
+    }
+
+    func reset() {
+        orderedActions = CaptureToolbarAction.allCases
+        hiddenActions = []
+        persist()
+    }
+
+    private func persist() {
+        let configuration = StoredConfiguration(
+            order: orderedActions.map(\.rawValue),
+            hidden: hiddenActions.map(\.rawValue).sorted()
+        )
+        guard let data = try? JSONEncoder().encode(configuration) else { return }
+        defaults.set(data, forKey: Self.storageKey)
+    }
+}
+
+struct CaptureToolbarSettingsView: View {
+    @Bindable var preferences: CaptureToolbarPreferences
+    @Environment(\.dismiss) private var dismiss
+    @State private var editMode: EditMode = .active
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(preferences.orderedActions) { action in
+                        HStack(spacing: Geist.Spacing.three) {
+                            actionIcon(action)
+                                .frame(width: 24)
+                            Text(action.title)
+
+                            if action == .captureBarSettings {
+                                Spacer()
+                                Text("Always shown")
+                                    .font(Geist.caption(.caption2))
+                                    .foregroundStyle(Geist.faint)
+                            } else {
+                                Spacer()
+                                Toggle("", isOn: visibilityBinding(for: action))
+                                    .labelsHidden()
+                                    .tint(Geist.Palette.gray1000)
+                            }
+                        }
+                    }
+                    .onMove(perform: preferences.moveActions)
+                } header: {
+                    Text("Quick Actions")
+                } footer: {
+                    Text("Drag actions into the order you want. Turn off actions you do not want on the capture bar. You can always return here with the settings button.")
+                }
+
+                Section {
+                    Toggle(
+                        "Review Before Adding",
+                        isOn: voiceConfirmationBinding
+                    )
+                    .tint(Geist.Palette.gray1000)
+                    .accessibilityIdentifier("capture_voice_review_before_adding")
+                } header: {
+                    Text("Voice Notes")
+                } footer: {
+                    Text("Off by default. After you tap Done, Vox.md adds the recording and, when available, its on-device transcript to the current draft automatically. Turn this on to play, retry, copy, or review them before adding.")
+                }
+
+                Section {
+                    Button("Reset Quick Actions", role: .destructive) {
+                        preferences.reset()
+                    }
+                }
+            }
+            .navigationTitle("Capture Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .environment(\.editMode, $editMode)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func visibilityBinding(for action: CaptureToolbarAction) -> Binding<Bool> {
+        Binding(
+            get: { preferences.isVisible(action) },
+            set: { preferences.setVisible($0, for: action) }
+        )
+    }
+
+    private var voiceConfirmationBinding: Binding<Bool> {
+        Binding(
+            get: { preferences.confirmsVoiceNotesBeforeAdding },
+            set: { preferences.setConfirmsVoiceNotesBeforeAdding($0) }
+        )
+    }
+
+    @ViewBuilder
+    private func actionIcon(_ action: CaptureToolbarAction) -> some View {
+        if let systemImage = action.systemImage {
+            Image(systemName: systemImage)
+                .foregroundStyle(Geist.text)
+        } else {
+            Text(action.textIcon ?? "")
+                .font(Geist.mono(.footnote, medium: true))
+                .foregroundStyle(Geist.text)
+        }
+    }
+}

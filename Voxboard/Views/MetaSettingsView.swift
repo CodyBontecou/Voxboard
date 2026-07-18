@@ -117,7 +117,11 @@ struct MetaSettingsView: View {
                             Text("Unlock Unlimited")
                                 .font(Geist.label())
                                 .foregroundColor(Geist.text)
-                            Text(String(format: String(localized: "%.1f / 15 min free used"), usageTracker.minutesUsed))
+                            Text(String(
+                                format: String(localized: "%.1f / 15 min · %d / 10 captures used"),
+                                usageTracker.minutesUsed,
+                                usageTracker.successfulCapturesUsed
+                            ))
                                 .font(Geist.caption())
                                 .foregroundColor(Geist.muted)
                         }
@@ -247,8 +251,9 @@ struct MetaSettingsView: View {
             GeistDivider()
 
             var rows: [(String, String)] = [
-                ("Whisper engine", "whisper.cpp"),
-                ("Parakeet engine", "FluidAudio (CoreML)"),
+                ("Default transcription", "Apple Speech when available"),
+                ("Optional Whisper engine", "whisper.cpp"),
+                ("Optional Parakeet engine", "FluidAudio (CoreML)"),
                 ("Processing", "On-device"),
                 ("Privacy", "Voice/text stay local"),
                 ("Version", appVersionString),

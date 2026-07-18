@@ -12,13 +12,13 @@ public enum TranscriptCaptureAdapter {
             mode: .append,
             mdObsidianEnabled: true,
             enrichmentOptions: .default,
-            staticFrontmatter: flow.staticFrontmatter
+            staticFrontmatter: [:]
         )
         let markdown = try TranscriptFileExporter.exportKitRenderedContent(
             transcript,
             configuration: configuration
         )
-        var payloads: [CapturePayload] = [.text(markdown)]
+        var payloads: [CapturePayload] = [.text(removingLeadingFrontmatter(from: markdown))]
         if let audioAsset, flow.audioSaveMode != .off {
             let embedPlacement: CaptureAudioEmbedPlacement
             if !flow.exportSettings.embedAudioInMarkdown {
@@ -30,6 +30,40 @@ public enum TranscriptCaptureAdapter {
         }
         return payloads
     }
+
+    public static func frontmatter(
+        transcript: Transcript,
+        flow: RecordingFlow
+    ) -> [String: String] {
+        var metadata = flow.staticFrontmatter
+        if let title = transcript.title?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !title.isEmpty {
+            metadata["title"] = title
+        }
+        if let tags = transcript.tags, !tags.isEmpty {
+            metadata["tags"] = "[" + tags.joined(separator: ", ") + "]"
+        }
+        if let category = transcript.category?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !category.isEmpty,
+           metadata["category"] == nil,
+           metadata["type"] == nil {
+            metadata["category"] = category
+        }
+        return metadata
+    }
+
+    private static func removingLeadingFrontmatter(from markdown: String) -> String {
+        let normalized = markdown.replacingOccurrences(of: "\r\n", with: "\n")
+        let lines = normalized.components(separatedBy: "\n")
+        guard lines.first == "---",
+              let closing = lines.indices.dropFirst().first(where: { lines[$0] == "---" }) else {
+            return markdown
+        }
+        guard closing + 1 < lines.count else { return "" }
+        return lines[(closing + 1)...]
+            .joined(separator: "\n")
+            .trimmingCharacters(in: .newlines)
+    }
 }
 
 /// Routes a voice transcript through the same precise, coordinated Markdown
@@ -39,7 +73,7 @@ public struct TranscriptCaptureDestinationExporter {
     private let fileManager: FileManager
 
     public init(
-        pipeline: CapturePipeline = .shared,
+        pipeline: CapturePipeline = AppCapturePipeline.shared,
         fileManager: FileManager = .default
     ) {
         self.pipeline = pipeline
@@ -74,7 +108,10 @@ public struct TranscriptCaptureDestinationExporter {
                 transcript: transcript,
                 flow: flow,
                 audioAsset: audioAsset
-            )
+            ),
+            frontmatter: TranscriptCaptureAdapter.frontmatter(transcript: transcript, flow: flow),
+            voxProfile: flow.captureProfile,
+            voxProcessingState: .applied
         )
         return try await pipeline.capture(
             request,
@@ -89,6 +126,9 @@ public struct TranscriptCaptureDestinationExporter {
         for flow: RecordingFlow
     ) -> CaptureDestination {
         var routed = destination
+        if let placement = flow.capturePlacementOverride {
+            routed.placement = placement
+        }
         if let override = attachmentFolderOverride(for: flow) {
             routed.attachmentsFolderName = override
         }
@@ -144,13 +184,42 @@ public enum ConfiguredTranscriptCaptureError: Error, LocalizedError, Sendable {
 }
 
 public enum ConfiguredTranscriptCaptureDestinationExporter {
+    /// Resolves a direct voice run through the same route precedence as every
+    /// other capture. Legacy voice export remains the fallback when no Capture
+    /// destination has been configured yet.
+    public static func resolvedDestinationID(
+        flow: RecordingFlow,
+        captureRootURL: URL? = AppConstants.captureDirectoryURL
+    ) async -> UUID? {
+        guard let captureRootURL else { return nil }
+        let store = CaptureLibraryStore(
+            fileURL: captureRootURL.appendingPathComponent(CaptureLibraryStore.defaultFilename)
+        )
+        guard let library = try? await store.load() else { return nil }
+        if !library.legacyFlowBindings.isEmpty {
+            RecordingFlowStore.migrateLegacyCaptureBindings(library.legacyFlowBindings)
+            try? await store.save(library)
+        }
+        var profile = flow.captureProfile
+        if profile.captureDestinationID == nil {
+            profile.captureDestinationID = library.legacyFlowBindings[flow.id]
+        }
+        return CaptureVoxRouteResolver.destinationID(
+            selectionMode: .inherited,
+            explicitDestinationID: nil,
+            profile: profile,
+            destinations: library.destinations,
+            libraryDefaultDestinationID: library.defaultDestinationID
+        )
+    }
+
     public static func export(
         transcript: Transcript,
         flow: RecordingFlow,
         destinationID: UUID,
         audioSourceURL: URL?,
         captureRootURL: URL? = AppConstants.captureDirectoryURL,
-        pipeline: CapturePipeline = .shared,
+        pipeline: CapturePipeline = AppCapturePipeline.shared,
         fileManager: FileManager = .default
     ) async throws -> CaptureReceipt {
         guard let captureRootURL else { throw ConfiguredTranscriptCaptureError.storageUnavailable }
@@ -204,6 +273,9 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
             source: .voice,
             destinationID: destinationID,
             payloads: payloads,
+            frontmatter: TranscriptCaptureAdapter.frontmatter(transcript: transcript, flow: flow),
+            voxProfile: flow.captureProfile,
+            voxProcessingState: .applied,
             attachmentsFolderNameOverride: TranscriptCaptureDestinationExporter
                 .attachmentFolderOverride(for: flow)
         )
@@ -236,7 +308,13 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
             guard let storedDestination = library.destinations.first(where: { $0.id == destinationID }) else {
                 throw ConfiguredTranscriptCaptureError.destinationMissing(destinationID)
             }
-            let destination = library.resolvedDestination(storedDestination)
+            var destination = library.resolvedDestination(
+                storedDestination,
+                overrideEntryTemplateID: flow.captureEntryTemplateID
+            )
+            if let placement = flow.capturePlacementOverride {
+                destination.placement = placement
+            }
             destinationName = destination.name
 
             var isStale = false
@@ -267,6 +345,8 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
                 outcome: .delivered,
                 destinationID: request.destinationID,
                 destinationName: destinationName,
+                voxID: request.voxReference?.id,
+                voxName: request.voxReference?.name,
                 relativeNotePath: CaptureHistoryRecord.relativeNotePath(
                     noteURL: receipt.noteURL,
                     rootURL: destinationRootURL
@@ -289,6 +369,8 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
                 outcome: .failed,
                 destinationID: request.destinationID,
                 destinationName: destinationName,
+                voxID: request.voxReference?.id,
+                voxName: request.voxReference?.name,
                 relativeNotePath: nil,
                 attachmentCount: historyAttachmentCount(in: request),
                 failureCategory: historyFailureCategory(for: error)

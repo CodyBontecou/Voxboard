@@ -15,6 +15,7 @@ public struct CaptureDeepLinkDraft: Equatable, Sendable {
     public var text: String?
     public var url: URL?
     public var destinationID: UUID?
+    public var voxID: String?
     public var requestedInput: CaptureRequestedInput?
     public var source: CaptureSource?
 
@@ -22,12 +23,14 @@ public struct CaptureDeepLinkDraft: Equatable, Sendable {
         text: String? = nil,
         url: URL? = nil,
         destinationID: UUID? = nil,
+        voxID: String? = nil,
         requestedInput: CaptureRequestedInput? = nil,
         source: CaptureSource? = nil
     ) {
         self.text = text
         self.url = url
         self.destinationID = destinationID
+        self.voxID = voxID
         self.requestedInput = requestedInput
         self.source = source
     }
@@ -44,6 +47,7 @@ public enum CaptureDeepLinkError: Error, Equatable, LocalizedError, Sendable {
     case forbiddenParameter(String)
     case duplicateParameter(String)
     case invalidDestination
+    case invalidVox
     case invalidURL
     case invalidRequestID
     case invalidAction
@@ -57,6 +61,7 @@ public enum CaptureDeepLinkError: Error, Equatable, LocalizedError, Sendable {
         case .forbiddenParameter(let name): return "The capture link contains a forbidden parameter: \(name)"
         case .duplicateParameter(let name): return "The capture link repeats a parameter: \(name)"
         case .invalidDestination: return "The capture destination identifier is invalid."
+        case .invalidVox: return "The capture Vox identifier is invalid."
         case .invalidURL: return "Only HTTP and HTTPS links can be captured."
         case .invalidRequestID: return "The capture inbox request identifier is invalid."
         case .invalidAction: return "The requested capture input is not supported."
@@ -68,7 +73,7 @@ public enum CaptureDeepLinkError: Error, Equatable, LocalizedError, Sendable {
 
 public struct CaptureDeepLinkParser: Sendable {
     public static let maximumTextLength = CaptureInputLimits.maximumTextCharacters
-    private static let allowedComposerParameters: Set<String> = ["text", "url", "destination", "action", "source"]
+    private static let allowedComposerParameters: Set<String> = ["text", "url", "destination", "vox", "action", "source"]
 
     public init() {}
 
@@ -108,6 +113,16 @@ public struct CaptureDeepLinkParser: Sendable {
             } else {
                 destinationID = nil
             }
+            let voxID: String?
+            if let rawVox = value(named: "vox", in: items) {
+                let trimmed = rawVox.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !trimmed.isEmpty, trimmed.count <= 160 else {
+                    throw CaptureDeepLinkError.invalidVox
+                }
+                voxID = trimmed
+            } else {
+                voxID = nil
+            }
             let requestedInput: CaptureRequestedInput?
             if let rawAction = value(named: "action", in: items) {
                 guard let input = CaptureRequestedInput(rawValue: rawAction) else {
@@ -131,6 +146,7 @@ public struct CaptureDeepLinkParser: Sendable {
                     text: text,
                     url: capturedURL,
                     destinationID: destinationID,
+                    voxID: voxID,
                     requestedInput: requestedInput,
                     source: source
                 )

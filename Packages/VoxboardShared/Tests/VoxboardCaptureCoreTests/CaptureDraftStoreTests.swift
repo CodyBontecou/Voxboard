@@ -15,6 +15,7 @@ final class CaptureDraftStoreTests: XCTestCase {
             requestID: UUID(uuidString: "99999999-8888-7777-6666-555555555555")!,
             text: "Durable thought",
             destinationID: destinationID,
+            deliveryKind: .meteredVoiceTranscript,
             placementOverride: .prepend
         )
 
@@ -195,6 +196,7 @@ final class CaptureDraftStoreTests: XCTestCase {
             requestID: UUID(),
             text: "Original",
             destinationID: destinationID,
+            deliveryKind: .meteredVoiceTranscript,
             additionalPayloads: [.url(URL(string: "https://example.com/first")!, title: nil)]
         )
         var edited = submitted
@@ -213,6 +215,7 @@ final class CaptureDraftStoreTests: XCTestCase {
             [.url(URL(string: "https://example.com/second")!, title: nil)]
         )
         XCTAssertEqual(rebased.createdAt, Date(timeIntervalSince1970: 500))
+        XCTAssertEqual(rebased.deliveryKind, .standard)
     }
 
     func test_rebasedDraftPreservesRewrittenTextRatherThanLosingIt() {
@@ -273,6 +276,33 @@ final class CaptureDraftStoreTests: XCTestCase {
 
         let drafts = try await firstStore.loadAll()
         XCTAssertEqual(Set(drafts.map(\.id)), Set([first.id, second.id]))
+    }
+
+    func test_preparedRequestPersistsSeparatelyAndIsRemovedWithCompletedDraft() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        let draft = CaptureDraft(text: "Raw", destinationID: UUID())
+        let prepared = CaptureRequest(
+            id: draft.requestID,
+            source: .app,
+            destinationID: draft.destinationID!,
+            payloads: [.text("Processed once")],
+            voxProcessingState: .applied,
+            originDraftUpdatedAt: draft.updatedAt
+        )
+        try await store.save(draft)
+        try await store.savePreparedRequest(prepared, draftID: draft.id)
+
+        let loadedPrepared = try await store.loadPreparedRequest(draftID: draft.id)
+        XCTAssertEqual(loadedPrepared, prepared)
+
+        try await store.complete(draftID: draft.id)
+        let removedPrepared = try await store.loadPreparedRequest(draftID: draft.id)
+        XCTAssertNil(removedPrepared)
     }
 
     private func temporaryFolder() throws -> URL {

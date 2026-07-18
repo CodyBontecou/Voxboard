@@ -2,7 +2,7 @@ import XCTest
 @testable import VoxboardShared
 
 final class TranscriptCaptureDestinationExporterTests: XCTestCase {
-    func test_adapterRendersEnrichedTranscriptAndFlowFrontmatterAsMarkdownPayload() throws {
+    func test_adapterRendersEnrichedTranscriptBodyWithoutDuplicatingStructuredVoxFrontmatter() throws {
         var flow = RecordingFlowStore.makeCustomFlow()
         flow.staticFrontmatter = ["type": "meeting", "project": "vox"]
         let transcript = Transcript(
@@ -26,11 +26,20 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             return XCTFail("Expected Markdown text payload")
         }
 
-        XCTAssertTrue(markdown.hasPrefix("---\n"))
-        XCTAssertTrue(markdown.contains("type: \"meeting\""))
-        XCTAssertTrue(markdown.contains("project: \"vox\""))
+        XCTAssertFalse(markdown.hasPrefix("---\n"))
+        XCTAssertFalse(markdown.contains("type: \"meeting\""))
+        XCTAssertFalse(markdown.contains("project: \"vox\""))
         XCTAssertTrue(markdown.contains("Clean meeting notes"))
         XCTAssertFalse(markdown.contains("raw words"))
+        XCTAssertEqual(
+            TranscriptCaptureAdapter.frontmatter(transcript: transcript, flow: flow),
+            [
+                "type": "meeting",
+                "project": "vox",
+                "title": "Planning",
+                "tags": "[meeting, vox]",
+            ]
+        )
     }
 
     func test_exportUsesDestinationPlacementAndCopiesRetainedAudio() async throws {
@@ -150,6 +159,63 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         let markdown = try String(contentsOf: root.appendingPathComponent("Inbox.md"), encoding: .utf8)
         XCTAssertTrue(markdown.hasPrefix("---\n"))
         XCTAssertLessThan(try index(of: "---\n\n![[audio/top.wav]]", in: markdown), try index(of: "Spoken body", in: markdown))
+    }
+
+    func test_directVoiceRunInheritsLibraryDefaultWhenVoxHasNoRoute() async throws {
+        let captureRoot = try temporaryFolder(named: "voice-default-route")
+        defer { try? FileManager.default.removeItem(at: captureRoot) }
+        let destination = CaptureDestination(
+            name: "Default",
+            rootBookmark: Data(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md")
+        )
+        try await CaptureLibraryStore(
+            fileURL: captureRoot.appendingPathComponent(CaptureLibraryStore.defaultFilename),
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        ).save(CaptureLibraryEnvelope(destinations: [destination], defaultDestinationID: destination.id))
+        var flow = RecordingFlowStore.makeCustomFlow()
+        flow.captureDestinationID = nil
+
+        let resolved = await ConfiguredTranscriptCaptureDestinationExporter.resolvedDestinationID(
+            flow: flow,
+            captureRootURL: captureRoot
+        )
+
+        XCTAssertEqual(resolved, destination.id)
+    }
+
+    func test_directVoiceRunPrefersValidVoxRouteOverLibraryDefault() async throws {
+        let captureRoot = try temporaryFolder(named: "voice-vox-route")
+        defer { try? FileManager.default.removeItem(at: captureRoot) }
+        let libraryDefault = CaptureDestination(
+            name: "Default",
+            rootBookmark: Data(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Default.md")
+        )
+        let voxDestination = CaptureDestination(
+            name: "Vox",
+            rootBookmark: Data(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Vox.md")
+        )
+        try await CaptureLibraryStore(
+            fileURL: captureRoot.appendingPathComponent(CaptureLibraryStore.defaultFilename),
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        ).save(CaptureLibraryEnvelope(
+            destinations: [libraryDefault, voxDestination],
+            defaultDestinationID: libraryDefault.id
+        ))
+        var flow = RecordingFlowStore.makeCustomFlow()
+        flow.captureDestinationID = voxDestination.id
+
+        let resolved = await ConfiguredTranscriptCaptureDestinationExporter.resolvedDestinationID(
+            flow: flow,
+            captureRootURL: captureRoot
+        )
+
+        XCTAssertEqual(resolved, voxDestination.id)
     }
 
     func test_configuredExportIsDurableBeforeWritingAndUsesTranscriptIdentity() async throws {
@@ -285,6 +351,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         )
         let queued = try await inbox.claimNext()
         XCTAssertEqual(queued?.destinationID, missingID)
+        XCTAssertEqual(queued?.deliveryKind, .meteredVoiceTranscript)
         guard case .text(let markdown)? = queued?.payloads.first else {
             return XCTFail("Expected queued transcript payload")
         }

@@ -72,7 +72,11 @@ struct VoxboardWatchRecordWidget: Widget {
         }
         .configurationDisplayName("Record voice note")
         .description("Start a voice note from your Apple Watch face and sync it to Vox.md on iPhone.")
+        #if os(watchOS)
         .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline, .accessoryCorner])
+        #else
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
+        #endif
     }
 }
 

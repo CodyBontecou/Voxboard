@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import UniformTypeIdentifiers
 import VoxboardShared
 
 @MainActor
@@ -8,6 +9,9 @@ final class QuickCaptureViewModel {
     var draft = CaptureDraft()
     var destinations: [CaptureDestination] = []
     var entryTemplates: [CaptureEntryTemplate] = []
+    var voxProfiles: [CaptureVoxProfile] = CaptureVoxProfileStore.enabledProfiles(
+        defaults: AppConstants.sharedDefaults
+    )
     var defaultDestinationID: UUID?
     var isLoading = false
     var isSubmitting = false
@@ -16,18 +20,24 @@ final class QuickCaptureViewModel {
     var failedInboxCount = 0
     var historyRecords: [CaptureHistoryRecord] = []
     var requestedInput: CaptureRequestedInput?
+    var needsCaptureUnlock = false
 
     private let captureRootURL: URL?
     private let libraryStore: CaptureLibraryStore?
     private let draftStore: CaptureDraftStore?
     private let historyStore: CaptureHistoryStore?
     private let pipeline: CapturePipeline
+    private let requestProcessor: CaptureVoxRequestProcessor
     private var pendingDraftSave: Task<Void, Never>?
     private var initialLoadTask: Task<Bool, Never>?
     private var hasLoaded = false
     private var pendingCaptureSource: CaptureSource?
+    private var pendingVoxID: String?
 
-    init(captureRootURL: URL? = AppConstants.captureDirectoryURL) {
+    init(
+        captureRootURL: URL? = AppConstants.captureDirectoryURL,
+        requestProcessor: CaptureVoxRequestProcessor = CaptureVoxRequestProcessor()
+    ) {
         self.captureRootURL = captureRootURL
         if let captureRootURL {
             self.libraryStore = CaptureLibraryStore(
@@ -42,17 +52,47 @@ final class QuickCaptureViewModel {
             self.draftStore = nil
             self.historyStore = nil
         }
-        self.pipeline = .shared
+        self.pipeline = AppCapturePipeline.shared
+        self.requestProcessor = requestProcessor
+    }
+
+    var selectedVoxProfile: CaptureVoxProfile? {
+        let enabled = voxProfiles.filter(\.isEnabled)
+        if let voxID = draft.voxID,
+           let selected = enabled.first(where: { $0.id == voxID }) {
+            return selected
+        }
+        let selectedID = CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults)
+        return enabled.first(where: { $0.id == selectedID }) ?? enabled.first
+    }
+
+    var effectiveDestinationID: UUID? {
+        CaptureVoxRouteResolver.destinationID(
+            selectionMode: draft.destinationSelectionMode,
+            explicitDestinationID: draft.destinationID,
+            profile: selectedVoxProfile,
+            destinations: destinations,
+            libraryDefaultDestinationID: defaultDestinationID
+        )
     }
 
     var selectedDestination: CaptureDestination? {
-        guard let id = draft.destinationID else { return nil }
+        guard let id = effectiveDestinationID else { return nil }
         return destinations.first { $0.id == id }
+    }
+
+    var hasExplicitDestinationOverride: Bool {
+        draft.destinationSelectionMode == .explicit && draft.destinationID != nil
     }
 
     var resolvedDestinationPreview: String? {
         guard var destination = selectedDestination,
-              let request = try? draft.makeRequest(source: .app) else { return nil }
+              let destinationID = effectiveDestinationID,
+              let request = try? draft.makeRequest(
+                source: .app,
+                resolvedDestinationID: destinationID,
+                voxProfile: selectedVoxProfile
+              ) else { return nil }
         if let override = draft.relativeNotePathOverride {
             destination.noteTarget = .existingNote(relativePath: override)
         }
@@ -64,7 +104,9 @@ final class QuickCaptureViewModel {
     }
 
     var effectivePlacementLabel: String {
-        switch draft.placementOverride ?? selectedDestination?.placement {
+        switch draft.placementOverride
+            ?? selectedVoxProfile?.capturePlacementOverride
+            ?? selectedDestination?.placement {
         case .prepend: return String(localized: "Top")
         case .append: return String(localized: "Bottom")
         case .beneathHeading: return String(localized: "Heading")
@@ -109,18 +151,36 @@ final class QuickCaptureViewModel {
             destinations = library.destinations
             entryTemplates = library.entryTemplates
             defaultDestinationID = library.defaultDestinationID
+            if !library.legacyFlowBindings.isEmpty {
+                RecordingFlowStore.migrateLegacyCaptureBindings(library.legacyFlowBindings)
+                // CaptureLibraryEnvelope intentionally omits the retired map
+                // on encode after its values are imported into Voxes.
+                try await libraryStore.save(library)
+            }
+            refreshVoxProfiles()
             if let savedDraft = try await draftStore.loadAll().first {
                 draft = savedDraft
             } else {
-                draft = CaptureDraft(destinationID: library.defaultDestinationID ?? library.destinations.first?.id)
+                draft = CaptureDraft(
+                    voxID: CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults),
+                    destinationSelectionMode: .inherited
+                )
             }
-            if draft.destinationID == nil || !destinations.contains(where: { $0.id == draft.destinationID }) {
-                draft.destinationID = library.defaultDestinationID ?? destinations.first?.id
-                draft.relativeNotePathOverride = nil
+            if draft.voxID == nil || !voxProfiles.contains(where: { $0.id == draft.voxID && $0.isEnabled }) {
+                draft.voxID = CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults)
+            }
+            if draft.destinationSelectionMode == .explicit,
+               (draft.destinationID == nil || !destinations.contains(where: { $0.id == draft.destinationID })) {
+                draft.useInheritedDestination()
             }
             if let pendingCaptureSource {
                 draft.captureSource = pendingCaptureSource
                 self.pendingCaptureSource = nil
+            }
+            if let pendingVoxID,
+               voxProfiles.contains(where: { $0.id == pendingVoxID && $0.isEnabled }) {
+                draft.selectVox(pendingVoxID)
+                self.pendingVoxID = nil
             }
             try await draftStore.save(draft)
             historyRecords = (try? await historyStore?.list()) ?? []
@@ -141,6 +201,15 @@ final class QuickCaptureViewModel {
         }
     }
 
+    func requestVox(_ id: String) {
+        if hasLoaded {
+            refreshVoxProfiles()
+            selectVox(id)
+        } else {
+            pendingVoxID = id
+        }
+    }
+
     func refreshHistory() async {
         historyRecords = (try? await historyStore?.list()) ?? []
     }
@@ -154,9 +223,32 @@ final class QuickCaptureViewModel {
         }
     }
 
+    func refreshVoxProfiles() {
+        voxProfiles = CaptureVoxProfileStore.enabledProfiles(defaults: AppConstants.sharedDefaults)
+        if let current = draft.voxID,
+           voxProfiles.contains(where: { $0.id == current && $0.isEnabled }) {
+            return
+        }
+        draft.voxID = CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults)
+    }
+
+    func selectVox(_ id: String) {
+        guard voxProfiles.contains(where: { $0.id == id && $0.isEnabled }) else { return }
+        draft.selectVox(id)
+        CaptureVoxProfileStore.selectCaptureProfile(id: id, defaults: AppConstants.sharedDefaults)
+        scheduleDraftSave()
+    }
+
     func selectDestination(_ id: UUID) {
         guard destinations.contains(where: { $0.id == id }) else { return }
         draft.selectDestination(id)
+        scheduleDraftSave()
+    }
+
+    func useVoxRouteDefaults() {
+        draft.useInheritedDestination()
+        draft.placementOverride = nil
+        draft.entryTemplateID = nil
         scheduleDraftSave()
     }
 
@@ -170,6 +262,13 @@ final class QuickCaptureViewModel {
         draft.placementOverride = nil
         draft.entryTemplateID = nil
         scheduleDraftSave()
+    }
+
+    var hasAnyRouteOverride: Bool {
+        hasExplicitDestinationOverride
+            || draft.relativeNotePathOverride != nil
+            || draft.placementOverride != nil
+            || draft.entryTemplateID != nil
     }
 
     func selectedRootURL() -> URL? {
@@ -224,6 +323,63 @@ final class QuickCaptureViewModel {
             try await draftStore.save(draft)
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    @discardableResult
+    func appendRecordedTranscript(_ text: String) async -> Bool {
+        await load()
+        let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else { return false }
+        let separator = draft.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "" : "\n\n"
+        guard draft.text.count + separator.count + normalized.count <= CaptureInputLimits.maximumTextCharacters else {
+            errorMessage = QuickCaptureViewModelError.textTooLarge.localizedDescription
+            return false
+        }
+
+        let previousDraft = draft
+        draft.text += separator + normalized
+        // The recorder adds transcription seconds only after a successful
+        // result. Mark this durable request so sending it does not consume a
+        // second, independent Capture allowance.
+        draft.deliveryKind = .meteredVoiceTranscript
+        draft.updatedAt = Date()
+        do {
+            try await draftStore?.save(draft)
+            errorMessage = nil
+            return true
+        } catch {
+            draft = previousDraft
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    @discardableResult
+    func stageRecordedAudio(at sourceURL: URL) async -> CaptureAssetReference? {
+        await load()
+        guard let stagingDirectory = stagingDirectoryURL else {
+            errorMessage = QuickCaptureViewModelError.storageUnavailable.localizedDescription
+            return nil
+        }
+        let stager = CaptureAssetStager(directoryURL: stagingDirectory)
+        var stagedAsset: CaptureAssetReference?
+        do {
+            let sourceExtension = sourceURL.pathExtension.isEmpty ? "wav" : sourceURL.pathExtension.lowercased()
+            let contentType = UTType(filenameExtension: sourceExtension)?.identifier ?? UTType.audio.identifier
+            let asset = try await stager.stageCopy(
+                from: sourceURL,
+                preferredFilename: "Recording-\(Self.captureFilenameTimestamp()).\(sourceExtension)",
+                contentTypeIdentifier: contentType
+            )
+            stagedAsset = asset
+            try await appendStagedPayload(.audio(asset, transcript: nil), using: stager)
+            errorMessage = nil
+            return asset
+        } catch {
+            if let stagedAsset { try? await stager.remove(stagedAsset) }
+            errorMessage = error.localizedDescription
+            return nil
         }
     }
 
@@ -467,20 +623,31 @@ final class QuickCaptureViewModel {
         pendingSave?.cancel()
         await pendingSave?.value
         let submittedDraft = draft
+        let submittedVoxProfile = selectedVoxProfile
+        guard let submittedDestinationID = effectiveDestinationID else {
+            isSubmitting = false
+            errorMessage = CaptureDraftError.destinationRequired.localizedDescription
+            return
+        }
         do {
             try await draftStore.save(submittedDraft)
             let submittedDraftID = submittedDraft.id
             let pipeline = self.pipeline
+            let requestProcessor = self.requestProcessor
             let receipt = try await draftStore.submit(draftID: submittedDraftID) { draft in
                 let library = try await libraryStore.load()
-                guard let storedDestination = library.destinations.first(where: { $0.id == draft.destinationID }) else {
+                guard let storedDestination = library.destinations.first(where: {
+                    $0.id == submittedDestinationID
+                }) else {
                     throw CaptureDraftError.destinationRequired
                 }
                 var destination = library.resolvedDestination(
                     storedDestination,
                     overrideEntryTemplateID: draft.entryTemplateID
+                        ?? submittedVoxProfile?.captureEntryTemplateID
                 )
-                if let override = draft.placementOverride {
+                if let override = draft.placementOverride
+                    ?? submittedVoxProfile?.capturePlacementOverride {
                     destination.placement = override
                 }
                 if let noteOverride = draft.relativeNotePathOverride {
@@ -490,7 +657,24 @@ final class QuickCaptureViewModel {
                     }
                     destination.noteTarget = .existingNote(relativePath: noteOverride)
                 }
-                let request = try draft.makeRequest(source: .app)
+                let request: CaptureRequest
+                if let prepared = try await draftStore.loadPreparedRequest(draftID: draft.id),
+                   prepared.id == draft.requestID,
+                   prepared.originDraftUpdatedAt == draft.updatedAt,
+                   prepared.destinationID == submittedDestinationID,
+                   prepared.voxProfile == submittedVoxProfile,
+                   prepared.voxProcessingState != .pending {
+                    request = prepared
+                } else {
+                    let unresolved = try draft.makeRequest(
+                        source: .app,
+                        resolvedDestinationID: submittedDestinationID,
+                        voxProfile: submittedVoxProfile
+                    )
+                    let processed = await requestProcessor.process(unresolved)
+                    try await draftStore.savePreparedRequest(processed, draftID: draft.id)
+                    request = processed
+                }
                 let rootURL = try Self.resolveRootURL(for: destination)
                 let didAccess = rootURL.startAccessingSecurityScopedResource()
                 defer { if didAccess { rootURL.stopAccessingSecurityScopedResource() } }
@@ -506,8 +690,14 @@ final class QuickCaptureViewModel {
             }
 
             lastReceipt = receipt
+            needsCaptureUnlock = false
+            try? await draftStore.removePreparedRequest(draftID: submittedDraftID)
             let library = try await libraryStore.load()
-            if let request = try? submittedDraft.makeRequest(source: .app) {
+            if let request = try? submittedDraft.makeRequest(
+                source: .app,
+                resolvedDestinationID: submittedDestinationID,
+                voxProfile: submittedVoxProfile
+            ) {
                 await recordHistory(
                     request: request,
                     destinationName: library.destinations.first(where: { $0.id == request.destinationID })?.name
@@ -526,17 +716,32 @@ final class QuickCaptureViewModel {
                     try await draftStore.save(rebased)
                 } else {
                     try await draftStore.complete(draftID: submittedDraftID)
-                    draft = CaptureDraft(destinationID: library.defaultDestinationID ?? receipt.destinationID)
+                    draft = CaptureDraft(
+                        voxID: submittedVoxProfile?.id,
+                        destinationSelectionMode: .inherited
+                    )
                     try await draftStore.save(draft)
                 }
             } else {
-                draft = CaptureDraft(destinationID: library.defaultDestinationID ?? receipt.destinationID)
+                draft = CaptureDraft(
+                    voxID: submittedVoxProfile?.id,
+                    destinationSelectionMode: .inherited
+                )
                 try await draftStore.save(draft)
             }
             destinations = library.destinations
             entryTemplates = library.entryTemplates
+        } catch let error as CaptureDeliveryQuotaError {
+            if case .limitReached = error {
+                needsCaptureUnlock = true
+                errorMessage = nil
+            }
         } catch {
-            if let request = try? submittedDraft.makeRequest(source: .app) {
+            if let request = try? submittedDraft.makeRequest(
+                source: .app,
+                resolvedDestinationID: submittedDestinationID,
+                voxProfile: submittedVoxProfile
+            ) {
                 await recordHistory(
                     request: request,
                     destinationName: destinations.first(where: { $0.id == request.destinationID })?.name
@@ -558,6 +763,17 @@ final class QuickCaptureViewModel {
             switch action {
             case .openComposer(let incoming):
                 draft.captureSource = incoming.source ?? .deepLink
+                if let voxID = incoming.voxID {
+                    refreshVoxProfiles()
+                    guard voxProfiles.contains(where: { $0.id == voxID && $0.isEnabled }) else {
+                        throw QuickCaptureViewModelError.unknownVox
+                    }
+                    draft.selectVox(voxID)
+                    CaptureVoxProfileStore.selectCaptureProfile(
+                        id: voxID,
+                        defaults: AppConstants.sharedDefaults
+                    )
+                }
                 if let destinationID = incoming.destinationID {
                     guard destinations.contains(where: { $0.id == destinationID }) else {
                         throw QuickCaptureViewModelError.unknownDestination
@@ -578,6 +794,11 @@ final class QuickCaptureViewModel {
                 try await processInboxRequest(id: requestID)
             }
             errorMessage = nil
+        } catch let error as CaptureDeliveryQuotaError {
+            if case .limitReached = error {
+                needsCaptureUnlock = true
+                errorMessage = nil
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -592,9 +813,20 @@ final class QuickCaptureViewModel {
             _ = try await inbox.purgeCompleted(olderThan: 7 * 24 * 60 * 60)
             _ = try await inbox.purgeOrphanedStaging(olderThan: 24 * 60 * 60)
             var latestFailure: Error?
-            while let request = try await inbox.claimNext() {
+            var quotaBlockedRequestIDs = Set<UUID>()
+            while let request = try await inbox.claimNext(
+                excludingRequestIDs: quotaBlockedRequestIDs
+            ) {
                 do {
                     try await processClaimedInboxRequest(request, inbox: inbox)
+                } catch let error as CaptureDeliveryQuotaError {
+                    if case .limitReached = error {
+                        needsCaptureUnlock = true
+                    }
+                    // Keep this request pending, skip it for this drain, and
+                    // continue so a later metered-voice request is not starved.
+                    quotaBlockedRequestIDs.insert(request.id)
+                    continue
                 } catch {
                     latestFailure = error
                     // One broken destination must not block unrelated shared captures.
@@ -648,10 +880,6 @@ final class QuickCaptureViewModel {
         }
         destinations = library.destinations
         defaultDestinationID = library.defaultDestinationID
-        if draft.destinationID == nil {
-            draft.destinationID = library.defaultDestinationID
-            await saveDraftNow()
-        }
     }
 
     func upsertEntryTemplate(_ template: CaptureEntryTemplate) async throws {
@@ -682,6 +910,8 @@ final class QuickCaptureViewModel {
         }
         destinations = library.destinations
         entryTemplates = library.entryTemplates
+        RecordingFlowStore.clearCaptureEntryTemplate(id)
+        refreshVoxProfiles()
         if draft.entryTemplateID == id {
             draft.entryTemplateID = nil
             await saveDraftNow()
@@ -722,17 +952,16 @@ final class QuickCaptureViewModel {
 
         let library = try await libraryStore.update { library in
             library.destinations.removeAll { $0.id == id }
-            library.flowBindings = library.flowBindings.filter { $0.value != id }
             if library.defaultDestinationID == id {
                 library.defaultDestinationID = library.destinations.first?.id
             }
         }
         RecordingFlowStore.clearCaptureDestination(id)
+        refreshVoxProfiles()
         destinations = library.destinations
         defaultDestinationID = library.defaultDestinationID
         if draft.destinationID == id {
-            draft.destinationID = library.defaultDestinationID
-            draft.relativeNotePathOverride = nil
+            draft.useInheritedDestination()
             await saveDraftNow()
         }
     }
@@ -745,7 +974,7 @@ final class QuickCaptureViewModel {
         }
         destinations = library.destinations
         defaultDestinationID = library.defaultDestinationID
-        draft.selectDestination(id)
+        draft.useInheritedDestination()
         await saveDraftNow()
     }
 
@@ -835,6 +1064,8 @@ final class QuickCaptureViewModel {
                 outcome: outcome,
                 destinationID: request.destinationID,
                 destinationName: destinationName,
+                voxID: request.voxReference?.id,
+                voxName: request.voxReference?.name,
                 relativeNotePath: relativeNotePath,
                 attachmentCount: attachmentCount,
                 failureCategory: failureCategory
@@ -919,18 +1150,29 @@ final class QuickCaptureViewModel {
     }
 
     private func processClaimedInboxRequest(
-        _ request: CaptureRequest,
+        _ claimedRequest: CaptureRequest,
         inbox: CaptureInbox
     ) async throws {
+        var request = claimedRequest
         guard let captureRootURL, let libraryStore else {
             throw QuickCaptureViewModelError.storageUnavailable
         }
         do {
+            if request.voxProcessingState == .pending {
+                request = await requestProcessor.process(request)
+                try await inbox.replaceProcessingRequest(request)
+            }
             let library = try await libraryStore.load()
             guard let storedDestination = library.destinations.first(where: { $0.id == request.destinationID }) else {
                 throw QuickCaptureViewModelError.unknownDestination
             }
-            let destination = library.resolvedDestination(storedDestination)
+            var destination = library.resolvedDestination(
+                storedDestination,
+                overrideEntryTemplateID: request.voxProfile?.captureEntryTemplateID
+            )
+            if let placement = request.voxProfile?.capturePlacementOverride {
+                destination.placement = placement
+            }
             let rootURL = try Self.resolveRootURL(for: destination)
             let didAccess = rootURL.startAccessingSecurityScopedResource()
             defer { if didAccess { rootURL.stopAccessingSecurityScopedResource() } }
@@ -942,6 +1184,7 @@ final class QuickCaptureViewModel {
             )
             try await inbox.complete(requestID: request.id)
             lastReceipt = receipt
+            needsCaptureUnlock = false
             await recordHistory(
                 request: request,
                 destinationName: destination.name,
@@ -953,6 +1196,12 @@ final class QuickCaptureViewModel {
                 outcome: .delivered,
                 failureCategory: nil
             )
+        } catch let error as CaptureDeliveryQuotaError {
+            try? await inbox.returnToPending(requestID: request.id)
+            if case .limitReached = error {
+                needsCaptureUnlock = true
+            }
+            throw error
         } catch {
             await recordHistory(
                 request: request,
@@ -985,6 +1234,7 @@ enum QuickCaptureViewModelError: Error, LocalizedError {
     case storageUnavailable
     case staleDestination(String)
     case unknownDestination
+    case unknownVox
     case inboxRequestUnavailable
     case destinationHasQueuedCaptures(Int)
     case destinationIsProcessingCaptures(Int)
@@ -1001,6 +1251,8 @@ enum QuickCaptureViewModelError: Error, LocalizedError {
             return String(localized: "The Files permission for ‘\(name)’ expired. Edit the destination and choose its folder again.")
         case .unknownDestination:
             return String(localized: "The requested capture destination no longer exists.")
+        case .unknownVox:
+            return String(localized: "The requested Vox no longer exists or is disabled.")
         case .inboxRequestUnavailable:
             return String(localized: "The shared capture request is no longer pending.")
         case .destinationHasQueuedCaptures(let count):

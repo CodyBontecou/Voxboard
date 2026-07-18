@@ -5,6 +5,8 @@ struct QuickCaptureVoiceView: View {
     @Bindable var session: QuickCaptureVoiceSession
 
     @Environment(\.dismiss) private var dismiss
+    @AppStorage(CapturePreferenceKeys.confirmVoiceNoteBeforeAdding)
+    private var confirmsVoiceNotesBeforeAdding = false
 
     var body: some View {
         NavigationStack {
@@ -48,6 +50,10 @@ struct QuickCaptureVoiceView: View {
         .task {
             if session.phase == .idle { await session.start() }
         }
+        .onChange(of: session.phase) { _, phase in
+            guard phase == .review, !confirmsVoiceNotesBeforeAdding else { return }
+            addToNote()
+        }
     }
 
     private var navigationTitle: String {
@@ -85,11 +91,11 @@ struct QuickCaptureVoiceView: View {
 
             Toggle("Generate Transcript", isOn: $session.generateTranscript)
                 .tint(Geist.text)
-                .disabled(!session.hasDownloadedModel)
+                .disabled(!session.hasTranscriptionBackend)
                 .padding(.horizontal, 28)
 
-            if !session.hasDownloadedModel {
-                Text("Download a model to enable on-device transcription. Audio recording still works.")
+            if !session.hasTranscriptionBackend {
+                Text("Download the selected local model, or choose Automatic to use Apple Speech when available. Audio recording still works.")
                     .font(Geist.caption())
                     .foregroundStyle(Geist.muted)
                     .multilineTextAlignment(.center)
@@ -199,9 +205,9 @@ struct QuickCaptureVoiceView: View {
             }
 
             Button {
-                insert()
+                addToNote()
             } label: {
-                Label("Insert", systemImage: "text.badge.plus")
+                Label("Add to Note", systemImage: "text.badge.plus")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(GeistButtonStyle(variant: .primary))
@@ -232,10 +238,13 @@ struct QuickCaptureVoiceView: View {
         .padding(24)
     }
 
-    private func insert() {
+    private func addToNote() {
         guard session.stagedAsset != nil else { return }
-        session.markInsertedAndCleanup()
-        UIAccessibility.post(notification: .announcement, argument: "Voice recording attached")
+        let announcement = session.transcript == nil
+            ? String(localized: "Voice recording added")
+            : String(localized: "Voice recording and transcript added")
+        session.commitStagedRecordingAndCleanup()
+        UIAccessibility.post(notification: .announcement, argument: announcement)
         dismiss()
     }
 

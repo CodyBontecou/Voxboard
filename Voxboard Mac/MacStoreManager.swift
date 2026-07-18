@@ -27,10 +27,7 @@ final class MacStoreManager {
                 await self?.handle(result)
             }
         }
-        Task {
-            await loadProducts()
-            await syncCurrentEntitlements()
-        }
+        Task { await loadProducts() }
     }
 
     deinit {
@@ -93,7 +90,7 @@ final class MacStoreManager {
         }
     }
 
-    private func syncCurrentEntitlements() async {
+    func syncCurrentEntitlements() async {
         for await result in Transaction.currentEntitlements {
             await handle(result)
         }

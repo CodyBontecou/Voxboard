@@ -2,7 +2,7 @@ import Foundation
 import StoreKit
 import VoxboardShared
 
-/// Manages the one-time in-app purchase that unlocks unlimited transcription.
+/// Manages the one-time purchase that unlocks unlimited transcription and Capture.
 @Observable
 @MainActor
 final class StoreManager {
@@ -290,6 +290,17 @@ final class StoreManager {
     }
 
     // MARK: - Transaction Listener
+
+    /// App Group defaults are removed on uninstall, while StoreKit
+    /// entitlements persist. Call this before any launch-time quota-gated work.
+    func syncCurrentEntitlements() async {
+        for await result in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = result,
+                  transaction.productID == Self.unlockProductID else { continue }
+            usageTracker.unlock()
+            await transaction.finish()
+        }
+    }
 
     private func listenForTransactions() -> Task<Void, Never> {
         // Inherit MainActor context so we can safely mutate @Observable state directly.

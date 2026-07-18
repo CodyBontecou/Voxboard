@@ -4,15 +4,18 @@ import VoxboardCaptureCore
 public struct CaptureInboxDeliveryResult: Sendable {
     public var receipts: [CaptureReceipt]
     public var failedRequestIDs: [UUID]
+    public var quotaBlockedRequestIDs: [UUID]
     public var setupError: String?
 
     public init(
         receipts: [CaptureReceipt] = [],
         failedRequestIDs: [UUID] = [],
+        quotaBlockedRequestIDs: [UUID] = [],
         setupError: String? = nil
     ) {
         self.receipts = receipts
         self.failedRequestIDs = failedRequestIDs
+        self.quotaBlockedRequestIDs = quotaBlockedRequestIDs
         self.setupError = setupError
     }
 }
@@ -26,7 +29,8 @@ public enum CaptureInboxDeliveryService {
         retryFailed: Bool = false,
         staleProcessingTimeout: TimeInterval = 5 * 60,
         completedRetention: TimeInterval = 7 * 24 * 60 * 60,
-        pipeline: CapturePipeline = .shared,
+        pipeline: CapturePipeline = AppCapturePipeline.shared,
+        requestProcessor: CaptureVoxRequestProcessor = CaptureVoxRequestProcessor(),
         coordinator: any CaptureFileCoordinating = NSFileCoordinatorCaptureFileCoordinator.shared
     ) async -> CaptureInboxDeliveryResult {
         let inbox = CaptureInbox(rootDirectoryURL: captureRootURL, coordinator: coordinator)
@@ -63,15 +67,38 @@ public enum CaptureInboxDeliveryService {
 
         var receipts: [CaptureReceipt] = []
         var failures: [UUID] = []
+        var quotaBlocked: [UUID] = []
         do {
-            while let request = try await inbox.claimNext() {
+            while let claimedRequest = try await inbox.claimNext(
+                excludingRequestIDs: Set(quotaBlocked)
+            ) {
+                var request = claimedRequest
                 do {
+                    if request.voxProcessingState == .pending {
+                        request = await requestProcessor.process(request)
+                        try await inbox.replaceProcessingRequest(request)
+                    }
                     guard let storedDestination = library.destinations.first(where: {
                         $0.id == request.destinationID
                     }) else {
                         throw ConfiguredTranscriptCaptureError.destinationMissing(request.destinationID)
                     }
-                    let destination = library.resolvedDestination(storedDestination)
+                    var destination = library.resolvedDestination(
+                        storedDestination,
+                        overrideEntryTemplateID: request.entryTemplateIDOverride
+                            ?? request.voxProfile?.captureEntryTemplateID
+                    )
+                    if let relativePath = request.relativeNotePathOverride {
+                        try CapturePathValidation.validateRelativePath(relativePath)
+                        destination.noteTarget = .existingNote(relativePath: relativePath)
+                    }
+                    if let placement = request.placementOverride
+                        ?? request.voxProfile?.capturePlacementOverride {
+                        destination.placement = placement
+                    }
+                    if let attachmentsFolderName = request.attachmentsFolderNameOverride {
+                        destination.attachmentsFolderName = attachmentsFolderName
+                    }
                     var isStale = false
                     let rootURL = try URL(
                         resolvingBookmarkData: destination.rootBookmark,
@@ -99,6 +126,8 @@ public enum CaptureInboxDeliveryService {
                         outcome: .delivered,
                         destinationID: request.destinationID,
                         destinationName: destination.name,
+                        voxID: request.voxReference?.id,
+                        voxName: request.voxReference?.name,
                         relativeNotePath: CaptureHistoryRecord.relativeNotePath(
                             noteURL: receipt.noteURL,
                             rootURL: rootURL
@@ -108,6 +137,15 @@ public enum CaptureInboxDeliveryService {
                         _ = await history.upsertBestEffort(record)
                     }
                     receipts.append(receipt)
+                } catch let error as CaptureDeliveryQuotaError {
+                    try? await inbox.returnToPending(requestID: request.id)
+                    if case .limitReached = error {
+                        quotaBlocked.append(request.id)
+                    }
+                    // Skip this request for the rest of this drain, but keep
+                    // scanning: later metered-voice requests still bypass the
+                    // Capture quota and must not be starved by an older item.
+                    continue
                 } catch {
                     let destinationName = library.destinations.first(where: {
                         $0.id == request.destinationID
@@ -120,6 +158,8 @@ public enum CaptureInboxDeliveryService {
                         outcome: .failed,
                         destinationID: request.destinationID,
                         destinationName: destinationName,
+                        voxID: request.voxReference?.id,
+                        voxName: request.voxReference?.name,
                         relativeNotePath: nil,
                         attachmentCount: attachmentCount(in: request),
                         failureCategory: failureCategory(for: error)
@@ -134,10 +174,15 @@ public enum CaptureInboxDeliveryService {
             return CaptureInboxDeliveryResult(
                 receipts: receipts,
                 failedRequestIDs: failures,
+                quotaBlockedRequestIDs: quotaBlocked,
                 setupError: error.localizedDescription
             )
         }
-        return CaptureInboxDeliveryResult(receipts: receipts, failedRequestIDs: failures)
+        return CaptureInboxDeliveryResult(
+            receipts: receipts,
+            failedRequestIDs: failures,
+            quotaBlockedRequestIDs: quotaBlocked
+        )
     }
 
     private static func attachmentCount(in request: CaptureRequest) -> Int {

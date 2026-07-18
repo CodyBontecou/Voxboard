@@ -9,9 +9,25 @@ public enum AppConstants: Sendable {
     public static let captureDirectoryName = "Capture"
     public static let captureLibraryFilename = CaptureLibraryStore.defaultFilename
     public static let captureHistoryFilename = "capture-history-v1.json"
+    public static let captureUsageFilename = "capture-usage-v1.json"
+    public static let captureUsageMirrorKey = "successfulCaptureDeliveries.v1"
     public static let selectedModelKey = "selectedWhisperModel"
     public static let selectedLanguageKey = "selectedLanguage"
+    public static let selectedFallbackModelKey = "selectedFallbackTranscriptionModel"
+    public static let transcriptionSelectionMigrationKey = "transcriptionSelectionMigration.v1"
+    public static let automaticBackendReadyKey = "automaticTranscriptionBackendReady"
+
+    /// Legacy/local model default retained for the macOS app and as a fallback
+    /// candidate. The iOS app defaults to the system-first Automatic backend.
     public static let defaultModelName = "ggml-base"
+
+    public static var defaultTranscriptionBackendID: String {
+        #if os(iOS)
+        return TranscriptionBackendID.automatic
+        #else
+        return defaultModelName
+        #endif
+    }
 
     /// URL scheme used by the keyboard extension to open the main app for recording.
     public static let urlScheme = "voxboard"
@@ -72,6 +88,10 @@ public enum AppConstants: Sendable {
         captureDirectoryURL?.appendingPathComponent(captureHistoryFilename)
     }
 
+    public static var captureUsageURL: URL? {
+        captureDirectoryURL?.appendingPathComponent(captureUsageFilename)
+    }
+
     // File export settings
     public static let fileExportEnabledKey = "fileExportEnabled"
     public static let fileExportFormatKey = "fileExportFormat"
@@ -107,6 +127,7 @@ public enum AppConstants: Sendable {
     public static let pendingQuickCaptureOpenKey = "pendingOpenQuickCapture"
     public static let pendingQuickCaptureInputKey = "pendingQuickCaptureInput"
     public static let pendingQuickCaptureSourceKey = "pendingQuickCaptureSource"
+    public static let pendingQuickCaptureVoxIdKey = "pendingQuickCaptureVoxId"
 
     // Smart folder routing (Apple Intelligence routes transcripts to the best folder).
     public static let smartFoldersEnabledKey = "smartFoldersEnabled"

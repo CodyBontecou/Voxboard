@@ -40,17 +40,28 @@ final class MacRecorder {
         guard let captureRootURL = AppConstants.captureDirectoryURL else { return }
         isRetryingCaptures = true
         defer { isRetryingCaptures = false }
+        let requestProcessor = CaptureVoxRequestProcessor(
+            textProcessor: transcriptEnricher.map(EnrichedCaptureVoxTextProcessor.init(enricher:))
+        )
         let result = await CaptureInboxDeliveryService.drain(
             captureRootURL: captureRootURL,
-            retryFailed: retryFailed
+            retryFailed: retryFailed,
+            requestProcessor: requestProcessor
         )
         if let receipt = result.receipts.last {
             lastExportURL = receipt.noteURL
+        }
+        usageTracker.reload()
+        if !result.quotaBlockedRequestIDs.isEmpty {
+            needsUnlock = true
+            lastError = nil
         }
         let inbox = CaptureInbox(rootDirectoryURL: captureRootURL)
         failedCaptureCount = (try? await inbox.requestIDs(in: .failed).count) ?? result.failedRequestIDs.count
         if let setupError = result.setupError {
             lastError = "Capture retry is unavailable: \(setupError)"
+        } else if !result.quotaBlockedRequestIDs.isEmpty {
+            lastError = nil
         } else if failedCaptureCount > 0 {
             lastError = "\(failedCaptureCount) capture\(failedCaptureCount == 1 ? "" : "s") still need a destination or Files permission."
         } else if retryFailed, !result.receipts.isEmpty {
@@ -322,10 +333,12 @@ final class MacRecorder {
         let recorderForExport = self
 
         Task.detached(priority: .utility) { [recorderForExport] in
+            let captureDestinationID = await ConfiguredTranscriptCaptureDestinationExporter
+                .resolvedDestinationID(flow: flowForExport)
             // Keep the only retained recording when precise audio staging
             // fails. Remove it only after delivery or an exact audio-bearing
             // inbox request becomes durable.
-            var canRemoveRetainedAudio = flowForExport.captureDestinationID == nil
+            var canRemoveRetainedAudio = captureDestinationID == nil
             defer {
                 if canRemoveRetainedAudio, let retainedAudioURL {
                     try? FileManager.default.removeItem(at: retainedAudioURL)
@@ -340,7 +353,7 @@ final class MacRecorder {
                 store.transcripts.first(where: { $0.id == savedId }) ?? initialTranscript
             }
 
-            if let captureDestinationID = flowForExport.captureDestinationID {
+            if let captureDestinationID {
                 do {
                     let receipt = try await ConfiguredTranscriptCaptureDestinationExporter.export(
                         transcript: latest,

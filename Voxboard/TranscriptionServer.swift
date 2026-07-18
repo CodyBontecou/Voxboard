@@ -9,8 +9,11 @@ final class TranscriptionServer {
 
     private var isObserving = false
     private var isProcessing = false
+    private let transcriptionService: OnDeviceTranscriptionService
 
-    init() {}
+    init(transcriptionService: OnDeviceTranscriptionService) {
+        self.transcriptionService = transcriptionService
+    }
 
     // MARK: - Lifecycle
 
@@ -98,15 +101,6 @@ final class TranscriptionServer {
     }
 
     private func processRequest(_ request: TranscriptionRequest) async {
-        // Resolve model
-        guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == request.modelId }),
-              model.isDownloaded else {
-            log("❌ Model not found: \(request.modelId)")
-            writeResponse(.init(requestId: request.id, error: "Model not found"))
-            return
-        }
-
-        // Resolve audio file
         guard let audioURL = AppConstants.recordingsDirectoryURL?
                 .appendingPathComponent(request.audioFileName),
               FileManager.default.fileExists(atPath: audioURL.path) else {
@@ -115,47 +109,18 @@ final class TranscriptionServer {
             return
         }
 
-        log("Transcribing with \(model.name)…")
-
-        let text: String?
-
-        if model.engine.isParakeet {
-            guard let modelsDir = AppConstants.modelsDirectoryURL else {
-                writeResponse(.init(requestId: request.id, error: "Models directory unavailable"))
-                return
-            }
-            log("Loading Parakeet model: \(model.name)…")
-            guard let ctx = await ParakeetContext.load(
-                modelsDirectory: modelsDir,
-                engine: model.engine
-            ) else {
-                log("❌ Parakeet model load failed")
-                writeResponse(.init(requestId: request.id, error: "Model load failed"))
-                return
-            }
-            text = await ctx.transcribe(audioURL: audioURL)
-        } else {
-            guard let modelPath = model.localURL?.path else {
-                writeResponse(.init(requestId: request.id, error: "Model path unavailable"))
-                return
-            }
-            // Whisper: GPU disabled — the main app is in the background when the keyboard
-            // is active and iOS forbids Metal/GPU work from background processes.
-            log("Loading Whisper model: \(model.name) (CPU-only, background mode)…")
-            guard let ctx = WhisperContext(modelPath: modelPath, useGPU: false) else {
-                log("❌ Whisper model load failed")
-                writeResponse(.init(requestId: request.id, error: "Model load failed"))
-                return
-            }
-            text = ctx.transcribe(audioURL: audioURL, language: request.language)
-        }
-
-        log("Result: \(text?.count ?? 0) chars")
-
-        if let text, !text.isEmpty {
-            writeResponse(.init(requestId: request.id, text: text))
-        } else {
-            writeResponse(.init(requestId: request.id, error: "No speech detected"))
+        do {
+            let result = try await transcriptionService.transcribeResult(
+                audioURL: audioURL,
+                modelID: request.modelId,
+                fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
+                language: request.language
+            )
+            log("Result from \(result.backendName): \(result.text.count) chars")
+            writeResponse(.init(requestId: request.id, text: result.text))
+        } catch {
+            log("❌ Transcription failed: \(error.localizedDescription)")
+            writeResponse(.init(requestId: request.id, error: error.localizedDescription))
         }
     }
 

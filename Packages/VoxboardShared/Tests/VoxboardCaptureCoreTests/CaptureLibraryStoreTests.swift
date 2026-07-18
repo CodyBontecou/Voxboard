@@ -2,7 +2,7 @@ import XCTest
 @testable import VoxboardCaptureCore
 
 final class CaptureLibraryStoreTests: XCTestCase {
-    func test_atomicRoundTripPreservesBookmarksAndBindings() async throws {
+    func test_atomicRoundTripPreservesBookmarksAndRoutes() async throws {
         let folder = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: folder) }
         let url = folder.appendingPathComponent("capture-library-v1.json")
@@ -18,8 +18,7 @@ final class CaptureLibraryStoreTests: XCTestCase {
         )
         let library = CaptureLibraryEnvelope(
             destinations: [destination],
-            defaultDestinationID: destination.id,
-            flowBindings: ["general": destination.id]
+            defaultDestinationID: destination.id
         )
         let store = CaptureLibraryStore(
             fileURL: url,
@@ -30,6 +29,20 @@ final class CaptureLibraryStoreTests: XCTestCase {
         let loaded = try await store.load()
 
         XCTAssertEqual(loaded, library)
+    }
+
+    func test_legacyFlowBindingsDecodeForMigrationButAreNotWrittenAgain() throws {
+        let destinationID = UUID()
+        let data = Data("""
+        {"schemaVersion":1,"destinations":[],"flowBindings":{"journal":"\(destinationID.uuidString)"}}
+        """.utf8)
+
+        let decoded = try CaptureLibraryEnvelope.decodeValidated(from: data)
+        let encoded = try JSONEncoder().encode(decoded)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+
+        XCTAssertEqual(decoded.legacyFlowBindings["journal"], destinationID)
+        XCTAssertNil(object["flowBindings"])
     }
 
     func test_corruptLibraryReportsErrorWithoutOverwritingSource() async throws {

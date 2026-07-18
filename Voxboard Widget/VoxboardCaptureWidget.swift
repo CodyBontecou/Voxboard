@@ -1,4 +1,5 @@
 import SwiftUI
+import VoxboardShared
 import WidgetKit
 
 private struct VoxboardCaptureEntry: TimelineEntry {
@@ -124,9 +125,17 @@ private struct VoxboardCaptureWidgetView: View {
     }
 
     private func captureURL(action: String? = nil) -> URL {
+        var components = URLComponents()
+        components.scheme = "voxboard"
+        components.host = "capture"
+        var queryItems = [URLQueryItem(name: "source", value: "widget")]
         if let action {
-            return URL(string: "voxboard://capture?action=\(action)&source=widget")!
+            queryItems.append(URLQueryItem(name: "action", value: action))
         }
-        return URL(string: "voxboard://capture?source=widget")!
+        if let voxID = CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) {
+            queryItems.append(URLQueryItem(name: "vox", value: voxID))
+        }
+        components.queryItems = queryItems
+        return components.url!
     }
 }

@@ -20,6 +20,7 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
     public var placement: CapturePlacement
     public var entryPrefix: String
     public var entrySuffix: String
+    public var frontmatter: [String: String]
     public var retryProtectionEnabled: Bool
     /// Production pipeline writes include an authorized root and relative path
     /// so the writer can use descriptor-relative, no-symlink I/O.
@@ -32,6 +33,7 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
         placement: CapturePlacement,
         entryPrefix: String = "",
         entrySuffix: String = "",
+        frontmatter: [String: String] = [:],
         retryProtectionEnabled: Bool = false,
         destinationRootURL: URL? = nil,
         relativeNotePath: String? = nil
@@ -41,6 +43,7 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
         self.placement = placement
         self.entryPrefix = entryPrefix
         self.entrySuffix = entrySuffix
+        self.frontmatter = frontmatter
         self.retryProtectionEnabled = retryProtectionEnabled
         self.destinationRootURL = destinationRootURL
         self.relativeNotePath = relativeNotePath
@@ -64,10 +67,14 @@ public struct MarkdownDocumentEditor: Sendable {
                 + trimBoundaryNewlines(entryParts.body)
                 + normalizeNewlines(mutation.entrySuffix)
         )
+        let voxFrontmatter = try structuredFrontmatterLines(mutation.frontmatter)
         documentParts.frontmatter = mergeFrontmatter(
             existing: mergeFrontmatter(
-                existing: documentParts.frontmatter,
-                incoming: entryParts.frontmatter
+                existing: mergeFrontmatter(
+                    existing: documentParts.frontmatter,
+                    incoming: entryParts.frontmatter
+                ),
+                incoming: voxFrontmatter
             ),
             incoming: wrappedParts.frontmatter
         )
@@ -248,6 +255,36 @@ public struct MarkdownDocumentEditor: Sendable {
     }
 
     private static let additiveFrontmatterKeys: Set<String> = ["tags", "tag", "audio"]
+
+    private func structuredFrontmatterLines(_ values: [String: String]) throws -> [String]? {
+        guard !values.isEmpty else { return nil }
+        return values.keys.sorted().map { key in
+            "\(yamlKey(key)): \(yamlScalar(values[key] ?? ""))"
+        }
+    }
+
+    private func yamlKey(_ key: String) -> String {
+        let isPlain = !key.isEmpty && key.unicodeScalars.allSatisfy { scalar in
+            CharacterSet.alphanumerics.contains(scalar) || scalar == "_" || scalar == "-"
+        }
+        return isPlain ? key : yamlScalar(key)
+    }
+
+    private func yamlScalar(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if (trimmed.hasPrefix("[") && trimmed.hasSuffix("]"))
+            || (trimmed.hasPrefix("{") && trimmed.hasSuffix("}"))
+            || ["true", "false", "null", "~"].contains(trimmed.lowercased())
+            || Double(trimmed) != nil {
+            return trimmed
+        }
+        return "\"" + value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            + "\""
+    }
 
     private func frontmatterEntry(_ line: String) -> (key: String, value: String)? {
         guard line.first != " ", line.first != "\t", !line.hasPrefix("#"),

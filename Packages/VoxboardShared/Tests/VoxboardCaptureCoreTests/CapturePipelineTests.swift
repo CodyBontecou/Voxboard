@@ -445,6 +445,103 @@ final class CapturePipelineTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("attachments/page.jpg").path))
     }
 
+    func test_entryScopedVoxMetadataStaysWithEachRollingNoteEntry() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        let profile = CaptureVoxProfile(
+            id: "journal",
+            name: "Journal",
+            symbolName: "book",
+            staticFrontmatter: ["type": "journal", "tags": "[daily]"],
+            metadataScope: .entry
+        )
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("Today was good")],
+            frontmatter: profile.staticFrontmatter,
+            voxProfile: profile,
+            voxProcessingState: .applied
+        )
+
+        _ = try await CapturePipeline().capture(request, destination: destination, rootURL: root)
+
+        let markdown = try String(
+            contentsOf: root.appendingPathComponent("Inbox.md"),
+            encoding: .utf8
+        )
+        XCTAssertFalse(markdown.hasPrefix("---\n"))
+        XCTAssertTrue(markdown.contains("tags:: [daily]"))
+        XCTAssertTrue(markdown.contains("type:: journal"))
+        XCTAssertTrue(markdown.contains("Today was good"))
+    }
+
+    func test_successfulCaptureCommitsReservedDelivery() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("Count me once")]
+        )
+        let accounting = RecordingCaptureDeliveryAccounting()
+
+        _ = try await CapturePipeline(deliveryAccounting: accounting).capture(
+            request,
+            destination: destination,
+            rootURL: root
+        )
+
+        let events = await accounting.events
+        XCTAssertEqual(events, ["reserve:\(request.id.uuidString)", "commit:\(request.id.uuidString)"])
+    }
+
+    func test_failedCaptureReleasesReservedDelivery() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("Do not count")]
+        )
+        let accounting = RecordingCaptureDeliveryAccounting()
+        let pipeline = CapturePipeline(
+            writer: AlwaysFailingMutationWriter(),
+            deliveryAccounting: accounting
+        )
+
+        await XCTAssertThrowsErrorAsync(
+            try await pipeline.capture(request, destination: destination, rootURL: root)
+        )
+
+        let events = await accounting.events
+        XCTAssertEqual(events, ["reserve:\(request.id.uuidString)", "release:\(request.id.uuidString)"])
+    }
+
+    func test_quotaDenialHappensBeforeDestinationMutation() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        let request = CaptureRequest(
+            source: .shareExtension,
+            destinationID: destination.id,
+            payloads: [.text("Blocked")]
+        )
+        let pipeline = CapturePipeline(deliveryAccounting: DenyingCaptureDeliveryAccounting(limit: 10))
+
+        do {
+            _ = try await pipeline.capture(request, destination: destination, rootURL: root)
+            XCTFail("Expected the free Capture quota to block delivery")
+        } catch let error as CaptureDeliveryQuotaError {
+            XCTAssertEqual(error, .limitReached(limit: 10))
+        }
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Inbox.md").path))
+    }
+
     func test_noteFailureRollsBackOnlyNewAttachments() async throws {
         let root = try temporaryFolder()
         let staging = try temporaryFolder()
@@ -505,6 +602,34 @@ final class CapturePipelineTests: XCTestCase {
     private func index(of needle: String, in haystack: String) throws -> String.Index {
         try XCTUnwrap(haystack.range(of: needle)?.lowerBound)
     }
+}
+
+private actor RecordingCaptureDeliveryAccounting: CaptureDeliveryAccounting {
+    private(set) var events: [String] = []
+
+    func reserve(for request: CaptureRequest) async throws -> CaptureDeliveryReservation {
+        events.append("reserve:\(request.id.uuidString)")
+        return .reserved(requestID: request.id, token: UUID())
+    }
+
+    func commit(_ reservation: CaptureDeliveryReservation) async throws {
+        events.append("commit:\(reservation.requestID.uuidString)")
+    }
+
+    func release(_ reservation: CaptureDeliveryReservation) async {
+        events.append("release:\(reservation.requestID.uuidString)")
+    }
+}
+
+private struct DenyingCaptureDeliveryAccounting: CaptureDeliveryAccounting {
+    let limit: Int
+
+    func reserve(for request: CaptureRequest) async throws -> CaptureDeliveryReservation {
+        throw CaptureDeliveryQuotaError.limitReached(limit: limit)
+    }
+
+    func commit(_ reservation: CaptureDeliveryReservation) async throws {}
+    func release(_ reservation: CaptureDeliveryReservation) async {}
 }
 
 private struct AlwaysFailingMutationWriter: CaptureMutationWriting {

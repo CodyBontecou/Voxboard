@@ -61,15 +61,22 @@ struct VoxboardMacApp: App {
                 .environment(usageTracker)
                 .environment(storeManager)
                 .onAppear {
-                    modelManager.copyBundledModelIfNeeded()
                     storeManager.start()
                     transcriptStore.reload()
                     usageTracker.reload()
                     configureGlobalHotKey()
-                    Task { await recorder.processPendingCaptureInbox() }
+                    Task {
+                        await storeManager.syncCurrentEntitlements()
+                        usageTracker.reload()
+                        await recorder.processPendingCaptureInbox()
+                    }
                 }
                 .onChange(of: visibilityModeRaw) { _, _ in
                     visibilityMode.apply()
+                }
+                .onChange(of: usageTracker.hasUnlocked) { _, hasUnlocked in
+                    guard hasUnlocked else { return }
+                    Task { await recorder.processPendingCaptureInbox() }
                 }
         }
         .commands {

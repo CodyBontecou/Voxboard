@@ -1,9 +1,9 @@
 import Foundation
+import VoxboardCaptureCore
 
-/// A named recording/export preset. Flows are the Voxboard equivalent of
-/// v2md-style "flow tags": they let the user choose a workflow before
-/// recording, then apply workflow-specific export, frontmatter, audio-retention,
-/// and post-processing behavior.
+/// The persisted Vox model. Its capture-policy fields apply to every input
+/// modality, while export and audio-retention fields preserve recording-specific
+/// behavior and compatibility with existing Voxes.
 public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
     public var id: String
     public var name: String
@@ -13,13 +13,22 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
     public var kind: RecordingFlowKind
     public var exportSettings: RecordingFlowExportSettings
     public var staticFrontmatter: [String: String]
+    public var metadataScope: CaptureVoxMetadataScope
     public var postProcessingMode: RecordingFlowPostProcessingMode
     public var customPostProcessingInstruction: String
+    /// Opt-in for applying this Vox's processing mode to typed and multimodal
+    /// Capture text. Existing Voxes decode as false to avoid rewriting Markdown.
+    public var captureProcessingEnabled: Bool
+    /// Optional local prompt shown in an empty Capture composer.
+    public var capturePrompt: String
     public var audioSaveMode: RecordingFlowAudioSaveMode
     public var attachmentsFolderName: String
-    /// Optional precise Markdown route shared with typed, share-sheet, and widget captures.
-    /// Nil preserves the legacy per-Vox export settings.
+    /// Optional precise Markdown route shared with every capture modality.
+    /// Nil inherits the Capture-library default, then falls back to legacy
+    /// voice export only when no Capture destination exists.
     public var captureDestinationID: UUID?
+    public var captureEntryTemplateID: UUID?
+    public var capturePlacementOverride: CapturePlacement?
 
     public init(
         id: String,
@@ -30,11 +39,16 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
         kind: RecordingFlowKind = .custom,
         exportSettings: RecordingFlowExportSettings = RecordingFlowExportSettings(),
         staticFrontmatter: [String: String] = [:],
+        metadataScope: CaptureVoxMetadataScope = .document,
         postProcessingMode: RecordingFlowPostProcessingMode = .clean,
         customPostProcessingInstruction: String = "",
+        captureProcessingEnabled: Bool = false,
+        capturePrompt: String = "",
         audioSaveMode: RecordingFlowAudioSaveMode = .off,
         attachmentsFolderName: String = "attachments",
-        captureDestinationID: UUID? = nil
+        captureDestinationID: UUID? = nil,
+        captureEntryTemplateID: UUID? = nil,
+        capturePlacementOverride: CapturePlacement? = nil
     ) {
         self.id = id
         self.name = name
@@ -44,11 +58,16 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
         self.kind = kind
         self.exportSettings = exportSettings
         self.staticFrontmatter = staticFrontmatter
+        self.metadataScope = metadataScope
         self.postProcessingMode = postProcessingMode
         self.customPostProcessingInstruction = customPostProcessingInstruction
+        self.captureProcessingEnabled = captureProcessingEnabled
+        self.capturePrompt = capturePrompt
         self.audioSaveMode = audioSaveMode
         self.attachmentsFolderName = attachmentsFolderName
         self.captureDestinationID = captureDestinationID
+        self.captureEntryTemplateID = captureEntryTemplateID
+        self.capturePlacementOverride = capturePlacementOverride
     }
 
     public var displayName: String {
@@ -66,45 +85,108 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
             .uppercased()
     }
 
+    public var captureProfile: CaptureVoxProfile {
+        CaptureVoxProfile(
+            id: id,
+            name: name,
+            symbolName: symbolName,
+            isEnabled: isEnabled,
+            isBuiltIn: isBuiltIn,
+            staticFrontmatter: staticFrontmatter,
+            metadataScope: metadataScope,
+            postProcessingMode: postProcessingMode,
+            customPostProcessingInstruction: customPostProcessingInstruction,
+            captureProcessingEnabled: captureProcessingEnabled,
+            capturePrompt: capturePrompt,
+            captureDestinationID: captureDestinationID,
+            captureEntryTemplateID: captureEntryTemplateID,
+            capturePlacementOverride: capturePlacementOverride
+        )
+    }
+
     public var resolvedPostProcessingInstruction: String? {
-        switch postProcessingMode {
-        case .none:
-            return nil
-        case .clean:
-            return "Clean up the transcript with proper casing and punctuation while preserving the speaker's meaning."
-        case .todoList:
-            return "Convert the transcript into a concise Markdown task list. Each actionable item must be formatted as `- [ ] ...`. Do not invent tasks."
-        case .meetingNotes:
-            return "Format the transcript as meeting notes with useful Markdown sections such as Summary, Decisions, and Action Items. Do not invent details or speaker names."
-        case .custom:
-            let trimmed = customPostProcessingInstruction.trimmingCharacters(in: .whitespacesAndNewlines)
-            return trimmed.isEmpty ? nil : trimmed
-        }
+        captureProfile.resolvedPostProcessingInstruction
     }
 
-    public var staticTags: [String] {
-        guard let raw = staticFrontmatter["tags"] ?? staticFrontmatter["tag"] else { return [] }
-        return raw
-            .replacingOccurrences(of: "[", with: "")
-            .replacingOccurrences(of: "]", with: "")
-            .replacingOccurrences(of: "\"", with: "")
-            .split { $0 == "," || $0 == " " || $0 == "#" }
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
-            .filter { !$0.isEmpty }
-    }
+    public var staticTags: [String] { captureProfile.staticTags }
 
-    public var staticCategory: String? {
-        let raw = staticFrontmatter["category"] ?? staticFrontmatter["type"]
-        let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed?.isEmpty == false ? trimmed : nil
-    }
+    public var staticCategory: String? { captureProfile.staticCategory }
 
     /// Whether this Vox should run on-device AI enrichment after transcription.
-    /// Raw Transcript is the explicit per-Vox opt-out; every other mode uses
+    /// Keep Original is the explicit per-Vox opt-out; every other mode uses
     /// Apple Intelligence when it is available so the app no longer needs a
     /// separate global enrichment toggle.
     public var usesAIEnrichment: Bool {
         postProcessingMode != .none
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case symbolName
+        case isEnabled
+        case isBuiltIn
+        case kind
+        case exportSettings
+        case staticFrontmatter
+        case metadataScope
+        case postProcessingMode
+        case customPostProcessingInstruction
+        case captureProcessingEnabled
+        case capturePrompt
+        case audioSaveMode
+        case attachmentsFolderName
+        case captureDestinationID
+        case captureEntryTemplateID
+        case capturePlacementOverride
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            id: try container.decode(String.self, forKey: .id),
+            name: try container.decode(String.self, forKey: .name),
+            symbolName: try container.decodeIfPresent(String.self, forKey: .symbolName)
+                ?? RecordingFlowStore.defaultSymbolName,
+            isEnabled: try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true,
+            isBuiltIn: try container.decodeIfPresent(Bool.self, forKey: .isBuiltIn) ?? false,
+            kind: try container.decodeIfPresent(RecordingFlowKind.self, forKey: .kind) ?? .custom,
+            exportSettings: try container.decodeIfPresent(RecordingFlowExportSettings.self, forKey: .exportSettings)
+                ?? RecordingFlowExportSettings(),
+            staticFrontmatter: try container.decodeIfPresent([String: String].self, forKey: .staticFrontmatter) ?? [:],
+            metadataScope: try container.decodeIfPresent(CaptureVoxMetadataScope.self, forKey: .metadataScope) ?? .document,
+            postProcessingMode: try container.decodeIfPresent(RecordingFlowPostProcessingMode.self, forKey: .postProcessingMode) ?? .clean,
+            customPostProcessingInstruction: try container.decodeIfPresent(String.self, forKey: .customPostProcessingInstruction) ?? "",
+            captureProcessingEnabled: try container.decodeIfPresent(Bool.self, forKey: .captureProcessingEnabled) ?? false,
+            capturePrompt: try container.decodeIfPresent(String.self, forKey: .capturePrompt) ?? "",
+            audioSaveMode: try container.decodeIfPresent(RecordingFlowAudioSaveMode.self, forKey: .audioSaveMode) ?? .off,
+            attachmentsFolderName: try container.decodeIfPresent(String.self, forKey: .attachmentsFolderName) ?? "attachments",
+            captureDestinationID: try container.decodeIfPresent(UUID.self, forKey: .captureDestinationID),
+            captureEntryTemplateID: try container.decodeIfPresent(UUID.self, forKey: .captureEntryTemplateID),
+            capturePlacementOverride: try container.decodeIfPresent(CapturePlacement.self, forKey: .capturePlacementOverride)
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(symbolName, forKey: .symbolName)
+        try container.encode(isEnabled, forKey: .isEnabled)
+        try container.encode(isBuiltIn, forKey: .isBuiltIn)
+        try container.encode(kind, forKey: .kind)
+        try container.encode(exportSettings, forKey: .exportSettings)
+        try container.encode(staticFrontmatter, forKey: .staticFrontmatter)
+        try container.encode(metadataScope, forKey: .metadataScope)
+        try container.encode(postProcessingMode, forKey: .postProcessingMode)
+        try container.encode(customPostProcessingInstruction, forKey: .customPostProcessingInstruction)
+        try container.encode(captureProcessingEnabled, forKey: .captureProcessingEnabled)
+        try container.encode(capturePrompt, forKey: .capturePrompt)
+        try container.encode(audioSaveMode, forKey: .audioSaveMode)
+        try container.encode(attachmentsFolderName, forKey: .attachmentsFolderName)
+        try container.encodeIfPresent(captureDestinationID, forKey: .captureDestinationID)
+        try container.encodeIfPresent(captureEntryTemplateID, forKey: .captureEntryTemplateID)
+        try container.encodeIfPresent(capturePlacementOverride, forKey: .capturePlacementOverride)
     }
 }
 
@@ -116,25 +198,7 @@ public enum RecordingFlowKind: String, Codable, CaseIterable, Sendable {
     case custom
 }
 
-public enum RecordingFlowPostProcessingMode: String, Codable, CaseIterable, Sendable, Identifiable {
-    case none
-    case clean
-    case todoList
-    case meetingNotes
-    case custom
-
-    public var id: String { rawValue }
-
-    public var displayName: String {
-        switch self {
-        case .none: return "Raw Transcript"
-        case .clean: return "Clean Prose"
-        case .todoList: return "Todo Checklist"
-        case .meetingNotes: return "Meeting Notes"
-        case .custom: return "Custom Instruction"
-        }
-    }
-}
+public typealias RecordingFlowPostProcessingMode = CaptureVoxProcessingMode
 
 public enum RecordingFlowAudioSaveMode: String, Codable, CaseIterable, Sendable, Identifiable {
     case off
@@ -296,8 +360,9 @@ public enum RecordingFlowStore {
             symbolName: defaultSymbolName,
             isBuiltIn: true,
             kind: .general,
-            staticFrontmatter: ["type": "voice-note"],
-            postProcessingMode: .clean
+            staticFrontmatter: ["type": "capture"],
+            postProcessingMode: .clean,
+            capturePrompt: "Capture an idea, task, link, file, scan, or recording."
         )
     }
 
@@ -312,8 +377,9 @@ public enum RecordingFlowStore {
             symbolName: "slider.horizontal.3",
             isBuiltIn: false,
             kind: .custom,
-            staticFrontmatter: ["type": "voice-note"],
-            postProcessingMode: .custom
+            staticFrontmatter: [:],
+            postProcessingMode: .custom,
+            capturePrompt: "What do you want to capture?"
         )
     }
 
@@ -351,6 +417,17 @@ public enum RecordingFlowStore {
         }
         if !migrated.contains(where: { $0.id == generalId }) {
             migrated.insert(defaultFlow, at: 0)
+        }
+
+        // Voxes now apply to every capture modality. The old generated default
+        // would otherwise label typed, photo, file, and scan captures as voice.
+        for index in migrated.indices {
+            let legacyType = migrated[index].staticFrontmatter["type"]?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .lowercased()
+            if legacyType == "voice-note" {
+                migrated[index].staticFrontmatter["type"] = "capture"
+            }
         }
 
         migrateFileExportSettingsToFlows(&migrated, defaults: defaults)
@@ -426,6 +503,26 @@ public enum RecordingFlowStore {
         defaults.set(data, forKey: flowsKey)
     }
 
+    /// Imports the retired Capture-library route map exactly once without
+    /// overriding newer per-Vox choices. New library saves omit the old map.
+    @discardableResult
+    public static func migrateLegacyCaptureBindings(
+        _ bindings: [String: UUID],
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) -> Int {
+        guard !bindings.isEmpty else { return 0 }
+        var flows = loadFlows(defaults: defaults)
+        var migrated = 0
+        for index in flows.indices where flows[index].captureDestinationID == nil {
+            if let destinationID = bindings[flows[index].id] {
+                flows[index].captureDestinationID = destinationID
+                migrated += 1
+            }
+        }
+        if migrated > 0 { saveFlows(flows, defaults: defaults) }
+        return migrated
+    }
+
     /// Removes stale precise routes when a capture destination is deleted.
     /// Legacy per-flow export settings remain untouched as a safe fallback.
     @discardableResult
@@ -437,6 +534,22 @@ public enum RecordingFlowStore {
         var cleared = 0
         for index in flows.indices where flows[index].captureDestinationID == destinationID {
             flows[index].captureDestinationID = nil
+            cleared += 1
+        }
+        if cleared > 0 { saveFlows(flows, defaults: defaults) }
+        return cleared
+    }
+
+    /// Removes stale reusable entry-template defaults when a template is deleted.
+    @discardableResult
+    public static func clearCaptureEntryTemplate(
+        _ templateID: UUID,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) -> Int {
+        var flows = loadFlows(defaults: defaults)
+        var cleared = 0
+        for index in flows.indices where flows[index].captureEntryTemplateID == templateID {
+            flows[index].captureEntryTemplateID = nil
             cleared += 1
         }
         if cleared > 0 { saveFlows(flows, defaults: defaults) }

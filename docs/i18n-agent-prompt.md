@@ -130,7 +130,7 @@ Below is the **complete current state** of the file. For each key, add your
 | `Not set` | `Not set` | Folder picker placeholder |
 | `Off` | `Off` | Status badge — listening disabled |
 | `Opens an email draft to contact support with app diagnostics` | `Opens an email draft to contact support with app diagnostics` | Accessibility hint — Feedback button |
-| `Record and transcribe audio in real time` | `Record and transcribe audio in real time` | Accessibility hint — Listen tab |
+| `Capture text, links, attachments, and recordings` | `Capture text, links, attachments, and recordings` | Accessibility hint — Capture tab |
 | `Send Feedback` | `Send Feedback` | Accessibility label — Feedback button |
 | `Something went wrong` | `Something went wrong` | Generic error fallback |
 | `TRANSCRIBING` | `TRANSCRIBING` | Animated indicator base text — ALL CAPS by design |

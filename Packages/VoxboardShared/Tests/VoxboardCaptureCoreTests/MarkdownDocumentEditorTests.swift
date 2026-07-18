@@ -49,6 +49,27 @@ final class MarkdownDocumentEditorTests: XCTestCase {
         XCTAssertTrue(result.contains("Captured thought."))
     }
 
+    func test_structuredVoxFrontmatterMergesOnceAndPreservesUserOwnedValues() throws {
+        let document = "---\ntitle: User title\ntags: [manual]\n---\n\nExisting"
+
+        let result = try edit(
+            document,
+            entry: "Captured",
+            placement: .append,
+            frontmatter: [
+                "title": "Generated title",
+                "tags": "[vox, manual]",
+                "capture kind": "meeting",
+            ]
+        )
+
+        XCTAssertEqual(result.components(separatedBy: "\n---\n").count - 1, 1)
+        XCTAssertTrue(result.contains("title: User title"))
+        XCTAssertFalse(result.contains("Generated title"))
+        XCTAssertTrue(result.contains("tags: [manual, vox]"))
+        XCTAssertTrue(result.contains("\"capture kind\": \"meeting\""))
+    }
+
     func test_horizontalRuleEntryIsNotReinterpretedAsFrontmatter() throws {
         let document = "---\ntitle: Inbox\n---\n\nExisting"
         let entry = "---\nA visual divider\n---\nMore text"
@@ -214,6 +235,7 @@ final class MarkdownDocumentEditorTests: XCTestCase {
         placement: CapturePlacement,
         prefix: String = "",
         suffix: String = "",
+        frontmatter: [String: String] = [:],
         retryProtectionEnabled: Bool = false
     ) throws -> String {
         try MarkdownDocumentEditor().applying(
@@ -223,6 +245,7 @@ final class MarkdownDocumentEditorTests: XCTestCase {
                 placement: placement,
                 entryPrefix: prefix,
                 entrySuffix: suffix,
+                frontmatter: frontmatter,
                 retryProtectionEnabled: retryProtectionEnabled
             ),
             to: document

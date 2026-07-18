@@ -29,7 +29,10 @@ final class ShareViewController: UIViewController {
 @Observable
 private final class ShareCaptureModel {
     var destinations: [CaptureDestination] = []
+    var voxProfiles: [CaptureVoxProfile] = []
+    var selectedVoxID: String?
     var selectedDestinationID: UUID?
+    var libraryDefaultDestinationID: UUID?
     var note = ""
     var isLoading = true
     var isSubmitting = false
@@ -62,7 +65,17 @@ private final class ShareCaptureModel {
                 fileURL: captureRoot.appendingPathComponent(CaptureLibraryStore.defaultFilename)
             ).load()
             destinations = library.destinations
-            selectedDestinationID = library.defaultDestinationID ?? library.destinations.first?.id
+            libraryDefaultDestinationID = library.defaultDestinationID
+            let sharedDefaults = UserDefaults(suiteName: "group.bontecou.Voxboard")
+            voxProfiles = CaptureVoxProfileStore.enabledProfiles(defaults: sharedDefaults)
+            for index in voxProfiles.indices where voxProfiles[index].captureDestinationID == nil {
+                voxProfiles[index].captureDestinationID = library.legacyFlowBindings[voxProfiles[index].id]
+            }
+            selectedVoxID = CaptureVoxProfileStore.selectedProfileID(defaults: sharedDefaults)
+            selectedDestinationID = resolvedDestinationID(
+                profile: selectedVoxProfile,
+                libraryDefaultID: library.defaultDestinationID
+            )
             guard selectedDestinationID != nil else {
                 throw ShareCaptureError.destinationRequired
             }
@@ -87,6 +100,27 @@ private final class ShareCaptureModel {
             } else {
                 fail(error.localizedDescription)
             }
+        }
+    }
+
+    var selectedVoxProfile: CaptureVoxProfile? {
+        guard let selectedVoxID else { return nil }
+        return voxProfiles.first(where: { $0.id == selectedVoxID })
+    }
+
+    func applySelectedVoxRoute() {
+        selectedDestinationID = CaptureVoxRouteResolver.destinationID(
+            selectionMode: .inherited,
+            explicitDestinationID: nil,
+            profile: selectedVoxProfile,
+            destinations: destinations,
+            libraryDefaultDestinationID: libraryDefaultDestinationID
+        )
+        if let selectedVoxID {
+            CaptureVoxProfileStore.selectCaptureProfile(
+                id: selectedVoxID,
+                defaults: UserDefaults(suiteName: "group.bontecou.Voxboard")
+            )
         }
     }
 
@@ -123,11 +157,19 @@ private final class ShareCaptureModel {
 
         isSubmitting = true
         do {
+            let profile = selectedVoxProfile
+            let processingState: CaptureVoxProcessingState = profile?.captureProcessingEnabled == true
+                && profile?.postProcessingMode != CaptureVoxProcessingMode.none
+                ? .pending
+                : (profile == nil ? .notRequested : .applied)
             let request = CaptureRequest(
                 id: requestID,
                 source: .shareExtension,
                 destinationID: selectedDestinationID,
-                payloads: payloads
+                payloads: payloads,
+                frontmatter: profile?.staticFrontmatter ?? [:],
+                voxProfile: profile,
+                voxProcessingState: processingState
             )
             try await CaptureInbox(rootDirectoryURL: captureRootURL).enqueue(request)
             isQueuedForLater = true
@@ -146,6 +188,19 @@ private final class ShareCaptureModel {
                 fail(error.localizedDescription)
             }
         }
+    }
+
+    private func resolvedDestinationID(
+        profile: CaptureVoxProfile?,
+        libraryDefaultID: UUID?
+    ) -> UUID? {
+        CaptureVoxRouteResolver.destinationID(
+            selectionMode: .inherited,
+            explicitDestinationID: nil,
+            profile: profile,
+            destinations: destinations,
+            libraryDefaultDestinationID: libraryDefaultID
+        )
     }
 
     private func openQueuedCapture() async {
@@ -371,13 +426,30 @@ private struct ShareCaptureView: View {
                 if model.isLoading {
                     HStack { Spacer(); ProgressView("Loading shared items…"); Spacer() }
                 } else {
-                    Section("Destination") {
+                    if !model.voxProfiles.isEmpty {
+                        Section("Vox") {
+                            Picker("Workflow", selection: $model.selectedVoxID) {
+                                ForEach(model.voxProfiles) { profile in
+                                    Label(profile.displayName, systemImage: profile.symbolName)
+                                        .tag(Optional(profile.id))
+                                }
+                            }
+                            .disabled(model.isQueuedForLater)
+                            .onChange(of: model.selectedVoxID) { _, _ in
+                                model.applySelectedVoxRoute()
+                            }
+                        }
+                    }
+                    Section("Route") {
                         Picker("Send to", selection: $model.selectedDestinationID) {
                             ForEach(model.destinations) { destination in
                                 Text(destination.name).tag(Optional(destination.id))
                             }
                         }
                         .disabled(model.isQueuedForLater)
+                        Text("Changing the route here overrides this Vox for the shared capture only.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                     Section("Add a note") {
                         TextEditor(text: $model.note)

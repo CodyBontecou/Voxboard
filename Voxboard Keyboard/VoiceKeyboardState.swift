@@ -48,7 +48,15 @@ final class VoiceKeyboardState {
     /// Closure provided by KeyboardViewController to insert text via textDocumentProxy.
     var textInserter: ((String) -> Void)?
 
-    // Cached model list — avoids filesystem checks on every Record tap
+    private struct BackendOption {
+        let id: String
+        let name: String
+        let localModel: WhisperModelInfo?
+    }
+
+    // Automatic is always available as a selection. Local model options only
+    // appear after the user explicitly downloads them in the main app.
+    private var cachedBackendOptions: [BackendOption] = []
     private var cachedDownloadedModels: [WhisperModelInfo] = []
     private var cachedFlows: [RecordingFlow] = []
 
@@ -67,9 +75,9 @@ final class VoiceKeyboardState {
     /// Wall-clock time when the user tapped Stop — used by the transcript-store fallback.
     private var segmentStopTime: Date?
 
-    /// Maximum time to wait for transcription before showing an error (seconds).
-    /// Reduced from 90 → 30 so the "timed out" error appears sooner if all else fails.
-    private let transcriptionTimeout: TimeInterval = 30
+    /// Apple may need to prepare a system-managed locale asset on first use.
+    /// Keep the existing resilient transcript-store fallback alive long enough.
+    private let transcriptionTimeout: TimeInterval = 90
 
     init() {
         // Ensure IPC directory exists once upfront (avoids repeated checks on every write)
@@ -96,36 +104,38 @@ final class VoiceKeyboardState {
 
     // MARK: - Available Models
 
-    /// Refresh the cached list of downloaded models (filesystem check).
-    /// Called once at init and when model selection changes.
+    /// Refresh Automatic plus the models the user has explicitly downloaded.
     func refreshModelCache() {
         cachedDownloadedModels = WhisperModelInfo.availableModels.filter { $0.isDownloaded }
-
-        // Restore the persisted model selection from shared UserDefaults
-        let persistedId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-            ?? AppConstants.defaultModelName
-        if let idx = cachedDownloadedModels.firstIndex(where: { $0.id == persistedId }) {
-            selectedModelIndex = idx
-        } else {
-            selectedModelIndex = 0
+        cachedBackendOptions = [
+            BackendOption(
+                id: TranscriptionBackendID.automatic,
+                name: String(localized: "Automatic"),
+                localModel: nil
+            )
+        ] + cachedDownloadedModels.map {
+            BackendOption(id: $0.id, name: $0.name, localModel: $0)
         }
 
-        log.log("refreshModelCache — \(cachedDownloadedModels.count) models cached, selected: \(currentModelName)")
+        let persistedID = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+            ?? AppConstants.defaultTranscriptionBackendID
+        selectedModelIndex = cachedBackendOptions.firstIndex(where: { $0.id == persistedID }) ?? 0
+
+        log.log("refreshModelCache — \(cachedBackendOptions.count) backends cached, selected: \(currentModelName)")
     }
 
     var downloadedModels: [WhisperModelInfo] {
         cachedDownloadedModels
     }
 
-    var currentModel: WhisperModelInfo? {
-        let models = cachedDownloadedModels
-        guard !models.isEmpty else { return nil }
-        let idx = min(selectedModelIndex, models.count - 1)
-        return models[max(0, idx)]
+    private var currentBackend: BackendOption? {
+        guard !cachedBackendOptions.isEmpty else { return nil }
+        let index = min(selectedModelIndex, cachedBackendOptions.count - 1)
+        return cachedBackendOptions[max(0, index)]
     }
 
     var currentModelName: String {
-        currentModel?.name ?? String(localized: "No Model")
+        currentBackend?.name ?? String(localized: "Automatic")
     }
 
     var currentFlow: RecordingFlow {
@@ -158,7 +168,7 @@ final class VoiceKeyboardState {
     // MARK: - Model Navigation
 
     func previousModel() {
-        let count = cachedDownloadedModels.count
+        let count = cachedBackendOptions.count
         guard count > 0 else { return }
         selectedModelIndex = (selectedModelIndex - 1 + count) % count
         persistSelectedModel()
@@ -166,18 +176,21 @@ final class VoiceKeyboardState {
     }
 
     func nextModel() {
-        let count = cachedDownloadedModels.count
+        let count = cachedBackendOptions.count
         guard count > 0 else { return }
         selectedModelIndex = (selectedModelIndex + 1) % count
         persistSelectedModel()
         log.log("Model switched to: \(currentModelName)")
     }
 
-    /// Save the current model selection to shared UserDefaults so it survives
+    /// Save the current backend selection to shared UserDefaults so it survives
     /// keyboard restarts and stays in sync with the main app's settings.
     private func persistSelectedModel() {
-        guard let model = currentModel else { return }
-        AppConstants.sharedDefaults?.set(model.id, forKey: AppConstants.selectedModelKey)
+        guard let backend = currentBackend else { return }
+        AppConstants.sharedDefaults?.set(backend.id, forKey: AppConstants.selectedModelKey)
+        if let localModel = backend.localModel {
+            AppConstants.sharedDefaults?.set(localModel.id, forKey: AppConstants.selectedFallbackModelKey)
+        }
     }
 
     // MARK: - Consume Transcription
@@ -198,17 +211,25 @@ final class VoiceKeyboardState {
             return
         }
 
-        guard let model = currentModel else {
-            // Refresh cache in case models were downloaded since last check
+        guard let backend = currentBackend else {
             refreshModelCache()
-            if currentModel == nil {
+            guard currentBackend != nil else {
                 status = .noModel
-                log.log("❌ No model available. Downloaded: \(downloadedModels.map(\.id))")
+                log.log("❌ No transcription backend available")
                 return
             }
-            // Fall through with the refreshed model
             startRecording(hasFullAccess: hasFullAccess)
             return
+        }
+
+        if backend.id == TranscriptionBackendID.automatic,
+           AppConstants.sharedDefaults?.bool(forKey: AppConstants.automaticBackendReadyKey) != true {
+            refreshModelCache()
+            if cachedDownloadedModels.isEmpty {
+                status = .noModel
+                log.log("❌ Automatic backend is not ready — open Vox.md to prepare Apple Speech or download a fallback")
+                return
+            }
         }
 
         // Check if free tier is exhausted
@@ -246,14 +267,14 @@ final class VoiceKeyboardState {
         let command = RecordingCommand(
             requestId: requestId,
             action: .startSegment,
-            modelId: model.id,
+            modelId: backend.id,
             language: language,
             flowId: flowId
         )
         TranscriptionIPC.writeCommand(command)
         TranscriptionIPC.postCommandNotification()
 
-        log.log("📤 Sent startSegment command (requestId=\(requestId), model=\(model.id), flow=\(flowId))")
+        log.log("📤 Sent startSegment command (requestId=\(requestId), backend=\(backend.id), flow=\(flowId))")
 
         // Start local duration timer
         startDurationTimer()

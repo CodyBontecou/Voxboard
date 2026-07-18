@@ -19,6 +19,8 @@ final class OnboardingAnalyticsEventTests: XCTestCase {
                 fileExportMode: .newFile,
                 freeMinutesUsedBucket: .underFiveMinutes,
                 freeMinutesRemainingBucket: .fiveToFifteenMinutes,
+                freeCapturesUsedBucket: .fourToSeven,
+                freeCapturesRemainingBucket: .oneToThree,
                 paywallContext: .onboarding,
                 productId: .lifetimeUnlock,
                 purchaseOutcome: .started,
@@ -36,6 +38,7 @@ final class OnboardingAnalyticsEventTests: XCTestCase {
         )
         XCTAssertEqual(payload.properties[.onboardingStep], .string("microphone_access"))
         XCTAssertEqual(payload.properties[.productId], .string("bontecou.Voxboard.unlock"))
+        XCTAssertEqual(payload.properties[.freeCapturesUsedBucket], .string("4_7"))
     }
 
     func testSensitiveIdentifiersAreDroppedBeforeEncoding() {

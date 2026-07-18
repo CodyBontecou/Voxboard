@@ -55,7 +55,7 @@ Allowed fields are intentionally coarse:
 - microphone permission status
 - model engine and size bucket
 - file-export format/mode only
-- free-tier usage buckets
+- free-minute and successful-Capture usage buckets
 - paywall context
 - product ID
 - purchase/restore outcome

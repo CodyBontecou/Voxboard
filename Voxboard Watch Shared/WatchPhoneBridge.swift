@@ -256,7 +256,7 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
             ))
             return false
         }
-        if !session.isCompanionAppInstalled {
+        if !companionAppIsInstalled(session) {
             setSnapshot(WatchRecordingSnapshot(
                 phase: .error,
                 isQuickRecordEnabled: true,
@@ -309,7 +309,7 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
 
         activate()
         let session = WCSession.default
-        if session.activationState == .activated, !session.isCompanionAppInstalled {
+        if session.activationState == .activated, !companionAppIsInstalled(session) {
             let unavailable = WatchRecordingSnapshot(
                 phase: .unavailable,
                 isQuickRecordEnabled: true,
@@ -377,6 +377,14 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
         }
     }
 
+    private func companionAppIsInstalled(_ session: WCSession) -> Bool {
+        #if os(watchOS)
+        session.isCompanionAppInstalled
+        #else
+        true
+        #endif
+    }
+
     private func apply(_ payload: [String: Any]) {
         guard !payload.isEmpty else { return }
         setSnapshot(WatchRecordingSnapshot(dictionary: payload))
@@ -397,6 +405,14 @@ extension WatchPhoneBridge: WCSessionDelegate {
     ) {
         apply(session.receivedApplicationContext)
     }
+
+    #if os(iOS)
+    func sessionDidBecomeInactive(_ session: WCSession) {}
+
+    func sessionDidDeactivate(_ session: WCSession) {
+        session.activate()
+    }
+    #endif
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
         apply(applicationContext)

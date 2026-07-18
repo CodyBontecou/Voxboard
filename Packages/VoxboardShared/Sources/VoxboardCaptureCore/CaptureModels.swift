@@ -266,12 +266,35 @@ public enum CaptureSource: String, Codable, CaseIterable, Sendable {
     case voice
 }
 
+/// Freemium accounting policy captured with the durable request. Voice text
+/// that already consumed transcription time bypasses the separate Capture
+/// allowance; every other delivery consumes one successful Capture.
+public enum CaptureDeliveryKind: String, Codable, Sendable {
+    case standard
+    case meteredVoiceTranscript
+}
+
 public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
     public var id: UUID
     public var createdAt: Date
     public var source: CaptureSource
+    public var deliveryKind: CaptureDeliveryKind
     public var destinationID: UUID
     public var payloads: [CapturePayload]
+    /// Structured note-level metadata applied by the selected Vox. Keeping it
+    /// outside payload Markdown lets the document editor merge frontmatter once.
+    public var frontmatter: [String: String]
+    /// Exact Vox policy captured at submission/enqueue time. Retries never read
+    /// live Vox settings, so later edits cannot change queued user content.
+    public var voxProfile: CaptureVoxProfile?
+    public var voxProcessingState: CaptureVoxProcessingState
+    /// Version marker for exact prepared-request reuse by durable drafts.
+    public var originDraftUpdatedAt: Date?
+    /// Exact one-capture route policy. These outrank the snapshotted Vox and
+    /// survive deferred delivery without mutating the reusable destination.
+    public var relativeNotePathOverride: String?
+    public var placementOverride: CapturePlacement?
+    public var entryTemplateIDOverride: UUID?
     /// A request-scoped attachment route used by deferred voice delivery.
     /// `nil` keeps the destination default; an empty string means alongside
     /// the Markdown note.
@@ -281,16 +304,76 @@ public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
         id: UUID = UUID(),
         createdAt: Date = Date(),
         source: CaptureSource,
+        deliveryKind: CaptureDeliveryKind? = nil,
         destinationID: UUID,
         payloads: [CapturePayload],
+        frontmatter: [String: String] = [:],
+        voxProfile: CaptureVoxProfile? = nil,
+        voxProcessingState: CaptureVoxProcessingState = .notRequested,
+        originDraftUpdatedAt: Date? = nil,
+        relativeNotePathOverride: String? = nil,
+        placementOverride: CapturePlacement? = nil,
+        entryTemplateIDOverride: UUID? = nil,
         attachmentsFolderNameOverride: String? = nil
     ) {
         self.id = id
         self.createdAt = createdAt
         self.source = source
+        self.deliveryKind = deliveryKind ?? (source == .voice ? .meteredVoiceTranscript : .standard)
         self.destinationID = destinationID
         self.payloads = payloads
+        self.frontmatter = frontmatter
+        self.voxProfile = voxProfile
+        self.voxProcessingState = voxProcessingState
+        self.originDraftUpdatedAt = originDraftUpdatedAt
+        self.relativeNotePathOverride = relativeNotePathOverride
+        self.placementOverride = placementOverride
+        self.entryTemplateIDOverride = entryTemplateIDOverride
         self.attachmentsFolderNameOverride = attachmentsFolderNameOverride
+    }
+
+    public var voxReference: CaptureVoxReference? {
+        voxProfile.map(CaptureVoxReference.init(profile:))
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case createdAt
+        case source
+        case deliveryKind
+        case destinationID
+        case payloads
+        case frontmatter
+        case voxProfile
+        case voxProcessingState
+        case originDraftUpdatedAt
+        case relativeNotePathOverride
+        case placementOverride
+        case entryTemplateIDOverride
+        case attachmentsFolderNameOverride
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let source = try container.decode(CaptureSource.self, forKey: .source)
+        try self.init(
+            id: container.decode(UUID.self, forKey: .id),
+            createdAt: container.decode(Date.self, forKey: .createdAt),
+            source: source,
+            deliveryKind: container.decodeIfPresent(CaptureDeliveryKind.self, forKey: .deliveryKind)
+                ?? (source == .voice ? .meteredVoiceTranscript : .standard),
+            destinationID: container.decode(UUID.self, forKey: .destinationID),
+            payloads: container.decode([CapturePayload].self, forKey: .payloads),
+            frontmatter: container.decodeIfPresent([String: String].self, forKey: .frontmatter) ?? [:],
+            voxProfile: container.decodeIfPresent(CaptureVoxProfile.self, forKey: .voxProfile),
+            voxProcessingState: container.decodeIfPresent(CaptureVoxProcessingState.self, forKey: .voxProcessingState)
+                ?? .notRequested,
+            originDraftUpdatedAt: container.decodeIfPresent(Date.self, forKey: .originDraftUpdatedAt),
+            relativeNotePathOverride: container.decodeIfPresent(String.self, forKey: .relativeNotePathOverride),
+            placementOverride: container.decodeIfPresent(CapturePlacement.self, forKey: .placementOverride),
+            entryTemplateIDOverride: container.decodeIfPresent(UUID.self, forKey: .entryTemplateIDOverride),
+            attachmentsFolderNameOverride: container.decodeIfPresent(String.self, forKey: .attachmentsFolderNameOverride)
+        )
     }
 }
 
@@ -519,60 +602,36 @@ public struct CaptureEntryTemplate: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
-public struct CaptureFlowBinding: Codable, Equatable, Sendable {
-    public var recordingFlowID: String
-    public var destinationID: UUID
-
-    public init(recordingFlowID: String, destinationID: UUID) {
-        self.recordingFlowID = recordingFlowID
-        self.destinationID = destinationID
-    }
-}
-
 public struct CaptureLibraryEnvelope: Codable, Equatable, Sendable {
     public static let currentSchemaVersion = 1
 
     public var schemaVersion: Int
     public var destinations: [CaptureDestination]
     public var defaultDestinationID: UUID?
-    public var flowBindings: [String: UUID]
     public var entryTemplates: [CaptureEntryTemplate]
+    /// Read-only migration input from the retired duplicate route-binding map.
+    /// New saves deliberately omit this field; RecordingFlow is authoritative.
+    public private(set) var legacyFlowBindings: [String: UUID]
 
     public init(
         schemaVersion: Int = CaptureLibraryEnvelope.currentSchemaVersion,
         destinations: [CaptureDestination] = [],
         defaultDestinationID: UUID? = nil,
-        flowBindings: [String: UUID] = [:]
-    ) {
-        self.init(
-            schemaVersion: schemaVersion,
-            destinations: destinations,
-            defaultDestinationID: defaultDestinationID,
-            flowBindings: flowBindings,
-            entryTemplates: []
-        )
-    }
-
-    public init(
-        schemaVersion: Int = CaptureLibraryEnvelope.currentSchemaVersion,
-        destinations: [CaptureDestination] = [],
-        defaultDestinationID: UUID? = nil,
-        flowBindings: [String: UUID] = [:],
-        entryTemplates: [CaptureEntryTemplate]
+        entryTemplates: [CaptureEntryTemplate] = []
     ) {
         self.schemaVersion = schemaVersion
         self.destinations = destinations
         self.defaultDestinationID = defaultDestinationID
-        self.flowBindings = flowBindings
         self.entryTemplates = entryTemplates
+        self.legacyFlowBindings = [:]
     }
 
     private enum CodingKeys: String, CodingKey {
         case schemaVersion
         case destinations
         case defaultDestinationID
-        case flowBindings
         case entryTemplates
+        case flowBindings
     }
 
     public init(from decoder: Decoder) throws {
@@ -580,11 +639,19 @@ public struct CaptureLibraryEnvelope: Codable, Equatable, Sendable {
         schemaVersion = try container.decode(Int.self, forKey: .schemaVersion)
         destinations = try container.decodeIfPresent([CaptureDestination].self, forKey: .destinations) ?? []
         defaultDestinationID = try container.decodeIfPresent(UUID.self, forKey: .defaultDestinationID)
-        flowBindings = try container.decodeIfPresent([String: UUID].self, forKey: .flowBindings) ?? [:]
+        legacyFlowBindings = try container.decodeIfPresent([String: UUID].self, forKey: .flowBindings) ?? [:]
         entryTemplates = try container.decodeIfPresent(
             [CaptureEntryTemplate].self,
             forKey: .entryTemplates
         ) ?? []
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(schemaVersion, forKey: .schemaVersion)
+        try container.encode(destinations, forKey: .destinations)
+        try container.encodeIfPresent(defaultDestinationID, forKey: .defaultDestinationID)
+        try container.encode(entryTemplates, forKey: .entryTemplates)
     }
 
     /// Resolves a reusable template at delivery time so edits apply to every

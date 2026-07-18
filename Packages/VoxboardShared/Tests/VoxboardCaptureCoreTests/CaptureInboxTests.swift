@@ -382,6 +382,48 @@ final class CaptureInboxTests: XCTestCase {
         XCTAssertEqual(completedIDs, [request.id])
     }
 
+    func test_returnToPendingPreservesClaimedRequestForUnlockRetry() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let inbox = CaptureInbox(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        let request = makeRequest()
+        try await inbox.enqueue(request)
+        _ = try await inbox.claim(requestID: request.id)
+
+        try await inbox.returnToPending(requestID: request.id)
+
+        let pendingState = try await inbox.state(of: request.id)
+        let reclaimed = try await inbox.claim(requestID: request.id)
+        XCTAssertEqual(pendingState, .pending)
+        XCTAssertEqual(reclaimed, request)
+    }
+
+    func test_replaceProcessingRequestPersistsExactVoxProcessedPayloadForRetry() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let inbox = CaptureInbox(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        var request = makeRequest()
+        request.voxProcessingState = .pending
+        try await inbox.enqueue(request)
+        _ = try await inbox.claim(requestID: request.id)
+
+        request.payloads = [.text("Resolved once")]
+        request.frontmatter = ["title": "Stable"]
+        request.voxProcessingState = .applied
+        try await inbox.replaceProcessingRequest(request)
+        try await inbox.fail(requestID: request.id)
+        _ = try await inbox.retryFailed(requestID: request.id)
+
+        let retried = try await inbox.claim(requestID: request.id)
+        XCTAssertEqual(retried, request)
+    }
+
     private func makeRequest() -> CaptureRequest {
         CaptureRequest(
             id: UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE")!,

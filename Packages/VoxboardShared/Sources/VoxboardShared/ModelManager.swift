@@ -3,12 +3,16 @@ import Foundation
 import FluidAudio
 #endif
 
-/// Manages model lifecycle: bundled model setup, downloads, selection, and language preference.
+/// Manages Automatic/local selection, opt-in model downloads, and language preference.
 /// Stores models in the App Group container so both the app and keyboard extension can access them.
 @Observable
 public final class ModelManager {
     public var downloadProgress: [String: Double] = [:]
     public var isDownloading: [String: Bool] = [:]
+    /// Incremented whenever installed model files change so filesystem-backed
+    /// download state refreshes immediately in SwiftUI.
+    public private(set) var installedModelsRevision = 0
+    public var modelOperationError: String?
 
     /// Active download tasks keyed by model ID.
     /// Not @Observable-tracked — only accessed from the main thread via SwiftUI.
@@ -22,6 +26,9 @@ public final class ModelManager {
     public var selectedModelId: String {
         didSet {
             AppConstants.sharedDefaults?.set(selectedModelId, forKey: AppConstants.selectedModelKey)
+            if WhisperModelInfo.availableModels.contains(where: { $0.id == selectedModelId }) {
+                AppConstants.sharedDefaults?.set(selectedModelId, forKey: AppConstants.selectedFallbackModelKey)
+            }
             ensureSelectedLanguageIsSupported()
         }
     }
@@ -34,43 +41,83 @@ public final class ModelManager {
         WhisperModelInfo.availableModels.first { $0.id == selectedModelId }
     }
 
-    /// Languages shown in the picker for the currently-selected model.
+    public var isAutomaticSelection: Bool {
+        selectedModelId == TranscriptionBackendID.automatic
+    }
+
+    /// Last explicitly selected local model. Automatic uses it only when the
+    /// system recognizer is unavailable or fails before producing a transcript.
+    public var preferredFallbackModelID: String? {
+        AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey)
+    }
+
+    public func selectAutomatic() {
+        selectedModelId = TranscriptionBackendID.automatic
+    }
+
+    public func selectModel(_ model: WhisperModelInfo) {
+        selectedModelId = model.id
+    }
+
+    /// Languages shown in the picker for the currently-selected backend.
     public var availableLanguages: [LanguageOption] {
-        Self.supportedLanguages(for: selectedModel?.engine ?? .whisper)
+        if isAutomaticSelection { return Self.automaticSupportedLanguages }
+        return Self.supportedLanguages(for: selectedModel?.engine ?? .whisper)
     }
 
     public var downloadedModels: [WhisperModelInfo] {
-        WhisperModelInfo.availableModels.filter { $0.isDownloaded }
+        _ = installedModelsRevision
+        return WhisperModelInfo.availableModels.filter { $0.isDownloaded }
+    }
+
+    public func isModelDownloaded(_ model: WhisperModelInfo) -> Bool {
+        _ = installedModelsRevision
+        return model.isDownloaded
     }
 
     // MARK: - Initialization
 
     public init() {
-        // Seed from UserDefaults so the persisted selection survives app restarts.
-        self.selectedModelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-            ?? AppConstants.defaultModelName
-        self.selectedLanguage = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
-            ?? "auto"
+        let defaults = AppConstants.sharedDefaults
+        let persistedSelection = defaults?.string(forKey: AppConstants.selectedModelKey)
+
+        #if os(iOS)
+        let hasMigrated = defaults?.bool(forKey: AppConstants.transcriptionSelectionMigrationKey) == true
+        if persistedSelection == nil || (!hasMigrated && persistedSelection == AppConstants.defaultModelName) {
+            // Fresh installs and the former implicitly-bundled Base default move
+            // to native system transcription. Preserve an existing Base file as
+            // an opt-in fallback without keeping it selected.
+            self.selectedModelId = TranscriptionBackendID.automatic
+            if persistedSelection == AppConstants.defaultModelName {
+                defaults?.set(AppConstants.defaultModelName, forKey: AppConstants.selectedFallbackModelKey)
+            }
+            defaults?.set(TranscriptionBackendID.automatic, forKey: AppConstants.selectedModelKey)
+        } else if persistedSelection == TranscriptionBackendID.automatic
+                    || WhisperModelInfo.availableModels.contains(where: { $0.id == persistedSelection }) {
+            self.selectedModelId = persistedSelection ?? TranscriptionBackendID.automatic
+        } else {
+            self.selectedModelId = TranscriptionBackendID.automatic
+            defaults?.set(TranscriptionBackendID.automatic, forKey: AppConstants.selectedModelKey)
+        }
+        defaults?.set(true, forKey: AppConstants.transcriptionSelectionMigrationKey)
+        #else
+        if let persistedSelection,
+           WhisperModelInfo.availableModels.contains(where: { $0.id == persistedSelection }) {
+            self.selectedModelId = persistedSelection
+        } else {
+            self.selectedModelId = AppConstants.defaultModelName
+        }
+        #endif
+
+        self.selectedLanguage = defaults?.string(forKey: AppConstants.selectedLanguageKey) ?? "auto"
+
+        if defaults?.string(forKey: AppConstants.selectedFallbackModelKey) == nil,
+           WhisperModelInfo.availableModels.contains(where: { $0.id == self.selectedModelId }) {
+            defaults?.set(self.selectedModelId, forKey: AppConstants.selectedFallbackModelKey)
+        }
+
         ensureSelectedLanguageIsSupported()
         ensureModelsDirectory()
-    }
-
-    /// Copy the bundled base model from the app bundle into the shared App Group container.
-    /// Call this from the main app on first launch.
-    public func copyBundledModelIfNeeded() {
-        guard let modelsDir = AppConstants.modelsDirectoryURL else { return }
-        let destURL = modelsDir.appendingPathComponent("ggml-base.bin")
-
-        guard !FileManager.default.fileExists(atPath: destURL.path) else { return }
-
-        if let bundleURL = Bundle.main.url(forResource: "ggml-base", withExtension: "bin") {
-            do {
-                try FileManager.default.copyItem(at: bundleURL, to: destURL)
-                print("[ModelManager] Copied bundled base model to shared container")
-            } catch {
-                print("[ModelManager] Failed to copy bundled model: \(error)")
-            }
-        }
     }
 
     // MARK: - Download
@@ -219,6 +266,7 @@ public final class ModelManager {
             downloadProgress[modelId] = 0
         } else {
             downloadProgress[modelId] = 1.0
+            installedModelsRevision &+= 1
         }
     }
 
@@ -242,13 +290,31 @@ public final class ModelManager {
 
     // MARK: - Delete
 
-    public func deleteModel(_ model: WhisperModelInfo) {
-        guard let url = model.localURL else { return }
-        try? FileManager.default.removeItem(at: url)
-
-        if selectedModelId == model.id {
-            selectedModelId = AppConstants.defaultModelName
+    @discardableResult
+    public func deleteModel(_ model: WhisperModelInfo) -> Bool {
+        modelOperationError = nil
+        guard let url = model.localURL else {
+            modelOperationError = "The model storage location is unavailable."
+            return false
         }
+
+        do {
+            if FileManager.default.fileExists(atPath: url.path) {
+                try FileManager.default.removeItem(at: url)
+            }
+        } catch {
+            modelOperationError = "Could not delete \(model.name): \(error.localizedDescription)"
+            return false
+        }
+
+        if preferredFallbackModelID == model.id {
+            AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.selectedFallbackModelKey)
+        }
+        if selectedModelId == model.id {
+            selectedModelId = AppConstants.defaultTranscriptionBackendID
+        }
+        installedModelsRevision &+= 1
+        return true
     }
 
     private func ensureModelsDirectory() {
@@ -286,6 +352,12 @@ public final class ModelManager {
         ("no", "Norwegian"),
         ("fi", "Finnish"),
     ]
+
+    /// Automatic's `auto` value follows the device language because Apple's
+    /// SpeechTranscriber requires a concrete locale rather than detecting one.
+    public static let automaticSupportedLanguages: [LanguageOption] = [
+        ("auto", "System Language"),
+    ] + whisperSupportedLanguages.filter { $0.code != "auto" }
 
     /// NVIDIA Parakeet-TDT-0.6b-v3 languages.
     public static let parakeetV3SupportedLanguages: [LanguageOption] = [

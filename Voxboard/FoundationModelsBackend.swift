@@ -167,17 +167,16 @@ final class FoundationModelsBackend: LLMBackend {
     }
 
     private static let systemInstructions = """
-    You label short voice transcriptions for a local voice-notes app. The raw \
-    text comes from an automatic speech recognizer and may contain disfluencies, \
-    missing punctuation, and lowercase words. You produce a title, single-word \
-    tags (no spaces; hyphens allowed for compound words), a category, and a \
-    cleaned version of the transcript. Preserve the speaker's meaning verbatim \
-    — never add information that wasn't in the original.
+    You organize text for a private, local-first capture app. The text may be \
+    typed Markdown, an on-device speech transcript, or OCR from a document. \
+    Produce a title, single-word tags (no spaces; hyphens allowed), a category, \
+    and a cleaned version. Preserve existing Markdown structure and the author's \
+    meaning — never add information that wasn't in the original.
     """
 
     private static func userPrompt(rawText: String) -> String {
         """
-        Transcript:
+        Captured text:
         \"\"\"
         \(rawText)
         \"\"\"
@@ -199,10 +198,10 @@ private struct GeneratedEnrichment {
     @Guide(description: "0 to 5 lowercase single-word tags describing the content (no spaces; hyphens allowed for compound words like app-dev)")
     let tags: [String]
 
-    @Guide(description: "The single best category for this transcript")
+    @Guide(description: "The single best category for this captured text")
     let category: GeneratedCategory
 
-    @Guide(description: "The transcript rewritten with proper casing and punctuation, filler words removed, meaning preserved verbatim")
+    @Guide(description: "The captured text cleaned up while preserving meaning and existing Markdown structure")
     let cleanedText: String
 }
 

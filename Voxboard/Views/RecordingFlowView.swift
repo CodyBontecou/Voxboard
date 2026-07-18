@@ -20,15 +20,23 @@ final class RecordingFlowController {
     private let recorder = AudioRecorder()
     private var commandPollTimer: Timer?
     private let transcriptStore: TranscriptStore
+    private let transcriptionService: OnDeviceTranscriptionService
     private var recordingStartedAt: TimeInterval = 0
 
     var recordingDuration: TimeInterval { recorder.recordingDuration }
 
-    init(modelId: String, language: String, requestId: String, transcriptStore: TranscriptStore) {
+    init(
+        modelId: String,
+        language: String,
+        requestId: String,
+        transcriptStore: TranscriptStore,
+        transcriptionService: OnDeviceTranscriptionService = AppTranscriptionServices.shared
+    ) {
         self.modelId = modelId
         self.language = language
         self.requestId = requestId
         self.transcriptStore = transcriptStore
+        self.transcriptionService = transcriptionService
     }
 
     deinit { stopListeningForCommand() }
@@ -66,16 +74,10 @@ final class RecordingFlowController {
         TranscriptionIPC.writeStatus(RecordingStatus(requestId: requestId, phase: .transcribing))
         let duration = recorder.recordingDuration
 
-        guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
-              let modelPath = model.localURL?.path,
-              FileManager.default.fileExists(atPath: modelPath) else {
-            phase = .error; errorMessage = String(format: String(localized: "Model not found: %@"), modelId)
-            writeErrorResponse(String(localized: "Model not found")); return
-        }
-
-        let modelName = model.name
         let lang = language
         let reqId = requestId
+        let selectedModelID = modelId
+        let service = transcriptionService
 
         var bgTask: UIBackgroundTaskIdentifier = .invalid
         bgTask = UIApplication.shared.beginBackgroundTask {
@@ -83,38 +85,45 @@ final class RecordingFlowController {
         }
 
         Task.detached(priority: .userInitiated) {
-            guard let ctx = WhisperContext(modelPath: modelPath, useGPU: false) else {
+            do {
+                let result = try await service.transcribeResult(
+                    audioURL: audioURL,
+                    modelID: selectedModelID,
+                    fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
+                    language: lang
+                )
+                log.log("[App:RecFlow] Transcription complete")
+
                 await MainActor.run { [weak self] in
-                    self?.phase = .error; self?.errorMessage = String(localized: "Failed to load model")
-                    self?.writeErrorResponse(String(localized: "Model load failed"))
-                    if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
-                }; return
-            }
-
-            let text = ctx.transcribe(audioURL: audioURL, language: lang)
-            log.log("[App:RecFlow] Transcription complete")
-
-            await MainActor.run { [weak self] in
-                guard let self else {
-                    if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }; return
-                }
-                if let text, !text.isEmpty {
-                    self.transcriptionResult = text
-                    let response = TranscriptionResponse(requestId: reqId, text: text)
+                    guard let self else {
+                        if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
+                        return
+                    }
+                    self.transcriptionResult = result.text
+                    let response = TranscriptionResponse(requestId: reqId, text: result.text)
                     try? TranscriptionIPC.writeResponse(response)
                     TranscriptionIPC.postResponseNotification()
                     TranscriptionIPC.writeStatus(RecordingStatus(requestId: reqId, phase: .done))
-                    self.transcriptStore.add(Transcript(text: text, duration: duration, modelUsed: modelName, language: lang))
+                    self.transcriptStore.add(Transcript(
+                        text: result.text,
+                        duration: duration,
+                        modelUsed: result.backendName,
+                        language: result.language
+                    ))
                     ReviewPromptManager.shared.recordSuccessfulTranscription(
                         totalTranscriptionCount: self.transcriptStore.transcripts.count,
                         transcriptDates: self.transcriptStore.transcripts.map(\.date)
                     )
                     self.phase = .done
-                } else {
-                    self.phase = .error; self.errorMessage = String(localized: "No speech detected")
-                    self.writeErrorResponse(String(localized: "No speech detected"))
+                    if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
                 }
-                if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
+            } catch {
+                await MainActor.run { [weak self] in
+                    self?.phase = .error
+                    self?.errorMessage = error.localizedDescription
+                    self?.writeErrorResponse(error.localizedDescription)
+                    if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
+                }
             }
         }
     }

@@ -4,12 +4,11 @@ import VoxboardShared
 // MARK: - App navigation
 
 enum AppTab: Hashable, CaseIterable {
-    case capture, listen, model, vox, settings
+    case capture, model, vox, settings
 
     var label: String {
         switch self {
         case .capture: return "Capture"
-        case .listen: return "Listen"
         case .model: return "Model"
         case .vox: return "Vox"
         case .settings: return "Settings"
@@ -19,7 +18,6 @@ enum AppTab: Hashable, CaseIterable {
     var inactiveSymbol: String {
         switch self {
         case .capture: return "square.and.pencil"
-        case .listen: return "mic"
         case .model: return "cpu"
         case .vox: return "waveform.circle"
         case .settings: return "gearshape"
@@ -29,7 +27,6 @@ enum AppTab: Hashable, CaseIterable {
     var activeSymbol: String {
         switch self {
         case .capture: return "square.and.pencil"
-        case .listen: return "mic.fill"
         case .model: return "cpu.fill"
         case .vox: return "waveform.circle.fill"
         case .settings: return "gearshape.fill"
@@ -40,10 +37,9 @@ enum AppTab: Hashable, CaseIterable {
 
     var accessibilityHint: String {
         switch self {
-        case .capture: return String(localized: "Capture text, links, and attachments to Markdown")
-        case .listen: return String(localized: "Record and transcribe audio in real time")
-        case .model: return String(localized: "Download and select Whisper or Parakeet AI models")
-        case .vox: return String(localized: "Manage Vox presets for export routing and post-processing")
+        case .capture: return String(localized: "Capture text, links, attachments, and recordings")
+        case .model: return String(localized: "Use native Apple Speech or opt in to local model downloads")
+        case .vox: return String(localized: "Manage reusable workflows for Capture processing, metadata, routes, and voice")
         case .settings: return String(localized: "App preferences, upgrade, about, and debug")
         }
     }
@@ -52,8 +48,9 @@ enum AppTab: Hashable, CaseIterable {
 // MARK: - RootView
 
 /// Adaptive root container.
-/// • iPhone / compact width → `TabView` with five capture and voice destinations.
+/// • iPhone / compact width → `TabView` with four primary destinations.
 /// • iPad / regular width   → `NavigationSplitView` with a sidebar.
+/// Recording and persistent listening are inline controls in Capture.
 struct RootView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -72,47 +69,21 @@ struct RootView: View {
             }
         }
         .background(Geist.Palette.background100)
-        .onAppear {
-            if pendingWidgetRecord || pendingKeyboardLaunch {
-                focusListenTab()
-            }
-        }
         .onChange(of: pendingWidgetRecord) { _, isPending in
-            if isPending { focusListenTab() }
+            if isPending { selectedTab = .capture }
         }
         .onChange(of: pendingKeyboardLaunch) { _, isPending in
-            if isPending { focusListenTab() }
+            if isPending { selectedTab = .capture }
         }
     }
 
     private var compactLayout: some View {
         TabView(selection: $selectedTab) {
-            NavigationStack {
-                QuickCaptureView(
-                    viewModel: quickCaptureViewModel,
-                    microphoneIsBusy: {
-                        persistentRecorder.isListening
-                            || persistentRecorder.isSegmentActive
-                            || persistentRecorder.isTranscribing
-                    }
-                )
-            }
-            .tabItem { tabLabel(.capture) }
-            .tag(AppTab.capture)
-            .accessibilityIdentifier(AppTab.capture.accessibilityIdentifier)
-            .accessibilityHint(AppTab.capture.accessibilityHint)
-
-            NavigationStack {
-                HomeView(
-                    persistentRecorder: persistentRecorder,
-                    pendingKeyboardLaunch: $pendingKeyboardLaunch,
-                    pendingWidgetRecord: $pendingWidgetRecord
-                )
-            }
-            .tabItem { tabLabel(.listen) }
-            .tag(AppTab.listen)
-            .accessibilityIdentifier(AppTab.listen.accessibilityIdentifier)
-            .accessibilityHint(AppTab.listen.accessibilityHint)
+            captureRoot
+                .tabItem { tabLabel(.capture) }
+                .tag(AppTab.capture)
+                .accessibilityIdentifier(AppTab.capture.accessibilityIdentifier)
+                .accessibilityHint(AppTab.capture.accessibilityHint)
 
             NavigationStack {
                 ModelTabView()
@@ -167,20 +138,7 @@ struct RootView: View {
         } detail: {
             switch selectedTab {
             case .capture:
-                QuickCaptureView(
-                    viewModel: quickCaptureViewModel,
-                    microphoneIsBusy: {
-                        persistentRecorder.isListening
-                            || persistentRecorder.isSegmentActive
-                            || persistentRecorder.isTranscribing
-                    }
-                )
-            case .listen:
-                HomeView(
-                    persistentRecorder: persistentRecorder,
-                    pendingKeyboardLaunch: $pendingKeyboardLaunch,
-                    pendingWidgetRecord: $pendingWidgetRecord
-                )
+                captureRoot
             case .model:
                 ModelTabView()
             case .vox:
@@ -191,14 +149,21 @@ struct RootView: View {
         }
     }
 
+    private var captureRoot: some View {
+        NavigationStack {
+            QuickCaptureView(
+                viewModel: quickCaptureViewModel,
+                persistentRecorder: persistentRecorder,
+                pendingKeyboardLaunch: $pendingKeyboardLaunch,
+                pendingWidgetRecord: $pendingWidgetRecord
+            )
+        }
+    }
+
     private var sidebarSelection: Binding<AppTab?> {
         Binding(
             get: { selectedTab },
             set: { if let value = $0 { selectedTab = value } }
         )
-    }
-
-    private func focusListenTab() {
-        selectedTab = .listen
     }
 }

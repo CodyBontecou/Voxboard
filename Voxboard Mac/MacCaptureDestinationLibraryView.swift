@@ -139,7 +139,6 @@ struct MacCaptureDestinationLibraryView: View {
             }
             library = try await store().update { value in
                 value.destinations.removeAll { $0.id == id }
-                value.flowBindings = value.flowBindings.filter { $0.value != id }
                 if value.defaultDestinationID == id {
                     value.defaultDestinationID = value.destinations.first?.id
                 }

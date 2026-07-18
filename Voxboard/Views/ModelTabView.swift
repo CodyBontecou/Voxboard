@@ -4,6 +4,7 @@ import VoxboardShared
 /// Download and select the on-device speech recognition model.
 struct ModelTabView: View {
     @Environment(ModelManager.self) private var modelManager
+    @State private var automaticAvailability: SystemTranscriptionAvailability = .unavailable
 
     private var whisperModels: [WhisperModelInfo] {
         WhisperModelInfo.availableModels.filter { !$0.engine.isParakeet }
@@ -17,8 +18,9 @@ struct ModelTabView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Geist.Spacing.eight) {
                 header
-                modelSection(title: "Whisper", description: "General-purpose multilingual models.", models: whisperModels)
-                modelSection(title: "Parakeet", description: "Fast, optimized speech recognition models.", models: parakeetModels)
+                automaticSection
+                modelSection(title: "Whisper", description: "Optional local models you can download and select explicitly.", models: whisperModels)
+                modelSection(title: "Parakeet", description: "Optional optimized local models you can download and select explicitly.", models: parakeetModels)
                 languageSection
             }
             .padding(.horizontal, Geist.Spacing.four)
@@ -31,6 +33,45 @@ struct ModelTabView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Geist.Palette.background100, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .task(id: "\(modelManager.selectedModelId)|\(modelManager.selectedLanguage)|\(modelManager.installedModelsRevision)") {
+            let service = AppTranscriptionServices.shared
+            automaticAvailability = await service.availability(
+                modelID: TranscriptionBackendID.automatic,
+                language: modelManager.selectedLanguage
+            )
+            if modelManager.isAutomaticSelection, automaticAvailability == .supported {
+                try? await service.prepare(
+                    modelID: TranscriptionBackendID.automatic,
+                    fallbackModelID: modelManager.preferredFallbackModelID,
+                    language: modelManager.selectedLanguage
+                )
+                automaticAvailability = await service.availability(
+                    modelID: TranscriptionBackendID.automatic,
+                    language: modelManager.selectedLanguage
+                )
+            }
+            if modelManager.isAutomaticSelection {
+                let ready = await service.canTranscribe(
+                    modelID: TranscriptionBackendID.automatic,
+                    fallbackModelID: modelManager.preferredFallbackModelID,
+                    language: modelManager.selectedLanguage
+                )
+                AppConstants.sharedDefaults?.set(ready, forKey: AppConstants.automaticBackendReadyKey)
+            }
+        }
+        .alert(
+            "Unable to Delete Model",
+            isPresented: Binding(
+                get: { modelManager.modelOperationError != nil },
+                set: { if !$0 { modelManager.modelOperationError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                modelManager.modelOperationError = nil
+            }
+        } message: {
+            Text(modelManager.modelOperationError ?? "The model could not be deleted.")
+        }
     }
 
     private var header: some View {
@@ -39,10 +80,85 @@ struct ModelTabView: View {
                 .font(Geist.heading(.title))
                 .tracking(-0.96)
                 .foregroundStyle(Geist.text)
-            Text("Choose the model Vox.md uses for transcription. Larger downloads can improve accuracy but need more memory and load more slowly.")
+            Text("Automatic uses Apple Speech on supported iOS 26 devices. Whisper and Parakeet downloads are optional local overrides and fallbacks.")
                 .font(Geist.body())
                 .foregroundStyle(Geist.muted)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var automaticSection: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                Text("Native")
+                    .font(Geist.heading(.headline))
+                    .foregroundStyle(Geist.text)
+                Text("Uses Apple's system-managed, on-device speech recognizer when this device and language support it.")
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.muted)
+            }
+
+            HStack(alignment: .center, spacing: Geist.Spacing.four) {
+                VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                    Text("Automatic")
+                        .font(Geist.label(.body))
+                        .foregroundStyle(Geist.text)
+                    Text("System managed · No app model download")
+                        .font(Geist.mono())
+                        .foregroundStyle(Geist.muted)
+                    Text("Falls back only to a model you have chosen to download.")
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.muted)
+                    Label(automaticAvailabilityLabel, systemImage: automaticAvailabilityIcon)
+                        .font(Geist.caption())
+                        .foregroundStyle(automaticAvailability == .unavailable ? Geist.Palette.amber900 : Geist.muted)
+                }
+                Spacer(minLength: Geist.Spacing.two)
+                if modelManager.isAutomaticSelection {
+                    Label("Selected", systemImage: "checkmark.circle.fill")
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.Palette.blue900)
+                        .padding(.horizontal, Geist.Spacing.three)
+                        .frame(height: Geist.ControlHeight.small)
+                        .background(Geist.Palette.blue100)
+                        .clipShape(Capsule())
+                } else {
+                    Button("Use Automatic") {
+                        modelManager.selectAutomatic()
+                        OnboardingAnalyticsClient.shared.trackModelSetupCompleted(
+                            metadata: OnboardingAnalyticsModelMetadata(
+                                engine: .appleSpeech,
+                                sizeBucket: .unknown
+                            )
+                        )
+                    }
+                    .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+                }
+            }
+            .padding(Geist.Spacing.four)
+            .frame(minHeight: 88)
+            .background(Geist.Palette.background100)
+            .overlay(
+                RoundedRectangle(cornerRadius: Geist.Radius.medium, style: .continuous)
+                    .stroke(Geist.border, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.medium, style: .continuous))
+        }
+    }
+
+    private var automaticAvailabilityLabel: String {
+        switch automaticAvailability {
+        case .ready: return "Apple Speech ready for this language"
+        case .supported: return "Apple Speech available; system asset may need preparation"
+        case .unavailable: return "Apple Speech unavailable; a downloaded fallback is required"
+        }
+    }
+
+    private var automaticAvailabilityIcon: String {
+        switch automaticAvailability {
+        case .ready: return "checkmark.circle.fill"
+        case .supported: return "arrow.down.circle"
+        case .unavailable: return "exclamationmark.triangle"
         }
     }
 
@@ -115,7 +231,7 @@ struct ModelTabView: View {
 
     @ViewBuilder
     private func modelActionView(for model: WhisperModelInfo) -> some View {
-        if model.isDownloaded {
+        if modelManager.isModelDownloaded(model) {
             HStack(spacing: Geist.Spacing.two) {
                 if modelManager.selectedModelId == model.id {
                     Label("Selected", systemImage: "checkmark.circle.fill")
@@ -127,7 +243,7 @@ struct ModelTabView: View {
                         .clipShape(Capsule())
                 } else {
                     Button("Select Model") {
-                        modelManager.selectedModelId = model.id
+                        modelManager.selectModel(model)
                         OnboardingAnalyticsClient.shared.trackModelSetupCompleted(
                             metadata: OnboardingAnalyticsModelMetadata(model: model)
                         )
@@ -193,24 +309,32 @@ struct ModelTabView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .geistCard(padding: Geist.Spacing.four)
                 } else {
-                    Picker("Transcription Language", selection: Binding(
-                        get: { modelManager.selectedLanguage },
-                        set: { modelManager.selectedLanguage = $0 }
-                    )) {
-                        ForEach(modelManager.availableLanguages, id: \.code) { language in
-                            Text(language.name).tag(language.code)
+                    VStack(alignment: .leading, spacing: Geist.Spacing.two) {
+                        Picker("Transcription Language", selection: Binding(
+                            get: { modelManager.selectedLanguage },
+                            set: { modelManager.selectedLanguage = $0 }
+                        )) {
+                            ForEach(modelManager.availableLanguages, id: \.code) { language in
+                                Text(language.name).tag(language.code)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .font(Geist.body())
+                        .tint(Geist.text)
+                        .frame(maxWidth: .infinity, minHeight: Geist.ControlHeight.large, alignment: .leading)
+                        .padding(.horizontal, Geist.Spacing.four)
+                        .background(Geist.Palette.background100)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous)
+                                .stroke(Geist.border, lineWidth: 1)
+                        )
+
+                        if modelManager.isAutomaticSelection {
+                            Text("System Language follows your device language. Choose a language explicitly when the recording uses another language.")
+                                .font(Geist.caption())
+                                .foregroundStyle(Geist.muted)
                         }
                     }
-                    .pickerStyle(.menu)
-                    .font(Geist.body())
-                    .tint(Geist.text)
-                    .frame(maxWidth: .infinity, minHeight: Geist.ControlHeight.large, alignment: .leading)
-                    .padding(.horizontal, Geist.Spacing.four)
-                    .background(Geist.Palette.background100)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous)
-                            .stroke(Geist.border, lineWidth: 1)
-                    )
                 }
             }
         }

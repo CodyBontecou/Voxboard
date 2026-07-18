@@ -230,6 +230,31 @@ final class CaptureHistoryStoreTests: XCTestCase {
         }
     }
 
+    func test_voxIdentityRoundTripsWithoutCaptureContent() async throws {
+        let fixture = try Fixture()
+        defer { fixture.remove() }
+        let store = fixture.store()
+        let record = try CaptureHistoryRecord(
+            requestID: fixture.firstID,
+            createdAt: date(10),
+            deliveredAt: date(20),
+            source: .shareExtension,
+            outcome: .delivered,
+            destinationID: UUID(),
+            destinationName: "Daily Notes",
+            voxID: "journal",
+            voxName: "Journal",
+            relativeNotePath: "Daily/2026-07-18.md",
+            attachmentCount: 1
+        )
+
+        try await store.upsert(record)
+        let loaded = try await store.list()
+
+        XCTAssertEqual(loaded.first?.voxID, "journal")
+        XCTAssertEqual(loaded.first?.voxName, "Journal")
+    }
+
     private func makeRecord(
         requestID: UUID,
         deliveredAt: Date?,

@@ -4,14 +4,7 @@ import VoxboardShared
 // MARK: - Geist dark-theme tokens
 
 private enum K {
-    static let bg       = Color.black
-    static let surface  = Color(red: 0.102, green: 0.102, blue: 0.102)
-    static let border   = Color.white.opacity(0.141)
-    static let borderHi = Color.white.opacity(0.239)
-    static let text     = Color(red: 0.929, green: 0.929, blue: 0.929)
-    static let muted    = Color(red: 0.627, green: 0.627, blue: 0.627)
-    static let faint    = Color(red: 0.561, green: 0.561, blue: 0.561)
-    static let error    = Color(red: 1.0, green: 0.337, blue: 0.373)
+    static let error = Color(red: 1.0, green: 0.337, blue: 0.373)
 
     static func label(_ style: Font.TextStyle = .callout) -> Font {
         .system(style, design: .default, weight: .medium)
@@ -33,7 +26,6 @@ struct VoiceToolbarView: View {
     var body: some View {
         HStack(spacing: 10) {
             modelNavigator
-            flowPill
             statusLabel
             Spacer()
             if voiceState.status == .recording {
@@ -102,27 +94,6 @@ struct VoiceToolbarView: View {
         }
     }
 
-    // MARK: - Flow selector
-
-    private var flowPill: some View {
-        Button(action: { voiceState.nextFlow(); modelChangeCount += 1 }) {
-            Text(voiceState.currentFlowShortLabel)
-                .font(K.caption(.caption2))
-                .foregroundColor(K.text)
-                .lineLimit(1)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 4)
-                .background(K.surface)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .stroke(K.borderHi, lineWidth: 1)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Recording Vox: \(voiceState.currentFlowName). Tap to change Vox.")
-    }
-
     // MARK: - Status Label
 
     private var statusLabel: some View {
@@ -175,8 +146,8 @@ struct VoiceToolbarView: View {
                 .tint(.secondary)
                 .frame(width: 32, height: 32)
 
-        case .appNotListening:
-            // Mic icon — prompts opening app
+        case .appNotListening, .noModel:
+            // Mic icon — prompts opening the app to start listening or prepare transcription.
             Button(action: { voiceState.openApp(hasFullAccess: hasFullAccess) }) {
                 Image(systemName: "mic.fill")
                     .font(.system(.title3, weight: .bold))

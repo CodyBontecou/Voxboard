@@ -47,6 +47,8 @@ const STRING_PROPERTY_KEYS = new Set([
   "fileExportMode",
   "freeMinutesUsedBucket",
   "freeMinutesRemainingBucket",
+  "freeCapturesUsedBucket",
+  "freeCapturesRemainingBucket",
   "paywallContext",
   "productId",
   "purchaseOutcome",
@@ -68,12 +70,13 @@ const ONBOARDING_STEPS = new Set([
   "ready",
 ]);
 const PERMISSION_STATUSES = new Set(["granted", "denied", "restricted", "unavailable", "unknown"]);
-const MODEL_ENGINES = new Set(["whisper", "parakeet", "unknown"]);
+const MODEL_ENGINES = new Set(["whisper", "parakeet", "apple_speech", "unknown"]);
 const MODEL_SIZE_BUCKETS = new Set(["bundled", "under_100_mb", "100_500_mb", "500_mb_1_gb", "1_gb_plus", "unknown"]);
 const FILE_EXPORT_FORMATS = new Set(["txt", "md", "json", "yaml", "disabled", "unknown"]);
 const FILE_EXPORT_MODES = new Set(["append", "new_file", "disabled", "unknown"]);
 const USAGE_BUCKETS = new Set(["0", "0_5_min", "5_15_min", "15_plus_min", "unlimited", "unknown"]);
-const PAYWALL_CONTEXTS = new Set(["onboarding", "usage_meter", "limit", "recording", "keyboard", "widget", "settings", "restore", "unknown"]);
+const CAPTURE_USAGE_BUCKETS = new Set(["0", "1_3", "4_7", "8_9", "10_plus", "unlimited", "unknown"]);
+const PAYWALL_CONTEXTS = new Set(["onboarding", "usage_meter", "limit", "recording", "capture_limit", "keyboard", "widget", "settings", "restore", "unknown"]);
 const PRODUCT_IDS = new Set(["bontecou.Voxboard.unlock"]);
 const PURCHASE_OUTCOMES = new Set(["started", "succeeded", "failed", "cancelled", "pending"]);
 const ERROR_CATEGORIES = new Set([
@@ -191,12 +194,14 @@ async function ingestEvents(request: Request, env: Env): Promise<Response> {
       file_export_mode,
       free_minutes_used_bucket,
       free_minutes_remaining_bucket,
+      free_captures_used_bucket,
+      free_captures_remaining_bucket,
       paywall_context,
       product_id,
       purchase_outcome,
       error_category,
       payload_json
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   await env.DB.batch(rows.map((row) => insert.bind(
@@ -216,6 +221,8 @@ async function ingestEvents(request: Request, env: Env): Promise<Response> {
     stringProperty(row.properties, "fileExportMode"),
     stringProperty(row.properties, "freeMinutesUsedBucket"),
     stringProperty(row.properties, "freeMinutesRemainingBucket"),
+    stringProperty(row.properties, "freeCapturesUsedBucket"),
+    stringProperty(row.properties, "freeCapturesRemainingBucket"),
     stringProperty(row.properties, "paywallContext"),
     stringProperty(row.properties, "productId"),
     stringProperty(row.properties, "purchaseOutcome"),
@@ -297,6 +304,9 @@ function validateStringProperty(key: string, value: unknown): string {
     case "freeMinutesUsedBucket":
     case "freeMinutesRemainingBucket":
       return validateSetValue(key, value, USAGE_BUCKETS);
+    case "freeCapturesUsedBucket":
+    case "freeCapturesRemainingBucket":
+      return validateSetValue(key, value, CAPTURE_USAGE_BUCKETS);
     case "paywallContext":
       return validateSetValue(key, value, PAYWALL_CONTEXTS);
     case "productId":

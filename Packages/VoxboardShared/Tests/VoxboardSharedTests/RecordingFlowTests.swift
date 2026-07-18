@@ -23,6 +23,57 @@ final class RecordingFlowTests: XCTestCase {
         XCTAssertTrue(flow.usesAIEnrichment)
     }
 
+    func test_capturePolicyRoundTripsAndMapsToLightweightProfile() throws {
+        let destinationID = UUID()
+        let templateID = UUID()
+        var flow = RecordingFlowStore.makeCustomFlow()
+        flow.captureProcessingEnabled = true
+        flow.capturePrompt = "What happened in the meeting?"
+        flow.metadataScope = .entry
+        flow.captureDestinationID = destinationID
+        flow.captureEntryTemplateID = templateID
+        flow.capturePlacementOverride = .prepend
+        flow.staticFrontmatter = ["type": "meeting"]
+        flow.postProcessingMode = .meetingNotes
+
+        let decoded = try JSONDecoder().decode(
+            RecordingFlow.self,
+            from: JSONEncoder().encode(flow)
+        )
+
+        XCTAssertEqual(decoded, flow)
+        XCTAssertEqual(decoded.captureProfile.captureDestinationID, destinationID)
+        XCTAssertEqual(decoded.captureProfile.captureEntryTemplateID, templateID)
+        XCTAssertEqual(decoded.captureProfile.capturePlacementOverride, .prepend)
+        XCTAssertTrue(decoded.captureProfile.captureProcessingEnabled)
+        XCTAssertEqual(decoded.captureProfile.metadataScope, .entry)
+    }
+
+    func test_migrateLegacyCaptureBindingsDoesNotOverrideNewerVoxRoute() throws {
+        let suiteName = "test.flow.migrate-route.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let legacyDestinationID = UUID()
+        let newerDestinationID = UUID()
+        var legacyFlow = RecordingFlowStore.makeCustomFlow()
+        legacyFlow.id = "legacy"
+        legacyFlow.captureDestinationID = nil
+        var newerFlow = RecordingFlowStore.makeCustomFlow()
+        newerFlow.id = "newer"
+        newerFlow.captureDestinationID = newerDestinationID
+        RecordingFlowStore.saveFlows([legacyFlow, newerFlow], defaults: defaults)
+
+        let migrated = RecordingFlowStore.migrateLegacyCaptureBindings(
+            ["legacy": legacyDestinationID, "newer": legacyDestinationID],
+            defaults: defaults
+        )
+        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
+
+        XCTAssertEqual(migrated, 1)
+        XCTAssertEqual(loaded.first(where: { $0.id == "legacy" })?.captureDestinationID, legacyDestinationID)
+        XCTAssertEqual(loaded.first(where: { $0.id == "newer" })?.captureDestinationID, newerDestinationID)
+    }
+
     func test_clearCaptureDestinationRemovesDeletedRouteFromEveryFlow() throws {
         let suiteName = "test.flow.clear-route.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -44,6 +95,22 @@ final class RecordingFlowTests: XCTestCase {
         XCTAssertEqual(cleared, 1)
         XCTAssertNil(flows.first { $0.id == deletedRoute.id }?.captureDestinationID)
         XCTAssertEqual(flows.first { $0.id == retainedRoute.id }?.captureDestinationID, retainedID)
+    }
+
+    func test_clearCaptureEntryTemplateRemovesDeletedTemplateFromEveryFlow() throws {
+        let suiteName = "test.flow.clear-template.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let deletedID = UUID()
+        var flow = RecordingFlowStore.makeCustomFlow()
+        flow.captureEntryTemplateID = deletedID
+        RecordingFlowStore.saveFlows([flow], defaults: defaults)
+
+        let cleared = RecordingFlowStore.clearCaptureEntryTemplate(deletedID, defaults: defaults)
+        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
+
+        XCTAssertEqual(cleared, 1)
+        XCTAssertNil(loaded.first(where: { $0.id == flow.id })?.captureEntryTemplateID)
     }
 
     func test_exportSettingsDecodeMissingAudioEmbedFieldsWithSafeDefaults() throws {
@@ -243,6 +310,22 @@ final class RecordingFlowTests: XCTestCase {
         XCTAssertTrue(content.contains("mood: \"strange\""))
         XCTAssertTrue(content.contains("tags: [\"dream\"]"))
         XCTAssertTrue(content.contains("I was flying over a city"))
+    }
+
+    func test_loadMigratesLegacyVoiceNoteTypeToModalityNeutralCapture() throws {
+        let suiteName = "test.flow.voice-type.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        var flow = RecordingFlowStore.makeCustomFlow()
+        flow.staticFrontmatter = ["type": "voice-note", "project": "vox"]
+        defaults.set(try JSONEncoder().encode([flow]), forKey: RecordingFlowStore.flowsKey)
+
+        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
+        let migrated = try XCTUnwrap(loaded.first(where: { $0.id == flow.id }))
+
+        XCTAssertEqual(migrated.staticFrontmatter["type"], "capture")
+        XCTAssertEqual(migrated.staticFrontmatter["project"], "vox")
+        XCTAssertEqual(RecordingFlowStore.loadFlows(defaults: defaults), loaded)
     }
 
     func test_legacyRecordingFlowFixture_decodesWithoutCaptureSchema() throws {

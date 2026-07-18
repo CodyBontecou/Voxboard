@@ -80,24 +80,29 @@ public struct TranscriptEnricher: Sendable {
     }
 
     public func enrich(rawText: String, flow: RecordingFlow? = nil) async throws -> TranscriptEnrichment {
+        try await enrich(rawText: rawText, profile: flow?.captureProfile)
+    }
+
+    public func enrich(
+        rawText: String,
+        profile: CaptureVoxProfile?
+    ) async throws -> TranscriptEnrichment {
         let trimmed = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             throw TranscriptEnricherError.emptyInput
         }
 
-        // Prefer the backend's native structured-generation path when this is
-        // a plain cleanup flow. For flow-specific formatting (todo checkboxes,
-        // meeting notes, or custom instructions), force the prompt path so the
-        // flow instruction can shape `cleanedText`.
-        if !Self.requiresPromptDrivenFormatting(flow),
+        // Prefer native structured generation for plain cleanup. Workflow-
+        // specific formatting uses the prompt path so its instruction shapes
+        // the resulting Markdown.
+        if !Self.requiresPromptDrivenFormatting(profile),
            let native = try await backend.enrichNative(rawText: trimmed) {
-            return Self.applyFlowDefaults(Self.normalize(native), flow: flow)
+            return Self.applyVoxDefaults(Self.normalize(native), profile: profile)
         }
 
-        // Fallback: string-based path with tolerant JSON extraction.
-        let prompt = Self.buildPrompt(rawText: trimmed, flow: flow)
+        let prompt = Self.buildPrompt(rawText: trimmed, profile: profile)
         let response = try await backend.complete(prompt: prompt)
-        return Self.applyFlowDefaults(try Self.parse(response: response), flow: flow)
+        return Self.applyVoxDefaults(try Self.parse(response: response), profile: profile)
     }
 
     /// Snap a free-form category to the fixed taxonomy and enforce the
@@ -114,22 +119,27 @@ public struct TranscriptEnricher: Sendable {
         )
     }
 
-    private static func requiresPromptDrivenFormatting(_ flow: RecordingFlow?) -> Bool {
-        guard let flow else { return false }
-        switch flow.postProcessingMode {
+    private static func requiresPromptDrivenFormatting(_ profile: CaptureVoxProfile?) -> Bool {
+        guard let profile else { return false }
+        switch profile.postProcessingMode {
         case .todoList, .meetingNotes, .custom:
-            return flow.resolvedPostProcessingInstruction != nil
+            return profile.resolvedPostProcessingInstruction != nil
         case .none, .clean:
             return false
         }
     }
 
-    private static func applyFlowDefaults(_ enrichment: TranscriptEnrichment, flow: RecordingFlow?) -> TranscriptEnrichment {
-        guard let flow else { return enrichment }
-        let tags = TranscriptFlowFormatter.mergeTags(enrichment.tags, flow.staticTags)
-        let category = enrichment.category == "other" ? (flow.staticCategory ?? enrichment.category) : enrichment.category
+    private static func applyVoxDefaults(
+        _ enrichment: TranscriptEnrichment,
+        profile: CaptureVoxProfile?
+    ) -> TranscriptEnrichment {
+        guard let profile else { return enrichment }
+        let tags = TranscriptFlowFormatter.mergeTags(enrichment.tags, profile.staticTags)
+        let category = enrichment.category == "other"
+            ? (profile.staticCategory ?? enrichment.category)
+            : enrichment.category
         let cleanedText: String
-        switch flow.postProcessingMode {
+        switch profile.postProcessingMode {
         case .todoList:
             cleanedText = TranscriptFlowFormatter.formatTodoList(enrichment.cleanedText)
         case .none, .clean, .meetingNotes, .custom:
@@ -191,20 +201,25 @@ public struct TranscriptEnricher: Sendable {
     // MARK: - Prompt
 
     static func buildPrompt(rawText: String, flow: RecordingFlow? = nil) -> String {
+        buildPrompt(rawText: rawText, profile: flow?.captureProfile)
+    }
+
+    static func buildPrompt(rawText: String, profile: CaptureVoxProfile?) -> String {
         let categoryList = allowedCategories.joined(separator: ", ")
-        let flowInstruction = flow?.resolvedPostProcessingInstruction
-        let flowLine = flow.map { "\nWorkflow: \($0.displayName)" } ?? ""
-        let staticTags = flow?.staticTags ?? []
+        let flowInstruction = profile?.resolvedPostProcessingInstruction
+        let flowLine = profile.map { "\nWorkflow: \($0.displayName)" } ?? ""
+        let staticTags = profile?.staticTags ?? []
         let staticTagLine = staticTags.isEmpty ? "" : "\nPrefer including these tags when relevant: \(staticTags.joined(separator: ", "))"
-        let staticCategoryLine = flow?.staticCategory.map { "\nPrefer this category when appropriate: \($0)" } ?? ""
+        let staticCategoryLine = profile?.staticCategory.map { "\nPrefer this category when appropriate: \($0)" } ?? ""
         let cleanedTextInstruction = flowInstruction.map {
-            "For \"cleanedText\": \($0) Preserve the speaker's meaning and do not add information that was not in the original."
-        } ?? "For \"cleanedText\": rewrite the transcript with proper casing, punctuation, and filler words removed; preserve the speaker's meaning verbatim and do not add information that was not in the original."
+            "For \"cleanedText\": \($0) Preserve the author's meaning and do not add information that was not in the original."
+        } ?? "For \"cleanedText\": improve casing and punctuation while preserving meaning and existing Markdown structure; do not add information that was not in the original."
 
         return """
-        You are labeling a short voice transcription for a local voice-notes app. \
-        The raw text was produced by an automatic speech recognizer and may contain \
-        disfluencies, missing punctuation, and lowercase text.\(flowLine)\(staticTagLine)\(staticCategoryLine)
+        You are organizing text for a private, local-first capture app. The text may \
+        be typed Markdown, an on-device voice transcription, or OCR extracted from a \
+        document. Preserve existing Markdown structure unless the workflow explicitly \
+        asks for a different structure.\(flowLine)\(staticTagLine)\(staticCategoryLine)
 
         Return ONLY a single JSON object — no prose, no markdown fences — with these keys:
           - "title": a short descriptive title (max 6 words)
@@ -212,7 +227,7 @@ public struct TranscriptEnricher: Sendable {
           - "category": exactly one of [\(categoryList)]
           - "cleanedText": \(cleanedTextInstruction)
 
-        Transcript:
+        Captured text:
         \"\"\"
         \(rawText)
         \"\"\"

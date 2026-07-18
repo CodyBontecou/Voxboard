@@ -11,25 +11,43 @@ final class OnboardingAnalyticsFunnelTests: XCTestCase {
         XCTAssertEqual(OnboardingAnalyticsQuotaState.bucket(forMinutes: 15), .fifteenPlusMinutes)
     }
 
+    func testCaptureUsageBucketsAreCoarse() {
+        XCTAssertEqual(OnboardingAnalyticsQuotaState.bucket(forCaptures: 0), .zero)
+        XCTAssertEqual(OnboardingAnalyticsQuotaState.bucket(forCaptures: 1), .oneToThree)
+        XCTAssertEqual(OnboardingAnalyticsQuotaState.bucket(forCaptures: 3), .oneToThree)
+        XCTAssertEqual(OnboardingAnalyticsQuotaState.bucket(forCaptures: 4), .fourToSeven)
+        XCTAssertEqual(OnboardingAnalyticsQuotaState.bucket(forCaptures: 7), .fourToSeven)
+        XCTAssertEqual(OnboardingAnalyticsQuotaState.bucket(forCaptures: 8), .eightToNine)
+        XCTAssertEqual(OnboardingAnalyticsQuotaState.bucket(forCaptures: 9), .eightToNine)
+        XCTAssertEqual(OnboardingAnalyticsQuotaState.bucket(forCaptures: 10), .tenPlus)
+    }
+
     func testQuotaStateUsesUnlimitedBucketForUnlockedUsers() {
         let quotaState = OnboardingAnalyticsQuotaState(
             totalSecondsUsed: 12_000,
             freeLimitSeconds: 900,
+            successfulCapturesUsed: 10,
             hasUnlocked: true
         )
 
         XCTAssertEqual(quotaState.freeMinutesUsedBucket, .unlimited)
         XCTAssertEqual(quotaState.freeMinutesRemainingBucket, .unlimited)
+        XCTAssertEqual(quotaState.freeCapturesUsedBucket, .unlimited)
+        XCTAssertEqual(quotaState.freeCapturesRemainingBucket, .unlimited)
     }
 
     func testModelMetadataDoesNotExposeModelNameOrPath() {
-        let bundledModel = WhisperModelInfo.availableModels.first { $0.id == "ggml-base" }!
+        let baseModel = WhisperModelInfo.availableModels.first { $0.id == "ggml-base" }!
         let parakeetModel = WhisperModelInfo.availableModels.first { $0.id == "parakeet-v3" }!
 
-        XCTAssertEqual(OnboardingAnalyticsModelMetadata(model: bundledModel).engine, .whisper)
-        XCTAssertEqual(OnboardingAnalyticsModelMetadata(model: bundledModel).sizeBucket, .bundled)
+        XCTAssertEqual(OnboardingAnalyticsModelMetadata(model: baseModel).engine, .whisper)
+        XCTAssertEqual(OnboardingAnalyticsModelMetadata(model: baseModel).sizeBucket, .oneHundredTo500MB)
         XCTAssertEqual(OnboardingAnalyticsModelMetadata(model: parakeetModel).engine, .parakeet)
         XCTAssertEqual(OnboardingAnalyticsModelMetadata(model: parakeetModel).sizeBucket, .fiveHundredMBTo1GB)
+
+        let appleSpeech = OnboardingAnalyticsModelMetadata(engine: .appleSpeech, sizeBucket: .unknown)
+        XCTAssertEqual(appleSpeech.engine.rawValue, "apple_speech")
+        XCTAssertEqual(appleSpeech.sizeBucket, .unknown)
     }
 
     func testPaywallHelperBuildsTypedFunnelEvent() async {
@@ -44,16 +62,20 @@ final class OnboardingAnalyticsFunnelTests: XCTestCase {
         )
         let quotaState = OnboardingAnalyticsQuotaState(
             freeMinutesUsedBucket: .fiveToFifteenMinutes,
-            freeMinutesRemainingBucket: .underFiveMinutes
+            freeMinutesRemainingBucket: .underFiveMinutes,
+            freeCapturesUsedBucket: .eightToNine,
+            freeCapturesRemainingBucket: .oneToThree
         )
 
-        client.trackPaywallShown(context: .usageMeter, quotaState: quotaState)
+        client.trackPaywallShown(context: .captureLimit, quotaState: quotaState)
         await client.flushAndWait()
 
         let payload = await transport.payloadsValue().first
         XCTAssertEqual(payload?.eventName, "onboarding_paywall_shown")
-        XCTAssertEqual(payload?.properties[.paywallContext], .string("usage_meter"))
+        XCTAssertEqual(payload?.properties[.paywallContext], .string("capture_limit"))
         XCTAssertEqual(payload?.properties[.freeMinutesUsedBucket], .string("5_15_min"))
         XCTAssertEqual(payload?.properties[.freeMinutesRemainingBucket], .string("0_5_min"))
+        XCTAssertEqual(payload?.properties[.freeCapturesUsedBucket], .string("8_9"))
+        XCTAssertEqual(payload?.properties[.freeCapturesRemainingBucket], .string("1_3"))
     }
 }

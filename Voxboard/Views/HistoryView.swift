@@ -3,6 +3,7 @@ import UIKit
 import VoxboardShared
 
 struct HistoryView: View {
+    @Bindable var viewModel: QuickCaptureViewModel
     @Environment(TranscriptStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var showClearHistoryConfirmation = false
@@ -11,17 +12,32 @@ struct HistoryView: View {
     @State private var sharePayload: TranscriptSharePayload?
     @State private var exportError: String?
 
-    private var filteredTranscripts: [Transcript] {
-        store.transcripts.filter { TranscriptSearch.matches($0, query: searchText) }
+    private var unifiedItems: [UnifiedHistoryItem] {
+        var captureByID: [UUID: CaptureHistoryRecord] = [:]
+        for record in viewModel.historyRecords { captureByID[record.requestID] = record }
+        let transcriptIDs = Set(store.transcripts.map(\.id))
+        let transcriptItems = store.transcripts.map { transcript in
+            UnifiedHistoryItem.transcript(transcript, delivery: captureByID[transcript.id])
+        }
+        let captureItems = viewModel.historyRecords
+            .filter { !transcriptIDs.contains($0.requestID) }
+            .map(UnifiedHistoryItem.capture)
+        return (transcriptItems + captureItems).sorted { $0.date > $1.date }
+    }
+
+    private var filteredItems: [UnifiedHistoryItem] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return unifiedItems }
+        return unifiedItems.filter { $0.matches(query) }
     }
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Geist.Palette.background200.ignoresSafeArea()
-                if store.transcripts.isEmpty {
+                if unifiedItems.isEmpty {
                     emptyState
-                } else if filteredTranscripts.isEmpty {
+                } else if filteredItems.isEmpty {
                     noSearchResults
                 } else {
                     transcriptList
@@ -29,7 +45,7 @@ struct HistoryView: View {
             }
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, prompt: "Search transcripts")
+            .searchable(text: $searchText, prompt: "Search history")
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     Text("History")
@@ -45,7 +61,7 @@ struct HistoryView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Close")
                 }
-                if !store.transcripts.isEmpty {
+                if !unifiedItems.isEmpty {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(role: .destructive) {
                             showClearHistoryConfirmation = true
@@ -63,9 +79,12 @@ struct HistoryView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .alert("Clear all history?", isPresented: $showClearHistoryConfirmation) {
                 Button("Cancel", role: .cancel) {}
-                Button("Clear All", role: .destructive) { store.clear() }
+                Button("Clear All", role: .destructive) {
+                    store.clear()
+                    Task { await viewModel.clearHistory() }
+                }
             } message: {
-                Text("Do you really want to clear all of your history? This can't be undone.")
+                Text("This clears transcript content and Capture delivery metadata. It does not delete exported Markdown notes or attachments.")
             }
             .alert("History Error", isPresented: errorPresented) {
                 Button("Dismiss Error") {
@@ -86,6 +105,7 @@ struct HistoryView: View {
             }
         }
         .onAppear { store.reload() }
+        .task { await viewModel.refreshHistory() }
     }
 
     private var errorPresented: Binding<Bool> {
@@ -103,10 +123,10 @@ struct HistoryView: View {
     private var emptyState: some View {
         VStack(spacing: 24) {
             GeistSectionLabel(number: "—", title: "Empty")
-            Text("No Transcripts Yet")
+            Text("No History Yet")
                 .font(Geist.heading(.title))
                 .foregroundColor(Geist.text)
-            Text("Start a recording to create your first transcript.")
+            Text("Record or send a Capture to create your first history item.")
                 .font(Geist.body())
                 .foregroundColor(Geist.muted)
                 .multilineTextAlignment(.center)
@@ -121,36 +141,57 @@ struct HistoryView: View {
 
     private var transcriptList: some View {
         List {
-            ForEach(filteredTranscripts) { transcript in
-                transcriptRow(transcript)
+            if viewModel.failedInboxCount > 0 {
+                Section {
+                    Button {
+                        Task { await viewModel.retryFailedInbox() }
+                    } label: {
+                        Label(
+                            "Retry \(viewModel.failedInboxCount) queued capture\(viewModel.failedInboxCount == 1 ? "" : "s")",
+                            systemImage: "arrow.clockwise.circle"
+                        )
+                    }
+                } header: {
+                    Text("Needs attention")
+                }
+            }
+
+            ForEach(filteredItems) { item in
+                unifiedHistoryRow(item)
                     .listRowBackground(Geist.Palette.background200)
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
                     .contextMenu {
-                        Button("Edit", systemImage: "pencil") {
-                            editingTranscript = transcript
-                        }
-                        Button("Export", systemImage: "square.and.arrow.up") {
-                            export(transcript)
-                        }
-                        Button("Delete", systemImage: "trash", role: .destructive) {
-                            store.delete(ids: [transcript.id])
+                        if case .transcript(let transcript, _) = item {
+                            Button("Edit", systemImage: "pencil") { editingTranscript = transcript }
+                            Button("Export", systemImage: "square.and.arrow.up") { export(transcript) }
+                            Button("Delete", systemImage: "trash", role: .destructive) {
+                                store.delete(ids: [transcript.id])
+                            }
                         }
                     }
-            }
-            .onDelete { offsets in
-                let ids = Set(offsets.compactMap { index in
-                    filteredTranscripts.indices.contains(index) ? filteredTranscripts[index].id : nil
-                })
-                store.delete(ids: ids)
             }
         }
         .listStyle(.plain)
         .background(Geist.Palette.background200)
         .scrollContentBackground(.hidden)
+        .refreshable {
+            store.reload()
+            await viewModel.refreshHistory()
+        }
     }
 
-    private func transcriptRow(_ transcript: Transcript) -> some View {
+    @ViewBuilder
+    private func unifiedHistoryRow(_ item: UnifiedHistoryItem) -> some View {
+        switch item {
+        case .transcript(let transcript, let delivery):
+            transcriptRow(transcript, delivery: delivery)
+        case .capture(let record):
+            captureRow(record)
+        }
+    }
+
+    private func transcriptRow(_ transcript: Transcript, delivery: CaptureHistoryRecord?) -> some View {
         VStack(alignment: .leading, spacing: Geist.Spacing.three) {
             HStack(alignment: .top, spacing: Geist.Spacing.three) {
                 VStack(alignment: .leading, spacing: Geist.Spacing.one) {
@@ -168,6 +209,14 @@ struct HistoryView: View {
                     }
                     .font(Geist.mono())
                     .foregroundStyle(Geist.muted)
+                    if let delivery {
+                        Label(
+                            delivery.outcome == .delivered ? "Delivered" : "Delivery failed",
+                            systemImage: delivery.outcome == .delivered ? "checkmark.circle" : "exclamationmark.triangle"
+                        )
+                        .font(Geist.caption(.caption2))
+                        .foregroundStyle(delivery.outcome == .delivered ? Geist.muted : Geist.error)
+                    }
                 }
                 Spacer()
                 copyMenu(for: transcript)
@@ -199,6 +248,61 @@ struct HistoryView: View {
         .padding(.horizontal, Geist.Spacing.four)
         .padding(.vertical, Geist.Spacing.two)
         .contentShape(Rectangle())
+    }
+
+    private func captureRow(_ record: CaptureHistoryRecord) -> some View {
+        HStack(alignment: .top, spacing: Geist.Spacing.three) {
+            Image(systemName: record.outcome == .delivered ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .foregroundStyle(record.outcome == .delivered ? Geist.text : Geist.error)
+                .frame(width: 28, height: 28)
+            VStack(alignment: .leading, spacing: Geist.Spacing.two) {
+                HStack {
+                    Text(record.destinationName)
+                        .font(Geist.heading(.headline))
+                    Spacer()
+                    Text(record.deliveredAt ?? record.createdAt, style: .relative)
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.muted)
+                }
+                if let path = record.relativeNotePath {
+                    Text(path)
+                        .font(Geist.mono())
+                        .foregroundStyle(Geist.muted)
+                        .lineLimit(2)
+                }
+                HStack(spacing: Geist.Spacing.two) {
+                    Text(captureSourceLabel(record.source))
+                    if let voxName = record.voxName {
+                        Label(voxName, systemImage: "waveform.circle")
+                    }
+                    if record.attachmentCount > 0 {
+                        Label("\(record.attachmentCount)", systemImage: "paperclip")
+                    }
+                    if let failure = record.failureCategory { Text(failure.displayName) }
+                }
+                .font(Geist.caption())
+                .foregroundStyle(record.outcome == .failed ? Geist.error : Geist.faint)
+            }
+        }
+        .geistCard(padding: Geist.Spacing.four)
+        .padding(.horizontal, Geist.Spacing.four)
+        .padding(.vertical, Geist.Spacing.two)
+        .accessibilityElement(children: .combine)
+    }
+
+    private func captureSourceLabel(_ source: CaptureSource) -> String {
+        switch source {
+        case .app: return String(localized: "App")
+        case .keyboard: return String(localized: "Keyboard")
+        case .widget: return String(localized: "Widget")
+        case .shortcut: return String(localized: "Shortcut")
+        case .shareExtension: return String(localized: "Share")
+        case .watch: return String(localized: "Watch")
+        case .mac: return String(localized: "Mac")
+        case .deepLink: return String(localized: "Deep Link")
+        case .fileImport: return String(localized: "File Import")
+        case .voice: return String(localized: "Voice")
+        }
     }
 
     @ViewBuilder
@@ -278,6 +382,48 @@ struct HistoryView: View {
         return seconds < 60
             ? String(format: String(localized: "%ds"), seconds)
             : String(format: String(localized: "%dm %ds"), seconds / 60, seconds % 60)
+    }
+}
+
+private enum UnifiedHistoryItem: Identifiable {
+    case transcript(Transcript, delivery: CaptureHistoryRecord?)
+    case capture(CaptureHistoryRecord)
+
+    var id: String {
+        switch self {
+        case .transcript(let transcript, _): return "transcript-\(transcript.id.uuidString)"
+        case .capture(let record): return "capture-\(record.requestID.uuidString)"
+        }
+    }
+
+    var date: Date {
+        switch self {
+        case .transcript(let transcript, _): return transcript.date
+        case .capture(let record): return record.deliveredAt ?? record.createdAt
+        }
+    }
+
+    func matches(_ query: String) -> Bool {
+        switch self {
+        case .transcript(let transcript, let delivery):
+            if TranscriptSearch.matches(transcript, query: query) { return true }
+            return delivery.map { Self.captureHaystack($0).localizedCaseInsensitiveContains(query) } ?? false
+        case .capture(let record):
+            return Self.captureHaystack(record).localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    private static func captureHaystack(_ record: CaptureHistoryRecord) -> String {
+        [
+            record.destinationName,
+            record.voxName,
+            record.relativeNotePath,
+            record.source.rawValue,
+            record.outcome.rawValue,
+            record.failureCategory?.displayName,
+        ]
+        .compactMap { $0 }
+        .joined(separator: " ")
     }
 }
 

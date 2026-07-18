@@ -98,32 +98,35 @@ Scroll down and fill in these fields exactly:
 
 **Promotional Text:**
 ```
-On-device voice transcription powered by Whisper AI. No cloud transcription, no accounts, no subscriptions. Just your voice, instantly converted to text.
+Private on-device voice transcription with native Apple Speech and optional local models. No cloud transcription, accounts, or subscriptions.
 ```
 
 **Description:**
 ```
-Vox.md turns your voice into text — entirely on your device. Powered by whisper.cpp, it delivers fast, accurate speech-to-text without ever sending your audio to the cloud.
+Vox.md turns your voice into text entirely on your device. On supported iOS 26 devices, Automatic uses Apple's native Speech framework. Optional Whisper and Parakeet models can be downloaded for explicit local use or fallback support. Audio is never sent to a transcription server.
 
 CUSTOM KEYBOARD
-Install the Vox.md keyboard and transcribe your voice in any app — Safari, Notes, Messages, and more. Tap the microphone, speak, and watch your words appear.
+Install the Vox.md keyboard and transcribe your voice in any app — Safari, Notes, Messages, and more. Tap the microphone, speak, and insert the finished transcript.
 
 ALWAYS-ON LISTENING
-Start listening once in the app, then switch to whatever you're doing. The keyboard controls recording — tap Start to capture a segment, tap Stop to transcribe. No need to keep the app open.
+Start listening once in the app, then switch to whatever you're doing. The keyboard controls recording — tap Start to capture a segment and Stop to transcribe.
 
-CHOOSE YOUR MODEL
-Pick from 5 Whisper AI models ranging from 75 MB (Tiny — fast and light) to 1.6 GB (Large — maximum accuracy). Download only what you need.
+NATIVE BY DEFAULT
+Automatic uses Apple Speech when the device and selected language support it. No speech model weights are bundled with Vox.md.
+
+OPTIONAL LOCAL MODELS
+Download only the Whisper or Parakeet models you want. Explicit local selections bypass Apple Speech, and downloaded models can serve as offline fallbacks.
 
 COMPLETE PRIVACY
-All speech processing happens on your iPhone using whisper.cpp. Audio recordings, transcripts, keystrokes, and exported note contents stay on your device. Vox.md collects only minimal, privacy-safe onboarding analytics to understand setup friction. No accounts or cloud transcription.
+Speech processing stays on the iPhone. Audio recordings, transcripts, keystrokes, and exported note contents remain on the device. Vox.md collects only minimal, privacy-safe onboarding analytics to understand setup friction. No accounts or cloud transcription.
 
 FEATURES
 • Custom iOS keyboard with voice transcription
+• Native Apple Speech on supported iOS 26 devices
+• Optional Whisper and Parakeet model downloads
 • Always-on background listening mode
-• 5 Whisper model sizes (Tiny through Large)
 • Transcript history with copy and search
-• 99 language support
-• Pre-roll capture (catches words spoken just before you hit record)
+• Pre-roll capture
 • Real-time audio level visualization
 • Dark mode UI
 ```
@@ -174,7 +177,7 @@ Scroll to the **App Review Information** section (near the bottom of the version
 
 - **Notes:**
 ```
-Vox.md is a custom keyboard extension with voice transcription powered by whisper.cpp (on-device ML).
+Vox.md is a custom keyboard extension with fully on-device voice transcription. Automatic uses Apple's SpeechAnalyzer/SpeechTranscriber on supported iOS 26 devices, with optional user-downloaded Whisper or Parakeet models.
 
 To test the keyboard:
 1. Launch the app and grant microphone permission when prompted.
@@ -184,7 +187,7 @@ To test the keyboard:
 5. Open any text field (e.g., Notes app), switch to the Vox.md keyboard using the globe icon.
 6. Tap the Record button on the keyboard toolbar, speak, then tap Stop. Your speech will be transcribed and inserted as text.
 
-The app ships with the Whisper "Base" model (142 MB) bundled. Additional models can be downloaded from Settings within the app. Speech processing is done on-device. Production builds also send minimal, first-party onboarding analytics events to understand setup friction; these events never include audio, transcripts, keystrokes, file paths, template text, exported note contents, or user-entered content.
+The app does not bundle speech model weights. Apple's supported language assets are managed by iOS; Whisper and Parakeet downloads begin only after the user opts in from Models. Speech processing is done on-device. Production builds also send minimal, first-party onboarding analytics events to understand setup friction; these events never include audio, transcripts, keystrokes, file paths, template text, exported note contents, or user-entered content.
 
 The keyboard extension requires "Allow Full Access" solely for microphone access (NSMicrophoneUsageDescription). No keystrokes or dictated text are collected or transmitted.
 ```

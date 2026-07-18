@@ -54,12 +54,12 @@ struct PaywallView: View {
         VStack(alignment: .leading, spacing: Geist.Spacing.three) {
             GeistStatusBadge(label: statusBadgeLabel, isActive: usageTracker.hasUnlocked)
 
-            Text(usageTracker.hasUnlocked ? "Unlimited Is Unlocked" : "Transcribe Without Limits")
+            Text(usageTracker.hasUnlocked ? "Unlimited Is Unlocked" : "Capture and Transcribe Without Limits")
                 .font(Geist.heading(.largeTitle))
                 .tracking(-1.28)
                 .foregroundStyle(Geist.text)
 
-            Text("One purchase unlocks unlimited, private, on-device transcription across Vox.md.")
+            Text("One purchase unlocks unlimited local Capture and private, on-device transcription across Vox.md.")
                 .font(Geist.body())
                 .foregroundStyle(Geist.muted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -68,25 +68,55 @@ struct PaywallView: View {
 
     private var usageCard: some View {
         VStack(alignment: .leading, spacing: Geist.Spacing.four) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Free Usage")
-                    .font(Geist.heading(.headline))
-                    .foregroundStyle(Geist.text)
-                Spacer()
-                Text(String(format: "%.1f / 15 min", min(usageTracker.minutesUsed, 15)))
-                    .font(Geist.mono(.footnote, medium: true))
-                    .foregroundStyle(Geist.muted)
-            }
+            Text("Free Usage")
+                .font(Geist.heading(.headline))
+                .foregroundStyle(Geist.text)
 
-            ProgressView(value: usageTracker.fractionUsed)
-                .progressViewStyle(.linear)
-                .tint(usageTracker.isAtLimit ? Geist.Palette.red800 : Geist.Palette.blue700)
+            quotaMeter(
+                title: "Transcription",
+                value: String(format: "%.1f / 15 min", min(usageTracker.minutesUsed, 15)),
+                progress: usageTracker.fractionUsed,
+                isAtLimit: usageTracker.isAtLimit
+            )
+
+            GeistDivider()
+
+            quotaMeter(
+                title: "Capture",
+                value: "\(min(usageTracker.successfulCapturesUsed, UsageTracker.freeCaptureLimit)) / \(UsageTracker.freeCaptureLimit)",
+                progress: usageTracker.captureFractionUsed,
+                isAtLimit: usageTracker.isCaptureAtLimit
+            )
 
             Text(usageStatusMessage)
                 .font(Geist.caption())
-                .foregroundStyle(usageTracker.isAtLimit ? Geist.error : Geist.muted)
+                .foregroundStyle(
+                    usageTracker.isAtLimit || usageTracker.isCaptureAtLimit ? Geist.error : Geist.muted
+                )
         }
         .geistCard(padding: Geist.Spacing.four)
+    }
+
+    private func quotaMeter(
+        title: LocalizedStringKey,
+        value: String,
+        progress: Double,
+        isAtLimit: Bool
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.two) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(title)
+                    .font(Geist.label())
+                    .foregroundStyle(Geist.text)
+                Spacer()
+                Text(value)
+                    .font(Geist.mono(.footnote, medium: true))
+                    .foregroundStyle(Geist.muted)
+            }
+            ProgressView(value: progress)
+                .progressViewStyle(.linear)
+                .tint(isAtLimit ? Geist.Palette.red800 : Geist.Palette.blue700)
+        }
     }
 
     private var purchaseCard: some View {
@@ -141,6 +171,8 @@ struct PaywallView: View {
                 .foregroundStyle(Geist.text)
 
             VStack(spacing: 0) {
+                featureRow("Unlimited Capture", detail: "Send as many local notes as you like", icon: "square.and.pencil")
+                GeistDivider()
                 featureRow("Unlimited Transcription", detail: "No time caps", icon: "infinity")
                 GeistDivider()
                 featureRow("On-Device Processing", detail: "Voice data stays on your device", icon: "lock.shield")
@@ -204,17 +236,27 @@ struct PaywallView: View {
 
     private var statusBadgeLabel: LocalizedStringKey {
         if usageTracker.hasUnlocked { return "Unlimited" }
-        return usageTracker.isAtLimit ? "Limit Reached" : "Free Tier"
+        return usageTracker.isAtLimit || usageTracker.isCaptureAtLimit ? "Limit Reached" : "Free Tier"
     }
 
     private var usageStatusMessage: String {
         if usageTracker.hasUnlocked {
             return String(localized: "Unlimited is unlocked on this device.")
         }
+        if usageTracker.isAtLimit && usageTracker.isCaptureAtLimit {
+            return String(localized: "Your free transcription time and captures are used. Unlock Unlimited to continue.")
+        }
+        if usageTracker.isCaptureAtLimit {
+            return String(localized: "Your free captures are used. Unlock Unlimited to keep capturing.")
+        }
         if usageTracker.isAtLimit {
             return String(localized: "Free transcription time is used. Unlock Unlimited to keep recording.")
         }
-        let remaining = max(0, UsageTracker.freeMinutesLimit - usageTracker.minutesUsed)
-        return String(format: String(localized: "%.1f min free remaining"), remaining)
+        let remainingMinutes = max(0, UsageTracker.freeMinutesLimit - usageTracker.minutesUsed)
+        return String(
+            format: String(localized: "%.1f min and %d captures free remaining"),
+            remainingMinutes,
+            usageTracker.capturesRemaining
+        )
     }
 }

@@ -19,6 +19,18 @@ struct FileExportEvent: Equatable {
     let result: Result
 }
 
+enum RecordingCompletionMode: Equatable, Sendable {
+    case captureDraft(attachAudio: Bool)
+    case runVox(flowID: String)
+}
+
+enum CaptureDraftRecordingEvent: Sendable {
+    case audio(URL)
+    case transcript(String)
+}
+
+typealias CaptureDraftRecordingEventHandler = @MainActor @Sendable (CaptureDraftRecordingEvent) async -> Void
+
 /// Always-on audio recorder that captures microphone input into a circular buffer.
 ///
 /// The keyboard extension controls transcription segments via IPC commands:
@@ -59,11 +71,7 @@ final class PersistentRecorder {
 
     // MARK: - Cached Model
 
-    /// Pre-loaded Whisper context — avoids cold model load on the first transcription.
-    private var cachedWhisperContext: WhisperContext?
-    /// Pre-loaded Parakeet context — avoids cold CoreML load on the first transcription.
-    private var cachedParakeetContext: ParakeetContext?
-    private var cachedModelId: String?
+    /// Preparation state for the shared system/local transcription dispatcher.
     private var isPreloadingModel: Bool = false
 
     // MARK: - Segment Tracking
@@ -74,6 +82,7 @@ final class PersistentRecorder {
     private var segmentModelId: String?
     private var segmentLanguage: String?
     private var segmentFlowId: String?
+    private var segmentCompletionMode: RecordingCompletionMode?
     private var segmentStartedAt: TimeInterval = 0
 
     /// Pre-roll: capture this many seconds before the user tapped Start.
@@ -94,6 +103,14 @@ final class PersistentRecorder {
     /// Shared transcript store — injected so saved transcripts appear in the UI immediately.
     private let transcriptStore: TranscriptStore
 
+    /// Shared Apple-first dispatcher used by recordings, imports, Quick Capture,
+    /// Watch imports, and keyboard requests.
+    private let transcriptionService: OnDeviceTranscriptionService
+
+    /// Delivers app-owned draft recordings into the durable Capture draft.
+    /// Keyboard, Widget, Watch, and explicit Vox runs bypass this callback.
+    private let captureDraftEventHandler: CaptureDraftRecordingEventHandler?
+
     /// On-device LLM post-processor. Nil when the feature is disabled or the
     /// model hasn't been downloaded. When set, runs asynchronously after save
     /// to populate title/tags/category/cleanedText on the just-saved transcript.
@@ -103,7 +120,7 @@ final class PersistentRecorder {
     private let usageTracker: UsageTracker
 
     /// Set to true when a transcription is blocked because the user has hit the free limit.
-    /// Observed by HomeView to present the PaywallView.
+    /// Observed by Capture's inline recording controls to present the PaywallView.
     var needsUnlock: Bool = false
 
     // MARK: - One-shot recording sessions
@@ -122,10 +139,14 @@ final class PersistentRecorder {
     init(
         transcriptStore: TranscriptStore,
         usageTracker: UsageTracker,
+        transcriptionService: OnDeviceTranscriptionService,
+        captureDraftEventHandler: CaptureDraftRecordingEventHandler? = nil,
         transcriptEnricher: TranscriptEnricher? = nil
     ) {
         self.transcriptStore = transcriptStore
         self.usageTracker = usageTracker
+        self.transcriptionService = transcriptionService
+        self.captureDraftEventHandler = captureDraftEventHandler
         self.transcriptEnricher = transcriptEnricher
         ensureRecordingsDirectory()
 
@@ -327,60 +348,51 @@ final class PersistentRecorder {
         }
     }
 
-    /// Pre-load the selected model in the background so it's ready for the first transcription.
+    /// Prepare Apple Speech (including its system-managed locale asset) or an
+    /// explicitly downloaded local model before the first recording completes.
     private func preloadModel() {
         guard !isPreloadingModel else { return }
-
-        let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-            ?? AppConstants.defaultModelName
-
-        // Skip if already cached with the right model
-        if cachedModelId == modelId,
-           (cachedWhisperContext != nil || cachedParakeetContext != nil) { return }
-
         isPreloadingModel = true
-        log.log("[PersistentRecorder] Pre-loading model: \(modelId)…")
 
-        Task.detached(priority: .utility) { [weak self] in
-            guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
-                  let modelURL = model.localURL,
-                  model.isDownloaded else {
-                log.log("[PersistentRecorder] ⚠️ Pre-load skipped — model not found: \(modelId)")
-                await MainActor.run { self?.isPreloadingModel = false }
-                return
-            }
+        Task { [weak self] in
+            guard let self else { return }
+            _ = await self.prepareTranscriptionBackend()
+            self.isPreloadingModel = false
+        }
+    }
 
-            if model.engine.isParakeet {
-                guard let modelsDir = AppConstants.modelsDirectoryURL else {
-                    await MainActor.run { self?.isPreloadingModel = false }
-                    return
-                }
-                let ctx = await ParakeetContext.load(modelsDirectory: modelsDir, engine: model.engine)
-                await MainActor.run {
-                    self?.isPreloadingModel = false
-                    if let ctx {
-                        self?.cachedParakeetContext = ctx
-                        self?.cachedWhisperContext = nil
-                        self?.cachedModelId = modelId
-                        log.log("[PersistentRecorder] ✅ Parakeet pre-loaded: \(model.name)")
-                    } else {
-                        log.log("[PersistentRecorder] ⚠️ Parakeet pre-load failed")
-                    }
-                }
-            } else {
-                let ctx = WhisperContext(modelPath: modelURL.path, useGPU: false)
-                await MainActor.run {
-                    self?.isPreloadingModel = false
-                    if let ctx {
-                        self?.cachedWhisperContext = ctx
-                        self?.cachedParakeetContext = nil
-                        self?.cachedModelId = modelId
-                        log.log("[PersistentRecorder] ✅ Whisper pre-loaded: \(model.name)")
-                    } else {
-                        log.log("[PersistentRecorder] ⚠️ Whisper pre-load failed")
-                    }
-                }
-            }
+    /// Returns true when either Apple Speech or a user-downloaded local model is
+    /// ready. Keyboard setup uses this to avoid declaring readiness too early.
+    @discardableResult
+    func prepareTranscriptionBackend() async -> Bool {
+        let modelID = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+            ?? AppConstants.defaultTranscriptionBackendID
+        let fallbackModelID = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey)
+        let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey) ?? "auto"
+
+        log.log("[PersistentRecorder] Preparing transcription backend: \(modelID)…")
+        if modelID == TranscriptionBackendID.automatic {
+            AppConstants.sharedDefaults?.set(false, forKey: AppConstants.automaticBackendReadyKey)
+        }
+        do {
+            try await transcriptionService.prepare(
+                modelID: modelID,
+                fallbackModelID: fallbackModelID,
+                language: language
+            )
+            AppConstants.sharedDefaults?.set(true, forKey: AppConstants.automaticBackendReadyKey)
+            log.log("[PersistentRecorder] ✅ Transcription backend ready: \(modelID)")
+            return true
+        } catch {
+            let canTranscribe = await transcriptionService.canTranscribe(
+                modelID: modelID,
+                fallbackModelID: fallbackModelID,
+                language: language
+            )
+            AppConstants.sharedDefaults?.set(canTranscribe, forKey: AppConstants.automaticBackendReadyKey)
+            log.log("[PersistentRecorder] ⚠️ Backend preparation failed: \(error.localizedDescription)")
+            if !canTranscribe { lastError = error.localizedDescription }
+            return canTranscribe
         }
     }
 
@@ -399,20 +411,20 @@ final class PersistentRecorder {
         )
     }
 
-    private func trackOnboardingCompletedIfNeeded(model: WhisperModelInfo) {
+    private func trackOnboardingCompletedIfNeeded(metadata: OnboardingAnalyticsModelMetadata) {
         let defaults = AppConstants.sharedDefaults ?? .standard
         guard !defaults.bool(forKey: Self.completionAnalyticsKey) else { return }
 
         defaults.set(true, forKey: Self.completionAnalyticsKey)
         OnboardingAnalyticsClient.shared.trackOnboardingCompleted(
-            modelMetadata: OnboardingAnalyticsModelMetadata(model: model),
+            modelMetadata: metadata,
             quotaState: usageTracker.onboardingAnalyticsQuotaState
         )
     }
 
     private func selectedModelForAnalytics() -> WhisperModelInfo? {
         let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-            ?? AppConstants.defaultModelName
+            ?? AppConstants.defaultTranscriptionBackendID
         return WhisperModelInfo.availableModels.first { $0.id == modelId }
     }
 
@@ -546,7 +558,10 @@ final class PersistentRecorder {
     /// microphone only for this recording and automatically returns to idle once
     /// transcription has finished.
     @discardableResult
-    func startOneShotInAppSegment(flowId requestedFlowId: String? = nil) -> Bool {
+    func startOneShotInAppSegment(
+        flowId requestedFlowId: String? = nil,
+        completionMode: RecordingCompletionMode? = nil
+    ) -> Bool {
         guard !isSegmentActive, !isTranscribing else {
             log.log("[PersistentRecorder] ⚠️ one-shot start skipped — segment active or transcribing")
             return false
@@ -570,7 +585,7 @@ final class PersistentRecorder {
 
         lastTranscriptionResult = nil
         lastError = nil
-        startInAppSegment(flowId: requestedFlowId)
+        startInAppSegment(flowId: requestedFlowId, completionMode: completionMode)
 
         if !isSegmentActive, startedTemporaryListening {
             stopListening()
@@ -579,7 +594,10 @@ final class PersistentRecorder {
     }
 
     /// Start a recording segment directly from the app UI (no IPC needed).
-    func startInAppSegment(flowId requestedFlowId: String? = nil) {
+    func startInAppSegment(
+        flowId requestedFlowId: String? = nil,
+        completionMode: RecordingCompletionMode? = nil
+    ) {
         guard isListening else {
             lastError = "Start listening first"
             log.log("[PersistentRecorder] ❌ startInAppSegment but not listening")
@@ -594,7 +612,7 @@ final class PersistentRecorder {
         lastError = nil
 
         let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-            ?? AppConstants.defaultModelName
+            ?? AppConstants.defaultTranscriptionBackendID
         let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
             ?? "auto"
         let requestId = "inapp-\(UUID().uuidString)"
@@ -610,6 +628,7 @@ final class PersistentRecorder {
             language: language,
             flowId: flowId
         )
+        segmentCompletionMode = completionMode ?? .runVox(flowID: flowId)
 
         log.log("[PersistentRecorder] 🎙 In-app segment start: \(requestId) flow=\(flowId)")
         handleStartSegment(command)
@@ -632,7 +651,10 @@ final class PersistentRecorder {
     /// Import an existing audio file, normalize it to Whisper WAV, and run it
     /// through the same local transcription/history/export pipeline as live recordings.
     @discardableResult
-    func importAudioFile(from url: URL) -> Bool {
+    func importAudioFile(
+        from url: URL,
+        completionMode requestedCompletionMode: RecordingCompletionMode? = nil
+    ) -> Bool {
         guard !isSegmentActive, !isTranscribing else {
             lastError = "Wait for the current recording to finish"
             return false
@@ -663,10 +685,11 @@ final class PersistentRecorder {
                 .appendingPathComponent("import_\(UUID().uuidString)")
                 .appendingPathExtension("wav")
             let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-                ?? AppConstants.defaultModelName
+                ?? AppConstants.defaultTranscriptionBackendID
             let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
                 ?? "auto"
             let flowId = RecordingFlowStore.selectedFlowId()
+            let completionMode = requestedCompletionMode ?? .runVox(flowID: flowId)
             let requestId = "import-\(UUID().uuidString)"
 
             isTranscribing = true
@@ -699,7 +722,7 @@ final class PersistentRecorder {
                         language: language,
                         requestId: requestId,
                         duration: duration,
-                        flowId: flowId,
+                        completionMode: completionMode,
                         sourceAudioURL: sourceCopy
                     )
                     if workingURL != sourceCopy {
@@ -966,9 +989,10 @@ final class PersistentRecorder {
         }
 
         // Transcribe
-        let modelId = segmentModelId ?? command.modelId ?? AppConstants.defaultModelName
+        let modelId = segmentModelId ?? command.modelId ?? AppConstants.defaultTranscriptionBackendID
         let language = segmentLanguage ?? command.language ?? "auto"
         let flowId = segmentFlowId ?? command.flowId ?? RecordingFlowStore.selectedFlowId()
+        let completionMode = segmentCompletionMode ?? .runVox(flowID: flowId)
         let duration = TimeInterval(durationSec)
 
         Task.detached(priority: .userInitiated) { [weak self] in
@@ -978,7 +1002,7 @@ final class PersistentRecorder {
                 language: language,
                 requestId: requestId,
                 duration: duration,
-                flowId: flowId,
+                completionMode: completionMode,
                 sourceAudioURL: wavURL
             )
 
@@ -1022,6 +1046,7 @@ final class PersistentRecorder {
         segmentModelId = nil
         segmentLanguage = nil
         segmentFlowId = nil
+        segmentCompletionMode = nil
         segmentDuration = 0
     }
 
@@ -1048,30 +1073,41 @@ final class PersistentRecorder {
         language: String,
         requestId: String,
         duration: TimeInterval,
-        flowId: String? = nil,
+        completionMode: RecordingCompletionMode,
         sourceAudioURL: URL? = nil
     ) async {
-        // Resolve model
-        guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
-              model.isDownloaded else {
-            log.log("[PersistentRecorder] ❌ Model not found: \(modelId)")
-            await MainActor.run { writeErrorResponse(requestId: requestId, message: "Model not found") }
+        osLog.notice("🔄 Transcribing audio: \(audioURL.lastPathComponent) backend=\(modelId)")
+        log.log("[PersistentRecorder] Transcribing with backend \(modelId)…")
+
+        if case .captureDraft(let attachAudio) = completionMode, attachAudio {
+            await captureDraftEventHandler?(.audio(sourceAudioURL ?? audioURL))
+        }
+
+        let result: OnDeviceTranscriptionResult
+        do {
+            result = try await transcriptionService.transcribeResult(
+                audioURL: audioURL,
+                modelID: modelId,
+                fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
+                language: language
+            )
+        } catch {
+            log.log("[PersistentRecorder] ❌ Transcription failed: \(error.localizedDescription)")
+            await MainActor.run {
+                self.lastTranscriptionResult = nil
+                self.writeErrorResponse(requestId: requestId, message: error.localizedDescription)
+            }
+            try? FileManager.default.removeItem(at: audioURL)
             return
         }
 
-        osLog.notice("🔄 Transcribing audio: \(audioURL.lastPathComponent) model=\(modelId)")
-        log.log("[PersistentRecorder] Transcribing with \(model.name)…")
+        let text: String? = result.text
+        log.log("[PersistentRecorder] Result from \(result.backendName): \(result.text.count) chars")
+        osLog.notice("✅ Transcription result: \(result.text.count) chars")
 
-        let text: String?
-
-        if model.engine.isParakeet {
-            text = await transcribeWithParakeet(audioURL: audioURL, model: model)
-        } else {
-            text = await transcribeWithWhisper(audioURL: audioURL, model: model, language: language, modelId: modelId)
+        if case .captureDraft = completionMode, !result.text.isEmpty {
+            await captureDraftEventHandler?(.transcript(result.text))
         }
-
-        log.log("[PersistentRecorder] Result: \(text?.count ?? 0) chars")
-        osLog.notice("✅ Transcription result: \(text?.count ?? 0) chars")
 
         await MainActor.run {
             if let text, !text.isEmpty {
@@ -1100,30 +1136,40 @@ final class PersistentRecorder {
                     TranscriptionIPC.clearStatus()
                 }
 
-                // Save to history (uses shared store so UI updates immediately)
-                let selectedFlow = RecordingFlowStore.flow(id: flowId) ?? RecordingFlowStore.selectedFlow()
+                // Save one record to the unified history. Draft recordings keep
+                // the raw transcript editable; explicit Vox runs preserve their
+                // formatting, enrichment, and configured export behavior.
+                let selectedFlow: RecordingFlow?
+                switch completionMode {
+                case .captureDraft:
+                    selectedFlow = nil
+                case .runVox(let flowID):
+                    selectedFlow = RecordingFlowStore.flow(id: flowID) ?? RecordingFlowStore.selectedFlow()
+                }
                 let rawTranscript = Transcript(
                     text: text,
                     duration: duration,
-                    modelUsed: model.name,
-                    language: language
+                    modelUsed: result.backendName,
+                    language: result.language
                 )
-                let transcript = TranscriptFlowFormatter.apply(flow: selectedFlow, to: rawTranscript)
+                let transcript = selectedFlow.map { TranscriptFlowFormatter.apply(flow: $0, to: rawTranscript) }
+                    ?? rawTranscript
                 self.transcriptStore.add(transcript)
                 ReviewPromptManager.shared.recordSuccessfulTranscription(
                     totalTranscriptionCount: self.transcriptStore.transcripts.count,
                     transcriptDates: self.transcriptStore.transcripts.map(\.date)
                 )
 
-                // On-device LLM enrichment (title, tags, category, cleanedText).
-                // When enrichment is enabled, we defer the file export until
-                // the enricher finishes so the exported file reflects the
-                // enriched title/tags/cleaned text. On failure or timeout, we
-                // still export whatever is in the store (raw fields).
-                let store = self.transcriptStore
-                let savedId = transcript.id
-                let initialTranscript = transcript
-                let flowForExport = selectedFlow
+                if let selectedFlow {
+                    // On-device LLM enrichment (title, tags, category, cleanedText).
+                    // When enrichment is enabled, we defer the file export until
+                    // the enricher finishes so the exported file reflects the
+                    // enriched title/tags/cleaned text. On failure or timeout, we
+                    // still export whatever is in the store (raw fields).
+                    let store = self.transcriptStore
+                    let savedId = transcript.id
+                    let initialTranscript = transcript
+                    let flowForExport = selectedFlow
                 let audioSourceForExport: URL? = {
                     guard flowForExport.audioSaveMode != .off else { return nil }
                     let source = sourceAudioURL ?? audioURL
@@ -1140,10 +1186,12 @@ final class PersistentRecorder {
                 }()
 
                 let runExport: @Sendable () async -> Void = { [weak self] in
+                    let captureDestinationID = await ConfiguredTranscriptCaptureDestinationExporter
+                        .resolvedDestinationID(flow: flowForExport)
                     // Legacy exports consume this private working copy. Precise
                     // capture exports keep it until either delivery succeeds or
                     // an exact audio-bearing inbox request is durable.
-                    var canRemoveRetainedAudio = flowForExport.captureDestinationID == nil
+                    var canRemoveRetainedAudio = captureDestinationID == nil
                     defer {
                         if canRemoveRetainedAudio, let audioSourceForExport {
                             try? FileManager.default.removeItem(at: audioSourceForExport)
@@ -1153,7 +1201,7 @@ final class PersistentRecorder {
                         store.transcripts.first(where: { $0.id == savedId }) ?? initialTranscript
                     }
 
-                    if let captureDestinationID = flowForExport.captureDestinationID {
+                    if let captureDestinationID {
                         do {
                             let receipt = try await ConfiguredTranscriptCaptureDestinationExporter.export(
                                 transcript: latest,
@@ -1274,18 +1322,25 @@ final class PersistentRecorder {
                     }
                 }
 
-                if let enricher = self.transcriptEnricher, flowForExport.usesAIEnrichment {
-                    Task.detached(priority: .utility) {
-                        await enricher.enrichAndUpdate(transcript: initialTranscript, flow: flowForExport, into: store)
-                        await runExport()
+                    if let enricher = self.transcriptEnricher, flowForExport.usesAIEnrichment {
+                        Task.detached(priority: .utility) {
+                            await enricher.enrichAndUpdate(transcript: initialTranscript, flow: flowForExport, into: store)
+                            await runExport()
+                        }
+                    } else {
+                        Task.detached(priority: .utility) { await runExport() }
                     }
-                } else {
-                    Task.detached(priority: .utility) { await runExport() }
                 }
 
                 // Track usage for the free-tier paywall
                 self.usageTracker.addUsage(seconds: duration)
-                self.trackOnboardingCompletedIfNeeded(model: model)
+                let analyticsMetadata: OnboardingAnalyticsModelMetadata
+                if let localModel = WhisperModelInfo.availableModels.first(where: { $0.id == result.backendID }) {
+                    analyticsMetadata = OnboardingAnalyticsModelMetadata(model: localModel)
+                } else {
+                    analyticsMetadata = OnboardingAnalyticsModelMetadata(engine: .appleSpeech, sizeBucket: .unknown)
+                }
+                self.trackOnboardingCompletedIfNeeded(metadata: analyticsMetadata)
 
                 // Surface result for in-app recording UI
                 self.lastTranscriptionResult = text
@@ -1299,84 +1354,6 @@ final class PersistentRecorder {
 
         // Clean up WAV file
         try? FileManager.default.removeItem(at: audioURL)
-    }
-
-    // MARK: - Engine-specific transcription helpers
-
-    private func transcribeWithWhisper(
-        audioURL: URL,
-        model: WhisperModelInfo,
-        language: String,
-        modelId: String
-    ) async -> String? {
-        guard let modelPath = model.localURL?.path else { return nil }
-
-        // Use cached context if model matches, otherwise load fresh
-        let cachedCtx = await MainActor.run { () -> WhisperContext? in
-            if self.cachedModelId == modelId, let c = self.cachedWhisperContext {
-                log.log("[PersistentRecorder] ♻️ Reusing cached Whisper: \(model.name)")
-                return c
-            }
-            return nil
-        }
-
-        let ctx: WhisperContext
-        if let c = cachedCtx {
-            ctx = c
-        } else {
-            log.log("[PersistentRecorder] Loading Whisper model: \(model.name) (CPU-only)…")
-            guard let freshCtx = WhisperContext(modelPath: modelPath, useGPU: false) else {
-                log.log("[PersistentRecorder] ❌ Whisper model load failed")
-                return nil
-            }
-            ctx = freshCtx
-            await MainActor.run {
-                self.cachedWhisperContext = freshCtx
-                self.cachedParakeetContext = nil
-                self.cachedModelId = modelId
-            }
-        }
-
-        return ctx.transcribe(audioURL: audioURL, language: language)
-    }
-
-    private func transcribeWithParakeet(
-        audioURL: URL,
-        model: WhisperModelInfo
-    ) async -> String? {
-        guard let modelsDir = AppConstants.modelsDirectoryURL else { return nil }
-        let modelId = model.id
-
-        // Use cached context if model matches, otherwise load fresh
-        let cachedCtx = await MainActor.run { () -> ParakeetContext? in
-            if self.cachedModelId == modelId, let c = self.cachedParakeetContext {
-                log.log("[PersistentRecorder] ♻️ Reusing cached Parakeet: \(model.name)")
-                return c
-            }
-            return nil
-        }
-
-        let ctx: ParakeetContext
-        if let c = cachedCtx {
-            ctx = c
-        } else {
-            log.log("[PersistentRecorder] Loading Parakeet model: \(model.name)…")
-            guard let freshCtx = await ParakeetContext.load(
-                modelsDirectory: modelsDir,
-                engine: model.engine
-            ) else {
-                log.log("[PersistentRecorder] ❌ Parakeet model load failed")
-                return nil
-            }
-            ctx = freshCtx
-            await MainActor.run {
-                self.cachedParakeetContext = freshCtx
-                self.cachedWhisperContext = nil
-                self.cachedModelId = modelId
-            }
-        }
-
-        return await ctx.transcribe(audioURL: audioURL)
     }
 
     // MARK: - WAV Writing

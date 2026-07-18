@@ -95,8 +95,30 @@ public struct CaptureMarkdownRenderer: Sendable {
                 in: rendered
             )
         }
+        if request.voxProfile?.metadataScope == .entry,
+           !request.frontmatter.isEmpty {
+            let metadata = inlineMetadata(request.frontmatter)
+            if !metadata.isEmpty {
+                rendered = insertingAfterLeadingFrontmatter(metadata, in: rendered)
+            }
+        }
         guard !rendered.isEmpty else { throw CaptureRenderingError.emptyRequest }
         return rendered
+    }
+
+    private func inlineMetadata(_ metadata: [String: String]) -> String {
+        metadata.keys.sorted().compactMap { key in
+            let safeKey = key
+                .replacingOccurrences(of: "\n", with: " ")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !safeKey.isEmpty else { return nil }
+            let safeValue = metadata[key, default: ""]
+                .replacingOccurrences(of: "\r\n", with: " ")
+                .replacingOccurrences(of: "\r", with: " ")
+                .replacingOccurrences(of: "\n", with: " ")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return "\(safeKey):: \(safeValue)"
+        }.joined(separator: "\n")
     }
 
     private func insertingAfterLeadingFrontmatter(_ insertion: String, in markdown: String) -> String {

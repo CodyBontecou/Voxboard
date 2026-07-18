@@ -43,7 +43,8 @@ final class CaptureModelCodableTests: XCTestCase {
         let request = CaptureRequest(
             id: UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE")!,
             createdAt: Date(timeIntervalSince1970: 1_700_000_000),
-            source: .app,
+            source: .shortcut,
+            deliveryKind: .meteredVoiceTranscript,
             destinationID: UUID(uuidString: "11111111-2222-3333-4444-555555555555")!,
             payloads: payloads,
             attachmentsFolderNameOverride: "voice-audio"
@@ -53,6 +54,24 @@ final class CaptureModelCodableTests: XCTestCase {
         let decoded = try JSONDecoder.captureCore.decode(CaptureRequest.self, from: data)
 
         XCTAssertEqual(decoded, request)
+    }
+
+    func test_legacyVoiceRequestWithoutDeliveryKindRemainsExempt() throws {
+        let request = CaptureRequest(
+            source: .voice,
+            destinationID: UUID(),
+            payloads: [.text("Legacy voice")]
+        )
+        let encoded = try JSONEncoder.captureCore.encode(request)
+        var object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        object.removeValue(forKey: "deliveryKind")
+        let legacyData = try JSONSerialization.data(withJSONObject: object)
+
+        let decoded = try JSONDecoder.captureCore.decode(CaptureRequest.self, from: legacyData)
+
+        XCTAssertEqual(decoded.deliveryKind, .meteredVoiceTranscript)
     }
 
     func test_destinationV1Fixture_decodesDefaultPrefixSuffixAndPlacement() throws {

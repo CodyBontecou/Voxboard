@@ -1,140 +1,106 @@
 # Vox.md — Setup Guide
 
-Voice-to-text iOS keyboard powered by whisper.cpp (on-device transcription).
+Vox.md is a local-first iOS/macOS voice and Markdown capture app. On iOS 26, voice transcription defaults to Apple's on-device Speech framework. Whisper and Parakeet remain optional model downloads.
 
----
+## What's configured
 
-## What's Already Configured
+- **Main iOS app, keyboard, widgets, share extension, Watch app, and macOS app**
+- **VoxboardShared Swift package** for IPC, local model inference, persistence, and exports
+- **App Group:** `group.bontecou.Voxboard`
+- **Microphone and background-audio configuration**
+- **Apple Speech backend:** weak-linked and runtime-gated to supported iOS 26 devices/locales
+- **Optional local engines:** whisper.cpp and FluidAudio/Parakeet
 
-The following has been set up via CLI:
+Vox.md does not bundle Whisper or Parakeet model weights. Local model downloads only begin after the user taps **Download Model**.
 
-- ✅ **Keyboard extension target** ("Voxboard Keyboard") — added in Xcode
-- ✅ **SPM dependencies** in pbxproj — KeyboardKit (keyboard target), VoxboardShared local package (both targets)
-- ✅ **VoxboardShared** local Swift package — shared code between app + extension, depends on whisper.cpp
-- ✅ **App Group entitlements** — `group.bontecou.Voxboard` on both targets
-- ✅ **Info.plist** — mic permission, `RequestsOpenAccess`, keyboard extension config
-- ✅ **Base whisper model** — `ggml-base.bin` (141MB) downloaded and placed in `Voxboard/`
-- ✅ **All source files** — app views, keyboard extension, shared whisper wrapper
+## Xcode setup
 
-## What You Need To Do in Xcode
+### 1. Enable App Groups
 
-### 1. Enable App Groups Capability
+For the **Voxboard** and **Voxboard Keyboard** targets:
 
-This must be done via Xcode's UI (creates the provisioning profile entitlement):
+1. Open **Signing & Capabilities**.
+2. Add **App Groups**.
+3. Enable `group.bontecou.Voxboard`, or replace it consistently in the entitlements and `AppConstants.swift`.
 
-1. Select **Voxboard** target → **Signing & Capabilities** → **+ Capability** → **App Groups**
-   - Add: `group.bontecou.Voxboard`
+### 2. Resolve packages
 
-2. Select **Voxboard Keyboard** target → **Signing & Capabilities** → **+ Capability** → **App Groups**
-   - Add: `group.bontecou.Voxboard`
+Open `Voxboard.xcodeproj` in Xcode 26.2 or newer. Xcode should resolve KeyboardKit, FluidAudio, ExportKit, and the local `VoxboardShared` package automatically.
 
-### 2. Resolve Packages
+### 3. Verify model packaging
 
-After opening the project, Xcode should auto-resolve SPM packages. If not:
+The app bundles the whisper.cpp inference framework so downloaded Whisper models can run, but it must not contain `ggml-base.bin` or any other model weights.
 
-**File → Packages → Resolve Package Versions**
-
-This will download:
-- KeyboardKit (for the keyboard extension)
-- whisper.cpp (via VoxboardShared local package)
-
-### 3. Verify Model Is Bundled
-
-Check that `ggml-base.bin` appears in:
-- **Voxboard target → Build Phases → Copy Bundle Resources**
-
-With file-system sync, it should be auto-included since it's in the `Voxboard/` directory.
-
----
-
-## Running & Testing
-
-### First Run
-1. Build and run the **Voxboard** scheme on a physical device
-2. The app copies the bundled base model to the shared App Group container
-3. Grant microphone permission when prompted
-
-### Enable the Keyboard
-1. **Settings → General → Keyboard → Keyboards → Add New Keyboard**
-2. Select **Voxboard Keyboard**
-3. Tap it → **Allow Full Access** (required for microphone in keyboard)
-
-### Test the Keyboard
-1. Open any text field (Notes, Messages, etc.)
-2. Switch to Vox.md keyboard (globe icon)
-3. Use `<` `>` arrows to select a model
-4. Tap **Start** → speak → tap **Stop**
-5. Text appears in the input field
-
----
-
-## Architecture
-
-```
-Voxboard (Main App)
-├── HomeView          — dark minimal UI, big record button
-├── HistoryView       — scrollable transcript history
-├── SettingsView      — model download/select, language
-
-Voxboard Keyboard (Extension)
-├── KeyboardViewController  — KeyboardKit standard keyboard
-├── VoiceToolbarView        — [< 🎤 >] Model  [▶ Start]
-├── VoiceKeyboardState      — recording + transcription state
-
-Packages/VoxboardShared (Local SPM)
-├── AppConstants      — App Group IDs, shared paths
-├── AudioRecorder     — 16kHz mono PCM recording
-├── WhisperContext    — whisper.cpp C API wrapper
-├── ModelManager      — model download, selection, language
-├── TranscriptStore   — JSON persistence in App Group
-├── Transcript        — data model
-└── WhisperModelInfo  — model registry
-```
-
-**Data flow:**
-1. User taps Start in keyboard toolbar
-2. `AudioRecorder` captures 16kHz mono WAV via `AVAudioSession`
-3. User taps Stop → `WhisperContext` transcribes on background thread
-4. Text inserted via `textDocumentProxy.insertText()`
-5. Transcript saved to shared JSON store
-
----
-
-## Memory Considerations
-
-Keyboard extensions have limited memory (~120-200MB on modern iPhones):
-
-| Model | Size | Keyboard? |
-|-------|------|-----------|
-| Tiny  | 75 MB  | ✅ Recommended |
-| Base  | 142 MB | ⚠️ Works on newer devices |
-| Small | 466 MB | ❌ Too large |
-| Medium+ | 1.5GB+ | ❌ Main app only |
-
-If the keyboard crashes during transcription, switch to Tiny in Settings.
-
----
-
-## Re-downloading the Model
-
-If you need to re-download `ggml-base.bin` (e.g., after git clone):
+After building, verify:
 
 ```bash
-curl -L -o Voxboard/ggml-base.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+find ~/Library/Developer/Xcode/DerivedData -path '*Voxboard.app/ggml-*.bin' -print
 ```
 
----
+The command should return nothing.
+
+## First run
+
+1. Build and run **Voxboard** on a physical iPhone.
+2. Grant microphone permission.
+3. Leave **Models → Automatic** selected.
+4. On a supported iOS 26 device, Vox.md prepares Apple's system-managed language asset and uses Apple Speech.
+5. On older or unsupported devices/locales, open **Models** and opt into a Whisper or Parakeet download.
+
+Apple's language assets are retained and updated by iOS. They are not stored in the Vox.md app bundle or App Group model directory.
+
+## Enable the keyboard
+
+1. Open **Settings → General → Keyboard → Keyboards → Add New Keyboard**.
+2. Select **Vox.md Keyboard**.
+3. Enable **Allow Full Access**.
+4. Open Vox.md from the keyboard once so the main app can start listening and prepare the selected transcription backend.
+
+The keyboard sends recording commands and backend IDs to the main app. It does not load Speech, Whisper, or Parakeet itself.
+
+## Transcription routing
+
+When **Automatic** is selected:
+
+1. Vox.md tries Apple Speech if iOS 26, the device, and the selected locale support it.
+2. If Apple Speech is unavailable or fails before producing a transcript, Vox.md can use a model the user previously downloaded.
+3. If no backend is available, Vox.md preserves the recording and directs the user to Models.
+
+When a local model is selected explicitly, Vox.md bypasses Apple Speech and uses that model.
+
+## Build and test
+
+```bash
+swift test --package-path Packages/VoxboardShared
+
+xcodebuild \
+  -project Voxboard.xcodeproj \
+  -scheme Voxboard \
+  -configuration Debug \
+  -destination 'generic/platform=iOS Simulator' \
+  -derivedDataPath /tmp/VoxboardDerivedData \
+  CODE_SIGNING_ALLOWED=NO \
+  ONLY_ACTIVE_ARCH=YES \
+  ARCHS=arm64 \
+  build
+```
+
+Test Apple Speech on a physical supported iOS 26 device. Simulator availability does not represent physical-device model availability.
 
 ## Troubleshooting
 
-**"Open Vox.md to set up"** in keyboard toolbar:
-→ Launch the main app at least once so it copies the model to the shared container.
+**“Apple Speech is unavailable for this device or language”**
 
-**"Enable Full Access in Settings"**:
-→ Settings → General → Keyboard → Keyboards → Vox.md Keyboard → Allow Full Access.
+Choose a supported language or download an optional Whisper/Parakeet fallback in Models.
 
-**Keyboard crashes on transcription**:
-→ Switch to Tiny model in the app's Settings. Base model may exceed memory limits on older devices.
+**The keyboard says to open Vox.md**
 
-**whisper.cpp SPM doesn't compile**:
-→ The whisper.cpp Package.swift evolves rapidly. Check the repo for the latest compatible version. As a fallback, compile whisper.cpp source files directly (see the `whisper.swiftui` example in the repo).
+Launch the main app, grant microphone permission, and wait for backend preparation to complete.
+
+**A local model does not appear in the keyboard**
+
+Finish its download in the main app, then reopen or refresh the keyboard.
+
+**A downloaded model is using too much memory**
+
+Select Automatic, Whisper Tiny/Base, or delete larger local model weights from Models.

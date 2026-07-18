@@ -24,8 +24,8 @@ struct CaptureRoutePickerView: View {
                                         .foregroundStyle(Geist.muted)
                                 }
                                 Spacer()
-                                if destination.id == viewModel.draft.destinationID {
-                                    Image(systemName: "checkmark")
+                                if destination.id == viewModel.effectiveDestinationID {
+                                    Image(systemName: viewModel.hasExplicitDestinationOverride ? "checkmark.circle.fill" : "checkmark")
                                 }
                             }
                         }
@@ -34,14 +34,20 @@ struct CaptureRoutePickerView: View {
 
                 if viewModel.selectedDestination != nil {
                     Section("This capture") {
+                        if let vox = viewModel.selectedVoxProfile {
+                            LabeledContent("Vox") {
+                                Label(vox.displayName, systemImage: vox.symbolName)
+                            }
+                        }
+
                         Picker("Placement", selection: placementBinding) {
-                            Text("Destination Default").tag(PlacementChoice.default)
+                            Text("Vox / Route Default").tag(PlacementChoice.default)
                             Text("Top").tag(PlacementChoice.top)
                             Text("Bottom").tag(PlacementChoice.bottom)
                         }
 
                         Picker("Entry template", selection: $viewModel.draft.entryTemplateID) {
-                            Text("Destination Default").tag(UUID?.none)
+                            Text("Vox / Route Default").tag(UUID?.none)
                             ForEach(viewModel.entryTemplates) { template in
                                 Text(template.name).tag(Optional(template.id))
                             }
@@ -56,13 +62,11 @@ struct CaptureRoutePickerView: View {
                             )
                         }
 
-                        if viewModel.draft.relativeNotePathOverride != nil
-                            || viewModel.draft.placementOverride != nil
-                            || viewModel.draft.entryTemplateID != nil {
-                            Button(role: .destructive) {
-                                viewModel.clearRouteOverrides()
+                        if viewModel.hasAnyRouteOverride {
+                            Button {
+                                viewModel.useVoxRouteDefaults()
                             } label: {
-                                Label("Reset capture overrides", systemImage: "arrow.uturn.backward")
+                                Label("Use Vox defaults", systemImage: "arrow.uturn.backward")
                             }
                         }
                     }
