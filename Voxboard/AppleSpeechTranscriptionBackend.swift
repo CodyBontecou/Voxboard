@@ -25,23 +25,28 @@ actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
     }
 
     func prepare(language: String) async throws {
-        guard SpeechTranscriber.isAvailable,
-              let locale = await supportedLocale(for: language) else {
-            throw OnDeviceTranscriptionError.systemBackendUnavailable
+        guard SpeechTranscriber.isAvailable else {
+            throw AppleSpeechSetupError.transcriberUnavailable
+        }
+        guard let locale = await supportedLocale(for: language) else {
+            throw AppleSpeechSetupError.localeUnsupported(language)
         }
         let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
-        try await ensureAssets(for: transcriber)
+        try await ensureAssets(for: transcriber, locale: locale)
     }
 
     func transcribe(audioURL: URL, language: String) async throws -> SystemTranscriptionOutput {
         try Task.checkCancellation()
-        guard SpeechTranscriber.isAvailable,
-              let locale = await supportedLocale(for: language) else {
-            throw OnDeviceTranscriptionError.systemBackendUnavailable
+        try await ensureSpeechAuthorization()
+        guard SpeechTranscriber.isAvailable else {
+            throw AppleSpeechSetupError.transcriberUnavailable
+        }
+        guard let locale = await supportedLocale(for: language) else {
+            throw AppleSpeechSetupError.localeUnsupported(language)
         }
 
         let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
-        try await ensureAssets(for: transcriber)
+        try await ensureAssets(for: transcriber, locale: locale)
 
         let audioFile = try AVAudioFile(forReading: audioURL)
         let analyzer = SpeechAnalyzer(modules: [transcriber])
@@ -78,12 +83,15 @@ actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
 
     func startLiveTranscription(
         language: String,
-        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
+        onUpdate: @escaping @concurrent @Sendable (SystemTranscriptionUpdate) async -> Void
     ) async throws -> any SystemLiveTranscriptionSession {
         try Task.checkCancellation()
-        guard SpeechTranscriber.isAvailable,
-              let locale = await supportedLocale(for: language) else {
-            throw OnDeviceTranscriptionError.systemBackendUnavailable
+        try await ensureSpeechAuthorization()
+        guard SpeechTranscriber.isAvailable else {
+            throw AppleSpeechSetupError.transcriberUnavailable
+        }
+        guard let locale = await supportedLocale(for: language) else {
+            throw AppleSpeechSetupError.localeUnsupported(language)
         }
 
         let transcriber = SpeechTranscriber(
@@ -92,19 +100,12 @@ actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
             reportingOptions: [.volatileResults],
             attributeOptions: []
         )
-        try await ensureAssets(for: transcriber)
+        try await ensureAssets(for: transcriber, locale: locale)
 
-        let naturalFormat = AVAudioFormat(
-            commonFormat: .pcmFormatFloat32,
-            sampleRate: 16_000,
-            channels: 1,
-            interleaved: false
-        )
         guard let analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(
-            compatibleWith: [transcriber],
-            considering: naturalFormat
+            compatibleWith: [transcriber]
         ) else {
-            throw OnDeviceTranscriptionError.systemBackendUnavailable
+            throw AppleSpeechSetupError.audioFormatUnavailable
         }
 
         let analyzer = SpeechAnalyzer(modules: [transcriber])
@@ -129,29 +130,96 @@ actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
         }
     }
 
-    private func ensureAssets(for transcriber: SpeechTranscriber) async throws {
+    private func ensureAssets(
+        for transcriber: SpeechTranscriber,
+        locale: Locale
+    ) async throws {
+        // Speech assets are shared by the system, but each app still needs its own
+        // locale reservation. In particular, an already-installed asset can report
+        // `.installed` even though this app has not subscribed to its locale yet.
+        // Starting an analyzer in that state fails with an "unallocated locale" or
+        // "not subscribed" SFSpeechError.
+        try await reserve(locale: locale)
+
         switch await AssetInventory.status(forModules: [transcriber]) {
         case .installed:
             return
         case .unsupported:
-            throw OnDeviceTranscriptionError.systemBackendUnavailable
+            throw AppleSpeechSetupError.assetUnsupported(localeIdentifier(locale))
         case .supported, .downloading:
             if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
                 try await request.downloadAndInstall()
             }
         @unknown default:
-            throw OnDeviceTranscriptionError.systemBackendUnavailable
+            throw AppleSpeechSetupError.assetStateUnexpected(localeIdentifier(locale))
         }
 
         guard await AssetInventory.status(forModules: [transcriber]) == .installed else {
-            throw OnDeviceTranscriptionError.systemBackendUnavailable
+            throw AppleSpeechAssetPreparationError.installationPending(
+                localeIdentifier(locale)
+            )
+        }
+    }
+
+    private func reserve(locale: Locale) async throws {
+        let requestedIdentifier = localeIdentifier(locale)
+        var reservedLocales = await AssetInventory.reservedLocales
+        guard !reservedLocales.contains(where: {
+            localeIdentifier($0) == requestedIdentifier
+        }) else {
+            return
+        }
+
+        // Vox.md uses one selected transcription language at a time. If earlier
+        // selections consumed every app reservation, release one stale locale so
+        // the newly selected language can be prepared.
+        if reservedLocales.count >= AssetInventory.maximumReservedLocales,
+           let staleLocale = reservedLocales.first(where: {
+               localeIdentifier($0) != requestedIdentifier
+           }) {
+            _ = await AssetInventory.release(reservedLocale: staleLocale)
+            reservedLocales = await AssetInventory.reservedLocales
+        }
+
+        guard !reservedLocales.contains(where: {
+            localeIdentifier($0) == requestedIdentifier
+        }) else {
+            return
+        }
+        try await AssetInventory.reserve(locale: locale)
+    }
+
+    private func ensureSpeechAuthorization() async throws {
+        let currentStatus = SFSpeechRecognizer.authorizationStatus()
+        let status: SFSpeechRecognizerAuthorizationStatus
+        if currentStatus == .notDetermined {
+            status = await withCheckedContinuation { continuation in
+                SFSpeechRecognizer.requestAuthorization { resolvedStatus in
+                    continuation.resume(returning: resolvedStatus)
+                }
+            }
+        } else {
+            status = currentStatus
+        }
+
+        switch status {
+        case .authorized:
+            return
+        case .denied:
+            throw AppleSpeechSetupError.permissionDenied
+        case .restricted:
+            throw AppleSpeechSetupError.permissionRestricted
+        case .notDetermined:
+            throw AppleSpeechSetupError.permissionDenied
+        @unknown default:
+            throw AppleSpeechSetupError.permissionDenied
         }
     }
 
     private func supportedLocale(for language: String) async -> Locale? {
         let requested: Locale
         if language == "auto" || language.isEmpty {
-            requested = .autoupdatingCurrent
+            requested = .current
         } else {
             requested = Locale(identifier: language)
         }
@@ -160,6 +228,49 @@ actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
 
     private nonisolated func localeIdentifier(_ locale: Locale) -> String {
         locale.identifier(.bcp47)
+    }
+}
+
+@available(iOS 26.0, *)
+private enum AppleSpeechSetupError: Error, LocalizedError, Sendable {
+    case permissionDenied
+    case permissionRestricted
+    case transcriberUnavailable
+    case localeUnsupported(String)
+    case assetUnsupported(String)
+    case assetStateUnexpected(String)
+    case audioFormatUnavailable
+
+    var errorDescription: String? {
+        switch self {
+        case .permissionDenied:
+            return "Speech Recognition access is off. Enable it for Vox.md in Settings, then try again."
+        case .permissionRestricted:
+            return "Speech Recognition is restricted on this iPhone. Check Screen Time or device-management settings."
+        case .transcriberUnavailable:
+            return "The on-device Apple Speech transcriber is unavailable on this iPhone."
+        case .localeUnsupported(let language):
+            let displayLanguage = language == "auto" ? Locale.current.identifier : language
+            return "Apple Speech does not support the current transcription language (\(displayLanguage))."
+        case .assetUnsupported(let locale):
+            return "Apple Speech cannot install its \(locale) language model on this iPhone."
+        case .assetStateUnexpected(let locale):
+            return "Apple Speech reported an unexpected asset state for \(locale)."
+        case .audioFormatUnavailable:
+            return "Apple Speech could not select a compatible live audio format."
+        }
+    }
+}
+
+@available(iOS 26.0, *)
+private enum AppleSpeechAssetPreparationError: Error, LocalizedError, Sendable {
+    case installationPending(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .installationPending(let locale):
+            return "Apple Speech is still preparing the \(locale) language model. Keep Vox.md open and try again shortly."
+        }
     }
 }
 

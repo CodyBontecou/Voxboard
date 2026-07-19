@@ -72,17 +72,8 @@ public protocol SystemTranscriptionBackend: Sendable {
     func transcribe(audioURL: URL, language: String) async throws -> SystemTranscriptionOutput
     func startLiveTranscription(
         language: String,
-        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
+        onUpdate: @escaping @concurrent @Sendable (SystemTranscriptionUpdate) async -> Void
     ) async throws -> any SystemLiveTranscriptionSession
-}
-
-public extension SystemTranscriptionBackend {
-    func startLiveTranscription(
-        language: String,
-        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
-    ) async throws -> any SystemLiveTranscriptionSession {
-        throw OnDeviceTranscriptionError.systemBackendUnavailable
-    }
 }
 
 public enum TranscriptionBackendKind: String, Equatable, Sendable {

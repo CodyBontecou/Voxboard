@@ -19,6 +19,8 @@ struct RootView: View {
     @Binding var pendingKeyboardLaunch: Bool
     @Binding var pendingWidgetRecord: Bool
 
+    @State private var captureToolbarPreferences = CaptureToolbarPreferences()
+
     var body: some View {
         captureRoot
             .background(Geist.Palette.background100)
@@ -37,10 +39,14 @@ struct RootView: View {
                 persistentRecorder: persistentRecorder,
                 pendingKeyboardLaunch: $pendingKeyboardLaunch,
                 pendingWidgetRecord: $pendingWidgetRecord,
+                captureToolbarPreferences: captureToolbarPreferences,
                 openSettings: { rootDestination = .settings }
             )
             .navigationDestination(isPresented: settingsIsPresented) {
-                MetaSettingsView(persistentRecorder: persistentRecorder)
+                MetaSettingsView(
+                    persistentRecorder: persistentRecorder,
+                    captureToolbarPreferences: captureToolbarPreferences
+                )
             }
         }
     }

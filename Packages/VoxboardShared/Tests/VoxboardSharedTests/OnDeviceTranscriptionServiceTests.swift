@@ -45,6 +45,55 @@ final class OnDeviceTranscriptionServiceTests: XCTestCase {
         XCTAssertFalse(ready)
     }
 
+    func testPrepareSurfacesSystemAssetFailureWhenNoFallbackExists() async {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .supported,
+            result: .failure(FakeError.failed),
+            preparationFails: true
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        do {
+            try await service.prepare(
+                modelID: TranscriptionBackendID.automatic,
+                language: "en-US"
+            )
+            XCTFail("Expected systemBackendFailed")
+        } catch {
+            XCTAssertEqual(
+                error as? OnDeviceTranscriptionError,
+                .systemBackendFailed("The Apple Speech asset operation failed.")
+            )
+        }
+    }
+
+    func testTranscriptionSurfacesSystemFailureWhenNoFallbackExists() async {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .ready,
+            result: .failure(FakeError.failed)
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        do {
+            _ = try await service.transcribeResult(
+                audioURL: URL(fileURLWithPath: "/tmp/ignored.wav"),
+                modelID: TranscriptionBackendID.automatic
+            )
+            XCTFail("Expected systemBackendFailed")
+        } catch {
+            XCTAssertEqual(
+                error as? OnDeviceTranscriptionError,
+                .systemBackendFailed("The Apple Speech asset operation failed.")
+            )
+        }
+    }
+
     func testAutomaticWithoutSystemOrDownloadedFallbackIsActionable() async {
         let backend = FakeSystemTranscriptionBackend(
             availability: .unavailable,
@@ -104,6 +153,27 @@ final class OnDeviceTranscriptionServiceTests: XCTestCase {
         let session = try await service.startLiveTranscription(
             modelID: TranscriptionBackendID.automatic,
             language: "en-US",
+            onUpdate: { _ in }
+        )
+
+        XCTAssertNotNil(session)
+        let liveCallCount = await backend.liveTranscriptionCallCount
+        XCTAssertEqual(liveCallCount, 1)
+    }
+
+    func testLiveTranscriptionAttemptsBackendWhenReadOnlyAvailabilityIsUnavailable() async throws {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .unavailable,
+            result: .success(SystemTranscriptionOutput(text: "Batch", language: "en-US"))
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        let session = try await service.startLiveTranscription(
+            modelID: TranscriptionBackendID.automatic,
+            language: "auto",
             onUpdate: { _ in }
         )
 
@@ -176,29 +246,38 @@ final class OnDeviceTranscriptionServiceTests: XCTestCase {
     }
 }
 
-private enum FakeError: Error, Sendable {
+private enum FakeError: Error, LocalizedError, Sendable {
     case failed
+
+    var errorDescription: String? {
+        "The Apple Speech asset operation failed."
+    }
 }
 
 private actor FakeSystemTranscriptionBackend: SystemTranscriptionBackend {
     let configuredAvailability: SystemTranscriptionAvailability
     let result: Result<SystemTranscriptionOutput, Error>
+    let preparationFails: Bool
     private(set) var transcriptionCallCount = 0
     private(set) var liveTranscriptionCallCount = 0
 
     init(
         availability: SystemTranscriptionAvailability,
-        result: Result<SystemTranscriptionOutput, Error>
+        result: Result<SystemTranscriptionOutput, Error>,
+        preparationFails: Bool = false
     ) {
         self.configuredAvailability = availability
         self.result = result
+        self.preparationFails = preparationFails
     }
 
     func availability(language: String) async -> SystemTranscriptionAvailability {
         configuredAvailability
     }
 
-    func prepare(language: String) async throws {}
+    func prepare(language: String) async throws {
+        if preparationFails { throw FakeError.failed }
+    }
 
     func transcribe(audioURL: URL, language: String) async throws -> SystemTranscriptionOutput {
         transcriptionCallCount += 1
@@ -207,7 +286,7 @@ private actor FakeSystemTranscriptionBackend: SystemTranscriptionBackend {
 
     func startLiveTranscription(
         language: String,
-        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
+        onUpdate: @escaping @concurrent @Sendable (SystemTranscriptionUpdate) async -> Void
     ) async throws -> any SystemLiveTranscriptionSession {
         liveTranscriptionCallCount += 1
         return FakeLiveTranscriptionSession()

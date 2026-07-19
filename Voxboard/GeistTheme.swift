@@ -40,9 +40,9 @@ enum Geist {
     }
 
     enum Palette {
-        // Shared with the keyboard's opaque dark backdrop for a seamless transition.
-        static let background100 = adaptive("#ffffff", "#1a1a1c")
-        static let background200 = adaptive("#fafafa", "#1a1a1c")
+        // Shared with the keyboard's opaque backdrop for a seamless transition.
+        static let background100 = adaptive("#e2e4e8", "#1a1a1c")
+        static let background200 = adaptive("#e2e4e8", "#1a1a1c")
 
         static let gray100 = adaptive("#f2f2f2", "#1a1a1a")
         static let gray200 = adaptive("#ebebeb", "#1f1f1f")

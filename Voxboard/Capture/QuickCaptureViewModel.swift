@@ -33,6 +33,7 @@ final class QuickCaptureViewModel {
     private var hasLoaded = false
     private var pendingCaptureSource: CaptureSource?
     private var pendingVoxID: String?
+    private var liveRecordedTranscriptPreview: LiveTranscriptDraftPreview?
 
     init(
         captureRootURL: URL? = AppConstants.captureDirectoryURL,
@@ -330,19 +331,63 @@ final class QuickCaptureViewModel {
         }
     }
 
+    var hasLiveRecordedTranscriptPreview: Bool {
+        liveRecordedTranscriptPreview != nil
+    }
+
+    func updateLiveRecordedTranscript(
+        finalizedText: String,
+        volatileText: String?
+    ) async {
+        await load()
+        var preview = liveRecordedTranscriptPreview ?? LiveTranscriptDraftPreview()
+        let updatedText = preview.render(
+            finalizedText: finalizedText,
+            volatileText: volatileText,
+            in: draft.text
+        )
+        guard updatedText.count <= CaptureInputLimits.maximumTextCharacters else {
+            errorMessage = QuickCaptureViewModelError.textTooLarge.localizedDescription
+            return
+        }
+
+        // Keep volatile recognition in memory. The durable draft is saved only
+        // when Apple Speech finalizes, so a crash cannot persist tentative words.
+        liveRecordedTranscriptPreview = preview
+        draft.text = updatedText
+        draft.updatedAt = Date()
+    }
+
+    func cancelLiveRecordedTranscript() async {
+        guard var preview = liveRecordedTranscriptPreview else { return }
+        let restoredText = preview.cancel(in: draft.text)
+        liveRecordedTranscriptPreview = nil
+        draft.text = restoredText
+        await saveDraftNow()
+    }
+
     @discardableResult
     func appendRecordedTranscript(_ text: String) async -> Bool {
         await load()
         let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else { return false }
-        let separator = draft.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "" : "\n\n"
-        guard draft.text.count + separator.count + normalized.count <= CaptureInputLimits.maximumTextCharacters else {
+
+        let previousDraft = draft
+        let previousPreview = liveRecordedTranscriptPreview
+        let updatedText: String
+        if var preview = liveRecordedTranscriptPreview {
+            updatedText = preview.commit(normalized, in: draft.text)
+        } else {
+            let separator = draft.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "" : "\n\n"
+            updatedText = draft.text + separator + normalized
+        }
+        guard updatedText.count <= CaptureInputLimits.maximumTextCharacters else {
             errorMessage = QuickCaptureViewModelError.textTooLarge.localizedDescription
             return false
         }
 
-        let previousDraft = draft
-        draft.text += separator + normalized
+        liveRecordedTranscriptPreview = nil
+        draft.text = updatedText
         // The recorder adds transcription seconds only after a successful
         // result. Mark this durable request so sending it does not consume a
         // second, independent Capture allowance.
@@ -354,6 +399,7 @@ final class QuickCaptureViewModel {
             return true
         } catch {
             draft = previousDraft
+            liveRecordedTranscriptPreview = previousPreview
             errorMessage = error.localizedDescription
             return false
         }

@@ -33,9 +33,7 @@ struct CaptureEditorToolbar: View {
     var showScan: () -> Void
     var isProcessingMedia: Bool
     var isFindingLocation: Bool
-
-    @State private var preferences = CaptureToolbarPreferences()
-    @State private var showsSettings = false
+    @Bindable var preferences: CaptureToolbarPreferences
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -51,11 +49,6 @@ struct CaptureEditorToolbar: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
         .accessibilityLabel("Markdown and capture tools")
-        .sheet(isPresented: $showsSettings) {
-            CaptureToolbarSettingsView(preferences: preferences)
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
-        }
     }
 
     @ViewBuilder
@@ -143,14 +136,6 @@ struct CaptureEditorToolbar: View {
 
         case .date:
             toolbarButton(action.accessibilityLabel, icon: action.systemImage) { command(.date) }
-
-        case .captureBarSettings:
-            Button {
-                showsSettings = true
-            } label: {
-                toolbarLabel(action.accessibilityLabel, icon: action.systemImage)
-            }
-            .accessibilityIdentifier("capture_toolbar_settings")
 
         case .textCase:
             Menu {

@@ -7,6 +7,7 @@ import WidgetKit
 /// App-level customization, preferences, upgrade, about metadata, and debug tools.
 struct MetaSettingsView: View {
     let persistentRecorder: PersistentRecorder
+    let captureToolbarPreferences: CaptureToolbarPreferences
 
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(StoreManager.self) private var storeManager
@@ -174,6 +175,16 @@ struct MetaSettingsView: View {
                 systemImage: "slider.horizontal.3"
             ) {
                 CapturePresetSettingsView()
+            }
+
+            GeistDivider()
+
+            customizationRow(
+                "Capture Bar",
+                description: "Choose, reorder, and hide quick actions",
+                systemImage: "rectangle.3.group"
+            ) {
+                CaptureToolbarSettingsView(preferences: captureToolbarPreferences)
             }
         }
     }

@@ -66,6 +66,13 @@ struct VoxboardApp: App {
                 switch event {
                 case .audio(let url):
                     await captureViewModel.stageRecordedAudio(at: url)
+                case .liveTranscript(let finalizedText, let volatileText):
+                    await captureViewModel.updateLiveRecordedTranscript(
+                        finalizedText: finalizedText,
+                        volatileText: volatileText
+                    )
+                case .cancelLiveTranscript:
+                    await captureViewModel.cancelLiveRecordedTranscript()
                 case .transcript(let text):
                     await captureViewModel.appendRecordedTranscript(text)
                 }

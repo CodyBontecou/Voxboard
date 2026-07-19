@@ -26,6 +26,8 @@ enum RecordingCompletionMode: Equatable, Sendable {
 
 enum CaptureDraftRecordingEvent: Sendable {
     case audio(URL)
+    case liveTranscript(finalizedText: String, volatileText: String?)
+    case cancelLiveTranscript
     case transcript(String)
 }
 
@@ -55,12 +57,6 @@ final class PersistentRecorder {
 
     /// Last transcription result from an in-app recording. Observable for UI display.
     var lastTranscriptionResult: String?
-
-    /// Progressive Apple Speech text for an in-app Capture recording. Finalized
-    /// phrases are stable; volatile text remains display-only until Apple finalizes it.
-    var liveFinalizedTranscription: String?
-    var liveVolatileTranscription: String?
-    var isCaptureLiveTranscriptionActive = false
 
     /// Updated every time a configured transcript export succeeds or fails.
     var lastFileExportEvent: FileExportEvent?
@@ -913,11 +909,14 @@ final class PersistentRecorder {
 
         let publishesToKeyboard = command.origin == .keyboardExtension
         let publishesToCapture = command.requestId.hasPrefix("inapp-")
-        if publishesToCapture {
+        let publishesToDraft: Bool
+        if publishesToCapture,
+           let completionMode = segmentCompletionMode,
+           case .captureDraft = completionMode {
+            publishesToDraft = true
             liveCaptureRequestId = command.requestId
-            liveFinalizedTranscription = nil
-            liveVolatileTranscription = nil
-            isCaptureLiveTranscriptionActive = false
+        } else {
+            publishesToDraft = false
         }
 
         guard (publishesToKeyboard || publishesToCapture),
@@ -929,15 +928,16 @@ final class PersistentRecorder {
         let buffer = circularBuffer
         let requestId = command.requestId
         let sampleRate = whisperSampleRate
+        let draftEventHandler = publishesToDraft ? captureDraftEventHandler : nil
 
-        liveTranscriptionSetupTask = Task.detached(priority: .userInitiated) { [weak self] in
+        liveTranscriptionSetupTask = Task.detached(priority: .userInitiated) {
             var startedSession: (any SystemLiveTranscriptionSession)?
             let progress = LiveTranscriptionProgress()
             do {
                 guard let session = try await service.startLiveTranscription(
                     modelID: TranscriptionBackendID.automatic,
                     language: language,
-                    onUpdate: { [weak self] update in
+                    onUpdate: { update in
                         await progress.record(update)
                         if publishesToKeyboard {
                             TranscriptionIPC.writeLiveSnapshot(LiveTranscriptionSnapshot(
@@ -946,14 +946,11 @@ final class PersistentRecorder {
                                 finalizedText: update.finalizedText,
                                 volatileText: update.volatileText
                             ))
-                        } else {
-                            await MainActor.run { [weak self] in
-                                guard let self, self.liveCaptureRequestId == requestId else { return }
-                                self.liveFinalizedTranscription = update.finalizedText.isEmpty
-                                    ? nil
-                                    : update.finalizedText
-                                self.liveVolatileTranscription = update.volatileText
-                            }
+                        } else if let draftEventHandler {
+                            await draftEventHandler(.liveTranscript(
+                                finalizedText: update.finalizedText,
+                                volatileText: update.volatileText
+                            ))
                         }
                     }
                 ) else {
@@ -970,24 +967,13 @@ final class PersistentRecorder {
                     progress: progress
                 )
                 await coordinator.start()
-                if publishesToCapture {
-                    await MainActor.run { [weak self] in
-                        guard let self,
-                              self.liveCaptureRequestId == requestId,
-                              self.isSegmentActive else { return }
-                        self.isCaptureLiveTranscriptionActive = true
-                    }
-                }
                 return coordinator
             } catch {
                 if let startedSession {
                     await startedSession.cancel()
                 }
                 if publishesToCapture {
-                    await MainActor.run { [weak self] in
-                        guard let self, self.liveCaptureRequestId == requestId else { return }
-                        self.isCaptureLiveTranscriptionActive = false
-                    }
+                    log.log("[PersistentRecorder] Live Apple Speech setup failed; using batch transcription: \(error.localizedDescription)")
                 }
                 return nil
             }
@@ -1008,9 +994,10 @@ final class PersistentRecorder {
     private func clearCaptureLiveTranscription(requestId: String?) {
         guard let requestId, liveCaptureRequestId == requestId else { return }
         liveCaptureRequestId = nil
-        liveFinalizedTranscription = nil
-        liveVolatileTranscription = nil
-        isCaptureLiveTranscriptionActive = false
+        guard let captureDraftEventHandler else { return }
+        Task { @MainActor in
+            await captureDraftEventHandler(.cancelLiveTranscript)
+        }
     }
 
     /// Mark the end of a segment — extract audio and transcribe.

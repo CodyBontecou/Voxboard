@@ -201,14 +201,10 @@ struct HistoryView: View {
                             .foregroundStyle(Geist.text)
                             .lineLimit(2)
                     }
-                    HStack(spacing: Geist.Spacing.two) {
-                        Text(relativeDate(transcript.date))
-                        Text(transcript.modelUsed)
-                        Text(formatDuration(transcript.duration))
-                        if transcript.language != "auto" { Text(transcript.language) }
-                    }
-                    .font(Geist.mono())
-                    .foregroundStyle(Geist.muted)
+                    Text("\(relativeDate(transcript.date)) · \(formatDuration(transcript.duration))")
+                        .font(Geist.mono())
+                        .foregroundStyle(Geist.muted)
+                        .lineLimit(1)
                     if let delivery {
                         Label(
                             delivery.outcome == .delivered ? "Delivered" : "Delivery failed",

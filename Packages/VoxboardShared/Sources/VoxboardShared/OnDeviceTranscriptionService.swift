@@ -3,6 +3,7 @@ import Foundation
 public enum OnDeviceTranscriptionError: Error, LocalizedError, Equatable, Sendable {
     case modelUnavailable
     case systemBackendUnavailable
+    case systemBackendFailed(String)
     case noAvailableBackend
     case audioConversionFailed
     case modelLoadFailed
@@ -14,6 +15,8 @@ public enum OnDeviceTranscriptionError: Error, LocalizedError, Equatable, Sendab
             return "Download the selected transcription model before generating a transcript."
         case .systemBackendUnavailable:
             return "Apple Speech is unavailable for this device or language."
+        case .systemBackendFailed(let reason):
+            return "Apple Speech could not start: \(reason)"
         case .noAvailableBackend:
             return "Apple Speech is unavailable for this device or language. Download a Whisper or Parakeet model as a fallback."
         case .audioConversionFailed:
@@ -89,6 +92,7 @@ public actor OnDeviceTranscriptionService {
             return
         }
 
+        var systemFailure: OnDeviceTranscriptionError?
         if let systemBackend,
            await systemBackend.availability(language: language) != .unavailable {
             do {
@@ -96,13 +100,15 @@ public actor OnDeviceTranscriptionService {
                 return
             } catch is CancellationError {
                 throw CancellationError()
+            } catch let error as OnDeviceTranscriptionError {
+                systemFailure = error
             } catch {
-                // A previously downloaded model may still keep Automatic usable.
+                systemFailure = .systemBackendFailed(error.localizedDescription)
             }
         }
 
         guard let fallback = resolvedFallbackModel(preferredID: fallbackModelID) else {
-            throw OnDeviceTranscriptionError.noAvailableBackend
+            throw systemFailure ?? OnDeviceTranscriptionError.noAvailableBackend
         }
         try await prepareLocalModel(fallback)
     }
@@ -113,13 +119,17 @@ public actor OnDeviceTranscriptionService {
     public func startLiveTranscription(
         modelID: String,
         language: String = "auto",
-        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
+        onUpdate: @escaping @concurrent @Sendable (SystemTranscriptionUpdate) async -> Void
     ) async throws -> (any SystemLiveTranscriptionSession)? {
         guard modelID == TranscriptionBackendID.automatic,
-              let systemBackend,
-              await systemBackend.availability(language: language) != .unavailable else {
+              let systemBackend else {
             return nil
         }
+
+        // Do not gate a user-initiated live session on the cached/read-only
+        // availability result. Apple Speech can report unavailable before its
+        // permission prompt or first asset allocation; starting the backend is
+        // what resolves those states and produces an actionable error if needed.
         return try await systemBackend.startLiveTranscription(
             language: language,
             onUpdate: onUpdate
@@ -151,6 +161,7 @@ public actor OnDeviceTranscriptionService {
             return try await transcribeLocally(audioURL: audioURL, model: model, language: language)
         }
 
+        var systemFailure: OnDeviceTranscriptionError?
         if let systemBackend,
            await systemBackend.availability(language: language) != .unavailable {
             do {
@@ -169,14 +180,17 @@ public actor OnDeviceTranscriptionService {
             } catch OnDeviceTranscriptionError.noSpeechDetected {
                 // Do not run a second recognizer over genuine silence.
                 throw OnDeviceTranscriptionError.noSpeechDetected
+            } catch let error as OnDeviceTranscriptionError {
+                systemFailure = error
             } catch {
                 // Operational and asset failures may fall back to a model the
                 // user explicitly downloaded. No local download is initiated.
+                systemFailure = .systemBackendFailed(error.localizedDescription)
             }
         }
 
         guard let fallback = resolvedFallbackModel(preferredID: fallbackModelID) else {
-            throw OnDeviceTranscriptionError.noAvailableBackend
+            throw systemFailure ?? OnDeviceTranscriptionError.noAvailableBackend
         }
         return try await transcribeLocally(audioURL: audioURL, model: fallback, language: language)
     }

@@ -29,6 +29,7 @@ struct QuickCaptureView: View {
     @Bindable var persistentRecorder: PersistentRecorder
     @Binding var pendingKeyboardLaunch: Bool
     @Binding var pendingWidgetRecord: Bool
+    let captureToolbarPreferences: CaptureToolbarPreferences
     let openSettings: () -> Void
 
     @Environment(TranscriptStore.self) private var transcriptStore
@@ -88,12 +89,14 @@ struct QuickCaptureView: View {
         persistentRecorder: PersistentRecorder,
         pendingKeyboardLaunch: Binding<Bool>,
         pendingWidgetRecord: Binding<Bool>,
+        captureToolbarPreferences: CaptureToolbarPreferences,
         openSettings: @escaping () -> Void
     ) {
         self.viewModel = viewModel
         self.persistentRecorder = persistentRecorder
         _pendingKeyboardLaunch = pendingKeyboardLaunch
         _pendingWidgetRecord = pendingWidgetRecord
+        self.captureToolbarPreferences = captureToolbarPreferences
         self.openSettings = openSettings
     }
 
@@ -113,11 +116,6 @@ struct QuickCaptureView: View {
 
                 composer
                     .layoutPriority(1)
-
-                if shouldShowCaptureLiveTranscription {
-                    GeistDivider()
-                    liveCaptureTranscriptionBar
-                }
 
                 if !viewModel.draft.additionalPayloads.isEmpty {
                     attachmentStrip
@@ -197,7 +195,11 @@ struct QuickCaptureView: View {
                 await loadAndPresentRequestedInput()
                 handleCaptureNeedsUnlock(viewModel.needsCaptureUnlock)
             }
-            .onChange(of: viewModel.draft.text) { _, _ in viewModel.scheduleDraftSave() }
+            .onChange(of: viewModel.draft.text) { _, _ in
+                if !viewModel.hasLiveRecordedTranscriptPreview {
+                    viewModel.scheduleDraftSave()
+                }
+            }
             .onChange(of: viewModel.draft.voxID) { _, id in
                 viewModel.scheduleDraftSave()
                 if let id { selectedFlowId = id }
@@ -399,63 +401,6 @@ struct QuickCaptureView: View {
         } message: {
             Text("The link stays in your durable draft until the note is captured.")
         }
-    }
-
-    private var shouldShowCaptureLiveTranscription: Bool {
-        persistentRecorder.isSegmentActive
-            && (persistentRecorder.isCaptureLiveTranscriptionActive
-                || !(persistentRecorder.liveFinalizedTranscription ?? "").isEmpty
-                || !(persistentRecorder.liveVolatileTranscription ?? "").isEmpty)
-    }
-
-    private var liveCaptureTranscriptionBar: some View {
-        let finalized = persistentRecorder.liveFinalizedTranscription ?? ""
-        let volatile = persistentRecorder.liveVolatileTranscription ?? ""
-        let accessibilityText = [finalized, volatile]
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
-
-        return HStack(alignment: .top, spacing: Geist.Spacing.three) {
-            Image(systemName: "waveform")
-                .foregroundStyle(Geist.Palette.blue700)
-                .symbolEffect(.variableColor.iterative, isActive: persistentRecorder.isSegmentActive)
-                .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: Geist.Spacing.one) {
-                Text("Live transcript")
-                    .font(Geist.caption(.caption2))
-                    .foregroundStyle(Geist.Palette.blue700)
-
-                if finalized.isEmpty, volatile.isEmpty {
-                    Text("Listening for speech…")
-                        .font(Geist.body())
-                        .foregroundStyle(Geist.muted)
-                } else {
-                    if !finalized.isEmpty {
-                        Text(finalized)
-                            .font(Geist.body())
-                            .foregroundStyle(Geist.text)
-                    }
-                    if !volatile.isEmpty {
-                        Text(volatile)
-                            .font(Geist.body())
-                            .foregroundStyle(Geist.muted)
-                            .italic()
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(.horizontal, Geist.Spacing.four)
-        .padding(.vertical, Geist.Spacing.three)
-        .background(Geist.Palette.blue700.opacity(0.08))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(
-            accessibilityText.isEmpty
-                ? String(localized: "Live transcript, listening for speech")
-                : String(localized: "Live transcript, \(accessibilityText)")
-        )
-        .accessibilityIdentifier("capture_live_transcription")
     }
 
     private var voiceCaptureButton: some View {
@@ -833,7 +778,8 @@ struct QuickCaptureView: View {
                 showFiles: { showsFileImporter = true },
                 showScan: { showsScanner = VNDocumentCameraViewController.isSupported },
                 isProcessingMedia: isProcessingMedia,
-                isFindingLocation: isFindingLocation
+                isFindingLocation: isFindingLocation,
+                preferences: captureToolbarPreferences
             )
         }
         .background(Geist.Palette.background100)
@@ -1868,12 +1814,13 @@ struct QuickCaptureView: View {
 
 private struct BlinkingCaptureCaret: View {
     @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
+    @Environment(\.colorScheme) private var colorScheme
     @ScaledMetric(relativeTo: .body) private var height: CGFloat = 21
     @State private var isVisible = true
 
     var body: some View {
         RoundedRectangle(cornerRadius: 1, style: .continuous)
-            .fill(Geist.focus)
+            .fill(colorScheme == .dark ? Color.white : Color.black)
             .frame(width: 2, height: height)
             .opacity(accessibilityReduceMotion || isVisible ? 1 : 0)
             .task(id: accessibilityReduceMotion) {

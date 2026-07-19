@@ -23,7 +23,6 @@ enum CaptureToolbarAction: String, CaseIterable, Identifiable {
     case timestamp
     case date
     case textCase
-    case captureBarSettings
 
     var id: String { rawValue }
 
@@ -45,7 +44,6 @@ enum CaptureToolbarAction: String, CaseIterable, Identifiable {
         case .timestamp: "Insert Timestamp"
         case .date: "Insert Date"
         case .textCase: "Change Text Case"
-        case .captureBarSettings: "Capture Settings"
         }
     }
 
@@ -67,7 +65,6 @@ enum CaptureToolbarAction: String, CaseIterable, Identifiable {
         case .timestamp: String(localized: "Insert timestamp")
         case .date: String(localized: "Insert date")
         case .textCase: String(localized: "Change text case")
-        case .captureBarSettings: String(localized: "Open capture settings")
         }
     }
 
@@ -89,7 +86,6 @@ enum CaptureToolbarAction: String, CaseIterable, Identifiable {
         case .timestamp: "clock"
         case .date: "calendar"
         case .textCase: nil
-        case .captureBarSettings: "gearshape"
         }
     }
 
@@ -132,21 +128,19 @@ final class CaptureToolbarPreferences {
 
         orderedActions = order
         hiddenActions = Set(stored?.hidden.compactMap(CaptureToolbarAction.init(rawValue:)) ?? [])
-            .subtracting([.captureBarSettings])
         confirmsVoiceNotesBeforeAdding = defaults.bool(forKey: CapturePreferenceKeys.confirmVoiceNoteBeforeAdding)
         persist()
     }
 
     var visibleActions: [CaptureToolbarAction] {
-        orderedActions.filter { $0 == .captureBarSettings || !hiddenActions.contains($0) }
+        orderedActions.filter { !hiddenActions.contains($0) }
     }
 
     func isVisible(_ action: CaptureToolbarAction) -> Bool {
-        action == .captureBarSettings || !hiddenActions.contains(action)
+        !hiddenActions.contains(action)
     }
 
     func setVisible(_ isVisible: Bool, for action: CaptureToolbarAction) {
-        guard action != .captureBarSettings else { return }
         if isVisible {
             hiddenActions.remove(action)
         } else {
@@ -183,67 +177,52 @@ final class CaptureToolbarPreferences {
 
 struct CaptureToolbarSettingsView: View {
     @Bindable var preferences: CaptureToolbarPreferences
-    @Environment(\.dismiss) private var dismiss
     @State private var editMode: EditMode = .active
 
     var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    ForEach(preferences.orderedActions) { action in
-                        HStack(spacing: Geist.Spacing.three) {
-                            actionIcon(action)
-                                .frame(width: 24)
-                            Text(action.title)
+        List {
+            Section {
+                ForEach(preferences.orderedActions) { action in
+                    HStack(spacing: Geist.Spacing.three) {
+                        actionIcon(action)
+                            .frame(width: 24)
+                        Text(action.title)
 
-                            if action == .captureBarSettings {
-                                Spacer()
-                                Text("Always shown")
-                                    .font(Geist.caption(.caption2))
-                                    .foregroundStyle(Geist.faint)
-                            } else {
-                                Spacer()
-                                Toggle("", isOn: visibilityBinding(for: action))
-                                    .labelsHidden()
-                                    .tint(Geist.Palette.gray1000)
-                            }
-                        }
-                    }
-                    .onMove(perform: preferences.moveActions)
-                } header: {
-                    Text("Quick Actions")
-                } footer: {
-                    Text("Drag actions into the order you want. Turn off actions you do not want on the capture bar. You can always return here with the settings button.")
-                }
-
-                Section {
-                    Toggle(
-                        "Review Before Adding",
-                        isOn: voiceConfirmationBinding
-                    )
-                    .tint(Geist.Palette.gray1000)
-                    .accessibilityIdentifier("capture_voice_review_before_adding")
-                } header: {
-                    Text("Voice Notes")
-                } footer: {
-                    Text("Off by default. After you tap Done, Vox.md adds the recording and, when available, its on-device transcript to the current draft automatically. Turn this on to play, retry, copy, or review them before adding.")
-                }
-
-                Section {
-                    Button("Reset Quick Actions", role: .destructive) {
-                        preferences.reset()
+                        Spacer()
+                        Toggle("", isOn: visibilityBinding(for: action))
+                            .labelsHidden()
+                            .tint(Geist.Palette.gray1000)
                     }
                 }
+                .onMove(perform: preferences.moveActions)
+            } header: {
+                Text("Quick Actions")
+            } footer: {
+                Text("Drag actions into the order you want. Turn off actions you do not want on the capture bar.")
             }
-            .navigationTitle("Capture Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .environment(\.editMode, $editMode)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+
+            Section {
+                Toggle(
+                    "Review Before Adding",
+                    isOn: voiceConfirmationBinding
+                )
+                .tint(Geist.Palette.gray1000)
+                .accessibilityIdentifier("capture_voice_review_before_adding")
+            } header: {
+                Text("Voice Notes")
+            } footer: {
+                Text("Off by default. After you tap Done, Vox.md adds the recording and, when available, its on-device transcript to the current draft automatically. Turn this on to play, retry, copy, or review them before adding.")
+            }
+
+            Section {
+                Button("Reset Quick Actions", role: .destructive) {
+                    preferences.reset()
                 }
             }
         }
+        .navigationTitle("Capture Bar")
+        .navigationBarTitleDisplayMode(.inline)
+        .environment(\.editMode, $editMode)
     }
 
     private func visibilityBinding(for action: CaptureToolbarAction) -> Binding<Bool> {
