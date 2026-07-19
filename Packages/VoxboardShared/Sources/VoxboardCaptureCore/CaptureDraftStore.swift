@@ -9,13 +9,14 @@ public enum CaptureDraftError: Error, Equatable, LocalizedError, Sendable {
         case .draftNotFound(let id):
             return "Capture draft \(id.uuidString) was not found."
         case .destinationRequired:
-            return "Choose a destination before capturing."
+            return "Configure a destination for this Capture Preset before capturing."
         }
     }
 }
 
 public enum CaptureDestinationSelectionMode: String, Codable, Sendable {
-    /// Resolve through the selected Vox and then the library default.
+    /// Resolve through the selected Capture Preset. The library default is
+    /// retained only as a compatibility fallback for pre-migration drafts.
     case inherited
     /// Preserve the destination explicitly chosen for this draft.
     case explicit
@@ -30,7 +31,7 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
     /// The reusable capture workflow selected for this durable draft.
     public var voxID: String?
     /// `destinationID` is authoritative only for explicit selection. Inherited
-    /// drafts resolve Vox → library defaults at display and submission time.
+    /// drafts resolve the selected Capture Preset at display and submission time.
     public var destinationSelectionMode: CaptureDestinationSelectionMode
     public var destinationID: UUID?
     /// Entry-point provenance retained with the durable draft so history stays
@@ -93,7 +94,7 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         relativeNotePathOverride = nil
     }
 
-    /// Selects a workflow and returns routing to that Vox's inherited defaults.
+    /// Selects a Capture Preset and returns routing to its owned destination.
     public mutating func selectVox(_ id: String) {
         voxID = id
         useInheritedDestination()
@@ -105,6 +106,19 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         destinationSelectionMode = .inherited
         destinationID = nil
         relativeNotePathOverride = nil
+    }
+
+    /// Removes a redundant explicit destination left by older drafts when it
+    /// resolves to the same route now owned by the selected Capture Preset.
+    /// Capture-scoped note, placement, and template overrides remain intact.
+    @discardableResult
+    public mutating func inheritDestinationIfEquivalent(to inheritedDestinationID: UUID?) -> Bool {
+        guard destinationSelectionMode == .explicit,
+              let destinationID,
+              destinationID == inheritedDestinationID else { return false }
+        destinationSelectionMode = .inherited
+        self.destinationID = nil
+        return true
     }
 
     /// Converts a version that changed while an older snapshot was being sent
@@ -151,7 +165,7 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
     public func makeRequest(
         source: CaptureSource,
         resolvedDestinationID: UUID? = nil,
-        voxProfile: CaptureVoxProfile? = nil
+        voxProfile: CapturePresetProfile? = nil
     ) throws -> CaptureRequest {
         guard let destinationID = resolvedDestinationID ?? destinationID else {
             throw CaptureDraftError.destinationRequired
@@ -162,7 +176,7 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
             payloads.append(.text(boundaryTrimmedText))
         }
         payloads.append(contentsOf: additionalPayloads)
-        let processingState: CaptureVoxProcessingState
+        let processingState: CapturePresetProcessingState
         if let voxProfile {
             processingState = voxProfile.captureProcessingEnabled
                 && voxProfile.postProcessingMode != .none
@@ -345,9 +359,9 @@ public actor CaptureDraftStore {
         return result
     }
 
-    /// Persists the exact Vox-processed request before any destination write.
+    /// Persists the exact Preset-processed request before any destination write.
     /// A failed delivery can therefore retry without rerunning AI or reading
-    /// changed Vox settings.
+    /// changed Preset settings.
     public func savePreparedRequest(_ request: CaptureRequest, draftID: UUID) throws {
         let url = preparedRequestURL(for: draftID)
         try coordinator.coordinateWriting(at: url) { coordinatedURL in

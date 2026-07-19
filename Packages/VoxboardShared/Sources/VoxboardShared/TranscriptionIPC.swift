@@ -24,11 +24,58 @@ public struct TranscriptionResponse: Codable, Sendable {
     public let requestId: String
     public let text: String?
     public let error: String?
+    /// True when finalized Apple Speech text may already have been inserted
+    /// incrementally. Optional so responses from older app versions still decode.
+    public let usesLiveTranscription: Bool?
 
-    public init(requestId: String, text: String? = nil, error: String? = nil) {
+    public init(
+        requestId: String,
+        text: String? = nil,
+        error: String? = nil,
+        usesLiveTranscription: Bool? = nil
+    ) {
         self.requestId = requestId
         self.text = text
         self.error = error
+        self.usesLiveTranscription = usesLiveTranscription
+    }
+}
+
+/// Latest cumulative Apple Speech state written by the app and polled by the
+/// keyboard. A cumulative snapshot makes missed Darwin notifications harmless.
+public struct LiveTranscriptionSnapshot: Codable, Equatable, Sendable {
+    public let requestId: String
+    public let revision: Int
+    public let finalizedText: String
+    public let volatileText: String?
+    public let updatedAt: TimeInterval
+
+    public init(
+        requestId: String,
+        revision: Int,
+        finalizedText: String,
+        volatileText: String? = nil,
+        updatedAt: TimeInterval = Date().timeIntervalSince1970
+    ) {
+        self.requestId = requestId
+        self.revision = revision
+        self.finalizedText = finalizedText
+        self.volatileText = volatileText
+        self.updatedAt = updatedAt
+    }
+}
+
+/// Keyboard-owned delivery state persisted before inserting a finalized delta.
+/// It favors at-most-once insertion if iOS terminates the extension mid-update.
+public struct LiveTranscriptionDeliveryCheckpoint: Codable, Equatable, Sendable {
+    public let requestId: String
+    public let revision: Int
+    public let deliveredText: String
+
+    public init(requestId: String, revision: Int, deliveredText: String) {
+        self.requestId = requestId
+        self.revision = revision
+        self.deliveredText = deliveredText
     }
 }
 
@@ -65,18 +112,32 @@ public struct RecordingCommand: Codable, Sendable {
         case stopSegment   // Mark the end — extract audio and transcribe
     }
 
+    public enum Origin: String, Codable, Sendable {
+        case keyboardExtension
+    }
+
     public let requestId: String
     public let action: Action
     public let modelId: String?
     public let language: String?
     public let flowId: String?
+    /// Optional for backward compatibility with commands written by older builds.
+    public let origin: Origin?
 
-    public init(requestId: String, action: Action, modelId: String? = nil, language: String? = nil, flowId: String? = nil) {
+    public init(
+        requestId: String,
+        action: Action,
+        modelId: String? = nil,
+        language: String? = nil,
+        flowId: String? = nil,
+        origin: Origin? = nil
+    ) {
         self.requestId = requestId
         self.action = action
         self.modelId = modelId
         self.language = language
         self.flowId = flowId
+        self.origin = origin
     }
 }
 
@@ -170,8 +231,13 @@ public enum TranscriptionIPC {
         ipcDirectory?.appendingPathComponent("audio_level.bin")
     }
 
-    /// Whether the IPC directory has already been verified to exist this session.
-    private static var directoryEnsured = false
+    public static var liveSnapshotURL: URL? {
+        ipcDirectory?.appendingPathComponent("live_transcription.json")
+    }
+
+    public static var liveDeliveryCheckpointURL: URL? {
+        ipcDirectory?.appendingPathComponent("live_delivery_checkpoint.json")
+    }
 
     /// How long the keyboard should trust a positive listening state without a
     /// heartbeat from the main app. This must be longer than the recorder's
@@ -190,10 +256,8 @@ public enum TranscriptionIPC {
     }
 
     public static func ensureDirectory() {
-        guard !directoryEnsured else { return }
         guard let dir = ipcDirectory else { return }
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        directoryEnsured = true
     }
 
     // MARK: - Write / Read: Request
@@ -228,6 +292,42 @@ public enum TranscriptionIPC {
         guard let url = responseURL,
               let data = try? Data(contentsOf: url) else { return nil }
         return try? JSONDecoder().decode(TranscriptionResponse.self, from: data)
+    }
+
+    // MARK: - Write / Read: Live Transcription
+
+    public static func writeLiveSnapshot(_ snapshot: LiveTranscriptionSnapshot) {
+        ensureDirectory()
+        guard let url = liveSnapshotURL,
+              let data = try? JSONEncoder().encode(snapshot) else { return }
+        try? data.write(to: url, options: .atomic)
+    }
+
+    public static func readLiveSnapshot() -> LiveTranscriptionSnapshot? {
+        guard let url = liveSnapshotURL,
+              let data = try? Data(contentsOf: url) else { return nil }
+        return try? JSONDecoder().decode(LiveTranscriptionSnapshot.self, from: data)
+    }
+
+    @discardableResult
+    public static func writeLiveDeliveryCheckpoint(
+        _ checkpoint: LiveTranscriptionDeliveryCheckpoint
+    ) -> Bool {
+        ensureDirectory()
+        guard let url = liveDeliveryCheckpointURL,
+              let data = try? JSONEncoder().encode(checkpoint) else { return false }
+        do {
+            try data.write(to: url, options: .atomic)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    public static func readLiveDeliveryCheckpoint() -> LiveTranscriptionDeliveryCheckpoint? {
+        guard let url = liveDeliveryCheckpointURL,
+              let data = try? Data(contentsOf: url) else { return nil }
+        return try? JSONDecoder().decode(LiveTranscriptionDeliveryCheckpoint.self, from: data)
     }
 
     // MARK: - Write / Read: Status
@@ -323,6 +423,21 @@ public enum TranscriptionIPC {
     public static func clearCommand() {
         guard let url = commandURL else { return }
         try? FileManager.default.removeItem(at: url)
+    }
+
+    public static func clearLiveSnapshot() {
+        guard let url = liveSnapshotURL else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    public static func clearLiveDeliveryCheckpoint() {
+        guard let url = liveDeliveryCheckpointURL else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    public static func clearLiveTranscriptionState() {
+        clearLiveSnapshot()
+        clearLiveDeliveryCheckpoint()
     }
 
     // MARK: - Darwin notifications

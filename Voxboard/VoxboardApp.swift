@@ -10,7 +10,7 @@ struct VoxboardApp: App {
     @State private var usageTracker = UsageTracker()
     @State private var storeManager: StoreManager
     @State private var quickCaptureViewModel: QuickCaptureViewModel
-    @State private var selectedTab: AppTab = .capture
+    @State private var rootDestination: RootDestination = .capture
 
     /// Set to true when the app is opened via the keyboard's "Open" button.
     /// Capture's inline recording controls consume this launch request.
@@ -40,10 +40,10 @@ struct VoxboardApp: App {
         }
 
         // Construct the on-device LLM enricher if the user's device supports
-        // Apple Intelligence. Individual Vox settings decide whether a given
+        // Apple Intelligence. Individual Capture Preset settings decide whether a given
         // transcript uses enrichment. On older/ineligible devices, `isAvailable`
         // returns false and the recorder is built without an enricher — affected
-        // Vox modes fall back to deterministic formatting or raw transcripts.
+        // Preset modes fall back to deterministic formatting or raw transcripts.
         let enricher: TranscriptEnricher?
         if #available(iOS 26, *), FoundationModelsBackend.isAvailable {
             enricher = TranscriptEnricher(backend: FoundationModelsBackend())
@@ -51,8 +51,8 @@ struct VoxboardApp: App {
             enricher = nil
         }
 
-        let captureRequestProcessor = CaptureVoxRequestProcessor(
-            textProcessor: enricher.map(EnrichedCaptureVoxTextProcessor.init(enricher:))
+        let captureRequestProcessor = CapturePresetRequestProcessor(
+            textProcessor: enricher.map(EnrichedCapturePresetTextProcessor.init(enricher:))
         )
         let captureViewModel = QuickCaptureViewModel(requestProcessor: captureRequestProcessor)
         _quickCaptureViewModel = State(initialValue: captureViewModel)
@@ -88,7 +88,7 @@ struct VoxboardApp: App {
             RootView(
                 persistentRecorder: persistentRecorder,
                 quickCaptureViewModel: quickCaptureViewModel,
-                selectedTab: $selectedTab,
+                rootDestination: $rootDestination,
                 pendingKeyboardLaunch: $pendingKeyboardLaunch,
                 pendingWidgetRecord: $pendingWidgetRecord
             )
@@ -179,7 +179,7 @@ struct VoxboardApp: App {
         guard AppConstants.sharedDefaults?.bool(forKey: AppConstants.pendingWidgetRecordKey) == true else { return }
         AppConstants.sharedDefaults?.set(false, forKey: AppConstants.pendingWidgetRecordKey)
         if AppConstants.lockScreenQuickRecordEnabled {
-            selectedTab = .capture
+            rootDestination = .capture
             pendingWidgetRecord = true
         }
     }
@@ -207,7 +207,7 @@ struct VoxboardApp: App {
     // MARK: - Capture Navigation
 
     private func openCaptureComposer() {
-        selectedTab = .capture
+        rootDestination = .capture
     }
 
     // MARK: - Onboarding Analytics
@@ -252,13 +252,13 @@ struct VoxboardApp: App {
         case "listen":
             // Keep the legacy URL contract, but route it inside Capture.
             log.log("[App] Listen request — opening inline Capture recording controls")
-            selectedTab = .capture
+            rootDestination = .capture
             pendingKeyboardLaunch = true
 
         case "record":
             // Legacy keyboard URLs now use Capture's inline persistent-listening controls.
             log.log("[App] Legacy record request — opening inline Capture recording controls")
-            selectedTab = .capture
+            rootDestination = .capture
             pendingKeyboardLaunch = true
 
         case "widget-record":
@@ -274,7 +274,7 @@ struct VoxboardApp: App {
                 AppConstants.sharedDefaults?.set(flowId, forKey: AppConstants.pendingWidgetRecordFlowIdKey)
             }
             log.log("[App] Widget record request — opening inline Capture recording controls")
-            selectedTab = .capture
+            rootDestination = .capture
             pendingWidgetRecord = true
 
         default:

@@ -44,6 +44,7 @@ final class CaptureInboxDeliveryServiceTests: XCTestCase {
 
         let result = await CaptureInboxDeliveryService.drain(
             captureRootURL: captureRoot,
+            defaults: nil,
             pipeline: CapturePipeline(
                 writer: CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared)
             ),
@@ -88,7 +89,7 @@ final class CaptureInboxDeliveryServiceTests: XCTestCase {
             fileURL: captureRoot.appendingPathComponent(CaptureLibraryStore.defaultFilename),
             coordinator: ProcessLocalCaptureFileCoordinator.shared
         ).save(CaptureLibraryEnvelope(destinations: [destination], defaultDestinationID: destination.id))
-        let profile = CaptureVoxProfile(
+        let profile = CapturePresetProfile(
             id: "tasks",
             name: "Tasks",
             symbolName: "checklist",
@@ -113,10 +114,11 @@ final class CaptureInboxDeliveryServiceTests: XCTestCase {
 
         let result = await CaptureInboxDeliveryService.drain(
             captureRootURL: captureRoot,
+            defaults: nil,
             pipeline: CapturePipeline(
                 writer: CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared)
             ),
-            requestProcessor: CaptureVoxRequestProcessor(),
+            requestProcessor: CapturePresetRequestProcessor(),
             coordinator: ProcessLocalCaptureFileCoordinator.shared
         )
 
@@ -180,6 +182,7 @@ final class CaptureInboxDeliveryServiceTests: XCTestCase {
 
         _ = await CaptureInboxDeliveryService.drain(
             captureRootURL: captureRoot,
+            defaults: nil,
             pipeline: CapturePipeline(
                 writer: CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared)
             ),
@@ -234,6 +237,7 @@ final class CaptureInboxDeliveryServiceTests: XCTestCase {
 
         let blocked = await CaptureInboxDeliveryService.drain(
             captureRootURL: captureRoot,
+            defaults: nil,
             pipeline: CapturePipeline(
                 writer: CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared),
                 deliveryAccounting: DenyingInboxCaptureDeliveryAccounting()
@@ -260,6 +264,7 @@ final class CaptureInboxDeliveryServiceTests: XCTestCase {
 
         let retried = await CaptureInboxDeliveryService.drain(
             captureRootURL: captureRoot,
+            defaults: nil,
             pipeline: CapturePipeline(
                 writer: CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared)
             ),
@@ -296,6 +301,7 @@ final class CaptureInboxDeliveryServiceTests: XCTestCase {
         let result = await CaptureInboxDeliveryService.drain(
             captureRootURL: captureRoot,
             retryFailed: true,
+            defaults: nil,
             pipeline: CapturePipeline(
                 writer: CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared)
             ),

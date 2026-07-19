@@ -42,14 +42,27 @@ public actor CaptureLibraryStore {
     public func update(
         _ mutation: (inout CaptureLibraryEnvelope) throws -> Void
     ) throws -> CaptureLibraryEnvelope {
+        let (library, _): (CaptureLibraryEnvelope, Void) = try updateReturning { library in
+            try mutation(&library)
+        }
+        return library
+    }
+
+    /// Runs a read-modify-write transaction under the same coordinated file
+    /// lock and returns a value derived from the exact version that was saved.
+    /// This is used when a cross-store migration must commit the file before
+    /// publishing matching App Group defaults.
+    public func updateReturning<Result: Sendable>(
+        _ mutation: (inout CaptureLibraryEnvelope) throws -> Result
+    ) throws -> (library: CaptureLibraryEnvelope, result: Result) {
         try coordinator.coordinateWriting(at: fileURL) { coordinatedURL in
             var latest = try loadLatest(from: coordinatedURL)
-            try mutation(&latest)
+            let result = try mutation(&latest)
             guard latest.schemaVersion == CaptureLibraryEnvelope.currentSchemaVersion else {
                 throw CaptureModelError.unsupportedSchemaVersion(latest.schemaVersion)
             }
             try persist(latest, to: coordinatedURL)
-            return latest
+            return (latest, result)
         }
     }
 

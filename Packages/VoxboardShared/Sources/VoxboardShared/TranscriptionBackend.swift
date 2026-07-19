@@ -28,6 +28,41 @@ public struct SystemTranscriptionOutput: Equatable, Sendable {
     }
 }
 
+/// A cumulative update from a live system transcription session.
+///
+/// `finalizedText` only grows and is safe to insert into a host text field.
+/// `volatileText` is a replaceable, tentative tail intended for display only.
+public struct SystemTranscriptionUpdate: Equatable, Sendable {
+    public let revision: Int
+    public let finalizedText: String
+    public let volatileText: String?
+
+    public init(revision: Int, finalizedText: String, volatileText: String? = nil) {
+        self.revision = revision
+        self.finalizedText = finalizedText
+        self.volatileText = volatileText
+    }
+}
+
+/// Owned mono Float32 PCM passed to a live system transcription session.
+/// Keeping AVFoundation out of this type prevents Speech.framework from being
+/// linked into the keyboard, widgets, Watch, or shared package clients.
+public struct SystemTranscriptionAudioChunk: Sendable {
+    public let samples: [Float]
+    public let sampleRate: Double
+
+    public init(samples: [Float], sampleRate: Double) {
+        self.samples = samples
+        self.sampleRate = sampleRate
+    }
+}
+
+public protocol SystemLiveTranscriptionSession: Sendable {
+    func append(_ chunk: SystemTranscriptionAudioChunk) async throws
+    func finish() async throws -> SystemTranscriptionOutput
+    func cancel() async
+}
+
 /// Implemented by the main app's iOS 26 Speech framework adapter. Keeping this
 /// protocol in the shared package lets the package route transcription without
 /// linking Speech.framework into the keyboard, widgets, Watch, or macOS app.
@@ -35,6 +70,19 @@ public protocol SystemTranscriptionBackend: Sendable {
     func availability(language: String) async -> SystemTranscriptionAvailability
     func prepare(language: String) async throws
     func transcribe(audioURL: URL, language: String) async throws -> SystemTranscriptionOutput
+    func startLiveTranscription(
+        language: String,
+        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
+    ) async throws -> any SystemLiveTranscriptionSession
+}
+
+public extension SystemTranscriptionBackend {
+    func startLiveTranscription(
+        language: String,
+        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
+    ) async throws -> any SystemLiveTranscriptionSession {
+        throw OnDeviceTranscriptionError.systemBackendUnavailable
+    }
 }
 
 public enum TranscriptionBackendKind: String, Equatable, Sendable {

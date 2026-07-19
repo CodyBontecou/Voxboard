@@ -32,11 +32,11 @@ public enum TranscriptConfiguredExportError: Error, Equatable, LocalizedError, S
         case .missingDestination:
             return "File export is enabled, but no destination folder is selected."
         case .invalidDestinationBookmark:
-            return "Vox.md can no longer access the selected export folder. Choose it again in the Vox settings."
+            return "Vox.md can no longer access the selected export folder. Choose it again in the Capture Preset settings."
         case .missingTemplate:
             return "Markdown template export is enabled, but no template is selected."
         case .invalidTemplateBookmark:
-            return "Vox.md can no longer access the selected Markdown template. Choose it again in the Vox settings."
+            return "Vox.md can no longer access the selected Markdown template. Choose it again in the Capture Preset settings."
         case .subfolderCreationFailed(let message):
             return "Vox.md could not create the export subfolder: \(message)"
         case .writeFailed(let message):
@@ -377,7 +377,7 @@ public enum TranscriptFileExporter {
     private static func applyMarkdownAudioEmbed(
         to markdown: String,
         relativePath: String,
-        placement: RecordingFlowAudioEmbedPlacement
+        placement: CapturePresetAudioEmbedPlacement
     ) -> String {
         let embed = obsidianAudioEmbed(relativePath: relativePath)
         guard !embed.isEmpty, !markdown.contains(embed) else { return markdown }
@@ -965,7 +965,7 @@ public enum TranscriptFileExporter {
         _ transcript: Transcript,
         folderURLOverride: URL? = nil,
         autoOrganizeSubfolder: String? = nil,
-        flow: RecordingFlow? = nil,
+        flow: CapturePreset? = nil,
         audioAttachmentRelativePath: String? = nil,
         defaults: UserDefaults? = AppConstants.sharedDefaults
     ) throws -> TranscriptConfiguredExportOutcome {
@@ -1110,7 +1110,7 @@ public enum TranscriptFileExporter {
         _ transcript: Transcript,
         folderURLOverride: URL? = nil,
         autoOrganizeSubfolder: String? = nil,
-        flow: RecordingFlow? = nil,
+        flow: CapturePreset? = nil,
         audioAttachmentRelativePath: String? = nil,
         defaults: UserDefaults? = AppConstants.sharedDefaults
     ) -> URL? {
@@ -1135,7 +1135,7 @@ public enum TranscriptFileExporter {
         relativePath: String,
         securityScopedFolderURL: URL? = nil,
         embedInMarkdown: Bool = false,
-        embedPlacement: RecordingFlowAudioEmbedPlacement = .bottom
+        embedPlacement: CapturePresetAudioEmbedPlacement = .bottom
     ) throws {
         guard !relativePath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         let needsScope = securityScopedFolderURL?.startAccessingSecurityScopedResource() ?? false
@@ -1201,7 +1201,7 @@ public enum TranscriptFileExporter {
     /// when no bookmark has been saved. Used by callers (e.g. auto-organize) that
     /// need to inspect the folder's contents before exporting.
     public static func resolveExportFolderURL(
-        flow: RecordingFlow? = nil,
+        flow: CapturePreset? = nil,
         defaults: UserDefaults? = AppConstants.sharedDefaults
     ) -> URL? {
         guard let defaults else { return nil }
@@ -1212,7 +1212,7 @@ public enum TranscriptFileExporter {
     }
 
     /// Reads per-field enrichment export preferences. Whether enrichment runs is
-    /// decided by the selected Vox; exports simply use enriched fields when they
+    /// decided by the selected Capture Preset; exports use enriched fields when they
     /// exist and these field-level preferences allow them.
     private static func resolveEnrichmentOptions(from defaults: UserDefaults) -> TranscriptExportEnrichmentOptions {
         return TranscriptExportEnrichmentOptions(

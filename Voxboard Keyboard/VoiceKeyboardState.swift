@@ -15,6 +15,7 @@ private let log = KeyboardDebugLog.shared
 /// 3. App writes response → keyboard inserts text
 ///
 /// If the app isn't listening yet, the keyboard prompts the user to open Voxboard once.
+@MainActor
 @Observable
 final class VoiceKeyboardState {
 
@@ -31,15 +32,22 @@ final class VoiceKeyboardState {
     var status: Status = .idle
     var recordingDuration: TimeInterval = 0
     var selectedModelIndex: Int = 0
-    var selectedFlowId: String = RecordingFlowStore.selectedFlowId()
+    var selectedFlowId: String = CapturePresetStore.selectedFlowId()
 
     /// Rolling audio levels for the waveform animation (most recent last).
     /// Updated from the poll timer during recording.
     var audioLevels: [Float] = Array(repeating: 0, count: 7)
 
-    /// Set when a transcription result arrives. The view layer should observe this,
-    /// call `textDocumentProxy.insertText`, then clear it via `consumeTranscription()`.
+    /// Text retained when the document proxy is temporarily unavailable. The
+    /// controller inserts it on the next appearance and then clears persistence.
     var pendingTranscription: String?
+
+    /// Tentative Apple Speech tail for toolbar display only. It is never inserted
+    /// into another app because volatile recognition can be revised.
+    var volatileTranscription: String?
+
+    private var deliveredLiveText = ""
+    private var deliveredLiveRevision = 0
 
     /// Closure provided by KeyboardViewController to open URLs via the responder chain.
     /// Used only to prompt opening the app when it's not listening.
@@ -58,7 +66,7 @@ final class VoiceKeyboardState {
     // appear after the user explicitly downloads them in the main app.
     private var cachedBackendOptions: [BackendOption] = []
     private var cachedDownloadedModels: [WhisperModelInfo] = []
-    private var cachedFlows: [RecordingFlow] = []
+    private var cachedFlows: [CapturePreset] = []
 
     // When the user taps the mic button while app isn't listening,
     // we open the app and set this flag so recording auto-starts
@@ -80,7 +88,7 @@ final class VoiceKeyboardState {
     private let transcriptionTimeout: TimeInterval = 90
 
     init() {
-        // Ensure IPC directory exists once upfront (avoids repeated checks on every write)
+        // Ensure the shared IPC directory exists before recovery reads and writes.
         TranscriptionIPC.ensureDirectory()
 
         // Cache downloaded models and flows so Record tap doesn't hit the filesystem
@@ -138,10 +146,10 @@ final class VoiceKeyboardState {
         currentBackend?.name ?? String(localized: "Automatic")
     }
 
-    var currentFlow: RecordingFlow {
+    var currentFlow: CapturePreset {
         let flows = cachedFlows.filter(\.isEnabled)
         return flows.first(where: { $0.id == selectedFlowId })
-            ?? RecordingFlowStore.selectedFlow()
+            ?? CapturePresetStore.selectedFlow()
     }
 
     var currentFlowName: String {
@@ -153,13 +161,13 @@ final class VoiceKeyboardState {
     }
 
     func refreshFlowCache() {
-        cachedFlows = RecordingFlowStore.loadFlows()
-        selectedFlowId = RecordingFlowStore.selectedFlowId()
+        cachedFlows = CapturePresetStore.loadFlows()
+        selectedFlowId = CapturePresetStore.selectedFlowId()
     }
 
     func nextFlow() {
         refreshFlowCache()
-        let next = RecordingFlowStore.selectNextFlow()
+        let next = CapturePresetStore.selectNextFlow()
         selectedFlowId = next.id
         refreshFlowCache()
         log.log("Flow switched to: \(next.displayName)")
@@ -191,13 +199,6 @@ final class VoiceKeyboardState {
         if let localModel = backend.localModel {
             AppConstants.sharedDefaults?.set(localModel.id, forKey: AppConstants.selectedFallbackModelKey)
         }
-    }
-
-    // MARK: - Consume Transcription
-
-    func consumeTranscription() {
-        pendingTranscription = nil
-        clearPendingText()
     }
 
     // MARK: - Start Recording (send IPC command — no app switch!)
@@ -257,6 +258,10 @@ final class VoiceKeyboardState {
         let flowId = currentFlow.id
 
         // Update UI immediately — don't wait for IPC round-trip
+        TranscriptionIPC.clearLiveTranscriptionState()
+        deliveredLiveText = ""
+        deliveredLiveRevision = 0
+        volatileTranscription = nil
         pendingRequestId = requestId
         recordingStartedAt = Date().timeIntervalSince1970
         recordingDuration = 0
@@ -269,7 +274,8 @@ final class VoiceKeyboardState {
             action: .startSegment,
             modelId: backend.id,
             language: language,
-            flowId: flowId
+            flowId: flowId,
+            origin: .keyboardExtension
         )
         TranscriptionIPC.writeCommand(command)
         TranscriptionIPC.postCommandNotification()
@@ -380,20 +386,19 @@ final class VoiceKeyboardState {
             pendingTranscription = text
         }
 
-        // Check for orphaned response (transcription completed but keyboard was terminated before receiving it)
+        // Recover a completed response only when it belongs to the current IPC
+        // session. Live responses must first reconcile against the persisted
+        // delivery checkpoint to avoid pasting the cumulative text twice.
         if let response = TranscriptionIPC.readResponse() {
-            if let text = response.text, !text.isEmpty {
-                log.log("♻️ Recovered orphaned transcription response (\(text.count) chars)")
-                pendingTranscription = text
-                TranscriptionIPC.clearResponse()
-                TranscriptionIPC.clearStatus()
+            let statusRequestId = TranscriptionIPC.readStatus()?.requestId
+            if statusRequestId == nil || statusRequestId == response.requestId {
+                log.log("♻️ Recovering orphaned transcription response for \(response.requestId.prefix(8))")
+                pendingRequestId = response.requestId
+                restoreLiveDeliveryCheckpoint(for: response.requestId)
+                finishWithResponse(response)
                 return
-            } else {
-                // Stale error response — clear it
-                log.log("♻️ Clearing stale error response: \(response.error ?? "unknown")")
-                TranscriptionIPC.clearResponse()
-                TranscriptionIPC.clearStatus()
             }
+            log.log("♻️ Ignoring stale response for \(response.requestId.prefix(8))")
         }
 
         guard let ipcStatus = TranscriptionIPC.readStatus() else { return }
@@ -410,6 +415,8 @@ final class VoiceKeyboardState {
             }
             log.log("♻️ Reconnecting to existing segment: \(ipcStatus.requestId)")
             pendingRequestId = ipcStatus.requestId
+            restoreLiveDeliveryCheckpoint(for: ipcStatus.requestId)
+            processLiveSnapshot(for: ipcStatus.requestId)
             recordingStartedAt = ipcStatus.recordingStartedAt
             status = .recording
             startPolling()
@@ -428,6 +435,8 @@ final class VoiceKeyboardState {
             } else {
                 log.log("♻️ Reconnecting to existing transcription: \(ipcStatus.requestId)")
                 pendingRequestId = ipcStatus.requestId
+                restoreLiveDeliveryCheckpoint(for: ipcStatus.requestId)
+                processLiveSnapshot(for: ipcStatus.requestId)
                 status = .transcribing
                 startPolling()
             }
@@ -504,11 +513,62 @@ final class VoiceKeyboardState {
     /// Throttle counter so we don't spam the log on every poll.
     private var pollCount: Int = 0
 
+    private func restoreLiveDeliveryCheckpoint(for requestId: String) {
+        guard let checkpoint = TranscriptionIPC.readLiveDeliveryCheckpoint(),
+              checkpoint.requestId == requestId else {
+            deliveredLiveText = ""
+            deliveredLiveRevision = 0
+            return
+        }
+        deliveredLiveText = checkpoint.deliveredText
+        deliveredLiveRevision = checkpoint.revision
+    }
+
+    @MainActor
+    private func processLiveSnapshot(for requestId: String) {
+        guard let snapshot = TranscriptionIPC.readLiveSnapshot(),
+              snapshot.requestId == requestId else { return }
+
+        volatileTranscription = snapshot.volatileText
+        guard snapshot.revision > deliveredLiveRevision else { return }
+        guard snapshot.finalizedText.hasPrefix(deliveredLiveText) else {
+            log.log("⚠️ Ignoring non-monotonic live transcript revision \(snapshot.revision)")
+            return
+        }
+
+        let delta = String(snapshot.finalizedText.dropFirst(deliveredLiveText.count))
+        let checkpoint = LiveTranscriptionDeliveryCheckpoint(
+            requestId: requestId,
+            revision: snapshot.revision,
+            deliveredText: snapshot.finalizedText
+        )
+
+        // Persist first: if iOS terminates the keyboard between these two calls,
+        // recovery favors avoiding duplicated dictated text.
+        guard TranscriptionIPC.writeLiveDeliveryCheckpoint(checkpoint) else {
+            log.log("⚠️ Could not persist live delivery checkpoint; delaying insertion")
+            return
+        }
+        deliveredLiveText = snapshot.finalizedText
+        deliveredLiveRevision = snapshot.revision
+
+        guard !delta.isEmpty else { return }
+        if let textInserter {
+            log.log("📝 Inserting live Apple Speech delta (\(delta.count) chars)")
+            textInserter(delta)
+        } else {
+            let pending = (pendingTranscription ?? "") + delta
+            pendingTranscription = pending
+            writePendingText(pending)
+        }
+    }
+
     @MainActor
     private func checkForUpdates() {
         guard let requestId = pendingRequestId else { return }
 
         pollCount += 1
+        processLiveSnapshot(for: requestId)
 
         // Read audio levels during recording for waveform animation
         if status == .recording {
@@ -527,6 +587,7 @@ final class VoiceKeyboardState {
             cleanupPending()
             TranscriptionIPC.clearResponse()
             TranscriptionIPC.clearStatus()
+            TranscriptionIPC.clearLiveTranscriptionState()
             status = .error(String(localized: "Transcription timed out — try again"))
             resetErrorAfterDelay()
             return
@@ -563,16 +624,8 @@ final class VoiceKeyboardState {
                 log.log("📥 Response received for \(requestId.prefix(8))")
                 pollCount = 0
                 finishWithResponse(response)
-            } else {
-                // ── RequestId mismatch ───────────────────────────────────────
-                // A response exists in the container but its requestId differs from
-                // what the keyboard expects. This happens when PersistentRecorder had
-                // stale `isSegmentActive = true` from a previous session — the start
-                // command was dropped and the stop command used the old segmentRequestId.
-                // Accept it immediately since we know the transcription just completed.
-                log.log("⚠️ requestId mismatch — expected=\(requestId.prefix(8)) got=\(response.requestId.prefix(8)) — accepting anyway")
-                pollCount = 0
-                finishWithResponse(response)
+            } else if pollCount % 30 == 0 {
+                log.log("⚠️ Ignoring response for a different request — expected=\(requestId.prefix(8)) got=\(response.requestId.prefix(8))")
             }
         } else {
             // ── No response file ────────────────────────────────────────────
@@ -596,7 +649,11 @@ final class VoiceKeyboardState {
                let text = latestTranscriptSince(stopTime) {
                 log.log("🔄 Transcript-store fallback triggered — using latest entry (\(text.count) chars)")
                 pollCount = 0
-                let syntheticResponse = TranscriptionResponse(requestId: requestId, text: text)
+                let syntheticResponse = TranscriptionResponse(
+                    requestId: requestId,
+                    text: text,
+                    usesLiveTranscription: deliveredLiveText.isEmpty ? nil : true
+                )
                 finishWithResponse(syntheticResponse)
             }
         }
@@ -620,29 +677,74 @@ final class VoiceKeyboardState {
     /// Process a completed transcription response (happy path or fallback).
     @MainActor
     private func finishWithResponse(_ response: TranscriptionResponse) {
-        cleanupPending()
-        TranscriptionIPC.clearResponse()
-        TranscriptionIPC.clearStatus()
+        if response.usesLiveTranscription == true {
+            processLiveSnapshot(for: response.requestId)
+        }
+
+        let existingPendingText = pendingTranscription ?? ""
+        let textToInsert: String?
+        var reconciliationFailed = false
 
         if let text = response.text, !text.isEmpty {
             log.log("✅ Transcription ready (\(text.count) chars)")
-            pendingTranscription = text
-            status = .idle
-
-            if let textInserter {
-                log.log("📝 Inserting text via textInserter")
-                textInserter(text)
-                pendingTranscription = nil
-                log.log("📝 Text inserted and consumed")
+            if response.usesLiveTranscription == true {
+                switch TranscriptionInsertionPlanner.plan(
+                    deliveredText: deliveredLiveText,
+                    finalText: text
+                ) {
+                case .insert(let suffix):
+                    textToInsert = suffix
+                case .alreadyComplete:
+                    textToInsert = nil
+                case .unsafeMismatch:
+                    textToInsert = nil
+                    reconciliationFailed = true
+                }
             } else {
-                log.log("⚠️ No textInserter — persisting to IPC for recovery")
-                writePendingText(text)
+                textToInsert = text
             }
         } else {
+            textToInsert = nil
+        }
+
+        cleanupPending()
+        TranscriptionIPC.clearResponse()
+        TranscriptionIPC.clearStatus()
+        TranscriptionIPC.clearLiveTranscriptionState()
+
+        if reconciliationFailed {
+            let message = String(localized: "Transcript saved, but the remaining text could not be safely inserted")
+            log.log("⚠️ \(message)")
+            status = .error(message)
+            resetErrorAfterDelay()
+            return
+        }
+
+        guard response.text?.isEmpty == false else {
             let msg = response.error ?? String(localized: "No speech detected")
             log.log("⚠️ \(msg)")
             status = .error(msg)
             resetErrorAfterDelay()
+            return
+        }
+
+        status = .idle
+        let pending = existingPendingText + (textToInsert ?? "")
+        guard !pending.isEmpty else {
+            pendingTranscription = nil
+            clearPendingText()
+            return
+        }
+
+        pendingTranscription = pending
+        if let textInserter {
+            log.log("📝 Inserting remaining transcription (\(pending.count) chars)")
+            textInserter(pending)
+            pendingTranscription = nil
+            clearPendingText()
+        } else {
+            log.log("⚠️ No textInserter — persisting transcription for recovery")
+            writePendingText(pending)
         }
     }
 
@@ -651,9 +753,12 @@ final class VoiceKeyboardState {
     private func startDurationTimer() {
         stopDurationTimer()
         durationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                guard let self, let startedAt = self.recordingStartedAt else { return }
-                self.recordingDuration = Date().timeIntervalSince1970 - startedAt
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                MainActor.assumeIsolated {
+                    guard let startedAt = self.recordingStartedAt else { return }
+                    self.recordingDuration = Date().timeIntervalSince1970 - startedAt
+                }
             }
         }
     }
@@ -675,6 +780,9 @@ final class VoiceKeyboardState {
         segmentStopTime = nil
         recordingDuration = 0
         audioLevels = Array(repeating: 0, count: 7)
+        volatileTranscription = nil
+        deliveredLiveText = ""
+        deliveredLiveRevision = 0
         pollCount = 0
     }
 
@@ -726,7 +834,7 @@ final class VoiceKeyboardState {
         )
     }
 
-    private func unregisterObservers() {
+    nonisolated private func unregisterObservers() {
         let center = CFNotificationCenterGetDarwinNotifyCenter()
         let observer = Unmanaged.passUnretained(self).toOpaque()
         CFNotificationCenterRemoveObserver(

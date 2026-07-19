@@ -104,8 +104,12 @@ struct VoiceToolbarView: View {
             case .appNotListening:
                 Text("Open Vox.md")
             case .recording:
-                Text(formatDuration(voiceState.recordingDuration))
-                    .monospacedDigit()
+                if let volatile = voiceState.volatileTranscription, !volatile.isEmpty {
+                    Text(volatile)
+                } else {
+                    Text(formatDuration(voiceState.recordingDuration))
+                        .monospacedDigit()
+                }
             case .transcribing:
                 Text("Transcribing…")
             case .error(let msg):

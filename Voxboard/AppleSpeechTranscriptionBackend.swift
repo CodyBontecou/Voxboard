@@ -1,4 +1,4 @@
-import AVFoundation
+@preconcurrency import AVFoundation
 import Foundation
 import Speech
 import VoxboardShared
@@ -76,6 +76,59 @@ actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
         }
     }
 
+    func startLiveTranscription(
+        language: String,
+        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
+    ) async throws -> any SystemLiveTranscriptionSession {
+        try Task.checkCancellation()
+        guard SpeechTranscriber.isAvailable,
+              let locale = await supportedLocale(for: language) else {
+            throw OnDeviceTranscriptionError.systemBackendUnavailable
+        }
+
+        let transcriber = SpeechTranscriber(
+            locale: locale,
+            transcriptionOptions: [],
+            reportingOptions: [.volatileResults],
+            attributeOptions: []
+        )
+        try await ensureAssets(for: transcriber)
+
+        let naturalFormat = AVAudioFormat(
+            commonFormat: .pcmFormatFloat32,
+            sampleRate: 16_000,
+            channels: 1,
+            interleaved: false
+        )
+        guard let analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(
+            compatibleWith: [transcriber],
+            considering: naturalFormat
+        ) else {
+            throw OnDeviceTranscriptionError.systemBackendUnavailable
+        }
+
+        let analyzer = SpeechAnalyzer(modules: [transcriber])
+        let stream = AsyncStream<AnalyzerInput>.makeStream(
+            bufferingPolicy: .bufferingOldest(32)
+        )
+        let session = AppleSpeechLiveTranscriptionSession(
+            analyzer: analyzer,
+            transcriber: transcriber,
+            analyzerFormat: analyzerFormat,
+            localeIdentifier: localeIdentifier(locale),
+            inputContinuation: stream.continuation,
+            onUpdate: onUpdate
+        )
+
+        do {
+            try await session.start(inputSequence: stream.stream)
+            return session
+        } catch {
+            await session.cancel()
+            throw error
+        }
+    }
+
     private func ensureAssets(for transcriber: SpeechTranscriber) async throws {
         switch await AssetInventory.status(forModules: [transcriber]) {
         case .installed:
@@ -107,6 +160,262 @@ actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
 
     private nonisolated func localeIdentifier(_ locale: Locale) -> String {
         locale.identifier(.bcp47)
+    }
+}
+
+@available(iOS 26.0, *)
+private enum AppleSpeechLiveTranscriptionError: Error, LocalizedError, Sendable {
+    case invalidAudioFormat
+    case inputBackpressure
+    case inputTerminated
+    case analysisFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidAudioFormat:
+            return "Apple Speech could not prepare the live audio format."
+        case .inputBackpressure:
+            return "Apple Speech could not keep up with the live recording."
+        case .inputTerminated:
+            return "The Apple Speech live session ended unexpectedly."
+        case .analysisFailed(let message):
+            return message
+        }
+    }
+}
+
+/// Owns one progressive SpeechAnalyzer session. All AVAudioConverter and
+/// transcript state stays actor-isolated and away from the real-time audio tap.
+@available(iOS 26.0, *)
+private actor AppleSpeechLiveTranscriptionSession: SystemLiveTranscriptionSession {
+    private let analyzer: SpeechAnalyzer
+    private let transcriber: SpeechTranscriber
+    private let analyzerFormat: AVAudioFormat
+    private let localeIdentifier: String
+    private let inputContinuation: AsyncStream<AnalyzerInput>.Continuation
+    private let onUpdate: @Sendable (SystemTranscriptionUpdate) async -> Void
+
+    private var converter: AVAudioConverter?
+    private var resultTask: Task<Void, Never>?
+    private var finalizedTranscript = AttributedString()
+    private var volatileTranscript = AttributedString()
+    private var revision = 0
+    private var terminalFailure: AppleSpeechLiveTranscriptionError?
+    private var resultConsumerFinished = false
+    private var isFinishing = false
+    private var isFinished = false
+
+    init(
+        analyzer: SpeechAnalyzer,
+        transcriber: SpeechTranscriber,
+        analyzerFormat: AVAudioFormat,
+        localeIdentifier: String,
+        inputContinuation: AsyncStream<AnalyzerInput>.Continuation,
+        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
+    ) {
+        self.analyzer = analyzer
+        self.transcriber = transcriber
+        self.analyzerFormat = analyzerFormat
+        self.localeIdentifier = localeIdentifier
+        self.inputContinuation = inputContinuation
+        self.onUpdate = onUpdate
+    }
+
+    func start(inputSequence: AsyncStream<AnalyzerInput>) async throws {
+        try Task.checkCancellation()
+        let transcriber = self.transcriber
+        resultTask = Task { [weak self] in
+            do {
+                for try await result in transcriber.results {
+                    // Consume a result already yielded by Speech even if cleanup
+                    // cancellation arrives concurrently.
+                    await self?.consume(text: result.text, isFinal: result.isFinal)
+                    if Task.isCancelled { break }
+                }
+            } catch is CancellationError {
+                // Expected when a segment is cancelled or after finalization.
+            } catch {
+                await self?.recordFailure(error)
+            }
+            await self?.markResultConsumerFinished()
+        }
+        try await analyzer.start(inputSequence: inputSequence)
+    }
+
+    func append(_ chunk: SystemTranscriptionAudioChunk) async throws {
+        try Task.checkCancellation()
+        if let terminalFailure { throw terminalFailure }
+        guard !isFinished,
+              !isFinishing,
+              chunk.sampleRate > 0,
+              !chunk.samples.isEmpty,
+              let sourceFormat = AVAudioFormat(
+                commonFormat: .pcmFormatFloat32,
+                sampleRate: chunk.sampleRate,
+                channels: 1,
+                interleaved: false
+              ),
+              let sourceBuffer = AVAudioPCMBuffer(
+                pcmFormat: sourceFormat,
+                frameCapacity: AVAudioFrameCount(chunk.samples.count)
+              ),
+              let destination = sourceBuffer.floatChannelData?[0] else {
+            throw AppleSpeechLiveTranscriptionError.invalidAudioFormat
+        }
+
+        sourceBuffer.frameLength = AVAudioFrameCount(chunk.samples.count)
+        chunk.samples.withUnsafeBufferPointer { samples in
+            guard let baseAddress = samples.baseAddress else { return }
+            destination.update(from: baseAddress, count: samples.count)
+        }
+
+        let converted = try convert(sourceBuffer)
+        switch inputContinuation.yield(AnalyzerInput(buffer: converted)) {
+        case .enqueued:
+            return
+        case .dropped:
+            throw AppleSpeechLiveTranscriptionError.inputBackpressure
+        case .terminated:
+            throw AppleSpeechLiveTranscriptionError.inputTerminated
+        @unknown default:
+            throw AppleSpeechLiveTranscriptionError.inputTerminated
+        }
+    }
+
+    func finish() async throws -> SystemTranscriptionOutput {
+        if isFinished {
+            let text = finalizedText
+            guard !text.isEmpty else { throw OnDeviceTranscriptionError.noSpeechDetected }
+            return SystemTranscriptionOutput(text: text, language: localeIdentifier)
+        }
+        guard !isFinishing else {
+            throw AppleSpeechLiveTranscriptionError.inputTerminated
+        }
+        isFinishing = true
+        inputContinuation.finish()
+
+        do {
+            try await analyzer.finalizeAndFinishThroughEndOfInput()
+        } catch {
+            resultTask?.cancel()
+            await analyzer.cancelAndFinishNow()
+            _ = await resultTask?.value
+            isFinishing = false
+            isFinished = true
+            throw error
+        }
+
+        // Speech has produced its final module results, but the independent
+        // consumer task may still be queued behind this actor. Give it a short,
+        // bounded drain window before cancellation so the last phrase is not lost.
+        for _ in 0..<50 where !resultConsumerFinished {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+        let consumedAllFinalResults = resultConsumerFinished
+        resultTask?.cancel()
+        _ = await resultTask?.value
+        resultTask = nil
+        isFinishing = false
+        isFinished = true
+
+        guard consumedAllFinalResults else {
+            throw AppleSpeechLiveTranscriptionError.analysisFailed(
+                "Apple Speech final results did not finish in time."
+            )
+        }
+        if let terminalFailure { throw terminalFailure }
+        volatileTranscript = AttributedString()
+        revision += 1
+        await publishUpdate()
+
+        let text = finalizedText
+        guard !text.isEmpty else { throw OnDeviceTranscriptionError.noSpeechDetected }
+        return SystemTranscriptionOutput(text: text, language: localeIdentifier)
+    }
+
+    func cancel() async {
+        guard !isFinished else { return }
+        isFinishing = false
+        isFinished = true
+        inputContinuation.finish()
+        resultTask?.cancel()
+        await analyzer.cancelAndFinishNow()
+        _ = await resultTask?.value
+        resultTask = nil
+    }
+
+    private func consume(text: AttributedString, isFinal: Bool) async {
+        guard !isFinished else { return }
+        if isFinal {
+            finalizedTranscript += text
+            volatileTranscript = AttributedString()
+        } else {
+            volatileTranscript = text
+        }
+        revision += 1
+        await publishUpdate()
+    }
+
+    private func recordFailure(_ error: Error) {
+        terminalFailure = .analysisFailed(error.localizedDescription)
+    }
+
+    private func markResultConsumerFinished() {
+        resultConsumerFinished = true
+    }
+
+    private func publishUpdate() async {
+        let volatile = String(volatileTranscript.characters)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        await onUpdate(SystemTranscriptionUpdate(
+            revision: revision,
+            finalizedText: finalizedText,
+            volatileText: volatile.isEmpty ? nil : volatile
+        ))
+    }
+
+    private var finalizedText: String {
+        String(finalizedTranscript.characters)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func convert(_ input: AVAudioPCMBuffer) throws -> AVAudioPCMBuffer {
+        guard input.format != analyzerFormat else { return input }
+
+        if converter == nil || converter?.outputFormat != analyzerFormat {
+            converter = AVAudioConverter(from: input.format, to: analyzerFormat)
+            converter?.primeMethod = .none
+        }
+        guard let converter else {
+            throw AppleSpeechLiveTranscriptionError.invalidAudioFormat
+        }
+
+        let ratio = converter.outputFormat.sampleRate / converter.inputFormat.sampleRate
+        let capacity = AVAudioFrameCount((Double(input.frameLength) * ratio).rounded(.up))
+        guard let output = AVAudioPCMBuffer(
+            pcmFormat: converter.outputFormat,
+            frameCapacity: max(capacity, 1)
+        ) else {
+            throw AppleSpeechLiveTranscriptionError.invalidAudioFormat
+        }
+
+        var conversionError: NSError?
+        var suppliedInput = false
+        let status = converter.convert(to: output, error: &conversionError) { _, inputStatus in
+            if suppliedInput {
+                inputStatus.pointee = .noDataNow
+                return nil
+            }
+            suppliedInput = true
+            inputStatus.pointee = .haveData
+            return input
+        }
+        guard status != .error else {
+            throw AppleSpeechLiveTranscriptionError.analysisFailed(
+                conversionError?.localizedDescription ?? "Live audio conversion failed."
+            )
+        }
+        return output
     }
 }
 

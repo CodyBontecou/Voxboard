@@ -132,8 +132,8 @@ private struct VoxboardCaptureWidgetView: View {
         if let action {
             queryItems.append(URLQueryItem(name: "action", value: action))
         }
-        if let voxID = CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) {
-            queryItems.append(URLQueryItem(name: "vox", value: voxID))
+        if let voxID = CapturePresetProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) {
+            queryItems.append(URLQueryItem(name: "preset", value: voxID))
         }
         components.queryItems = queryItems
         return components.url!

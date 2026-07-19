@@ -155,7 +155,7 @@ struct VoxboardMacApp: App {
             return
         }
 
-        let flowId = RecordingFlowStore.selectedFlowId()
+        let flowId = CapturePresetStore.selectedFlowId()
         if recorder.isRecording {
             recorder.stopAndTranscribe(modelManager: modelManager, flowId: flowId)
             return
@@ -510,8 +510,8 @@ private struct MacMenuBarMenu: View {
     @Environment(\.openWindow) private var openWindow
 
     @Bindable var recorder: MacRecorder
-    @AppStorage(RecordingFlowStore.selectedFlowIdKey, store: AppConstants.sharedDefaults)
-    private var selectedFlowId = RecordingFlowStore.generalId
+    @AppStorage(CapturePresetStore.selectedFlowIdKey, store: AppConstants.sharedDefaults)
+    private var selectedFlowId = CapturePresetStore.generalId
 
     var body: some View {
         Text(statusTitle)
@@ -572,7 +572,7 @@ private struct MacMenuBarMenu: View {
 
         Divider()
 
-        Picker("Vox", selection: $selectedFlowId) {
+        Picker("Capture Preset", selection: $selectedFlowId) {
             ForEach(enabledFlows) { flow in
                 Label(flow.displayName, systemImage: iconName(for: flow.symbolName))
                     .tag(flow.id)
@@ -602,9 +602,9 @@ private struct MacMenuBarMenu: View {
         .keyboardShortcut("q")
     }
 
-    private var enabledFlows: [RecordingFlow] {
-        let enabled = RecordingFlowStore.loadFlows().filter(\.isEnabled)
-        return enabled.isEmpty ? RecordingFlowStore.defaultFlows : enabled
+    private var enabledFlows: [CapturePreset] {
+        let enabled = CapturePresetStore.loadFlows().filter(\.isEnabled)
+        return enabled.isEmpty ? CapturePresetStore.defaultFlows : enabled
     }
 
     private var statusTitle: String {

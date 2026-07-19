@@ -29,8 +29,8 @@ final class ShareViewController: UIViewController {
 @Observable
 private final class ShareCaptureModel {
     var destinations: [CaptureDestination] = []
-    var voxProfiles: [CaptureVoxProfile] = []
-    var selectedVoxID: String?
+    var presets: [CapturePresetProfile] = []
+    var selectedPresetID: String?
     var selectedDestinationID: UUID?
     var libraryDefaultDestinationID: UUID?
     var note = ""
@@ -67,13 +67,13 @@ private final class ShareCaptureModel {
             destinations = library.destinations
             libraryDefaultDestinationID = library.defaultDestinationID
             let sharedDefaults = UserDefaults(suiteName: "group.bontecou.Voxboard")
-            voxProfiles = CaptureVoxProfileStore.enabledProfiles(defaults: sharedDefaults)
-            for index in voxProfiles.indices where voxProfiles[index].captureDestinationID == nil {
-                voxProfiles[index].captureDestinationID = library.legacyFlowBindings[voxProfiles[index].id]
+            presets = CapturePresetProfileStore.enabledProfiles(defaults: sharedDefaults)
+            for index in presets.indices where presets[index].captureDestinationID == nil {
+                presets[index].captureDestinationID = library.legacyFlowBindings[presets[index].id]
             }
-            selectedVoxID = CaptureVoxProfileStore.selectedProfileID(defaults: sharedDefaults)
+            selectedPresetID = CapturePresetProfileStore.selectedProfileID(defaults: sharedDefaults)
             selectedDestinationID = resolvedDestinationID(
-                profile: selectedVoxProfile,
+                profile: selectedPreset,
                 libraryDefaultID: library.defaultDestinationID
             )
             guard selectedDestinationID != nil else {
@@ -103,22 +103,25 @@ private final class ShareCaptureModel {
         }
     }
 
-    var selectedVoxProfile: CaptureVoxProfile? {
-        guard let selectedVoxID else { return nil }
-        return voxProfiles.first(where: { $0.id == selectedVoxID })
+    var selectedPreset: CapturePresetProfile? {
+        guard let selectedPresetID else { return nil }
+        return presets.first(where: { $0.id == selectedPresetID })
     }
 
-    func applySelectedVoxRoute() {
-        selectedDestinationID = CaptureVoxRouteResolver.destinationID(
+    func applySelectedPresetDestination() {
+        selectedDestinationID = CapturePresetRouteResolver.destinationID(
             selectionMode: .inherited,
             explicitDestinationID: nil,
-            profile: selectedVoxProfile,
+            profile: selectedPreset,
             destinations: destinations,
-            libraryDefaultDestinationID: libraryDefaultDestinationID
+            libraryDefaultDestinationID: libraryDefaultDestinationID,
+            allowsLegacyFallback: !CapturePresetProfileStore.hasOwnedRouteMigration(
+                defaults: UserDefaults(suiteName: "group.bontecou.Voxboard")
+            )
         )
-        if let selectedVoxID {
-            CaptureVoxProfileStore.selectCaptureProfile(
-                id: selectedVoxID,
+        if let selectedPresetID {
+            CapturePresetProfileStore.selectCaptureProfile(
+                id: selectedPresetID,
                 defaults: UserDefaults(suiteName: "group.bontecou.Voxboard")
             )
         }
@@ -157,9 +160,9 @@ private final class ShareCaptureModel {
 
         isSubmitting = true
         do {
-            let profile = selectedVoxProfile
-            let processingState: CaptureVoxProcessingState = profile?.captureProcessingEnabled == true
-                && profile?.postProcessingMode != CaptureVoxProcessingMode.none
+            let profile = selectedPreset
+            let processingState: CapturePresetProcessingState = profile?.captureProcessingEnabled == true
+                && profile?.postProcessingMode != CapturePresetProcessingMode.none
                 ? .pending
                 : (profile == nil ? .notRequested : .applied)
             let request = CaptureRequest(
@@ -191,15 +194,18 @@ private final class ShareCaptureModel {
     }
 
     private func resolvedDestinationID(
-        profile: CaptureVoxProfile?,
+        profile: CapturePresetProfile?,
         libraryDefaultID: UUID?
     ) -> UUID? {
-        CaptureVoxRouteResolver.destinationID(
+        CapturePresetRouteResolver.destinationID(
             selectionMode: .inherited,
             explicitDestinationID: nil,
             profile: profile,
             destinations: destinations,
-            libraryDefaultDestinationID: libraryDefaultID
+            libraryDefaultDestinationID: libraryDefaultID,
+            allowsLegacyFallback: !CapturePresetProfileStore.hasOwnedRouteMigration(
+                defaults: UserDefaults(suiteName: "group.bontecou.Voxboard")
+            )
         )
     }
 
@@ -426,30 +432,22 @@ private struct ShareCaptureView: View {
                 if model.isLoading {
                     HStack { Spacer(); ProgressView("Loading shared items…"); Spacer() }
                 } else {
-                    if !model.voxProfiles.isEmpty {
-                        Section("Vox") {
-                            Picker("Workflow", selection: $model.selectedVoxID) {
-                                ForEach(model.voxProfiles) { profile in
-                                    Label(profile.displayName, systemImage: profile.symbolName)
-                                        .tag(Optional(profile.id))
+                    if !model.presets.isEmpty {
+                        Section("Capture Preset") {
+                            Picker("Preset", selection: $model.selectedPresetID) {
+                                ForEach(model.presets) { preset in
+                                    Label(preset.displayName, systemImage: preset.symbolName)
+                                        .tag(Optional(preset.id))
                                 }
                             }
                             .disabled(model.isQueuedForLater)
-                            .onChange(of: model.selectedVoxID) { _, _ in
-                                model.applySelectedVoxRoute()
+                            .onChange(of: model.selectedPresetID) { _, _ in
+                                model.applySelectedPresetDestination()
+                            }
+                            if let destination = model.destinations.first(where: { $0.id == model.selectedDestinationID }) {
+                                LabeledContent("Destination", value: destination.rootName)
                             }
                         }
-                    }
-                    Section("Route") {
-                        Picker("Send to", selection: $model.selectedDestinationID) {
-                            ForEach(model.destinations) { destination in
-                                Text(destination.name).tag(Optional(destination.id))
-                            }
-                        }
-                        .disabled(model.isQueuedForLater)
-                        Text("Changing the route here overrides this Vox for the shared capture only.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
                     }
                     Section("Add a note") {
                         TextEditor(text: $model.note)
@@ -492,7 +490,7 @@ private enum ShareCaptureError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .destinationRequired: return "Add a capture destination in Vox.md first."
+        case .destinationRequired: return "Configure a destination for a Capture Preset in Vox.md first."
         case .emptyShare: return "There is no supported content to capture."
         case .missingSharedFile: return "The shared file disappeared before Vox.md could copy it."
         }

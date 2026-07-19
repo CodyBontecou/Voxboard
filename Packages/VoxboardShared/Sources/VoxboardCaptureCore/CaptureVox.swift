@@ -1,10 +1,10 @@
 import Foundation
 
-/// A modality-neutral Vox policy snapshot. The persisted recording-flow format
-/// intentionally uses the same coding keys, allowing lightweight capture
-/// clients (Shortcuts and the share extension) to read Voxes without linking
-/// the transcription/export stack.
-public struct CaptureVoxProfile: Identifiable, Codable, Equatable, Sendable {
+/// A modality-neutral Capture Preset policy snapshot. The persisted legacy
+/// recording-flow format intentionally uses the same coding keys, allowing
+/// lightweight clients to read presets without linking the transcription and
+/// export stack.
+public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
     public var id: String
     public var name: String
     public var symbolName: String
@@ -13,17 +13,17 @@ public struct CaptureVoxProfile: Identifiable, Codable, Equatable, Sendable {
     public var staticFrontmatter: [String: String]
     /// Document frontmatter is ideal for one-note-per-capture destinations;
     /// inline entry fields keep rolling/shared notes from being relabeled.
-    public var metadataScope: CaptureVoxMetadataScope
-    public var postProcessingMode: CaptureVoxProcessingMode
+    public var metadataScope: CapturePresetMetadataScope
+    public var postProcessingMode: CapturePresetProcessingMode
     public var customPostProcessingInstruction: String
-    /// Existing Voxes remain capture-safe: processing typed or mixed Markdown
-    /// is opt-in even though voice recordings continue using their mode.
+    /// Existing presets remain capture-safe: processing typed or mixed
+    /// Markdown is opt-in even though voice recordings use their mode.
     public var captureProcessingEnabled: Bool
-    /// Optional local empty-state prompt shown when this Vox is active.
+    /// Optional local empty-state prompt shown when this preset is active.
     public var capturePrompt: String
-    /// The reusable route inherited by captures using this Vox.
+    /// The owned destination inherited by captures using this preset.
     public var captureDestinationID: UUID?
-    /// Optional Vox-level defaults layered over the selected route.
+    /// Legacy preset-level overrides folded into the owned route on migration.
     public var captureEntryTemplateID: UUID?
     public var capturePlacementOverride: CapturePlacement?
 
@@ -34,8 +34,8 @@ public struct CaptureVoxProfile: Identifiable, Codable, Equatable, Sendable {
         isEnabled: Bool = true,
         isBuiltIn: Bool = false,
         staticFrontmatter: [String: String] = [:],
-        metadataScope: CaptureVoxMetadataScope = .document,
-        postProcessingMode: CaptureVoxProcessingMode = .clean,
+        metadataScope: CapturePresetMetadataScope = .document,
+        postProcessingMode: CapturePresetProcessingMode = .clean,
         customPostProcessingInstruction: String = "",
         captureProcessingEnabled: Bool = false,
         capturePrompt: String = "",
@@ -61,7 +61,7 @@ public struct CaptureVoxProfile: Identifiable, Codable, Equatable, Sendable {
 
     public var displayName: String {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Untitled Vox" : trimmed
+        return trimmed.isEmpty ? "Untitled Preset" : trimmed
     }
 
     public var resolvedPostProcessingInstruction: String? {
@@ -123,8 +123,8 @@ public struct CaptureVoxProfile: Identifiable, Codable, Equatable, Sendable {
             isEnabled: try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true,
             isBuiltIn: try container.decodeIfPresent(Bool.self, forKey: .isBuiltIn) ?? false,
             staticFrontmatter: try container.decodeIfPresent([String: String].self, forKey: .staticFrontmatter) ?? [:],
-            metadataScope: try container.decodeIfPresent(CaptureVoxMetadataScope.self, forKey: .metadataScope) ?? .document,
-            postProcessingMode: try container.decodeIfPresent(CaptureVoxProcessingMode.self, forKey: .postProcessingMode) ?? .clean,
+            metadataScope: try container.decodeIfPresent(CapturePresetMetadataScope.self, forKey: .metadataScope) ?? .document,
+            postProcessingMode: try container.decodeIfPresent(CapturePresetProcessingMode.self, forKey: .postProcessingMode) ?? .clean,
             customPostProcessingInstruction: try container.decodeIfPresent(String.self, forKey: .customPostProcessingInstruction) ?? "",
             captureProcessingEnabled: try container.decodeIfPresent(Bool.self, forKey: .captureProcessingEnabled) ?? false,
             capturePrompt: try container.decodeIfPresent(String.self, forKey: .capturePrompt) ?? "",
@@ -135,7 +135,7 @@ public struct CaptureVoxProfile: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
-public enum CaptureVoxMetadataScope: String, Codable, CaseIterable, Sendable, Identifiable {
+public enum CapturePresetMetadataScope: String, Codable, CaseIterable, Sendable, Identifiable {
     case document
     case entry
 
@@ -149,7 +149,7 @@ public enum CaptureVoxMetadataScope: String, Codable, CaseIterable, Sendable, Id
     }
 }
 
-public enum CaptureVoxProcessingMode: String, Codable, CaseIterable, Sendable, Identifiable {
+public enum CapturePresetProcessingMode: String, Codable, CaseIterable, Sendable, Identifiable {
     case none
     case clean
     case todoList
@@ -169,13 +169,13 @@ public enum CaptureVoxProcessingMode: String, Codable, CaseIterable, Sendable, I
     }
 }
 
-public enum CaptureVoxProcessingState: String, Codable, Sendable {
+public enum CapturePresetProcessingState: String, Codable, Sendable {
     case notRequested
     case pending
     case applied
 }
 
-public struct CaptureVoxReference: Codable, Equatable, Sendable {
+public struct CapturePresetReference: Codable, Equatable, Sendable {
     public var id: String
     public var name: String
     public var symbolName: String
@@ -186,20 +186,22 @@ public struct CaptureVoxReference: Codable, Equatable, Sendable {
         self.symbolName = symbolName
     }
 
-    public init(profile: CaptureVoxProfile) {
+    public init(profile: CapturePresetProfile) {
         self.init(id: profile.id, name: profile.displayName, symbolName: profile.symbolName)
     }
 }
 
-public enum CaptureVoxRouteResolver {
+public enum CapturePresetRouteResolver {
     /// Resolves the route without mutating reusable settings.
-    /// Precedence: explicit capture override → Vox default → library default → first route.
+    /// Precedence: explicit legacy override → Preset destination → compatibility
+    /// library default → first legacy route.
     public static func destinationID(
         selectionMode: CaptureDestinationSelectionMode,
         explicitDestinationID: UUID?,
-        profile: CaptureVoxProfile?,
+        profile: CapturePresetProfile?,
         destinations: [CaptureDestination],
-        libraryDefaultDestinationID: UUID?
+        libraryDefaultDestinationID: UUID?,
+        allowsLegacyFallback: Bool = true
     ) -> UUID? {
         let validIDs = Set(destinations.map(\.id))
         if selectionMode == .explicit,
@@ -207,10 +209,11 @@ public enum CaptureVoxRouteResolver {
            validIDs.contains(explicitDestinationID) {
             return explicitDestinationID
         }
-        if let voxDestinationID = profile?.captureDestinationID,
-           validIDs.contains(voxDestinationID) {
-            return voxDestinationID
+        if let presetDestinationID = profile?.captureDestinationID,
+           validIDs.contains(presetDestinationID) {
+            return presetDestinationID
         }
+        guard allowsLegacyFallback else { return nil }
         if let libraryDefaultDestinationID,
            validIDs.contains(libraryDefaultDestinationID) {
             return libraryDefaultDestinationID
@@ -219,23 +222,30 @@ public enum CaptureVoxRouteResolver {
     }
 }
 
-/// Lightweight access to the existing App Group Vox records. Unknown
-/// recording-only fields are ignored by `CaptureVoxProfile` decoding.
-public enum CaptureVoxProfileStore {
+/// Lightweight access to existing App Group preset records. Unknown
+/// recording-only fields are ignored by `CapturePresetProfile` decoding.
+public enum CapturePresetProfileStore {
     public static let profilesKey = "recordingFlows"
     public static let selectedProfileIDKey = "selectedRecordingFlowId"
     public static let selectedCaptureProfileIDKey = "selectedCaptureVoxId"
+    public static let ownedRouteMigrationVersionKey = "capturePresetOwnedRouteMigrationVersion"
+    public static let currentOwnedRouteMigrationVersion = 1
     public static let defaultProfileID = "general"
 
-    public static func loadProfiles(defaults: UserDefaults?) -> [CaptureVoxProfile] {
+    public static func hasOwnedRouteMigration(defaults: UserDefaults?) -> Bool {
+        (defaults?.integer(forKey: ownedRouteMigrationVersionKey) ?? 0)
+            >= currentOwnedRouteMigrationVersion
+    }
+
+    public static func loadProfiles(defaults: UserDefaults?) -> [CapturePresetProfile] {
         guard let data = defaults?.data(forKey: profilesKey),
-              let profiles = try? JSONDecoder().decode([CaptureVoxProfile].self, from: data) else {
+              let profiles = try? JSONDecoder().decode([CapturePresetProfile].self, from: data) else {
             return []
         }
         return profiles
     }
 
-    public static func enabledProfiles(defaults: UserDefaults?) -> [CaptureVoxProfile] {
+    public static func enabledProfiles(defaults: UserDefaults?) -> [CapturePresetProfile] {
         loadProfiles(defaults: defaults).filter(\.isEnabled)
     }
 
@@ -253,8 +263,18 @@ public enum CaptureVoxProfileStore {
         defaults?.set(id, forKey: selectedCaptureProfileIDKey)
     }
 
-    public static func profile(id: String?, defaults: UserDefaults?) -> CaptureVoxProfile? {
+    public static func profile(id: String?, defaults: UserDefaults?) -> CapturePresetProfile? {
         guard let id else { return nil }
         return loadProfiles(defaults: defaults).first(where: { $0.id == id })
     }
 }
+
+// MARK: - Legacy source compatibility
+
+public typealias CaptureVoxProfile = CapturePresetProfile
+public typealias CaptureVoxMetadataScope = CapturePresetMetadataScope
+public typealias CaptureVoxProcessingMode = CapturePresetProcessingMode
+public typealias CaptureVoxProcessingState = CapturePresetProcessingState
+public typealias CaptureVoxReference = CapturePresetReference
+public typealias CaptureVoxRouteResolver = CapturePresetRouteResolver
+public typealias CaptureVoxProfileStore = CapturePresetProfileStore

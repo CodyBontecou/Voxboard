@@ -1,6 +1,6 @@
 import Foundation
 
-public struct CaptureVoxTextProcessingResult: Equatable, Sendable {
+public struct CapturePresetTextProcessingResult: Equatable, Sendable {
     public var text: String
     public var title: String?
     public var tags: [String]
@@ -19,21 +19,21 @@ public struct CaptureVoxTextProcessingResult: Equatable, Sendable {
     }
 }
 
-public protocol CaptureVoxTextProcessing: Sendable {
+public protocol CapturePresetTextProcessing: Sendable {
     func process(
         text: String,
-        profile: CaptureVoxProfile
-    ) async throws -> CaptureVoxTextProcessingResult
+        profile: CapturePresetProfile
+    ) async throws -> CapturePresetTextProcessingResult
 }
 
-/// Applies a snapshotted Vox to every text-bearing payload while preserving
-/// payload associations (for example, an audio transcript remains attached to
+/// Applies a snapshotted Capture Preset to every text-bearing payload while
+/// preserving payload associations (for example, an audio transcript remains attached to
 /// its audio asset). Backend failures use deterministic/raw fallbacks so local
 /// capture delivery never depends on AI availability.
-public struct CaptureVoxRequestProcessor: Sendable {
-    private let textProcessor: (any CaptureVoxTextProcessing)?
+public struct CapturePresetRequestProcessor: Sendable {
+    private let textProcessor: (any CapturePresetTextProcessing)?
 
-    public init(textProcessor: (any CaptureVoxTextProcessing)? = nil) {
+    public init(textProcessor: (any CapturePresetTextProcessing)? = nil) {
         self.textProcessor = textProcessor
     }
 
@@ -114,14 +114,14 @@ public struct CaptureVoxRequestProcessor: Sendable {
 
     private func processText(
         _ text: String,
-        profile: CaptureVoxProfile
-    ) async -> CaptureVoxTextProcessingResult {
+        profile: CapturePresetProfile
+    ) async -> CapturePresetTextProcessingResult {
         if let textProcessor,
            let result = try? await textProcessor.process(text: text, profile: profile),
            !result.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return result
         }
-        return CaptureVoxTextProcessingResult(
+        return CapturePresetTextProcessingResult(
             text: Self.deterministicText(text, mode: profile.postProcessingMode),
             tags: profile.staticTags,
             category: profile.staticCategory
@@ -130,7 +130,7 @@ public struct CaptureVoxRequestProcessor: Sendable {
 
     public static func deterministicText(
         _ text: String,
-        mode: CaptureVoxProcessingMode
+        mode: CapturePresetProcessingMode
     ) -> String {
         switch mode {
         case .todoList:
@@ -172,7 +172,7 @@ public struct CaptureVoxRequestProcessor: Sendable {
     }
 
     private func mergeMetadata(
-        _ result: CaptureVoxTextProcessingResult,
+        _ result: CapturePresetTextProcessingResult,
         title: inout String?,
         category: inout String?,
         tags: inout [String]
@@ -195,3 +195,8 @@ public struct CaptureVoxRequestProcessor: Sendable {
         }
     }
 }
+
+// Legacy source compatibility.
+public typealias CaptureVoxTextProcessingResult = CapturePresetTextProcessingResult
+public typealias CaptureVoxTextProcessing = CapturePresetTextProcessing
+public typealias CaptureVoxRequestProcessor = CapturePresetRequestProcessor

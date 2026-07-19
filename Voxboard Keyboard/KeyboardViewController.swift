@@ -156,6 +156,13 @@ class KeyboardViewController: KeyboardInputViewController {
 
 /// Combines the voice toolbar + standard KeyboardKit keyboard in a VStack.
 private struct VoxboardKeyboardView: View {
+    private static let darkBackground = Color(
+        red: 26.0 / 255.0,
+        green: 26.0 / 255.0,
+        blue: 28.0 / 255.0
+    )
+
+    @Environment(\.colorScheme) private var colorScheme
     @State var voiceState: VoiceKeyboardState
     let controller: KeyboardInputViewController
 
@@ -183,12 +190,13 @@ private struct VoxboardKeyboardView: View {
                 ) ?? params.standardActions()
             }
         }
-        .onChange(of: voiceState.pendingTranscription) { _, newValue in
-            if let text = newValue {
-                log.log("onChange(pendingTranscription) — inserting \(text.count) chars (fallback path)")
-                controller.textDocumentProxy.insertText(text)
-                voiceState.consumeTranscription()
-            }
-        }
+        // KeyboardKit's standard dark background is translucent, so it changes
+        // when the app canvas changes. Use the same opaque color on both sides.
+        .background(colorScheme == .dark ? Self.darkBackground : Color.clear)
+        .keyboardViewStyle(
+            colorScheme == .dark
+                ? KeyboardViewStyle(background: .color(Self.darkBackground))
+                : KeyboardViewStyle.standard
+        )
     }
 }

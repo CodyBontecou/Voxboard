@@ -281,16 +281,16 @@ public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
     public var deliveryKind: CaptureDeliveryKind
     public var destinationID: UUID
     public var payloads: [CapturePayload]
-    /// Structured note-level metadata applied by the selected Vox. Keeping it
-    /// outside payload Markdown lets the document editor merge frontmatter once.
+    /// Structured note-level metadata applied by the selected Capture Preset.
+    /// Keeping it outside payload Markdown lets the editor merge frontmatter once.
     public var frontmatter: [String: String]
-    /// Exact Vox policy captured at submission/enqueue time. Retries never read
-    /// live Vox settings, so later edits cannot change queued user content.
-    public var voxProfile: CaptureVoxProfile?
-    public var voxProcessingState: CaptureVoxProcessingState
+    /// Exact Preset policy captured at submission/enqueue time. Retries never
+    /// read live settings, so later edits cannot change queued user content.
+    public var voxProfile: CapturePresetProfile?
+    public var voxProcessingState: CapturePresetProcessingState
     /// Version marker for exact prepared-request reuse by durable drafts.
     public var originDraftUpdatedAt: Date?
-    /// Exact one-capture route policy. These outrank the snapshotted Vox and
+    /// Exact one-capture route policy. These outrank the snapshotted Preset and
     /// survive deferred delivery without mutating the reusable destination.
     public var relativeNotePathOverride: String?
     public var placementOverride: CapturePlacement?
@@ -308,8 +308,8 @@ public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
         destinationID: UUID,
         payloads: [CapturePayload],
         frontmatter: [String: String] = [:],
-        voxProfile: CaptureVoxProfile? = nil,
-        voxProcessingState: CaptureVoxProcessingState = .notRequested,
+        voxProfile: CapturePresetProfile? = nil,
+        voxProcessingState: CapturePresetProcessingState = .notRequested,
         originDraftUpdatedAt: Date? = nil,
         relativeNotePathOverride: String? = nil,
         placementOverride: CapturePlacement? = nil,
@@ -332,8 +332,8 @@ public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
         self.attachmentsFolderNameOverride = attachmentsFolderNameOverride
     }
 
-    public var voxReference: CaptureVoxReference? {
-        voxProfile.map(CaptureVoxReference.init(profile:))
+    public var voxReference: CapturePresetReference? {
+        voxProfile.map(CapturePresetReference.init(profile:))
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -365,8 +365,8 @@ public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
             destinationID: container.decode(UUID.self, forKey: .destinationID),
             payloads: container.decode([CapturePayload].self, forKey: .payloads),
             frontmatter: container.decodeIfPresent([String: String].self, forKey: .frontmatter) ?? [:],
-            voxProfile: container.decodeIfPresent(CaptureVoxProfile.self, forKey: .voxProfile),
-            voxProcessingState: container.decodeIfPresent(CaptureVoxProcessingState.self, forKey: .voxProcessingState)
+            voxProfile: container.decodeIfPresent(CapturePresetProfile.self, forKey: .voxProfile),
+            voxProcessingState: container.decodeIfPresent(CapturePresetProcessingState.self, forKey: .voxProcessingState)
                 ?? .notRequested,
             originDraftUpdatedAt: container.decodeIfPresent(Date.self, forKey: .originDraftUpdatedAt),
             relativeNotePathOverride: container.decodeIfPresent(String.self, forKey: .relativeNotePathOverride),
@@ -610,7 +610,7 @@ public struct CaptureLibraryEnvelope: Codable, Equatable, Sendable {
     public var defaultDestinationID: UUID?
     public var entryTemplates: [CaptureEntryTemplate]
     /// Read-only migration input from the retired duplicate route-binding map.
-    /// New saves deliberately omit this field; RecordingFlow is authoritative.
+    /// New saves deliberately omit this field; CapturePreset is authoritative.
     public private(set) var legacyFlowBindings: [String: UUID]
 
     public init(

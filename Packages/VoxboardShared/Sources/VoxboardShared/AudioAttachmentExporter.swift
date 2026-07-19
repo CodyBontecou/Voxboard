@@ -15,7 +15,7 @@ public enum AudioAttachmentExporter {
     public static func exportAudioIfNeeded(
         sourceAudioURL: URL,
         transcriptFileURL: URL,
-        flow: RecordingFlow?,
+        flow: CapturePreset?,
         transcriptFolderScopeURL: URL? = nil
     ) async throws -> URL? {
         guard let flow, flow.audioSaveMode != .off else { return nil }
@@ -77,7 +77,7 @@ public enum AudioAttachmentExporter {
 
     public static func audioDestinationURL(
         for transcriptFileURL: URL,
-        flow: RecordingFlow,
+        flow: CapturePreset,
         preferredExtension: String,
         audioFolderOverride: URL? = nil
     ) -> URL {
@@ -104,7 +104,7 @@ public enum AudioAttachmentExporter {
         return try? URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale)
     }
 
-    private static func exportFolderScopeURL(for flow: RecordingFlow) -> URL? {
+    private static func exportFolderScopeURL(for flow: CapturePreset) -> URL? {
         if flow.exportSettings.usesCustomExportSettings {
             return resolveBookmarkData(flow.exportSettings.folderBookmark)
         }

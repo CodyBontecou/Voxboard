@@ -3,163 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import VoxboardShared
 
-struct MacCaptureDestinationLibraryView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var library = CaptureLibraryEnvelope()
-    @State private var destinationToEdit: CaptureDestination?
-    @State private var isAdding = false
-    @State private var errorMessage: String?
-
-    var body: some View {
-        NavigationStack {
-            List {
-                if library.destinations.isEmpty {
-                    ContentUnavailableView(
-                        "No Capture Routes",
-                        systemImage: "folder.badge.plus",
-                        description: Text("Add a local folder or Obsidian vault for precise Markdown delivery on this Mac.")
-                    )
-                } else {
-                    ForEach(library.destinations) { destination in
-                        Button {
-                            destinationToEdit = destination
-                        } label: {
-                            HStack(spacing: 12) {
-                                Image(systemName: destination.id == library.defaultDestinationID ? "star.fill" : "folder")
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(destination.name)
-                                    Text("\(destination.rootName) · \(targetSummary(destination.noteTarget))")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.right").foregroundStyle(.tertiary)
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            if destination.id != library.defaultDestinationID {
-                                Button("Make Default") { Task { await makeDefault(destination.id) } }
-                            }
-                            Button("Delete", role: .destructive) { Task { await delete(destination.id) } }
-                        }
-                    }
-                }
-                if let errorMessage {
-                    Text(errorMessage).foregroundStyle(.red)
-                }
-            }
-            .navigationTitle("Capture Routes")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    Button { isAdding = true } label: { Label("Add Route", systemImage: "plus") }
-                }
-            }
-        }
-        .task { await load() }
-        .sheet(isPresented: $isAdding) {
-            MacCaptureDestinationEditor(existing: nil, templates: library.entryTemplates) { destination in
-                try await save(destination)
-            }
-        }
-        .sheet(item: $destinationToEdit) { destination in
-            MacCaptureDestinationEditor(existing: destination, templates: library.entryTemplates) { updated in
-                try await save(updated)
-            }
-        }
-    }
-
-    private func store() throws -> CaptureLibraryStore {
-        guard let url = AppConstants.captureLibraryURL else {
-            throw MacCaptureRouteError.storageUnavailable
-        }
-        return CaptureLibraryStore(fileURL: url)
-    }
-
-    private func load() async {
-        do {
-            library = try await store().load()
-            errorMessage = nil
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func save(_ destination: CaptureDestination) async throws {
-        library = try await store().update { value in
-            if let index = value.destinations.firstIndex(where: { $0.id == destination.id }) {
-                value.destinations[index] = destination
-            } else {
-                value.destinations.append(destination)
-            }
-            if value.defaultDestinationID == nil { value.defaultDestinationID = destination.id }
-        }
-    }
-
-    private func makeDefault(_ id: UUID) async {
-        do {
-            library = try await store().update { $0.defaultDestinationID = id }
-            errorMessage = nil
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func delete(_ id: UUID) async {
-        guard let captureRootURL = AppConstants.captureDirectoryURL else {
-            errorMessage = MacCaptureRouteError.storageUnavailable.localizedDescription
-            return
-        }
-        do {
-            let inbox = CaptureInbox(rootDirectoryURL: captureRootURL)
-            let processing = try await inbox.requestIDs(
-                referencingDestination: id,
-                states: [.processing]
-            )
-            guard processing.isEmpty else {
-                throw MacCaptureRouteError.destinationProcessing(processing.count)
-            }
-            let queued = try await inbox.requestIDs(
-                referencingDestination: id,
-                states: [.pending, .failed]
-            )
-            let replacement = library.destinations.first { $0.id != id }
-            if let replacement {
-                _ = try await inbox.rerouteRequests(
-                    from: id,
-                    to: replacement.id,
-                    states: [.pending, .failed]
-                )
-            } else if !queued.isEmpty {
-                throw MacCaptureRouteError.destinationQueued(queued.count)
-            }
-            library = try await store().update { value in
-                value.destinations.removeAll { $0.id == id }
-                if value.defaultDestinationID == id {
-                    value.defaultDestinationID = value.destinations.first?.id
-                }
-            }
-            RecordingFlowStore.clearCaptureDestination(id)
-            errorMessage = nil
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func targetSummary(_ target: CaptureNoteTarget) -> String {
-        switch target {
-        case .newNote(let path): return path
-        case .rollingNote(let path, let period): return "\(period.rawValue): \(path)"
-        case .existingNote(let path): return path
-        }
-    }
-}
-
-private struct MacCaptureDestinationEditor: View {
+struct MacCaptureDestinationEditor: View {
     private enum TargetKind: String, CaseIterable, Identifiable {
         case newNote, rollingNote, existingNote
         var id: String { rawValue }
@@ -181,6 +25,7 @@ private struct MacCaptureDestinationEditor: View {
     @Environment(\.dismiss) private var dismiss
     let existing: CaptureDestination?
     let templates: [CaptureEntryTemplate]
+    let fixedName: String?
     let onSave: (CaptureDestination) async throws -> Void
 
     @State private var name: String
@@ -204,12 +49,14 @@ private struct MacCaptureDestinationEditor: View {
     init(
         existing: CaptureDestination?,
         templates: [CaptureEntryTemplate],
+        fixedName: String? = nil,
         onSave: @escaping (CaptureDestination) async throws -> Void
     ) {
         self.existing = existing
         self.templates = templates
+        self.fixedName = fixedName
         self.onSave = onSave
-        _name = State(initialValue: existing?.name ?? "")
+        _name = State(initialValue: fixedName ?? existing?.name ?? "")
         _rootBookmark = State(initialValue: existing?.rootBookmark ?? Data())
         _rootName = State(initialValue: existing?.rootName ?? "")
         switch existing?.noteTarget {
@@ -242,8 +89,12 @@ private struct MacCaptureDestinationEditor: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Identity") {
-                    TextField("Route Name (Optional)", text: $name)
+                Section(fixedName == nil ? "Identity" : "Preset Destination") {
+                    if let fixedName {
+                        LabeledContent("Preset", value: fixedName)
+                    } else {
+                        TextField("Destination Name (Optional)", text: $name)
+                    }
                     Button { chooseFolder() } label: {
                         LabeledContent("Vault / Folder", value: rootName.isEmpty ? "Choose…" : rootName)
                     }
@@ -304,7 +155,7 @@ private struct MacCaptureDestinationEditor: View {
                 if let errorMessage { Text(errorMessage).foregroundStyle(.red) }
             }
             .formStyle(.grouped)
-            .navigationTitle(existing == nil ? "Add Capture Route" : "Edit Capture Route")
+            .navigationTitle(existing == nil ? "Set Up Destination" : "Edit Destination")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
@@ -402,7 +253,10 @@ private struct MacCaptureDestinationEditor: View {
             let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
             let routePath = path.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !rootBookmark.isEmpty else { throw MacCaptureRouteError.folderRequired }
-            let routeName = trimmedName.isEmpty ? rootName : trimmedName
+            let ownedName = fixedName?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let routeName = ownedName?.isEmpty == false
+                ? ownedName!
+                : (trimmedName.isEmpty ? rootName : trimmedName)
             try CapturePathValidation.validateRelativePath(routePath)
             if !attachmentsFolder.isEmpty { try CapturePathValidation.validateRelativePath(attachmentsFolder) }
             let target: CaptureNoteTarget = switch targetKind {
@@ -449,7 +303,7 @@ private struct MacCaptureDestinationEditor: View {
 
 private enum MacCaptureRouteError: Error, LocalizedError {
     case storageUnavailable, folderRequired, headingRequired, folderPermissionExpired, noteOutsideRoot
-    case existingNoteMissing(String), destinationQueued(Int), destinationProcessing(Int)
+    case existingNoteMissing(String)
 
     var errorDescription: String? {
         switch self {
@@ -459,8 +313,6 @@ private enum MacCaptureRouteError: Error, LocalizedError {
         case .folderPermissionExpired: "The selected vault or folder permission expired. Choose it again."
         case .noteOutsideRoot: "Choose a Markdown note inside the selected vault or folder."
         case .existingNoteMissing(let path): "The existing note ‘\(path)’ was not found in the selected vault or folder."
-        case .destinationQueued(let count): "Add another route before deleting this one so \(count) queued capture(s) can be rerouted."
-        case .destinationProcessing(let count): "Wait for \(count) active capture(s) to finish before deleting this route."
         }
     }
 }

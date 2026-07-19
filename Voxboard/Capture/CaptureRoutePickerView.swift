@@ -11,43 +11,27 @@ struct CaptureRoutePickerView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Destination") {
-                    ForEach(viewModel.destinations) { destination in
-                        Button {
-                            viewModel.selectDestination(destination.id)
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text(destination.name)
-                                    Text(destination.rootName)
-                                        .font(.caption.monospaced())
-                                        .foregroundStyle(Geist.muted)
-                                }
-                                Spacer()
-                                if destination.id == viewModel.effectiveDestinationID {
-                                    Image(systemName: viewModel.hasExplicitDestinationOverride ? "checkmark.circle.fill" : "checkmark")
-                                }
-                            }
+                if let preset = viewModel.selectedVoxProfile {
+                    Section("Capture Preset") {
+                        LabeledContent("Preset") {
+                            Label(preset.displayName, systemImage: preset.symbolName)
+                        }
+                        if let destination = viewModel.selectedDestination {
+                            LabeledContent("Vault / Folder", value: destination.rootName)
                         }
                     }
                 }
 
                 if viewModel.selectedDestination != nil {
-                    Section("This capture") {
-                        if let vox = viewModel.selectedVoxProfile {
-                            LabeledContent("Vox") {
-                                Label(vox.displayName, systemImage: vox.symbolName)
-                            }
-                        }
-
+                    Section("Only for this capture") {
                         Picker("Placement", selection: placementBinding) {
-                            Text("Vox / Route Default").tag(PlacementChoice.default)
+                            Text("Preset Default").tag(PlacementChoice.default)
                             Text("Top").tag(PlacementChoice.top)
                             Text("Bottom").tag(PlacementChoice.bottom)
                         }
 
                         Picker("Entry template", selection: $viewModel.draft.entryTemplateID) {
-                            Text("Vox / Route Default").tag(UUID?.none)
+                            Text("Preset Default").tag(UUID?.none)
                             ForEach(viewModel.entryTemplates) { template in
                                 Text(template.name).tag(Optional(template.id))
                             }
@@ -57,7 +41,7 @@ struct CaptureRoutePickerView: View {
                             showsNotePicker = true
                         } label: {
                             Label(
-                                viewModel.draft.relativeNotePathOverride ?? "Choose note from vault",
+                                viewModel.draft.relativeNotePathOverride ?? "Choose another note in this vault",
                                 systemImage: "doc.text.magnifyingglass"
                             )
                         }
@@ -66,7 +50,7 @@ struct CaptureRoutePickerView: View {
                             Button {
                                 viewModel.useVoxRouteDefaults()
                             } label: {
-                                Label("Use Vox defaults", systemImage: "arrow.uturn.backward")
+                                Label("Use Preset defaults", systemImage: "arrow.uturn.backward")
                             }
                         }
                     }
@@ -78,17 +62,15 @@ struct CaptureRoutePickerView: View {
                                 .textSelection(.enabled)
                         }
                     }
-                }
-
-                Section {
-                    NavigationLink {
-                        CaptureDestinationLibraryView(viewModel: viewModel)
-                    } label: {
-                        Label("Manage destinations and templates", systemImage: "slider.horizontal.3")
-                    }
+                } else {
+                    ContentUnavailableView(
+                        "Destination Not Configured",
+                        systemImage: "folder.badge.plus",
+                        description: Text("Configure this Capture Preset in the Presets tab.")
+                    )
                 }
             }
-            .navigationTitle("Capture route")
+            .navigationTitle("Capture destination")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

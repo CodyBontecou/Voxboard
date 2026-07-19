@@ -2,62 +2,22 @@ import SwiftUI
 import UniformTypeIdentifiers
 import VoxboardShared
 
-struct CaptureDestinationLibraryView: View {
-    @Bindable var viewModel: QuickCaptureViewModel
-    @State private var destinationToEdit: CaptureDestination?
-    @State private var isAddingDestination = false
+struct CaptureEntryTemplateLibraryView: View {
+    @State private var templates: [CaptureEntryTemplate] = []
     @State private var templateToEdit: CaptureEntryTemplate?
-    @State private var isAddingTemplate = false
+    @State private var isAdding = false
     @State private var errorMessage: String?
 
     var body: some View {
         List {
-            Section {
-                if viewModel.destinations.isEmpty {
-                    ContentUnavailableView(
-                        "No Destinations",
-                        systemImage: "folder.badge.plus",
-                        description: Text("Add an Obsidian vault or Files folder to start capturing.")
-                    )
-                } else {
-                    ForEach(viewModel.destinations) { destination in
-                        Button {
-                            destinationToEdit = destination
-                        } label: {
-                            destinationRow(destination)
-                        }
-                        .buttonStyle(.plain)
-                        .swipeActions(edge: .trailing) {
-                            Button("Delete", role: .destructive) {
-                                Task { await delete(destination.id) }
-                            }
-                        }
-                        .swipeActions(edge: .leading) {
-                            if destination.id != viewModel.defaultDestinationID {
-                                Button("Default") {
-                                    Task { await setDefault(destination.id) }
-                                }
-                                .tint(.blue)
-                            }
-                        }
-                    }
-                }
-            } header: {
-                Text("Reusable destinations")
-            } footer: {
-                Text("Each destination owns its vault folder, note target, placement, heading, and entry formatting.")
-            }
-
-            Section {
-                Button {
-                    isAddingDestination = true
-                } label: {
-                    Label("Add Destination", systemImage: "plus")
-                }
-            }
-
-            Section {
-                ForEach(viewModel.entryTemplates) { template in
+            if templates.isEmpty {
+                ContentUnavailableView(
+                    "No Entry Templates",
+                    systemImage: "doc.badge.plus",
+                    description: Text("Create reusable Markdown or YAML formatting for your Capture Presets.")
+                )
+            } else {
+                ForEach(templates) { template in
                     Button {
                         templateToEdit = template
                     } label: {
@@ -73,112 +33,90 @@ struct CaptureDestinationLibraryView: View {
                     .buttonStyle(.plain)
                     .swipeActions {
                         Button("Delete", role: .destructive) {
-                            Task { await deleteTemplate(template.id) }
+                            Task { await delete(template.id) }
                         }
                     }
                 }
+            }
+
+            Section {
                 Button {
-                    isAddingTemplate = true
+                    isAdding = true
                 } label: {
                     Label("Add Entry Template", systemImage: "doc.badge.plus")
                 }
-            } header: {
-                Text("Reusable entry templates")
             } footer: {
-                Text("Templates can contain multiline Markdown or YAML frontmatter. Tokens: {date}, {time}, {timestamp}, {source}, {id8}.")
+                Text("Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {timestamp}, {source}, and {id8}.")
             }
 
             if let errorMessage {
                 Section("Error") {
-                    Text(errorMessage)
-                        .foregroundStyle(.red)
+                    Text(errorMessage).foregroundStyle(.red)
                 }
             }
         }
-        .navigationTitle("Destinations")
-        .font(Geist.body())
-        .tint(Geist.Palette.gray1000)
-        .scrollContentBackground(.hidden)
-        .background(Geist.Palette.background200)
-        .sheet(isPresented: $isAddingDestination) {
-            NavigationStack {
-                CaptureDestinationEditorView(existing: nil, templates: viewModel.entryTemplates) { destination in
-                    try await viewModel.upsertDestination(destination)
-                }
-            }
-        }
-        .sheet(item: $destinationToEdit) { destination in
-            NavigationStack {
-                CaptureDestinationEditorView(existing: destination, templates: viewModel.entryTemplates) { updated in
-                    try await viewModel.upsertDestination(updated)
-                }
-            }
-        }
-        .sheet(isPresented: $isAddingTemplate) {
+        .navigationTitle("Entry Templates")
+        .task { await load() }
+        .sheet(isPresented: $isAdding) {
             NavigationStack {
                 CaptureEntryTemplateEditorView(existing: nil) { template in
-                    try await viewModel.upsertEntryTemplate(template)
+                    try await save(template)
                 }
             }
         }
         .sheet(item: $templateToEdit) { template in
             NavigationStack {
                 CaptureEntryTemplateEditorView(existing: template) { updated in
-                    try await viewModel.upsertEntryTemplate(updated)
+                    try await save(updated)
                 }
             }
         }
     }
 
-    private func destinationRow(_ destination: CaptureDestination) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: destination.id == viewModel.defaultDestinationID ? "star.fill" : "folder")
-                .frame(width: 24)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(destination.name)
-                    .foregroundStyle(.primary)
-                Text(destination.rootName + " · " + targetSummary(destination.noteTarget))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-            Spacer()
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+    private func store() throws -> CaptureLibraryStore {
+        guard let url = AppConstants.captureLibraryURL else {
+            throw CaptureEntryTemplateLibraryError.storageUnavailable
         }
-        .contentShape(Rectangle())
+        return CaptureLibraryStore(fileURL: url)
     }
 
-    private func targetSummary(_ target: CaptureNoteTarget) -> String {
-        switch target {
-        case .newNote(let template): return template
-        case .rollingNote(let template, _): return template
-        case .existingNote(let path): return path
+    private func load() async {
+        do {
+            let library = try await CapturePresetRouteLibrary.load(from: store())
+            templates = library.entryTemplates
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
         }
+    }
+
+    private func save(_ template: CaptureEntryTemplate) async throws {
+        let library = try await store().update { library in
+            if let index = library.entryTemplates.firstIndex(where: { $0.id == template.id }) {
+                library.entryTemplates[index] = template
+            } else {
+                library.entryTemplates.append(template)
+            }
+        }
+        templates = library.entryTemplates
+        errorMessage = nil
     }
 
     private func delete(_ id: UUID) async {
         do {
-            try await viewModel.deleteDestination(id: id)
-            errorMessage = nil
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func deleteTemplate(_ id: UUID) async {
-        do {
-            try await viewModel.deleteEntryTemplate(id: id)
-            errorMessage = nil
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-
-    private func setDefault(_ id: UUID) async {
-        do {
-            try await viewModel.setDefaultDestination(id: id)
+            let library = try await store().update { library in
+                let removed = library.entryTemplates.first(where: { $0.id == id })
+                for index in library.destinations.indices where library.destinations[index].entryTemplateID == id {
+                    if let removed {
+                        library.destinations[index].entryPrefix = removed.entryPrefix
+                        library.destinations[index].entrySuffix = removed.entrySuffix
+                    }
+                    library.destinations[index].entryTemplateID = nil
+                }
+                library.entryTemplates.removeAll { $0.id == id }
+            }
+            CapturePresetStore.clearCaptureEntryTemplate(id)
+            templates = library.entryTemplates
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -186,7 +124,15 @@ struct CaptureDestinationLibraryView: View {
     }
 }
 
-private struct CaptureDestinationEditorView: View {
+private enum CaptureEntryTemplateLibraryError: Error, LocalizedError {
+    case storageUnavailable
+
+    var errorDescription: String? {
+        "Shared capture storage is unavailable."
+    }
+}
+
+struct CaptureDestinationEditorView: View {
     @Environment(\.dismiss) private var dismiss
 
     private enum TargetKind: String, CaseIterable, Identifiable {
@@ -221,6 +167,9 @@ private struct CaptureDestinationEditorView: View {
 
     let existing: CaptureDestination?
     let templates: [CaptureEntryTemplate]
+    /// When set, the route is owned and named by a Capture Preset rather than
+    /// presented as an independently named destination.
+    let fixedName: String?
     let onSave: (CaptureDestination) async throws -> Void
 
     @State private var name: String
@@ -246,12 +195,14 @@ private struct CaptureDestinationEditorView: View {
     init(
         existing: CaptureDestination?,
         templates: [CaptureEntryTemplate],
+        fixedName: String? = nil,
         onSave: @escaping (CaptureDestination) async throws -> Void
     ) {
         self.existing = existing
         self.templates = templates
+        self.fixedName = fixedName
         self.onSave = onSave
-        _name = State(initialValue: existing?.name ?? "")
+        _name = State(initialValue: fixedName ?? existing?.name ?? "")
         _rootBookmark = State(initialValue: existing?.rootBookmark ?? Data())
         _rootName = State(initialValue: existing?.rootName ?? "")
 
@@ -310,8 +261,12 @@ private struct CaptureDestinationEditorView: View {
 
     var body: some View {
         Form {
-            Section("Identity") {
-                TextField("Destination Name (Optional)", text: $name)
+            Section(fixedName == nil ? "Identity" : "Preset Destination") {
+                if let fixedName {
+                    LabeledContent("Preset", value: fixedName)
+                } else {
+                    TextField("Destination Name (Optional)", text: $name)
+                }
                 Button {
                     isChoosingFolder = true
                 } label: {
@@ -427,7 +382,11 @@ private struct CaptureDestinationEditorView: View {
                 }
             }
         }
-        .navigationTitle(existing == nil ? "Add Destination" : "Edit Destination")
+        .navigationTitle(
+            fixedName == nil
+                ? (existing == nil ? "Add Destination" : "Edit Destination")
+                : (existing == nil ? "Set Up Destination" : "Edit Destination")
+        )
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -541,7 +500,10 @@ private struct CaptureDestinationEditorView: View {
         do {
             let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !rootBookmark.isEmpty else { throw DestinationEditorError.folderRequired }
-            let destinationName = trimmedName.isEmpty ? rootName : trimmedName
+            let ownedName = fixedName?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let destinationName = ownedName?.isEmpty == false
+                ? ownedName!
+                : (trimmedName.isEmpty ? rootName : trimmedName)
             let trimmedPath = pathTemplate.trimmingCharacters(in: .whitespacesAndNewlines)
             try CapturePathValidation.validateRelativePath(trimmedPath)
             if !attachmentsFolderName.isEmpty {
@@ -631,7 +593,7 @@ private struct CaptureDestinationEditorView: View {
     }
 }
 
-private struct CaptureEntryTemplateEditorView: View {
+struct CaptureEntryTemplateEditorView: View {
     @Environment(\.dismiss) private var dismiss
 
     let existing: CaptureEntryTemplate?

@@ -235,7 +235,7 @@ final class TranscriptEnricherTests: XCTestCase {
             }
             """#
         )
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.postProcessingMode = .todoList
         let enricher = TranscriptEnricher(backend: backend)
 

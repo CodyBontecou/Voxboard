@@ -6,7 +6,7 @@
 [![Platform](https://img.shields.io/badge/platform-iOS%2017.6%2B%20%7C%20iPadOS-lightgrey)](#tech-stack)
 [![Swift](https://img.shields.io/badge/swift-5-orange)](#tech-stack)
 
-Vox.md gets text, links, photos, files, scans, sketches, and voice into Obsidian vaults or local Markdown folders with minimal friction. Reusable routes can create a note, update a rolling note, target an existing file, or insert beneath a heading. Voice transcription runs on device, preferring Apple Speech on supported iOS 26 devices and using Whisper or Parakeet only when the user opts into a local model download. Audio is never uploaded to Vox.md servers.
+Vox.md gets text, links, photos, files, scans, sketches, and voice into Obsidian vaults or local Markdown folders with minimal friction. Capture Presets combine processing, metadata, and a complete destination that can create a note, update a rolling note, target an existing file, or insert beneath a heading. Voice transcription runs on device, preferring Apple Speech on supported iOS 26 devices and using Whisper or Parakeet only when the user opts into a local model download. Audio is never uploaded to Vox.md servers.
 
 **[🌐 Website](https://voxboard-app.vercel.app/)** · **[📲 Download](https://voxboard-app.vercel.app/)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[💬 Discussions](https://github.com/CodyBontecou/Voxboard/discussions)** · **[👥 Discord](https://discord.gg/RaQYS4t6gn)** · **[⭐ Star this repo](https://github.com/CodyBontecou/Voxboard)**
 
@@ -19,21 +19,21 @@ Vox.md gets text, links, photos, files, scans, sketches, and voice into Obsidian
 ## Features
 
 ### Universal Quick Capture
-Capture typed text, links, photos, selected screenshots, camera images, arbitrary files, document scans with on-device OCR/PDF generation, PencilKit sketches, and voice attachments. Drafts and staged attachments are saved locally before export, so a permission or sync failure can be retried instead of losing the capture. Optional voice transcription runs on device; the audio remains usable if transcription is unavailable or fails.
+Capture typed text, links, photos, selected screenshots, camera images, arbitrary files, document scans with on-device OCR/PDF generation, PencilKit sketches, and voice attachments. Drafts and staged attachments are saved locally before export, so a permission or sync failure can be retried instead of losing the capture. With Automatic on supported iOS 26 devices, voice recordings show finalized and tentative Apple Speech text in Capture while recording; Whisper and Parakeet still transcribe after recording stops. All transcription stays on device, and the audio remains usable if transcription is unavailable or fails.
 
 The capture-first composer is a raw, selection-aware Markdown editor with undo plus bold, italic, headings, hashtags, tasks, bullets, links, wiki links, due-date tokens, timestamps, case transformations, and paste controls. Location is an explicit one-shot action that inserts a Google Maps link; Vox.md does not monitor location or keep separate coordinate history.
 
-Reusable destinations can point at multiple Obsidian vaults or Files folders and route to new notes, existing notes, one-off notes chosen from a vault, or daily/weekly/monthly/quarterly/yearly rolling notes. Each destination supports append, prepend, insertion beneath a Markdown heading, multiline YAML/Markdown entry formatting, reusable named templates with local date/source tokens, attachment subfolders, and a resolved path preview.
+Each Capture Preset owns one destination in an Obsidian vault or Files folder. Destinations can create new notes, target existing notes, or use daily/weekly/monthly/quarterly/yearly rolling notes, with append, prepend, heading insertion, multiline YAML/Markdown entry formatting, reusable templates, attachment subfolders, retry protection, and resolved path previews.
 
-### Vox Capture Workflows
-A Vox describes the intent of a capture rather than its input method. The same Journal, Tasks, Meeting, or Inbox Vox can accept typed Markdown, links, photos, files, OCR scans, sketches, and voice. Each Vox can provide a default route, placement, entry template, metadata, an empty-composer prompt, and optional on-device processing. Metadata can be note-level YAML frontmatter or queryable inline fields scoped to each rolling-note entry. Manual route choices remain one-capture overrides and never mutate the Vox. Direct voice runs inherit the Vox route and then the Capture-library default; voice-only audio retention and legacy file export remain fallbacks when no Capture destination exists.
+### Capture Presets
+A Capture Preset describes both the intent of a capture and where it belongs. The same Journal, Tasks, Meeting, or Inbox preset can accept typed Markdown, links, photos, files, OCR scans, sketches, and voice. Each preset includes its destination, placement, entry formatting, metadata, empty-composer prompt, optional on-device processing, and voice behavior. Metadata can be note-level YAML frontmatter or queryable inline fields scoped to each rolling-note entry. A one-capture note, placement, or template override never mutates the preset.
 
-Capture processing is opt-in for typed and mixed Markdown so existing Voxes never rewrite user-authored text unexpectedly. When enabled, text-bearing payloads keep their association with audio or scans, Apple Intelligence runs locally when available, and deterministic/original-text fallbacks keep delivery working offline. The exact processed request is persisted before writing so retries do not rerun AI against changed settings.
+Capture processing is opt-in for typed and mixed Markdown so existing presets never rewrite user-authored text unexpectedly. When enabled, text-bearing payloads keep their association with audio or scans, Apple Intelligence runs locally when available, and deterministic/original-text fallbacks keep delivery working offline. The exact processed request is persisted before writing so retries do not rerun AI against changed settings.
 
-Quick Capture is available from the app, actionable home-screen and lock-screen widgets, App Shortcuts for text/link/file/screenshot/voice input, Vox-aware deep links, and the iOS share sheet. Capture history records coarse Vox, source, route, and delivery metadata only—never note text, URLs, coordinates, bookmarks, absolute paths, or attachment filenames. Pending and failed inbox items retain the content required for recovery; immediately after delivery, Vox.md replaces each request with an ID-and-timestamp-only idempotency tombstone and sanitizes legacy completed requests on upgrade.
+Quick Capture is available from the app, actionable home-screen and lock-screen widgets, App Shortcuts for text/link/file/screenshot/voice input, preset-aware deep links, and the iOS share sheet. Capture history records coarse preset, source, destination, and delivery metadata only—never note text, URLs, coordinates, bookmarks, absolute paths, or attachment filenames. Pending and failed inbox items retain the content required for recovery; immediately after delivery, Vox.md replaces each request with an ID-and-timestamp-only idempotency tombstone and sanitizes legacy completed requests on upgrade.
 
 ### Voice Keyboard
-Add the Vox.md keyboard to iOS and dictate into any text field — Messages, Notes, Safari, or any app that accepts a keyboard. The keyboard toolbar controls recording and inserts finished transcripts directly where you are typing.
+Add the Vox.md keyboard to iOS and dictate into any text field — Messages, Notes, Safari, or any app that accepts a keyboard. With Automatic on supported iOS 26 devices, finalized Apple Speech phrases stream into the active field while you speak; tentative words stay in the toolbar until Apple finalizes them. Whisper and Parakeet selections insert the completed transcript after recording stops.
 
 ### On-Device Transcription
 Speech recognition runs locally. On supported iOS 26 devices, Automatic uses Apple's `SpeechAnalyzer` and system-managed `SpeechTranscriber` assets. Whisper (`whisper.cpp`) and Core ML/FluidAudio-backed Parakeet models remain optional downloads and explicit overrides or fallbacks. No app-managed speech model weights ship in the app bundle. Audio, transcripts, capture drafts, and templates stay on the device.
@@ -57,7 +57,7 @@ On iOS 26+ devices and macOS 26+ Macs with Apple Intelligence, Vox.md can genera
 Open a durable Quick Capture draft or start and monitor recording from widgets, Live Activities, the lock screen, and Dynamic Island. The widget target shares state through the same private App Group container.
 
 ### macOS Companion
-Record directly on your Mac, import audio or video files, pick local Whisper or Parakeet models, manage Vox export presets and precise Markdown capture routes, browse/copy transcript history, run Apple Intelligence enrichment on macOS 26+ capable Macs, and export TXT/Markdown/JSON/YAML notes with optional audio attachments. The Mac drains the same durable retry inbox as iOS and can reroute failed captures after a folder permission changes. It uses the shared model/history/export stack with a local Application Support fallback for unsigned development builds.
+Record directly on your Mac, import audio or video files, pick local Whisper or Parakeet models, manage complete Capture Presets, browse/copy transcript history, run Apple Intelligence enrichment on macOS 26+ capable Macs, and export TXT/Markdown/JSON/YAML notes with optional audio attachments. The Mac drains the same durable retry inbox as iOS and can reroute failed captures after a folder permission changes. It uses the shared model/history/export stack with a local Application Support fallback for unsigned development builds.
 
 ## Pricing
 
@@ -100,9 +100,9 @@ Voxboard/
   Views/
     RootView.swift                  # Adaptive tab/sidebar shell
     ModelTabView.swift              # Automatic native selection and opt-in local model downloads
-    FlowSettingsView.swift          # Manage modality-neutral Vox workflows and voice-only options
-    QuickCaptureView.swift          # Durable multimodal composer with inline recording and Vox selection
-    CaptureDestinationLibraryView.swift # Vault, note, placement, and heading routes
+    FlowSettingsView.swift          # Manage complete Capture Presets and owned destinations
+    QuickCaptureView.swift          # Durable multimodal composer with inline recording and Preset selection
+    CaptureDestinationLibraryView.swift # Compatibility route editor and entry-template UI
     HistoryView.swift               # Searchable/editable local transcript history
     MetaSettingsView.swift          # Preferences, upgrade, feedback, about
     PaywallView.swift               # One-time unlimited unlock
@@ -141,7 +141,7 @@ Voxboard Mac/
   VoxboardMac.entitlements          # macOS sandbox, app group, mic, file access
 
 Packages/VoxboardShared/
-  Sources/VoxboardCaptureCore/      # Vox policies, payloads, routing, Markdown edits, inbox, retries
+  Sources/VoxboardCaptureCore/      # Preset policies, payloads, routing, Markdown edits, inbox, retries
   Tests/VoxboardCaptureCoreTests/   # Framework-independent red/green capture tests
   Sources/VoxboardShared/
     AppConstants.swift              # App Group, URL scheme, shared keys
@@ -207,10 +207,10 @@ The app registers the `voxboard://` URL scheme:
 
 - `voxboard://listen` — opens Vox.md and starts the keyboard launch/listening flow.
 - `voxboard://record` — legacy keyboard record entry point, redirected to listening mode.
-- `voxboard://widget-record` — widget entry point for starting a recording flow.
+- `voxboard://widget-record` — legacy widget entry point for starting a recording preset.
 - `voxboard://capture` — opens the durable Quick Capture composer.
 - `voxboard://capture?action=photos|screenshots|camera|files|link|scan|sketch|voice` — opens the composer and requests that exact local input.
-- `voxboard://capture?text=...&url=...&destination=...` — validates bounded input and opens an incoming draft.
+- `voxboard://capture?preset=...&text=...&url=...` — selects a Capture Preset, validates bounded input, and opens an incoming draft. Legacy `vox=` and `destination=` parameters remain accepted for existing links.
 - `voxboard://capture-request?id=...` — claims an App Group inbox request from Shortcuts/share sheet.
 
 ## Contributing

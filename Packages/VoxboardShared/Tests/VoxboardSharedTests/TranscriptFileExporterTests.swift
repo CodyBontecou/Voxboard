@@ -474,7 +474,7 @@ final class TranscriptFileExporterTests: XCTestCase {
         let templateURL = tempFolder.appendingPathComponent("template.md")
         try "# Captured".write(to: templateURL, atomically: true, encoding: .utf8)
 
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.exportSettings.exportEnabled = true
         flow.exportSettings.format = .md
         flow.exportSettings.mode = .append

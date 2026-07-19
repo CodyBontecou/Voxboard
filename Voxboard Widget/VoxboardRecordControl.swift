@@ -25,7 +25,7 @@ struct VoxboardRecordControl: ControlWidget {
             .disabled(!state.isEnabled)
         }
         .displayName("Vox.md Record")
-        .description("Start recording with a configurable Vox preset.")
+        .description("Start recording with a configurable Capture Preset.")
         .promptsForUserConfiguration()
     }
 

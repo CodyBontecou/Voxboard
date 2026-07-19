@@ -4,7 +4,7 @@ import WidgetKit
 
 // MARK: - MetaSettingsView
 
-/// Tab 4 — app-level settings: upgrade / paywall, about metadata, and debug tools.
+/// App-level customization, preferences, upgrade, about metadata, and debug tools.
 struct MetaSettingsView: View {
     let persistentRecorder: PersistentRecorder
 
@@ -28,6 +28,8 @@ struct MetaSettingsView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     upgradeSection
+                    GeistDivider()
+                    customizationSection
                     GeistDivider()
                     keyboardSection
                     GeistDivider()
@@ -149,11 +151,76 @@ struct MetaSettingsView: View {
         }
     }
 
+    // MARK: - Customization Section
+
+    private var customizationSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("01", "Customization")
+            GeistDivider()
+
+            customizationRow(
+                "Models",
+                description: "Transcription engines, model downloads, and language",
+                systemImage: "cpu"
+            ) {
+                ModelTabView()
+            }
+
+            GeistDivider()
+
+            customizationRow(
+                "Capture Presets",
+                description: "Processing, formatting, metadata, and destinations",
+                systemImage: "slider.horizontal.3"
+            ) {
+                CapturePresetSettingsView()
+            }
+        }
+    }
+
+    private func customizationRow<Destination: View>(
+        _ title: LocalizedStringKey,
+        description: LocalizedStringKey,
+        systemImage: String,
+        @ViewBuilder destination: () -> Destination
+    ) -> some View {
+        NavigationLink {
+            destination()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .font(.system(.body, weight: .medium))
+                    .foregroundColor(Geist.text)
+                    .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
+                    Text(description)
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(.caption, weight: .semibold))
+                    .foregroundColor(Geist.muted)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(Geist.bg)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
     // MARK: - Keyboard Section
 
     private var keyboardSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("01", "Keyboard")
+            sectionHeader("02", "Keyboard")
             GeistDivider()
 
             HStack {
@@ -183,7 +250,7 @@ struct MetaSettingsView: View {
 
     private var lockScreenSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("02", "Lock Screen")
+            sectionHeader("03", "Lock Screen")
             GeistDivider()
 
             HStack {
@@ -247,7 +314,7 @@ struct MetaSettingsView: View {
 
     private var aboutSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("03", "About")
+            sectionHeader("04", "About")
             GeistDivider()
 
             var rows: [(String, String)] = [
@@ -289,7 +356,7 @@ struct MetaSettingsView: View {
 
     private var feedbackSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("04", "Feedback")
+            sectionHeader("05", "Feedback")
             GeistDivider()
 
             Button(action: openDiscord) {
@@ -341,7 +408,7 @@ struct MetaSettingsView: View {
 
     private var debugSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("05", "Debug")
+            sectionHeader("06", "Debug")
             GeistDivider()
 
             Button {

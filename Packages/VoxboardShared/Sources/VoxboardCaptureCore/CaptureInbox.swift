@@ -93,7 +93,7 @@ public actor CaptureInbox {
         }
     }
 
-    /// Atomically replaces a claimed request after Vox processing. The exact
+    /// Atomically replaces a claimed request after Capture Preset processing. The exact
     /// processed payload is then reused by delivery retries instead of invoking
     /// a potentially nondeterministic processor again.
     public func replaceProcessingRequest(_ request: CaptureRequest) throws {

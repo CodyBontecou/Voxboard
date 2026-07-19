@@ -4,7 +4,7 @@ import VoxboardShared
 // MARK: - Controller (unchanged — only view layer is redesigned)
 
 @Observable
-final class RecordingFlowController {
+final class CapturePresetController {
     enum Phase {
         case starting, recording, transcribing, done, error
     }
@@ -133,7 +133,7 @@ final class RecordingFlowController {
         let observer = Unmanaged.passUnretained(self).toOpaque()
         CFNotificationCenterAddObserver(center, observer, { _, observer, _, _, _ in
             guard let observer else { return }
-            let ctrl = Unmanaged<RecordingFlowController>.fromOpaque(observer).takeUnretainedValue()
+            let ctrl = Unmanaged<CapturePresetController>.fromOpaque(observer).takeUnretainedValue()
             DispatchQueue.main.async { ctrl.handleStopCommandIfNeeded() }
         }, TranscriptionIPC.stopCommandNotificationName, nil, .deliverImmediately)
 
@@ -170,8 +170,8 @@ final class RecordingFlowController {
 
 // MARK: - View (fully redesigned — Geist design system)
 
-struct RecordingFlowView: View {
-    let controller: RecordingFlowController
+struct CapturePresetView: View {
+    let controller: CapturePresetController
     let onDismiss: () -> Void
 
     var body: some View {

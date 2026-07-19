@@ -40,8 +40,8 @@ final class MacRecorder {
         guard let captureRootURL = AppConstants.captureDirectoryURL else { return }
         isRetryingCaptures = true
         defer { isRetryingCaptures = false }
-        let requestProcessor = CaptureVoxRequestProcessor(
-            textProcessor: transcriptEnricher.map(EnrichedCaptureVoxTextProcessor.init(enricher:))
+        let requestProcessor = CapturePresetRequestProcessor(
+            textProcessor: transcriptEnricher.map(EnrichedCapturePresetTextProcessor.init(enricher:))
         )
         let result = await CaptureInboxDeliveryService.drain(
             captureRootURL: captureRootURL,
@@ -84,7 +84,7 @@ final class MacRecorder {
             isRecording = true
             recordingDuration = 0
             startDurationTimer()
-            RecordingFlowStore.selectFlow(id: flowId)
+            CapturePresetStore.selectFlow(id: flowId)
         } else {
             lastError = "Could not access the microphone. Check macOS Privacy & Security settings."
         }
@@ -314,7 +314,7 @@ final class MacRecorder {
         sourceAudioURL: URL?
     ) {
         let selectedFlow = prepareFlowForFileExportIfNeeded(
-            RecordingFlowStore.flow(id: flowId) ?? RecordingFlowStore.selectedFlow()
+            CapturePresetStore.flow(id: flowId) ?? CapturePresetStore.selectedFlow()
         )
         let rawTranscript = Transcript(text: text, duration: duration, modelUsed: modelName, language: language)
         let transcript = TranscriptFlowFormatter.apply(flow: selectedFlow, to: rawTranscript)
@@ -388,7 +388,7 @@ final class MacRecorder {
                     && flowForExport.exportSettings.folderBookmark != nil
 
                 // Match iOS: route to legacy Smart Folders only when the
-                // selected Vox does not already specify an export folder.
+                // selected Capture Preset does not already specify an export folder.
                 if !flowHasExplicitExportFolder, AppConstants.smartFoldersEnabled {
                     let folders = AppConstants.loadSmartFolders()
                     if !folders.isEmpty,
@@ -474,7 +474,7 @@ final class MacRecorder {
         try? FileManager.default.removeItem(at: audioURL)
     }
 
-    private func prepareFlowForFileExportIfNeeded(_ flow: RecordingFlow) -> RecordingFlow {
+    private func prepareFlowForFileExportIfNeeded(_ flow: CapturePreset) -> CapturePreset {
         guard flow.captureDestinationID == nil else { return flow }
         guard flow.exportSettings.usesCustomExportSettings else {
             prepareGlobalExportFolderIfNeeded()
@@ -484,7 +484,7 @@ final class MacRecorder {
         guard resolveSecurityScopedURL(from: flow.exportSettings.folderBookmark) == nil else { return flow }
         guard let selection = requestDirectoryAccess(
             title: "Choose Export Folder",
-            message: "Vox.md needs permission to save notes for the \"\(flow.displayName)\" Vox."
+            message: "Vox.md needs permission to save notes for the \"\(flow.displayName)\" Capture Preset."
         ) else {
             KeyboardDebugLog.shared.log("[MacRecorder] Export folder selection cancelled for flow \(flow.id)")
             return flow
@@ -538,17 +538,17 @@ final class MacRecorder {
         return try? URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale)
     }
 
-    private func saveUpdatedFlow(_ updated: RecordingFlow) {
-        var flows = RecordingFlowStore.loadFlows()
+    private func saveUpdatedFlow(_ updated: CapturePreset) {
+        var flows = CapturePresetStore.loadFlows()
         if let index = flows.firstIndex(where: { $0.id == updated.id }) {
             flows[index] = updated
         } else {
             flows.append(updated)
         }
-        RecordingFlowStore.saveFlows(flows)
+        CapturePresetStore.saveFlows(flows)
     }
 
-    private func retainAudioIfNeeded(_ sourceURL: URL, flow: RecordingFlow) -> URL? {
+    private func retainAudioIfNeeded(_ sourceURL: URL, flow: CapturePreset) -> URL? {
         guard flow.audioSaveMode != .off,
               let dir = AppConstants.recordingsDirectoryURL else {
             return nil

@@ -449,7 +449,7 @@ final class CapturePipelineTests: XCTestCase {
         let root = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: root) }
         let destination = destination(target: .existingNote(relativePath: "Inbox.md"))
-        let profile = CaptureVoxProfile(
+        let profile = CapturePresetProfile(
             id: "journal",
             name: "Journal",
             symbolName: "book",

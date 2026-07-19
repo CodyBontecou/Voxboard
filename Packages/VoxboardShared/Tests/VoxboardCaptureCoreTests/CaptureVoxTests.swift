@@ -2,7 +2,7 @@ import XCTest
 @testable import VoxboardCaptureCore
 
 final class CaptureVoxTests: XCTestCase {
-    func test_lightweightProfileDecodesExistingRecordingFlowPayload() throws {
+    func test_lightweightProfileDecodesExistingCapturePresetPayload() throws {
         let destinationID = UUID()
         let json = """
         {
@@ -23,7 +23,7 @@ final class CaptureVoxTests: XCTestCase {
         """
 
         let profile = try JSONDecoder().decode(
-            CaptureVoxProfile.self,
+            CapturePresetProfile.self,
             from: Data(json.utf8)
         )
 
@@ -46,7 +46,7 @@ final class CaptureVoxTests: XCTestCase {
         """
 
         let profile = try JSONDecoder().decode(
-            CaptureVoxProfile.self,
+            CapturePresetProfile.self,
             from: Data(json.utf8)
         )
 
@@ -60,19 +60,19 @@ final class CaptureVoxTests: XCTestCase {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         defer { defaults.removePersistentDomain(forName: suite) }
         let profiles = [
-            CaptureVoxProfile(id: "recording", name: "Recording", symbolName: "mic"),
-            CaptureVoxProfile(id: "capture", name: "Capture", symbolName: "square.and.pencil"),
+            CapturePresetProfile(id: "recording", name: "Recording", symbolName: "mic"),
+            CapturePresetProfile(id: "capture", name: "Capture", symbolName: "square.and.pencil"),
         ]
-        defaults.set(try JSONEncoder().encode(profiles), forKey: CaptureVoxProfileStore.profilesKey)
-        defaults.set("recording", forKey: CaptureVoxProfileStore.selectedProfileIDKey)
+        defaults.set(try JSONEncoder().encode(profiles), forKey: CapturePresetProfileStore.profilesKey)
+        defaults.set("recording", forKey: CapturePresetProfileStore.selectedProfileIDKey)
 
-        CaptureVoxProfileStore.selectCaptureProfile(id: "capture", defaults: defaults)
+        CapturePresetProfileStore.selectCaptureProfile(id: "capture", defaults: defaults)
 
-        XCTAssertEqual(CaptureVoxProfileStore.selectedProfileID(defaults: defaults), "capture")
-        XCTAssertEqual(defaults.string(forKey: CaptureVoxProfileStore.selectedProfileIDKey), "recording")
+        XCTAssertEqual(CapturePresetProfileStore.selectedProfileID(defaults: defaults), "capture")
+        XCTAssertEqual(defaults.string(forKey: CapturePresetProfileStore.selectedProfileIDKey), "recording")
     }
 
-    func test_routeResolverHonorsExplicitThenVoxThenLibraryPrecedence() {
+    func test_routeResolverHonorsExplicitThenPresetThenLegacyLibraryPrecedence() {
         let explicit = CaptureDestination(
             name: "Explicit",
             rootBookmark: Data(),
@@ -91,7 +91,7 @@ final class CaptureVoxTests: XCTestCase {
             rootName: "Vault",
             noteTarget: .existingNote(relativePath: "Default.md")
         )
-        let profile = CaptureVoxProfile(
+        let profile = CapturePresetProfile(
             id: "journal",
             name: "Journal",
             symbolName: "book",
@@ -100,7 +100,7 @@ final class CaptureVoxTests: XCTestCase {
         let destinations = [explicit, voxRoute, libraryDefault]
 
         XCTAssertEqual(
-            CaptureVoxRouteResolver.destinationID(
+            CapturePresetRouteResolver.destinationID(
                 selectionMode: .explicit,
                 explicitDestinationID: explicit.id,
                 profile: profile,
@@ -110,7 +110,7 @@ final class CaptureVoxTests: XCTestCase {
             explicit.id
         )
         XCTAssertEqual(
-            CaptureVoxRouteResolver.destinationID(
+            CapturePresetRouteResolver.destinationID(
                 selectionMode: .inherited,
                 explicitDestinationID: explicit.id,
                 profile: profile,
@@ -122,7 +122,7 @@ final class CaptureVoxTests: XCTestCase {
         var profileWithoutRoute = profile
         profileWithoutRoute.captureDestinationID = UUID()
         XCTAssertEqual(
-            CaptureVoxRouteResolver.destinationID(
+            CapturePresetRouteResolver.destinationID(
                 selectionMode: .inherited,
                 explicitDestinationID: nil,
                 profile: profileWithoutRoute,
@@ -130,6 +130,16 @@ final class CaptureVoxTests: XCTestCase {
                 libraryDefaultDestinationID: libraryDefault.id
             ),
             libraryDefault.id
+        )
+        XCTAssertNil(
+            CapturePresetRouteResolver.destinationID(
+                selectionMode: .inherited,
+                explicitDestinationID: nil,
+                profile: profileWithoutRoute,
+                destinations: destinations,
+                libraryDefaultDestinationID: libraryDefault.id,
+                allowsLegacyFallback: false
+            )
         )
     }
 
@@ -181,7 +191,7 @@ final class CaptureVoxTests: XCTestCase {
 
     func test_makeRequestSnapshotsVoxAndMarksProcessingPending() throws {
         let route = UUID()
-        let profile = CaptureVoxProfile(
+        let profile = CapturePresetProfile(
             id: "tasks",
             name: "Tasks",
             symbolName: "checklist",
@@ -216,7 +226,7 @@ final class CaptureVoxTests: XCTestCase {
             originalFilename: "page.jpg",
             contentTypeIdentifier: "public.jpeg"
         )
-        let profile = CaptureVoxProfile(
+        let profile = CapturePresetProfile(
             id: "meeting",
             name: "Meeting",
             symbolName: "person.2",
@@ -237,7 +247,7 @@ final class CaptureVoxTests: XCTestCase {
             voxProcessingState: .pending
         )
 
-        let processed = await CaptureVoxRequestProcessor(
+        let processed = await CapturePresetRequestProcessor(
             textProcessor: StubCaptureTextProcessor()
         ).process(request)
 
@@ -263,7 +273,7 @@ final class CaptureVoxTests: XCTestCase {
     }
 
     func test_processorFailureUsesDeterministicTodoFallback() async {
-        let profile = CaptureVoxProfile(
+        let profile = CapturePresetProfile(
             id: "tasks",
             name: "Tasks",
             symbolName: "checklist",
@@ -278,7 +288,7 @@ final class CaptureVoxTests: XCTestCase {
             voxProcessingState: .pending
         )
 
-        let processed = await CaptureVoxRequestProcessor(
+        let processed = await CapturePresetRequestProcessor(
             textProcessor: FailingCaptureTextProcessor()
         ).process(request)
 
@@ -290,12 +300,12 @@ final class CaptureVoxTests: XCTestCase {
     }
 }
 
-private struct StubCaptureTextProcessor: CaptureVoxTextProcessing {
+private struct StubCaptureTextProcessor: CapturePresetTextProcessing {
     func process(
         text: String,
-        profile: CaptureVoxProfile
-    ) async throws -> CaptureVoxTextProcessingResult {
-        CaptureVoxTextProcessingResult(
+        profile: CapturePresetProfile
+    ) async throws -> CapturePresetTextProcessingResult {
+        CapturePresetTextProcessingResult(
             text: "PROCESSED: \(text)",
             title: "Processed",
             tags: ["local", "capture"],
@@ -304,13 +314,13 @@ private struct StubCaptureTextProcessor: CaptureVoxTextProcessing {
     }
 }
 
-private struct FailingCaptureTextProcessor: CaptureVoxTextProcessing {
+private struct FailingCaptureTextProcessor: CapturePresetTextProcessing {
     struct Failure: Error {}
 
     func process(
         text: String,
-        profile: CaptureVoxProfile
-    ) async throws -> CaptureVoxTextProcessingResult {
+        profile: CapturePresetProfile
+    ) async throws -> CapturePresetTextProcessingResult {
         throw Failure()
     }
 }

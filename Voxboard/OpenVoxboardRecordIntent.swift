@@ -2,10 +2,10 @@ import AppIntents
 import Foundation
 import VoxboardShared
 
-// MARK: - Vox App Entity
+// MARK: - Capture Preset App Entity (legacy type name retained for App Intents)
 
 struct VoxEntity: AppEntity, Identifiable, Hashable {
-    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Vox"
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Capture Preset"
     static var defaultQuery = VoxEntityQuery()
 
     let id: String
@@ -25,17 +25,17 @@ struct VoxEntity: AppEntity, Identifiable, Hashable {
         self.symbolName = symbolName
     }
 
-    init(flow: RecordingFlow) {
+    init(flow: CapturePreset) {
         self.init(id: flow.id, name: flow.displayName, symbolName: flow.symbolName)
     }
 
     static var fallback: VoxEntity {
-        VoxEntity(flow: RecordingFlowStore.selectedFlow())
+        VoxEntity(flow: CapturePresetStore.selectedFlow())
     }
 
     static func resolved(_ entity: VoxEntity?) -> VoxEntity {
         guard let id = entity?.id,
-              let flow = RecordingFlowStore.flow(id: id),
+              let flow = CapturePresetStore.flow(id: id),
               flow.isEnabled else {
             return fallback
         }
@@ -62,10 +62,10 @@ struct VoxEntityQuery: EntityQuery, EnumerableEntityQuery {
     }
 
     private static func enabledVoxes() -> [VoxEntity] {
-        let enabled = RecordingFlowStore.loadFlows()
+        let enabled = CapturePresetStore.loadFlows()
             .filter(\.isEnabled)
             .map(VoxEntity.init(flow:))
-        return enabled.isEmpty ? RecordingFlowStore.defaultFlows.map(VoxEntity.init(flow:)) : enabled
+        return enabled.isEmpty ? CapturePresetStore.defaultFlows.map(VoxEntity.init(flow:)) : enabled
     }
 }
 
@@ -74,10 +74,10 @@ struct VoxEntityQuery: EntityQuery, EnumerableEntityQuery {
 @available(iOS 17.0, *)
 struct OpenVoxboardRecordIntent: AppIntent {
     static let title: LocalizedStringResource = "Record with Vox.md"
-    static let description: IntentDescription = "Opens Vox.md and starts recording with the selected Vox."
+    static let description: IntentDescription = "Opens Vox.md and starts recording with the selected Capture Preset."
     static var openAppWhenRun: Bool = true
 
-    @Parameter(title: "Vox", description: "The Vox preset to use for this recording.")
+    @Parameter(title: "Preset", description: "The Capture Preset to use for this recording.")
     var vox: VoxEntity?
 
     static var parameterSummary: some ParameterSummary {
@@ -94,9 +94,8 @@ struct OpenVoxboardRecordIntent: AppIntent {
     func perform() async throws -> some IntentResult {
         guard AppConstants.lockScreenQuickRecordEnabled else { return .result() }
 
-        // Signal the app to start recording, preserving the configured Vox so
-        // Focus-mode Lock Screen / Control Center controls can route directly
-        // into a Dream, Meeting, or other custom workflow.
+        // Signal the app to start recording, preserving the configured preset
+        // so Lock Screen and Control Center actions use the same workflow.
         if let flowId = resolvedFlowId {
             AppConstants.sharedDefaults?.set(flowId, forKey: AppConstants.pendingWidgetRecordFlowIdKey)
         } else {
@@ -108,7 +107,7 @@ struct OpenVoxboardRecordIntent: AppIntent {
 
     private var resolvedFlowId: String? {
         guard let id = vox?.id,
-              let flow = RecordingFlowStore.flow(id: id),
+              let flow = CapturePresetStore.flow(id: id),
               flow.isEnabled else {
             return nil
         }
@@ -120,10 +119,10 @@ struct OpenVoxboardRecordIntent: AppIntent {
 
 @available(iOS 18.0, *)
 struct SelectVoxboardRecordVoxIntent: ControlConfigurationIntent {
-    static let title: LocalizedStringResource = "Choose Vox"
-    static let description = IntentDescription("Choose the Vox preset this control uses when starting a recording.")
+    static let title: LocalizedStringResource = "Choose Capture Preset"
+    static let description = IntentDescription("Choose the Capture Preset this control uses when starting a recording.")
 
-    @Parameter(title: "Vox", description: "The Vox preset to use for recordings started by this control.")
+    @Parameter(title: "Preset", description: "The Capture Preset to use for recordings started by this control.")
     var vox: VoxEntity?
 
     init() {}

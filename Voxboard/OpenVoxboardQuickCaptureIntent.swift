@@ -19,7 +19,7 @@ struct OpenVoxboardQuickCaptureIntent: AppIntent {
             forKey: AppConstants.pendingQuickCaptureSourceKey
         )
         AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureInputKey)
-        if let voxID = CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) {
+        if let voxID = CapturePresetProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) {
             AppConstants.sharedDefaults?.set(voxID, forKey: AppConstants.pendingQuickCaptureVoxIdKey)
         }
         return .result()

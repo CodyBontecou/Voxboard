@@ -1,19 +1,23 @@
 import XCTest
 @testable import VoxboardShared
 
-final class RecordingFlowTests: XCTestCase {
+final class CapturePresetTests: XCTestCase {
 
     func test_defaultFlows_includeOnlyDefaultFlow() {
-        let flows = RecordingFlowStore.defaultFlows
+        XCTAssertEqual(CapturePresetStore.flowsKey, "recordingFlows")
+        XCTAssertEqual(CapturePresetStore.selectedFlowIdKey, "selectedRecordingFlowId")
+        XCTAssertEqual(CapturePresetProfileStore.selectedCaptureProfileIDKey, "selectedCaptureVoxId")
 
-        XCTAssertEqual(flows.map(\.id), [RecordingFlowStore.generalId])
+        let flows = CapturePresetStore.defaultFlows
+
+        XCTAssertEqual(flows.map(\.id), [CapturePresetStore.generalId])
         XCTAssertEqual(flows.first?.displayName, "Default")
-        XCTAssertEqual(flows.first?.symbolName, RecordingFlowStore.defaultSymbolName)
+        XCTAssertEqual(flows.first?.symbolName, CapturePresetStore.defaultSymbolName)
         XCTAssertEqual(flows.first?.kind, .general)
     }
 
     func test_usesAIEnrichment_isControlledByPostProcessingMode() {
-        var flow = RecordingFlowStore.defaultFlow
+        var flow = CapturePresetStore.defaultFlow
         XCTAssertTrue(flow.usesAIEnrichment)
 
         flow.postProcessingMode = .none
@@ -26,7 +30,7 @@ final class RecordingFlowTests: XCTestCase {
     func test_capturePolicyRoundTripsAndMapsToLightweightProfile() throws {
         let destinationID = UUID()
         let templateID = UUID()
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.captureProcessingEnabled = true
         flow.capturePrompt = "What happened in the meeting?"
         flow.metadataScope = .entry
@@ -37,7 +41,7 @@ final class RecordingFlowTests: XCTestCase {
         flow.postProcessingMode = .meetingNotes
 
         let decoded = try JSONDecoder().decode(
-            RecordingFlow.self,
+            CapturePreset.self,
             from: JSONEncoder().encode(flow)
         )
 
@@ -55,23 +59,378 @@ final class RecordingFlowTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let legacyDestinationID = UUID()
         let newerDestinationID = UUID()
-        var legacyFlow = RecordingFlowStore.makeCustomFlow()
+        var legacyFlow = CapturePresetStore.makeCustomFlow()
         legacyFlow.id = "legacy"
         legacyFlow.captureDestinationID = nil
-        var newerFlow = RecordingFlowStore.makeCustomFlow()
+        var newerFlow = CapturePresetStore.makeCustomFlow()
         newerFlow.id = "newer"
         newerFlow.captureDestinationID = newerDestinationID
-        RecordingFlowStore.saveFlows([legacyFlow, newerFlow], defaults: defaults)
+        CapturePresetStore.saveFlows([legacyFlow, newerFlow], defaults: defaults)
 
-        let migrated = RecordingFlowStore.migrateLegacyCaptureBindings(
+        let migrated = CapturePresetStore.migrateLegacyCaptureBindings(
             ["legacy": legacyDestinationID, "newer": legacyDestinationID],
             defaults: defaults
         )
-        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
+        let loaded = CapturePresetStore.loadFlows(defaults: defaults)
 
         XCTAssertEqual(migrated, 1)
         XCTAssertEqual(loaded.first(where: { $0.id == "legacy" })?.captureDestinationID, legacyDestinationID)
         XCTAssertEqual(loaded.first(where: { $0.id == "newer" })?.captureDestinationID, newerDestinationID)
+    }
+
+    func test_ownedPresetRouteMigrationClonesSharedRouteAndFoldsOverrides() throws {
+        let suiteName = "test.preset.owned-route.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let sharedRoute = CaptureDestination(
+            name: "Shared Inbox",
+            rootBookmark: Data([1, 2, 3]),
+            rootName: "Vault",
+            noteTarget: .rollingNote(pathTemplate: "Journal/{period}.md", period: .daily),
+            placement: .append
+        )
+        let templateID = UUID()
+        var journal = CapturePresetStore.defaultFlow
+        journal.name = "Journal"
+        journal.captureDestinationID = sharedRoute.id
+        var tasks = CapturePresetStore.makeCustomFlow()
+        tasks.id = "tasks"
+        tasks.name = "Tasks"
+        tasks.captureDestinationID = sharedRoute.id
+        tasks.capturePlacementOverride = .prepend
+        tasks.captureEntryTemplateID = templateID
+        CapturePresetStore.saveFlows([journal, tasks], defaults: defaults)
+        defaults.set(tasks.id, forKey: CapturePresetProfileStore.selectedCaptureProfileIDKey)
+        var library = CaptureLibraryEnvelope(
+            destinations: [sharedRoute],
+            defaultDestinationID: sharedRoute.id,
+            entryTemplates: [CaptureEntryTemplate(id: templateID, name: "Task", entryPrefix: "- [ ] ")]
+        )
+
+        XCTAssertTrue(CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults))
+        let migrated = CapturePresetStore.loadFlows(defaults: defaults)
+        let journalPreset = try XCTUnwrap(migrated.first(where: { $0.id == journal.id }))
+        let tasksPreset = try XCTUnwrap(migrated.first(where: { $0.id == tasks.id }))
+        let journalRoute = try XCTUnwrap(library.destinations.first(where: { $0.id == journalPreset.captureDestinationID }))
+        let tasksRoute = try XCTUnwrap(library.destinations.first(where: { $0.id == tasksPreset.captureDestinationID }))
+
+        XCTAssertNotEqual(journalRoute.id, tasksRoute.id)
+        XCTAssertEqual(journalRoute.name, "Journal")
+        XCTAssertEqual(tasksRoute.name, "Tasks")
+        XCTAssertEqual(tasksRoute.placement, .prepend)
+        XCTAssertEqual(tasksRoute.entryTemplateID, templateID)
+        XCTAssertNil(tasksPreset.capturePlacementOverride)
+        XCTAssertNil(tasksPreset.captureEntryTemplateID)
+        XCTAssertEqual(library.defaultDestinationID, tasksRoute.id)
+
+        let stableLibrary = library
+        let stablePresets = migrated
+        XCTAssertFalse(CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults))
+        XCTAssertEqual(library, stableLibrary)
+        XCTAssertEqual(CapturePresetStore.loadFlows(defaults: defaults), stablePresets)
+    }
+
+    func test_stalePresetWriterPreservesRouteOwnershipAfterMigration() throws {
+        let suiteName = "test.preset.stale-writer.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let sharedRoute = CaptureDestination(
+            name: "Shared",
+            rootBookmark: Data([1]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md")
+        )
+        var first = CapturePresetStore.defaultFlow
+        first.captureDestinationID = sharedRoute.id
+        var second = CapturePresetStore.makeCustomFlow()
+        second.id = "second"
+        second.captureDestinationID = sharedRoute.id
+        second.capturePlacementOverride = .prepend
+        let staleSnapshot = [first, second]
+        CapturePresetStore.saveFlows(staleSnapshot, defaults: defaults)
+        var library = CaptureLibraryEnvelope(
+            destinations: [sharedRoute],
+            defaultDestinationID: sharedRoute.id
+        )
+        XCTAssertTrue(CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults))
+        let migratedSecond = try XCTUnwrap(
+            CapturePresetStore.flow(id: second.id, defaults: defaults)
+        )
+        XCTAssertNotEqual(migratedSecond.captureDestinationID, sharedRoute.id)
+
+        var staleEdit = staleSnapshot
+        staleEdit[1].name = "Edited During Migration"
+        CapturePresetStore.saveFlows(staleEdit, defaults: defaults)
+
+        let savedSecond = try XCTUnwrap(
+            CapturePresetStore.flow(id: second.id, defaults: defaults)
+        )
+        XCTAssertEqual(savedSecond.name, "Edited During Migration")
+        XCTAssertEqual(savedSecond.captureDestinationID, migratedSecond.captureDestinationID)
+        XCTAssertNil(savedSecond.capturePlacementOverride)
+    }
+
+    func test_stalePresetWriterPreservesFallbackOwnershipAndPromotedOrphans() throws {
+        let suiteName = "test.preset.stale-fallback.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let fallback = CaptureDestination(
+            name: "Fallback",
+            rootBookmark: Data([1]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md")
+        )
+        let orphan = CaptureDestination(
+            name: "Archive",
+            rootBookmark: Data([2]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Archive.md")
+        )
+        var stalePreset = CapturePresetStore.defaultFlow
+        stalePreset.captureDestinationID = nil
+        let staleSnapshot = [stalePreset]
+        CapturePresetStore.saveFlows(staleSnapshot, defaults: defaults)
+        var library = CaptureLibraryEnvelope(
+            destinations: [fallback, orphan],
+            defaultDestinationID: fallback.id
+        )
+        XCTAssertTrue(CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults))
+        let migratedDefault = try XCTUnwrap(
+            CapturePresetStore.flow(id: stalePreset.id, defaults: defaults)
+        )
+        XCTAssertEqual(migratedDefault.captureDestinationID, fallback.id)
+        let orphanPresetID = "route-\(orphan.id.uuidString.lowercased())"
+        XCTAssertNotNil(CapturePresetStore.flow(id: orphanPresetID, defaults: defaults))
+
+        CapturePresetStore.saveFlows(staleSnapshot, defaults: defaults)
+
+        XCTAssertEqual(
+            CapturePresetStore.flow(id: stalePreset.id, defaults: defaults)?.captureDestinationID,
+            fallback.id
+        )
+        XCTAssertEqual(
+            CapturePresetStore.flow(id: orphanPresetID, defaults: defaults)?.captureDestinationID,
+            orphan.id
+        )
+
+        let staleBeforeDeletion = CapturePresetStore.loadFlows(defaults: defaults)
+        CapturePresetStore.retirePreset(
+            id: orphanPresetID,
+            ownedRouteID: orphan.id,
+            defaults: defaults
+        )
+        CapturePresetStore.saveFlows(staleBeforeDeletion, defaults: defaults)
+        XCTAssertNil(CapturePresetStore.flow(id: orphanPresetID, defaults: defaults))
+    }
+
+    func test_staleWriterCannotResurrectPresetBeforeOwnershipMigration() throws {
+        let suiteName = "test.preset.pre-migration-retire.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let retainedDefault = CapturePresetStore.defaultFlow
+        var deleted = CapturePresetStore.makeCustomFlow()
+        deleted.id = "deleted-before-migration"
+        let staleSnapshot = [retainedDefault, deleted]
+        CapturePresetStore.saveFlows(staleSnapshot, defaults: defaults)
+
+        CapturePresetStore.retirePreset(
+            id: deleted.id,
+            ownedRouteID: nil,
+            defaults: defaults
+        )
+        CapturePresetStore.saveFlows(staleSnapshot, defaults: defaults)
+
+        XCTAssertEqual(
+            CapturePresetStore.loadFlows(defaults: defaults).map(\.id),
+            [retainedDefault.id]
+        )
+    }
+
+    func test_concurrentPresetRetirementsKeepEveryTombstone() throws {
+        let suiteName = "test.preset.concurrent-retire.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        defaults.set(
+            CapturePresetProfileStore.currentOwnedRouteMigrationVersion,
+            forKey: CapturePresetProfileStore.ownedRouteMigrationVersionKey
+        )
+        let presets = (0..<8).map { index in
+            CapturePreset(
+                id: "retire-\(index)",
+                name: "Retire \(index)",
+                symbolName: "folder",
+                isBuiltIn: false,
+                kind: .custom,
+                captureDestinationID: UUID()
+            )
+        }
+        let retainedDefault = CapturePresetStore.defaultFlow
+        CapturePresetStore.saveFlows([retainedDefault] + presets, defaults: defaults)
+
+        DispatchQueue.concurrentPerform(iterations: presets.count) { index in
+            CapturePresetStore.retirePreset(
+                id: presets[index].id,
+                ownedRouteID: presets[index].captureDestinationID,
+                defaults: defaults
+            )
+        }
+        CapturePresetStore.saveFlows([retainedDefault] + presets, defaults: defaults)
+
+        XCTAssertEqual(
+            CapturePresetStore.loadFlows(defaults: defaults).map(\.id),
+            [retainedDefault.id]
+        )
+    }
+
+    func test_ownedPresetRouteMigrationReplayUsesSameCloneIDsAfterInterruptedCommit() throws {
+        let suiteName = "test.preset.replay-route.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let sharedRoute = CaptureDestination(
+            name: "Shared",
+            rootBookmark: Data([1]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md")
+        )
+        var first = CapturePresetStore.defaultFlow
+        first.captureDestinationID = sharedRoute.id
+        var second = CapturePresetStore.makeCustomFlow()
+        second.id = "second"
+        second.captureDestinationID = sharedRoute.id
+        second.capturePlacementOverride = .prepend
+        let legacyPresets = [first, second]
+        CapturePresetStore.saveFlows(legacyPresets, defaults: defaults)
+        var library = CaptureLibraryEnvelope(
+            destinations: [sharedRoute],
+            defaultDestinationID: sharedRoute.id
+        )
+
+        XCTAssertTrue(CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults))
+        let firstCloneIDs = Set(library.destinations.map(\.id))
+
+        // Simulate the route file committing before App Group defaults were
+        // published. Replaying must target the exact same deterministic IDs.
+        CapturePresetStore.saveFlows(legacyPresets, defaults: defaults)
+        defaults.removeObject(forKey: CapturePresetProfileStore.ownedRouteMigrationVersionKey)
+        XCTAssertTrue(CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults))
+
+        XCTAssertEqual(Set(library.destinations.map(\.id)), firstCloneIDs)
+        let replayedSecond = try XCTUnwrap(
+            CapturePresetStore.flow(id: second.id, defaults: defaults)
+        )
+        XCTAssertEqual(replayedSecond.capturePlacementOverride, nil)
+        XCTAssertEqual(
+            library.destinations.first(where: { $0.id == replayedSecond.captureDestinationID })?.placement,
+            .prepend
+        )
+    }
+
+    func test_ownedPresetRouteMigrationPromotesOrphanButNotRetiredRoute() throws {
+        let suiteName = "test.preset.orphan-route.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let owned = CaptureDestination(
+            name: "Inbox",
+            rootBookmark: Data([1]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md")
+        )
+        let orphan = CaptureDestination(
+            name: "Ideas",
+            rootBookmark: Data([2]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Ideas.md")
+        )
+        let retired = CaptureDestination(
+            name: "Old",
+            rootBookmark: Data([3]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Old.md")
+        )
+        var preset = CapturePresetStore.defaultFlow
+        preset.captureDestinationID = owned.id
+        CapturePresetStore.saveFlows([preset], defaults: defaults)
+        CapturePresetStore.retireOwnedRoute(retired.id, defaults: defaults)
+        var library = CaptureLibraryEnvelope(
+            destinations: [owned, orphan, retired],
+            defaultDestinationID: owned.id
+        )
+
+        _ = CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults)
+        let migrated = CapturePresetStore.loadFlows(defaults: defaults)
+
+        XCTAssertNotNil(migrated.first(where: { $0.id == "route-\(orphan.id.uuidString.lowercased())" }))
+        XCTAssertNil(migrated.first(where: { $0.captureDestinationID == retired.id }))
+        XCTAssertTrue(library.destinations.contains(where: { $0.id == retired.id }))
+    }
+
+    func test_routeLibraryRetainsRetiredRouteAfterQueuedRequestCompletes() async throws {
+        let suiteName = "test.preset.retired-route-purge.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CapturePresetRetired-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+
+        let route = CaptureDestination(
+            name: "Deleted Preset",
+            rootBookmark: Data([1]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md")
+        )
+        let store = CaptureLibraryStore(fileURL: root.appendingPathComponent(CaptureLibraryStore.defaultFilename))
+        try await store.save(CaptureLibraryEnvelope(destinations: [route], defaultDestinationID: route.id))
+        CapturePresetStore.retireOwnedRoute(route.id, defaults: defaults)
+
+        let inbox = CaptureInbox(rootDirectoryURL: root)
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: route.id,
+            payloads: [.text("keep route until delivered")]
+        )
+        try await inbox.enqueue(request)
+
+        var loaded = try await CapturePresetRouteLibrary.load(from: store, defaults: defaults)
+        XCTAssertTrue(loaded.destinations.contains(where: { $0.id == route.id }))
+
+        _ = try await inbox.claim(requestID: request.id)
+        try await inbox.complete(requestID: request.id)
+        loaded = try await CapturePresetRouteLibrary.load(from: store, defaults: defaults)
+        XCTAssertTrue(loaded.destinations.contains(where: { $0.id == route.id }))
+    }
+
+    func test_completedMigrationLeavesNewPresetUnconfigured() throws {
+        let suiteName = "test.preset.new-unconfigured.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let route = CaptureDestination(
+            name: "Default",
+            rootBookmark: Data([1]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md")
+        )
+        var defaultPreset = CapturePresetStore.defaultFlow
+        defaultPreset.captureDestinationID = route.id
+        CapturePresetStore.saveFlows([defaultPreset], defaults: defaults)
+        var library = CaptureLibraryEnvelope(destinations: [route], defaultDestinationID: route.id)
+        XCTAssertTrue(CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults))
+
+        var presets = CapturePresetStore.loadFlows(defaults: defaults)
+        var newPreset = CapturePresetStore.makeCustomFlow()
+        newPreset.id = "new-after-migration"
+        presets.append(newPreset)
+        CapturePresetStore.saveFlows(presets, defaults: defaults)
+
+        XCTAssertFalse(CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults))
+        XCTAssertNil(CapturePresetStore.flow(id: newPreset.id, defaults: defaults)?.captureDestinationID)
     }
 
     func test_clearCaptureDestinationRemovesDeletedRouteFromEveryFlow() throws {
@@ -80,17 +439,17 @@ final class RecordingFlowTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let deletedID = UUID()
         let retainedID = UUID()
-        var deletedRoute = RecordingFlowStore.defaultFlow
+        var deletedRoute = CapturePresetStore.defaultFlow
         deletedRoute.captureDestinationID = deletedID
-        var retainedRoute = RecordingFlowStore.makeCustomFlow()
+        var retainedRoute = CapturePresetStore.makeCustomFlow()
         retainedRoute.captureDestinationID = retainedID
-        RecordingFlowStore.saveFlows([deletedRoute, retainedRoute], defaults: defaults)
+        CapturePresetStore.saveFlows([deletedRoute, retainedRoute], defaults: defaults)
 
-        let cleared = RecordingFlowStore.clearCaptureDestination(
+        let cleared = CapturePresetStore.clearCaptureDestination(
             deletedID,
             defaults: defaults
         )
-        let flows = RecordingFlowStore.loadFlows(defaults: defaults)
+        let flows = CapturePresetStore.loadFlows(defaults: defaults)
 
         XCTAssertEqual(cleared, 1)
         XCTAssertNil(flows.first { $0.id == deletedRoute.id }?.captureDestinationID)
@@ -102,19 +461,19 @@ final class RecordingFlowTests: XCTestCase {
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let deletedID = UUID()
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.captureEntryTemplateID = deletedID
-        RecordingFlowStore.saveFlows([flow], defaults: defaults)
+        CapturePresetStore.saveFlows([flow], defaults: defaults)
 
-        let cleared = RecordingFlowStore.clearCaptureEntryTemplate(deletedID, defaults: defaults)
-        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
+        let cleared = CapturePresetStore.clearCaptureEntryTemplate(deletedID, defaults: defaults)
+        let loaded = CapturePresetStore.loadFlows(defaults: defaults)
 
         XCTAssertEqual(cleared, 1)
         XCTAssertNil(loaded.first(where: { $0.id == flow.id })?.captureEntryTemplateID)
     }
 
     func test_exportSettingsDecodeMissingAudioEmbedFieldsWithSafeDefaults() throws {
-        let settings = try JSONDecoder().decode(RecordingFlowExportSettings.self, from: Data("{}".utf8))
+        let settings = try JSONDecoder().decode(CapturePresetExportSettings.self, from: Data("{}".utf8))
 
         XCTAssertFalse(settings.embedAudioInMarkdown)
         XCTAssertEqual(settings.audioEmbedPlacement, .bottom)
@@ -125,31 +484,31 @@ final class RecordingFlowTests: XCTestCase {
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
 
-        let custom = RecordingFlow(
+        let custom = CapturePreset(
             id: "custom-test",
             name: "My Meeting Flow",
             symbolName: "person.2",
             isBuiltIn: false,
             kind: .custom,
-            exportSettings: RecordingFlowExportSettings(usesCustomExportSettings: false),
+            exportSettings: CapturePresetExportSettings(usesCustomExportSettings: false),
             postProcessingMode: .meetingNotes
         )
         let oldBuiltIns = [
-            RecordingFlow(
+            CapturePreset(
                 id: "dream",
                 name: "Dream Journal",
                 symbolName: "moon.stars",
                 isBuiltIn: true,
                 kind: .dream
             ),
-            RecordingFlow(
+            CapturePreset(
                 id: "todo",
                 name: "Todo List",
                 symbolName: "checklist",
                 isBuiltIn: true,
                 kind: .todo
             ),
-            RecordingFlow(
+            CapturePreset(
                 id: "meeting",
                 name: "Meeting / Call",
                 symbolName: "person.2.wave.2",
@@ -157,20 +516,20 @@ final class RecordingFlowTests: XCTestCase {
                 kind: .meeting
             ),
         ]
-        let oldDefault = RecordingFlow(
-            id: RecordingFlowStore.generalId,
+        let oldDefault = CapturePreset(
+            id: CapturePresetStore.generalId,
             name: "General Note",
             symbolName: "text.alignleft",
             isBuiltIn: true,
             kind: .general
         )
         let stored = [oldDefault, custom] + oldBuiltIns
-        defaults.set(try JSONEncoder().encode(stored), forKey: RecordingFlowStore.flowsKey)
+        defaults.set(try JSONEncoder().encode(stored), forKey: CapturePresetStore.flowsKey)
 
-        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
+        let loaded = CapturePresetStore.loadFlows(defaults: defaults)
 
-        XCTAssertEqual(loaded.map(\.id).sorted(), [RecordingFlowStore.generalId, custom.id].sorted())
-        XCTAssertTrue(loaded.contains { $0.id == RecordingFlowStore.generalId && $0.displayName == "Default" && $0.symbolName == RecordingFlowStore.defaultSymbolName })
+        XCTAssertEqual(loaded.map(\.id).sorted(), [CapturePresetStore.generalId, custom.id].sorted())
+        XCTAssertTrue(loaded.contains { $0.id == CapturePresetStore.generalId && $0.displayName == "Default" && $0.symbolName == CapturePresetStore.defaultSymbolName })
         XCTAssertTrue(loaded.contains { $0.id == custom.id && $0.postProcessingMode == .meetingNotes })
         XCTAssertTrue(loaded.allSatisfy { $0.exportSettings.usesCustomExportSettings })
         XCTAssertFalse(loaded.contains { ["dream", "todo", "meeting"].contains($0.id) })
@@ -193,17 +552,17 @@ final class RecordingFlowTests: XCTestCase {
         defaults.set([ExportYAMLProperty.text.rawValue], forKey: AppConstants.fileExportYAMLPropertiesKey)
         defaults.set(try tempFolder.bookmarkData(), forKey: AppConstants.fileExportBookmarkKey)
 
-        let custom = RecordingFlow(
+        let custom = CapturePreset(
             id: "custom-legacy",
             name: "Legacy Export Flow",
             symbolName: "folder",
             isBuiltIn: false,
             kind: .custom,
-            exportSettings: RecordingFlowExportSettings(usesCustomExportSettings: false)
+            exportSettings: CapturePresetExportSettings(usesCustomExportSettings: false)
         )
-        defaults.set(try JSONEncoder().encode([custom]), forKey: RecordingFlowStore.flowsKey)
+        defaults.set(try JSONEncoder().encode([custom]), forKey: CapturePresetStore.flowsKey)
 
-        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
+        let loaded = CapturePresetStore.loadFlows(defaults: defaults)
         let migrated = try XCTUnwrap(loaded.first { $0.id == custom.id })
 
         XCTAssertTrue(migrated.exportSettings.usesCustomExportSettings)
@@ -230,8 +589,8 @@ final class RecordingFlowTests: XCTestCase {
         defaults.set(ExportFileFormat.md.rawValue, forKey: AppConstants.fileExportFormatKey)
         defaults.set(try tempFolder.bookmarkData(), forKey: AppConstants.fileExportBookmarkKey)
 
-        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
-        let defaultFlow = try XCTUnwrap(loaded.first { $0.id == RecordingFlowStore.generalId })
+        let loaded = CapturePresetStore.loadFlows(defaults: defaults)
+        let defaultFlow = try XCTUnwrap(loaded.first { $0.id == CapturePresetStore.generalId })
 
         XCTAssertTrue(defaultFlow.exportSettings.usesCustomExportSettings)
         XCTAssertTrue(defaultFlow.exportSettings.exportEnabled)
@@ -241,7 +600,7 @@ final class RecordingFlowTests: XCTestCase {
     }
 
     func test_todoFlowFormatter_outputsMarkdownCheckboxes() {
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.staticFrontmatter = ["type": "todo", "category": "task", "tags": "[todo]"]
         flow.postProcessingMode = .todoList
         let transcript = Transcript(
@@ -287,7 +646,7 @@ final class RecordingFlowTests: XCTestCase {
         defaults.set(false, forKey: AppConstants.fileExportEnabledKey)
         defer { defaults.removePersistentDomain(forName: suiteName) }
 
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.staticFrontmatter = ["type": "dream", "category": "journal", "tags": "[dream]"]
         flow.exportSettings.usesCustomExportSettings = true
         flow.exportSettings.exportEnabled = true
@@ -316,19 +675,19 @@ final class RecordingFlowTests: XCTestCase {
         let suiteName = "test.flow.voice-type.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.staticFrontmatter = ["type": "voice-note", "project": "vox"]
-        defaults.set(try JSONEncoder().encode([flow]), forKey: RecordingFlowStore.flowsKey)
+        defaults.set(try JSONEncoder().encode([flow]), forKey: CapturePresetStore.flowsKey)
 
-        let loaded = RecordingFlowStore.loadFlows(defaults: defaults)
+        let loaded = CapturePresetStore.loadFlows(defaults: defaults)
         let migrated = try XCTUnwrap(loaded.first(where: { $0.id == flow.id }))
 
         XCTAssertEqual(migrated.staticFrontmatter["type"], "capture")
         XCTAssertEqual(migrated.staticFrontmatter["project"], "vox")
-        XCTAssertEqual(RecordingFlowStore.loadFlows(defaults: defaults), loaded)
+        XCTAssertEqual(CapturePresetStore.loadFlows(defaults: defaults), loaded)
     }
 
-    func test_legacyRecordingFlowFixture_decodesWithoutCaptureSchema() throws {
+    func test_legacyCapturePresetFixture_decodesWithoutCaptureSchema() throws {
         let fixture = """
         {
           "id": "custom-legacy-fixture",
@@ -362,7 +721,7 @@ final class RecordingFlowTests: XCTestCase {
         }
         """.data(using: .utf8)!
 
-        let flow = try JSONDecoder().decode(RecordingFlow.self, from: fixture)
+        let flow = try JSONDecoder().decode(CapturePreset.self, from: fixture)
         let encodedObject = try XCTUnwrap(
             JSONSerialization.jsonObject(with: JSONEncoder().encode(flow)) as? [String: Any]
         )
@@ -377,7 +736,7 @@ final class RecordingFlowTests: XCTestCase {
     func test_audioDestinationURL_usesFlowAudioFolderOverride() {
         let transcriptURL = URL(fileURLWithPath: "/tmp/Notes/meeting.md")
         let audioFolder = URL(fileURLWithPath: "/tmp/Audio Clips")
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.audioSaveMode = .attachmentsFolder
         flow.attachmentsFolderName = "nested-attachments"
 
@@ -394,7 +753,7 @@ final class RecordingFlowTests: XCTestCase {
     func test_audioDestinationURL_ignoresAudioFolderOverrideWhenAlongsideTranscript() {
         let transcriptURL = URL(fileURLWithPath: "/tmp/Notes/meeting.md")
         let audioFolder = URL(fileURLWithPath: "/tmp/Audio Clips")
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.audioSaveMode = .alongsideTranscript
 
         let destination = AudioAttachmentExporter.audioDestinationURL(
@@ -419,7 +778,7 @@ final class RecordingFlowTests: XCTestCase {
         let transcriptURL = notesFolder.appendingPathComponent("meeting.md")
         try "# Meeting".write(to: transcriptURL, atomically: true, encoding: .utf8)
 
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.audioSaveMode = .alongsideTranscript
 
         let audioURL = try await AudioAttachmentExporter.exportAudioIfNeeded(

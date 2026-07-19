@@ -4,7 +4,7 @@ import VoxboardCaptureCore
 public enum TranscriptCaptureAdapter {
     public static func payloads(
         transcript: Transcript,
-        flow: RecordingFlow,
+        flow: CapturePreset,
         audioAsset: CaptureAssetReference?
     ) throws -> [CapturePayload] {
         let configuration = TranscriptExportConfiguration(
@@ -33,7 +33,7 @@ public enum TranscriptCaptureAdapter {
 
     public static func frontmatter(
         transcript: Transcript,
-        flow: RecordingFlow
+        flow: CapturePreset
     ) -> [String: String] {
         var metadata = flow.staticFrontmatter
         if let title = transcript.title?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -82,7 +82,7 @@ public struct TranscriptCaptureDestinationExporter {
 
     public func export(
         transcript: Transcript,
-        flow: RecordingFlow,
+        flow: CapturePreset,
         destination: CaptureDestination,
         destinationRootURL: URL,
         stagingDirectoryURL: URL,
@@ -123,7 +123,7 @@ public struct TranscriptCaptureDestinationExporter {
 
     fileprivate static func routedDestination(
         _ destination: CaptureDestination,
-        for flow: RecordingFlow
+        for flow: CapturePreset
     ) -> CaptureDestination {
         var routed = destination
         if let placement = flow.capturePlacementOverride {
@@ -135,7 +135,7 @@ public struct TranscriptCaptureDestinationExporter {
         return routed
     }
 
-    fileprivate static func attachmentFolderOverride(for flow: RecordingFlow) -> String? {
+    fileprivate static func attachmentFolderOverride(for flow: CapturePreset) -> String? {
         switch flow.audioSaveMode {
         case .off:
             return nil
@@ -170,7 +170,7 @@ public enum ConfiguredTranscriptCaptureError: Error, LocalizedError, Sendable {
         case .storageUnavailable:
             return "Shared capture storage is unavailable."
         case .destinationMissing:
-            return "The Vox capture destination no longer exists. Choose another destination in the Vox settings."
+            return "This Capture Preset’s destination no longer exists. Configure it again in Presets."
         case .staleDestination(let name):
             return "The Files permission for ‘\(name)’ expired. Edit the capture destination and choose its folder again."
         case .audioPreparationFailed:
@@ -188,34 +188,39 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
     /// other capture. Legacy voice export remains the fallback when no Capture
     /// destination has been configured yet.
     public static func resolvedDestinationID(
-        flow: RecordingFlow,
-        captureRootURL: URL? = AppConstants.captureDirectoryURL
+        flow: CapturePreset,
+        captureRootURL: URL? = AppConstants.captureDirectoryURL,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
     ) async -> UUID? {
         guard let captureRootURL else { return nil }
         let store = CaptureLibraryStore(
             fileURL: captureRootURL.appendingPathComponent(CaptureLibraryStore.defaultFilename)
         )
-        guard let library = try? await store.load() else { return nil }
-        if !library.legacyFlowBindings.isEmpty {
-            RecordingFlowStore.migrateLegacyCaptureBindings(library.legacyFlowBindings)
-            try? await store.save(library)
-        }
-        var profile = flow.captureProfile
-        if profile.captureDestinationID == nil {
+        guard let library = try? await CapturePresetRouteLibrary.load(
+            from: store,
+            defaults: defaults
+        ) else { return nil }
+        let hasOwnedRoutes = CapturePresetProfileStore.hasOwnedRouteMigration(defaults: defaults)
+        var profile = CapturePresetStore.flow(
+            id: flow.id,
+            defaults: defaults
+        )?.captureProfile ?? flow.captureProfile
+        if !hasOwnedRoutes, profile.captureDestinationID == nil {
             profile.captureDestinationID = library.legacyFlowBindings[flow.id]
         }
-        return CaptureVoxRouteResolver.destinationID(
+        return CapturePresetRouteResolver.destinationID(
             selectionMode: .inherited,
             explicitDestinationID: nil,
             profile: profile,
             destinations: library.destinations,
-            libraryDefaultDestinationID: library.defaultDestinationID
+            libraryDefaultDestinationID: library.defaultDestinationID,
+            allowsLegacyFallback: !hasOwnedRoutes
         )
     }
 
     public static func export(
         transcript: Transcript,
-        flow: RecordingFlow,
+        flow: CapturePreset,
         destinationID: UUID,
         audioSourceURL: URL?,
         captureRootURL: URL? = AppConstants.captureDirectoryURL,
@@ -302,9 +307,10 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
                 )
             }
             didClaimRequest = true
-            let library = try await CaptureLibraryStore(
+            let libraryStore = CaptureLibraryStore(
                 fileURL: captureRootURL.appendingPathComponent(CaptureLibraryStore.defaultFilename)
-            ).load()
+            )
+            let library = try await CapturePresetRouteLibrary.load(from: libraryStore)
             guard let storedDestination = library.destinations.first(where: { $0.id == destinationID }) else {
                 throw ConfiguredTranscriptCaptureError.destinationMissing(destinationID)
             }

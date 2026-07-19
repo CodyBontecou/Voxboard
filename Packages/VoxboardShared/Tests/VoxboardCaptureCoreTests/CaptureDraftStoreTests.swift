@@ -109,6 +109,33 @@ final class CaptureDraftStoreTests: XCTestCase {
         XCTAssertNil(draft.relativeNotePathOverride)
     }
 
+    func test_equivalentExplicitDestinationBecomesInheritedWithoutClearingOtherOverrides() {
+        let destinationID = UUID()
+        let templateID = UUID()
+        var draft = CaptureDraft(
+            destinationID: destinationID,
+            placementOverride: .prepend,
+            relativeNotePathOverride: "Projects/Now.md",
+            entryTemplateID: templateID
+        )
+
+        XCTAssertTrue(draft.inheritDestinationIfEquivalent(to: destinationID))
+        XCTAssertEqual(draft.destinationSelectionMode, .inherited)
+        XCTAssertNil(draft.destinationID)
+        XCTAssertEqual(draft.placementOverride, .prepend)
+        XCTAssertEqual(draft.relativeNotePathOverride, "Projects/Now.md")
+        XCTAssertEqual(draft.entryTemplateID, templateID)
+    }
+
+    func test_nonEquivalentExplicitDestinationRemainsExplicit() {
+        let destinationID = UUID()
+        var draft = CaptureDraft(destinationID: destinationID)
+
+        XCTAssertFalse(draft.inheritDestinationIfEquivalent(to: UUID()))
+        XCTAssertEqual(draft.destinationSelectionMode, .explicit)
+        XCTAssertEqual(draft.destinationID, destinationID)
+    }
+
     func test_makeRequestPreservesMarkdownIndentationAndHardBreakSpaces() throws {
         let destinationID = UUID()
         let draft = CaptureDraft(

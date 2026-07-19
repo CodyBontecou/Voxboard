@@ -79,13 +79,13 @@ public struct TranscriptEnricher: Sendable {
         self.backend = backend
     }
 
-    public func enrich(rawText: String, flow: RecordingFlow? = nil) async throws -> TranscriptEnrichment {
+    public func enrich(rawText: String, flow: CapturePreset? = nil) async throws -> TranscriptEnrichment {
         try await enrich(rawText: rawText, profile: flow?.captureProfile)
     }
 
     public func enrich(
         rawText: String,
-        profile: CaptureVoxProfile?
+        profile: CapturePresetProfile?
     ) async throws -> TranscriptEnrichment {
         let trimmed = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
@@ -119,7 +119,7 @@ public struct TranscriptEnricher: Sendable {
         )
     }
 
-    private static func requiresPromptDrivenFormatting(_ profile: CaptureVoxProfile?) -> Bool {
+    private static func requiresPromptDrivenFormatting(_ profile: CapturePresetProfile?) -> Bool {
         guard let profile else { return false }
         switch profile.postProcessingMode {
         case .todoList, .meetingNotes, .custom:
@@ -131,7 +131,7 @@ public struct TranscriptEnricher: Sendable {
 
     private static func applyVoxDefaults(
         _ enrichment: TranscriptEnrichment,
-        profile: CaptureVoxProfile?
+        profile: CapturePresetProfile?
     ) -> TranscriptEnrichment {
         guard let profile else { return enrichment }
         let tags = TranscriptFlowFormatter.mergeTags(enrichment.tags, profile.staticTags)
@@ -177,7 +177,7 @@ public struct TranscriptEnricher: Sendable {
     /// is left as-is (per the agreed failure policy: fields stay nil). The caller
     /// is responsible for deciding when to invoke this (e.g., only after a
     /// foreground save, only when the feature is enabled).
-    public func enrichAndUpdate(transcript: Transcript, flow: RecordingFlow? = nil, into store: TranscriptStore) async {
+    public func enrichAndUpdate(transcript: Transcript, flow: CapturePreset? = nil, into store: TranscriptStore) async {
         let log = KeyboardDebugLog.shared
         let shortId = String(transcript.id.uuidString.prefix(8))
         log.log("[Enrichment] start id=\(shortId) flow=\(flow?.id ?? "none") chars=\(transcript.text.count)")
@@ -200,11 +200,11 @@ public struct TranscriptEnricher: Sendable {
 
     // MARK: - Prompt
 
-    static func buildPrompt(rawText: String, flow: RecordingFlow? = nil) -> String {
+    static func buildPrompt(rawText: String, flow: CapturePreset? = nil) -> String {
         buildPrompt(rawText: rawText, profile: flow?.captureProfile)
     }
 
-    static func buildPrompt(rawText: String, profile: CaptureVoxProfile?) -> String {
+    static func buildPrompt(rawText: String, profile: CapturePresetProfile?) -> String {
         let categoryList = allowedCategories.joined(separator: ", ")
         let flowInstruction = profile?.resolvedPostProcessingInstruction
         let flowLine = profile.map { "\nWorkflow: \($0.displayName)" } ?? ""

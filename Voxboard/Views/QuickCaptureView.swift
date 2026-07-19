@@ -19,7 +19,7 @@ private struct KeyboardReturnGuidance: Equatable, Identifiable {
 
 private enum CaptureRecordingMode: String, CaseIterable, Identifiable {
     case draft
-    case vox
+    case preset
 
     var id: Self { self }
 }
@@ -29,6 +29,7 @@ struct QuickCaptureView: View {
     @Bindable var persistentRecorder: PersistentRecorder
     @Binding var pendingKeyboardLaunch: Bool
     @Binding var pendingWidgetRecord: Bool
+    let openSettings: () -> Void
 
     @Environment(TranscriptStore.self) private var transcriptStore
     @Environment(UsageTracker.self) private var usageTracker
@@ -48,7 +49,6 @@ struct QuickCaptureView: View {
     @State private var showsSketch = false
     @State private var showsLinkPrompt = false
     @State private var showsCaptureHistory = false
-    @State private var showsDestinationLibrary = false
     @State private var showsRoutePicker = false
     @State private var showsDueDate = false
     @State private var showsInternalLinks = false
@@ -63,8 +63,8 @@ struct QuickCaptureView: View {
     @State private var keyboardLaunchPhase: KeyboardLaunchPhase?
     @State private var keyboardReturnGuidance: KeyboardReturnGuidance?
     @State private var fileExportToast: FileExportToast?
-    @State private var flows: [RecordingFlow] = RecordingFlowStore.loadFlows()
-    @State private var selectedFlowId: String = RecordingFlowStore.selectedFlowId()
+    @State private var flows: [CapturePreset] = CapturePresetStore.loadFlows()
+    @State private var selectedFlowId: String = CapturePresetStore.selectedFlowId()
     @State private var watchRecordingInboxItems: [WatchRecordingInboxItem] = WatchRecordingInbox.shared.load()
     @State private var isProcessingWatchRecordingQueue = false
     @State private var watchRecordingProcessingQueue: [WatchRecordingInboxItem] = []
@@ -87,12 +87,14 @@ struct QuickCaptureView: View {
         viewModel: QuickCaptureViewModel,
         persistentRecorder: PersistentRecorder,
         pendingKeyboardLaunch: Binding<Bool>,
-        pendingWidgetRecord: Binding<Bool>
+        pendingWidgetRecord: Binding<Bool>,
+        openSettings: @escaping () -> Void
     ) {
         self.viewModel = viewModel
         self.persistentRecorder = persistentRecorder
         _pendingKeyboardLaunch = pendingKeyboardLaunch
         _pendingWidgetRecord = pendingWidgetRecord
+        self.openSettings = openSettings
     }
 
     var body: some View {
@@ -104,13 +106,18 @@ struct QuickCaptureView: View {
             Geist.Palette.background100.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                if viewModel.destinations.isEmpty {
+                if viewModel.selectedDestination == nil {
                     emptyDestinationBanner
                     GeistDivider()
                 }
 
                 composer
                     .layoutPriority(1)
+
+                if shouldShowCaptureLiveTranscription {
+                    GeistDivider()
+                    liveCaptureTranscriptionBar
+                }
 
                 if !viewModel.draft.additionalPayloads.isEmpty {
                     attachmentStrip
@@ -166,18 +173,7 @@ struct QuickCaptureView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             captureControls
         }
-        .navigationTitle("Capture")
-        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismissComposer()
-                    showsCaptureHistory = true
-                } label: {
-                    Image(systemName: "clock.arrow.circlepath")
-                }
-                .accessibilityLabel("Recent captures")
-            }
             ToolbarItem(placement: .topBarTrailing) {
                 if isKeyboardListeningActive {
                     Button(action: togglePersistentListening) {
@@ -190,36 +186,9 @@ struct QuickCaptureView: View {
                     .accessibilityIdentifier("capture_keyboard_listening_status")
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    dismissComposer()
-                    showsDestinationLibrary = true
-                } label: {
-                    ZStack(alignment: .topTrailing) {
-                        Image(systemName: "tray")
-                        if viewModel.failedInboxCount > 0 {
-                            Text("\(min(viewModel.failedInboxCount, 9))")
-                                .font(.system(size: 8, weight: .bold))
-                                .foregroundStyle(Geist.bg)
-                                .frame(width: 14, height: 14)
-                                .background(Geist.error)
-                                .clipShape(Circle())
-                                .offset(x: 7, y: -6)
-                        }
-                    }
-                }
-                .accessibilityLabel(
-                    viewModel.failedInboxCount > 0
-                        ? "Manage capture routes, \(viewModel.failedInboxCount) deliveries need attention"
-                        : "Manage capture routes"
-                )
-            }
         }
         .toolbarBackground(Geist.Palette.background100, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .navigationDestination(isPresented: $showsDestinationLibrary) {
-            CaptureDestinationLibraryView(viewModel: viewModel)
-        }
     }
 
     private var draftLifecycleContent: some View {
@@ -432,6 +401,63 @@ struct QuickCaptureView: View {
         }
     }
 
+    private var shouldShowCaptureLiveTranscription: Bool {
+        persistentRecorder.isSegmentActive
+            && (persistentRecorder.isCaptureLiveTranscriptionActive
+                || !(persistentRecorder.liveFinalizedTranscription ?? "").isEmpty
+                || !(persistentRecorder.liveVolatileTranscription ?? "").isEmpty)
+    }
+
+    private var liveCaptureTranscriptionBar: some View {
+        let finalized = persistentRecorder.liveFinalizedTranscription ?? ""
+        let volatile = persistentRecorder.liveVolatileTranscription ?? ""
+        let accessibilityText = [finalized, volatile]
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+
+        return HStack(alignment: .top, spacing: Geist.Spacing.three) {
+            Image(systemName: "waveform")
+                .foregroundStyle(Geist.Palette.blue700)
+                .symbolEffect(.variableColor.iterative, isActive: persistentRecorder.isSegmentActive)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                Text("Live transcript")
+                    .font(Geist.caption(.caption2))
+                    .foregroundStyle(Geist.Palette.blue700)
+
+                if finalized.isEmpty, volatile.isEmpty {
+                    Text("Listening for speech…")
+                        .font(Geist.body())
+                        .foregroundStyle(Geist.muted)
+                } else {
+                    if !finalized.isEmpty {
+                        Text(finalized)
+                            .font(Geist.body())
+                            .foregroundStyle(Geist.text)
+                    }
+                    if !volatile.isEmpty {
+                        Text(volatile)
+                            .font(Geist.body())
+                            .foregroundStyle(Geist.muted)
+                            .italic()
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, Geist.Spacing.four)
+        .padding(.vertical, Geist.Spacing.three)
+        .background(Geist.Palette.blue700.opacity(0.08))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            accessibilityText.isEmpty
+                ? String(localized: "Live transcript, listening for speech")
+                : String(localized: "Live transcript, \(accessibilityText)")
+        )
+        .accessibilityIdentifier("capture_live_transcription")
+    }
+
     private var voiceCaptureButton: some View {
         Group {
             if persistentRecorder.isTranscribing {
@@ -514,7 +540,7 @@ struct QuickCaptureView: View {
             VStack(alignment: .leading, spacing: Geist.Spacing.three) {
                 Picker("Recording result", selection: $recordingMode) {
                     Text("Add to Draft").tag(CaptureRecordingMode.draft)
-                    Text("Send Immediately").tag(CaptureRecordingMode.vox)
+                    Text("Send with Preset").tag(CaptureRecordingMode.preset)
                 }
                 .pickerStyle(.segmented)
                 .disabled(recordingOptionsAreLocked)
@@ -535,7 +561,7 @@ struct QuickCaptureView: View {
                             .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
                     }
                     .disabled(recordingOptionsAreLocked)
-                    .accessibilityLabel("Vox \(selectedFlow.displayName)")
+                    .accessibilityLabel("Capture Preset \(selectedFlow.displayName)")
 
                     if recordingMode == .draft {
                         Toggle(isOn: $attachRecordingAudio) {
@@ -588,7 +614,7 @@ struct QuickCaptureView: View {
                 if let result = persistentRecorder.lastTranscriptionResult {
                     HStack(spacing: Geist.Spacing.two) {
                         Image(systemName: lastStartedRecordingMode == .draft ? "text.badge.plus" : "checkmark.circle.fill")
-                        Text(lastStartedRecordingMode == .draft ? "Transcript added to Capture" : "Sent with Vox")
+                        Text(lastStartedRecordingMode == .draft ? "Transcript added to Capture" : "Sent with Preset")
                             .font(Geist.caption())
                         Spacer()
                         Button("Copy") { UIPasteboard.general.string = result }
@@ -786,12 +812,14 @@ struct QuickCaptureView: View {
 
     private var captureControls: some View {
         VStack(spacing: 0) {
-            GeistDivider()
             if showsVoiceCaptureDetails {
+                GeistDivider()
                 voiceCaptureDetailsBar
                 GeistDivider()
             }
-            routeRow
+            routeSelectionRow
+            GeistDivider()
+            captureActionBar
             GeistDivider()
             CaptureEditorToolbar(
                 command: handleToolbarCommand,
@@ -820,6 +848,15 @@ struct QuickCaptureView: View {
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Geist.Palette.background100)
+        .overlay(alignment: .topLeading) {
+            if viewModel.draft.text.isEmpty && !composerIsFocused {
+                BlinkingCaptureCaret()
+                    .padding(.leading, 21)
+                    .padding(.top, 24)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+        }
         .overlay(alignment: .center) {
             if viewModel.draft.text.isEmpty && viewModel.draft.additionalPayloads.isEmpty {
                 inspirationPlaceholder
@@ -876,19 +913,18 @@ struct QuickCaptureView: View {
     }
 
     private var emptyDestinationBanner: some View {
-        NavigationLink {
-            CaptureDestinationLibraryView(viewModel: viewModel)
-        } label: {
-            Label("Choose a local Markdown destination to begin", systemImage: "folder.badge.plus")
-                .font(Geist.caption())
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-        }
+        Label(
+            "Configure this Capture Preset’s destination in the Presets tab",
+            systemImage: "folder.badge.plus"
+        )
+        .font(Geist.caption())
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
         .foregroundStyle(Geist.text)
         .background(Geist.surface)
     }
 
-    private var routeRow: some View {
+    private var routeSelectionRow: some View {
         HStack(spacing: 8) {
             Menu {
                 ForEach(enabledFlows) { flow in
@@ -907,7 +943,7 @@ struct QuickCaptureView: View {
                         .font(.caption2)
                 }
             }
-            .accessibilityLabel("Capture Vox \(selectedFlow.displayName)")
+            .accessibilityLabel("Capture Preset \(selectedFlow.displayName)")
             .accessibilityIdentifier("capture_vox_selector")
 
             Button {
@@ -927,8 +963,6 @@ struct QuickCaptureView: View {
             }
             .accessibilityLabel("Capture route \(routeLabel), \(viewModel.effectivePlacementLabel)")
 
-            Spacer(minLength: 4)
-
             if viewModel.hasAnyRouteOverride {
                 Button {
                     viewModel.useVoxRouteDefaults()
@@ -936,8 +970,38 @@ struct QuickCaptureView: View {
                     Image(systemName: "arrow.uturn.backward.circle")
                         .frame(width: 36, height: 36)
                 }
-                .accessibilityLabel("Use Vox route defaults")
+                .accessibilityLabel("Use Preset destination defaults")
             }
+
+            Spacer(minLength: 4)
+        }
+        .font(Geist.caption())
+        .foregroundStyle(Geist.muted)
+        .padding(.horizontal, Geist.Spacing.three)
+        .frame(minHeight: Geist.ControlHeight.large)
+        .background(Geist.Palette.background100)
+    }
+
+    private var captureActionBar: some View {
+        HStack(spacing: 8) {
+            routeStatusButton(
+                "Recent captures",
+                icon: "clock.arrow.circlepath"
+            ) {
+                dismissComposer()
+                showsCaptureHistory = true
+            }
+
+            routeStatusButton(
+                "Settings",
+                icon: "gearshape"
+            ) {
+                dismissComposer()
+                openSettings()
+            }
+            .accessibilityIdentifier("capture_settings")
+
+            Spacer(minLength: 4)
 
             if !usageTracker.hasUnlocked, usageTracker.successfulCapturesUsed >= 7 {
                 Button {
@@ -1076,7 +1140,7 @@ struct QuickCaptureView: View {
         if let override = viewModel.draft.relativeNotePathOverride {
             return URL(fileURLWithPath: override).deletingPathExtension().lastPathComponent
         }
-        return viewModel.selectedDestination?.name ?? String(localized: "Choose destination")
+        return viewModel.selectedDestination?.rootName ?? String(localized: "Set up destination")
     }
 
     private var captureSubmissionRequiresUnlock: Bool {
@@ -1376,12 +1440,12 @@ struct QuickCaptureView: View {
         return AVAudioSession.sharedInstance().recordPermission == .granted
     }
 
-    private var enabledFlows: [RecordingFlow] {
+    private var enabledFlows: [CapturePreset] {
         let enabled = flows.filter(\.isEnabled)
-        return enabled.isEmpty ? RecordingFlowStore.defaultFlows : enabled
+        return enabled.isEmpty ? CapturePresetStore.defaultFlows : enabled
     }
 
-    private var selectedFlow: RecordingFlow {
+    private var selectedFlow: CapturePreset {
         enabledFlows.first(where: { $0.id == selectedFlowId }) ?? enabledFlows[0]
     }
 
@@ -1389,7 +1453,7 @@ struct QuickCaptureView: View {
         switch recordingMode {
         case .draft:
             return .captureDraft(attachAudio: attachRecordingAudio)
-        case .vox:
+        case .preset:
             return .runVox(flowID: selectedFlow.id)
         }
     }
@@ -1479,15 +1543,15 @@ struct QuickCaptureView: View {
     }
 
     private func reloadFlows() {
-        flows = RecordingFlowStore.loadFlows()
+        flows = CapturePresetStore.loadFlows()
         viewModel.refreshVoxProfiles()
         let draftVoxID = viewModel.draft.voxID
         selectedFlowId = flows.contains(where: { $0.id == draftVoxID && $0.isEnabled })
-            ? (draftVoxID ?? RecordingFlowStore.generalId)
-            : (viewModel.selectedVoxProfile?.id ?? RecordingFlowStore.selectedFlowId())
+            ? (draftVoxID ?? CapturePresetStore.generalId)
+            : (viewModel.selectedVoxProfile?.id ?? CapturePresetStore.selectedFlowId())
     }
 
-    private func selectFlow(_ flow: RecordingFlow) {
+    private func selectFlow(_ flow: CapturePreset) {
         viewModel.selectVox(flow.id)
         selectedFlowId = flow.id
     }
@@ -1625,12 +1689,12 @@ struct QuickCaptureView: View {
         let requestedFlowID = AppConstants.sharedDefaults?.string(forKey: AppConstants.pendingWidgetRecordFlowIdKey)
         AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingWidgetRecordFlowIdKey)
         let flowID: String = requestedFlowID.flatMap { requested in
-            guard let flow = RecordingFlowStore.flow(id: requested), flow.isEnabled else { return nil }
+            guard let flow = CapturePresetStore.flow(id: requested), flow.isEnabled else { return nil }
             selectFlow(flow)
             return flow.id
         } ?? selectedFlow.id
 
-        lastStartedRecordingMode = .vox
+        lastStartedRecordingMode = .preset
         persistentRecorder.lastTranscriptionResult = nil
         _ = persistentRecorder.startOneShotInAppSegment(
             flowId: flowID,
@@ -1704,7 +1768,7 @@ struct QuickCaptureView: View {
         watchRecordingProcessingTotal = items.count
         watchRecordingProcessingIndex = 0
         isProcessingWatchRecordingQueue = true
-        lastStartedRecordingMode = .vox
+        lastStartedRecordingMode = .preset
         persistentRecorder.lastTranscriptionResult = nil
         processNextQueuedWatchRecordingIfNeeded()
     }
@@ -1799,6 +1863,29 @@ struct QuickCaptureView: View {
             return String(localized: "Scan · \(pages.count) page(s)")
         case .sketch: return String(localized: "Sketch")
         }
+    }
+}
+
+private struct BlinkingCaptureCaret: View {
+    @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
+    @ScaledMetric(relativeTo: .body) private var height: CGFloat = 21
+    @State private var isVisible = true
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 1, style: .continuous)
+            .fill(Geist.focus)
+            .frame(width: 2, height: height)
+            .opacity(accessibilityReduceMotion || isVisible ? 1 : 0)
+            .task(id: accessibilityReduceMotion) {
+                isVisible = true
+                guard !accessibilityReduceMotion else { return }
+
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .milliseconds(530))
+                    guard !Task.isCancelled else { return }
+                    isVisible.toggle()
+                }
+            }
     }
 }
 

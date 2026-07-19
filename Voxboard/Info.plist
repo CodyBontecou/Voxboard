@@ -27,6 +27,8 @@
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Vox.md uses the microphone when you choose to transcribe speech or attach a voice recording to a local Markdown note.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Vox.md uses Apple Speech to transcribe your recording locally while you speak.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Vox.md uses your location only when you choose to insert a map link into a local Markdown draft.</string>
 	<key>NSCameraUsageDescription</key>

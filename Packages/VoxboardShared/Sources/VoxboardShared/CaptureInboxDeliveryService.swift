@@ -29,8 +29,9 @@ public enum CaptureInboxDeliveryService {
         retryFailed: Bool = false,
         staleProcessingTimeout: TimeInterval = 5 * 60,
         completedRetention: TimeInterval = 7 * 24 * 60 * 60,
+        defaults: UserDefaults? = AppConstants.sharedDefaults,
         pipeline: CapturePipeline = AppCapturePipeline.shared,
-        requestProcessor: CaptureVoxRequestProcessor = CaptureVoxRequestProcessor(),
+        requestProcessor: CapturePresetRequestProcessor = CapturePresetRequestProcessor(),
         coordinator: any CaptureFileCoordinating = NSFileCoordinatorCaptureFileCoordinator.shared
     ) async -> CaptureInboxDeliveryResult {
         let inbox = CaptureInbox(rootDirectoryURL: captureRootURL, coordinator: coordinator)
@@ -40,10 +41,14 @@ public enum CaptureInboxDeliveryService {
         )
         let library: CaptureLibraryEnvelope
         do {
-            library = try await CaptureLibraryStore(
+            let libraryStore = CaptureLibraryStore(
                 fileURL: captureRootURL.appendingPathComponent(CaptureLibraryStore.defaultFilename),
                 coordinator: coordinator
-            ).load()
+            )
+            library = try await CapturePresetRouteLibrary.load(
+                from: libraryStore,
+                defaults: defaults
+            )
             _ = try await inbox.recoverStaleProcessing(olderThan: staleProcessingTimeout)
             _ = try await inbox.purgeCompleted(olderThan: completedRetention)
             _ = try await inbox.purgeOrphanedStaging(olderThan: 24 * 60 * 60)

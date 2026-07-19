@@ -3,10 +3,11 @@ import SwiftUI
 import UniformTypeIdentifiers
 import VoxboardShared
 
-/// Manage reusable Vox capture workflows across text, links, media, scans,
-/// files, and voice recordings.
-struct FlowSettingsView: View {
-    @State private var flows: [RecordingFlow] = RecordingFlowStore.loadFlows()
+/// Manage reusable Capture Presets across text, links, media, scans, files,
+/// and voice recordings. A preset owns its processing, metadata, and complete
+/// Markdown destination.
+struct CapturePresetSettingsView: View {
+    @State private var flows: [CapturePreset] = CapturePresetStore.loadFlows()
 
     var body: some View {
         List {
@@ -15,7 +16,7 @@ struct FlowSettingsView: View {
             Section {
                 ForEach($flows) { $flow in
                     NavigationLink {
-                        FlowEditorView(flow: $flow)
+                        CapturePresetEditorView(preset: $flow)
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: flow.symbolName)
@@ -27,11 +28,11 @@ struct FlowSettingsView: View {
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
-                            if flow.id == CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) {
-                                Text("Capture")
+                            if flow.id == CapturePresetProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) {
+                                Text("Default")
                                     .font(.caption2.monospaced().weight(.semibold))
                                     .foregroundStyle(.secondary)
-                            } else if flow.id == RecordingFlowStore.selectedFlowId() {
+                            } else if flow.id == CapturePresetStore.selectedFlowId() {
                                 Text("Keyboard")
                                     .font(.caption2.monospaced().weight(.semibold))
                                     .foregroundStyle(.secondary)
@@ -47,39 +48,55 @@ struct FlowSettingsView: View {
                     }
                 }
             } header: {
-                Text("Your Voxes")
+                Text("Capture Presets")
             } footer: {
-                Text("Tap a Vox to customize how every Capture is processed, formatted, and routed. Voice-only audio and legacy export options remain available inside each Vox.")
+                Text("Each preset owns how captures are processed, formatted, and delivered. Voice-specific audio and legacy export options live in the same preset.")
             }
 
             Section {
                 Button {
-                    flows.append(RecordingFlowStore.makeCustomFlow())
+                    flows.append(CapturePresetStore.makeCustomFlow())
                 } label: {
-                    Label("Add Vox", systemImage: "plus")
+                    Label("Add Preset", systemImage: "plus")
+                }
+            }
+
+            Section("Shared Formatting") {
+                NavigationLink {
+                    CaptureEntryTemplateLibraryView()
+                } label: {
+                    Label("Entry Templates", systemImage: "doc.text")
                 }
             }
         }
-        .navigationTitle("Manage Voxes")
+        .navigationTitle("Capture Presets")
         .font(Geist.body())
         .tint(Geist.Palette.gray1000)
         .scrollContentBackground(.hidden)
         .background(Geist.Palette.background200)
+        .task { await migrateRoutesAndReload() }
         .onChange(of: flows) { _, newValue in
-            RecordingFlowStore.saveFlows(newValue)
+            CapturePresetStore.saveFlows(newValue)
             if #available(iOS 18.0, *) {
                 VoxboardShortcutsProvider.updateAppShortcutParameters()
             }
         }
     }
 
+    private func migrateRoutesAndReload() async {
+        guard let url = AppConstants.captureLibraryURL else { return }
+        let store = CaptureLibraryStore(fileURL: url)
+        _ = try? await CapturePresetRouteLibrary.load(from: store)
+        flows = CapturePresetStore.loadFlows()
+    }
+
     private var introSection: some View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
-                Label("What is a Vox?", systemImage: "waveform.circle")
+                Label("What is a Capture Preset?", systemImage: "slider.horizontal.3")
                     .font(.headline)
-                Text("A Vox is a reusable capture workflow. Choose one in Capture and Vox.md uses it for typed Markdown, links, photos, files, scans, sketches, and voice.")
-                Text("Create Voxes for meetings, journal entries, task capture, ideas, or any route and template setup you use often.")
+                Text("A Capture Preset is a complete reusable workflow: what happens to a capture and exactly where it is delivered.")
+                Text("Create presets for meetings, journal entries, tasks, ideas, or any setup you use often.")
             }
             .font(.subheadline)
             .foregroundStyle(.secondary)
@@ -87,14 +104,18 @@ struct FlowSettingsView: View {
         }
     }
 
-    private func delete(_ flow: RecordingFlow) {
+    private func delete(_ flow: CapturePreset) {
+        CapturePresetStore.retirePreset(
+            id: flow.id,
+            ownedRouteID: flow.captureDestinationID
+        )
         flows.removeAll { $0.id == flow.id }
-        let fallbackID = flows.first?.id ?? RecordingFlowStore.generalId
-        if RecordingFlowStore.selectedFlowId() == flow.id {
-            RecordingFlowStore.selectFlow(id: fallbackID)
+        let fallbackID = flows.first?.id ?? CapturePresetStore.generalId
+        if CapturePresetStore.selectedFlowId() == flow.id {
+            CapturePresetStore.selectFlow(id: fallbackID)
         }
-        if CaptureVoxProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) == flow.id {
-            CaptureVoxProfileStore.selectCaptureProfile(
+        if CapturePresetProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults) == flow.id {
+            CapturePresetProfileStore.selectCaptureProfile(
                 id: fallbackID,
                 defaults: AppConstants.sharedDefaults
             )
@@ -102,20 +123,15 @@ struct FlowSettingsView: View {
     }
 }
 
-private struct FlowEditorView: View {
-    @Binding var flow: RecordingFlow
+private struct CapturePresetEditorView: View {
+    @Binding var flow: CapturePreset
     @State private var frontmatterText: String
     @State private var showBookmarkPicker = false
     @State private var bookmarkPickerKind: BookmarkKind = .exportFolder
     @State private var captureDestinations: [CaptureDestination] = []
     @State private var captureEntryTemplates: [CaptureEntryTemplate] = []
     @State private var captureDestinationLoadError: String?
-
-    private enum VoxCapturePlacementChoice: String, Hashable {
-        case routeDefault
-        case top
-        case bottom
-    }
+    @State private var isEditingDestination = false
 
     private enum BookmarkKind {
         case exportFolder
@@ -132,16 +148,16 @@ private struct FlowEditorView: View {
         }
     }
 
-    init(flow: Binding<RecordingFlow>) {
-        self._flow = flow
-        self._frontmatterText = State(initialValue: Self.renderFrontmatter(flow.wrappedValue.staticFrontmatter))
+    init(preset: Binding<CapturePreset>) {
+        self._flow = preset
+        self._frontmatterText = State(initialValue: Self.renderFrontmatter(preset.wrappedValue.staticFrontmatter))
     }
 
     var body: some View {
         Form {
             identitySection
             postProcessingSection
-            preciseCaptureRoutingSection
+            ownedDestinationSection
             if flow.captureDestinationID == nil {
                 fileExportSection
             }
@@ -158,6 +174,17 @@ private struct FlowEditorView: View {
             // per-flow when the user opens them so later edits do not fall back
             // to the legacy app-wide Files tab settings.
             flow.exportSettings.usesCustomExportSettings = true
+        }
+        .sheet(isPresented: $isEditingDestination) {
+            NavigationStack {
+                CaptureDestinationEditorView(
+                    existing: ownedDestination,
+                    templates: captureEntryTemplates,
+                    fixedName: flow.displayName
+                ) { destination in
+                    try await saveOwnedDestination(destination)
+                }
+            }
         }
         .fileImporter(
             isPresented: $showBookmarkPicker,
@@ -202,7 +229,7 @@ private struct FlowEditorView: View {
                 .tint(Geist.muted)
 
             Picker("Mode", selection: $flow.postProcessingMode) {
-                ForEach(RecordingFlowPostProcessingMode.allCases) { mode in
+                ForEach(CapturePresetProcessingMode.allCases) { mode in
                     Text(mode.displayName).tag(mode)
                 }
             }
@@ -235,39 +262,29 @@ private struct FlowEditorView: View {
         }
     }
 
-    private var preciseCaptureRoutingSection: some View {
+    private var ownedDestinationSection: some View {
         Section {
-            Picker("Markdown Route", selection: $flow.captureDestinationID) {
-                Text("App Default / Legacy Voice Export").tag(Optional<UUID>.none)
-                ForEach(captureDestinations) { destination in
-                    Text(destination.name).tag(Optional(destination.id))
-                }
-            }
-
-            if let destinationID = flow.captureDestinationID,
-               let destination = captureDestinations.first(where: { $0.id == destinationID }) {
-                Label(destination.rootName, systemImage: "arrow.triangle.branch")
-                    .foregroundStyle(.secondary)
+            if let destination = ownedDestination {
+                LabeledContent("Vault / Folder", value: destination.rootName)
                 Text(captureDestinationSummary(destination))
-                    .font(.caption)
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
-
-                Picker("Default Placement", selection: capturePlacementBinding) {
-                    Text("Route Default").tag(VoxCapturePlacementChoice.routeDefault)
-                    Text("Top").tag(VoxCapturePlacementChoice.top)
-                    Text("Bottom").tag(VoxCapturePlacementChoice.bottom)
+                Button {
+                    isEditingDestination = true
+                } label: {
+                    Label("Edit Destination", systemImage: "square.and.pencil")
                 }
-
-                Picker("Default Entry Template", selection: $flow.captureEntryTemplateID) {
-                    Text("Route Default").tag(UUID?.none)
-                    ForEach(captureEntryTemplates) { template in
-                        Text(template.name).tag(Optional(template.id))
-                    }
+            } else {
+                ContentUnavailableView(
+                    "Destination Not Configured",
+                    systemImage: "folder.badge.plus",
+                    description: Text("Choose a vault or folder and define where this preset writes Markdown.")
+                )
+                Button {
+                    isEditingDestination = true
+                } label: {
+                    Label("Set Up Destination", systemImage: "folder.badge.plus")
                 }
-            } else if flow.captureDestinationID != nil {
-                Text("This destination is missing. Choose another route or use the app default.")
-                    .font(.caption)
-                    .foregroundStyle(.red)
             }
 
             if let captureDestinationLoadError {
@@ -276,16 +293,16 @@ private struct FlowEditorView: View {
                     .foregroundStyle(.red)
             }
         } header: {
-            Text("Unified Capture Route")
+            Text("Destination")
         } footer: {
-            Text("A unified route gives this Vox the same rolling notes, prepend, heading insertion, attachment folder, conflict-safe writes, and retries as Quick Capture. Create routes from Capture → sliders.")
+            Text("This destination belongs to this preset. It includes the note target, placement, entry formatting, attachments folder, and retry behavior.")
         }
     }
 
     private var frontmatterSection: some View {
         Section("Metadata") {
             Picker("Scope", selection: $flow.metadataScope) {
-                ForEach(CaptureVoxMetadataScope.allCases) { scope in
+                ForEach(CapturePresetMetadataScope.allCases) { scope in
                     Text(scope.displayName).tag(scope)
                 }
             }
@@ -392,7 +409,7 @@ private struct FlowEditorView: View {
     private var audioExportSection: some View {
         Section {
             Picker("Save Audio", selection: $flow.audioSaveMode) {
-                ForEach(RecordingFlowAudioSaveMode.allCases) { mode in
+                ForEach(CapturePresetAudioSaveMode.allCases) { mode in
                     Text(mode.displayName).tag(mode)
                 }
             }
@@ -443,7 +460,7 @@ private struct FlowEditorView: View {
 
                 if flow.exportSettings.embedAudioInMarkdown && markdownAudioEmbedAvailable {
                     Picker("Embed Position", selection: $flow.exportSettings.audioEmbedPlacement) {
-                        ForEach(RecordingFlowAudioEmbedPlacement.allCases) { placement in
+                        ForEach(CapturePresetAudioEmbedPlacement.allCases) { placement in
                             Text(placement.displayName).tag(placement)
                         }
                     }
@@ -471,7 +488,7 @@ private struct FlowEditorView: View {
                 : "Saved audio is placed alongside the unified Markdown note."
         case .attachmentsFolder:
             return flow.captureDestinationID == nil
-                ? "When no audio export directory is set, saved audio uses this Vox's legacy note export folder."
+                ? "When no audio export directory is set, saved audio uses this preset’s legacy note export folder."
                 : "Saved audio uses a subfolder inside the unified Markdown destination, and that route survives deferred retries."
         }
     }
@@ -489,7 +506,7 @@ private struct FlowEditorView: View {
             return "Adds an Obsidian-style audio link to the unified Markdown note at the selected position."
         }
         guard markdownAudioEmbedAvailable else {
-            return "Audio embeds require a Markdown note export. Switch this Vox to MD, a Markdown template, or YAML with the .md extension."
+            return "Audio embeds require a Markdown note export. Switch this preset to MD, a Markdown template, or YAML with the .md extension."
         }
         return "Adds an Obsidian-style `![[recording.m4a]]` link to the note so you can replay the recording while reviewing the transcript."
     }
@@ -508,23 +525,32 @@ private struct FlowEditorView: View {
         }
     }
 
-    private var capturePlacementBinding: Binding<VoxCapturePlacementChoice> {
-        Binding(
-            get: {
-                switch flow.capturePlacementOverride {
-                case nil, .beneathHeading: return .routeDefault
-                case .prepend: return .top
-                case .append: return .bottom
-                }
-            },
-            set: { choice in
-                switch choice {
-                case .routeDefault: flow.capturePlacementOverride = nil
-                case .top: flow.capturePlacementOverride = .prepend
-                case .bottom: flow.capturePlacementOverride = .append
-                }
+    private var ownedDestination: CaptureDestination? {
+        guard let id = flow.captureDestinationID else { return nil }
+        return captureDestinations.first(where: { $0.id == id })
+    }
+
+    private func saveOwnedDestination(_ destination: CaptureDestination) async throws {
+        guard let url = AppConstants.captureLibraryURL else {
+            throw CapturePresetDestinationError.storageUnavailable
+        }
+        let store = CaptureLibraryStore(fileURL: url)
+        let library = try await store.update { library in
+            if let index = library.destinations.firstIndex(where: { $0.id == destination.id }) {
+                library.destinations[index] = destination
+            } else {
+                library.destinations.append(destination)
             }
-        )
+            if library.defaultDestinationID == nil {
+                library.defaultDestinationID = destination.id
+            }
+        }
+        flow.captureDestinationID = destination.id
+        flow.captureEntryTemplateID = nil
+        flow.capturePlacementOverride = nil
+        captureDestinations = library.destinations
+        captureEntryTemplates = library.entryTemplates
+        captureDestinationLoadError = nil
     }
 
     private func loadCaptureDestinations() async {
@@ -533,9 +559,13 @@ private struct FlowEditorView: View {
             return
         }
         do {
-            let library = try await CaptureLibraryStore(fileURL: url).load()
+            let store = CaptureLibraryStore(fileURL: url)
+            let library = try await CapturePresetRouteLibrary.load(from: store)
             captureDestinations = library.destinations
             captureEntryTemplates = library.entryTemplates
+            if let refreshed = CapturePresetStore.flow(id: flow.id) {
+                flow = refreshed
+            }
             captureDestinationLoadError = nil
         } catch {
             captureDestinationLoadError = error.localizedDescription
@@ -630,6 +660,14 @@ private struct FlowEditorView: View {
             result[key] = value
         }
         return result
+    }
+}
+
+private enum CapturePresetDestinationError: Error, LocalizedError {
+    case storageUnavailable
+
+    var errorDescription: String? {
+        "Shared capture storage is unavailable."
     }
 }
 
@@ -833,7 +871,7 @@ private struct FlowIconPickerView: View {
     ]
 }
 
-private extension RecordingFlowPostProcessingMode {
+private extension CapturePresetProcessingMode {
     var helpTitle: String {
         switch self {
         case .none:

@@ -20,13 +20,25 @@ final class CaptureDeepLinkParserTests: XCTestCase {
         )
     }
 
-    func test_voxCanBeSelectedWithoutForcingDestinationOverride() throws {
-        let url = try XCTUnwrap(URL(string: "voxboard://capture?vox=custom-journal&text=Today"))
+    func test_presetCanBeSelectedWithoutForcingDestinationOverride() throws {
+        let url = try XCTUnwrap(URL(string: "voxboard://capture?preset=custom-journal&text=Today"))
 
-        XCTAssertEqual(
-            try CaptureDeepLinkParser().parse(url),
-            .openComposer(CaptureDeepLinkDraft(text: "Today", voxID: "custom-journal"))
-        )
+        guard case .openComposer(let draft) = try CaptureDeepLinkParser().parse(url) else {
+            return XCTFail("Expected composer draft")
+        }
+        XCTAssertEqual(draft.text, "Today")
+        XCTAssertEqual(draft.presetID, "custom-journal")
+    }
+
+    func test_legacyVoxParameterStillSelectsPresetAndCannotBeCombinedWithPreset() throws {
+        let legacy = try XCTUnwrap(URL(string: "voxboard://capture?vox=custom-journal"))
+        guard case .openComposer(let draft) = try CaptureDeepLinkParser().parse(legacy) else {
+            return XCTFail("Expected composer draft")
+        }
+        XCTAssertEqual(draft.presetID, "custom-journal")
+
+        let duplicate = try XCTUnwrap(URL(string: "voxboard://capture?preset=one&vox=two"))
+        XCTAssertThrowsError(try CaptureDeepLinkParser().parse(duplicate))
     }
 
     func test_widgetControlCanOpenComposerWithoutSubmitting() throws {

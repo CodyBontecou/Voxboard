@@ -70,7 +70,7 @@
     <ul class="nav-links">
       <li><a href="#how">How It Works</a></li>
       <li><a href="#features">Capture</a></li>
-      <li><a href="#destinations">Routes</a></li>
+      <li><a href="#destinations">Presets</a></li>
       <li><a href="#privacy">Privacy</a></li>
       <li><a href="blog/">Blog</a></li>
     </ul>
@@ -334,9 +334,9 @@
 <section class="destinations-section" id="destinations">
   <div class="container">
     <div class="section-header reveal rd1">
-      <div class="section-label">04 / Routes</div>
-      <h2 class="section-title">Decide Once Where Each Capture Goes</h2>
-      <p class="section-kicker">A destination remembers the vault, note target, placement, attachment folder, and entry format. Pick it from the composer and keep moving.</p>
+      <div class="section-label">04 / Capture Presets</div>
+      <h2 class="section-title">One Preset for Intent and Destination</h2>
+      <p class="section-kicker">A Capture Preset remembers how to process and format a capture, plus the vault, note target, placement, attachments, and retry behavior. Pick one and keep moving.</p>
     </div>
     <div class="route-pipeline reveal rd2" aria-label="Example Markdown route">
       <div class="route-pipeline-step">
@@ -346,7 +346,7 @@
       </div>
       <div class="route-pipeline-arrow" aria-hidden="true">→</div>
       <div class="route-pipeline-step selected">
-        <div class="route-pipeline-label">Saved Route</div>
+        <div class="route-pipeline-label">Capture Preset</div>
         <strong>Daily Note · Tasks</strong>
         <span>Bottom of heading level 2</span>
       </div>
@@ -439,7 +439,7 @@
       <div class="faq-list reveal rd2">
         <details open>
           <summary>Does Vox.md work with Obsidian?</summary>
-          <p>Yes. Choose your Obsidian vault through the iOS Files picker, then configure one or more destinations. Vox.md writes standard Markdown, wikilinks, and attachment embeds directly into the vault. It does not require an Obsidian plugin.</p>
+          <p>Yes. Create a Capture Preset and choose your Obsidian vault as its destination. Vox.md writes standard Markdown, wikilinks, and attachment embeds directly into the vault. It does not require an Obsidian plugin.</p>
         </details>
         <details>
           <summary>What can I capture?</summary>
@@ -447,7 +447,7 @@
         </details>
         <details>
           <summary>Where can a capture go?</summary>
-          <p>A destination can create a new note, update a rolling daily or periodic note, or write to an existing Markdown file. Each capture can use the destination default or temporarily choose another note.</p>
+          <p>Each Capture Preset owns a destination that can create a new note, update a rolling daily or periodic note, or write to an existing Markdown file. A single capture can temporarily choose another note without changing the preset.</p>
         </details>
         <details>
           <summary>Can Vox.md insert beneath a heading?</summary>
@@ -455,7 +455,7 @@
         </details>
         <details>
           <summary>Can I use it without Obsidian?</summary>
-          <p>Yes. Any writable folder exposed through Files can be a destination. The output is plain Markdown with ordinary attachments, so the notes are not locked to Vox.md.</p>
+          <p>Yes. A Capture Preset can use any writable folder exposed through Files. The output is plain Markdown with ordinary attachments, so the notes are not locked to Vox.md.</p>
         </details>
         <details>
           <summary>Does Vox.md upload my notes or audio?</summary>

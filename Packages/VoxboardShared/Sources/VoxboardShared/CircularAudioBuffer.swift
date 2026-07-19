@@ -10,8 +10,14 @@ public final class CircularAudioBuffer: @unchecked Sendable {
     private let capacity: Int
     private var writeIndex: Int = 0
     /// Total number of samples written since creation (monotonically increasing).
-    public private(set) var totalSamplesWritten: Int64 = 0
+    private var samplesWritten: Int64 = 0
     private let lock = NSLock()
+
+    public var totalSamplesWritten: Int64 {
+        lock.lock()
+        defer { lock.unlock() }
+        return samplesWritten
+    }
 
     /// - Parameter capacity: Maximum number of Float samples to store.
     ///   At 16 kHz mono, 5 minutes ≈ 4,800,000 samples ≈ 19.2 MB.
@@ -44,7 +50,7 @@ public final class CircularAudioBuffer: @unchecked Sendable {
             remaining -= chunk
         }
 
-        totalSamplesWritten += Int64(count)
+        samplesWritten += Int64(count)
     }
 
     /// Append samples from an array.
@@ -58,9 +64,9 @@ public final class CircularAudioBuffer: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
 
-        let earliestAvailable = max(0, totalSamplesWritten - Int64(capacity))
+        let earliestAvailable = max(0, samplesWritten - Int64(capacity))
         guard startAbsolute >= earliestAvailable,
-              endAbsolute <= totalSamplesWritten,
+              endAbsolute <= samplesWritten,
               endAbsolute > startAbsolute else {
             return nil
         }
@@ -93,11 +99,56 @@ public final class CircularAudioBuffer: @unchecked Sendable {
         return result
     }
 
+    /// Atomically extracts up to `maxCount` currently available samples from an
+    /// absolute cursor, optionally capped at an exact stop boundary.
+    public func extractAvailable(
+        from startAbsolute: Int64,
+        through endLimit: Int64? = nil,
+        maxCount: Int
+    ) -> (samples: [Float], nextIndex: Int64)? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        guard maxCount > 0 else { return nil }
+        let earliestAvailable = max(0, samplesWritten - Int64(capacity))
+        let availableEnd = min(endLimit ?? samplesWritten, samplesWritten)
+        guard startAbsolute >= earliestAvailable,
+              startAbsolute < availableEnd else {
+            return nil
+        }
+
+        let endAbsolute = min(availableEnd, startAbsolute + Int64(maxCount))
+        let count = Int(endAbsolute - startAbsolute)
+        var result = [Float](repeating: 0, count: count)
+        var srcPos = Int(startAbsolute % Int64(capacity))
+        var remaining = count
+        var dstOffset = 0
+
+        while remaining > 0 {
+            let chunk = min(remaining, capacity - srcPos)
+            buffer.withUnsafeBufferPointer { source in
+                result.withUnsafeMutableBufferPointer { destination in
+                    guard let sourceBase = source.baseAddress,
+                          let destinationBase = destination.baseAddress else { return }
+                    destinationBase.advanced(by: dstOffset).update(
+                        from: sourceBase.advanced(by: srcPos),
+                        count: chunk
+                    )
+                }
+            }
+            srcPos = (srcPos + chunk) % capacity
+            dstOffset += chunk
+            remaining -= chunk
+        }
+
+        return (result, endAbsolute)
+    }
+
     /// The earliest absolute sample index still available in the buffer.
     public var earliestAvailableIndex: Int64 {
         lock.lock()
         defer { lock.unlock() }
-        return max(0, totalSamplesWritten - Int64(capacity))
+        return max(0, samplesWritten - Int64(capacity))
     }
 
     /// Reset the buffer, clearing all data.
@@ -105,6 +156,6 @@ public final class CircularAudioBuffer: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
         writeIndex = 0
-        totalSamplesWritten = 0
+        samplesWritten = 0
     }
 }

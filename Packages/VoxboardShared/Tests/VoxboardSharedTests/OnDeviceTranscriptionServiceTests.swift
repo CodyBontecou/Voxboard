@@ -91,6 +91,67 @@ final class OnDeviceTranscriptionServiceTests: XCTestCase {
         XCTAssertEqual(callCount, 1)
     }
 
+    func testLiveTranscriptionStartsForReadyAutomaticAppleSpeech() async throws {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .ready,
+            result: .success(SystemTranscriptionOutput(text: "Batch", language: "en-US"))
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        let session = try await service.startLiveTranscription(
+            modelID: TranscriptionBackendID.automatic,
+            language: "en-US",
+            onUpdate: { _ in }
+        )
+
+        XCTAssertNotNil(session)
+        let liveCallCount = await backend.liveTranscriptionCallCount
+        XCTAssertEqual(liveCallCount, 1)
+    }
+
+    func testLiveTranscriptionDoesNotStartForExplicitLocalModel() async throws {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .ready,
+            result: .success(SystemTranscriptionOutput(text: "Batch", language: "en-US"))
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        let session = try await service.startLiveTranscription(
+            modelID: "whisper-base",
+            onUpdate: { _ in }
+        )
+
+        XCTAssertNil(session)
+        let liveCallCount = await backend.liveTranscriptionCallCount
+        XCTAssertEqual(liveCallCount, 0)
+    }
+
+    func testLiveTranscriptionStartsWhenSystemAssetCanBeInstalled() async throws {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .supported,
+            result: .success(SystemTranscriptionOutput(text: "Batch", language: "en-US"))
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+
+        let session = try await service.startLiveTranscription(
+            modelID: TranscriptionBackendID.automatic,
+            onUpdate: { _ in }
+        )
+
+        XCTAssertNotNil(session)
+        let liveCallCount = await backend.liveTranscriptionCallCount
+        XCTAssertEqual(liveCallCount, 1)
+    }
+
     func testExplicitMissingLocalModelBypassesSystemBackend() async {
         let backend = FakeSystemTranscriptionBackend(
             availability: .ready,
@@ -123,6 +184,7 @@ private actor FakeSystemTranscriptionBackend: SystemTranscriptionBackend {
     let configuredAvailability: SystemTranscriptionAvailability
     let result: Result<SystemTranscriptionOutput, Error>
     private(set) var transcriptionCallCount = 0
+    private(set) var liveTranscriptionCallCount = 0
 
     init(
         availability: SystemTranscriptionAvailability,
@@ -142,4 +204,22 @@ private actor FakeSystemTranscriptionBackend: SystemTranscriptionBackend {
         transcriptionCallCount += 1
         return try result.get()
     }
+
+    func startLiveTranscription(
+        language: String,
+        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
+    ) async throws -> any SystemLiveTranscriptionSession {
+        liveTranscriptionCallCount += 1
+        return FakeLiveTranscriptionSession()
+    }
+}
+
+private actor FakeLiveTranscriptionSession: SystemLiveTranscriptionSession {
+    func append(_ chunk: SystemTranscriptionAudioChunk) async throws {}
+
+    func finish() async throws -> SystemTranscriptionOutput {
+        SystemTranscriptionOutput(text: "Live", language: "en-US")
+    }
+
+    func cancel() async {}
 }

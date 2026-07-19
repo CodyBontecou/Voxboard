@@ -3,7 +3,7 @@ import XCTest
 
 final class TranscriptCaptureDestinationExporterTests: XCTestCase {
     func test_adapterRendersEnrichedTranscriptBodyWithoutDuplicatingStructuredVoxFrontmatter() throws {
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.staticFrontmatter = ["type": "meeting", "project": "vox"]
         let transcript = Transcript(
             text: "raw words",
@@ -61,7 +61,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             placement: .prepend,
             attachmentsFolderName: "media"
         )
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.staticFrontmatter = ["type": "voice-note"]
         flow.audioSaveMode = .attachmentsFolder
         flow.attachmentsFolderName = "voice-media"
@@ -106,7 +106,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             noteTarget: .existingNote(relativePath: "Inbox.md"),
             attachmentsFolderName: "destination-media"
         )
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.audioSaveMode = .alongsideTranscript
         flow.exportSettings.embedAudioInMarkdown = false
 
@@ -140,7 +140,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             rootName: "Vault",
             noteTarget: .existingNote(relativePath: "Inbox.md")
         )
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.staticFrontmatter = ["type": "voice-note"]
         flow.audioSaveMode = .attachmentsFolder
         flow.attachmentsFolderName = "audio"
@@ -161,9 +161,14 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         XCTAssertLessThan(try index(of: "---\n\n![[audio/top.wav]]", in: markdown), try index(of: "Spoken body", in: markdown))
     }
 
-    func test_directVoiceRunInheritsLibraryDefaultWhenVoxHasNoRoute() async throws {
+    func test_directVoiceRunRequiresOwnedRouteAfterMigration() async throws {
         let captureRoot = try temporaryFolder(named: "voice-default-route")
-        defer { try? FileManager.default.removeItem(at: captureRoot) }
+        let suiteName = "voice-default-route.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer {
+            try? FileManager.default.removeItem(at: captureRoot)
+            defaults.removePersistentDomain(forName: suiteName)
+        }
         let destination = CaptureDestination(
             name: "Default",
             rootBookmark: Data(),
@@ -174,20 +179,26 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             fileURL: captureRoot.appendingPathComponent(CaptureLibraryStore.defaultFilename),
             coordinator: ProcessLocalCaptureFileCoordinator.shared
         ).save(CaptureLibraryEnvelope(destinations: [destination], defaultDestinationID: destination.id))
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.captureDestinationID = nil
 
         let resolved = await ConfiguredTranscriptCaptureDestinationExporter.resolvedDestinationID(
             flow: flow,
-            captureRootURL: captureRoot
+            captureRootURL: captureRoot,
+            defaults: defaults
         )
 
-        XCTAssertEqual(resolved, destination.id)
+        XCTAssertNil(resolved)
     }
 
     func test_directVoiceRunPrefersValidVoxRouteOverLibraryDefault() async throws {
         let captureRoot = try temporaryFolder(named: "voice-vox-route")
-        defer { try? FileManager.default.removeItem(at: captureRoot) }
+        let suiteName = "voice-owned-route.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer {
+            try? FileManager.default.removeItem(at: captureRoot)
+            defaults.removePersistentDomain(forName: suiteName)
+        }
         let libraryDefault = CaptureDestination(
             name: "Default",
             rootBookmark: Data(),
@@ -207,12 +218,13 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             destinations: [libraryDefault, voxDestination],
             defaultDestinationID: libraryDefault.id
         ))
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.captureDestinationID = voxDestination.id
 
         let resolved = await ConfiguredTranscriptCaptureDestinationExporter.resolvedDestinationID(
             flow: flow,
-            captureRootURL: captureRoot
+            captureRootURL: captureRoot,
+            defaults: defaults
         )
 
         XCTAssertEqual(resolved, voxDestination.id)
@@ -240,7 +252,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
 
         let receipt = try await ConfiguredTranscriptCaptureDestinationExporter.export(
             transcript: transcript,
-            flow: RecordingFlowStore.makeCustomFlow(),
+            flow: CapturePresetStore.makeCustomFlow(),
             destinationID: destination.id,
             audioSourceURL: nil,
             captureRootURL: captureRoot,
@@ -285,7 +297,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         let audioURL = captureRoot.appendingPathComponent("source.wav")
         try Data("audio-to-retry".utf8).write(to: audioURL)
         let transcript = Transcript(text: "Never lose me", duration: 2, modelUsed: "base", language: "en")
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.audioSaveMode = .attachmentsFolder
 
         do {
@@ -335,7 +347,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         do {
             _ = try await ConfiguredTranscriptCaptureDestinationExporter.export(
                 transcript: Transcript(text: "Recover this voice note", duration: 1, modelUsed: "base", language: "en"),
-                flow: RecordingFlowStore.makeCustomFlow(),
+                flow: CapturePresetStore.makeCustomFlow(),
                 destinationID: missingID,
                 audioSourceURL: nil,
                 captureRootURL: captureRoot
@@ -375,7 +387,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             fileURL: captureRoot.appendingPathComponent(CaptureLibraryStore.defaultFilename),
             coordinator: ProcessLocalCaptureFileCoordinator.shared
         ).save(CaptureLibraryEnvelope(destinations: [destination], defaultDestinationID: destination.id))
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.audioSaveMode = .attachmentsFolder
 
         do {
@@ -401,11 +413,11 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
 
     func test_recordingFlowRoundTripsCaptureDestinationBinding() throws {
         let destinationID = UUID(uuidString: "11111111-2222-3333-4444-555555555555")!
-        var flow = RecordingFlowStore.makeCustomFlow()
+        var flow = CapturePresetStore.makeCustomFlow()
         flow.captureDestinationID = destinationID
 
         let decoded = try JSONDecoder().decode(
-            RecordingFlow.self,
+            CapturePreset.self,
             from: JSONEncoder().encode(flow)
         )
 

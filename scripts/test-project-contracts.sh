@@ -135,12 +135,19 @@ root_view_source = (root / 'Voxboard/Views/RootView.swift').read_text()
 if re.search(r'case[^\n]*\blisten\b', root_view_source) or 'case .listen:' in root_view_source:
     errors.append('Listen must not remain a top-level app destination')
 for required in [
-    'case capture, model, vox, settings',
+    'case capture, settings',
     'persistentRecorder: persistentRecorder',
     'pendingKeyboardLaunch: $pendingKeyboardLaunch',
 ]:
     if required not in root_view_source:
         errors.append(f'inline Capture recording integration is missing {required}')
+for removed_destination in ['case .model:', 'case .presets:', 'case .vox:', 'tab_model', 'tab_presets', 'tab_vox']:
+    if removed_destination in root_view_source:
+        errors.append(f'Models and Capture Presets must live under Settings, not app navigation: {removed_destination}')
+settings_source = (root / 'Voxboard/Views/MetaSettingsView.swift').read_text()
+for required in ['customizationSection', 'ModelTabView()', 'CapturePresetSettingsView()']:
+    if required not in settings_source:
+        errors.append(f'Settings customization navigation is missing {required}')
 if (root / 'Voxboard/Views/HomeView.swift').exists():
     errors.append('the standalone Home/Listen recording view must be removed')
 if (root / 'Voxboard/Views/CaptureHistoryView.swift').exists():
@@ -186,9 +193,9 @@ for required in [
     'capture_recording_details',
     'capture_voice_recording',
     'Add to Draft',
-    'Send Immediately',
+    'Send with Preset',
     'capture_vox_selector',
-    'Use Vox route defaults',
+    'Use Preset destination defaults',
     'Attach audio to Capture',
     'capture_keyboard_listening',
     'capture_audio_import',
@@ -291,8 +298,8 @@ for required in [
 
 if 'URLQueryItem(name: "source", value: "widget")' not in capture_widget:
     errors.append('Quick Capture widget does not retain widget provenance')
-if 'URLQueryItem(name: "vox", value: voxID)' not in capture_widget:
-    errors.append('Quick Capture widget does not retain its selected Vox context')
+if 'URLQueryItem(name: "preset", value: voxID)' not in capture_widget:
+    errors.append('Quick Capture widget does not retain its selected Capture Preset context')
 quick_capture_model = (root / 'Voxboard/Capture/QuickCaptureViewModel.swift').read_text()
 for required in [
     'initialLoadTask',
@@ -322,7 +329,7 @@ if (
     'CaptureEntryTemplate' not in template_model
     or 'entryTemplateID' not in template_model
     or 'resolvedDestination' not in template_model
-    or 'Reusable entry templates' not in template_ui
+    or 'CaptureEntryTemplateLibraryView' not in template_ui
 ):
     errors.append('live reusable entry-template model/UI contract is missing')
 

@@ -1,11 +1,11 @@
 import Foundation
 
 /// Lightweight, deterministic flow formatter used as a private fallback when
-/// Apple Intelligence is unavailable or skipped by the selected Vox. It
+/// Apple Intelligence is unavailable or skipped by the selected Capture Preset. It
 /// deliberately avoids adding new information; it only reshapes the recognized text.
 public enum TranscriptFlowFormatter {
 
-    public static func apply(flow: RecordingFlow?, to transcript: Transcript) -> Transcript {
+    public static func apply(flow: CapturePreset?, to transcript: Transcript) -> Transcript {
         guard let flow else { return transcript }
 
         let baseText = transcript.cleanedText?.isEmpty == false ? transcript.cleanedText! : transcript.text

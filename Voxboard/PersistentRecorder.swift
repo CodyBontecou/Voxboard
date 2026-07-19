@@ -56,6 +56,12 @@ final class PersistentRecorder {
     /// Last transcription result from an in-app recording. Observable for UI display.
     var lastTranscriptionResult: String?
 
+    /// Progressive Apple Speech text for an in-app Capture recording. Finalized
+    /// phrases are stable; volatile text remains display-only until Apple finalizes it.
+    var liveFinalizedTranscription: String?
+    var liveVolatileTranscription: String?
+    var isCaptureLiveTranscriptionActive = false
+
     /// Updated every time a configured transcript export succeeds or fails.
     var lastFileExportEvent: FileExportEvent?
 
@@ -84,6 +90,8 @@ final class PersistentRecorder {
     private var segmentFlowId: String?
     private var segmentCompletionMode: RecordingCompletionMode?
     private var segmentStartedAt: TimeInterval = 0
+    private var liveTranscriptionSetupTask: Task<LiveSegmentTranscriptionCoordinator?, Never>?
+    private var liveCaptureRequestId: String?
 
     /// Pre-roll: capture this many seconds before the user tapped Start.
     private let preRollSeconds: TimeInterval = 2.0
@@ -108,7 +116,7 @@ final class PersistentRecorder {
     private let transcriptionService: OnDeviceTranscriptionService
 
     /// Delivers app-owned draft recordings into the durable Capture draft.
-    /// Keyboard, Widget, Watch, and explicit Vox runs bypass this callback.
+    /// Keyboard, Widget, Watch, and explicit Capture Preset runs bypass this callback.
     private let captureDraftEventHandler: CaptureDraftRecordingEventHandler?
 
     /// On-device LLM post-processor. Nil when the feature is disabled or the
@@ -617,9 +625,9 @@ final class PersistentRecorder {
             ?? "auto"
         let requestId = "inapp-\(UUID().uuidString)"
         let flowId = requestedFlowId.flatMap { requested in
-            guard let flow = RecordingFlowStore.flow(id: requested), flow.isEnabled else { return nil }
+            guard let flow = CapturePresetStore.flow(id: requested), flow.isEnabled else { return nil }
             return flow.id
-        } ?? RecordingFlowStore.selectedFlowId()
+        } ?? CapturePresetStore.selectedFlowId()
 
         let command = RecordingCommand(
             requestId: requestId,
@@ -688,7 +696,7 @@ final class PersistentRecorder {
                 ?? AppConstants.defaultTranscriptionBackendID
             let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
                 ?? "auto"
-            let flowId = RecordingFlowStore.selectedFlowId()
+            let flowId = CapturePresetStore.selectedFlowId()
             let completionMode = requestedCompletionMode ?? .runVox(flowID: flowId)
             let requestId = "import-\(UUID().uuidString)"
 
@@ -873,6 +881,12 @@ final class PersistentRecorder {
         isSegmentActive = true
         segmentDuration = 0
 
+        startLiveTranscriptionIfSupported(
+            command: command,
+            startIndex: segmentStartIndex,
+            language: segmentLanguage ?? "auto"
+        )
+
         // Start duration timer
         startDurationTimer()
 
@@ -889,6 +903,116 @@ final class PersistentRecorder {
         log.log("[PersistentRecorder] ✅ Segment started at buffer index \(segmentStartIndex) (pre-roll: \(preRollSamples) samples)")
     }
 
+    private func startLiveTranscriptionIfSupported(
+        command: RecordingCommand,
+        startIndex: Int64,
+        language: String
+    ) {
+        cancelLiveTranscription()
+        TranscriptionIPC.clearLiveTranscriptionState()
+
+        let publishesToKeyboard = command.origin == .keyboardExtension
+        let publishesToCapture = command.requestId.hasPrefix("inapp-")
+        if publishesToCapture {
+            liveCaptureRequestId = command.requestId
+            liveFinalizedTranscription = nil
+            liveVolatileTranscription = nil
+            isCaptureLiveTranscriptionActive = false
+        }
+
+        guard (publishesToKeyboard || publishesToCapture),
+              command.modelId == TranscriptionBackendID.automatic else {
+            return
+        }
+
+        let service = transcriptionService
+        let buffer = circularBuffer
+        let requestId = command.requestId
+        let sampleRate = whisperSampleRate
+
+        liveTranscriptionSetupTask = Task.detached(priority: .userInitiated) { [weak self] in
+            var startedSession: (any SystemLiveTranscriptionSession)?
+            let progress = LiveTranscriptionProgress()
+            do {
+                guard let session = try await service.startLiveTranscription(
+                    modelID: TranscriptionBackendID.automatic,
+                    language: language,
+                    onUpdate: { [weak self] update in
+                        await progress.record(update)
+                        if publishesToKeyboard {
+                            TranscriptionIPC.writeLiveSnapshot(LiveTranscriptionSnapshot(
+                                requestId: requestId,
+                                revision: update.revision,
+                                finalizedText: update.finalizedText,
+                                volatileText: update.volatileText
+                            ))
+                        } else {
+                            await MainActor.run { [weak self] in
+                                guard let self, self.liveCaptureRequestId == requestId else { return }
+                                self.liveFinalizedTranscription = update.finalizedText.isEmpty
+                                    ? nil
+                                    : update.finalizedText
+                                self.liveVolatileTranscription = update.volatileText
+                            }
+                        }
+                    }
+                ) else {
+                    return nil
+                }
+                startedSession = session
+                try Task.checkCancellation()
+
+                let coordinator = LiveSegmentTranscriptionCoordinator(
+                    session: session,
+                    circularBuffer: buffer,
+                    startIndex: startIndex,
+                    sampleRate: sampleRate,
+                    progress: progress
+                )
+                await coordinator.start()
+                if publishesToCapture {
+                    await MainActor.run { [weak self] in
+                        guard let self,
+                              self.liveCaptureRequestId == requestId,
+                              self.isSegmentActive else { return }
+                        self.isCaptureLiveTranscriptionActive = true
+                    }
+                }
+                return coordinator
+            } catch {
+                if let startedSession {
+                    await startedSession.cancel()
+                }
+                if publishesToCapture {
+                    await MainActor.run { [weak self] in
+                        guard let self, self.liveCaptureRequestId == requestId else { return }
+                        self.isCaptureLiveTranscriptionActive = false
+                    }
+                }
+                return nil
+            }
+        }
+    }
+
+    private func cancelLiveTranscription() {
+        guard let setupTask = liveTranscriptionSetupTask else { return }
+        liveTranscriptionSetupTask = nil
+        setupTask.cancel()
+        Task.detached {
+            if let coordinator = await setupTask.value {
+                await coordinator.cancel()
+            }
+        }
+    }
+
+    private func clearCaptureLiveTranscription(requestId: String?) {
+        guard let requestId, liveCaptureRequestId == requestId else { return }
+        liveCaptureRequestId = nil
+        liveFinalizedTranscription = nil
+        liveVolatileTranscription = nil
+        isCaptureLiveTranscriptionActive = false
+    }
+
     /// Mark the end of a segment — extract audio and transcribe.
     private func handleStopSegment(_ command: RecordingCommand) {
         osLog.notice("⏹ handleStopSegment called — isSegmentActive=\(self.isSegmentActive) segmentRequestId=\(self.segmentRequestId ?? "nil") command.requestId=\(command.requestId)")
@@ -898,10 +1022,16 @@ final class PersistentRecorder {
             // Write an error response so the keyboard doesn't get stuck in "Transcribing…" forever
             let requestId = segmentRequestId ?? command.requestId
             writeErrorResponse(requestId: requestId, message: "Recording session expired — please try again")
+            clearCaptureLiveTranscription(requestId: requestId)
             return
         }
 
-        let requestId = segmentRequestId ?? command.requestId
+        guard segmentRequestId == command.requestId else {
+            log.log("[PersistentRecorder] ⚠️ Ignoring stop for mismatched request \(command.requestId.prefix(8))")
+            return
+        }
+
+        let requestId = command.requestId
         log.log("[PersistentRecorder] ⏹ Stopping segment: \(requestId.prefix(8)) (segmentRequestId=\(segmentRequestId?.prefix(8) ?? "nil"), command.requestId=\(command.requestId.prefix(8)))")
         osLog.notice("⏹ Stopping segment: \(requestId)")
 
@@ -925,6 +1055,7 @@ final class PersistentRecorder {
                     finishStoppedSegmentWithError(requestId: requestId, message: "Microphone wasn't receiving audio — please try again")
                 } else {
                     writeErrorResponse(requestId: requestId, message: "Microphone wasn't receiving audio — please try again")
+                    clearCaptureLiveTranscription(requestId: requestId)
                     clearSegmentState()
                     stopListening()
                     startListening()
@@ -991,24 +1122,50 @@ final class PersistentRecorder {
         // Transcribe
         let modelId = segmentModelId ?? command.modelId ?? AppConstants.defaultTranscriptionBackendID
         let language = segmentLanguage ?? command.language ?? "auto"
-        let flowId = segmentFlowId ?? command.flowId ?? RecordingFlowStore.selectedFlowId()
+        let flowId = segmentFlowId ?? command.flowId ?? CapturePresetStore.selectedFlowId()
         let completionMode = segmentCompletionMode ?? .runVox(flowID: flowId)
         let duration = TimeInterval(durationSec)
+        let liveSetupTask = liveTranscriptionSetupTask
+        liveTranscriptionSetupTask = nil
 
-        Task.detached(priority: .userInitiated) { [weak self] in
-            await self?.transcribe(
+        Task.detached(priority: .userInitiated) { [self] in
+            var liveResult: OnDeviceTranscriptionResult?
+            var usesLiveDelivery = false
+            if let liveSetupTask,
+               let coordinator = await liveSetupTask.value {
+                do {
+                    let output = try await coordinator.finish(through: endIndex)
+                    liveResult = OnDeviceTranscriptionResult(
+                        text: output.text,
+                        backendID: TranscriptionBackendID.appleSpeech,
+                        backendName: "Apple Speech",
+                        backendKind: .appleSpeech,
+                        language: output.language
+                    )
+                } catch {
+                    await coordinator.cancel()
+                    await MainActor.run {
+                        log.log("[PersistentRecorder] Live Apple Speech failed; using batch fallback: \(error.localizedDescription)")
+                    }
+                }
+                usesLiveDelivery = await coordinator.hasPublishedFinalizedText()
+            }
+
+            await self.transcribe(
                 audioURL: wavURL,
                 modelId: modelId,
                 language: language,
                 requestId: requestId,
                 duration: duration,
                 completionMode: completionMode,
-                sourceAudioURL: wavURL
+                sourceAudioURL: wavURL,
+                resolvedResult: liveResult,
+                usesLiveDelivery: usesLiveDelivery
             )
 
             await MainActor.run {
-                self?.isTranscribing = false
-                self?.finishLiveActivityAfterTranscription()
+                self.isTranscribing = false
+                self.finishLiveActivityAfterTranscription()
                 WatchRecordingController.shared.publishState()
                 if bgTask != .invalid {
                     UIApplication.shared.endBackgroundTask(bgTask)
@@ -1022,6 +1179,7 @@ final class PersistentRecorder {
 
     private func finishStoppedSegmentWithError(requestId: String, message: String) {
         writeErrorResponse(requestId: requestId, message: message)
+        clearCaptureLiveTranscription(requestId: requestId)
         clearSegmentState()
 
         if shouldAutoStopListeningAfterCurrentRecording {
@@ -1042,6 +1200,7 @@ final class PersistentRecorder {
     }
 
     private func clearSegmentState() {
+        cancelLiveTranscription()
         segmentRequestId = nil
         segmentModelId = nil
         segmentLanguage = nil
@@ -1058,6 +1217,7 @@ final class PersistentRecorder {
         stopDurationTimer()
         isSegmentActive = false
         TranscriptionIPC.clearAudioLevel()
+        clearCaptureLiveTranscription(requestId: segmentRequestId)
         clearSegmentState()
 
         TranscriptionIPC.clearStatus()
@@ -1074,7 +1234,9 @@ final class PersistentRecorder {
         requestId: String,
         duration: TimeInterval,
         completionMode: RecordingCompletionMode,
-        sourceAudioURL: URL? = nil
+        sourceAudioURL: URL? = nil,
+        resolvedResult: OnDeviceTranscriptionResult? = nil,
+        usesLiveDelivery: Bool = false
     ) async {
         osLog.notice("🔄 Transcribing audio: \(audioURL.lastPathComponent) backend=\(modelId)")
         log.log("[PersistentRecorder] Transcribing with backend \(modelId)…")
@@ -1085,15 +1247,20 @@ final class PersistentRecorder {
 
         let result: OnDeviceTranscriptionResult
         do {
-            result = try await transcriptionService.transcribeResult(
-                audioURL: audioURL,
-                modelID: modelId,
-                fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
-                language: language
-            )
+            if let resolvedResult {
+                result = resolvedResult
+            } else {
+                result = try await transcriptionService.transcribeResult(
+                    audioURL: audioURL,
+                    modelID: modelId,
+                    fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
+                    language: language
+                )
+            }
         } catch {
             log.log("[PersistentRecorder] ❌ Transcription failed: \(error.localizedDescription)")
             await MainActor.run {
+                self.clearCaptureLiveTranscription(requestId: requestId)
                 self.lastTranscriptionResult = nil
                 self.writeErrorResponse(requestId: requestId, message: error.localizedDescription)
             }
@@ -1110,6 +1277,7 @@ final class PersistentRecorder {
         }
 
         await MainActor.run {
+            self.clearCaptureLiveTranscription(requestId: requestId)
             if let text, !text.isEmpty {
                 // Only publish to the IPC channel for keyboard-initiated requests.
                 // In-app recordings surface the result via `lastTranscriptionResult`;
@@ -1118,7 +1286,11 @@ final class PersistentRecorder {
                 // into the next text field that comes up.
                 let shouldPublishToKeyboard = !requestId.hasPrefix("inapp-") && !requestId.hasPrefix("import-")
                 if shouldPublishToKeyboard {
-                    let response = TranscriptionResponse(requestId: requestId, text: text)
+                    let response = TranscriptionResponse(
+                        requestId: requestId,
+                        text: text,
+                        usesLiveTranscription: usesLiveDelivery ? true : nil
+                    )
                     do {
                         try TranscriptionIPC.writeResponse(response)
                         log.log("[PersistentRecorder] 📤 Response written (requestId=\(requestId.prefix(8)), chars=\(text.count))")
@@ -1137,14 +1309,14 @@ final class PersistentRecorder {
                 }
 
                 // Save one record to the unified history. Draft recordings keep
-                // the raw transcript editable; explicit Vox runs preserve their
+                // the raw transcript editable; explicit Preset runs preserve their
                 // formatting, enrichment, and configured export behavior.
-                let selectedFlow: RecordingFlow?
+                let selectedFlow: CapturePreset?
                 switch completionMode {
                 case .captureDraft:
                     selectedFlow = nil
                 case .runVox(let flowID):
-                    selectedFlow = RecordingFlowStore.flow(id: flowID) ?? RecordingFlowStore.selectedFlow()
+                    selectedFlow = CapturePresetStore.flow(id: flowID) ?? CapturePresetStore.selectedFlow()
                 }
                 let rawTranscript = Transcript(
                     text: text,

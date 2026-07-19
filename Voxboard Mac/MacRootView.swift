@@ -6,7 +6,7 @@ import VoxboardShared
 private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
     case listen = "Listen"
     case model = "Model"
-    case vox = "Vox"
+    case presets = "Presets"
     case history = "History"
     case settings = "Settings"
 
@@ -16,7 +16,7 @@ private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .listen: return "mic.fill"
         case .model: return "cpu.fill"
-        case .vox: return "waveform.circle.fill"
+        case .presets: return "slider.horizontal.3"
         case .history: return "clock.arrow.circlepath"
         case .settings: return "gearshape.fill"
         }
@@ -48,8 +48,8 @@ struct MacRootView: View {
                 MacHomeView(recorder: recorder)
             case .model:
                 MacModelView()
-            case .vox:
-                MacVoxSettingsView()
+            case .presets:
+                MacCapturePresetSettingsView()
             case .history:
                 MacHistoryView()
             case .settings:
@@ -71,8 +71,8 @@ private struct MacHomeView: View {
 
     @Bindable var recorder: MacRecorder
 
-    @State private var flows: [RecordingFlow] = RecordingFlowStore.loadFlows()
-    @State private var selectedFlowId: String = RecordingFlowStore.selectedFlowId()
+    @State private var flows: [CapturePreset] = CapturePresetStore.loadFlows()
+    @State private var selectedFlowId: String = CapturePresetStore.selectedFlowId()
     @State private var showPaywall = false
     @State private var micPermissionGranted = true
     @State private var isRequestingMicPermission = false
@@ -149,17 +149,17 @@ private struct MacHomeView: View {
             .padding(.vertical, 14)
 
             HStack(spacing: 10) {
-                Text("Vox")
+                Text("Preset")
                     .font(Geist.caption())
                     .foregroundColor(Geist.muted)
-                Picker("Vox", selection: $selectedFlowId) {
+                Picker("Capture Preset", selection: $selectedFlowId) {
                     ForEach(enabledFlows) { flow in
                         Label(flow.displayName, systemImage: MacFlowIconPickerView.iconName(for: flow.symbolName)).tag(flow.id)
                     }
                 }
                 .labelsHidden()
                 .frame(maxWidth: 260)
-                .onChange(of: selectedFlowId) { _, id in RecordingFlowStore.selectFlow(id: id) }
+                .onChange(of: selectedFlowId) { _, id in CapturePresetStore.selectFlow(id: id) }
 
                 Spacer()
 
@@ -289,7 +289,7 @@ private struct MacHomeView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.35)
                 IdleWaveformView()
-                Text("Record in-app or import an audio/video file. Vox settings, history, local models, and file exports match the iOS app.")
+                Text("Record in-app or import an audio/video file. Capture Presets, history, local models, and file exports match the iOS app.")
                     .font(Geist.body())
                     .foregroundColor(Geist.muted)
                     .multilineTextAlignment(.center)
@@ -329,9 +329,9 @@ private struct MacHomeView: View {
         .padding(.vertical, 18)
     }
 
-    private var enabledFlows: [RecordingFlow] {
+    private var enabledFlows: [CapturePreset] {
         let enabled = flows.filter(\.isEnabled)
-        return enabled.isEmpty ? RecordingFlowStore.defaultFlows : enabled
+        return enabled.isEmpty ? CapturePresetStore.defaultFlows : enabled
     }
 
     private var recordButtonTitle: String {
@@ -340,8 +340,8 @@ private struct MacHomeView: View {
     }
 
     private func reloadFlows() {
-        flows = RecordingFlowStore.loadFlows()
-        selectedFlowId = RecordingFlowStore.selectedFlowId()
+        flows = CapturePresetStore.loadFlows()
+        selectedFlowId = CapturePresetStore.selectedFlowId()
     }
 
     private func beginRecording() {
@@ -534,17 +534,17 @@ private struct MacModelView: View {
     }
 }
 
-// MARK: - Vox Settings
+// MARK: - Capture Presets
 
-private struct MacVoxSettingsView: View {
-    @State private var flows: [RecordingFlow] = RecordingFlowStore.loadFlows()
-    @State private var selectedFlowId: String = RecordingFlowStore.selectedFlowId()
+private struct MacCapturePresetSettingsView: View {
+    @State private var flows: [CapturePreset] = CapturePresetStore.loadFlows()
+    @State private var selectedFlowId: String = CapturePresetStore.selectedFlowId()
 
     var body: some View {
         HStack(spacing: 0) {
             VStack(spacing: 0) {
                 HStack {
-                    Text("YOUR VOXES")
+                    Text("CAPTURE PRESETS")
                         .font(Geist.label())
                         .foregroundColor(Geist.text)
                     Spacer()
@@ -565,57 +565,72 @@ private struct MacVoxSettingsView: View {
             GeistDivider().frame(width: 1)
 
             if let index = flows.firstIndex(where: { $0.id == selectedFlowId }) {
-                MacFlowEditor(flow: $flows[index], onDelete: { delete(flows[index]) })
+                MacCapturePresetEditor(preset: $flows[index], onDelete: { delete(flows[index]) })
                     .id(flows[index].id)
             } else {
-                Text("Select a Vox")
+                Text("Select a Capture Preset")
                     .font(Geist.body())
                     .foregroundColor(Geist.muted)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .navigationTitle("Vox")
+        .navigationTitle("Capture Presets")
         .onAppear { reload() }
-        .onChange(of: flows) { _, newValue in RecordingFlowStore.saveFlows(newValue) }
-        .onChange(of: selectedFlowId) { _, id in RecordingFlowStore.selectFlow(id: id) }
+        .onChange(of: flows) { _, newValue in CapturePresetStore.saveFlows(newValue) }
+        .onChange(of: selectedFlowId) { _, id in CapturePresetStore.selectFlow(id: id) }
     }
 
     private func reload() {
-        flows = RecordingFlowStore.loadFlows()
-        selectedFlowId = RecordingFlowStore.selectedFlowId()
+        flows = CapturePresetStore.loadFlows()
+        selectedFlowId = CapturePresetStore.selectedFlowId()
     }
 
     private func addFlow() {
-        let flow = RecordingFlowStore.makeCustomFlow()
+        let flow = CapturePresetStore.makeCustomFlow()
         flows.append(flow)
         selectedFlowId = flow.id
     }
 
-    private func delete(_ flow: RecordingFlow) {
+    private func delete(_ flow: CapturePreset) {
         guard !flow.isBuiltIn else { return }
+        let selectedCapturePresetID = CapturePresetProfileStore.selectedProfileID(
+            defaults: AppConstants.sharedDefaults
+        )
+        CapturePresetStore.retirePreset(
+            id: flow.id,
+            ownedRouteID: flow.captureDestinationID
+        )
         flows.removeAll { $0.id == flow.id }
-        selectedFlowId = flows.first?.id ?? RecordingFlowStore.generalId
+        let fallbackID = flows.first?.id ?? CapturePresetStore.generalId
+        selectedFlowId = fallbackID
+        CapturePresetStore.selectFlow(id: fallbackID)
+        if selectedCapturePresetID == flow.id {
+            CapturePresetProfileStore.selectCaptureProfile(
+                id: fallbackID,
+                defaults: AppConstants.sharedDefaults
+            )
+        }
     }
 }
 
-private struct MacFlowEditor: View {
-    @Binding var flow: RecordingFlow
+private struct MacCapturePresetEditor: View {
+    @Binding var flow: CapturePreset
     let onDelete: () -> Void
     @State private var frontmatterText: String
     @State private var isIconPickerPresented = false
     @State private var captureDestinations: [CaptureDestination] = []
     @State private var captureEntryTemplates: [CaptureEntryTemplate] = []
     @State private var captureDestinationLoadError: String?
-    @State private var isManagingCaptureDestinations = false
+    @State private var isEditingDestination = false
     @AppStorage(
-        CaptureVoxProfileStore.selectedCaptureProfileIDKey,
+        CapturePresetProfileStore.selectedCaptureProfileIDKey,
         store: AppConstants.sharedDefaults
     ) private var selectedCaptureVoxID = ""
 
-    init(flow: Binding<RecordingFlow>, onDelete: @escaping () -> Void) {
-        self._flow = flow
+    init(preset: Binding<CapturePreset>, onDelete: @escaping () -> Void) {
+        self._flow = preset
         self.onDelete = onDelete
-        self._frontmatterText = State(initialValue: Self.renderFrontmatter(flow.wrappedValue.staticFrontmatter))
+        self._frontmatterText = State(initialValue: Self.renderFrontmatter(preset.wrappedValue.staticFrontmatter))
     }
 
     var body: some View {
@@ -648,7 +663,7 @@ private struct MacFlowEditor: View {
                         .foregroundStyle(.secondary)
                 } else {
                     Button("Use as Capture Default") {
-                        CaptureVoxProfileStore.selectCaptureProfile(
+                        CapturePresetProfileStore.selectCaptureProfile(
                             id: flow.id,
                             defaults: AppConstants.sharedDefaults
                         )
@@ -661,7 +676,7 @@ private struct MacFlowEditor: View {
             Section("Capture Processing") {
                 Toggle("Apply to Capture Text", isOn: $flow.captureProcessingEnabled)
                 Picker("Mode", selection: $flow.postProcessingMode) {
-                    ForEach(RecordingFlowPostProcessingMode.allCases) { mode in
+                    ForEach(CapturePresetProcessingMode.allCases) { mode in
                         Text(mode.displayName).tag(mode)
                     }
                 }
@@ -675,43 +690,29 @@ private struct MacFlowEditor: View {
                     .foregroundStyle(.secondary)
             }
 
-            Section("Unified Capture Route") {
-                Picker("Markdown Route", selection: $flow.captureDestinationID) {
-                    Text("App Default / Legacy Voice Export").tag(Optional<UUID>.none)
-                    ForEach(captureDestinations) { destination in
-                        Text(destination.name).tag(Optional(destination.id))
+            Section("Destination") {
+                if let destination = ownedDestination {
+                    LabeledContent("Vault / Folder", value: destination.rootName)
+                    Text(captureDestinationSummary(destination))
+                        .font(.caption.monospaced())
+                        .foregroundStyle(.secondary)
+                    Button("Edit Destination…") {
+                        isEditingDestination = true
                     }
-                }
-                if let destinationID = flow.captureDestinationID,
-                   let destination = captureDestinations.first(where: { $0.id == destinationID }) {
-                    Text("\(destination.rootName) · \(captureDestinationSummary(destination))")
+                } else {
+                    Text("Choose a vault or folder and define where this preset writes Markdown.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Picker("Default Placement", selection: capturePlacementBinding) {
-                        Text("Route Default").tag(MacVoxCapturePlacementChoice.routeDefault)
-                        Text("Top").tag(MacVoxCapturePlacementChoice.top)
-                        Text("Bottom").tag(MacVoxCapturePlacementChoice.bottom)
+                    Button("Set Up Destination…") {
+                        isEditingDestination = true
                     }
-                    Picker("Default Entry Template", selection: $flow.captureEntryTemplateID) {
-                        Text("Route Default").tag(UUID?.none)
-                        ForEach(captureEntryTemplates) { template in
-                            Text(template.name).tag(Optional(template.id))
-                        }
-                    }
-                } else if flow.captureDestinationID != nil {
-                    Text("This destination is missing. Choose another route or use the app default.")
-                        .font(.caption)
-                        .foregroundStyle(.red)
                 }
                 if let captureDestinationLoadError {
                     Text(captureDestinationLoadError)
                         .font(.caption)
                         .foregroundStyle(.red)
                 }
-                Button("Manage Capture Routes…") {
-                    isManagingCaptureDestinations = true
-                }
-                Text("This route is inherited by typed, shared, scanned, file, and voice captures. One-capture overrides never mutate the Vox.")
+                Text("This destination belongs to this preset, including its note target, placement, formatting, attachments, and retry behavior.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -751,7 +752,7 @@ private struct MacFlowEditor: View {
 
             Section("Metadata") {
                 Picker("Scope", selection: $flow.metadataScope) {
-                    ForEach(CaptureVoxMetadataScope.allCases) { scope in
+                    ForEach(CapturePresetMetadataScope.allCases) { scope in
                         Text(scope.displayName).tag(scope)
                     }
                 }
@@ -768,7 +769,7 @@ private struct MacFlowEditor: View {
 
             Section("Voice Audio") {
                 Picker("Save Audio", selection: $flow.audioSaveMode) {
-                    ForEach(RecordingFlowAudioSaveMode.allCases) { mode in
+                    ForEach(CapturePresetAudioSaveMode.allCases) { mode in
                         Text(mode.displayName).tag(mode)
                     }
                 }
@@ -791,7 +792,7 @@ private struct MacFlowEditor: View {
                         .onChange(of: flow.exportSettings.embedAudioInMarkdown) { _, _ in markPerFlow() }
                     if flow.exportSettings.embedAudioInMarkdown && markdownAudioEmbedAvailable {
                         Picker("Embed Position", selection: $flow.exportSettings.audioEmbedPlacement) {
-                            ForEach(RecordingFlowAudioEmbedPlacement.allCases) { placement in
+                            ForEach(CapturePresetAudioEmbedPlacement.allCases) { placement in
                                 Text(placement.displayName).tag(placement)
                             }
                         }
@@ -805,7 +806,7 @@ private struct MacFlowEditor: View {
 
             if !flow.isBuiltIn {
                 Section {
-                    Button("Delete Vox", role: .destructive, action: onDelete)
+                    Button("Delete Preset", role: .destructive, action: onDelete)
                 }
             }
         }
@@ -816,42 +817,49 @@ private struct MacFlowEditor: View {
             MacFlowIconPickerView(symbolName: $flow.symbolName)
                 .frame(minWidth: 540, minHeight: 620)
         }
-        .sheet(isPresented: $isManagingCaptureDestinations, onDismiss: {
-            Task { await loadCaptureDestinations() }
-        }) {
-            MacCaptureDestinationLibraryView()
-                .frame(minWidth: 760, minHeight: 620)
+        .sheet(isPresented: $isEditingDestination) {
+            MacCaptureDestinationEditor(
+                existing: ownedDestination,
+                templates: captureEntryTemplates,
+                fixedName: flow.displayName
+            ) { destination in
+                try await saveOwnedDestination(destination)
+            }
         }
         .task { await loadCaptureDestinations() }
         .onAppear { flow.exportSettings.usesCustomExportSettings = true }
         .onDisappear { flow.staticFrontmatter = Self.parseFrontmatter(frontmatterText) }
     }
 
-    private enum MacVoxCapturePlacementChoice: String, Hashable {
-        case routeDefault, top, bottom
-    }
-
     private enum BookmarkKind {
         case exportFolder, audioFolder, markdownTemplate
     }
 
-    private var capturePlacementBinding: Binding<MacVoxCapturePlacementChoice> {
-        Binding(
-            get: {
-                switch flow.capturePlacementOverride {
-                case nil, .beneathHeading: return .routeDefault
-                case .prepend: return .top
-                case .append: return .bottom
-                }
-            },
-            set: { choice in
-                switch choice {
-                case .routeDefault: flow.capturePlacementOverride = nil
-                case .top: flow.capturePlacementOverride = .prepend
-                case .bottom: flow.capturePlacementOverride = .append
-                }
+    private var ownedDestination: CaptureDestination? {
+        guard let id = flow.captureDestinationID else { return nil }
+        return captureDestinations.first(where: { $0.id == id })
+    }
+
+    private func saveOwnedDestination(_ destination: CaptureDestination) async throws {
+        guard let url = AppConstants.captureLibraryURL else {
+            throw MacCapturePresetDestinationError.storageUnavailable
+        }
+        let library = try await CaptureLibraryStore(fileURL: url).update { library in
+            if let index = library.destinations.firstIndex(where: { $0.id == destination.id }) {
+                library.destinations[index] = destination
+            } else {
+                library.destinations.append(destination)
             }
-        )
+            if library.defaultDestinationID == nil {
+                library.defaultDestinationID = destination.id
+            }
+        }
+        flow.captureDestinationID = destination.id
+        flow.captureEntryTemplateID = nil
+        flow.capturePlacementOverride = nil
+        captureDestinations = library.destinations
+        captureEntryTemplates = library.entryTemplates
+        captureDestinationLoadError = nil
     }
 
     private func loadCaptureDestinations() async {
@@ -861,15 +869,11 @@ private struct MacFlowEditor: View {
         }
         do {
             let store = CaptureLibraryStore(fileURL: url)
-            let library = try await store.load()
+            let library = try await CapturePresetRouteLibrary.load(from: store)
             captureDestinations = library.destinations
             captureEntryTemplates = library.entryTemplates
-            if !library.legacyFlowBindings.isEmpty {
-                _ = RecordingFlowStore.migrateLegacyCaptureBindings(library.legacyFlowBindings)
-                try await store.save(library)
-                if let refreshed = RecordingFlowStore.flow(id: flow.id) {
-                    flow = refreshed
-                }
+            if let refreshed = CapturePresetStore.flow(id: flow.id) {
+                flow = refreshed
             }
             captureDestinationLoadError = nil
         } catch {
@@ -916,7 +920,7 @@ private struct MacFlowEditor: View {
             return "Adds an Obsidian-style audio link to the unified Markdown note at the selected position."
         }
         guard markdownAudioEmbedAvailable else {
-            return "Audio embeds require a Markdown note export. Switch this Vox to MD, a Markdown template, or YAML with the .md extension."
+            return "Audio embeds require a Markdown note export. Switch this preset to MD, a Markdown template, or YAML with the .md extension."
         }
         return "Adds an Obsidian-style `![[recording.m4a]]` link to the note so you can replay the recording while reviewing the transcript."
     }
@@ -962,6 +966,14 @@ private struct MacFlowEditor: View {
             if !key.isEmpty, !value.isEmpty { result[key] = value }
         }
         return result
+    }
+}
+
+private enum MacCapturePresetDestinationError: Error, LocalizedError {
+    case storageUnavailable
+
+    var errorDescription: String? {
+        "Shared capture storage is unavailable."
     }
 }
 
@@ -1015,7 +1027,7 @@ private struct MacFlowIconPickerView: View {
                 Text("Choose Icon")
                     .font(Geist.label(.title3))
                     .foregroundColor(Geist.text)
-                Text("Pick the symbol shown for this Vox.")
+                Text("Pick the symbol shown for this Capture Preset.")
                     .font(Geist.caption())
                     .foregroundColor(Geist.muted)
             }
@@ -1329,7 +1341,7 @@ private struct MacSettingsView: View {
                     sectionHeader("01", "Mac Companion")
                     settingsRow(title: "ON-DEVICE TRANSCRIPTION", detail: "Whisper and Parakeet models run locally with Metal/Core ML acceleration.", trailing: "LOCAL")
                     settingsRow(title: "APPLE INTELLIGENCE", detail: appleIntelligenceDetail, trailing: appleIntelligenceStatus)
-                    settingsRow(title: "FILE EXPORT", detail: "Vox folders, templates, Markdown/YAML/JSON/TXT, and audio attachments are shared with iOS settings when the App Group is available.", trailing: "ENABLED")
+                    settingsRow(title: "FILE EXPORT", detail: "Preset destinations, templates, Markdown/YAML/JSON/TXT, and audio attachments are shared with iOS when the App Group is available.", trailing: "ENABLED")
                     settingsRow(title: "KEYBOARD + LOCK SCREEN", detail: "Custom keyboard, widgets, Dynamic Island, and Live Activities remain iOS-specific.", trailing: "IOS")
                     sectionHeader("02", "Global Keybind")
                     hotKeySettings
@@ -1761,7 +1773,7 @@ private struct MacDebugLogView: View {
     }
 }
 
-private extension RecordingFlowPostProcessingMode {
+private extension CapturePresetProcessingMode {
     var helpText: String {
         switch self {
         case .none:

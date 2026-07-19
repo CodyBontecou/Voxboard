@@ -107,6 +107,25 @@ public actor OnDeviceTranscriptionService {
         try await prepareLocalModel(fallback)
     }
 
+    /// Starts live transcription only for Automatic when the injected Apple
+    /// Speech backend is ready or can install its system-managed language asset.
+    /// Explicit Whisper and Parakeet selections intentionally remain batch-only.
+    public func startLiveTranscription(
+        modelID: String,
+        language: String = "auto",
+        onUpdate: @escaping @Sendable (SystemTranscriptionUpdate) async -> Void
+    ) async throws -> (any SystemLiveTranscriptionSession)? {
+        guard modelID == TranscriptionBackendID.automatic,
+              let systemBackend,
+              await systemBackend.availability(language: language) != .unavailable else {
+            return nil
+        }
+        return try await systemBackend.startLiveTranscription(
+            language: language,
+            onUpdate: onUpdate
+        )
+    }
+
     public func transcribe(
         audioURL: URL,
         modelID: String,

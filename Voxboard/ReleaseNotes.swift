@@ -96,8 +96,8 @@ enum VoxboardReleaseNotes {
                         ),
                         .init(
                             symbolSystemName: "square.grid.2x2",
-                            title: "Friendlier Vox icons on Mac",
-                            description: "Custom Voxes on macOS now use a searchable icon picker, so you can choose a clear symbol without memorizing SF Symbol names."
+                            title: "Friendlier Preset icons on Mac",
+                            description: "Custom Capture Presets on macOS now use a searchable icon picker, so you can choose a clear symbol without memorizing SF Symbol names."
                         ),
                         .init(
                             symbolSystemName: "lock.fill",
@@ -106,28 +106,28 @@ enum VoxboardReleaseNotes {
                         ),
                         .init(
                             symbolSystemName: "mic.badge.plus",
-                            title: "Voxes for every workflow",
-                            description: "Create named Vox presets for different kinds of dictation—journal entries, meeting notes, task capture, or anything custom. Pick one before recording and Vox.md applies its formatting, cleanup, frontmatter, export, and audio rules."
+                            title: "Presets for every workflow",
+                            description: "Create named Capture Presets for journal entries, meeting notes, tasks, or anything custom. Pick one before recording and Vox.md applies its formatting, cleanup, frontmatter, destination, and audio rules."
                         ),
                         .init(
                             symbolSystemName: "folder.badge.gearshape",
-                            title: "Route notes by Vox",
-                            description: "Each Vox can save notes to its own directory with its own file format, filename template, Obsidian/YAML options, and Markdown template."
+                            title: "Route notes by Preset",
+                            description: "Each Capture Preset can save notes to its own destination with its own file format, filename template, Obsidian/YAML options, and Markdown template."
                         ),
                         .init(
                             symbolSystemName: "waveform.badge.plus",
                             title: "Audio goes where you want it",
-                            description: "Each Vox controls whether saved audio stays beside the note, moves into an attachments/audio folder, or stays off entirely, with irrelevant folder options hidden automatically."
+                            description: "Each Capture Preset controls whether saved audio stays beside the note, moves into an attachments/audio folder, or stays off entirely, with irrelevant folder options hidden automatically."
                         ),
                         .init(
                             symbolSystemName: "arrow.triangle.branch",
                             title: "Safer export routing",
-                            description: "Existing file export settings migrate into your default Vox, and smart folder routing now respects explicit Vox export folders."
+                            description: "Existing file export settings migrate into your default Capture Preset, and smart folder routing respects explicit Preset destinations."
                         ),
                         .init(
                             symbolSystemName: "sparkles.rectangle.stack",
                             title: "Clearer post-processing",
-                            description: "The Vox editor now explains Raw Transcript, Clean Prose, Todo Checklist, Meeting Notes, and Custom Instruction modes."
+                            description: "The Capture Preset editor explains Keep Original, Clean Prose, Todo Checklist, Meeting Notes, and Custom Instruction modes."
                         )
                     ]
                 )

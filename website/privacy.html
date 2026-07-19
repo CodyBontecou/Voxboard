@@ -79,7 +79,7 @@
 
     <h2>On-Device Processing</h2>
     <p>All voice-to-text transcription is performed entirely on your device. On supported iOS 26 devices, Automatic uses Apple's system-managed Speech framework. You can also opt into local Whisper or Parakeet model downloads. Audio captured by the microphone is processed by the selected on-device backend and is never transmitted over a network connection.</p>
-    <p>If you explicitly enable Capture Text processing for a Vox, eligible typed text, on-device OCR, and voice transcripts can be cleaned or formatted locally with Apple Intelligence. Processing falls back to deterministic formatting or the original text when on-device intelligence is unavailable. Vox.md does not send captured text to its servers or third-party AI APIs.</p>
+    <p>If you explicitly enable Capture Text processing for a Capture Preset, eligible typed text, on-device OCR, and voice transcripts can be cleaned or formatted locally with Apple Intelligence. Processing falls back to deterministic formatting or the original text when on-device intelligence is unavailable. Vox.md does not send captured text to its servers or third-party AI APIs.</p>
     <p>Transcription results, capture drafts, and retry requests are stored locally within the app's sandboxed container and shared App Group. This data is accessible only to signed Vox.md app components such as the app, keyboard, widgets, and share extension. No Vox.md service or server can access it.</p>
 
     <h2>Keyboard Extension</h2>
@@ -96,7 +96,7 @@
       <li>Processed locally by Apple Speech or an optional downloaded Whisper/Parakeet model</li>
       <li>Written temporarily only when local transcription requires a file</li>
       <li>Never transmitted to any server, API, or third-party service</li>
-      <li>Removed after transcription unless you explicitly configure a Vox preset to retain audio or insert a voice recording into a capture draft</li>
+      <li>Removed after transcription unless you explicitly configure a Capture Preset to retain audio or insert a voice recording into a capture draft</li>
     </ul>
 
     <h2>Location Usage</h2>
@@ -110,7 +110,7 @@
 
     <h2>Data Storage &amp; Deletion</h2>
     <p>All app data — including transcription history, capture drafts, staged attachments, downloaded models, templates, and settings — is stored locally on your device or in a file destination you explicitly choose. Vox.md also keeps a content-free high-water record of successful free Capture deliveries in the system Keychain so a normal uninstall and reinstall on the same device does not reset the free allowance. It contains only the count and random identifiers for up to ten successful requests, which prevent retries from being charged twice. It contains no captured text, filenames, destinations, or attachment metadata and is never sent to Vox.md.</p>
-    <p>The local Recent Captures list contains delivery metadata only: outcome, source, Vox identifier and display name, destination identifier and display name, relative note path, attachment count, timestamps, and a coarse failure category. It never duplicates note text, links, coordinates, bookmarks, absolute paths, or attachment filenames. Pending and failed captures retain only the content needed for local recovery. After successful delivery, the recoverable request is immediately replaced by an identifier-and-timestamp-only tombstone; upgrades also sanitize legacy completed requests.</p>
+    <p>The local Recent Captures list contains delivery metadata only: outcome, source, Capture Preset identifier and display name, destination identifier and display name, relative note path, attachment count, timestamps, and a coarse failure category. It never duplicates note text, links, coordinates, bookmarks, absolute paths, or attachment filenames. Pending and failed captures retain only the content needed for local recovery. After successful delivery, the recoverable request is immediately replaced by an identifier-and-timestamp-only tombstone; upgrades also sanitize legacy completed requests.</p>
     <p>You can delete locally stored user content and settings by:</p>
     <ul>
       <li>Deleting individual transcriptions or clearing Recent Capture metadata from the history views within the app</li>

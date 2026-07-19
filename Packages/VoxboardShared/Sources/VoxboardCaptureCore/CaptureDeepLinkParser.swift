@@ -15,7 +15,12 @@ public struct CaptureDeepLinkDraft: Equatable, Sendable {
     public var text: String?
     public var url: URL?
     public var destinationID: UUID?
+    /// Stable serialized/source-compatible name retained for old links.
     public var voxID: String?
+    public var presetID: String? {
+        get { voxID }
+        set { voxID = newValue }
+    }
     public var requestedInput: CaptureRequestedInput?
     public var source: CaptureSource?
 
@@ -61,7 +66,7 @@ public enum CaptureDeepLinkError: Error, Equatable, LocalizedError, Sendable {
         case .forbiddenParameter(let name): return "The capture link contains a forbidden parameter: \(name)"
         case .duplicateParameter(let name): return "The capture link repeats a parameter: \(name)"
         case .invalidDestination: return "The capture destination identifier is invalid."
-        case .invalidVox: return "The capture Vox identifier is invalid."
+        case .invalidVox: return "The Capture Preset identifier is invalid."
         case .invalidURL: return "Only HTTP and HTTPS links can be captured."
         case .invalidRequestID: return "The capture inbox request identifier is invalid."
         case .invalidAction: return "The requested capture input is not supported."
@@ -73,7 +78,7 @@ public enum CaptureDeepLinkError: Error, Equatable, LocalizedError, Sendable {
 
 public struct CaptureDeepLinkParser: Sendable {
     public static let maximumTextLength = CaptureInputLimits.maximumTextCharacters
-    private static let allowedComposerParameters: Set<String> = ["text", "url", "destination", "vox", "action", "source"]
+    private static let allowedComposerParameters: Set<String> = ["text", "url", "destination", "preset", "vox", "action", "source"]
 
     public init() {}
 
@@ -113,9 +118,14 @@ public struct CaptureDeepLinkParser: Sendable {
             } else {
                 destinationID = nil
             }
+            if value(named: "preset", in: items) != nil,
+               value(named: "vox", in: items) != nil {
+                throw CaptureDeepLinkError.duplicateParameter("preset")
+            }
             let voxID: String?
-            if let rawVox = value(named: "vox", in: items) {
-                let trimmed = rawVox.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let rawPreset = value(named: "preset", in: items)
+                ?? value(named: "vox", in: items) {
+                let trimmed = rawPreset.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !trimmed.isEmpty, trimmed.count <= 160 else {
                     throw CaptureDeepLinkError.invalidVox
                 }

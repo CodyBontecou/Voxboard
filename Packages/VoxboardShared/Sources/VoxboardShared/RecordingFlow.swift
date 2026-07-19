@@ -1,31 +1,33 @@
+import Darwin
 import Foundation
 import VoxboardCaptureCore
 
-/// The persisted Vox model. Its capture-policy fields apply to every input
+/// The persisted Capture Preset model. Its policy applies to every input
 /// modality, while export and audio-retention fields preserve recording-specific
-/// behavior and compatibility with existing Voxes.
-public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
+/// behavior and compatibility with older installs.
+public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
     public var id: String
     public var name: String
     public var symbolName: String
     public var isEnabled: Bool
     public var isBuiltIn: Bool
-    public var kind: RecordingFlowKind
-    public var exportSettings: RecordingFlowExportSettings
+    public var kind: CapturePresetKind
+    public var exportSettings: CapturePresetExportSettings
     public var staticFrontmatter: [String: String]
-    public var metadataScope: CaptureVoxMetadataScope
-    public var postProcessingMode: RecordingFlowPostProcessingMode
+    public var metadataScope: CapturePresetMetadataScope
+    public var postProcessingMode: CapturePresetProcessingMode
     public var customPostProcessingInstruction: String
-    /// Opt-in for applying this Vox's processing mode to typed and multimodal
-    /// Capture text. Existing Voxes decode as false to avoid rewriting Markdown.
+    /// Opt-in for applying this preset’s processing mode to typed and
+    /// multimodal Capture text. Existing records decode as false to avoid
+    /// rewriting Markdown.
     public var captureProcessingEnabled: Bool
     /// Optional local prompt shown in an empty Capture composer.
     public var capturePrompt: String
-    public var audioSaveMode: RecordingFlowAudioSaveMode
+    public var audioSaveMode: CapturePresetAudioSaveMode
     public var attachmentsFolderName: String
-    /// Optional precise Markdown route shared with every capture modality.
-    /// Nil inherits the Capture-library default, then falls back to legacy
-    /// voice export only when no Capture destination exists.
+    /// The Markdown destination owned by this preset. Nil means the preset
+    /// still needs destination setup; the old library default remains only as
+    /// a migration fallback.
     public var captureDestinationID: UUID?
     public var captureEntryTemplateID: UUID?
     public var capturePlacementOverride: CapturePlacement?
@@ -36,15 +38,15 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
         symbolName: String,
         isEnabled: Bool = true,
         isBuiltIn: Bool = false,
-        kind: RecordingFlowKind = .custom,
-        exportSettings: RecordingFlowExportSettings = RecordingFlowExportSettings(),
+        kind: CapturePresetKind = .custom,
+        exportSettings: CapturePresetExportSettings = CapturePresetExportSettings(),
         staticFrontmatter: [String: String] = [:],
-        metadataScope: CaptureVoxMetadataScope = .document,
-        postProcessingMode: RecordingFlowPostProcessingMode = .clean,
+        metadataScope: CapturePresetMetadataScope = .document,
+        postProcessingMode: CapturePresetProcessingMode = .clean,
         customPostProcessingInstruction: String = "",
         captureProcessingEnabled: Bool = false,
         capturePrompt: String = "",
-        audioSaveMode: RecordingFlowAudioSaveMode = .off,
+        audioSaveMode: CapturePresetAudioSaveMode = .off,
         attachmentsFolderName: String = "attachments",
         captureDestinationID: UUID? = nil,
         captureEntryTemplateID: UUID? = nil,
@@ -72,7 +74,7 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
 
     public var displayName: String {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Untitled Vox" : trimmed
+        return trimmed.isEmpty ? "Untitled Preset" : trimmed
     }
 
     public var shortLabel: String {
@@ -85,8 +87,8 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
             .uppercased()
     }
 
-    public var captureProfile: CaptureVoxProfile {
-        CaptureVoxProfile(
+    public var captureProfile: CapturePresetProfile {
+        CapturePresetProfile(
             id: id,
             name: name,
             symbolName: symbolName,
@@ -112,8 +114,8 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
 
     public var staticCategory: String? { captureProfile.staticCategory }
 
-    /// Whether this Vox should run on-device AI enrichment after transcription.
-    /// Keep Original is the explicit per-Vox opt-out; every other mode uses
+    /// Whether this preset should run on-device AI enrichment after transcription.
+    /// Keep Original is the explicit per-preset opt-out; every other mode uses
     /// Apple Intelligence when it is available so the app no longer needs a
     /// separate global enrichment toggle.
     public var usesAIEnrichment: Bool {
@@ -147,19 +149,19 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
             id: try container.decode(String.self, forKey: .id),
             name: try container.decode(String.self, forKey: .name),
             symbolName: try container.decodeIfPresent(String.self, forKey: .symbolName)
-                ?? RecordingFlowStore.defaultSymbolName,
+                ?? CapturePresetStore.defaultSymbolName,
             isEnabled: try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true,
             isBuiltIn: try container.decodeIfPresent(Bool.self, forKey: .isBuiltIn) ?? false,
-            kind: try container.decodeIfPresent(RecordingFlowKind.self, forKey: .kind) ?? .custom,
-            exportSettings: try container.decodeIfPresent(RecordingFlowExportSettings.self, forKey: .exportSettings)
-                ?? RecordingFlowExportSettings(),
+            kind: try container.decodeIfPresent(CapturePresetKind.self, forKey: .kind) ?? .custom,
+            exportSettings: try container.decodeIfPresent(CapturePresetExportSettings.self, forKey: .exportSettings)
+                ?? CapturePresetExportSettings(),
             staticFrontmatter: try container.decodeIfPresent([String: String].self, forKey: .staticFrontmatter) ?? [:],
-            metadataScope: try container.decodeIfPresent(CaptureVoxMetadataScope.self, forKey: .metadataScope) ?? .document,
-            postProcessingMode: try container.decodeIfPresent(RecordingFlowPostProcessingMode.self, forKey: .postProcessingMode) ?? .clean,
+            metadataScope: try container.decodeIfPresent(CapturePresetMetadataScope.self, forKey: .metadataScope) ?? .document,
+            postProcessingMode: try container.decodeIfPresent(CapturePresetProcessingMode.self, forKey: .postProcessingMode) ?? .clean,
             customPostProcessingInstruction: try container.decodeIfPresent(String.self, forKey: .customPostProcessingInstruction) ?? "",
             captureProcessingEnabled: try container.decodeIfPresent(Bool.self, forKey: .captureProcessingEnabled) ?? false,
             capturePrompt: try container.decodeIfPresent(String.self, forKey: .capturePrompt) ?? "",
-            audioSaveMode: try container.decodeIfPresent(RecordingFlowAudioSaveMode.self, forKey: .audioSaveMode) ?? .off,
+            audioSaveMode: try container.decodeIfPresent(CapturePresetAudioSaveMode.self, forKey: .audioSaveMode) ?? .off,
             attachmentsFolderName: try container.decodeIfPresent(String.self, forKey: .attachmentsFolderName) ?? "attachments",
             captureDestinationID: try container.decodeIfPresent(UUID.self, forKey: .captureDestinationID),
             captureEntryTemplateID: try container.decodeIfPresent(UUID.self, forKey: .captureEntryTemplateID),
@@ -190,7 +192,7 @@ public struct RecordingFlow: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
-public enum RecordingFlowKind: String, Codable, CaseIterable, Sendable {
+public enum CapturePresetKind: String, Codable, CaseIterable, Sendable {
     case general
     case dream
     case todo
@@ -198,9 +200,7 @@ public enum RecordingFlowKind: String, Codable, CaseIterable, Sendable {
     case custom
 }
 
-public typealias RecordingFlowPostProcessingMode = CaptureVoxProcessingMode
-
-public enum RecordingFlowAudioSaveMode: String, Codable, CaseIterable, Sendable, Identifiable {
+public enum CapturePresetAudioSaveMode: String, Codable, CaseIterable, Sendable, Identifiable {
     case off
     case alongsideTranscript
     case attachmentsFolder
@@ -216,7 +216,7 @@ public enum RecordingFlowAudioSaveMode: String, Codable, CaseIterable, Sendable,
     }
 }
 
-public enum RecordingFlowAudioEmbedPlacement: String, Codable, CaseIterable, Sendable, Identifiable {
+public enum CapturePresetAudioEmbedPlacement: String, Codable, CaseIterable, Sendable, Identifiable {
     case top
     case bottom
 
@@ -230,10 +230,9 @@ public enum RecordingFlowAudioEmbedPlacement: String, Codable, CaseIterable, Sen
     }
 }
 
-/// Per-flow file export settings. `usesCustomExportSettings` is kept for
-/// migration from the old global Files tab; new flows set it to `true` so each
-/// flow can choose its own note and audio destinations.
-public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
+/// Per-preset legacy file export settings. `usesCustomExportSettings` is kept
+/// for migration from the old global Files tab.
+public struct CapturePresetExportSettings: Codable, Equatable, Sendable {
     public var usesCustomExportSettings: Bool
     public var exportEnabled: Bool
     public var format: ExportFileFormat
@@ -251,7 +250,7 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
     public var yamlUsesMarkdownExtension: Bool
     public var yamlProperties: Set<ExportYAMLProperty>
     public var embedAudioInMarkdown: Bool
-    public var audioEmbedPlacement: RecordingFlowAudioEmbedPlacement
+    public var audioEmbedPlacement: CapturePresetAudioEmbedPlacement
 
     public init(
         usesCustomExportSettings: Bool = true,
@@ -271,7 +270,7 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
         yamlUsesMarkdownExtension: Bool = false,
         yamlProperties: Set<ExportYAMLProperty> = ExportYAMLProperty.defaultSelection,
         embedAudioInMarkdown: Bool = false,
-        audioEmbedPlacement: RecordingFlowAudioEmbedPlacement = .bottom
+        audioEmbedPlacement: CapturePresetAudioEmbedPlacement = .bottom
     ) {
         self.usesCustomExportSettings = usesCustomExportSettings
         self.exportEnabled = exportEnabled
@@ -340,21 +339,30 @@ public struct RecordingFlowExportSettings: Codable, Equatable, Sendable {
             yamlProperties = ExportYAMLProperty.defaultSelection
         }
         embedAudioInMarkdown = try container.decodeIfPresent(Bool.self, forKey: .embedAudioInMarkdown) ?? false
-        audioEmbedPlacement = try container.decodeIfPresent(RecordingFlowAudioEmbedPlacement.self, forKey: .audioEmbedPlacement) ?? .bottom
+        audioEmbedPlacement = try container.decodeIfPresent(CapturePresetAudioEmbedPlacement.self, forKey: .audioEmbedPlacement) ?? .bottom
     }
 }
 
-public enum RecordingFlowStore {
+private enum CapturePresetWriteLockError: Error {
+    case unavailable
+}
+
+public enum CapturePresetStore {
+    /// Stable legacy storage keys. The user-facing concept is now a Capture
+    /// Preset, but existing installs, widgets, shortcuts, and extensions must
+    /// continue reading the same App Group records.
     public static let flowsKey = "recordingFlows"
     public static let selectedFlowIdKey = "selectedRecordingFlowId"
+    private static let retiredRouteIDsKey = "retiredCapturePresetRouteIDs"
+    private static let retiredPresetIDsKey = "retiredCapturePresetIDs"
 
     public static let generalId = "general"
     public static let defaultSymbolName = "waveform"
     private static let deprecatedBuiltInFlowIds: Set<String> = ["dream", "todo", "meeting"]
     private static let legacyDefaultSymbolName = "text.alignleft"
 
-    public static var defaultFlow: RecordingFlow {
-        RecordingFlow(
+    public static var defaultFlow: CapturePreset {
+        CapturePreset(
             id: generalId,
             name: "Default",
             symbolName: defaultSymbolName,
@@ -366,14 +374,14 @@ public enum RecordingFlowStore {
         )
     }
 
-    public static var defaultFlows: [RecordingFlow] {
+    public static var defaultFlows: [CapturePreset] {
         [defaultFlow]
     }
 
-    public static func makeCustomFlow() -> RecordingFlow {
-        RecordingFlow(
+    public static func makeCustomFlow() -> CapturePreset {
+        CapturePreset(
             id: "custom-\(UUID().uuidString.lowercased())",
-            name: "Custom Vox",
+            name: "Custom Preset",
             symbolName: "slider.horizontal.3",
             isBuiltIn: false,
             kind: .custom,
@@ -383,11 +391,14 @@ public enum RecordingFlowStore {
         )
     }
 
-    public static func loadFlows(defaults: UserDefaults? = AppConstants.sharedDefaults) -> [RecordingFlow] {
+    public static func loadFlows(
+        defaults: UserDefaults? = AppConstants.sharedDefaults,
+        persistMigrations: Bool = true
+    ) -> [CapturePreset] {
         guard let defaults else { return defaultFlows }
         let decoder = JSONDecoder()
         let stored = defaults.data(forKey: flowsKey)
-            .flatMap { try? decoder.decode([RecordingFlow].self, from: $0) } ?? []
+            .flatMap { try? decoder.decode([CapturePreset].self, from: $0) } ?? []
 
         if stored.isEmpty {
             var flows = defaultFlows
@@ -396,7 +407,9 @@ public enum RecordingFlowStore {
                     flows[index].exportSettings = legacySettings
                 }
             }
-            saveFlows(flows, defaults: defaults)
+            if persistMigrations {
+                saveFlows(flows, defaults: defaults)
+            }
             return flows
         }
 
@@ -419,7 +432,7 @@ public enum RecordingFlowStore {
             migrated.insert(defaultFlow, at: 0)
         }
 
-        // Voxes now apply to every capture modality. The old generated default
+        // Capture Presets now apply to every capture modality. The old generated default
         // would otherwise label typed, photo, file, and scan captures as voice.
         for index in migrated.indices {
             let legacyType = migrated[index].staticFrontmatter["type"]?
@@ -432,11 +445,13 @@ public enum RecordingFlowStore {
 
         migrateFileExportSettingsToFlows(&migrated, defaults: defaults)
 
-        if migrated != stored { saveFlows(migrated, defaults: defaults) }
+        if persistMigrations, migrated != stored {
+            saveFlows(migrated, defaults: defaults)
+        }
         return migrated
     }
 
-    private static func migrateFileExportSettingsToFlows(_ flows: inout [RecordingFlow], defaults: UserDefaults) {
+    private static func migrateFileExportSettingsToFlows(_ flows: inout [CapturePreset], defaults: UserDefaults) {
         let legacySettings = legacyFileExportSettings(from: defaults)
         for index in flows.indices where !flows[index].exportSettings.usesCustomExportSettings {
             if let legacySettings {
@@ -447,7 +462,7 @@ public enum RecordingFlowStore {
         }
     }
 
-    private static func legacyFileExportSettings(from defaults: UserDefaults) -> RecordingFlowExportSettings? {
+    private static func legacyFileExportSettings(from defaults: UserDefaults) -> CapturePresetExportSettings? {
         let legacyKeys = [
             AppConstants.fileExportEnabledKey,
             AppConstants.fileExportFormatKey,
@@ -471,7 +486,7 @@ public enum RecordingFlowStore {
         let yamlRaw = defaults.array(forKey: AppConstants.fileExportYAMLPropertiesKey) as? [String]
         let yamlProperties = Set((yamlRaw ?? []).compactMap(ExportYAMLProperty.init(rawValue:)))
 
-        return RecordingFlowExportSettings(
+        return CapturePresetExportSettings(
             usesCustomExportSettings: true,
             exportEnabled: defaults.bool(forKey: AppConstants.fileExportEnabledKey),
             format: ExportFileFormat(rawValue: formatRaw) ?? .txt,
@@ -498,13 +513,360 @@ public enum RecordingFlowStore {
         return try? URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale).lastPathComponent
     }
 
-    public static func saveFlows(_ flows: [RecordingFlow], defaults: UserDefaults? = AppConstants.sharedDefaults) {
-        guard let defaults, let data = try? JSONEncoder().encode(flows) else { return }
+    public static func saveFlows(
+        _ flows: [CapturePreset],
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) {
+        guard let defaults else { return }
+        withPresetWriteLock(at: presetWriteLockURL) {
+            saveFlowsWithoutLock(
+                preservingMigratedRouteOwnership(in: flows, defaults: defaults),
+                defaults: defaults
+            )
+        }
+    }
+
+    fileprivate static func saveFlowsWithoutLock(
+        _ flows: [CapturePreset],
+        defaults: UserDefaults
+    ) {
+        guard let data = try? JSONEncoder().encode(flows) else { return }
         defaults.set(data, forKey: flowsKey)
     }
 
+    private static func preservingMigratedRouteOwnership(
+        in incoming: [CapturePreset],
+        defaults: UserDefaults
+    ) -> [CapturePreset] {
+        let retiredPresetIDs = Set(defaults.stringArray(forKey: retiredPresetIDsKey) ?? [])
+        let activeIncoming = incoming.filter { !retiredPresetIDs.contains($0.id) }
+        guard CapturePresetProfileStore.hasOwnedRouteMigration(defaults: defaults),
+              let data = defaults.data(forKey: flowsKey),
+              let current = try? JSONDecoder().decode([CapturePreset].self, from: data) else {
+            return activeIncoming
+        }
+        let currentByID = Dictionary(uniqueKeysWithValues: current.map { ($0.id, $0) })
+        let retiredRouteIDs = retiredRouteIDs(defaults: defaults)
+        var currentRouteOwners: [UUID: String] = [:]
+        for preset in current {
+            if let routeID = preset.captureDestinationID,
+               currentRouteOwners[routeID] == nil {
+                currentRouteOwners[routeID] = preset.id
+            }
+        }
+        return activeIncoming.map { proposed in
+            guard let saved = currentByID[proposed.id] else { return proposed }
+            let routeBelongsToAnotherPreset = proposed.captureDestinationID.flatMap {
+                currentRouteOwners[$0]
+            }.map { $0 != proposed.id } == true
+            let savedRouteWasExplicitlyRetired = saved.captureDestinationID.map {
+                retiredRouteIDs.contains($0)
+            } == true
+            let wouldEraseMigratedOwnership = saved.captureDestinationID != nil
+                && proposed.captureDestinationID != saved.captureDestinationID
+                && !savedRouteWasExplicitlyRetired
+            let containsLegacyOverrides = proposed.capturePlacementOverride != nil
+                || proposed.captureEntryTemplateID != nil
+            guard routeBelongsToAnotherPreset
+                    || wouldEraseMigratedOwnership
+                    || containsLegacyOverrides else {
+                return proposed
+            }
+            var merged = proposed
+            merged.captureDestinationID = saved.captureDestinationID
+            merged.capturePlacementOverride = nil
+            merged.captureEntryTemplateID = nil
+            return merged
+        } + current.filter { saved in
+            !activeIncoming.contains(where: { $0.id == saved.id })
+                && !retiredPresetIDs.contains(saved.id)
+        }
+    }
+
+    private static var presetWriteLockURL: URL {
+        (AppConstants.captureDirectoryURL ?? FileManager.default.temporaryDirectory)
+            .appendingPathComponent("capture-preset-writes.lock", isDirectory: false)
+    }
+
+    fileprivate static func withPresetWriteLock(
+        at lockURL: URL,
+        operation: () -> Void
+    ) {
+        guard let descriptor = presetWriteLockDescriptor(at: lockURL),
+              acquirePresetWriteLock(descriptor) else {
+            return
+        }
+        defer {
+            flock(descriptor, LOCK_UN)
+            close(descriptor)
+        }
+        operation()
+    }
+
+    fileprivate static func withPresetWriteLock<T>(
+        at lockURL: URL,
+        operation: () async throws -> T
+    ) async throws -> T {
+        guard let descriptor = presetWriteLockDescriptor(at: lockURL),
+              acquirePresetWriteLock(descriptor) else {
+            throw CapturePresetWriteLockError.unavailable
+        }
+        defer {
+            flock(descriptor, LOCK_UN)
+            close(descriptor)
+        }
+        return try await operation()
+    }
+
+    private static func presetWriteLockDescriptor(at lockURL: URL) -> Int32? {
+        do {
+            try FileManager.default.createDirectory(
+                at: lockURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+        } catch {
+            return nil
+        }
+        while true {
+            let descriptor = open(
+                lockURL.path,
+                O_CREAT | O_RDWR,
+                S_IRUSR | S_IWUSR
+            )
+            if descriptor >= 0 { return descriptor }
+            if errno != EINTR { return nil }
+        }
+    }
+
+    private static func acquirePresetWriteLock(_ descriptor: Int32) -> Bool {
+        while flock(descriptor, LOCK_EX) != 0 {
+            if errno != EINTR {
+                close(descriptor)
+                return false
+            }
+        }
+        return true
+    }
+
+    fileprivate struct OwnedRouteMigrationPlan: Sendable {
+        var library: CaptureLibraryEnvelope
+        var presets: [CapturePreset]
+        var marksInitialMigrationComplete: Bool
+    }
+
+    /// Converts the old many-to-many workflow + Destination library into one
+    /// owned Markdown route per Capture Preset. Planning is pure: callers must
+    /// save the route library first, then publish the matching preset records.
+    /// Clone IDs are deterministic so an interrupted migration can be replayed
+    /// without producing dangling references or losing legacy overrides.
+    fileprivate static func ownedRouteMigrationPlan(
+        library originalLibrary: CaptureLibraryEnvelope,
+        defaults: UserDefaults
+    ) -> OwnedRouteMigrationPlan? {
+        let originalPresets = loadFlows(
+            defaults: defaults,
+            persistMigrations: false
+        )
+        var presets = originalPresets
+        var library = originalLibrary
+        guard !presets.isEmpty else { return nil }
+
+        let isInitialMigration = !CapturePresetProfileStore.hasOwnedRouteMigration(defaults: defaults)
+        let retiredIDs = retiredRouteIDs(defaults: defaults)
+        let validRouteIDs = Set(library.destinations.map(\.id))
+        let fallbackID: UUID? = isInitialMigration
+            ? library.defaultDestinationID.flatMap {
+                validRouteIDs.contains($0) && !retiredIDs.contains($0) ? $0 : nil
+            } ?? library.destinations.first(where: { !retiredIDs.contains($0.id) })?.id
+            : nil
+        let selectedID = CapturePresetProfileStore.selectedProfileID(defaults: defaults)
+
+        var orderedIndices: [Int] = []
+        if let selectedID,
+           let selectedIndex = presets.firstIndex(where: { $0.id == selectedID }) {
+            orderedIndices.append(selectedIndex)
+        }
+        if let defaultIndex = presets.firstIndex(where: { $0.id == generalId }),
+           !orderedIndices.contains(defaultIndex) {
+            orderedIndices.append(defaultIndex)
+        }
+        orderedIndices.append(contentsOf: presets.indices.filter { !orderedIndices.contains($0) })
+
+        var claimedRouteIDs = Set<UUID>()
+        for index in orderedIndices {
+            let currentID = presets[index].captureDestinationID
+                .flatMap { validRouteIDs.contains($0) && !retiredIDs.contains($0) ? $0 : nil }
+            let legacyID = isInitialMigration
+                ? library.legacyFlowBindings[presets[index].id]
+                    .flatMap { validRouteIDs.contains($0) && !retiredIDs.contains($0) ? $0 : nil }
+                : nil
+            let requestedID = currentID ?? legacyID ?? fallbackID
+            guard let requestedID,
+                  let source = library.destinations.first(where: { $0.id == requestedID }) else {
+                presets[index].captureDestinationID = nil
+                continue
+            }
+
+            var owned = source
+            if claimedRouteIDs.contains(requestedID) {
+                owned.id = deterministicOwnedRouteID(
+                    presetID: presets[index].id,
+                    sourceRouteID: requestedID
+                )
+            }
+            owned.name = presets[index].displayName
+            if let placement = presets[index].capturePlacementOverride {
+                owned.placement = placement
+            }
+            if let templateID = presets[index].captureEntryTemplateID {
+                owned.entryTemplateID = templateID
+            }
+
+            if let existingIndex = library.destinations.firstIndex(where: { $0.id == owned.id }) {
+                library.destinations[existingIndex] = owned
+            } else {
+                library.destinations.append(owned)
+            }
+            presets[index].captureDestinationID = owned.id
+            presets[index].capturePlacementOverride = nil
+            presets[index].captureEntryTemplateID = nil
+            claimedRouteIDs.insert(owned.id)
+        }
+
+        // Only the one-time legacy migration promotes unbound destinations.
+        // New presets deliberately remain unconfigured until the user chooses
+        // their destination; retired routes remain hidden for queued delivery.
+        if isInitialMigration {
+            let orphanedRoutes = library.destinations.filter {
+                !claimedRouteIDs.contains($0.id) && !retiredIDs.contains($0.id)
+            }
+            for route in orphanedRoutes {
+                let presetID = "route-\(route.id.uuidString.lowercased())"
+                if let existingIndex = presets.firstIndex(where: { $0.id == presetID }) {
+                    presets[existingIndex].captureDestinationID = route.id
+                } else {
+                    presets.append(CapturePreset(
+                        id: presetID,
+                        name: route.name,
+                        symbolName: "folder",
+                        isBuiltIn: false,
+                        kind: .custom,
+                        staticFrontmatter: [:],
+                        postProcessingMode: .none,
+                        captureProcessingEnabled: false,
+                        capturePrompt: "What do you want to capture?",
+                        audioSaveMode: .off,
+                        captureDestinationID: route.id
+                    ))
+                }
+                claimedRouteIDs.insert(route.id)
+            }
+        }
+
+        if let selectedID,
+           let selectedRouteID = presets.first(where: { $0.id == selectedID })?.captureDestinationID {
+            library.defaultDestinationID = selectedRouteID
+        } else {
+            library.defaultDestinationID = presets.compactMap(\.captureDestinationID).first
+        }
+
+        let changed = library != originalLibrary
+            || presets != originalPresets
+            || isInitialMigration
+        guard changed else { return nil }
+        return OwnedRouteMigrationPlan(
+            library: library,
+            presets: presets,
+            marksInitialMigrationComplete: isInitialMigration
+        )
+    }
+
+    /// Direct compatibility entry point used by tests and migrations that
+    /// already own their persistence transaction.
+    @discardableResult
+    static func migrateToOwnedPresetRoutes(
+        library: inout CaptureLibraryEnvelope,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) -> Bool {
+        guard let defaults,
+              let plan = ownedRouteMigrationPlan(library: library, defaults: defaults) else {
+            return false
+        }
+        library = plan.library
+        saveFlows(plan.presets, defaults: defaults)
+        if plan.marksInitialMigrationComplete {
+            defaults.set(
+                CapturePresetProfileStore.currentOwnedRouteMigrationVersion,
+                forKey: CapturePresetProfileStore.ownedRouteMigrationVersionKey
+            )
+        }
+        return true
+    }
+
+    private static func deterministicOwnedRouteID(
+        presetID: String,
+        sourceRouteID: UUID
+    ) -> UUID {
+        let bytes = Array("\(sourceRouteID.uuidString.lowercased())|\(presetID)".utf8)
+        func fnv1a(seed: UInt64) -> UInt64 {
+            bytes.reduce(seed) { hash, byte in
+                (hash ^ UInt64(byte)) &* 1_099_511_628_211
+            }
+        }
+        let first = fnv1a(seed: 14_695_981_039_346_656_037)
+        let second = fnv1a(seed: 7_809_847_782_469_553_709)
+        let hex = String(format: "%016llx%016llx", first, second)
+        let uuidString = "\(hex.prefix(8))-\(hex.dropFirst(8).prefix(4))-5\(hex.dropFirst(13).prefix(3))-a\(hex.dropFirst(17).prefix(3))-\(hex.dropFirst(20).prefix(12))"
+        return UUID(uuidString: uuidString)!
+    }
+
+    public static func retireOwnedRoute(
+        _ routeID: UUID?,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) {
+        guard let routeID, let defaults else { return }
+        withPresetWriteLock(at: presetWriteLockURL) {
+            retireOwnedRouteWithoutLock(routeID, defaults: defaults)
+        }
+    }
+
+    private static func retireOwnedRouteWithoutLock(
+        _ routeID: UUID,
+        defaults: UserDefaults
+    ) {
+        var ids = retiredRouteIDs(defaults: defaults)
+        ids.insert(routeID)
+        defaults.set(ids.map(\.uuidString), forKey: retiredRouteIDsKey)
+    }
+
+    fileprivate static func retiredRouteIDs(defaults: UserDefaults) -> Set<UUID> {
+        Set((defaults.stringArray(forKey: retiredRouteIDsKey) ?? []).compactMap(UUID.init(uuidString:)))
+    }
+
+    public static func retirePreset(
+        id: String,
+        ownedRouteID: UUID?,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) {
+        guard let defaults else { return }
+        withPresetWriteLock(at: presetWriteLockURL) {
+            var ids = Set(defaults.stringArray(forKey: retiredPresetIDsKey) ?? [])
+            ids.insert(id)
+            defaults.set(Array(ids), forKey: retiredPresetIDsKey)
+            if let ownedRouteID {
+                retireOwnedRouteWithoutLock(ownedRouteID, defaults: defaults)
+            }
+            guard let data = defaults.data(forKey: flowsKey),
+                  var presets = try? JSONDecoder().decode([CapturePreset].self, from: data) else {
+                return
+            }
+            presets.removeAll { $0.id == id }
+            saveFlowsWithoutLock(presets, defaults: defaults)
+        }
+    }
+
     /// Imports the retired Capture-library route map exactly once without
-    /// overriding newer per-Vox choices. New library saves omit the old map.
+    /// overriding newer per-preset choices. New library saves omit the old map.
     @discardableResult
     public static func migrateLegacyCaptureBindings(
         _ bindings: [String: UUID],
@@ -530,6 +892,7 @@ public enum RecordingFlowStore {
         _ destinationID: UUID,
         defaults: UserDefaults? = AppConstants.sharedDefaults
     ) -> Int {
+        retireOwnedRoute(destinationID, defaults: defaults)
         var flows = loadFlows(defaults: defaults)
         var cleared = 0
         for index in flows.indices where flows[index].captureDestinationID == destinationID {
@@ -568,13 +931,13 @@ public enum RecordingFlowStore {
         return stored
     }
 
-    public static func selectedFlow(defaults: UserDefaults? = AppConstants.sharedDefaults) -> RecordingFlow {
+    public static func selectedFlow(defaults: UserDefaults? = AppConstants.sharedDefaults) -> CapturePreset {
         let flows = loadFlows(defaults: defaults)
         let selected = selectedFlowId(defaults: defaults)
         return flows.first(where: { $0.id == selected }) ?? flows.first ?? defaultFlows[0]
     }
 
-    public static func flow(id: String?, defaults: UserDefaults? = AppConstants.sharedDefaults) -> RecordingFlow? {
+    public static func flow(id: String?, defaults: UserDefaults? = AppConstants.sharedDefaults) -> CapturePreset? {
         guard let id else { return nil }
         return loadFlows(defaults: defaults).first(where: { $0.id == id })
     }
@@ -584,7 +947,7 @@ public enum RecordingFlowStore {
     }
 
     @discardableResult
-    public static func selectNextFlow(defaults: UserDefaults? = AppConstants.sharedDefaults) -> RecordingFlow {
+    public static func selectNextFlow(defaults: UserDefaults? = AppConstants.sharedDefaults) -> CapturePreset {
         let enabled = loadFlows(defaults: defaults).filter(\.isEnabled)
         guard !enabled.isEmpty else { return defaultFlows[0] }
         let current = selectedFlowId(defaults: defaults)
@@ -594,3 +957,62 @@ public enum RecordingFlowStore {
         return next
     }
 }
+
+public enum CapturePresetRouteLibrary {
+    /// Loads the route library and commits the one-time ownership migration as
+    /// a coordinated file transaction. Matching App Group preset records are
+    /// published only after the file succeeds. Deterministic IDs make the
+    /// operation safely replayable after interruption or concurrent attempts.
+    public static func load(
+        from store: CaptureLibraryStore,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) async throws -> CaptureLibraryEnvelope {
+        guard let defaults else { return try await store.load() }
+        let libraryURL = await store.fileURL
+        let lockURL = libraryURL.deletingLastPathComponent()
+            .appendingPathComponent("capture-preset-writes.lock", isDirectory: false)
+        return try await CapturePresetStore.withPresetWriteLock(at: lockURL) {
+            let preview = try await store.load()
+            guard CapturePresetStore.ownedRouteMigrationPlan(
+                library: preview,
+                defaults: defaults
+            ) != nil else {
+                return preview
+            }
+
+            let (library, plan) = try await store.updateReturning { latest in
+                let plan = CapturePresetStore.ownedRouteMigrationPlan(
+                    library: latest,
+                    defaults: defaults
+                )
+                if let plan {
+                    latest = plan.library
+                }
+                return plan
+            }
+            if let plan {
+                CapturePresetStore.saveFlowsWithoutLock(
+                    plan.presets,
+                    defaults: defaults
+                )
+                if plan.marksInitialMigrationComplete {
+                    defaults.set(
+                        CapturePresetProfileStore.currentOwnedRouteMigrationVersion,
+                        forKey: CapturePresetProfileStore.ownedRouteMigrationVersionKey
+                    )
+                }
+            }
+            return library
+        }
+    }
+}
+
+// MARK: - Legacy source compatibility
+
+public typealias RecordingFlow = CapturePreset
+public typealias RecordingFlowStore = CapturePresetStore
+public typealias RecordingFlowKind = CapturePresetKind
+public typealias RecordingFlowPostProcessingMode = CapturePresetProcessingMode
+public typealias RecordingFlowAudioSaveMode = CapturePresetAudioSaveMode
+public typealias RecordingFlowAudioEmbedPlacement = CapturePresetAudioEmbedPlacement
+public typealias RecordingFlowExportSettings = CapturePresetExportSettings
