@@ -85,6 +85,11 @@ final class QuickCaptureViewModel {
         return destinations.first { $0.id == id }
     }
 
+    var selectedPresetDestination: CaptureDestination? {
+        guard let id = selectedVoxProfile?.captureDestinationID else { return nil }
+        return destinations.first { $0.id == id }
+    }
+
     var hasExplicitDestinationOverride: Bool {
         draft.destinationSelectionMode == .explicit && draft.destinationID != nil
     }
@@ -248,6 +253,47 @@ final class QuickCaptureViewModel {
         guard destinations.contains(where: { $0.id == id }) else { return }
         draft.selectDestination(id)
         scheduleDraftSave()
+    }
+
+    /// Saves the reusable destination owned by the active Capture Preset and
+    /// refreshes routing for the current capture without discarding one-off overrides.
+    func saveSelectedPresetDestination(_ destination: CaptureDestination) async throws {
+        guard let libraryStore,
+              let defaults = AppConstants.sharedDefaults,
+              let presetID = selectedVoxProfile?.id else {
+            throw QuickCaptureViewModelError.storageUnavailable
+        }
+
+        var presets = CapturePresetStore.loadFlows(defaults: defaults)
+        guard let presetIndex = presets.firstIndex(where: { $0.id == presetID }) else {
+            throw QuickCaptureViewModelError.unknownVox
+        }
+
+        let library = try await libraryStore.update { library in
+            if let index = library.destinations.firstIndex(where: { $0.id == destination.id }) {
+                library.destinations[index] = destination
+            } else {
+                library.destinations.append(destination)
+            }
+            if library.defaultDestinationID == nil {
+                library.defaultDestinationID = destination.id
+            }
+        }
+
+        let previousDestinationID = presets[presetIndex].captureDestinationID
+        if previousDestinationID != destination.id {
+            CapturePresetStore.retireOwnedRoute(previousDestinationID, defaults: defaults)
+        }
+        presets[presetIndex].captureDestinationID = destination.id
+        presets[presetIndex].captureEntryTemplateID = nil
+        presets[presetIndex].capturePlacementOverride = nil
+        CapturePresetStore.saveFlows(presets, defaults: defaults)
+
+        destinations = library.destinations
+        entryTemplates = library.entryTemplates
+        defaultDestinationID = library.defaultDestinationID
+        refreshVoxProfiles()
+        errorMessage = nil
     }
 
     func useVoxRouteDefaults() {

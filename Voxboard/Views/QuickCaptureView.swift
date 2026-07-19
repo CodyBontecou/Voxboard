@@ -298,7 +298,7 @@ struct QuickCaptureView: View {
             HistoryView(viewModel: viewModel)
                 .environment(transcriptStore)
         }
-        .sheet(isPresented: $showsRoutePicker) {
+        .sheet(isPresented: $showsRoutePicker, onDismiss: reloadFlows) {
             CaptureRoutePickerView(viewModel: viewModel)
         }
         .sheet(isPresented: $showsDueDate) {
@@ -859,15 +859,33 @@ struct QuickCaptureView: View {
     }
 
     private var emptyDestinationBanner: some View {
-        Label(
-            "Configure this Capture Preset’s destination in the Presets tab",
-            systemImage: "folder.badge.plus"
-        )
-        .font(Geist.caption())
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .foregroundStyle(Geist.text)
-        .background(Geist.surface)
+        Button {
+            dismissComposer()
+            showsRoutePicker = true
+        } label: {
+            HStack(spacing: Geist.Spacing.two) {
+                Image(systemName: "folder.badge.plus")
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Destination Not Configured")
+                        .font(Geist.label())
+                    Text("Set up where this Capture Preset writes Markdown")
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.muted)
+                }
+                Spacer(minLength: Geist.Spacing.two)
+                Text("Set Up")
+                    .font(Geist.caption())
+                Image(systemName: "chevron.right")
+                    .font(Geist.caption(.caption2))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .foregroundStyle(Geist.text)
+            .background(Geist.surface)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("capture_destination_banner")
     }
 
     private var routeSelectionRow: some View {

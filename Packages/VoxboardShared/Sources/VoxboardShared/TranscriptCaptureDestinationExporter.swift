@@ -170,7 +170,7 @@ public enum ConfiguredTranscriptCaptureError: Error, LocalizedError, Sendable {
         case .storageUnavailable:
             return "Shared capture storage is unavailable."
         case .destinationMissing:
-            return "This Capture Preset’s destination no longer exists. Configure it again in Presets."
+            return "This Capture Preset’s destination no longer exists. Open Capture destination or Settings to configure it again."
         case .staleDestination(let name):
             return "The Files permission for ‘\(name)’ expired. Edit the capture destination and choose its folder again."
         case .audioPreparationFailed:

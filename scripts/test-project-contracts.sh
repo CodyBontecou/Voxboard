@@ -135,7 +135,8 @@ root_view_source = (root / 'Voxboard/Views/RootView.swift').read_text()
 if re.search(r'case[^\n]*\blisten\b', root_view_source) or 'case .listen:' in root_view_source:
     errors.append('Listen must not remain a top-level app destination')
 for required in [
-    'case capture, settings',
+    'case capture',
+    'case settings',
     'persistentRecorder: persistentRecorder',
     'pendingKeyboardLaunch: $pendingKeyboardLaunch',
 ]:
@@ -152,7 +153,7 @@ if (root / 'Voxboard/Views/HomeView.swift').exists():
     errors.append('the standalone Home/Listen recording view must be removed')
 if (root / 'Voxboard/Views/CaptureHistoryView.swift').exists():
     errors.append('the separate Capture history view must be removed in favor of unified history')
-for required in ['case "listen":', 'selectedTab = .capture', 'pendingKeyboardLaunch = true']:
+for required in ['case "listen":', 'rootDestination = .capture', 'pendingKeyboardLaunch = true']:
     if required not in app_source:
         errors.append(f'legacy recording launch routing is missing {required}')
 
@@ -185,6 +186,7 @@ for required in [
     'reserveSharedItems(urls.count)',
     'matching: .screenshots',
     'CaptureRoutePickerView(viewModel: viewModel)',
+    'capture_destination_banner',
     'HistoryView(viewModel: viewModel)',
     'locationRequestTask?.cancel()',
     'voiceCaptureButton',
@@ -203,6 +205,24 @@ for required in [
 ]:
     if required not in quick_capture_source:
         errors.append(f'Quick Capture hardening is missing {required}')
+
+capture_route_picker_source = (root / 'Voxboard/Capture/CaptureRoutePickerView.swift').read_text()
+for required in [
+    'Set Up Destination',
+    'CaptureDestinationEditorView(',
+    'viewModel.saveSelectedPresetDestination(destination)',
+]:
+    if required not in capture_route_picker_source:
+        errors.append(f'inline Capture destination setup is missing {required}')
+
+quick_capture_view_model_source = (root / 'Voxboard/Capture/QuickCaptureViewModel.swift').read_text()
+for required in [
+    'saveSelectedPresetDestination',
+    'CapturePresetStore.saveFlows',
+    'refreshVoxProfiles()',
+]:
+    if required not in quick_capture_view_model_source:
+        errors.append(f'Capture Preset destination persistence is missing {required}')
 
 history_view_source = (root / 'Voxboard/Views/HistoryView.swift').read_text()
 for required in ['UnifiedHistoryItem', 'viewModel.historyRecords', 'Search history', 'viewModel.clearHistory()']:

@@ -7,6 +7,7 @@ struct CaptureRoutePickerView: View {
     @Bindable var viewModel: QuickCaptureViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var showsNotePicker = false
+    @State private var isEditingPresetDestination = false
 
     var body: some View {
         NavigationStack {
@@ -16,8 +17,21 @@ struct CaptureRoutePickerView: View {
                         LabeledContent("Preset") {
                             Label(preset.displayName, systemImage: preset.symbolName)
                         }
-                        if let destination = viewModel.selectedDestination {
+                        if let destination = viewModel.selectedPresetDestination {
                             LabeledContent("Vault / Folder", value: destination.rootName)
+                            Button {
+                                isEditingPresetDestination = true
+                            } label: {
+                                Label("Edit Preset Destination", systemImage: "square.and.pencil")
+                            }
+                            .accessibilityIdentifier("capture_preset_destination_edit")
+                        } else if viewModel.selectedDestination != nil {
+                            Button {
+                                isEditingPresetDestination = true
+                            } label: {
+                                Label("Set Up Preset Destination", systemImage: "folder.badge.plus")
+                            }
+                            .accessibilityIdentifier("capture_preset_destination_edit")
                         }
                     }
                 }
@@ -63,11 +77,27 @@ struct CaptureRoutePickerView: View {
                         }
                     }
                 } else {
-                    ContentUnavailableView(
-                        "Destination Not Configured",
-                        systemImage: "folder.badge.plus",
-                        description: Text("Configure this Capture Preset in the Presets tab.")
-                    )
+                    Section {
+                        VStack(spacing: 14) {
+                            Image(systemName: "folder.badge.plus")
+                                .font(.system(size: 34))
+                                .foregroundStyle(.secondary)
+                            Text("Destination Not Configured")
+                                .font(.headline)
+                                .multilineTextAlignment(.center)
+                            Text("Choose a vault or folder and define where this Capture Preset writes Markdown.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                            Button("Set Up Destination") {
+                                isEditingPresetDestination = true
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .accessibilityIdentifier("capture_destination_setup")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 24)
+                    }
                 }
             }
             .navigationTitle("Capture destination")
@@ -90,6 +120,17 @@ struct CaptureRoutePickerView: View {
                     onCancel: { showsNotePicker = false }
                 )
                 .ignoresSafeArea()
+            }
+            .sheet(isPresented: $isEditingPresetDestination) {
+                NavigationStack {
+                    CaptureDestinationEditorView(
+                        existing: viewModel.selectedPresetDestination,
+                        templates: viewModel.entryTemplates,
+                        fixedName: viewModel.selectedVoxProfile?.displayName
+                    ) { destination in
+                        try await viewModel.saveSelectedPresetDestination(destination)
+                    }
+                }
             }
         }
     }
