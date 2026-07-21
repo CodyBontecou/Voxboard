@@ -1,24 +1,43 @@
 import SwiftUI
 
-// MARK: - Watch Design Tokens
+// MARK: - Watch design system
 
+/// A compact watchOS translation of the iOS Geist theme. The Watch keeps the
+/// system typeface for legibility while sharing the iOS palette, spacing,
+/// rounded controls, and semantic status colors.
 private enum WatchGeist {
-    // Exact Geist dark-theme values from docs/geist/design.dark.md.
-    static let bg = Color.black
-    static let surface = Color(red: 0.102, green: 0.102, blue: 0.102) // gray-100
-    static let surface2 = Color(red: 0.122, green: 0.122, blue: 0.122) // gray-200
-    static let border = Color.white.opacity(0.141) // gray-alpha-400
-    static let borderHi = Color.white.opacity(0.239) // gray-alpha-500
-    static let text = Color(red: 0.929, green: 0.929, blue: 0.929) // gray-1000
-    static let muted = Color(red: 0.627, green: 0.627, blue: 0.627) // gray-900
-    static let faint = Color(red: 0.561, green: 0.561, blue: 0.561) // gray-700
-    static let error = Color(red: 1.0, green: 0.337, blue: 0.373) // red-900
+    enum Spacing {
+        static let one: CGFloat = 4
+        static let two: CGFloat = 8
+        static let three: CGFloat = 12
+        static let four: CGFloat = 16
+    }
 
-    static func display(_ size: CGFloat) -> Font {
+    enum Radius {
+        static let small: CGFloat = 8
+        static let medium: CGFloat = 12
+        static let full: CGFloat = 9_999
+    }
+
+    // Dark values from the iOS Geist palette.
+    static let background = Color(red: 0.102, green: 0.102, blue: 0.110)
+    static let surface = Color(red: 0.122, green: 0.122, blue: 0.122)
+    static let surfacePressed = Color(red: 0.161, green: 0.161, blue: 0.161)
+    static let border = Color.white.opacity(0.141)
+    static let borderHigh = Color.white.opacity(0.239)
+    static let text = Color(red: 0.929, green: 0.929, blue: 0.929)
+    static let muted = Color(red: 0.627, green: 0.627, blue: 0.627)
+    static let faint = Color(red: 0.561, green: 0.561, blue: 0.561)
+    static let blue = Color(red: 0.278, green: 0.659, blue: 1.0)
+    static let blueBackground = Color(red: 0.024, green: 0.098, blue: 0.227)
+    static let red = Color(red: 1.0, green: 0.337, blue: 0.373)
+    static let redBackground = Color(red: 0.200, green: 0.039, blue: 0.067)
+
+    static func heading(_ size: CGFloat) -> Font {
         .system(size: size, weight: .semibold, design: .default)
     }
 
-    static func label(_ style: Font.TextStyle = .caption) -> Font {
+    static func label(_ style: Font.TextStyle = .footnote) -> Font {
         .system(style, design: .default, weight: .medium)
     }
 
@@ -31,112 +50,74 @@ private enum WatchGeist {
     }
 }
 
-private struct WatchGeistGridBackground: View {
-    var spacing: CGFloat = 22
-    var lineOpacity: Double = 0.16
+private enum WatchStatusTone: Equatable {
+    case neutral
+    case active
+    case destructive
 
-    var body: some View { Color.clear }
+    var foreground: Color {
+        switch self {
+        case .neutral: WatchGeist.muted
+        case .active: WatchGeist.blue
+        case .destructive: WatchGeist.red
+        }
+    }
 
-}
-
-private struct WatchGeistDivider: View {
-    var body: some View {
-        Rectangle()
-            .fill(WatchGeist.border)
-            .frame(height: 1)
+    var background: Color {
+        switch self {
+        case .neutral: WatchGeist.surface
+        case .active: WatchGeist.blueBackground
+        case .destructive: WatchGeist.redBackground
+        }
     }
 }
 
 private struct WatchStatusBadge: View {
     let label: String
-    let isActive: Bool
+    let tone: WatchStatusTone
 
     var body: some View {
         HStack(spacing: 5) {
-            Rectangle()
-                .fill(isActive ? WatchGeist.text : WatchGeist.faint)
+            Circle()
+                .fill(tone.foreground)
                 .frame(width: 5, height: 5)
             Text(label)
                 .font(WatchGeist.caption())
-                .foregroundStyle(isActive ? WatchGeist.text : WatchGeist.faint)
+                .foregroundStyle(tone.foreground)
                 .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.75)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .overlay(Rectangle().stroke(isActive ? WatchGeist.borderHi : WatchGeist.border, lineWidth: 1))
-    }
-}
-
-private struct WatchSectionLabel: View {
-    let number: String
-    let title: String
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Text(number)
-                .font(WatchGeist.caption())
-                .foregroundStyle(WatchGeist.faint)
-            Rectangle()
-                .fill(WatchGeist.border)
-                .frame(width: 13, height: 1)
-            Text(title)
-                .font(WatchGeist.caption())
-                .foregroundStyle(WatchGeist.faint)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-private struct WatchMetricTile: View {
-    let label: String
-    let value: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(WatchGeist.caption())
-                .foregroundStyle(WatchGeist.faint)
-                .lineLimit(1)
-            Text(value)
-                .font(WatchGeist.label(.caption2))
-                .foregroundStyle(WatchGeist.text)
-                .lineLimit(1)
-                .minimumScaleFactor(0.55)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(8)
-        .background(WatchGeist.surface.opacity(0.72))
-        .overlay(Rectangle().stroke(WatchGeist.border, lineWidth: 1))
+        .padding(.horizontal, WatchGeist.Spacing.two)
+        .frame(height: 26)
+        .background(tone.background)
+        .clipShape(Capsule())
     }
 }
 
 private struct WatchWaveformView: View {
-    let isActive: Bool
+    let color: Color
     private let barCount = 9
 
     var body: some View {
-        TimelineView(.animation) { timeline in
-            let t = timeline.date.timeIntervalSinceReferenceDate
+        TimelineView(.animation(minimumInterval: 0.12)) { timeline in
+            let time = timeline.date.timeIntervalSinceReferenceDate
             HStack(spacing: 3) {
                 ForEach(0..<barCount, id: \.self) { index in
-                    let phase = isActive ? t * 4.5 + Double(index) * 0.62 : Double(index) * 0.45
-                    let height = (sin(phase) + 1) / 2 * 18 + 4
-                    Rectangle()
-                        .fill(WatchGeist.text.opacity(isActive ? 0.82 : 0.38))
+                    let phase = time * 4.5 + Double(index) * 0.62
+                    let height = (sin(phase) + 1) / 2 * 16 + 5
+                    Capsule()
+                        .fill(color)
                         .frame(width: 3, height: height)
                 }
             }
-            .frame(height: 26)
+            .frame(height: 24)
         }
         .accessibilityHidden(true)
     }
 }
 
 private struct WatchGeistButtonStyle: ButtonStyle {
-    enum Variant {
+    enum Variant: Equatable {
         case primary
         case secondary
         case destructive
@@ -147,47 +128,42 @@ private struct WatchGeistButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(WatchGeist.label(.footnote))
-            .foregroundStyle(foregroundColor(isPressed: configuration.isPressed))
+            .font(WatchGeist.label())
+            .foregroundStyle(foregroundColor)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 11)
+            .frame(minHeight: 44)
+            .padding(.horizontal, WatchGeist.Spacing.two)
             .background(backgroundColor(isPressed: configuration.isPressed))
-            .overlay(
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .stroke(borderColor(isPressed: configuration.isPressed), lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-            .opacity(isEnabled ? (configuration.isPressed ? 0.82 : 1.0) : 0.45)
+            .overlay {
+                if variant == .secondary {
+                    RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous)
+                        .stroke(configuration.isPressed ? WatchGeist.borderHigh : WatchGeist.border, lineWidth: 1)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous))
+            .opacity(isEnabled ? 1 : 0.55)
     }
 
-    private func foregroundColor(isPressed: Bool) -> Color {
+    private var foregroundColor: Color {
+        guard isEnabled else { return WatchGeist.faint }
         switch variant {
         case .primary:
-            return WatchGeist.bg
-        case .secondary:
-            return isPressed ? WatchGeist.muted : WatchGeist.text
-        case .destructive:
+            return WatchGeist.background
+        case .secondary, .destructive:
             return WatchGeist.text
         }
     }
 
     private func backgroundColor(isPressed: Bool) -> Color {
+        guard isEnabled else { return WatchGeist.surface }
         switch variant {
         case .primary:
-            return isPressed ? Color(white: 0.82) : WatchGeist.text
+            return isPressed ? WatchGeist.muted : WatchGeist.text
         case .secondary:
-            return isPressed ? WatchGeist.surface2 : WatchGeist.surface.opacity(0.58)
+            return isPressed ? WatchGeist.surfacePressed : WatchGeist.surface
         case .destructive:
-            return isPressed ? WatchGeist.error.opacity(0.74) : WatchGeist.error
-        }
-    }
-
-    private func borderColor(isPressed: Bool) -> Color {
-        switch variant {
-        case .primary, .destructive:
-            return .clear
-        case .secondary:
-            return isPressed ? WatchGeist.borderHi : WatchGeist.border
+            return isPressed ? WatchGeist.red.opacity(0.78) : WatchGeist.red
         }
     }
 }
@@ -199,29 +175,18 @@ struct WatchRecorderView: View {
 
     var body: some View {
         ZStack {
-            WatchGeist.bg.ignoresSafeArea()
-            WatchGeistGridBackground()
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
+            WatchGeist.background.ignoresSafeArea()
 
             ScrollView(.vertical) {
-                VStack(spacing: 0) {
-                    topBar
-                    WatchGeistDivider()
-
-                    VStack(spacing: 8) {
-                        mainStatusPanel
-
-                        if shouldShowSecondaryAction {
-                            secondarySyncButton
-                        }
-                    }
-                    .padding(.horizontal, 10)
-                    .padding(.top, 8)
-                    .padding(.bottom, 6)
-
-                    detailsContent
+                VStack(spacing: WatchGeist.Spacing.two) {
+                    header
+                    statusCard
+                    actionButtons
+                    captureContextCard
                 }
+                .padding(.horizontal, WatchGeist.Spacing.two)
+                .padding(.top, 2)
+                .padding(.bottom, WatchGeist.Spacing.three)
             }
             .scrollIndicators(.hidden)
         }
@@ -242,89 +207,151 @@ struct WatchRecorderView: View {
         }
     }
 
-    private var topBar: some View {
-        HStack(spacing: 8) {
-            WatchStatusBadge(label: phaseBadgeLabel, isActive: statusBadgeIsActive)
-            Spacer(minLength: 4)
+    private var header: some View {
+        HStack(spacing: WatchGeist.Spacing.two) {
             Image("WatchTopBarIcon")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 18, height: 18)
-                .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 5, style: .continuous)
-                        .stroke(WatchGeist.borderHi.opacity(0.45), lineWidth: 0.5)
-                )
-                .accessibilityLabel("Vox.md")
+                .frame(width: 22, height: 22)
+                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .accessibilityHidden(true)
+
+            Text("Vox.md")
+                .font(WatchGeist.label(.caption))
+                .foregroundStyle(WatchGeist.text)
+
+            Spacer(minLength: WatchGeist.Spacing.one)
+            WatchStatusBadge(label: phaseBadgeLabel, tone: statusTone)
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 7)
-        .background(WatchGeist.bg.opacity(0.9))
+        .padding(.horizontal, 2)
+        .frame(minHeight: 30)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Vox.md, \(phaseBadgeLabel)")
     }
 
-    private var mainStatusPanel: some View {
-        Button {
-            Task { await toggleRecording() }
-        } label: {
-            mainStatusPanelContent
-        }
-        .buttonStyle(.plain)
-        .disabled(isSending)
-        .accessibilityLabel(accessibilityStatusLabel)
-        .accessibilityHint(localRecorder.isRecording ? "Stops and saves the Watch recording." : "Starts a local Watch recording.")
-    }
-
-    private var mainStatusPanelContent: some View {
-        HStack(spacing: 10) {
-            ZStack {
-                Rectangle()
-                    .fill(WatchGeist.surface.opacity(0.78))
-                    .overlay(Rectangle().stroke(WatchGeist.border, lineWidth: 1))
-
-                Image(systemName: symbolName)
-                    .font(.system(size: 23, weight: .semibold))
-                    .foregroundStyle(symbolColor)
+    private var statusCard: some View {
+        Group {
+            if localRecorder.isRecording {
+                recordingStatusContent
+            } else {
+                compactStatusContent
             }
-            .frame(width: 42, height: 42)
-            .accessibilityHidden(true)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(10)
+        .background(WatchGeist.surface)
+        .overlay(
+            RoundedRectangle(cornerRadius: WatchGeist.Radius.medium, style: .continuous)
+                .stroke(WatchGeist.border, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: WatchGeist.Radius.medium, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityStatusLabel)
+    }
+
+    private var compactStatusContent: some View {
+        HStack(spacing: WatchGeist.Spacing.two) {
+            statusIcon(size: 38, symbolSize: 16)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(phaseWord)
-                    .font(WatchGeist.display(compactDisplaySize))
-                    .foregroundStyle(phaseWordColor)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.45)
-                    .accessibilityAddTraits(localRecorder.isRecording ? .updatesFrequently : [])
+                Text(statusHeadline)
+                    .font(WatchGeist.heading(statusHeadlineSize))
+                    .foregroundStyle(statusTone == .destructive ? WatchGeist.red : WatchGeist.text)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.68)
 
-                if localRecorder.isRecording,
-                   let startedAt = localRecorder.startedAt {
-                    Text(startedAt, style: .timer)
-                        .font(WatchGeist.display(25))
-                        .foregroundStyle(WatchGeist.text)
-                        .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.62)
-
-                    Text("Tap again to stop.")
-                        .font(WatchGeist.caption())
-                        .foregroundStyle(WatchGeist.muted)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                } else {
-                    Text(mainSubtitle)
-                        .font(WatchGeist.caption())
-                        .foregroundStyle(WatchGeist.muted)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.7)
-                }
+                Text(statusSubtitle)
+                    .font(WatchGeist.caption())
+                    .foregroundStyle(statusTone == .destructive ? WatchGeist.red : WatchGeist.muted)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(9)
-        .background(WatchGeist.bg.opacity(0.58))
-        .overlay(Rectangle().stroke(WatchGeist.border, lineWidth: 1))
-        .contentShape(Rectangle())
-        .opacity(isSending ? 0.7 : 1.0)
+    }
+
+    private var recordingStatusContent: some View {
+        VStack(spacing: WatchGeist.Spacing.two) {
+            HStack(spacing: WatchGeist.Spacing.three) {
+                statusIcon(size: 44, symbolSize: 18)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Recording")
+                        .font(WatchGeist.label(.caption))
+                        .foregroundStyle(WatchGeist.text)
+                    if let startedAt = localRecorder.startedAt {
+                        Text(startedAt, style: .timer)
+                            .font(.system(size: 27, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(WatchGeist.text)
+                            .monospacedDigit()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.72)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            HStack(spacing: WatchGeist.Spacing.two) {
+                WatchWaveformView(color: WatchGeist.red)
+                    .frame(width: 64)
+                Text("Tap Stop")
+                    .font(WatchGeist.caption())
+                    .foregroundStyle(WatchGeist.muted)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    private func statusIcon(size: CGFloat, symbolSize: CGFloat) -> some View {
+        ZStack {
+            Circle()
+                .fill(statusTone.background)
+                .frame(width: size, height: size)
+
+            Image(systemName: statusSymbolName)
+                .font(.system(size: symbolSize, weight: .semibold))
+                .foregroundStyle(statusTone.foreground)
+        }
+        .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private var actionButtons: some View {
+        if shouldShowSecondaryAction {
+            HStack(spacing: WatchGeist.Spacing.two) {
+                recordingButton
+                secondarySyncButton
+            }
+        } else {
+            recordingButton
+        }
+    }
+
+    private var recordingButton: some View {
+        Button {
+            Task { await toggleRecording() }
+        } label: {
+            HStack(spacing: 6) {
+                if isSending {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(localRecorder.isRecording ? WatchGeist.text : WatchGeist.background)
+                } else {
+                    Image(systemName: localRecorder.actionSymbol)
+                }
+                Text(localRecorder.actionTitle)
+            }
+        }
+        .buttonStyle(
+            WatchGeistButtonStyle(
+                variant: localRecorder.isRecording ? .destructive : .primary
+            )
+        )
+        .disabled(isSending)
+        .accessibilityLabel(localRecorder.isRecording ? "Stop Watch recording" : "Start Watch recording")
+        .accessibilityHint(localRecorder.isRecording ? "Stops and safely saves this recording." : "Starts a recording stored locally on this Watch.")
     }
 
     private var secondarySyncButton: some View {
@@ -333,9 +360,9 @@ struct WatchRecorderView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: isSending ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
-                Text(localRecorder.syncTitle)
+                Text(localRecorder.hasUnuploadedRecordings ? "Sync" : "Refresh")
                     .lineLimit(1)
-                    .minimumScaleFactor(0.58)
+                    .minimumScaleFactor(0.7)
             }
         }
         .buttonStyle(WatchGeistButtonStyle(variant: .secondary))
@@ -343,131 +370,106 @@ struct WatchRecorderView: View {
         .accessibilityHint(localRecorder.queuedCount > 0 ? "Sends saved Watch recordings to your iPhone." : "Refreshes the connection with your iPhone.")
     }
 
-    private var detailsContent: some View {
-        VStack(spacing: 8) {
-            statusDetailCard
-            metricsRow
-            queueCard
-        }
-        .padding(.horizontal, 10)
-        .padding(.bottom, 10)
-    }
+    private var captureContextCard: some View {
+        HStack(spacing: WatchGeist.Spacing.two) {
+            Image(systemName: "waveform")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(WatchGeist.blue)
+                .frame(width: 26, height: 26)
+                .background(WatchGeist.blueBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                .accessibilityHidden(true)
 
-    private var statusDetailCard: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            WatchSectionLabel(number: "01", title: "Details")
-            Text(localRecorder.subtitle)
-                .font(WatchGeist.caption())
-                .foregroundStyle(WatchGeist.muted)
-                .lineLimit(3)
-                .minimumScaleFactor(0.75)
-
-            if localRecorder.isRecording {
-                WatchWaveformView(isActive: true)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(10)
-        .background(WatchGeist.surface.opacity(0.52))
-        .overlay(Rectangle().stroke(WatchGeist.border, lineWidth: 1))
-    }
-
-    private var metricsRow: some View {
-        HStack(spacing: 8) {
-            WatchMetricTile(label: "Queue", value: "\(localRecorder.queuedCount)")
-            WatchMetricTile(label: "Preset", value: localRecorder.activePresetName)
-            WatchMetricTile(label: "Sync", value: syncMetricValue)
-        }
-    }
-
-    @ViewBuilder
-    private var queueCard: some View {
-        if shouldShowQueueSummary {
-            VStack(alignment: .leading, spacing: 7) {
-                WatchSectionLabel(number: "02", title: "Queue")
-                Text(localRecorder.queueSummary)
-                    .font(WatchGeist.caption())
-                    .foregroundStyle(WatchGeist.text)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.75)
-                Text("Saved locally. Sync when your iPhone is nearby.")
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Capture Preset")
                     .font(WatchGeist.caption())
                     .foregroundStyle(WatchGeist.muted)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.75)
+                Text(localRecorder.activePresetName)
+                    .font(WatchGeist.label(.caption2))
+                    .foregroundStyle(WatchGeist.text)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(10)
-            .background(WatchGeist.surface.opacity(0.52))
-            .overlay(Rectangle().stroke(WatchGeist.border, lineWidth: 1))
-        }
-    }
 
-    private var shouldShowQueueSummary: Bool {
-        guard localRecorder.queuedCount > 0, !localRecorder.isRecording else { return false }
-        #if DEBUG
-        return !localRecorder.isRunningDemoScript
-        #else
-        return true
-        #endif
-    }
+            Spacer(minLength: WatchGeist.Spacing.one)
 
-    private var phaseWord: String {
-        switch localRecorder.phase {
-        case .recording:
-            return "RECORDING."
-        case .transferring:
-            return "SYNCING."
-        case .waitingForPhone:
-            return "QUEUED."
-        case .transcribing:
-            return "TRANSCRIBING."
-        case .delivering:
-            return "SAVING."
-        case .transferred:
-            return "SAVED."
-        case .error:
-            return "ERROR."
-        case .idle:
-            return localRecorder.queuedCount > 0 ? "SAVED." : "READY."
-        }
-    }
-
-    private var compactDisplaySize: CGFloat {
-        switch localRecorder.phase {
-        case .recording:
-            return 23
-        case .transferring, .waitingForPhone, .delivering:
-            return 25
-        case .transcribing:
-            return 20
-        case .transferred, .error, .idle:
-            return 29
-        }
-    }
-
-    private var mainSubtitle: String {
-        switch localRecorder.phase {
-        case .recording:
-            return "Tap again to stop."
-        case .transferring:
-            return "Sending to iPhone…"
-        case .waitingForPhone:
-            return "Safe on iPhone."
-        case .transcribing:
-            return "Processing on iPhone…"
-        case .delivering:
-            return "Saving to Capture…"
-        case .transferred:
-            return "Saved to Capture."
-        case .error:
-            if localRecorder.queuedRecordings.contains(where: { $0.remotePhase == .failed }) {
-                return "Open iPhone to retry."
+            VStack(alignment: .trailing, spacing: 1) {
+                Text("Queue")
+                    .font(WatchGeist.caption())
+                    .foregroundStyle(WatchGeist.muted)
+                Text("\(localRecorder.queuedCount)")
+                    .font(WatchGeist.label(.caption2))
+                    .foregroundStyle(localRecorder.queuedCount > 0 ? WatchGeist.blue : WatchGeist.text)
+                    .monospacedDigit()
             }
-            return localRecorder.queuedCount > 0 ? "Saved locally. Retry sync." : "Tap sync to refresh."
+        }
+        .padding(WatchGeist.Spacing.two)
+        .background(WatchGeist.background)
+        .overlay(
+            RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous)
+                .stroke(WatchGeist.border, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Capture Preset \(localRecorder.activePresetName). \(localRecorder.queuedCount) recordings in the Watch queue.")
+    }
+
+    private var statusHeadline: String {
+        switch localRecorder.phase {
+        case .recording:
+            return "Recording"
+        case .transferring:
+            return "Syncing to iPhone"
+        case .waitingForPhone:
+            return "On iPhone"
+        case .transcribing:
+            return "Transcribing"
+        case .delivering:
+            return "Saving to Capture"
+        case .transferred:
+            return "Saved to Capture"
+        case .error:
+            return "Needs attention"
         case .idle:
-            return localRecorder.queuedCount > 0 ? "\(localRecorder.queuedCount) saved on Watch." : "Tap to start."
+            return localRecorder.queuedCount > 0 ? "Ready" : "Voice Capture"
+        }
+    }
+
+    private var statusHeadlineSize: CGFloat {
+        switch localRecorder.phase {
+        case .transferring, .delivering, .transferred:
+            return 16
+        case .recording, .waitingForPhone, .transcribing, .error:
+            return 18
+        case .idle:
+            return 17
+        }
+    }
+
+    private var statusSubtitle: String {
+        switch localRecorder.phase {
+        case .recording:
+            return "Tap Stop when your thought is captured."
+        case .transferring:
+            return "Your recording remains safe while it moves to iPhone."
+        case .waitingForPhone:
+            return "Safely queued and waiting to process."
+        case .transcribing:
+            return "Your iPhone is transcribing on device."
+        case .delivering:
+            return "Sending the transcript through your Capture Preset."
+        case .transferred:
+            return "Delivered successfully. You can record another."
+        case .error(let message):
+            return message
+        case .idle:
+            if localRecorder.queuedCount == 1 {
+                return "1 recording safe on Watch."
+            }
+            if localRecorder.queuedCount > 1 {
+                return "\(localRecorder.queuedCount) recordings safe on Watch."
+            }
+            return "Capture on Watch. Syncs to iPhone."
         }
     }
 
@@ -481,39 +483,11 @@ struct WatchRecorderView: View {
     private var phaseBadgeLabel: String {
         switch localRecorder.phase {
         case .recording:
-            return "Recording"
+            return "Live"
         case .transferring:
             return "Sync"
         case .waitingForPhone:
             return "Queued"
-        case .transcribing:
-            return "Transcribe"
-        case .delivering:
-            return "Saving"
-        case .transferred:
-            return "Sent"
-        case .error:
-            return "Alert"
-        case .idle:
-            return localRecorder.queuedCount > 0 ? "Queued" : "Ready"
-        }
-    }
-
-    private var statusBadgeIsActive: Bool {
-        switch localRecorder.phase {
-        case .idle:
-            return localRecorder.queuedCount > 0
-        case .recording, .transferring, .waitingForPhone, .transcribing, .delivering, .transferred, .error:
-            return true
-        }
-    }
-
-    private var syncMetricValue: String {
-        switch localRecorder.phase {
-        case .transferring:
-            return "On"
-        case .waitingForPhone:
-            return "Queue"
         case .transcribing:
             return "Text"
         case .delivering:
@@ -521,22 +495,24 @@ struct WatchRecorderView: View {
         case .transferred:
             return "Sent"
         case .error:
-            return "Retry"
-        case .idle, .recording:
-            return localRecorder.queuedCount > 0 ? "Wait" : "Ready"
+            return "Alert"
+        case .idle:
+            return localRecorder.queuedCount > 0 ? "Queue" : "Ready"
         }
     }
 
-    private var phaseWordColor: Color {
+    private var statusTone: WatchStatusTone {
         switch localRecorder.phase {
-        case .error:
-            return WatchGeist.error
-        default:
-            return WatchGeist.text
+        case .recording, .error:
+            return .destructive
+        case .transferring, .waitingForPhone, .transcribing, .delivering, .transferred:
+            return .active
+        case .idle:
+            return localRecorder.queuedCount > 0 ? .active : .neutral
         }
     }
 
-    private var symbolName: String {
+    private var statusSymbolName: String {
         switch localRecorder.phase {
         case .recording:
             return "waveform"
@@ -557,23 +533,12 @@ struct WatchRecorderView: View {
         }
     }
 
-    private var symbolColor: Color {
-        switch localRecorder.phase {
-        case .error:
-            return WatchGeist.error
-        case .idle:
-            return localRecorder.queuedCount > 0 ? WatchGeist.text : WatchGeist.muted
-        default:
-            return WatchGeist.text
-        }
-    }
-
     private var accessibilityStatusLabel: String {
         if localRecorder.isRecording, let startedAt = localRecorder.startedAt {
             let elapsed = Date().timeIntervalSince(startedAt)
-            return "Vox.md recording for \(Int(elapsed)) seconds."
+            return "Vox.md recording for \(Int(elapsed)) seconds. \(statusSubtitle)"
         }
-        return "Vox.md Watch status: \(phaseBadgeLabel). \(localRecorder.subtitle)"
+        return "Vox.md Watch status: \(phaseBadgeLabel). \(statusSubtitle)"
     }
 
     private func toggleRecording() async {

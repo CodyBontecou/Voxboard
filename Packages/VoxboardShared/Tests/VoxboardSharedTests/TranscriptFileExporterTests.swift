@@ -442,6 +442,40 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertTrue(fileName.contains("-fr-"))
     }
 
+    func test_exportConfigured_customFlowFilenameTemplateIsNotPrefixedByEnrichedTitle() throws {
+        let suiteName = "test.custom-flow.filename.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        var flow = CapturePresetStore.makeCustomFlow()
+        flow.exportSettings.exportEnabled = true
+        flow.exportSettings.format = .md
+        flow.exportSettings.mode = .newFile
+        flow.exportSettings.folderBookmark = try tempFolder.bookmarkData()
+        flow.exportSettings.newFileNameTemplate = "Custom Note"
+
+        let transcript = Transcript(
+            id: UUID(),
+            text: "Set up Notebook Navigator",
+            date: Date(),
+            duration: 2,
+            modelUsed: "base",
+            language: "en",
+            title: "Notebook Navigator Setup"
+        )
+
+        let outcome = try TranscriptFileExporter.exportConfigured(
+            transcript,
+            flow: flow,
+            defaults: defaults
+        )
+        guard case .exported(let url) = outcome else {
+            return XCTFail("Expected the custom flow to export a note")
+        }
+
+        XCTAssertEqual(url.lastPathComponent, "Custom-Note.md")
+    }
+
     func test_exportIfEnabled_appendUsesConfiguredFileName() throws {
         let suiteName = "test.export.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

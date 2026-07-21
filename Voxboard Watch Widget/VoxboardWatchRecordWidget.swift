@@ -3,6 +3,8 @@ import SwiftUI
 import WidgetKit
 
 private enum WatchWidgetGeist {
+    // Semantic colors shared with the iOS Geist theme.
+    static let active = Color(red: 0.278, green: 0.659, blue: 1.0)
     static let error = Color(red: 1.0, green: 0.337, blue: 0.373)
 
     static func label(_ size: CGFloat, weight: Font.Weight = .medium) -> Font {
@@ -156,9 +158,9 @@ struct VoxboardWatchRecordWidgetView: View {
                     .frame(width: 24, height: 24)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 4) {
-                        Rectangle()
+                        Circle()
                             .fill(stateColor)
-                            .frame(width: 4, height: 4)
+                            .frame(width: 5, height: 5)
                             .widgetAccentable()
                         Text("Vox.md")
                             .font(WatchWidgetGeist.label(11, weight: .bold))
@@ -218,7 +220,9 @@ struct VoxboardWatchRecordWidgetView: View {
         switch entry.snapshot.phase {
         case .recording, .error, .unavailable:
             return WatchWidgetGeist.error
-        default:
+        case .syncing, .transcribing, .delivering, .pending:
+            return WatchWidgetGeist.active
+        case .idle, .listening:
             return .primary
         }
     }
@@ -305,12 +309,10 @@ private struct VoxboardComplicationMark: View {
         switch phase {
         case .recording, .error, .unavailable:
             return WatchWidgetGeist.error
-        case .syncing, .transcribing, .delivering:
-            return .cyan
-        case .pending:
-            return .green
+        case .syncing, .transcribing, .delivering, .pending:
+            return WatchWidgetGeist.active
         case .idle, .listening:
-            return Color(red: 1.0, green: 0.56, blue: 0.0)
+            return .primary
         }
     }
 }

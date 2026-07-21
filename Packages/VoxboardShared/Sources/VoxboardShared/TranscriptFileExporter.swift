@@ -1031,6 +1031,11 @@ public enum TranscriptFileExporter {
             enrichmentOptions.useCleanedText = true
             enrichmentOptions.includeTags = true
         }
+        if custom != nil {
+            // A Capture Preset's filename template is authoritative. The old
+            // global enrichment preference must not silently prepend an AI title.
+            enrichmentOptions.useEnrichedTitleInFilename = false
+        }
         let staticFrontmatter = flow?.staticFrontmatter ?? [:]
 
         func write(to folderURL: URL) throws -> URL {
