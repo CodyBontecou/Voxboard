@@ -121,6 +121,21 @@ struct WatchRecordingQueueView: View {
                     } else {
                         Button("Retry") { pipeline.retry(item) }
                             .buttonStyle(GeistButtonStyle(variant: .primary, size: .small))
+                        if item.flowSnapshot?.watchOutputMode == .recordingOnly {
+                            Menu("Change Preset") {
+                                ForEach(
+                                    CapturePresetStore.loadFlows().filter {
+                                        $0.isEnabled && $0.watchOutputMode == .recordingOnly
+                                    },
+                                    id: \.id
+                                ) { preset in
+                                    Button(preset.displayName) {
+                                        pipeline.choosePreset(preset, for: item)
+                                    }
+                                }
+                            }
+                            .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+                        }
                     }
                     Button("Discard", role: .destructive) { pendingDiscard = item }
                         .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
@@ -147,9 +162,13 @@ extension WatchRecordingInboxItem {
         case .transcribing:
             return "Transcribing Watch recording"
         case .delivering:
-            return "Saving to Capture"
+            return isRecordingOnlyWatchOutput
+                ? "Saving recording to Files"
+                : "Saving to Capture"
         case .delivered:
-            return "Watch recording saved"
+            return isRecordingOnlyWatchOutput
+                ? "Watch recording saved to Files"
+                : "Watch recording saved"
         case .failed:
             return "Watch recording needs attention"
         case .discarded:
@@ -167,14 +186,24 @@ extension WatchRecordingInboxItem {
         case .transcribing:
             return "On-device transcription is running"
         case .delivering:
-            return "Writing through the Capture pipeline"
+            return isRecordingOnlyWatchOutput
+                ? "Copying the retained M4A to the selected Files folder"
+                : "Writing through the Capture pipeline"
         case .delivered:
-            return "Delivered with \(displayPresetName)"
+            return isRecordingOnlyWatchOutput
+                ? "Saved as a user-visible M4A file"
+                : "Delivered with \(displayPresetName)"
         case .failed:
-            return "The audio and transcript are retained for retry"
+            return isRecordingOnlyWatchOutput
+                ? "The M4A is retained safely for Files retry"
+                : "The audio and transcript are retained for retry"
         case .discarded:
             return "Removed"
         }
+    }
+
+    private var isRecordingOnlyWatchOutput: Bool {
+        flowSnapshot?.watchOutputMode == .recordingOnly
     }
 
     var watchStatusSymbol: String {
@@ -184,7 +213,7 @@ extension WatchRecordingInboxItem {
         case .transcribing:
             return "waveform.badge.magnifyingglass"
         case .delivering:
-            return "arrow.up.doc"
+            return isRecordingOnlyWatchOutput ? "folder.badge.plus" : "arrow.up.doc"
         case .delivered:
             return "checkmark.circle.fill"
         case .failed:

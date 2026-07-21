@@ -13,11 +13,22 @@ enum WatchRecordingPayloadKey {
     static let selectedPresetID = "selectedPresetID"
     static let selectedPresetName = "selectedPresetName"
     static let selectedPresetSnapshot = "selectedPresetSnapshot"
+    static let presetSummaries = "presetSummaries"
+    static let presetSummariesTruncated = "presetSummariesTruncated"
+    static let presetSelectionAvailable = "presetSelectionAvailable"
+    static let presetSymbolName = "presetSymbolName"
+    static let requestedPresetID = "requestedPresetID"
+    static let presetSelectionRequestID = "presetSelectionRequestID"
+    static let presetSelectionEpoch = "presetSelectionEpoch"
+    static let presetSelectionSequence = "presetSelectionSequence"
+    static let presetSelectionResult = "presetSelectionResult"
+    static let presetSelectionError = "presetSelectionError"
     static let recordingStatuses = "recordingStatuses"
     static let recordingID = "recordingID"
     static let revision = "revision"
     static let updatedAt = "updatedAt"
     static let sentAt = "sentAt"
+    static let stateEpoch = "stateEpoch"
     static let stateRevision = "stateRevision"
 }
 
@@ -51,12 +62,186 @@ struct WatchRemoteRecordingStatus: Equatable, Sendable {
     }
 }
 
+struct WatchCapturePresetSummary: Identifiable, Equatable, Sendable {
+    let id: String
+    let displayName: String
+    let symbolName: String
+
+    init?(dictionary: [String: Any]) {
+        guard let id = dictionary[WatchRecordingPayloadKey.selectedPresetID] as? String,
+              !id.isEmpty,
+              let displayName = dictionary[WatchRecordingPayloadKey.selectedPresetName] as? String,
+              !displayName.isEmpty else { return nil }
+        self.id = id
+        self.displayName = displayName
+        self.symbolName = (dictionary[WatchRecordingPayloadKey.presetSymbolName] as? String)
+            .flatMap { $0.isEmpty ? nil : $0 }
+            ?? "waveform"
+    }
+
+    var dictionary: [String: Any] {
+        [
+            WatchRecordingPayloadKey.selectedPresetID: id,
+            WatchRecordingPayloadKey.selectedPresetName: displayName,
+            WatchRecordingPayloadKey.presetSymbolName: symbolName,
+        ]
+    }
+}
+
+enum WatchPresetSelectionOutcome: String, Equatable, Sendable {
+    case accepted
+    case rejected
+    case stale
+}
+
+struct WatchPresetSelectionAcknowledgement: Equatable, Sendable {
+    let requestID: String
+    let presetID: String
+    let epoch: Int
+    let sequence: Int
+    let outcome: WatchPresetSelectionOutcome
+    let errorMessage: String?
+
+    init?(dictionary: [String: Any]) {
+        guard let requestID = dictionary[WatchRecordingPayloadKey.presetSelectionRequestID] as? String,
+              let presetID = dictionary[WatchRecordingPayloadKey.requestedPresetID] as? String,
+              let epoch = dictionary[WatchRecordingPayloadKey.presetSelectionEpoch] as? Int,
+              let sequence = dictionary[WatchRecordingPayloadKey.presetSelectionSequence] as? Int,
+              let rawOutcome = dictionary[WatchRecordingPayloadKey.presetSelectionResult] as? String,
+              let outcome = WatchPresetSelectionOutcome(rawValue: rawOutcome) else { return nil }
+        self.requestID = requestID
+        self.presetID = presetID
+        self.epoch = epoch
+        self.sequence = sequence
+        self.outcome = outcome
+        self.errorMessage = dictionary[WatchRecordingPayloadKey.presetSelectionError] as? String
+    }
+
+    var dictionary: [String: Any] {
+        var payload: [String: Any] = [
+            WatchRecordingPayloadKey.presetSelectionRequestID: requestID,
+            WatchRecordingPayloadKey.requestedPresetID: presetID,
+            WatchRecordingPayloadKey.presetSelectionEpoch: epoch,
+            WatchRecordingPayloadKey.presetSelectionSequence: sequence,
+            WatchRecordingPayloadKey.presetSelectionResult: outcome.rawValue,
+        ]
+        if let errorMessage, !errorMessage.isEmpty {
+            payload[WatchRecordingPayloadKey.presetSelectionError] = errorMessage
+        }
+        return payload
+    }
+}
+
+enum WatchPresetSelectionState: Equatable {
+    case idle
+    case pending(presetID: String)
+    case failed(presetID: String, message: String)
+
+    var pendingPresetID: String? {
+        guard case .pending(let presetID) = self else { return nil }
+        return presetID
+    }
+
+    var errorMessage: String? {
+        guard case .failed(_, let message) = self else { return nil }
+        return message
+    }
+}
+
+private struct PendingWatchPresetSelection: Codable, Equatable {
+    let requestID: String
+    let presetID: String
+    let epoch: Int
+    let sequence: Int
+    let sentAt: TimeInterval
+
+    var payload: [String: Any] {
+        [
+            WatchRecordingPayloadKey.command: WatchRecordingCommand.selectPreset.rawValue,
+            WatchRecordingPayloadKey.requestedPresetID: presetID,
+            WatchRecordingPayloadKey.presetSelectionRequestID: requestID,
+            WatchRecordingPayloadKey.presetSelectionEpoch: epoch,
+            WatchRecordingPayloadKey.presetSelectionSequence: sequence,
+            WatchRecordingPayloadKey.sentAt: sentAt,
+        ]
+    }
+}
+
+private struct ConfirmedWatchCapturePreset: Codable, Equatable {
+    let id: String
+    let displayName: String
+    let snapshot: Data
+}
+
+private enum WatchConfirmedPresetStore {
+    private static let confirmedKey = "watchPresetSelection.confirmed.v1"
+
+    static func load() -> ConfirmedWatchCapturePreset? {
+        guard let data = UserDefaults.standard.data(forKey: confirmedKey) else { return nil }
+        return try? JSONDecoder().decode(ConfirmedWatchCapturePreset.self, from: data)
+    }
+
+    static func save(_ preset: ConfirmedWatchCapturePreset?) {
+        if let preset, let data = try? JSONEncoder().encode(preset) {
+            UserDefaults.standard.set(data, forKey: confirmedKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: confirmedKey)
+        }
+    }
+}
+
+private enum WatchPresetSelectionStore {
+    private static let pendingKey = "watchPresetSelection.pending.v1"
+    private static let epochKey = "watchPresetSelection.epoch.v1"
+    private static let sequenceKey = "watchPresetSelection.sequence.v1"
+
+    static func loadPending() -> PendingWatchPresetSelection? {
+        guard let data = UserDefaults.standard.data(forKey: pendingKey) else { return nil }
+        return try? JSONDecoder().decode(PendingWatchPresetSelection.self, from: data)
+    }
+
+    static func savePending(_ pending: PendingWatchPresetSelection?) {
+        if let pending, let data = try? JSONEncoder().encode(pending) {
+            UserDefaults.standard.set(data, forKey: pendingKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: pendingKey)
+        }
+    }
+
+    static func makePending(presetID: String) -> PendingWatchPresetSelection {
+        let defaults = UserDefaults.standard
+        var epoch = defaults.integer(forKey: epochKey)
+        if epoch <= 0 {
+            epoch = max(1, Int(Date().timeIntervalSince1970 * 1_000))
+            defaults.set(epoch, forKey: epochKey)
+        }
+        let current = defaults.integer(forKey: sequenceKey)
+        let sequence: Int
+        if current == Int.max {
+            epoch = max(epoch + 1, Int(Date().timeIntervalSince1970 * 1_000))
+            defaults.set(epoch, forKey: epochKey)
+            sequence = 1
+        } else {
+            sequence = max(1, current + 1)
+        }
+        defaults.set(sequence, forKey: sequenceKey)
+        return PendingWatchPresetSelection(
+            requestID: UUID().uuidString,
+            presetID: presetID,
+            epoch: epoch,
+            sequence: sequence,
+            sentAt: Date().timeIntervalSince1970
+        )
+    }
+}
+
 enum WatchRecordingCommand: String {
     case start
     case stop
     case toggle
     case status
     case acknowledge
+    case selectPreset
 }
 
 enum WatchRecordingFileMetadataKey {
@@ -106,6 +291,7 @@ enum WatchRecordingPhase: String {
 struct WatchRecordingSnapshot: Equatable {
     let phase: WatchRecordingPhase
     let sentAt: TimeInterval?
+    let stateEpoch: Int?
     let stateRevision: Int?
     let isQuickRecordEnabled: Bool
     let recordingStartedAt: TimeInterval?
@@ -114,6 +300,12 @@ struct WatchRecordingSnapshot: Equatable {
     let selectedPresetID: String?
     let selectedPresetName: String?
     let selectedPresetSnapshot: Data?
+    let availablePresets: [WatchCapturePresetSummary]
+    let presetSummariesAreTruncated: Bool
+    let hasPresetSummariesPayload: Bool
+    let presetSelectionIsAvailable: Bool
+    let hasPresetSelectionAvailabilityPayload: Bool
+    let presetSelectionAcknowledgement: WatchPresetSelectionAcknowledgement?
     let recordingStatuses: [WatchRemoteRecordingStatus]
 
     static let unavailable = WatchRecordingSnapshot(
@@ -143,6 +335,7 @@ struct WatchRecordingSnapshot: Equatable {
     init(
         phase: WatchRecordingPhase,
         sentAt: TimeInterval? = nil,
+        stateEpoch: Int? = nil,
         stateRevision: Int? = nil,
         isQuickRecordEnabled: Bool,
         recordingStartedAt: TimeInterval? = nil,
@@ -151,10 +344,17 @@ struct WatchRecordingSnapshot: Equatable {
         selectedPresetID: String? = nil,
         selectedPresetName: String? = nil,
         selectedPresetSnapshot: Data? = nil,
+        availablePresets: [WatchCapturePresetSummary] = [],
+        presetSummariesAreTruncated: Bool = false,
+        hasPresetSummariesPayload: Bool = false,
+        presetSelectionIsAvailable: Bool = true,
+        hasPresetSelectionAvailabilityPayload: Bool = false,
+        presetSelectionAcknowledgement: WatchPresetSelectionAcknowledgement? = nil,
         recordingStatuses: [WatchRemoteRecordingStatus] = []
     ) {
         self.phase = phase
         self.sentAt = sentAt
+        self.stateEpoch = stateEpoch
         self.stateRevision = stateRevision
         self.isQuickRecordEnabled = isQuickRecordEnabled
         self.recordingStartedAt = recordingStartedAt
@@ -163,6 +363,12 @@ struct WatchRecordingSnapshot: Equatable {
         self.selectedPresetID = selectedPresetID
         self.selectedPresetName = selectedPresetName
         self.selectedPresetSnapshot = selectedPresetSnapshot
+        self.availablePresets = availablePresets
+        self.presetSummariesAreTruncated = presetSummariesAreTruncated
+        self.hasPresetSummariesPayload = hasPresetSummariesPayload
+        self.presetSelectionIsAvailable = presetSelectionIsAvailable
+        self.hasPresetSelectionAvailabilityPayload = hasPresetSelectionAvailabilityPayload
+        self.presetSelectionAcknowledgement = presetSelectionAcknowledgement
         self.recordingStatuses = recordingStatuses
     }
 
@@ -170,6 +376,7 @@ struct WatchRecordingSnapshot: Equatable {
         let rawPhase = dictionary[WatchRecordingPayloadKey.phase] as? String
         let phase = rawPhase.flatMap(WatchRecordingPhase.init(rawValue:)) ?? .unavailable
         let sentAt = dictionary[WatchRecordingPayloadKey.sentAt] as? TimeInterval
+        let stateEpoch = dictionary[WatchRecordingPayloadKey.stateEpoch] as? Int
         let stateRevision = dictionary[WatchRecordingPayloadKey.stateRevision] as? Int
         let isQuickRecordEnabled = dictionary[WatchRecordingPayloadKey.isQuickRecordEnabled] as? Bool ?? true
         let recordingStartedAt = dictionary[WatchRecordingPayloadKey.recordingStartedAt] as? TimeInterval
@@ -178,11 +385,19 @@ struct WatchRecordingSnapshot: Equatable {
         let selectedPresetID = dictionary[WatchRecordingPayloadKey.selectedPresetID] as? String
         let selectedPresetName = dictionary[WatchRecordingPayloadKey.selectedPresetName] as? String
         let selectedPresetSnapshot = dictionary[WatchRecordingPayloadKey.selectedPresetSnapshot] as? Data
+        let hasPresetSummariesPayload = dictionary.keys.contains(WatchRecordingPayloadKey.presetSummaries)
+        let availablePresets = (dictionary[WatchRecordingPayloadKey.presetSummaries] as? [[String: Any]] ?? [])
+            .compactMap(WatchCapturePresetSummary.init(dictionary:))
+        let presetSummariesAreTruncated = dictionary[WatchRecordingPayloadKey.presetSummariesTruncated] as? Bool ?? false
+        let hasPresetSelectionAvailabilityPayload = dictionary.keys.contains(WatchRecordingPayloadKey.presetSelectionAvailable)
+        let presetSelectionIsAvailable = dictionary[WatchRecordingPayloadKey.presetSelectionAvailable] as? Bool ?? true
+        let presetSelectionAcknowledgement = WatchPresetSelectionAcknowledgement(dictionary: dictionary)
         let recordingStatuses = (dictionary[WatchRecordingPayloadKey.recordingStatuses] as? [[String: Any]] ?? [])
             .compactMap(WatchRemoteRecordingStatus.init(dictionary:))
         self.init(
             phase: phase,
             sentAt: sentAt,
+            stateEpoch: stateEpoch,
             stateRevision: stateRevision,
             isQuickRecordEnabled: isQuickRecordEnabled,
             recordingStartedAt: recordingStartedAt,
@@ -191,6 +406,12 @@ struct WatchRecordingSnapshot: Equatable {
             selectedPresetID: selectedPresetID,
             selectedPresetName: selectedPresetName,
             selectedPresetSnapshot: selectedPresetSnapshot,
+            availablePresets: availablePresets,
+            presetSummariesAreTruncated: presetSummariesAreTruncated,
+            hasPresetSummariesPayload: hasPresetSummariesPayload,
+            presetSelectionIsAvailable: presetSelectionIsAvailable,
+            hasPresetSelectionAvailabilityPayload: hasPresetSelectionAvailabilityPayload,
+            presetSelectionAcknowledgement: presetSelectionAcknowledgement,
             recordingStatuses: recordingStatuses
         )
     }
@@ -201,6 +422,9 @@ struct WatchRecordingSnapshot: Equatable {
             WatchRecordingPayloadKey.isQuickRecordEnabled: isQuickRecordEnabled,
             WatchRecordingPayloadKey.sentAt: sentAt ?? Date().timeIntervalSince1970,
         ]
+        if let stateEpoch {
+            payload[WatchRecordingPayloadKey.stateEpoch] = stateEpoch
+        }
         if let stateRevision {
             payload[WatchRecordingPayloadKey.stateRevision] = stateRevision
         }
@@ -222,7 +446,46 @@ struct WatchRecordingSnapshot: Equatable {
         if let selectedPresetSnapshot {
             payload[WatchRecordingPayloadKey.selectedPresetSnapshot] = selectedPresetSnapshot
         }
+        if hasPresetSelectionAvailabilityPayload {
+            payload[WatchRecordingPayloadKey.presetSelectionAvailable] = presetSelectionIsAvailable
+        }
+        if hasPresetSummariesPayload {
+            payload[WatchRecordingPayloadKey.presetSummaries] = availablePresets.map(\.dictionary)
+            if presetSummariesAreTruncated {
+                payload[WatchRecordingPayloadKey.presetSummariesTruncated] = true
+            }
+        }
+        if let presetSelectionAcknowledgement {
+            payload.merge(presetSelectionAcknowledgement.dictionary) { _, new in new }
+        }
         return payload
+    }
+
+    func replacingSelectedPreset(
+        id: String?,
+        name: String?,
+        snapshot: Data?
+    ) -> WatchRecordingSnapshot {
+        WatchRecordingSnapshot(
+            phase: phase,
+            sentAt: sentAt,
+            stateEpoch: stateEpoch,
+            stateRevision: stateRevision,
+            isQuickRecordEnabled: isQuickRecordEnabled,
+            recordingStartedAt: recordingStartedAt,
+            message: message,
+            queuedCount: queuedCount,
+            selectedPresetID: id,
+            selectedPresetName: name,
+            selectedPresetSnapshot: snapshot,
+            availablePresets: availablePresets,
+            presetSummariesAreTruncated: presetSummariesAreTruncated,
+            hasPresetSummariesPayload: hasPresetSummariesPayload,
+            presetSelectionIsAvailable: presetSelectionIsAvailable,
+            hasPresetSelectionAvailabilityPayload: hasPresetSelectionAvailabilityPayload,
+            presetSelectionAcknowledgement: presetSelectionAcknowledgement,
+            recordingStatuses: recordingStatuses
+        )
     }
 
     var title: String {
@@ -248,7 +511,7 @@ struct WatchRecordingSnapshot: Equatable {
         case .recording: return "Tap to stop"
         case .syncing: return "Syncing to iPhone"
         case .transcribing: return "Transcribing on iPhone"
-        case .delivering: return "Saving to Capture"
+        case .delivering: return "Saving on iPhone"
         case .listening: return "Tap to record"
         case .pending: return "Waiting for iPhone"
         case .error: return "Check iPhone"
@@ -306,12 +569,27 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
     static let shared = WatchPhoneBridge()
 
     @Published private(set) var snapshot: WatchRecordingSnapshot
+    @Published private(set) var presetSelectionState: WatchPresetSelectionState
 
     private var hasActivatedSession = false
 
     override init() {
-        snapshot = Self.cachedSnapshot()
+        let cached = Self.cachedSnapshot()
+        let pending = WatchPresetSelectionStore.loadPending()
+        if pending != nil, let confirmed = WatchConfirmedPresetStore.load() {
+            snapshot = cached.replacingSelectedPreset(
+                id: confirmed.id,
+                name: confirmed.displayName,
+                snapshot: confirmed.snapshot
+            )
+        } else {
+            snapshot = cached
+        }
+        presetSelectionState = pending.map {
+            .pending(presetID: $0.presetID)
+        } ?? .idle
         super.init()
+        setSnapshot(cached, preservingRemoteContext: false)
     }
 
     func activate() {
@@ -321,11 +599,82 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
         session.delegate = self
         session.activate()
         apply(session.receivedApplicationContext)
+        if session.activationState == .activated {
+            resendPendingPresetSelectionIfNeeded(using: session)
+        }
     }
 
     @discardableResult
     func requestStatus() async -> WatchRecordingSnapshot {
         await send(.status)
+    }
+
+    func selectPreset(id: String) {
+        guard snapshot.availablePresets.contains(where: { $0.id == id }) else {
+            presetSelectionState = .failed(
+                presetID: id,
+                message: "This Capture Preset is no longer available. Refresh from iPhone."
+            )
+            return
+        }
+        guard snapshot.selectedPresetID != id else {
+            WatchPresetSelectionStore.savePending(nil)
+            presetSelectionState = .idle
+            return
+        }
+        guard WCSession.isSupported() else {
+            presetSelectionState = .failed(
+                presetID: id,
+                message: "WatchConnectivity is unavailable."
+            )
+            return
+        }
+
+        let pending = WatchPresetSelectionStore.makePending(presetID: id)
+        WatchPresetSelectionStore.savePending(pending)
+        presetSelectionState = .pending(presetID: id)
+
+        activate()
+        sendPendingPresetSelection(pending, using: WCSession.default)
+    }
+
+    private func resendPendingPresetSelectionIfNeeded(using session: WCSession) {
+        guard let pending = WatchPresetSelectionStore.loadPending() else { return }
+        sendPendingPresetSelection(pending, using: session)
+    }
+
+    private func sendPendingPresetSelection(
+        _ pending: PendingWatchPresetSelection,
+        using session: WCSession
+    ) {
+        if session.activationState == .activated, !companionAppIsInstalled(session) {
+            WatchPresetSelectionStore.savePending(nil)
+            DispatchQueue.main.async { [weak self] in
+                self?.presetSelectionState = .failed(
+                    presetID: pending.presetID,
+                    message: "Install Vox.md on iPhone to change presets."
+                )
+            }
+            return
+        }
+
+        let payload = pending.payload
+        if session.activationState == .activated, session.isReachable {
+            session.sendMessage(payload) { [weak self] reply in
+                self?.apply(reply)
+            } errorHandler: { _ in
+                // Selection is idempotent. Reuse the exact persisted payload on
+                // the durable channel when sendMessage's outcome is unknown.
+                session.transferUserInfo(payload)
+            }
+        } else {
+            session.transferUserInfo(payload)
+        }
+    }
+
+    func clearPresetSelectionError() {
+        guard case .failed = presetSelectionState else { return }
+        presetSelectionState = .idle
     }
 
     func acknowledge(recordingID: String, revision: Int) {
@@ -453,7 +802,7 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
             return await withCheckedContinuation { continuation in
                 session.sendMessage(payload) { [weak self] reply in
                     let snapshot = WatchRecordingSnapshot(dictionary: reply)
-                    self?.setSnapshot(snapshot, preservingRemoteContext: false)
+                    self?.apply(reply)
                     continuation.resume(returning: snapshot)
                 } errorHandler: { [weak self] _ in
                     let snapshot = self?.fallbackForUnreachablePhone(payload, command: command) ?? .pending
@@ -487,13 +836,16 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
             WCSession.default.transferUserInfo(payload)
         }
         let pending = command == .status ? Self.cachedSnapshot() : WatchRecordingSnapshot.pending
-        setSnapshot(pending)
+        setSnapshot(
+            pending,
+            preservingRemoteContext: command != .status
+        )
         return pending
     }
 
     private func shouldAvoidQueuedBackgroundStart(_ command: WatchRecordingCommand) -> Bool {
         switch command {
-        case .status, .stop, .acknowledge:
+        case .status, .stop, .acknowledge, .selectPreset:
             return false
         case .start:
             return snapshot.phase != .listening && snapshot.phase != .recording
@@ -519,39 +871,198 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
     }
 
     private func setSnapshot(
-        _ snapshot: WatchRecordingSnapshot,
+        _ incoming: WatchRecordingSnapshot,
         preservingRemoteContext: Bool = true
     ) {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
-            guard preservingRemoteContext else {
-                if let incomingRevision = snapshot.stateRevision,
-                   let currentRevision = self.snapshot.stateRevision {
-                    guard incomingRevision >= currentRevision else { return }
-                } else if let incomingDate = snapshot.sentAt,
-                          let currentDate = self.snapshot.sentAt,
-                          incomingDate < currentDate {
-                    return
+            if !preservingRemoteContext,
+               !self.remoteSnapshotIsCurrent(incoming) {
+                // A request-specific rejection may race behind a newer general
+                // state payload. It is still safe to resolve the exact pending
+                // token because rejected/stale acknowledgements never adopt
+                // preset metadata from this older snapshot.
+                if let pending = WatchPresetSelectionStore.loadPending(),
+                   self.acknowledgement(incoming.presetSelectionAcknowledgement, matches: pending),
+                   let acknowledgement = incoming.presetSelectionAcknowledgement,
+                   acknowledgement.outcome != .accepted {
+                    WatchPresetSelectionStore.savePending(nil)
+                    self.presetSelectionState = .failed(
+                        presetID: pending.presetID,
+                        message: acknowledgement.errorMessage
+                            ?? "The Capture Preset could not be selected."
+                    )
                 }
-                self.snapshot = snapshot
                 return
             }
+
+            let current = self.snapshot
+            var selectedPresetID = current.selectedPresetID
+            var selectedPresetName = current.selectedPresetName
+            var selectedPresetSnapshot = current.selectedPresetSnapshot
+            var nextSelectionState = self.presetSelectionState
+
+            if !preservingRemoteContext {
+                let pending = WatchPresetSelectionStore.loadPending()
+                let acknowledgementMatchesPending = pending.map { pending in
+                    self.acknowledgement(
+                        incoming.presetSelectionAcknowledgement,
+                        matches: pending
+                    )
+                } ?? false
+
+                if incoming.hasPresetSelectionAvailabilityPayload,
+                   !incoming.presetSelectionIsAvailable {
+                    selectedPresetID = nil
+                    selectedPresetName = nil
+                    selectedPresetSnapshot = nil
+                    WatchConfirmedPresetStore.save(nil)
+                    if let pending {
+                        WatchPresetSelectionStore.savePending(nil)
+                        nextSelectionState = .failed(
+                            presetID: pending.presetID,
+                            message: "Enable a Capture Preset in Vox.md on iPhone first."
+                        )
+                    }
+                } else if let pending, acknowledgementMatchesPending {
+                    switch incoming.presetSelectionAcknowledgement?.outcome {
+                    case .accepted:
+                        if incoming.selectedPresetID == pending.presetID,
+                           let name = incoming.selectedPresetName,
+                           let presetSnapshot = incoming.selectedPresetSnapshot {
+                            selectedPresetID = pending.presetID
+                            selectedPresetName = name
+                            selectedPresetSnapshot = presetSnapshot
+                            WatchConfirmedPresetStore.save(ConfirmedWatchCapturePreset(
+                                id: pending.presetID,
+                                displayName: name,
+                                snapshot: presetSnapshot
+                            ))
+                            WatchPresetSelectionStore.savePending(nil)
+                            nextSelectionState = .idle
+                        } else {
+                            WatchPresetSelectionStore.savePending(nil)
+                            nextSelectionState = .failed(
+                                presetID: pending.presetID,
+                                message: "iPhone confirmed the preset but did not send its safe snapshot."
+                            )
+                        }
+                    case .rejected, .stale:
+                        if let id = incoming.selectedPresetID,
+                           let name = incoming.selectedPresetName,
+                           let presetSnapshot = incoming.selectedPresetSnapshot {
+                            selectedPresetID = id
+                            selectedPresetName = name
+                            selectedPresetSnapshot = presetSnapshot
+                            WatchConfirmedPresetStore.save(ConfirmedWatchCapturePreset(
+                                id: id,
+                                displayName: name,
+                                snapshot: presetSnapshot
+                            ))
+                        }
+                        WatchPresetSelectionStore.savePending(nil)
+                        nextSelectionState = .failed(
+                            presetID: pending.presetID,
+                            message: incoming.presetSelectionAcknowledgement?.errorMessage
+                                ?? "The Capture Preset could not be selected."
+                        )
+                    case .none:
+                        break
+                    }
+                } else if pending == nil,
+                          let id = incoming.selectedPresetID,
+                          let name = incoming.selectedPresetName,
+                          let presetSnapshot = incoming.selectedPresetSnapshot {
+                    selectedPresetID = id
+                    selectedPresetName = name
+                    selectedPresetSnapshot = presetSnapshot
+                    WatchConfirmedPresetStore.save(ConfirmedWatchCapturePreset(
+                        id: id,
+                        displayName: name,
+                        snapshot: presetSnapshot
+                    ))
+                }
+                // If a request is pending without its exact acknowledgement,
+                // intentionally retain the separately persisted confirmed preset.
+            }
+
+            let shouldReplacePresets = !preservingRemoteContext
+                && incoming.hasPresetSummariesPayload
+            let shouldReplaceAvailability = !preservingRemoteContext
+                && incoming.hasPresetSelectionAvailabilityPayload
             self.snapshot = WatchRecordingSnapshot(
-                phase: snapshot.phase,
-                sentAt: self.snapshot.sentAt,
-                stateRevision: self.snapshot.stateRevision,
-                isQuickRecordEnabled: snapshot.isQuickRecordEnabled,
-                recordingStartedAt: snapshot.recordingStartedAt,
-                message: snapshot.message,
-                queuedCount: max(snapshot.queuedCount, self.snapshot.queuedCount),
-                selectedPresetID: snapshot.selectedPresetID ?? self.snapshot.selectedPresetID,
-                selectedPresetName: snapshot.selectedPresetName ?? self.snapshot.selectedPresetName,
-                selectedPresetSnapshot: snapshot.selectedPresetSnapshot ?? self.snapshot.selectedPresetSnapshot,
-                recordingStatuses: snapshot.recordingStatuses.isEmpty
-                    ? self.snapshot.recordingStatuses
-                    : snapshot.recordingStatuses
+                phase: incoming.phase,
+                sentAt: preservingRemoteContext ? current.sentAt : incoming.sentAt,
+                stateEpoch: preservingRemoteContext ? current.stateEpoch : incoming.stateEpoch,
+                stateRevision: preservingRemoteContext ? current.stateRevision : incoming.stateRevision,
+                isQuickRecordEnabled: incoming.isQuickRecordEnabled,
+                recordingStartedAt: incoming.recordingStartedAt,
+                message: incoming.message,
+                queuedCount: preservingRemoteContext
+                    ? max(incoming.queuedCount, current.queuedCount)
+                    : incoming.queuedCount,
+                selectedPresetID: selectedPresetID,
+                selectedPresetName: selectedPresetName,
+                selectedPresetSnapshot: selectedPresetSnapshot,
+                availablePresets: shouldReplacePresets
+                    ? incoming.availablePresets
+                    : current.availablePresets,
+                presetSummariesAreTruncated: shouldReplacePresets
+                    ? incoming.presetSummariesAreTruncated
+                    : current.presetSummariesAreTruncated,
+                hasPresetSummariesPayload: shouldReplacePresets
+                    || current.hasPresetSummariesPayload,
+                presetSelectionIsAvailable: shouldReplaceAvailability
+                    ? incoming.presetSelectionIsAvailable
+                    : current.presetSelectionIsAvailable,
+                hasPresetSelectionAvailabilityPayload: shouldReplaceAvailability
+                    || current.hasPresetSelectionAvailabilityPayload,
+                presetSelectionAcknowledgement: preservingRemoteContext
+                    ? current.presetSelectionAcknowledgement
+                    : incoming.presetSelectionAcknowledgement
+                        ?? current.presetSelectionAcknowledgement,
+                recordingStatuses: preservingRemoteContext && incoming.recordingStatuses.isEmpty
+                    ? current.recordingStatuses
+                    : incoming.recordingStatuses
             )
+            self.presetSelectionState = nextSelectionState
         }
+    }
+
+    private func acknowledgement(
+        _ acknowledgement: WatchPresetSelectionAcknowledgement?,
+        matches pending: PendingWatchPresetSelection
+    ) -> Bool {
+        guard let acknowledgement else { return false }
+        return pending.requestID == acknowledgement.requestID
+            && pending.presetID == acknowledgement.presetID
+            && pending.epoch == acknowledgement.epoch
+            && pending.sequence == acknowledgement.sequence
+    }
+
+    private func remoteSnapshotIsCurrent(_ incoming: WatchRecordingSnapshot) -> Bool {
+        if let incomingEpoch = incoming.stateEpoch,
+           let currentEpoch = snapshot.stateEpoch {
+            guard incomingEpoch == currentEpoch else { return incomingEpoch > currentEpoch }
+            if let incomingRevision = incoming.stateRevision,
+               let currentRevision = snapshot.stateRevision {
+                return incomingRevision >= currentRevision
+            }
+        } else if snapshot.stateEpoch != nil {
+            // Once epoch-aware state is observed, legacy/partial state cannot
+            // replace it. Local transient snapshots use preservingRemoteContext.
+            return false
+        }
+
+        if let incomingRevision = incoming.stateRevision,
+           let currentRevision = snapshot.stateRevision {
+            return incomingRevision >= currentRevision
+        }
+        if let incomingDate = incoming.sentAt,
+           let currentDate = snapshot.sentAt {
+            return incomingDate >= currentDate
+        }
+        return true
     }
 }
 
@@ -562,6 +1073,7 @@ extension WatchPhoneBridge: WCSessionDelegate {
         error: Error?
     ) {
         apply(session.receivedApplicationContext)
+        resendPendingPresetSelectionIfNeeded(using: session)
     }
 
     #if os(iOS)

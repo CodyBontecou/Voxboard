@@ -29,6 +29,7 @@ final class WatchLocalRecorder: ObservableObject {
         var transportState: TransportState
         var remotePhase: WatchRemoteRecordingPhase?
         var remoteRevision: Int
+        var remoteMessage: String?
         var presetID: String?
         var presetName: String?
         var presetSnapshot: Data?
@@ -45,6 +46,7 @@ final class WatchLocalRecorder: ObservableObject {
             transportState: TransportState = .local,
             remotePhase: WatchRemoteRecordingPhase? = nil,
             remoteRevision: Int = 0,
+            remoteMessage: String? = nil,
             presetID: String? = nil,
             presetName: String? = nil,
             presetSnapshot: Data? = nil
@@ -56,6 +58,7 @@ final class WatchLocalRecorder: ObservableObject {
             self.transportState = transportState
             self.remotePhase = remotePhase
             self.remoteRevision = remoteRevision
+            self.remoteMessage = remoteMessage
             self.presetID = presetID
             self.presetName = presetName
             self.presetSnapshot = presetSnapshot
@@ -69,6 +72,7 @@ final class WatchLocalRecorder: ObservableObject {
             case transportState
             case remotePhase
             case remoteRevision
+            case remoteMessage
             case presetID
             case presetName
             case presetSnapshot
@@ -84,6 +88,7 @@ final class WatchLocalRecorder: ObservableObject {
                 transportState: try container.decodeIfPresent(TransportState.self, forKey: .transportState) ?? .local,
                 remotePhase: try container.decodeIfPresent(WatchRemoteRecordingPhase.self, forKey: .remotePhase),
                 remoteRevision: try container.decodeIfPresent(Int.self, forKey: .remoteRevision) ?? 0,
+                remoteMessage: try container.decodeIfPresent(String.self, forKey: .remoteMessage),
                 presetID: try container.decodeIfPresent(String.self, forKey: .presetID),
                 presetName: try container.decodeIfPresent(String.self, forKey: .presetName),
                 presetSnapshot: try container.decodeIfPresent(Data.self, forKey: .presetSnapshot)
@@ -150,10 +155,9 @@ final class WatchLocalRecorder: ObservableObject {
         queuedRecordings.contains { $0.transportState != .uploaded }
     }
 
-    var activePresetName: String {
-        currentPresetName
-            ?? queuedRecordings.last?.presetName
-            ?? "iPhone Default"
+    var recordingPresetName: String? {
+        guard isRecording else { return nil }
+        return currentPresetName
     }
 
     var title: String {
@@ -194,9 +198,9 @@ final class WatchLocalRecorder: ObservableObject {
         case .transcribing:
             return "Your iPhone is transcribing this recording on device."
         case .delivering:
-            return "Your iPhone is saving the transcript to Capture."
+            return "Your iPhone is saving this recording."
         case .transferred:
-            return "Saved to Capture. You can record another."
+            return "Saved on iPhone. You can record another."
         case .error(let error):
             return error
         }
@@ -279,6 +283,16 @@ final class WatchLocalRecorder: ObservableObject {
     func start(using bridge: WatchPhoneBridge) async {
         guard !isRecording else { return }
         cancelTransientSuccessReset()
+
+        if bridge.snapshot.hasPresetSelectionAvailabilityPayload {
+            guard bridge.snapshot.presetSelectionIsAvailable,
+                  bridge.snapshot.selectedPresetID != nil,
+                  bridge.snapshot.selectedPresetName != nil,
+                  bridge.snapshot.selectedPresetSnapshot != nil else {
+                setError("Enable a Capture Preset in Vox.md on iPhone before recording.")
+                return
+            }
+        }
 
         let hasPermission = await requestMicrophonePermission()
         guard hasPermission else {
@@ -432,6 +446,7 @@ final class WatchLocalRecorder: ObservableObject {
                     $0.transportState = .transferring
                     $0.remotePhase = nil
                     $0.remoteRevision = 0
+                    $0.remoteMessage = nil
                 }
                 inFlightTransferIDs.insert(item.id)
                 queuedForTransfer += 1
@@ -468,7 +483,7 @@ final class WatchLocalRecorder: ObservableObject {
                 message = "Recording is safe on Watch. Tap Sync Queue to retry."
             } else {
                 phase = .waitingForPhone
-                message = "Safely queued on iPhone. Waiting for transcription."
+                message = "Safely queued on iPhone. Waiting to process."
             }
         } else {
             updateQueuedRecording(id: id) { $0.transportState = .local }
@@ -502,6 +517,7 @@ final class WatchLocalRecorder: ObservableObject {
                     item.transportState = .local
                     item.remotePhase = .transportFailed
                     item.remoteRevision = status.revision
+                    item.remoteMessage = status.message
                 }
                 continue
             }
@@ -510,6 +526,7 @@ final class WatchLocalRecorder: ObservableObject {
                 item.transportState = .uploaded
                 item.remotePhase = status.phase
                 item.remoteRevision = status.revision
+                item.remoteMessage = status.message
             }
 
             if status.phase == .delivered || status.phase == .discarded {
@@ -525,7 +542,7 @@ final class WatchLocalRecorder: ObservableObject {
         guard !isRecording else { return }
         if queuedRecordings.isEmpty, !terminalAcknowledgements.isEmpty {
             phase = .transferred
-            message = "Saved to Capture. You can record another."
+            message = "Saved on iPhone. You can record another."
             scheduleTransientSuccessReset()
         } else if !queuedRecordings.isEmpty {
             phase = phaseForMostAdvancedRemoteStatus()
@@ -548,21 +565,33 @@ final class WatchLocalRecorder: ObservableObject {
 
     private func messageForMostAdvancedRemoteStatus() -> String {
         if queuedRecordings.contains(where: { $0.remotePhase == .delivering }) {
-            return "Saving the transcript to Capture on iPhone."
+            return remoteMessage(for: .delivering) ?? "Saving the recording on iPhone."
         }
         if queuedRecordings.contains(where: { $0.remotePhase == .transcribing }) {
-            return "Transcribing on iPhone with on-device speech recognition."
+            return remoteMessage(for: .transcribing)
+                ?? "Transcribing on iPhone with on-device speech recognition."
         }
         if queuedRecordings.contains(where: { $0.transportState == .transferring }) {
             return "Syncing recording to iPhone…"
         }
         if queuedRecordings.contains(where: { $0.remotePhase == .transportFailed }) {
-            return "Recording is safe on Watch. Tap Sync Queue to retry."
+            return remoteMessage(for: .transportFailed)
+                ?? "Recording is safe on Watch. Tap Sync Queue to retry."
         }
         if queuedRecordings.contains(where: { $0.remotePhase == .failed }) {
-            return "Kept safely. Open Vox.md on iPhone to retry."
+            return remoteMessage(for: .failed)
+                ?? "Kept safely. Open Vox.md on iPhone to retry."
         }
-        return "Safely queued on iPhone. Waiting to process."
+        return remoteMessage(for: .queued)
+            ?? "Safely queued on iPhone. Waiting to process."
+    }
+
+    private func remoteMessage(for phase: WatchRemoteRecordingPhase) -> String? {
+        guard let raw = queuedRecordings
+            .first(where: { $0.remotePhase == phase })?
+            .remoteMessage else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     private func scheduleTransientSuccessReset(after delay: TimeInterval = 3.5) {

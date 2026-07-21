@@ -183,6 +183,50 @@ if 'providers.prefix(' in share_source:
 quick_capture_source = (root / 'Voxboard/Views/QuickCaptureView.swift').read_text()
 watch_queue_source = (root / 'Voxboard/Views/WatchRecordingQueueView.swift').read_text()
 quick_capture_ui_source = quick_capture_source + watch_queue_source
+watch_bridge_source = (root / 'Voxboard Watch Shared/WatchPhoneBridge.swift').read_text()
+watch_controller_source = (root / 'Voxboard/WatchRecordingController.swift').read_text()
+watch_recorder_source = (root / 'Voxboard Watch/WatchLocalRecorder.swift').read_text()
+watch_view_source = (root / 'Voxboard Watch/WatchRecorderView.swift').read_text()
+for protocol_key in [
+    'presetSummaries',
+    'presetSelectionAvailable',
+    'requestedPresetID',
+    'presetSelectionRequestID',
+    'presetSelectionEpoch',
+    'presetSelectionSequence',
+    'presetSelectionResult',
+    'stateEpoch',
+]:
+    declaration = f'static let {protocol_key} = "{protocol_key}"'
+    if declaration not in watch_bridge_source or declaration not in watch_controller_source:
+        errors.append(f'Watch preset protocol key is not mirrored by Watch and iPhone: {protocol_key}')
+for source_name, source in [
+    ('Watch bridge', watch_bridge_source),
+    ('iPhone Watch controller', watch_controller_source),
+]:
+    if 'case selectPreset' not in source:
+        errors.append(f'{source_name} is missing the selectPreset command')
+for required in [
+    'WatchConfirmedPresetStore',
+    'PendingWatchPresetSelection',
+    'remoteSnapshotIsCurrent',
+    'resendPendingPresetSelectionIfNeeded',
+]:
+    if required not in watch_bridge_source:
+        errors.append(f'Watch preset selection safety is missing {required}')
+for required in [
+    'hasPresetSelectionAvailabilityPayload',
+    'selectedPresetSnapshot != nil',
+]:
+    if required not in watch_recorder_source:
+        errors.append(f'Watch local recording preset guard is missing {required}')
+for required in [
+    'WatchCapturePresetPickerView',
+    'bridge.selectPreset(id:',
+    'Finish the current recording before changing presets.',
+]:
+    if required not in watch_view_source:
+        errors.append(f'Watch Capture Preset picker is missing {required}')
 for required in [
     'allowedContentTypes: [.data]',
     'reserveSharedItems(urls.count)',

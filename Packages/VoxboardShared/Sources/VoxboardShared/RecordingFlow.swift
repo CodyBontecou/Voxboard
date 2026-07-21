@@ -23,6 +23,11 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
     public var captureProcessingEnabled: Bool
     /// Optional local prompt shown in an empty Capture composer.
     public var capturePrompt: String
+    /// Controls whether Apple Watch recordings are transcribed or delivered as
+    /// standalone audio files. Other Capture inputs continue using this preset's
+    /// normal processing and destination policy.
+    public var watchOutputMode: CapturePresetWatchOutputMode
+    public var watchRecordingSettings: CapturePresetWatchRecordingSettings
     public var audioSaveMode: CapturePresetAudioSaveMode
     public var attachmentsFolderName: String
     /// The Markdown destination owned by this preset. Nil means the preset
@@ -46,6 +51,8 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         customPostProcessingInstruction: String = "",
         captureProcessingEnabled: Bool = false,
         capturePrompt: String = "",
+        watchOutputMode: CapturePresetWatchOutputMode = .transcript,
+        watchRecordingSettings: CapturePresetWatchRecordingSettings = CapturePresetWatchRecordingSettings(),
         audioSaveMode: CapturePresetAudioSaveMode = .off,
         attachmentsFolderName: String = "attachments",
         captureDestinationID: UUID? = nil,
@@ -65,6 +72,8 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         self.customPostProcessingInstruction = customPostProcessingInstruction
         self.captureProcessingEnabled = captureProcessingEnabled
         self.capturePrompt = capturePrompt
+        self.watchOutputMode = watchOutputMode
+        self.watchRecordingSettings = watchRecordingSettings
         self.audioSaveMode = audioSaveMode
         self.attachmentsFolderName = attachmentsFolderName
         self.captureDestinationID = captureDestinationID
@@ -136,6 +145,8 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         case customPostProcessingInstruction
         case captureProcessingEnabled
         case capturePrompt
+        case watchOutputMode
+        case watchRecordingSettings
         case audioSaveMode
         case attachmentsFolderName
         case captureDestinationID
@@ -161,6 +172,9 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
             customPostProcessingInstruction: try container.decodeIfPresent(String.self, forKey: .customPostProcessingInstruction) ?? "",
             captureProcessingEnabled: try container.decodeIfPresent(Bool.self, forKey: .captureProcessingEnabled) ?? false,
             capturePrompt: try container.decodeIfPresent(String.self, forKey: .capturePrompt) ?? "",
+            watchOutputMode: try container.decodeIfPresent(CapturePresetWatchOutputMode.self, forKey: .watchOutputMode) ?? .transcript,
+            watchRecordingSettings: try container.decodeIfPresent(CapturePresetWatchRecordingSettings.self, forKey: .watchRecordingSettings)
+                ?? CapturePresetWatchRecordingSettings(),
             audioSaveMode: try container.decodeIfPresent(CapturePresetAudioSaveMode.self, forKey: .audioSaveMode) ?? .off,
             attachmentsFolderName: try container.decodeIfPresent(String.self, forKey: .attachmentsFolderName) ?? "attachments",
             captureDestinationID: try container.decodeIfPresent(UUID.self, forKey: .captureDestinationID),
@@ -184,6 +198,8 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         try container.encode(customPostProcessingInstruction, forKey: .customPostProcessingInstruction)
         try container.encode(captureProcessingEnabled, forKey: .captureProcessingEnabled)
         try container.encode(capturePrompt, forKey: .capturePrompt)
+        try container.encode(watchOutputMode, forKey: .watchOutputMode)
+        try container.encode(watchRecordingSettings, forKey: .watchRecordingSettings)
         try container.encode(audioSaveMode, forKey: .audioSaveMode)
         try container.encode(attachmentsFolderName, forKey: .attachmentsFolderName)
         try container.encodeIfPresent(captureDestinationID, forKey: .captureDestinationID)
@@ -198,6 +214,52 @@ public enum CapturePresetKind: String, Codable, CaseIterable, Sendable {
     case todo
     case meeting
     case custom
+}
+
+public enum CapturePresetWatchOutputMode: String, Codable, CaseIterable, Sendable, Identifiable {
+    case transcript
+    case recordingOnly
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .transcript: return "Transcript"
+        case .recordingOnly: return "Recording Only"
+        }
+    }
+}
+
+public struct CapturePresetWatchRecordingSettings: Codable, Equatable, Sendable {
+    public static let defaultFilenameTemplate = "recording-{timestamp}-{id8}"
+
+    public var folderBookmark: Data?
+    public var folderName: String
+    public var filenameTemplate: String
+
+    public init(
+        folderBookmark: Data? = nil,
+        folderName: String = "",
+        filenameTemplate: String = defaultFilenameTemplate
+    ) {
+        self.folderBookmark = folderBookmark
+        self.folderName = folderName
+        self.filenameTemplate = filenameTemplate
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case folderBookmark
+        case folderName
+        case filenameTemplate
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        folderBookmark = try container.decodeIfPresent(Data.self, forKey: .folderBookmark)
+        folderName = try container.decodeIfPresent(String.self, forKey: .folderName) ?? ""
+        filenameTemplate = try container.decodeIfPresent(String.self, forKey: .filenameTemplate)
+            ?? Self.defaultFilenameTemplate
+    }
 }
 
 public enum CapturePresetAudioSaveMode: String, Codable, CaseIterable, Sendable, Identifiable {

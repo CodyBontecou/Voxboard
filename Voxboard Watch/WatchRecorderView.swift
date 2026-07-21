@@ -172,6 +172,7 @@ struct WatchRecorderView: View {
     @EnvironmentObject private var bridge: WatchPhoneBridge
     @EnvironmentObject private var localRecorder: WatchLocalRecorder
     @State private var isSending = false
+    @State private var showsPresetPicker = false
 
     var body: some View {
         ZStack {
@@ -191,6 +192,11 @@ struct WatchRecorderView: View {
             .scrollIndicators(.hidden)
         }
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showsPresetPicker) {
+            WatchCapturePresetPickerView()
+                .environmentObject(bridge)
+                .environmentObject(localRecorder)
+        }
         .task {
             bridge.activate()
             try? await Task.sleep(nanoseconds: 750_000_000)
@@ -349,7 +355,7 @@ struct WatchRecorderView: View {
                 variant: localRecorder.isRecording ? .destructive : .primary
             )
         )
-        .disabled(isSending)
+        .disabled(isSending || (!localRecorder.isRecording && !canStartRecording))
         .accessibilityLabel(localRecorder.isRecording ? "Stop Watch recording" : "Start Watch recording")
         .accessibilityHint(localRecorder.isRecording ? "Stops and safely saves this recording." : "Starts a recording stored locally on this Watch.")
     }
@@ -371,50 +377,83 @@ struct WatchRecorderView: View {
     }
 
     private var captureContextCard: some View {
-        HStack(spacing: WatchGeist.Spacing.two) {
-            Image(systemName: "waveform")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(WatchGeist.blue)
-                .frame(width: 26, height: 26)
-                .background(WatchGeist.blueBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-                .accessibilityHidden(true)
+        Button {
+            showsPresetPicker = true
+        } label: {
+            HStack(spacing: WatchGeist.Spacing.two) {
+                Image(systemName: selectedPresetSymbolName)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(WatchGeist.blue)
+                    .frame(width: 26, height: 26)
+                    .background(WatchGeist.blueBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Capture Preset")
-                    .font(WatchGeist.caption())
-                    .foregroundStyle(WatchGeist.muted)
-                Text(localRecorder.activePresetName)
-                    .font(WatchGeist.label(.caption2))
-                    .foregroundStyle(WatchGeist.text)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Capture Preset")
+                        .font(WatchGeist.caption())
+                        .foregroundStyle(WatchGeist.muted)
+                    Text(displayedPresetName)
+                        .font(WatchGeist.label(.caption2))
+                        .foregroundStyle(WatchGeist.text)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
+                }
+
+                Spacer(minLength: WatchGeist.Spacing.one)
+
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text("Queue")
+                        .font(WatchGeist.caption())
+                        .foregroundStyle(WatchGeist.muted)
+                    Text("\(localRecorder.queuedCount)")
+                        .font(WatchGeist.label(.caption2))
+                        .foregroundStyle(localRecorder.queuedCount > 0 ? WatchGeist.blue : WatchGeist.text)
+                        .monospacedDigit()
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(WatchGeist.faint)
             }
-
-            Spacer(minLength: WatchGeist.Spacing.one)
-
-            VStack(alignment: .trailing, spacing: 1) {
-                Text("Queue")
-                    .font(WatchGeist.caption())
-                    .foregroundStyle(WatchGeist.muted)
-                Text("\(localRecorder.queuedCount)")
-                    .font(WatchGeist.label(.caption2))
-                    .foregroundStyle(localRecorder.queuedCount > 0 ? WatchGeist.blue : WatchGeist.text)
-                    .monospacedDigit()
-            }
+            .padding(WatchGeist.Spacing.two)
+            .background(WatchGeist.background)
+            .overlay(
+                RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous)
+                    .stroke(WatchGeist.border, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous))
         }
-        .padding(WatchGeist.Spacing.two)
-        .background(WatchGeist.background)
-        .overlay(
-            RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous)
-                .stroke(WatchGeist.border, lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous))
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Capture Preset \(localRecorder.activePresetName). \(localRecorder.queuedCount) recordings in the Watch queue.")
+        .buttonStyle(.plain)
+        .disabled(localRecorder.isRecording)
+        .opacity(localRecorder.isRecording ? 0.55 : 1)
+        .accessibilityLabel("Capture Preset \(displayedPresetName). Change preset. \(localRecorder.queuedCount) recordings in the Watch queue.")
+        .accessibilityHint(localRecorder.isRecording ? "Finish recording before changing presets." : "Shows Capture Presets from your iPhone.")
+    }
+
+    private var displayedPresetName: String {
+        localRecorder.recordingPresetName
+            ?? bridge.snapshot.selectedPresetName
+            ?? "iPhone Default"
+    }
+
+    private var selectedPresetSymbolName: String {
+        bridge.snapshot.availablePresets.first(where: {
+            $0.id == bridge.snapshot.selectedPresetID
+        })?.symbolName ?? "waveform"
+    }
+
+    private var canStartRecording: Bool {
+        guard bridge.snapshot.hasPresetSelectionAvailabilityPayload else { return true }
+        return bridge.snapshot.presetSelectionIsAvailable
+            && bridge.snapshot.selectedPresetSnapshot != nil
     }
 
     private var statusHeadline: String {
+        if !localRecorder.isRecording, !canStartRecording {
+            return "Preset needed"
+        }
         switch localRecorder.phase {
         case .recording:
             return "Recording"
@@ -425,9 +464,9 @@ struct WatchRecorderView: View {
         case .transcribing:
             return "Transcribing"
         case .delivering:
-            return "Saving to Capture"
+            return "Saving on iPhone"
         case .transferred:
-            return "Saved to Capture"
+            return "Saved on iPhone"
         case .error:
             return "Needs attention"
         case .idle:
@@ -447,6 +486,9 @@ struct WatchRecorderView: View {
     }
 
     private var statusSubtitle: String {
+        if !localRecorder.isRecording, !canStartRecording {
+            return "Enable a Capture Preset in Vox.md on iPhone."
+        }
         switch localRecorder.phase {
         case .recording:
             return "Tap Stop when your thought is captured."
@@ -457,7 +499,7 @@ struct WatchRecorderView: View {
         case .transcribing:
             return "Your iPhone is transcribing on device."
         case .delivering:
-            return "Sending the transcript through your Capture Preset."
+            return "Saving through your selected Capture Preset."
         case .transferred:
             return "Delivered successfully. You can record another."
         case .error(let message):
@@ -556,6 +598,222 @@ struct WatchRecorderView: View {
             let snapshot = await bridge.requestStatus()
             localRecorder.applyRemoteStatuses(snapshot.recordingStatuses, using: bridge)
         }
+    }
+}
+
+private struct WatchCapturePresetPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var bridge: WatchPhoneBridge
+    @EnvironmentObject private var localRecorder: WatchLocalRecorder
+    @State private var requestedPresetID: String?
+    @State private var isRefreshing = false
+
+    var body: some View {
+        ZStack {
+            WatchGeist.background.ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: WatchGeist.Spacing.two) {
+                    pickerHeader
+
+                    if bridge.snapshot.availablePresets.isEmpty {
+                        emptyState
+                    } else {
+                        ForEach(bridge.snapshot.availablePresets) { preset in
+                            presetRow(preset)
+                        }
+                    }
+
+                    if bridge.snapshot.presetSummariesAreTruncated {
+                        Text("More presets are available in Vox.md on iPhone.")
+                            .font(WatchGeist.caption())
+                            .foregroundStyle(WatchGeist.muted)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, WatchGeist.Spacing.two)
+                    }
+
+                    selectionStatus
+                }
+                .padding(.horizontal, WatchGeist.Spacing.two)
+                .padding(.bottom, WatchGeist.Spacing.three)
+            }
+            .scrollIndicators(.hidden)
+        }
+        .preferredColorScheme(.dark)
+        .onAppear {
+            requestedPresetID = bridge.presetSelectionState.pendingPresetID
+        }
+        .onChange(of: bridge.presetSelectionState) { _, state in
+            guard case .idle = state,
+                  let requestedPresetID,
+                  bridge.snapshot.selectedPresetID == requestedPresetID else { return }
+            dismiss()
+        }
+        .task {
+            guard bridge.snapshot.availablePresets.isEmpty else { return }
+            await refreshPresets()
+        }
+    }
+
+    private var pickerHeader: some View {
+        HStack(spacing: WatchGeist.Spacing.two) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Capture Preset")
+                    .font(WatchGeist.heading(17))
+                    .foregroundStyle(WatchGeist.text)
+                Text("Used for your next recording")
+                    .font(WatchGeist.caption())
+                    .foregroundStyle(WatchGeist.muted)
+            }
+            Spacer(minLength: WatchGeist.Spacing.one)
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .frame(width: 28, height: 28)
+                    .background(WatchGeist.surface)
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Close Capture Preset picker")
+        }
+        .padding(.horizontal, 2)
+        .padding(.vertical, WatchGeist.Spacing.one)
+    }
+
+    private func presetRow(_ preset: WatchCapturePresetSummary) -> some View {
+        let isSelected = bridge.snapshot.selectedPresetID == preset.id
+        let isPending = bridge.presetSelectionState.pendingPresetID == preset.id
+        return Button {
+            guard !localRecorder.isRecording else { return }
+            guard !isSelected else {
+                dismiss()
+                return
+            }
+            requestedPresetID = preset.id
+            bridge.clearPresetSelectionError()
+            bridge.selectPreset(id: preset.id)
+        } label: {
+            HStack(spacing: WatchGeist.Spacing.two) {
+                Image(systemName: preset.symbolName)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(isSelected || isPending ? WatchGeist.blue : WatchGeist.text)
+                    .frame(width: 28, height: 28)
+                    .background(isSelected || isPending ? WatchGeist.blueBackground : WatchGeist.surface)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+
+                Text(preset.displayName)
+                    .font(WatchGeist.label(.caption))
+                    .foregroundStyle(WatchGeist.text)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                if isPending {
+                    ProgressView()
+                        .controlSize(.small)
+                        .tint(WatchGeist.blue)
+                        .accessibilityLabel("Waiting for iPhone")
+                } else if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(WatchGeist.blue)
+                }
+            }
+            .padding(WatchGeist.Spacing.two)
+            .background(WatchGeist.surface)
+            .overlay(
+                RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous)
+                    .stroke(isSelected ? WatchGeist.blue.opacity(0.65) : WatchGeist.border, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: WatchGeist.Radius.small, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .disabled(localRecorder.isRecording)
+        .opacity(localRecorder.isRecording ? 0.55 : 1)
+        .accessibilityLabel("\(preset.displayName) Capture Preset\(isSelected ? ", selected" : "")")
+        .accessibilityHint(isSelected ? "Closes the picker." : "Uses this preset for future Watch recordings.")
+    }
+
+    @ViewBuilder
+    private var selectionStatus: some View {
+        if localRecorder.isRecording {
+            Text("Finish the current recording before changing presets.")
+                .font(WatchGeist.caption())
+                .foregroundStyle(WatchGeist.muted)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, WatchGeist.Spacing.two)
+        } else {
+            switch bridge.presetSelectionState {
+            case .idle:
+                EmptyView()
+            case .pending:
+                Text("Waiting for iPhone. Until confirmed, recordings keep using the selected preset above.")
+                    .font(WatchGeist.caption())
+                    .foregroundStyle(WatchGeist.muted)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, WatchGeist.Spacing.two)
+            case .failed(_, let message):
+                VStack(spacing: WatchGeist.Spacing.two) {
+                    Text(message)
+                        .font(WatchGeist.caption())
+                        .foregroundStyle(WatchGeist.red)
+                        .multilineTextAlignment(.center)
+                    Button("Dismiss") {
+                        bridge.clearPresetSelectionError()
+                    }
+                    .buttonStyle(WatchGeistButtonStyle(variant: .secondary))
+                }
+            }
+        }
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: WatchGeist.Spacing.two) {
+            Image(systemName: "iphone")
+                .font(.system(size: 24, weight: .medium))
+                .foregroundStyle(WatchGeist.muted)
+            Text(emptyStateMessage)
+                .font(WatchGeist.caption())
+                .foregroundStyle(WatchGeist.muted)
+                .multilineTextAlignment(.center)
+            Button {
+                Task { await refreshPresets() }
+            } label: {
+                HStack(spacing: 6) {
+                    if isRefreshing {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    Text("Refresh")
+                }
+            }
+            .buttonStyle(WatchGeistButtonStyle(variant: .secondary))
+            .disabled(isRefreshing)
+        }
+        .padding(WatchGeist.Spacing.three)
+        .frame(maxWidth: .infinity)
+        .background(WatchGeist.surface)
+        .clipShape(RoundedRectangle(cornerRadius: WatchGeist.Radius.medium, style: .continuous))
+    }
+
+    private var emptyStateMessage: String {
+        if bridge.snapshot.hasPresetSelectionAvailabilityPayload,
+           !bridge.snapshot.presetSelectionIsAvailable {
+            return "Enable a Capture Preset in Vox.md on iPhone."
+        }
+        return "Open Vox.md on iPhone to sync your Capture Presets."
+    }
+
+    @MainActor
+    private func refreshPresets() async {
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        _ = await bridge.requestStatus()
+        isRefreshing = false
     }
 }
 

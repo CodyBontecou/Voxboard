@@ -1,6 +1,8 @@
 import AppIntents
 import SwiftUI
+import UIKit
 import UniformTypeIdentifiers
+import UserNotifications
 import VoxboardShared
 
 /// Manage reusable Capture Presets across text, links, media, scans, files,
@@ -8,6 +10,7 @@ import VoxboardShared
 /// Markdown destination.
 struct CapturePresetSettingsView: View {
     @State private var flows: [CapturePreset] = CapturePresetStore.loadFlows()
+    @State private var watchStatePublishTask: Task<Void, Never>?
 
     var body: some View {
         List {
@@ -23,7 +26,11 @@ struct CapturePresetSettingsView: View {
                                 .frame(width: 24)
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(flow.displayName)
-                                Text(flow.postProcessingMode.displayName)
+                                Text(
+                                    flow.watchOutputMode == .recordingOnly
+                                        ? "Recording Only (Watch)"
+                                        : flow.postProcessingMode.displayName
+                                )
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -80,6 +87,20 @@ struct CapturePresetSettingsView: View {
             if #available(iOS 18.0, *) {
                 VoxboardShortcutsProvider.updateAppShortcutParameters()
             }
+            scheduleWatchStatePublish()
+        }
+        .onDisappear {
+            watchStatePublishTask?.cancel()
+            WatchRecordingController.shared.publishState()
+        }
+    }
+
+    private func scheduleWatchStatePublish() {
+        watchStatePublishTask?.cancel()
+        watchStatePublishTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+            WatchRecordingController.shared.publishState()
         }
     }
 
@@ -124,6 +145,7 @@ struct CapturePresetSettingsView: View {
 }
 
 private struct CapturePresetEditorView: View {
+    @Environment(\.openURL) private var openURL
     @Binding var flow: CapturePreset
     @State private var frontmatterText: String
     @State private var showBookmarkPicker = false
@@ -132,15 +154,17 @@ private struct CapturePresetEditorView: View {
     @State private var captureEntryTemplates: [CaptureEntryTemplate] = []
     @State private var captureDestinationLoadError: String?
     @State private var isEditingDestination = false
+    @State private var recordingDeliveryNotificationsDenied = false
 
     private enum BookmarkKind {
         case exportFolder
         case audioFolder
         case markdownTemplate
+        case watchRecordingFolder
 
         var allowedContentTypes: [UTType] {
             switch self {
-            case .exportFolder, .audioFolder:
+            case .exportFolder, .audioFolder, .watchRecordingFolder:
                 return [.folder]
             case .markdownTemplate:
                 return [.init(filenameExtension: "md") ?? .plainText, .plainText]
@@ -156,6 +180,7 @@ private struct CapturePresetEditorView: View {
     var body: some View {
         Form {
             identitySection
+            watchOutputSection
             postProcessingSection
             ownedDestinationSection
             if flow.captureDestinationID == nil {
@@ -168,7 +193,10 @@ private struct CapturePresetEditorView: View {
         }
         .navigationTitle(flow.displayName)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await loadCaptureDestinations() }
+        .task {
+            await loadCaptureDestinations()
+            await refreshRecordingDeliveryNotificationStatus()
+        }
         .onAppear {
             // File export now lives on each flow. Mark old flow records as
             // per-flow when the user opens them so later edits do not fall back
@@ -220,6 +248,74 @@ private struct CapturePresetEditorView: View {
             }
             Toggle("Enabled", isOn: $flow.isEnabled)
                 .tint(Geist.muted)
+        }
+    }
+
+    private var watchOutputSection: some View {
+        Section {
+            Picker("Output", selection: $flow.watchOutputMode) {
+                ForEach(CapturePresetWatchOutputMode.allCases) { mode in
+                    Text(mode.displayName).tag(mode)
+                }
+            }
+            .onChange(of: flow.watchOutputMode) { _, mode in
+                guard mode == .recordingOnly else { return }
+                requestRecordingDeliveryNotificationsIfNeeded()
+            }
+
+            if flow.watchOutputMode == .recordingOnly {
+                Button {
+                    openBookmarkPicker(.watchRecordingFolder)
+                } label: {
+                    folderRow(
+                        title: "Recording Folder",
+                        value: flow.watchRecordingSettings.folderName
+                    )
+                }
+                .buttonStyle(.plain)
+
+                if !flow.watchRecordingSettings.folderName.isEmpty {
+                    Button("Clear Recording Folder", role: .destructive) {
+                        flow.watchRecordingSettings.folderBookmark = nil
+                        flow.watchRecordingSettings.folderName = ""
+                    }
+                }
+
+                TextField(
+                    "Filename Template",
+                    text: $flow.watchRecordingSettings.filenameTemplate
+                )
+                .textInputAutocapitalization(.never)
+                .disableAutocorrection(true)
+
+                Text("Tokens: {timestamp}, {date}, {time}, {id8}, {id}, {preset}, {original}")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                if flow.watchRecordingSettings.folderBookmark == nil {
+                    Label("Choose a Files folder before using this preset from Apple Watch.", systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundStyle(Geist.error)
+                }
+
+                if recordingDeliveryNotificationsDenied {
+                    Label("Notifications are off. Vox.md cannot alert you if an unattended Files delivery needs attention.", systemImage: "bell.slash")
+                        .font(.caption)
+                        .foregroundStyle(Geist.error)
+                    Button("Open Notification Settings") {
+                        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+                        openURL(url)
+                    }
+                }
+            }
+        } header: {
+            Text("Apple Watch Output")
+        } footer: {
+            if flow.watchOutputMode == .recordingOnly {
+                Text("Watch recordings are copied as M4A files to this user-visible Files folder. Transcription, AI processing, and transcription usage are skipped. After one-time folder setup, the iPhone app does not need to be opened for each recording.")
+            } else {
+                Text("Watch recordings use this preset's normal on-device transcription and Capture destination workflow.")
+            }
         }
     }
 
@@ -602,7 +698,12 @@ private struct CapturePresetEditorView: View {
     }
 
     private func openBookmarkPicker(_ kind: BookmarkKind) {
-        markPerFlow()
+        switch kind {
+        case .watchRecordingFolder:
+            break
+        default:
+            markPerFlow()
+        }
         bookmarkPickerKind = kind
         showBookmarkPicker = true
     }
@@ -629,7 +730,12 @@ private struct CapturePresetEditorView: View {
             includingResourceValuesForKeys: nil,
             relativeTo: nil
         ) else { return }
-        markPerFlow()
+        switch kind {
+        case .watchRecordingFolder:
+            break
+        default:
+            markPerFlow()
+        }
         switch kind {
         case .exportFolder:
             flow.exportSettings.folderBookmark = bookmark
@@ -640,7 +746,34 @@ private struct CapturePresetEditorView: View {
         case .markdownTemplate:
             flow.exportSettings.markdownTemplateBookmark = bookmark
             flow.exportSettings.markdownTemplateName = url.lastPathComponent
+        case .watchRecordingFolder:
+            flow.watchRecordingSettings.folderBookmark = bookmark
+            flow.watchRecordingSettings.folderName = url.lastPathComponent
+            requestRecordingDeliveryNotificationsIfNeeded()
         }
+    }
+
+    private func requestRecordingDeliveryNotificationsIfNeeded() {
+        Task { @MainActor in
+            let center = UNUserNotificationCenter.current()
+            let settings = await center.notificationSettings()
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                let granted = (try? await center.requestAuthorization(options: [.alert, .sound])) == true
+                recordingDeliveryNotificationsDenied = !granted
+            case .denied:
+                recordingDeliveryNotificationsDenied = true
+            case .authorized, .provisional, .ephemeral:
+                recordingDeliveryNotificationsDenied = false
+            @unknown default:
+                recordingDeliveryNotificationsDenied = true
+            }
+        }
+    }
+
+    private func refreshRecordingDeliveryNotificationStatus() async {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        recordingDeliveryNotificationsDenied = settings.authorizationStatus == .denied
     }
 
     private static func renderFrontmatter(_ frontmatter: [String: String]) -> String {

@@ -66,10 +66,31 @@ final class CaptureVoxTests: XCTestCase {
         defaults.set(try JSONEncoder().encode(profiles), forKey: CapturePresetProfileStore.profilesKey)
         defaults.set("recording", forKey: CapturePresetProfileStore.selectedProfileIDKey)
 
-        CapturePresetProfileStore.selectCaptureProfile(id: "capture", defaults: defaults)
+        XCTAssertTrue(CapturePresetProfileStore.selectCaptureProfile(id: "capture", defaults: defaults))
 
         XCTAssertEqual(CapturePresetProfileStore.selectedProfileID(defaults: defaults), "capture")
         XCTAssertEqual(defaults.string(forKey: CapturePresetProfileStore.selectedProfileIDKey), "recording")
+    }
+
+    func test_captureSelectionRejectsUnknownAndDisabledProfiles() throws {
+        let suite = "capture-vox-selection-validation.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let profiles = [
+            CapturePresetProfile(id: "enabled", name: "Enabled", symbolName: "mic"),
+            CapturePresetProfile(
+                id: "disabled",
+                name: "Disabled",
+                symbolName: "nosign",
+                isEnabled: false
+            ),
+        ]
+        defaults.set(try JSONEncoder().encode(profiles), forKey: CapturePresetProfileStore.profilesKey)
+        XCTAssertTrue(CapturePresetProfileStore.selectCaptureProfile(id: "enabled", defaults: defaults))
+
+        XCTAssertFalse(CapturePresetProfileStore.selectCaptureProfile(id: "disabled", defaults: defaults))
+        XCTAssertFalse(CapturePresetProfileStore.selectCaptureProfile(id: "missing", defaults: defaults))
+        XCTAssertEqual(CapturePresetProfileStore.selectedProfileID(defaults: defaults), "enabled")
     }
 
     func test_routeResolverHonorsExplicitThenPresetThenLegacyLibraryPrecedence() {

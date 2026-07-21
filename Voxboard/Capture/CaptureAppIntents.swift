@@ -294,7 +294,10 @@ enum CaptureIntentSupport {
             AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureInputKey)
         }
         if let voxID = resolvedProfile(for: voxEntity)?.id {
-            AppConstants.sharedDefaults?.set(voxID, forKey: CapturePresetProfileStore.selectedCaptureProfileIDKey)
+            _ = CapturePresetProfileStore.selectCaptureProfile(
+                id: voxID,
+                defaults: AppConstants.sharedDefaults
+            )
             AppConstants.sharedDefaults?.set(voxID, forKey: AppConstants.pendingQuickCaptureVoxIdKey)
         } else {
             AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureVoxIdKey)

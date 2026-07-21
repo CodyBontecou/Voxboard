@@ -1,6 +1,7 @@
 import Foundation
 import Observation
 import UIKit
+import UserNotifications
 import VoxboardShared
 
 @MainActor
@@ -85,14 +86,16 @@ final class WatchRecordingPipeline {
     func resume() {
         refresh()
         guard processingTask == nil else { return }
-        guard recorder?.isSegmentActive != true, recorder?.isTranscribing != true else { return }
 
         recoverInterruptedItems()
-        guard items.contains(where: { $0.phase == .queued }) else {
+        let recorderIsBusy = recorder?.isSegmentActive == true || recorder?.isTranscribing == true
+        guard items.contains(where: {
+            $0.phase == .queued && (!recorderIsBusy || isRecordingOnly($0))
+        }) else {
             reconcileDeliveredCaptureRequests()
             return
         }
-        if usageTracker.isAtLimit && !items.contains(where: isDeliveryOnlyRetry) {
+        if usageTracker.isAtLimit && !items.contains(where: canRunWithoutTranscriptionUsage) {
             markQueuedItemsWaitingForUnlock()
             return
         }
@@ -107,11 +110,31 @@ final class WatchRecordingPipeline {
               let latest = inbox.load().first(where: { $0.id == item.id }),
               latest.phase == .failed,
               !latest.requiresPresetSelection else { return }
-        _ = inbox.transition(
-            id: item.id,
-            to: .queued,
-            message: "Queued to retry on iPhone"
-        )
+
+        if var snapshot = latest.flowSnapshot,
+           snapshot.watchOutputMode == .recordingOnly,
+           let current = CapturePresetStore.flow(id: snapshot.id),
+           current.watchOutputMode == .recordingOnly {
+            // Once a filename is reserved, keep it bound to the frozen folder
+            // snapshot so a retry can reconcile an already-finished copy.
+            // Choosing another preset explicitly clears that reservation.
+            if latest.reservedOutputFilename == nil {
+                snapshot.watchRecordingSettings = current.watchRecordingSettings
+            }
+            _ = inbox.update(id: latest.id) { updated in
+                updated.flowSnapshot = snapshot
+                updated.flowSnapshotPayload = try? JSONEncoder().encode(snapshot)
+                updated.phase = .queued
+                updated.failureStage = nil
+                updated.statusMessage = "Queued to retry Files delivery"
+            }
+        } else {
+            _ = inbox.transition(
+                id: item.id,
+                to: .queued,
+                message: "Queued to retry on iPhone"
+            )
+        }
         refresh()
         resume()
     }
@@ -120,12 +143,17 @@ final class WatchRecordingPipeline {
         guard preset.isEnabled,
               activeRecordingID != item.id,
               let latest = inbox.load().first(where: { $0.id == item.id }),
-              latest.requiresPresetSelection,
               latest.phase == .failed || latest.phase == .queued else { return }
+        let isRecordingOnlyRetarget = latest.phase == .failed
+            && latest.flowSnapshot?.watchOutputMode == .recordingOnly
+            && preset.watchOutputMode == .recordingOnly
+        guard latest.requiresPresetSelection || isRecordingOnlyRetarget else { return }
         _ = inbox.update(id: item.id) { updated in
             updated.flowSnapshot = preset
             updated.flowSnapshotPayload = try? JSONEncoder().encode(preset)
             updated.requiresPresetSelection = false
+            updated.reservedOutputFilename = nil
+            updated.reservedOutputFolderBookmark = nil
             updated.phase = .queued
             updated.failureStage = nil
             updated.statusMessage = "Recovered with \(preset.displayName); queued to retry"
@@ -144,7 +172,8 @@ final class WatchRecordingPipeline {
                 return
             }
 
-            if let captureRootURL = AppConstants.captureDirectoryURL {
+            if latest.flowSnapshot?.watchOutputMode != .recordingOnly,
+               let captureRootURL = AppConstants.captureDirectoryURL {
                 let captureInbox = CaptureInbox(rootDirectoryURL: captureRootURL)
                 let state: CaptureInboxState?
                 do {
@@ -208,16 +237,19 @@ final class WatchRecordingPipeline {
 
         while !Task.isCancelled {
             refresh()
-            guard recorder?.isSegmentActive != true, recorder?.isTranscribing != true else { return }
+            let recorderIsBusy = recorder?.isSegmentActive == true || recorder?.isTranscribing == true
+            let processableItems = items.filter {
+                $0.phase == .queued && (!recorderIsBusy || isRecordingOnly($0))
+            }
             let item: WatchRecordingInboxItem?
             if usageTracker.isAtLimit {
-                item = items.first(where: isDeliveryOnlyRetry)
+                item = processableItems.first(where: canRunWithoutTranscriptionUsage)
                 if item == nil {
                     markQueuedItemsWaitingForUnlock()
                     return
                 }
             } else {
-                item = items.first(where: { $0.phase == .queued })
+                item = processableItems.first
             }
             guard let item else { return }
 
@@ -234,6 +266,12 @@ final class WatchRecordingPipeline {
                     failureStage: error.stage,
                     message: error.localizedDescription
                 )
+                if isRecordingOnly(item) {
+                    notifyRecordingOnlyDeliveryFailure(
+                        recordingID: item.id,
+                        message: error.localizedDescription
+                    )
+                }
             } catch {
                 _ = inbox.transition(
                     id: item.id,
@@ -241,6 +279,12 @@ final class WatchRecordingPipeline {
                     failureStage: .delivery,
                     message: error.localizedDescription
                 )
+                if isRecordingOnly(item) {
+                    notifyRecordingOnlyDeliveryFailure(
+                        recordingID: item.id,
+                        message: error.localizedDescription
+                    )
+                }
             }
             refresh()
             WatchRecordingController.shared.publishState()
@@ -262,6 +306,11 @@ final class WatchRecordingPipeline {
                         : "Update Vox.md on iPhone to use this recording's Capture Preset."
             )
         }
+        if flow.watchOutputMode == .recordingOnly {
+            try await deliverRecordingOnly(item, flow: flow)
+            return
+        }
+
         guard item.hasAudio || transcriptStore.transcripts.contains(where: { $0.id == item.requestID }) else {
             throw WatchRecordingPipelineError(
                 stage: .storage,
@@ -378,6 +427,144 @@ final class WatchRecordingPipeline {
         }
     }
 
+    private func deliverRecordingOnly(
+        _ item: WatchRecordingInboxItem,
+        flow: CapturePreset
+    ) async throws {
+        guard item.hasAudio else {
+            throw WatchRecordingPipelineError(
+                stage: .storage,
+                message: "The retained Apple Watch recording is missing."
+            )
+        }
+
+        _ = inbox.transition(
+            id: item.id,
+            to: .delivering,
+            message: "Saving recording to Files"
+        )
+        refresh()
+        WatchRecordingController.shared.publishState()
+        try ensureProcessingIsActive(for: item.id)
+
+        let exporter = RecordingOnlyFileExporter()
+        let settings = flow.watchRecordingSettings
+        let context = RecordingOnlyFileExportContext(
+            recordingID: item.id,
+            createdAt: item.createdAt,
+            presetName: flow.displayName,
+            originalFilename: item.originalFilename ?? item.filename
+        )
+        var reservation = item.reservedOutputFilename
+        var reservationFolderBookmark = item.reservedOutputFolderBookmark
+        if reservation != nil,
+           let reservationFolderBookmark,
+           reservationFolderBookmark != settings.folderBookmark {
+            throw WatchRecordingPipelineError(
+                stage: .storage,
+                message: "The reserved filename belongs to another Files folder. Choose a recording-only preset to retarget it explicitly."
+            )
+        }
+
+        for _ in 0..<3 {
+            let reservedFilename: String
+            let existingReservation = reservation
+            do {
+                let reservationTask = Task.detached(priority: .utility) {
+                    try exporter.reserveFilename(
+                        context: context,
+                        settings: settings,
+                        existingReservation: existingReservation
+                    )
+                }
+                reservedFilename = try await withTaskCancellationHandler {
+                    try await reservationTask.value
+                } onCancel: {
+                    reservationTask.cancel()
+                }
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                throw recordingOnlyPipelineError(error)
+            }
+            try ensureProcessingIsActive(for: item.id)
+
+            if reservation != reservedFilename
+                || reservationFolderBookmark != settings.folderBookmark {
+                guard inbox.update(id: item.id, { updated in
+                    updated.reservedOutputFilename = reservedFilename
+                    updated.reservedOutputFolderBookmark = settings.folderBookmark
+                    updated.statusMessage = "Saving \(reservedFilename) to Files"
+                }) != nil else {
+                    throw WatchRecordingPipelineError(
+                        stage: .storage,
+                        message: "The recording filename could not be saved for retry."
+                    )
+                }
+                reservation = reservedFilename
+                reservationFolderBookmark = settings.folderBookmark
+            }
+
+            do {
+                let copyTask = Task.detached(priority: .utility) {
+                    try exporter.copy(
+                        sourceURL: item.fileURL,
+                        reservedFilename: reservedFilename,
+                        settings: settings
+                    )
+                }
+                let receipt = try await withTaskCancellationHandler {
+                    try await copyTask.value
+                } onCancel: {
+                    copyTask.cancel()
+                }
+                try ensureProcessingIsActive(for: item.id)
+                guard inbox.markDelivered(
+                    id: item.id,
+                    message: "Saved \(receipt.filename) to Files"
+                ) != nil else {
+                    throw WatchRecordingPipelineError(
+                        stage: .storage,
+                        message: "The Files copy succeeded, but delivery state could not be saved. Retry is safe."
+                    )
+                }
+                lastDeliveredRecordingID = item.id
+                refresh()
+                WatchRecordingController.shared.publishState()
+                return
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch RecordingOnlyFileExportError.filenameConflict {
+                guard inbox.update(id: item.id, { updated in
+                    updated.reservedOutputFilename = nil
+                    updated.reservedOutputFolderBookmark = nil
+                    updated.statusMessage = "Choosing another Files filename"
+                }) != nil else {
+                    throw WatchRecordingPipelineError(
+                        stage: .storage,
+                        message: "The recording filename conflict could not be saved for retry."
+                    )
+                }
+                reservation = nil
+                reservationFolderBookmark = nil
+            } catch {
+                throw recordingOnlyPipelineError(error)
+            }
+        }
+
+        throw WatchRecordingPipelineError(
+            stage: .delivery,
+            message: RecordingOnlyFileExportError.filenameConflict.localizedDescription
+        )
+    }
+
+    private func recordingOnlyPipelineError(_ error: Error) -> WatchRecordingPipelineError {
+        return WatchRecordingPipelineError(
+            stage: .delivery,
+            message: error.localizedDescription
+        )
+    }
+
     private func transcribe(_ item: WatchRecordingInboxItem) async throws -> OnDeviceTranscriptionResult {
         let sourceURL = item.fileURL
         let workingURL = (AppConstants.recordingsDirectoryURL ?? WatchRecordingInbox.inboxDirectory)
@@ -440,20 +627,24 @@ final class WatchRecordingPipeline {
 
     private func recoverInterruptedItems() {
         for item in items where item.phase == .transcribing || item.phase == .delivering {
-            _ = inbox.transition(
-                id: item.id,
-                to: .queued,
-                message: transcriptStore.transcripts.contains(where: { $0.id == item.requestID })
-                    ? "Resuming Capture delivery"
-                    : "Resuming Watch transcription"
-            )
+            let message: String
+            if isRecordingOnly(item) {
+                message = "Resuming Files delivery"
+            } else if transcriptStore.transcripts.contains(where: { $0.id == item.requestID }) {
+                message = "Resuming Capture delivery"
+            } else {
+                message = "Resuming Watch transcription"
+            }
+            _ = inbox.transition(id: item.id, to: .queued, message: message)
         }
         refresh()
     }
 
     private func reconcileDeliveredCaptureRequests() {
         guard let captureRootURL = AppConstants.captureDirectoryURL else { return }
-        let candidates = items.filter { $0.phase == .failed || $0.phase == .delivering }
+        let candidates = items.filter {
+            ($0.phase == .failed || $0.phase == .delivering) && !isRecordingOnly($0)
+        }
         guard !candidates.isEmpty else { return }
         Task { @MainActor [weak self] in
             guard let self else { return }
@@ -471,8 +662,17 @@ final class WatchRecordingPipeline {
             && transcriptStore.transcripts.contains(where: { $0.id == item.requestID })
     }
 
+    private func isRecordingOnly(_ item: WatchRecordingInboxItem) -> Bool {
+        item.flowSnapshot?.watchOutputMode == .recordingOnly
+    }
+
+    private func canRunWithoutTranscriptionUsage(_ item: WatchRecordingInboxItem) -> Bool {
+        (item.phase == .queued && isRecordingOnly(item)) || isDeliveryOnlyRetry(item)
+    }
+
     private func markQueuedItemsWaitingForUnlock() {
         for item in items where item.phase == .queued
+            && !isRecordingOnly(item)
             && !isDeliveryOnlyRetry(item)
             && item.statusMessage != "Unlock Vox.md on iPhone to transcribe" {
             _ = inbox.transition(
@@ -483,6 +683,32 @@ final class WatchRecordingPipeline {
         }
         refresh()
         WatchRecordingController.shared.publishState()
+    }
+
+    private func notifyRecordingOnlyDeliveryFailure(
+        recordingID: String,
+        message: String
+    ) {
+        guard UIApplication.shared.applicationState != .active else { return }
+        Task {
+            let center = UNUserNotificationCenter.current()
+            let settings = await center.notificationSettings()
+            guard settings.authorizationStatus == .authorized
+                    || settings.authorizationStatus == .provisional
+                    || settings.authorizationStatus == .ephemeral else {
+                return
+            }
+            let content = UNMutableNotificationContent()
+            content.title = "Watch recording needs attention"
+            content.body = message
+            content.sound = .default
+            let request = UNNotificationRequest(
+                identifier: "watch-recording-files-failed-\(recordingID)",
+                content: content,
+                trigger: nil
+            )
+            try? await center.add(request)
+        }
     }
 
     private func beginBackgroundTaskIfNeeded() -> UIBackgroundTaskIdentifier {

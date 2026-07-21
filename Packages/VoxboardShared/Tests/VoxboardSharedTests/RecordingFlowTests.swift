@@ -27,6 +27,46 @@ final class CapturePresetTests: XCTestCase {
         XCTAssertTrue(flow.usesAIEnrichment)
     }
 
+    func test_watchOutputDefaultsToTranscriptForExistingPresets() throws {
+        XCTAssertEqual(CapturePresetStore.defaultFlow.watchOutputMode, .transcript)
+        XCTAssertEqual(CapturePresetStore.makeCustomFlow().watchOutputMode, .transcript)
+
+        let encoded = try JSONEncoder().encode(CapturePresetStore.makeCustomFlow())
+        var object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        object.removeValue(forKey: "watchOutputMode")
+        object.removeValue(forKey: "watchRecordingSettings")
+        let legacyData = try JSONSerialization.data(withJSONObject: object)
+        let decoded = try JSONDecoder().decode(CapturePreset.self, from: legacyData)
+
+        XCTAssertEqual(decoded.watchOutputMode, .transcript)
+        XCTAssertEqual(
+            decoded.watchRecordingSettings.filenameTemplate,
+            CapturePresetWatchRecordingSettings.defaultFilenameTemplate
+        )
+        XCTAssertNil(decoded.watchRecordingSettings.folderBookmark)
+    }
+
+    func test_recordingOnlyWatchSettingsRoundTrip() throws {
+        var flow = CapturePresetStore.makeCustomFlow()
+        flow.watchOutputMode = .recordingOnly
+        flow.watchRecordingSettings = CapturePresetWatchRecordingSettings(
+            folderBookmark: Data([7, 8, 9]),
+            folderName: "Voice Notes",
+            filenameTemplate: "{preset}-{date}-{id8}"
+        )
+
+        let decoded = try JSONDecoder().decode(
+            CapturePreset.self,
+            from: JSONEncoder().encode(flow)
+        )
+
+        XCTAssertEqual(decoded, flow)
+        XCTAssertEqual(decoded.watchOutputMode, .recordingOnly)
+        XCTAssertEqual(decoded.watchRecordingSettings.folderBookmark, Data([7, 8, 9]))
+    }
+
     func test_capturePolicyRoundTripsAndMapsToLightweightProfile() throws {
         let destinationID = UUID()
         let templateID = UUID()

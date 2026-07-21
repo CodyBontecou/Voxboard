@@ -258,9 +258,14 @@ public enum CapturePresetProfileStore {
         return enabled.contains(where: { $0.id == recordingStored }) ? recordingStored : enabled.first?.id
     }
 
-    public static func selectCaptureProfile(id: String, defaults: UserDefaults?) {
-        guard enabledProfiles(defaults: defaults).contains(where: { $0.id == id }) else { return }
-        defaults?.set(id, forKey: selectedCaptureProfileIDKey)
+    @discardableResult
+    public static func selectCaptureProfile(id: String, defaults: UserDefaults?) -> Bool {
+        guard let defaults,
+              enabledProfiles(defaults: defaults).contains(where: { $0.id == id }) else {
+            return false
+        }
+        defaults.set(id, forKey: selectedCaptureProfileIDKey)
+        return defaults.string(forKey: selectedCaptureProfileIDKey) == id
     }
 
     public static func profile(id: String?, defaults: UserDefaults?) -> CapturePresetProfile? {

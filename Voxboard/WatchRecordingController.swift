@@ -19,7 +19,14 @@ final class WatchRecordingController: NSObject {
     private var needsStatePublishAfterActivation = false
     private let transportFailureDefaultsKey = "watchRecordingTransportFailures.v1"
     private let transportFailureCursorDefaultsKey = "watchRecordingTransportFailureCursor.v1"
+    private let stateEpochDefaultsKey = "watchRecordingStateEpoch.v1"
     private let stateRevisionDefaultsKey = "watchRecordingStateRevision.v1"
+    private let presetSelectionEpochDefaultsKey = "watchPresetSelection.lastEpoch.v1"
+    private let presetSelectionSequenceDefaultsKey = "watchPresetSelection.lastSequence.v1"
+    private let presetSelectionRequestDefaultsKey = "watchPresetSelection.lastRequestID.v1"
+    private let presetSelectionPresetDefaultsKey = "watchPresetSelection.lastPresetID.v1"
+    private let presetSelectionResultDefaultsKey = "watchPresetSelection.lastResult.v1"
+    private let presetSelectionErrorDefaultsKey = "watchPresetSelection.lastError.v1"
 
     private override init() {
         super.init()
@@ -74,6 +81,7 @@ final class WatchRecordingController: NSObject {
         let command = (payload[WatchRecordingPayloadKey.command] as? String) ?? WatchRecordingCommand.status.rawValue
         watchLog.notice("Received watch command: \(command, privacy: .public)")
 
+        var presetSelectionResponse: WatchPresetSelectionResponse?
         switch WatchRecordingCommand(rawValue: command) ?? .status {
         case .start:
             startRecordingFromWatch()
@@ -90,11 +98,16 @@ final class WatchRecordingController: NSObject {
                 )
                 watchPipeline?.refresh()
             }
+        case .selectPreset:
+            presetSelectionResponse = handlePresetSelection(payload)
         case .status:
             break
         }
 
-        let state = makeStatePayload()
+        var state = makeStatePayload()
+        if let presetSelectionResponse {
+            state.merge(presetSelectionResponse.dictionary) { _, new in new }
+        }
         publishState()
         return state
     }
@@ -148,16 +161,23 @@ final class WatchRecordingController: NSObject {
             ?? activeJobs.first(where: { $0.phase == .transcribing })
             ?? activeJobs.first(where: { $0.phase == .queued })
             ?? activeJobs.first(where: { $0.phase == .failed })
+        let enabledPresets = CapturePresetStore.loadFlows().filter(\.isEnabled)
         let selectedPresetID = CapturePresetProfileStore.selectedProfileID(
             defaults: AppConstants.sharedDefaults
         )
-        let selectedPreset = CapturePresetStore.flow(id: selectedPresetID)
-            ?? CapturePresetStore.selectedFlow()
+        let selectedPreset = enabledPresets.first(where: { $0.id == selectedPresetID })
+            ?? enabledPresets.first
 
+        let usageAppliesToCurrentWork = (
+            activeJob?.flowSnapshot?.watchOutputMode
+                ?? selectedPreset?.watchOutputMode
+                ?? .transcript
+        ) != .recordingOnly
         let message: String?
         if !AppConstants.lockScreenQuickRecordEnabled {
             message = "Quick Record is disabled in Vox.md Settings."
-        } else if usageTracker?.isAtLimit == true || recorder?.needsUnlock == true {
+        } else if usageAppliesToCurrentWork
+                    && (usageTracker?.isAtLimit == true || recorder?.needsUnlock == true) {
             message = "Free limit reached — unlock Vox.md on iPhone."
         } else if let activeJob {
             message = activeJob.statusMessage
@@ -193,11 +213,23 @@ final class WatchRecordingController: NSObject {
             message: message
         ).dictionary
         payload[WatchRecordingPayloadKey.stateRevision] = nextStateRevision()
+        payload[WatchRecordingPayloadKey.stateEpoch] = currentStateEpoch()
         payload[WatchRecordingPayloadKey.queuedCount] = visibleJobs.filter { !$0.phase.isTerminal }.count
-        payload[WatchRecordingPayloadKey.selectedPresetID] = selectedPreset.id
-        payload[WatchRecordingPayloadKey.selectedPresetName] = selectedPreset.displayName
-        if let snapshot = try? JSONEncoder().encode(selectedPreset) {
-            payload[WatchRecordingPayloadKey.selectedPresetSnapshot] = snapshot
+        payload[WatchRecordingPayloadKey.presetSelectionAvailable] = selectedPreset != nil
+        if let selectedPreset {
+            payload[WatchRecordingPayloadKey.selectedPresetID] = selectedPreset.id
+            payload[WatchRecordingPayloadKey.selectedPresetName] = selectedPreset.displayName
+            if let snapshot = try? JSONEncoder().encode(selectedPreset) {
+                payload[WatchRecordingPayloadKey.selectedPresetSnapshot] = snapshot
+            }
+        }
+        let presetSummaryPayload = makePresetSummaryPayload(selectedPreset: selectedPreset)
+        payload[WatchRecordingPayloadKey.presetSummaries] = presetSummaryPayload.summaries
+        if presetSummaryPayload.isTruncated {
+            payload[WatchRecordingPayloadKey.presetSummariesTruncated] = true
+        }
+        if let acknowledgement = lastPresetSelectionAcknowledgement() {
+            payload.merge(acknowledgement.dictionary) { _, new in new }
         }
         let inProgressStatuses = jobs
             .filter { $0.phase == .transcribing || $0.phase == .delivering }
@@ -232,14 +264,185 @@ final class WatchRecordingController: NSObject {
         return payload
     }
 
+    private func handlePresetSelection(
+        _ payload: [String: Any]
+    ) -> WatchPresetSelectionResponse? {
+        guard let requestID = payload[WatchRecordingPayloadKey.presetSelectionRequestID] as? String,
+              UUID(uuidString: requestID) != nil,
+              let presetID = payload[WatchRecordingPayloadKey.requestedPresetID] as? String,
+              isValidWatchPresetID(presetID),
+              let epoch = payload[WatchRecordingPayloadKey.presetSelectionEpoch] as? Int,
+              epoch > 0,
+              let sequence = payload[WatchRecordingPayloadKey.presetSelectionSequence] as? Int,
+              sequence > 0 else {
+            watchLog.error("Rejected malformed Watch Capture Preset selection")
+            return nil
+        }
+
+        let defaults = UserDefaults.standard
+        let lastEpoch = defaults.integer(forKey: presetSelectionEpochDefaultsKey)
+        let lastSequence = defaults.integer(forKey: presetSelectionSequenceDefaultsKey)
+        let requestIsStale = epoch < lastEpoch
+            || (epoch == lastEpoch && sequence < lastSequence)
+        if requestIsStale {
+            return WatchPresetSelectionResponse(
+                requestID: requestID,
+                presetID: presetID,
+                epoch: epoch,
+                sequence: sequence,
+                outcome: .stale,
+                errorMessage: "A newer Capture Preset selection was already applied."
+            )
+        }
+
+        if epoch == lastEpoch, sequence == lastSequence, lastEpoch > 0 {
+            if defaults.string(forKey: presetSelectionRequestDefaultsKey) == requestID,
+               defaults.string(forKey: presetSelectionPresetDefaultsKey) == presetID,
+               let previous = lastPresetSelectionAcknowledgement() {
+                return previous
+            }
+            return WatchPresetSelectionResponse(
+                requestID: requestID,
+                presetID: presetID,
+                epoch: epoch,
+                sequence: sequence,
+                outcome: .stale,
+                errorMessage: "This Capture Preset request was superseded."
+            )
+        }
+
+        let didSelect = CapturePresetProfileStore.selectCaptureProfile(
+            id: presetID,
+            defaults: AppConstants.sharedDefaults
+        )
+        let response = WatchPresetSelectionResponse(
+            requestID: requestID,
+            presetID: presetID,
+            epoch: epoch,
+            sequence: sequence,
+            outcome: didSelect ? .accepted : .rejected,
+            errorMessage: didSelect
+                ? nil
+                : "This Capture Preset is disabled or no longer exists on iPhone."
+        )
+        persistPresetSelectionAcknowledgement(response)
+        return response
+    }
+
+    private func persistPresetSelectionAcknowledgement(
+        _ response: WatchPresetSelectionResponse
+    ) {
+        let defaults = UserDefaults.standard
+        defaults.set(response.epoch, forKey: presetSelectionEpochDefaultsKey)
+        defaults.set(response.sequence, forKey: presetSelectionSequenceDefaultsKey)
+        defaults.set(response.requestID, forKey: presetSelectionRequestDefaultsKey)
+        defaults.set(response.presetID, forKey: presetSelectionPresetDefaultsKey)
+        defaults.set(response.outcome.rawValue, forKey: presetSelectionResultDefaultsKey)
+        if let errorMessage = response.errorMessage {
+            defaults.set(errorMessage, forKey: presetSelectionErrorDefaultsKey)
+        } else {
+            defaults.removeObject(forKey: presetSelectionErrorDefaultsKey)
+        }
+    }
+
+    private func lastPresetSelectionAcknowledgement() -> WatchPresetSelectionResponse? {
+        let defaults = UserDefaults.standard
+        guard let requestID = defaults.string(forKey: presetSelectionRequestDefaultsKey),
+              let presetID = defaults.string(forKey: presetSelectionPresetDefaultsKey),
+              let rawOutcome = defaults.string(forKey: presetSelectionResultDefaultsKey),
+              let outcome = WatchPresetSelectionOutcome(rawValue: rawOutcome) else { return nil }
+        return WatchPresetSelectionResponse(
+            requestID: requestID,
+            presetID: presetID,
+            epoch: defaults.integer(forKey: presetSelectionEpochDefaultsKey),
+            sequence: defaults.integer(forKey: presetSelectionSequenceDefaultsKey),
+            outcome: outcome,
+            errorMessage: defaults.string(forKey: presetSelectionErrorDefaultsKey)
+        )
+    }
+
+    private func makePresetSummaryPayload(
+        selectedPreset: CapturePreset?
+    ) -> (summaries: [[String: Any]], isTruncated: Bool) {
+        let maximumPresetCount = 32
+        let flows = CapturePresetStore.loadFlows().filter(\.isEnabled)
+        var seen = Set<String>()
+        let ordered = ([selectedPreset].compactMap { $0 } + flows).filter { preset in
+            guard isValidWatchPresetID(preset.id), !seen.contains(preset.id) else { return false }
+            seen.insert(preset.id)
+            return true
+        }
+        let included = ordered.prefix(maximumPresetCount)
+        let summaries = included.map { preset in
+            [
+                WatchRecordingPayloadKey.selectedPresetID: preset.id,
+                WatchRecordingPayloadKey.selectedPresetName: watchSafeText(
+                    preset.displayName,
+                    maximumCharacters: 64,
+                    fallback: "Untitled Preset"
+                ),
+                WatchRecordingPayloadKey.presetSymbolName: watchSafeSymbolName(preset.symbolName),
+            ] as [String: Any]
+        }
+        return (summaries, ordered.count > maximumPresetCount)
+    }
+
+    private func isValidWatchPresetID(_ id: String) -> Bool {
+        !id.isEmpty
+            && id.utf8.count <= 256
+            && !id.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains)
+    }
+
+    private func watchSafeText(
+        _ value: String,
+        maximumCharacters: Int,
+        fallback: String
+    ) -> String {
+        let cleaned = value
+            .components(separatedBy: .controlCharacters)
+            .joined()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let bounded = String(cleaned.prefix(maximumCharacters))
+        return bounded.isEmpty ? fallback : bounded
+    }
+
+    private func watchSafeSymbolName(_ value: String) -> String {
+        let bounded = watchSafeText(
+            value,
+            maximumCharacters: 64,
+            fallback: "waveform"
+        )
+        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "._-"))
+        return bounded.unicodeScalars.allSatisfy(allowed.contains) ? bounded : "waveform"
+    }
+
     private func currentRecordingStartedAt() -> TimeInterval? {
         TranscriptionIPC.readStatus()?.recordingStartedAt
     }
 
+    private func currentStateEpoch() -> Int {
+        let defaults = UserDefaults.standard
+        let existing = defaults.integer(forKey: stateEpochDefaultsKey)
+        guard existing <= 0 else { return existing }
+        let epoch = max(1, Int(Date().timeIntervalSince1970 * 1_000))
+        defaults.set(epoch, forKey: stateEpochDefaultsKey)
+        return epoch
+    }
+
     private func nextStateRevision() -> Int {
-        let current = UserDefaults.standard.integer(forKey: stateRevisionDefaultsKey)
-        let next = current == Int.max ? 1 : current + 1
-        UserDefaults.standard.set(next, forKey: stateRevisionDefaultsKey)
+        let defaults = UserDefaults.standard
+        let current = defaults.integer(forKey: stateRevisionDefaultsKey)
+        let next: Int
+        if current == Int.max {
+            let oldEpoch = currentStateEpoch()
+            let newEpoch = max(oldEpoch + 1, Int(Date().timeIntervalSince1970 * 1_000))
+            defaults.set(newEpoch, forKey: stateEpochDefaultsKey)
+            next = 1
+        } else {
+            _ = currentStateEpoch()
+            next = current + 1
+        }
+        defaults.set(next, forKey: stateRevisionDefaultsKey)
         return next
     }
 
@@ -279,11 +482,17 @@ final class WatchRecordingController: NSObject {
     }
 
     @MainActor
-    private func notifyWatchRecordingReadyIfNeeded() {
+    private func notifyWatchRecordingReadyIfNeeded(for item: WatchRecordingInboxItem) {
         guard UIApplication.shared.applicationState != .active else { return }
 
         let count = WatchRecordingInbox.shared.load().filter { !$0.phase.isTerminal }.count
         guard count > 0 else { return }
+
+        if item.flowSnapshot?.watchOutputMode == .recordingOnly {
+            // The background pipeline sends a notification only if the actual
+            // Files write fails. A valid unattended delivery stays silent.
+            return
+        }
 
         Task {
             let center = UNUserNotificationCenter.current()
@@ -375,7 +584,7 @@ extension WatchRecordingController: WCSessionDelegate {
                 WatchRecordingController.shared.clearTransportFailure(recordingID: item.id)
                 WatchRecordingController.shared.watchPipeline?.recordingDidArrive()
                 WatchRecordingController.shared.publishState()
-                WatchRecordingController.shared.notifyWatchRecordingReadyIfNeeded()
+                WatchRecordingController.shared.notifyWatchRecordingReadyIfNeeded(for: item)
             }
         } catch {
             logger.error("Failed to queue watch recording: \(String(describing: error))")
@@ -404,11 +613,22 @@ nonisolated enum WatchRecordingPayloadKey {
     static let selectedPresetID = "selectedPresetID"
     static let selectedPresetName = "selectedPresetName"
     static let selectedPresetSnapshot = "selectedPresetSnapshot"
+    static let presetSummaries = "presetSummaries"
+    static let presetSummariesTruncated = "presetSummariesTruncated"
+    static let presetSelectionAvailable = "presetSelectionAvailable"
+    static let presetSymbolName = "presetSymbolName"
+    static let requestedPresetID = "requestedPresetID"
+    static let presetSelectionRequestID = "presetSelectionRequestID"
+    static let presetSelectionEpoch = "presetSelectionEpoch"
+    static let presetSelectionSequence = "presetSelectionSequence"
+    static let presetSelectionResult = "presetSelectionResult"
+    static let presetSelectionError = "presetSelectionError"
     static let recordingStatuses = "recordingStatuses"
     static let recordingID = "recordingID"
     static let revision = "revision"
     static let updatedAt = "updatedAt"
     static let sentAt = "sentAt"
+    static let stateEpoch = "stateEpoch"
     static let stateRevision = "stateRevision"
 }
 
@@ -418,6 +638,36 @@ nonisolated enum WatchRecordingCommand: String {
     case toggle
     case status
     case acknowledge
+    case selectPreset
+}
+
+nonisolated enum WatchPresetSelectionOutcome: String {
+    case accepted
+    case rejected
+    case stale
+}
+
+nonisolated struct WatchPresetSelectionResponse {
+    let requestID: String
+    let presetID: String
+    let epoch: Int
+    let sequence: Int
+    let outcome: WatchPresetSelectionOutcome
+    let errorMessage: String?
+
+    var dictionary: [String: Any] {
+        var payload: [String: Any] = [
+            WatchRecordingPayloadKey.presetSelectionRequestID: requestID,
+            WatchRecordingPayloadKey.requestedPresetID: presetID,
+            WatchRecordingPayloadKey.presetSelectionEpoch: epoch,
+            WatchRecordingPayloadKey.presetSelectionSequence: sequence,
+            WatchRecordingPayloadKey.presetSelectionResult: outcome.rawValue,
+        ]
+        if let errorMessage, !errorMessage.isEmpty {
+            payload[WatchRecordingPayloadKey.presetSelectionError] = errorMessage
+        }
+        return payload
+    }
 }
 
 nonisolated enum WatchRecordingPhase: String {

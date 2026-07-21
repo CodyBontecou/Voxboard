@@ -34,6 +34,12 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
     var flowSnapshot: CapturePreset?
     var flowSnapshotPayload: Data?
     var requiresPresetSelection: Bool
+    /// Stable user-visible filename reserved before a recording-only Files copy.
+    /// Persisting it makes a retry idempotent if the app is suspended after copy.
+    var reservedOutputFilename: String?
+    /// Folder permission paired with `reservedOutputFilename`. A reservation
+    /// must never be silently reused against a different Files destination.
+    var reservedOutputFolderBookmark: Data?
     var phase: WatchRecordingProcessingPhase
     var failureStage: WatchRecordingFailureStage?
     var statusMessage: String?
@@ -67,6 +73,8 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         flowSnapshot: CapturePreset?,
         flowSnapshotPayload: Data? = nil,
         requiresPresetSelection: Bool = false,
+        reservedOutputFilename: String? = nil,
+        reservedOutputFolderBookmark: Data? = nil,
         phase: WatchRecordingProcessingPhase = .queued,
         failureStage: WatchRecordingFailureStage? = nil,
         statusMessage: String? = nil,
@@ -86,6 +94,8 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         self.flowSnapshot = flowSnapshot
         self.flowSnapshotPayload = flowSnapshotPayload
         self.requiresPresetSelection = requiresPresetSelection
+        self.reservedOutputFilename = reservedOutputFilename
+        self.reservedOutputFolderBookmark = reservedOutputFolderBookmark
         self.phase = phase
         self.failureStage = failureStage
         self.statusMessage = statusMessage
@@ -107,6 +117,8 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         case flowSnapshot
         case flowSnapshotPayload
         case requiresPresetSelection
+        case reservedOutputFilename
+        case reservedOutputFolderBookmark
         case phase
         case failureStage
         case statusMessage
@@ -134,6 +146,8 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
             flowSnapshot: try? container.decode(CapturePreset.self, forKey: .flowSnapshot),
             flowSnapshotPayload: try container.decodeIfPresent(Data.self, forKey: .flowSnapshotPayload),
             requiresPresetSelection: try container.decodeIfPresent(Bool.self, forKey: .requiresPresetSelection) ?? false,
+            reservedOutputFilename: try container.decodeIfPresent(String.self, forKey: .reservedOutputFilename),
+            reservedOutputFolderBookmark: try container.decodeIfPresent(Data.self, forKey: .reservedOutputFolderBookmark),
             phase: try container.decodeIfPresent(WatchRecordingProcessingPhase.self, forKey: .phase) ?? .queued,
             failureStage: try container.decodeIfPresent(WatchRecordingFailureStage.self, forKey: .failureStage),
             statusMessage: try container.decodeIfPresent(String.self, forKey: .statusMessage),
@@ -315,8 +329,11 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
     /// Keeps a compact terminal tombstone after Watch acknowledgement so any
     /// delayed duplicate transfer can never recreate completed work.
     @discardableResult
-    func markDelivered(id: String) -> WatchRecordingInboxItem? {
-        let item = transition(id: id, to: .delivered, message: "Saved to Capture")
+    func markDelivered(
+        id: String,
+        message: String = "Saved to Capture"
+    ) -> WatchRecordingInboxItem? {
+        let item = transition(id: id, to: .delivered, message: message)
         if let item {
             try? FileManager.default.removeItem(at: item.fileURL)
         }
