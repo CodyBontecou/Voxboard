@@ -57,6 +57,25 @@ final class CaptureHistoryStoreTests: XCTestCase {
         XCTAssertEqual(records, [newest, middle])
     }
 
+    func test_removeDeletesOnlyRequestedRecordsAndRemovesEmptyFile() async throws {
+        let fixture = try Fixture()
+        defer { fixture.remove() }
+        let store = fixture.store()
+        let first = try makeRecord(requestID: fixture.firstID, deliveredAt: date(20))
+        let second = try makeRecord(requestID: fixture.secondID, deliveredAt: date(40))
+        try await store.upsert(first)
+        try await store.upsert(second)
+
+        try await store.remove(requestIDs: [fixture.firstID])
+        let afterFirstRemoval = try await store.list()
+        XCTAssertEqual(afterFirstRemoval, [second])
+
+        try await store.remove(requestIDs: [fixture.secondID])
+        let afterSecondRemoval = try await store.list()
+        XCTAssertEqual(afterSecondRemoval, [])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: fixture.fileURL.path))
+    }
+
     func test_clearRemovesAllHistoryAndIsIdempotent() async throws {
         let fixture = try Fixture()
         defer { fixture.remove() }

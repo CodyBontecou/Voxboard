@@ -211,6 +211,7 @@ public struct CaptureHistoryRecord: Identifiable, Codable, Equatable, Sendable {
 
 public enum CaptureHistoryWriteOperation: String, Equatable, Sendable {
     case upsert
+    case remove
     case clear
 }
 
@@ -343,6 +344,27 @@ public actor CaptureHistoryStore {
             throw error
         } catch {
             throw CaptureHistoryWriteError(operation: .upsert, underlyingError: error)
+        }
+    }
+
+    public func remove(requestIDs: Set<UUID>) throws {
+        guard !requestIDs.isEmpty else { return }
+        do {
+            try coordinator.coordinateWriting(at: fileURL) { coordinatedURL in
+                let records = try loadLatest(from: coordinatedURL)
+                    .filter { !requestIDs.contains($0.requestID) }
+                if records.isEmpty {
+                    if fileManager.fileExists(atPath: coordinatedURL.path) {
+                        try fileManager.removeItem(at: coordinatedURL)
+                    }
+                } else {
+                    try persist(records, to: coordinatedURL)
+                }
+            }
+        } catch let error as CaptureHistoryWriteError {
+            throw error
+        } catch {
+            throw CaptureHistoryWriteError(operation: .remove, underlyingError: error)
         }
     }
 

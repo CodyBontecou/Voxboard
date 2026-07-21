@@ -40,6 +40,34 @@ final class TranscriptHistoryTests: XCTestCase {
         XCTAssertEqual(edited.cleanedText, "Corrected.")
     }
 
+    func test_sourceIdentityInitializerPreservesWatchIDAndRecordingDate() {
+        let id = UUID()
+        let recordedAt = Date(timeIntervalSince1970: 1_700_000_000)
+        let transcript = Transcript(
+            id: id,
+            text: "Watch note",
+            date: recordedAt,
+            duration: 12,
+            modelUsed: "Apple Speech",
+            language: "en"
+        )
+        let store = TranscriptStore(fileURL: nil)
+
+        store.add(transcript)
+        store.add(transcript.withEdits(
+            text: "Watch note retried",
+            title: nil,
+            tags: nil,
+            category: nil,
+            cleanedText: nil
+        ))
+
+        XCTAssertEqual(store.transcripts.count, 1)
+        XCTAssertEqual(store.transcripts.first?.id, id)
+        XCTAssertEqual(store.transcripts.first?.date, recordedAt)
+        XCTAssertEqual(store.transcripts.first?.text, "Watch note retried")
+    }
+
     func test_storeMergesLatestDiskVersionAcrossInstances() throws {
         let folder = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: folder) }

@@ -10,7 +10,45 @@ enum WatchRecordingPayloadKey {
     static let recordingStartedAt = "recordingStartedAt"
     static let message = "message"
     static let queuedCount = "queuedCount"
+    static let selectedPresetID = "selectedPresetID"
+    static let selectedPresetName = "selectedPresetName"
+    static let selectedPresetSnapshot = "selectedPresetSnapshot"
+    static let recordingStatuses = "recordingStatuses"
+    static let recordingID = "recordingID"
+    static let revision = "revision"
+    static let updatedAt = "updatedAt"
     static let sentAt = "sentAt"
+    static let stateRevision = "stateRevision"
+}
+
+enum WatchRemoteRecordingPhase: String, Codable, Equatable, Sendable {
+    case queued
+    case transcribing
+    case delivering
+    case delivered
+    case failed
+    case transportFailed
+    case discarded
+}
+
+struct WatchRemoteRecordingStatus: Equatable, Sendable {
+    let recordingID: String
+    let phase: WatchRemoteRecordingPhase
+    let revision: Int
+    let updatedAt: Date
+    let message: String?
+
+    init?(dictionary: [String: Any]) {
+        guard let recordingID = dictionary[WatchRecordingPayloadKey.recordingID] as? String,
+              let rawPhase = dictionary[WatchRecordingPayloadKey.phase] as? String,
+              let phase = WatchRemoteRecordingPhase(rawValue: rawPhase) else { return nil }
+        self.recordingID = recordingID
+        self.phase = phase
+        self.revision = dictionary[WatchRecordingPayloadKey.revision] as? Int ?? 0
+        let timestamp = dictionary[WatchRecordingPayloadKey.updatedAt] as? TimeInterval
+        self.updatedAt = timestamp.map(Date.init(timeIntervalSince1970:)) ?? Date()
+        self.message = dictionary[WatchRecordingPayloadKey.message] as? String
+    }
 }
 
 enum WatchRecordingCommand: String {
@@ -18,6 +56,7 @@ enum WatchRecordingCommand: String {
     case stop
     case toggle
     case status
+    case acknowledge
 }
 
 enum WatchRecordingFileMetadataKey {
@@ -27,6 +66,9 @@ enum WatchRecordingFileMetadataKey {
     static let createdAt = "createdAt"
     static let duration = "duration"
     static let originalFilename = "originalFilename"
+    static let presetID = "presetID"
+    static let presetName = "presetName"
+    static let presetSnapshot = "presetSnapshot"
 }
 
 enum WatchRecordingDeepLink {
@@ -56,23 +98,34 @@ enum WatchRecordingPhase: String {
     case recording
     case syncing
     case transcribing
+    case delivering
     case pending
     case error
 }
 
 struct WatchRecordingSnapshot: Equatable {
     let phase: WatchRecordingPhase
+    let sentAt: TimeInterval?
+    let stateRevision: Int?
     let isQuickRecordEnabled: Bool
     let recordingStartedAt: TimeInterval?
     let message: String?
     let queuedCount: Int
+    let selectedPresetID: String?
+    let selectedPresetName: String?
+    let selectedPresetSnapshot: Data?
+    let recordingStatuses: [WatchRemoteRecordingStatus]
 
     static let unavailable = WatchRecordingSnapshot(
         phase: .unavailable,
         isQuickRecordEnabled: true,
         recordingStartedAt: nil,
         message: "Open Vox.md on iPhone once.",
-        queuedCount: 0
+        queuedCount: 0,
+        selectedPresetID: nil,
+        selectedPresetName: nil,
+        selectedPresetSnapshot: nil,
+        recordingStatuses: []
     )
 
     static let pending = WatchRecordingSnapshot(
@@ -80,36 +133,65 @@ struct WatchRecordingSnapshot: Equatable {
         isQuickRecordEnabled: true,
         recordingStartedAt: nil,
         message: "Sent to iPhone",
-        queuedCount: 0
+        queuedCount: 0,
+        selectedPresetID: nil,
+        selectedPresetName: nil,
+        selectedPresetSnapshot: nil,
+        recordingStatuses: []
     )
 
     init(
         phase: WatchRecordingPhase,
+        sentAt: TimeInterval? = nil,
+        stateRevision: Int? = nil,
         isQuickRecordEnabled: Bool,
         recordingStartedAt: TimeInterval? = nil,
         message: String? = nil,
-        queuedCount: Int = 0
+        queuedCount: Int = 0,
+        selectedPresetID: String? = nil,
+        selectedPresetName: String? = nil,
+        selectedPresetSnapshot: Data? = nil,
+        recordingStatuses: [WatchRemoteRecordingStatus] = []
     ) {
         self.phase = phase
+        self.sentAt = sentAt
+        self.stateRevision = stateRevision
         self.isQuickRecordEnabled = isQuickRecordEnabled
         self.recordingStartedAt = recordingStartedAt
         self.message = message
         self.queuedCount = max(0, queuedCount)
+        self.selectedPresetID = selectedPresetID
+        self.selectedPresetName = selectedPresetName
+        self.selectedPresetSnapshot = selectedPresetSnapshot
+        self.recordingStatuses = recordingStatuses
     }
 
     init(dictionary: [String: Any]) {
         let rawPhase = dictionary[WatchRecordingPayloadKey.phase] as? String
         let phase = rawPhase.flatMap(WatchRecordingPhase.init(rawValue:)) ?? .unavailable
+        let sentAt = dictionary[WatchRecordingPayloadKey.sentAt] as? TimeInterval
+        let stateRevision = dictionary[WatchRecordingPayloadKey.stateRevision] as? Int
         let isQuickRecordEnabled = dictionary[WatchRecordingPayloadKey.isQuickRecordEnabled] as? Bool ?? true
         let recordingStartedAt = dictionary[WatchRecordingPayloadKey.recordingStartedAt] as? TimeInterval
         let message = dictionary[WatchRecordingPayloadKey.message] as? String
         let queuedCount = dictionary[WatchRecordingPayloadKey.queuedCount] as? Int ?? 0
+        let selectedPresetID = dictionary[WatchRecordingPayloadKey.selectedPresetID] as? String
+        let selectedPresetName = dictionary[WatchRecordingPayloadKey.selectedPresetName] as? String
+        let selectedPresetSnapshot = dictionary[WatchRecordingPayloadKey.selectedPresetSnapshot] as? Data
+        let recordingStatuses = (dictionary[WatchRecordingPayloadKey.recordingStatuses] as? [[String: Any]] ?? [])
+            .compactMap(WatchRemoteRecordingStatus.init(dictionary:))
         self.init(
             phase: phase,
+            sentAt: sentAt,
+            stateRevision: stateRevision,
             isQuickRecordEnabled: isQuickRecordEnabled,
             recordingStartedAt: recordingStartedAt,
             message: message,
-            queuedCount: queuedCount
+            queuedCount: queuedCount,
+            selectedPresetID: selectedPresetID,
+            selectedPresetName: selectedPresetName,
+            selectedPresetSnapshot: selectedPresetSnapshot,
+            recordingStatuses: recordingStatuses
         )
     }
 
@@ -117,8 +199,11 @@ struct WatchRecordingSnapshot: Equatable {
         var payload: [String: Any] = [
             WatchRecordingPayloadKey.phase: phase.rawValue,
             WatchRecordingPayloadKey.isQuickRecordEnabled: isQuickRecordEnabled,
-            WatchRecordingPayloadKey.sentAt: Date().timeIntervalSince1970,
+            WatchRecordingPayloadKey.sentAt: sentAt ?? Date().timeIntervalSince1970,
         ]
+        if let stateRevision {
+            payload[WatchRecordingPayloadKey.stateRevision] = stateRevision
+        }
         if let recordingStartedAt {
             payload[WatchRecordingPayloadKey.recordingStartedAt] = recordingStartedAt
         }
@@ -128,6 +213,15 @@ struct WatchRecordingSnapshot: Equatable {
         if queuedCount > 0 {
             payload[WatchRecordingPayloadKey.queuedCount] = queuedCount
         }
+        if let selectedPresetID {
+            payload[WatchRecordingPayloadKey.selectedPresetID] = selectedPresetID
+        }
+        if let selectedPresetName {
+            payload[WatchRecordingPayloadKey.selectedPresetName] = selectedPresetName
+        }
+        if let selectedPresetSnapshot {
+            payload[WatchRecordingPayloadKey.selectedPresetSnapshot] = selectedPresetSnapshot
+        }
         return payload
     }
 
@@ -135,7 +229,8 @@ struct WatchRecordingSnapshot: Equatable {
         switch phase {
         case .recording: return "Recording"
         case .syncing: return "Syncing"
-        case .transcribing: return "Processing"
+        case .transcribing: return "Transcribing"
+        case .delivering: return "Saving"
         case .listening: return "Ready"
         case .pending: return "Sent"
         case .error: return "Needs attention"
@@ -153,6 +248,7 @@ struct WatchRecordingSnapshot: Equatable {
         case .recording: return "Tap to stop"
         case .syncing: return "Syncing to iPhone"
         case .transcribing: return "Transcribing on iPhone"
+        case .delivering: return "Saving to Capture"
         case .listening: return "Tap to record"
         case .pending: return "Waiting for iPhone"
         case .error: return "Check iPhone"
@@ -172,7 +268,9 @@ struct WatchRecordingSnapshot: Equatable {
         case .syncing:
             return "arrow.triangle.2.circlepath"
         case .transcribing:
-            return "hourglass"
+            return "waveform.badge.magnifyingglass"
+        case .delivering:
+            return "arrow.up.doc"
         case .error, .unavailable:
             return "exclamationmark.triangle.fill"
         default:
@@ -230,12 +328,36 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
         await send(.status)
     }
 
+    func acknowledge(recordingID: String, revision: Int) {
+        guard WCSession.isSupported() else { return }
+        activate()
+        let payload: [String: Any] = [
+            WatchRecordingPayloadKey.command: WatchRecordingCommand.acknowledge.rawValue,
+            WatchRecordingPayloadKey.recordingID: recordingID,
+            WatchRecordingPayloadKey.revision: revision,
+            WatchRecordingPayloadKey.sentAt: Date().timeIntervalSince1970,
+        ]
+        let session = WCSession.default
+        if session.activationState == .activated, session.isReachable {
+            session.sendMessage(payload) { _ in
+                // The iPhone reply confirms it processed the acknowledgement.
+            } errorHandler: { _ in
+                session.transferUserInfo(payload)
+            }
+        } else {
+            session.transferUserInfo(payload)
+        }
+    }
+
     @discardableResult
     func transferWatchRecording(
         fileURL: URL,
         id: String,
         createdAt: Date,
-        duration: TimeInterval
+        duration: TimeInterval,
+        presetID: String?,
+        presetName: String?,
+        presetSnapshot: Data?
     ) -> Bool {
         guard WCSession.isSupported() else {
             setSnapshot(WatchRecordingSnapshot(
@@ -277,7 +399,7 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
             return true
         }
 
-        let metadata: [String: Any] = [
+        var metadata: [String: Any] = [
             WatchRecordingFileMetadataKey.kind: WatchRecordingFileMetadataKey.watchAudioRecordingKind,
             WatchRecordingFileMetadataKey.recordingID: id,
             WatchRecordingFileMetadataKey.createdAt: createdAt.timeIntervalSince1970,
@@ -285,6 +407,9 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
             WatchRecordingFileMetadataKey.originalFilename: fileURL.lastPathComponent,
             WatchRecordingPayloadKey.sentAt: Date().timeIntervalSince1970,
         ]
+        if let presetID { metadata[WatchRecordingFileMetadataKey.presetID] = presetID }
+        if let presetName { metadata[WatchRecordingFileMetadataKey.presetName] = presetName }
+        if let presetSnapshot { metadata[WatchRecordingFileMetadataKey.presetSnapshot] = presetSnapshot }
 
         session.transferFile(fileURL, metadata: metadata)
         setSnapshot(WatchRecordingSnapshot(
@@ -328,7 +453,7 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
             return await withCheckedContinuation { continuation in
                 session.sendMessage(payload) { [weak self] reply in
                     let snapshot = WatchRecordingSnapshot(dictionary: reply)
-                    self?.setSnapshot(snapshot)
+                    self?.setSnapshot(snapshot, preservingRemoteContext: false)
                     continuation.resume(returning: snapshot)
                 } errorHandler: { [weak self] _ in
                     let snapshot = self?.fallbackForUnreachablePhone(payload, command: command) ?? .pending
@@ -368,7 +493,7 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
 
     private func shouldAvoidQueuedBackgroundStart(_ command: WatchRecordingCommand) -> Bool {
         switch command {
-        case .status, .stop:
+        case .status, .stop, .acknowledge:
             return false
         case .start:
             return snapshot.phase != .listening && snapshot.phase != .recording
@@ -387,12 +512,45 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
 
     private func apply(_ payload: [String: Any]) {
         guard !payload.isEmpty else { return }
-        setSnapshot(WatchRecordingSnapshot(dictionary: payload))
+        setSnapshot(
+            WatchRecordingSnapshot(dictionary: payload),
+            preservingRemoteContext: false
+        )
     }
 
-    private func setSnapshot(_ snapshot: WatchRecordingSnapshot) {
+    private func setSnapshot(
+        _ snapshot: WatchRecordingSnapshot,
+        preservingRemoteContext: Bool = true
+    ) {
         DispatchQueue.main.async { [weak self] in
-            self?.snapshot = snapshot
+            guard let self else { return }
+            guard preservingRemoteContext else {
+                if let incomingRevision = snapshot.stateRevision,
+                   let currentRevision = self.snapshot.stateRevision {
+                    guard incomingRevision >= currentRevision else { return }
+                } else if let incomingDate = snapshot.sentAt,
+                          let currentDate = self.snapshot.sentAt,
+                          incomingDate < currentDate {
+                    return
+                }
+                self.snapshot = snapshot
+                return
+            }
+            self.snapshot = WatchRecordingSnapshot(
+                phase: snapshot.phase,
+                sentAt: self.snapshot.sentAt,
+                stateRevision: self.snapshot.stateRevision,
+                isQuickRecordEnabled: snapshot.isQuickRecordEnabled,
+                recordingStartedAt: snapshot.recordingStartedAt,
+                message: snapshot.message,
+                queuedCount: max(snapshot.queuedCount, self.snapshot.queuedCount),
+                selectedPresetID: snapshot.selectedPresetID ?? self.snapshot.selectedPresetID,
+                selectedPresetName: snapshot.selectedPresetName ?? self.snapshot.selectedPresetName,
+                selectedPresetSnapshot: snapshot.selectedPresetSnapshot ?? self.snapshot.selectedPresetSnapshot,
+                recordingStatuses: snapshot.recordingStatuses.isEmpty
+                    ? self.snapshot.recordingStatuses
+                    : snapshot.recordingStatuses
+            )
         }
     }
 }
@@ -445,7 +603,8 @@ extension WatchPhoneBridge: WCSessionDelegate {
             return
         }
 
-        try? FileManager.default.removeItem(at: fileTransfer.file.fileURL)
+        // Transport completion is not end-to-end delivery. WatchLocalRecorder
+        // retains the source until iPhone reports Capture delivery or discard.
         NotificationCenter.default.post(
             name: .watchRecordingTransferDidFinish,
             object: self,

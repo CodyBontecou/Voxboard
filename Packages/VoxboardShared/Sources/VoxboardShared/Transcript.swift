@@ -28,25 +28,24 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
             date: Date(),
             duration: duration,
             modelUsed: modelUsed,
-            language: language,
-            title: nil,
-            tags: nil,
-            category: nil,
-            cleanedText: nil
+            language: language
         )
     }
 
-    private init(
+    /// Creates a transcript with identity supplied by its capture source.
+    /// Apple Watch imports use the recording UUID and original recording date so
+    /// retries update one durable transcript and one Capture request.
+    public init(
         id: UUID,
         text: String,
         date: Date,
         duration: TimeInterval,
         modelUsed: String,
         language: String,
-        title: String?,
-        tags: [String]?,
-        category: String?,
-        cleanedText: String?
+        title: String? = nil,
+        tags: [String]? = nil,
+        category: String? = nil,
+        cleanedText: String? = nil
     ) {
         self.id = id
         self.text = text

@@ -7,6 +7,7 @@ struct VoxboardApp: App {
     @State private var modelManager = ModelManager()
     @State private var transcriptStore = TranscriptStore()
     @State private var persistentRecorder: PersistentRecorder
+    @State private var watchRecordingPipeline: WatchRecordingPipeline
     @State private var usageTracker = UsageTracker()
     @State private var storeManager: StoreManager
     @State private var quickCaptureViewModel: QuickCaptureViewModel
@@ -80,7 +81,20 @@ struct VoxboardApp: App {
             transcriptEnricher: enricher
         )
         _persistentRecorder = State(initialValue: recorder)
-        WatchRecordingController.shared.configure(recorder: recorder, usageTracker: usage)
+
+        let watchPipeline = WatchRecordingPipeline(
+            transcriptStore: store,
+            usageTracker: usage,
+            transcriptionService: AppTranscriptionServices.shared,
+            transcriptEnricher: enricher
+        )
+        watchPipeline.configure(recorder: recorder)
+        _watchRecordingPipeline = State(initialValue: watchPipeline)
+        WatchRecordingController.shared.configure(
+            recorder: recorder,
+            usageTracker: usage,
+            watchPipeline: watchPipeline
+        )
     }
 
     @Environment(\.scenePhase) private var scenePhase
@@ -103,9 +117,15 @@ struct VoxboardApp: App {
             .environment(transcriptStore)
             .environment(usageTracker)
             .environment(storeManager)
+            .environment(watchRecordingPipeline)
             .voxboardReleaseNotesSheet()
             .onAppear {
-                WatchRecordingController.shared.configure(recorder: persistentRecorder, usageTracker: usageTracker)
+                WatchRecordingController.shared.configure(
+                    recorder: persistentRecorder,
+                    usageTracker: usageTracker,
+                    watchPipeline: watchRecordingPipeline
+                )
+                watchRecordingPipeline.resume()
                 consumePendingWidgetRecordIfNeeded()
                 consumePendingQuickCaptureOpenIfNeeded()
 
@@ -130,6 +150,7 @@ struct VoxboardApp: App {
             }
             .onChange(of: usageTracker.hasUnlocked) { _, hasUnlocked in
                 guard hasUnlocked else { return }
+                watchRecordingPipeline.resume()
                 Task { await quickCaptureViewModel.processPendingInbox() }
             }
             .task(id: "\(modelManager.selectedModelId)|\(modelManager.selectedLanguage)") {
@@ -165,7 +186,9 @@ struct VoxboardApp: App {
                 Task {
                     await storeManager.syncCurrentEntitlements()
                     usageTracker.reload()
+                    watchRecordingPipeline.resume()
                     await quickCaptureViewModel.processPendingInbox()
+                    watchRecordingPipeline.resume()
                 }
                 ReviewPromptManager.shared.recordAppUsageDay()
                 ReviewPromptManager.shared.requestPendingPromptIfPossible()

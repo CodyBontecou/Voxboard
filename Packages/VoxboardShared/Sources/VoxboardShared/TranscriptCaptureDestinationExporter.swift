@@ -86,7 +86,8 @@ public struct TranscriptCaptureDestinationExporter {
         destination: CaptureDestination,
         destinationRootURL: URL,
         stagingDirectoryURL: URL,
-        audioSourceURL: URL?
+        audioSourceURL: URL?,
+        source: CaptureSource = .voice
     ) async throws -> CaptureReceipt {
         let audioAsset: CaptureAssetReference?
         if let audioSourceURL, flow.audioSaveMode != .off {
@@ -102,7 +103,8 @@ public struct TranscriptCaptureDestinationExporter {
 
         let routedDestination = Self.routedDestination(destination, for: flow)
         let request = CaptureRequest(
-            source: .voice,
+            source: source,
+            deliveryKind: .meteredVoiceTranscript,
             destinationID: routedDestination.id,
             payloads: try TranscriptCaptureAdapter.payloads(
                 transcript: transcript,
@@ -201,10 +203,10 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
             defaults: defaults
         ) else { return nil }
         let hasOwnedRoutes = CapturePresetProfileStore.hasOwnedRouteMigration(defaults: defaults)
-        var profile = CapturePresetStore.flow(
-            id: flow.id,
-            defaults: defaults
-        )?.captureProfile ?? flow.captureProfile
+        // `flow` is the caller's immutable recording-time snapshot. Reloading
+        // the preset here would let edits from another window reroute audio
+        // after recording has already started.
+        var profile = flow.captureProfile
         if !hasOwnedRoutes, profile.captureDestinationID == nil {
             profile.captureDestinationID = library.legacyFlowBindings[flow.id]
         }
@@ -223,6 +225,7 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
         flow: CapturePreset,
         destinationID: UUID,
         audioSourceURL: URL?,
+        source: CaptureSource = .voice,
         captureRootURL: URL? = AppConstants.captureDirectoryURL,
         pipeline: CapturePipeline = AppCapturePipeline.shared,
         fileManager: FileManager = .default
@@ -275,7 +278,9 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
         }
         let request = CaptureRequest(
             id: requestID,
-            source: .voice,
+            createdAt: transcript.date,
+            source: source,
+            deliveryKind: .meteredVoiceTranscript,
             destinationID: destinationID,
             payloads: payloads,
             frontmatter: TranscriptCaptureAdapter.frontmatter(transcript: transcript, flow: flow),
@@ -323,14 +328,9 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
             }
             destinationName = destination.name
 
-            var isStale = false
-            let destinationRootURL = try URL(
-                resolvingBookmarkData: destination.rootBookmark,
-                options: [],
-                relativeTo: nil,
-                bookmarkDataIsStale: &isStale
-            )
-            guard !isStale else {
+            let rootResolution = try CaptureBookmarkResolver.resolve(destination.rootBookmark)
+            let destinationRootURL = rootResolution.url
+            guard !rootResolution.isStale else {
                 throw ConfiguredTranscriptCaptureError.staleDestination(destination.name)
             }
             let didAccess = destinationRootURL.startAccessingSecurityScopedResource()

@@ -104,14 +104,9 @@ public enum CaptureInboxDeliveryService {
                     if let attachmentsFolderName = request.attachmentsFolderNameOverride {
                         destination.attachmentsFolderName = attachmentsFolderName
                     }
-                    var isStale = false
-                    let rootURL = try URL(
-                        resolvingBookmarkData: destination.rootBookmark,
-                        options: [],
-                        relativeTo: nil,
-                        bookmarkDataIsStale: &isStale
-                    )
-                    guard !isStale else {
+                    let rootResolution = try CaptureBookmarkResolver.resolve(destination.rootBookmark)
+                    let rootURL = rootResolution.url
+                    guard !rootResolution.isStale else {
                         throw ConfiguredTranscriptCaptureError.staleDestination(destination.name)
                     }
                     let didAccess = rootURL.startAccessingSecurityScopedResource()

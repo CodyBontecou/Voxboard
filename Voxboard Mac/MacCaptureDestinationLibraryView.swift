@@ -168,14 +168,9 @@ struct MacCaptureDestinationEditor: View {
 
     private func chooseExistingNote() {
         do {
-            var isStale = false
-            let rootURL = try URL(
-                resolvingBookmarkData: rootBookmark,
-                options: [.withSecurityScope],
-                relativeTo: nil,
-                bookmarkDataIsStale: &isStale
-            ).standardizedFileURL
-            guard !isStale else { throw MacCaptureRouteError.folderPermissionExpired }
+            let resolution = try CaptureBookmarkResolver.resolve(rootBookmark)
+            let rootURL = resolution.url.standardizedFileURL
+            guard !resolution.isStale else { throw MacCaptureRouteError.folderPermissionExpired }
             let panel = NSOpenPanel()
             panel.canChooseDirectories = false
             panel.canChooseFiles = true
@@ -220,14 +215,9 @@ struct MacCaptureDestinationEditor: View {
         relativePath: String,
         placement: CapturePlacement
     ) throws {
-        var isStale = false
-        let rootURL = try URL(
-            resolvingBookmarkData: rootBookmark,
-            options: [.withSecurityScope],
-            relativeTo: nil,
-            bookmarkDataIsStale: &isStale
-        )
-        guard !isStale else { throw MacCaptureRouteError.folderPermissionExpired }
+        let resolution = try CaptureBookmarkResolver.resolve(rootBookmark)
+        let rootURL = resolution.url
+        guard !resolution.isStale else { throw MacCaptureRouteError.folderPermissionExpired }
         let noteURL = try CapturePathValidation.containedFileURL(
             relativePath: relativePath,
             rootURL: rootURL

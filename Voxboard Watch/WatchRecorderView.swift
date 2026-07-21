@@ -232,7 +232,13 @@ struct WatchRecorderView: View {
             #if DEBUG
             if localRecorder.runDemoScriptIfNeeded(using: bridge) { return }
             #endif
+            // Reconcile terminal iPhone state before scheduling any transfer so
+            // a delivered/discarded recording cannot be retransmitted on launch.
+            localRecorder.applyRemoteStatuses(bridge.snapshot.recordingStatuses, using: bridge)
             localRecorder.syncPending(using: bridge)
+        }
+        .onChange(of: bridge.snapshot) { _, snapshot in
+            localRecorder.applyRemoteStatuses(snapshot.recordingStatuses, using: bridge)
         }
     }
 
@@ -370,7 +376,7 @@ struct WatchRecorderView: View {
     private var metricsRow: some View {
         HStack(spacing: 8) {
             WatchMetricTile(label: "Queue", value: "\(localRecorder.queuedCount)")
-            WatchMetricTile(label: "Mode", value: "Local")
+            WatchMetricTile(label: "Preset", value: localRecorder.activePresetName)
             WatchMetricTile(label: "Sync", value: syncMetricValue)
         }
     }
@@ -413,6 +419,12 @@ struct WatchRecorderView: View {
             return "RECORDING."
         case .transferring:
             return "SYNCING."
+        case .waitingForPhone:
+            return "QUEUED."
+        case .transcribing:
+            return "TRANSCRIBING."
+        case .delivering:
+            return "SAVING."
         case .transferred:
             return "SAVED."
         case .error:
@@ -426,8 +438,10 @@ struct WatchRecorderView: View {
         switch localRecorder.phase {
         case .recording:
             return 23
-        case .transferring:
+        case .transferring, .waitingForPhone, .delivering:
             return 25
+        case .transcribing:
+            return 20
         case .transferred, .error, .idle:
             return 29
         }
@@ -439,9 +453,18 @@ struct WatchRecorderView: View {
             return "Tap again to stop."
         case .transferring:
             return "Sending to iPhone…"
+        case .waitingForPhone:
+            return "Safe on iPhone."
+        case .transcribing:
+            return "Processing on iPhone…"
+        case .delivering:
+            return "Saving to Capture…"
         case .transferred:
-            return "Sent to iPhone queue."
+            return "Saved to Capture."
         case .error:
+            if localRecorder.queuedRecordings.contains(where: { $0.remotePhase == .failed }) {
+                return "Open iPhone to retry."
+            }
             return localRecorder.queuedCount > 0 ? "Saved locally. Retry sync." : "Tap sync to refresh."
         case .idle:
             return localRecorder.queuedCount > 0 ? "\(localRecorder.queuedCount) saved on Watch." : "Tap to start."
@@ -461,6 +484,12 @@ struct WatchRecorderView: View {
             return "Recording"
         case .transferring:
             return "Sync"
+        case .waitingForPhone:
+            return "Queued"
+        case .transcribing:
+            return "Transcribe"
+        case .delivering:
+            return "Saving"
         case .transferred:
             return "Sent"
         case .error:
@@ -474,7 +503,7 @@ struct WatchRecorderView: View {
         switch localRecorder.phase {
         case .idle:
             return localRecorder.queuedCount > 0
-        case .recording, .transferring, .transferred, .error:
+        case .recording, .transferring, .waitingForPhone, .transcribing, .delivering, .transferred, .error:
             return true
         }
     }
@@ -483,6 +512,12 @@ struct WatchRecorderView: View {
         switch localRecorder.phase {
         case .transferring:
             return "On"
+        case .waitingForPhone:
+            return "Queue"
+        case .transcribing:
+            return "Text"
+        case .delivering:
+            return "Save"
         case .transferred:
             return "Sent"
         case .error:
@@ -507,6 +542,12 @@ struct WatchRecorderView: View {
             return "waveform"
         case .transferring:
             return "iphone.radiowaves.left.and.right"
+        case .waitingForPhone:
+            return "iphone.badge.checkmark"
+        case .transcribing:
+            return "waveform.badge.magnifyingglass"
+        case .delivering:
+            return "arrow.up.doc"
         case .transferred:
             return "checkmark"
         case .error:
@@ -544,10 +585,11 @@ struct WatchRecorderView: View {
     private func syncQueueOrRefreshStatus() async {
         isSending = true
         defer { isSending = false }
-        if localRecorder.queuedCount > 0 {
+        if localRecorder.hasUnuploadedRecordings {
             localRecorder.syncPending(using: bridge)
         } else {
-            await bridge.requestStatus()
+            let snapshot = await bridge.requestStatus()
+            localRecorder.applyRemoteStatuses(snapshot.recordingStatuses, using: bridge)
         }
     }
 }

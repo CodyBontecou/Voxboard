@@ -126,6 +126,35 @@ final class CaptureInboxTests: XCTestCase {
         XCTAssertEqual(reclaimed, request)
     }
 
+    func test_staleProcessingCopyIsRemovedWhenCompletionTombstoneExists() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let inbox = CaptureInbox(rootDirectoryURL: root, coordinator: ProcessLocalCaptureFileCoordinator.shared)
+        let request = makeRequest()
+        try await inbox.enqueue(request)
+        _ = try await inbox.claimNext()
+        let processingURL = inbox.itemURL(for: request.id, state: .processing)
+        let processingData = try Data(contentsOf: processingURL)
+        try await inbox.complete(requestID: request.id)
+
+        try processingData.write(to: processingURL, options: .atomic)
+        try FileManager.default.setAttributes(
+            [.modificationDate: Date(timeIntervalSince1970: 100)],
+            ofItemAtPath: processingURL.path
+        )
+        let recovered = try await inbox.recoverStaleProcessing(
+            olderThan: 60,
+            now: Date(timeIntervalSince1970: 1_000)
+        )
+
+        let finalState = try await inbox.state(of: request.id)
+        let nextRequest = try await inbox.claimNext()
+        XCTAssertEqual(recovered, [])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: processingURL.path))
+        XCTAssertEqual(finalState, .completed)
+        XCTAssertNil(nextRequest)
+    }
+
     func test_failedRequestCanBeReturnedToPendingForExplicitRetry() async throws {
         let root = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: root) }
@@ -142,6 +171,60 @@ final class CaptureInboxTests: XCTestCase {
         XCTAssertEqual(failedIDs, [request.id])
         XCTAssertTrue(retried)
         XCTAssertEqual(reclaimed, request)
+    }
+
+    func test_discardRemovesPendingAndFailedRequestsAndTheirStaging() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let inbox = CaptureInbox(rootDirectoryURL: root, coordinator: ProcessLocalCaptureFileCoordinator.shared)
+        let pending = makeRequest()
+        var failed = makeRequest()
+        failed.id = UUID()
+        try await inbox.enqueue(pending)
+        try await inbox.enqueue(failed)
+        _ = try await inbox.claim(requestID: failed.id)
+        try await inbox.fail(requestID: failed.id)
+        for id in [pending.id, failed.id] {
+            let staging = root
+                .appendingPathComponent("inbox-staging", isDirectory: true)
+                .appendingPathComponent(id.uuidString.lowercased(), isDirectory: true)
+            try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: true)
+        }
+
+        let discardedPending = try await inbox.discard(requestID: pending.id)
+        let discardedFailed = try await inbox.discard(requestID: failed.id)
+        let pendingState = try await inbox.state(of: pending.id)
+        let failedState = try await inbox.state(of: failed.id)
+        XCTAssertTrue(discardedPending)
+        XCTAssertTrue(discardedFailed)
+        XCTAssertNil(pendingState)
+        XCTAssertNil(failedState)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root
+            .appendingPathComponent("inbox-staging")
+            .appendingPathComponent(pending.id.uuidString.lowercased()).path))
+    }
+
+    func test_discardRefusesProcessingAndCompletedRequests() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let inbox = CaptureInbox(rootDirectoryURL: root, coordinator: ProcessLocalCaptureFileCoordinator.shared)
+        let processing = makeRequest()
+        var completed = makeRequest()
+        completed.id = UUID()
+        try await inbox.enqueue(processing)
+        try await inbox.enqueue(completed)
+        _ = try await inbox.claim(requestID: processing.id)
+        _ = try await inbox.claim(requestID: completed.id)
+        try await inbox.complete(requestID: completed.id)
+
+        let discardedProcessing = try await inbox.discard(requestID: processing.id)
+        let discardedCompleted = try await inbox.discard(requestID: completed.id)
+        let processingState = try await inbox.state(of: processing.id)
+        let completedState = try await inbox.state(of: completed.id)
+        XCTAssertFalse(discardedProcessing)
+        XCTAssertFalse(discardedCompleted)
+        XCTAssertEqual(processingState, .processing)
+        XCTAssertEqual(completedState, .completed)
     }
 
     func test_reroutePendingAndFailedRequestsPreservesRecoverableCaptures() async throws {

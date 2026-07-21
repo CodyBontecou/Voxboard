@@ -14,24 +14,49 @@ final class WatchRecordingController: NSObject {
 
     private weak var recorder: PersistentRecorder?
     private weak var usageTracker: UsageTracker?
+    private weak var watchPipeline: WatchRecordingPipeline?
     private var hasActivatedSession = false
+    private var needsStatePublishAfterActivation = false
+    private let transportFailureDefaultsKey = "watchRecordingTransportFailures.v1"
+    private let transportFailureCursorDefaultsKey = "watchRecordingTransportFailureCursor.v1"
+    private let stateRevisionDefaultsKey = "watchRecordingStateRevision.v1"
 
     private override init() {
         super.init()
     }
 
-    func configure(recorder: PersistentRecorder, usageTracker: UsageTracker) {
+    func configure(
+        recorder: PersistentRecorder,
+        usageTracker: UsageTracker,
+        watchPipeline: WatchRecordingPipeline? = nil
+    ) {
         self.recorder = recorder
         self.usageTracker = usageTracker
+        if let watchPipeline {
+            self.watchPipeline = watchPipeline
+        }
         activateSessionIfNeeded()
         publishState()
     }
 
     func publishState() {
-        guard WCSession.isSupported(), WCSession.default.activationState == .activated else { return }
+        guard WCSession.isSupported() else { return }
+        let session = WCSession.default
+        guard session.activationState == .activated else {
+            needsStatePublishAfterActivation = true
+            return
+        }
+        needsStatePublishAfterActivation = false
+        let payload = makeStatePayload()
         do {
-            try WCSession.default.updateApplicationContext(makeStatePayload())
+            try session.updateApplicationContext(payload)
+            if session.isReachable {
+                session.sendMessage(payload, replyHandler: nil) { error in
+                    watchLog.debug("Immediate Watch status send failed: \(String(describing: error))")
+                }
+            }
         } catch {
+            needsStatePublishAfterActivation = true
             watchLog.error("Failed to update watch application context: \(String(describing: error))")
         }
     }
@@ -56,6 +81,15 @@ final class WatchRecordingController: NSObject {
             stopRecordingFromWatch()
         case .toggle:
             toggleRecordingFromWatch()
+        case .acknowledge:
+            if let recordingID = payload[WatchRecordingPayloadKey.recordingID] as? String {
+                let revision = payload[WatchRecordingPayloadKey.revision] as? Int ?? 0
+                WatchRecordingInbox.shared.acknowledgeTerminalState(
+                    id: recordingID,
+                    revision: revision
+                )
+                watchPipeline?.refresh()
+            }
         case .status:
             break
         }
@@ -107,53 +141,148 @@ final class WatchRecordingController: NSObject {
     }
 
     private func makeStatePayload() -> [String: Any] {
-        guard let recorder else {
-            return WatchRecordingSnapshot(
-                phase: .unavailable,
-                isQuickRecordEnabled: AppConstants.lockScreenQuickRecordEnabled,
-                message: "Open Vox.md on iPhone once to pair recording controls."
-            ).dictionary
-        }
+        let jobs = WatchRecordingInbox.shared.load()
+        let visibleJobs = jobs.filter { $0.phase != .discarded }
+        let activeJobs = jobs.filter { !$0.phase.isTerminal }
+        let activeJob = activeJobs.first(where: { $0.phase == .delivering })
+            ?? activeJobs.first(where: { $0.phase == .transcribing })
+            ?? activeJobs.first(where: { $0.phase == .queued })
+            ?? activeJobs.first(where: { $0.phase == .failed })
+        let selectedPresetID = CapturePresetProfileStore.selectedProfileID(
+            defaults: AppConstants.sharedDefaults
+        )
+        let selectedPreset = CapturePresetStore.flow(id: selectedPresetID)
+            ?? CapturePresetStore.selectedFlow()
 
         let message: String?
         if !AppConstants.lockScreenQuickRecordEnabled {
             message = "Quick Record is disabled in Vox.md Settings."
-        } else if usageTracker?.isAtLimit == true || recorder.needsUnlock {
+        } else if usageTracker?.isAtLimit == true || recorder?.needsUnlock == true {
             message = "Free limit reached — unlock Vox.md on iPhone."
+        } else if let activeJob {
+            message = activeJob.statusMessage
         } else {
-            message = recorder.lastError
+            message = recorder?.lastError
         }
 
         let phase: WatchRecordingPhase
-        if recorder.isSegmentActive {
+        if recorder?.isSegmentActive == true {
             phase = .recording
-        } else if recorder.isTranscribing {
+        } else if activeJob?.phase == .transcribing || recorder?.isTranscribing == true {
             phase = .transcribing
-        } else if recorder.isListening {
+        } else if activeJob?.phase == .delivering {
+            phase = .delivering
+        } else if activeJob?.phase == .queued {
+            phase = .pending
+        } else if activeJob?.phase == .failed {
+            phase = .error
+        } else if recorder?.isListening == true {
             phase = .listening
         } else if message?.isEmpty == false {
             phase = .error
+        } else if recorder == nil {
+            phase = .unavailable
         } else {
             phase = .idle
         }
 
-        return WatchRecordingSnapshot(
+        var payload = WatchRecordingSnapshot(
             phase: phase,
             isQuickRecordEnabled: AppConstants.lockScreenQuickRecordEnabled,
             recordingStartedAt: phase == .recording ? currentRecordingStartedAt() : nil,
             message: message
         ).dictionary
+        payload[WatchRecordingPayloadKey.stateRevision] = nextStateRevision()
+        payload[WatchRecordingPayloadKey.queuedCount] = visibleJobs.filter { !$0.phase.isTerminal }.count
+        payload[WatchRecordingPayloadKey.selectedPresetID] = selectedPreset.id
+        payload[WatchRecordingPayloadKey.selectedPresetName] = selectedPreset.displayName
+        if let snapshot = try? JSONEncoder().encode(selectedPreset) {
+            payload[WatchRecordingPayloadKey.selectedPresetSnapshot] = snapshot
+        }
+        let inProgressStatuses = jobs
+            .filter { $0.phase == .transcribing || $0.phase == .delivering }
+            .prefix(30)
+            .map { WatchRemoteRecordingStatus(item: $0).dictionary }
+        let queuedStatuses = jobs
+            .filter { $0.phase == .queued }
+            .suffix(40)
+            .map { WatchRemoteRecordingStatus(item: $0).dictionary }
+        let failedStatuses = jobs
+            .filter { $0.phase == .failed }
+            .suffix(20)
+            .map { WatchRemoteRecordingStatus(item: $0).dictionary }
+        let terminalStatuses = jobs
+            .filter { $0.phase.isTerminal && $0.acknowledgedAt == nil }
+            .prefix(40)
+            .map { WatchRemoteRecordingStatus(item: $0).dictionary }
+        let transportStatuses = nextTransportFailureBatch(limit: 40).map { recordingID, message in
+            [
+                WatchRecordingPayloadKey.recordingID: recordingID,
+                WatchRecordingPayloadKey.phase: "transportFailed",
+                WatchRecordingPayloadKey.revision: Int(Date().timeIntervalSince1970),
+                WatchRecordingPayloadKey.updatedAt: Date().timeIntervalSince1970,
+                WatchRecordingPayloadKey.message: message,
+            ] as [String: Any]
+        }
+        payload[WatchRecordingPayloadKey.recordingStatuses] = inProgressStatuses
+            + queuedStatuses
+            + transportStatuses
+            + failedStatuses
+            + terminalStatuses
+        return payload
     }
 
     private func currentRecordingStartedAt() -> TimeInterval? {
         TranscriptionIPC.readStatus()?.recordingStartedAt
     }
 
+    private func nextStateRevision() -> Int {
+        let current = UserDefaults.standard.integer(forKey: stateRevisionDefaultsKey)
+        let next = current == Int.max ? 1 : current + 1
+        UserDefaults.standard.set(next, forKey: stateRevisionDefaultsKey)
+        return next
+    }
+
+    private func transportFailures() -> [String: String] {
+        UserDefaults.standard.dictionary(forKey: transportFailureDefaultsKey) as? [String: String] ?? [:]
+    }
+
+    private func nextTransportFailureBatch(limit: Int) -> [(String, String)] {
+        let failures = transportFailures()
+        let keys = failures.keys.sorted()
+        guard keys.count > limit else {
+            return keys.compactMap { key in failures[key].map { (key, $0) } }
+        }
+        let start = UserDefaults.standard.integer(forKey: transportFailureCursorDefaultsKey) % keys.count
+        let count = min(limit, keys.count)
+        let batch = (0..<count).compactMap { offset -> (String, String)? in
+            let key = keys[(start + offset) % keys.count]
+            return failures[key].map { (key, $0) }
+        }
+        UserDefaults.standard.set(
+            (start + count) % keys.count,
+            forKey: transportFailureCursorDefaultsKey
+        )
+        return batch
+    }
+
+    private func setTransportFailure(recordingID: String, message: String) {
+        var failures = transportFailures()
+        failures[recordingID] = message
+        UserDefaults.standard.set(failures, forKey: transportFailureDefaultsKey)
+    }
+
+    private func clearTransportFailure(recordingID: String) {
+        var failures = transportFailures()
+        guard failures.removeValue(forKey: recordingID) != nil else { return }
+        UserDefaults.standard.set(failures, forKey: transportFailureDefaultsKey)
+    }
+
     @MainActor
     private func notifyWatchRecordingReadyIfNeeded() {
         guard UIApplication.shared.applicationState != .active else { return }
 
-        let count = WatchRecordingInbox.shared.load().count
+        let count = WatchRecordingInbox.shared.load().filter { !$0.phase.isTerminal }.count
         guard count > 0 else { return }
 
         Task {
@@ -192,7 +321,10 @@ extension WatchRecordingController: WCSessionDelegate {
             if let error {
                 watchLog.error("Watch session activation failed: \(String(describing: error))")
             }
-            WatchRecordingController.shared.publishState()
+            if activationState == .activated
+                || WatchRecordingController.shared.needsStatePublishAfterActivation {
+                WatchRecordingController.shared.publishState()
+            }
         }
     }
 
@@ -225,8 +357,9 @@ extension WatchRecordingController: WCSessionDelegate {
         // to MainActor lets the system delete the file first, which surfaced as
         // "Could not save Watch recording" on iPhone.
         let logger = Logger(subsystem: "bontecou.Voxboard", category: "WatchRecording")
+        let metadata = file.metadata ?? [:]
+        let recordingID = metadata[WatchRecordingFileMetadataKey.recordingID] as? String
         do {
-            let metadata = file.metadata ?? [:]
             let kind = metadata[WatchRecordingFileMetadataKey.kind] as? String
             guard kind == WatchRecordingFileMetadataKey.watchAudioRecordingKind else {
                 logger.notice("Ignoring unknown watch file transfer")
@@ -239,12 +372,21 @@ extension WatchRecordingController: WCSessionDelegate {
             )
             logger.notice("Queued watch recording: \(item.id, privacy: .public)")
             Task { @MainActor in
+                WatchRecordingController.shared.clearTransportFailure(recordingID: item.id)
+                WatchRecordingController.shared.watchPipeline?.recordingDidArrive()
                 WatchRecordingController.shared.publishState()
                 WatchRecordingController.shared.notifyWatchRecordingReadyIfNeeded()
             }
         } catch {
             logger.error("Failed to queue watch recording: \(String(describing: error))")
             Task { @MainActor in
+                let message = "iPhone could not save this transfer. Tap Sync on Watch to retry."
+                if let recordingID {
+                    WatchRecordingController.shared.setTransportFailure(
+                        recordingID: recordingID,
+                        message: message
+                    )
+                }
                 WatchRecordingController.shared.recorder?.lastError = "Could not save Watch recording: \(error.localizedDescription)"
                 WatchRecordingController.shared.publishState()
             }
@@ -258,7 +400,16 @@ nonisolated enum WatchRecordingPayloadKey {
     static let isQuickRecordEnabled = "isQuickRecordEnabled"
     static let recordingStartedAt = "recordingStartedAt"
     static let message = "message"
+    static let queuedCount = "queuedCount"
+    static let selectedPresetID = "selectedPresetID"
+    static let selectedPresetName = "selectedPresetName"
+    static let selectedPresetSnapshot = "selectedPresetSnapshot"
+    static let recordingStatuses = "recordingStatuses"
+    static let recordingID = "recordingID"
+    static let revision = "revision"
+    static let updatedAt = "updatedAt"
     static let sentAt = "sentAt"
+    static let stateRevision = "stateRevision"
 }
 
 nonisolated enum WatchRecordingCommand: String {
@@ -266,6 +417,7 @@ nonisolated enum WatchRecordingCommand: String {
     case stop
     case toggle
     case status
+    case acknowledge
 }
 
 nonisolated enum WatchRecordingPhase: String {
@@ -273,9 +425,42 @@ nonisolated enum WatchRecordingPhase: String {
     case idle
     case listening
     case recording
+    case syncing
     case transcribing
+    case delivering
     case pending
     case error
+}
+
+nonisolated struct WatchRemoteRecordingStatus {
+    let recordingID: String
+    let phaseRawValue: String
+    let revision: Int
+    let updatedAt: Date
+    let message: String?
+
+    init(item: WatchRecordingInboxItem) {
+        recordingID = item.id
+        phaseRawValue = !item.hasAudio && !item.phase.isTerminal
+            ? "transportFailed"
+            : item.phase.rawValue
+        revision = item.revision
+        updatedAt = item.updatedAt
+        message = item.statusMessage
+    }
+
+    var dictionary: [String: Any] {
+        var value: [String: Any] = [
+            WatchRecordingPayloadKey.recordingID: recordingID,
+            WatchRecordingPayloadKey.phase: phaseRawValue,
+            WatchRecordingPayloadKey.revision: revision,
+            WatchRecordingPayloadKey.updatedAt: updatedAt.timeIntervalSince1970,
+        ]
+        if let message, !message.isEmpty {
+            value[WatchRecordingPayloadKey.message] = message
+        }
+        return value
+    }
 }
 
 nonisolated struct WatchRecordingSnapshot {

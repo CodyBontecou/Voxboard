@@ -175,6 +175,7 @@ final class CaptureToolbarPreferences {
     }
 }
 
+#if os(iOS)
 struct CaptureToolbarSettingsView: View {
     @Bindable var preferences: CaptureToolbarPreferences
     @State private var editMode: EditMode = .active
@@ -251,3 +252,4 @@ struct CaptureToolbarSettingsView: View {
         }
     }
 }
+#endif

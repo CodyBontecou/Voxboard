@@ -15,6 +15,14 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
     public var recordingDuration: TimeInterval = 0
 
     private var audioEngine: AVAudioEngine?
+    /// Optional real-time observer used by platform live-transcription previews.
+    /// Keep work in this callback minimal because it runs on the audio render queue.
+    private var storedAudioBufferHandler: (@Sendable (AVAudioPCMBuffer) -> Void)?
+    private let audioBufferHandlerLock = NSLock()
+    public var audioBufferHandler: (@Sendable (AVAudioPCMBuffer) -> Void)? {
+        get { audioBufferHandlerLock.withLock { storedAudioBufferHandler } }
+        set { audioBufferHandlerLock.withLock { storedAudioBufferHandler = newValue } }
+    }
     private var pcmBuffers: [AVAudioPCMBuffer] = []
     private let bufferLock = NSLock()
     private var timer: Timer?
@@ -23,10 +31,10 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
     /// Target format for whisper.cpp: 16 kHz, mono, 16-bit integer PCM.
     private let whisperSampleRate: Double = 16000.0
 
-    public var recordingURL: URL? {
-        guard let dir = AppConstants.recordingsDirectoryURL else { return nil }
-        return dir.appendingPathComponent("recording.wav")
-    }
+    /// Session-unique destination for the current/most recent recording.
+    /// A fixed filename lets a second recording overwrite audio that is still
+    /// being transcribed or handed off to durable Capture storage.
+    public private(set) var recordingURL: URL?
 
     public override init() {
         super.init()
@@ -37,10 +45,14 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
 
     @discardableResult
     public func startRecording() -> Bool {
-        guard let url = recordingURL else {
-            log.log("[AudioRecorder] No recording URL available")
+        guard let directory = AppConstants.recordingsDirectoryURL else {
+            log.log("[AudioRecorder] No recordings directory available")
             return false
         }
+        let url = directory
+            .appendingPathComponent("recording_\(UUID().uuidString.lowercased())")
+            .appendingPathExtension("wav")
+        recordingURL = url
 
         #if os(iOS)
         let session = AVAudioSession.sharedInstance()
@@ -104,6 +116,7 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
         let bufferSize: AVAudioFrameCount = 4096
         inputNode.installTap(onBus: 0, bufferSize: bufferSize, format: hwFormat) { [weak self] buffer, _ in
             guard let self else { return }
+            self.audioBufferHandler?(buffer)
             self.bufferLock.lock()
             self.pcmBuffers.append(buffer)
             self.bufferLock.unlock()

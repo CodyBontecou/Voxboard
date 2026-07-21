@@ -58,6 +58,12 @@
 		AA7100032FA10000AABB0003 /* Geist-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA7200032FA10000AABB0003 /* Geist-SemiBold.ttf */; };
 		AA7100042FA10000AABB0004 /* GeistMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA7200042FA10000AABB0004 /* GeistMono-Regular.ttf */; };
 		AA7100052FA10000AABB0005 /* GeistMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA7200052FA10000AABB0005 /* GeistMono-Medium.ttf */; };
+		AA8101012FB10000AABB0101 /* MacMarkdownComposerTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8100012FB10000AABB0001 /* MacMarkdownComposerTextView.swift */; };
+		AA8101022FB10000AABB0102 /* MacCaptureWorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8100022FB10000AABB0002 /* MacCaptureWorkspaceView.swift */; };
+		AA8101032FB10000AABB0103 /* MacDocumentScanProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8100032FB10000AABB0003 /* MacDocumentScanProcessor.swift */; };
+		AA8101042FB10000AABB0104 /* MacSketchEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8100042FB10000AABB0004 /* MacSketchEditor.swift */; };
+		AA8101052FB10000AABB0105 /* MacCameraCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8100052FB10000AABB0005 /* MacCameraCaptureView.swift */; };
+		AA8101062FB10000AABB0106 /* MacEntryTemplateLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8100062FB10000AABB0006 /* MacEntryTemplateLibraryView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -181,6 +187,12 @@
 		AA7200032FA10000AABB0003 /* Geist-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Geist-SemiBold.ttf; path = Voxboard/Fonts/Geist-SemiBold.ttf; sourceTree = SOURCE_ROOT; };
 		AA7200042FA10000AABB0004 /* GeistMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = GeistMono-Regular.ttf; path = Voxboard/Fonts/GeistMono-Regular.ttf; sourceTree = SOURCE_ROOT; };
 		AA7200052FA10000AABB0005 /* GeistMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = GeistMono-Medium.ttf; path = Voxboard/Fonts/GeistMono-Medium.ttf; sourceTree = SOURCE_ROOT; };
+		AA8100012FB10000AABB0001 /* MacMarkdownComposerTextView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacMarkdownComposerTextView.swift; path = "Voxboard Mac/MacMarkdownComposerTextView.swift"; sourceTree = "<group>"; };
+		AA8100022FB10000AABB0002 /* MacCaptureWorkspaceView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacCaptureWorkspaceView.swift; path = "Voxboard Mac/MacCaptureWorkspaceView.swift"; sourceTree = "<group>"; };
+		AA8100032FB10000AABB0003 /* MacDocumentScanProcessor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacDocumentScanProcessor.swift; path = "Voxboard Mac/MacDocumentScanProcessor.swift"; sourceTree = "<group>"; };
+		AA8100042FB10000AABB0004 /* MacSketchEditor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacSketchEditor.swift; path = "Voxboard Mac/MacSketchEditor.swift"; sourceTree = "<group>"; };
+		AA8100052FB10000AABB0005 /* MacCameraCaptureView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacCameraCaptureView.swift; path = "Voxboard Mac/MacCameraCaptureView.swift"; sourceTree = "<group>"; };
+		AA8100062FB10000AABB0006 /* MacEntryTemplateLibraryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacEntryTemplateLibraryView.swift; path = "Voxboard Mac/MacEntryTemplateLibraryView.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -241,6 +253,11 @@
 				AA1000022F3A0000AABB0002 /* Exceptions for "Voxboard Keyboard" folder in "Voxboard Keyboard" target */,
 			);
 			path = "Voxboard Keyboard";
+			sourceTree = "<group>";
+		};
+		AA8000012FB00000AABB0001 /* Voxboard App Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Voxboard App Shared";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -330,6 +347,12 @@
 				1926268D6D235EA2E6308151 /* VoxboardMac.entitlements */,
 				B42D87F76743327017AE80B3 /* Assets.xcassets */,
 				0E677AA769638A47ADF10537 /* MacCaptureDestinationLibraryView.swift */,
+				AA8100012FB10000AABB0001 /* MacMarkdownComposerTextView.swift */,
+				AA8100022FB10000AABB0002 /* MacCaptureWorkspaceView.swift */,
+				AA8100032FB10000AABB0003 /* MacDocumentScanProcessor.swift */,
+				AA8100042FB10000AABB0004 /* MacSketchEditor.swift */,
+				AA8100052FB10000AABB0005 /* MacCameraCaptureView.swift */,
+				AA8100062FB10000AABB0006 /* MacEntryTemplateLibraryView.swift */,
 				AA7200012FA10000AABB0001 /* Geist-Regular.ttf */,
 				AA7200022FA10000AABB0002 /* Geist-Medium.ttf */,
 				AA7200032FA10000AABB0003 /* Geist-SemiBold.ttf */,
@@ -366,6 +389,7 @@
 			isa = PBXGroup;
 			children = (
 				62C9517C2F392ADB001F79DF /* Voxboard */,
+				AA8000012FB00000AABB0001 /* Voxboard App Shared */,
 				62C952232F393361001F79DF /* Voxboard Keyboard */,
 				622B4C832F78B09600FDC4CA /* Voxboard Widget */,
 				622B4C7E2F78B09600FDC4CA /* Frameworks */,
@@ -520,6 +544,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				62C9517C2F392ADB001F79DF /* Voxboard */,
+				AA8000012FB00000AABB0001 /* Voxboard App Shared */,
 			);
 			name = Voxboard;
 			packageProductDependencies = (
@@ -565,6 +590,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AA8000012FB00000AABB0001 /* Voxboard App Shared */,
 			);
 			name = "Voxboard Mac";
 			packageProductDependencies = (
@@ -796,6 +824,12 @@
 				4C3693BE5FAD3AE5C0A78C74 /* GeistTheme.swift in Sources */,
 				AB2600022F901000AABB0002 /* FoundationModelsBackend.swift in Sources */,
 				BE87FA933F43142EEB43DF34 /* MacCaptureDestinationLibraryView.swift in Sources */,
+				AA8101012FB10000AABB0101 /* MacMarkdownComposerTextView.swift in Sources */,
+				AA8101022FB10000AABB0102 /* MacCaptureWorkspaceView.swift in Sources */,
+				AA8101032FB10000AABB0103 /* MacDocumentScanProcessor.swift in Sources */,
+				AA8101042FB10000AABB0104 /* MacSketchEditor.swift in Sources */,
+				AA8101052FB10000AABB0105 /* MacCameraCaptureView.swift in Sources */,
+				AA8101062FB10000AABB0106 /* MacEntryTemplateLibraryView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -859,7 +893,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch Widget/VoxboardWatchWidget.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Watch Widget/Info.plist";
@@ -870,7 +904,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp.Widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -891,7 +925,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Widget/VoxboardWidget.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
@@ -903,7 +937,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -923,7 +957,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Widget/VoxboardWidget.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
@@ -935,7 +969,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1076,7 +1110,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Voxboard/Voxboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1092,7 +1126,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1112,7 +1146,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Voxboard/Voxboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1128,7 +1162,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1146,7 +1180,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Keyboard/Info.plist";
@@ -1158,7 +1192,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Keyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1176,7 +1210,7 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Keyboard/Info.plist";
@@ -1188,7 +1222,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Keyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -1208,7 +1242,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch Widget/VoxboardWatchWidget.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Watch Widget/Info.plist";
@@ -1219,7 +1253,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp.Widget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -1239,10 +1273,11 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Mac/VoxboardMac.entitlements";
+				INFOPLIST_FILE = "Voxboard Mac/Info.plist";
 				INFOPLIST_KEY_ATSApplicationFontsPath = ".";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -1252,13 +1287,14 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Vox.md uses the camera to add photos to Capture drafts.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Voxboard records microphone audio locally so it can transcribe speech on this Mac.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = Vox.md;
 				SDKROOT = macosx;
@@ -1278,7 +1314,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch/VoxboardWatch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Watch/Info.plist";
@@ -1290,7 +1326,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -1311,10 +1347,11 @@
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Mac/VoxboardMac.entitlements";
+				INFOPLIST_FILE = "Voxboard Mac/Info.plist";
 				INFOPLIST_KEY_ATSApplicationFontsPath = ".";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -1324,13 +1361,14 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Vox.md uses the camera to add photos to Capture drafts.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Voxboard records microphone audio locally so it can transcribe speech on this Mac.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
 				PRODUCT_NAME = Vox.md;
 				SDKROOT = macosx;
@@ -1350,7 +1388,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Share Extension/VoxboardShare.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Share Extension/Info.plist";
@@ -1361,7 +1399,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.ShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1378,7 +1416,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Share Extension/VoxboardShare.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Share Extension/Info.plist";
@@ -1389,7 +1427,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.ShareExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1407,7 +1445,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch/VoxboardWatch.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 28;
+				CURRENT_PROJECT_VERSION = 29;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Voxboard Watch/Info.plist";
@@ -1419,7 +1457,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.9.6;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;

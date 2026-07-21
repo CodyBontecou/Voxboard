@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Vox.md uses on-device speech recognition to preview a transcript while you record.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.bontecou.Voxboard.mac</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>voxboard</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

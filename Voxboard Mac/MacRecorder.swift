@@ -1,88 +1,99 @@
 import AppKit
 import Foundation
+@preconcurrency import Speech
 import UniformTypeIdentifiers
 import VoxboardShared
+
+enum MacRecordingCompletionMode: Equatable, Sendable {
+    case captureDraft(attachAudio: Bool)
+    case runPreset(flow: CapturePreset)
+}
+
+enum MacCaptureDraftRecordingEvent: Sendable {
+    case audio(URL)
+    case transcript(String)
+    case liveTranscript(sessionID: UUID, finalizedText: String, volatileText: String?)
+    case cancelLiveTranscript
+}
+
+typealias MacCaptureDraftRecordingEventHandler = @MainActor @Sendable (MacCaptureDraftRecordingEvent) async -> Bool
+typealias MacLiveTranscriptInvalidationHandler = @MainActor @Sendable (UUID) -> Void
+typealias MacPendingCaptureRetryHandler = @MainActor @Sendable () async -> Void
 
 @Observable
 @MainActor
 final class MacRecorder {
     var isRecording = false
     var isTranscribing = false
+    var isExporting = false
     var recordingDuration: TimeInterval = 0
     var lastTranscriptionResult: String?
     var lastError: String?
     var lastExportURL: URL?
-    var failedCaptureCount = 0
-    var isRetryingCaptures = false
+    var lastRecoveryAudioURL: URL?
     var needsUnlock = false
 
     private let recorder = AudioRecorder()
     private let transcriptStore: TranscriptStore
     private let usageTracker: UsageTracker
     private let transcriptEnricher: TranscriptEnricher?
+    private let captureDraftEventHandler: MacCaptureDraftRecordingEventHandler?
+    private let liveTranscriptInvalidationHandler: MacLiveTranscriptInvalidationHandler?
+    private let pendingCaptureRetryHandler: MacPendingCaptureRetryHandler?
+    private let transcriptionService: OnDeviceTranscriptionService
+    private var activeCompletionMode: MacRecordingCompletionMode?
+    private var liveRecognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var liveRecognitionTask: SFSpeechRecognitionTask?
+    private var livePreviewSessionID: UUID?
+    private var acceptsLivePreview = false
     private var durationTimer: Timer?
-    private var cachedWhisperContext: WhisperContext?
-    private var cachedModelId: String?
-    private var cachedParakeetContext: ParakeetContext?
-    private var cachedParakeetEngine: ModelEngine?
 
     init(
         transcriptStore: TranscriptStore,
         usageTracker: UsageTracker,
-        transcriptEnricher: TranscriptEnricher? = nil
+        transcriptEnricher: TranscriptEnricher? = nil,
+        transcriptionService: OnDeviceTranscriptionService = OnDeviceTranscriptionService(),
+        captureDraftEventHandler: MacCaptureDraftRecordingEventHandler? = nil,
+        liveTranscriptInvalidationHandler: MacLiveTranscriptInvalidationHandler? = nil,
+        pendingCaptureRetryHandler: MacPendingCaptureRetryHandler? = nil
     ) {
         self.transcriptStore = transcriptStore
         self.usageTracker = usageTracker
         self.transcriptEnricher = transcriptEnricher
+        self.transcriptionService = transcriptionService
+        self.captureDraftEventHandler = captureDraftEventHandler
+        self.liveTranscriptInvalidationHandler = liveTranscriptInvalidationHandler
+        self.pendingCaptureRetryHandler = pendingCaptureRetryHandler
     }
 
-    func processPendingCaptureInbox(retryFailed: Bool = false) async {
-        guard let captureRootURL = AppConstants.captureDirectoryURL else { return }
-        isRetryingCaptures = true
-        defer { isRetryingCaptures = false }
-        let requestProcessor = CapturePresetRequestProcessor(
-            textProcessor: transcriptEnricher.map(EnrichedCapturePresetTextProcessor.init(enricher:))
-        )
-        let result = await CaptureInboxDeliveryService.drain(
-            captureRootURL: captureRootURL,
-            retryFailed: retryFailed,
-            requestProcessor: requestProcessor
-        )
-        if let receipt = result.receipts.last {
-            lastExportURL = receipt.noteURL
-        }
-        usageTracker.reload()
-        if !result.quotaBlockedRequestIDs.isEmpty {
-            needsUnlock = true
-            lastError = nil
-        }
-        let inbox = CaptureInbox(rootDirectoryURL: captureRootURL)
-        failedCaptureCount = (try? await inbox.requestIDs(in: .failed).count) ?? result.failedRequestIDs.count
-        if let setupError = result.setupError {
-            lastError = "Capture retry is unavailable: \(setupError)"
-        } else if !result.quotaBlockedRequestIDs.isEmpty {
-            lastError = nil
-        } else if failedCaptureCount > 0 {
-            lastError = "\(failedCaptureCount) capture\(failedCaptureCount == 1 ? "" : "s") still need a destination or Files permission."
-        } else if retryFailed, !result.receipts.isEmpty {
-            lastError = nil
-        }
-    }
-
-    func startRecording(modelManager: ModelManager, flowId: String) {
+    func startRecording(
+        modelManager: ModelManager,
+        flowId: String,
+        completionMode: MacRecordingCompletionMode? = nil
+    ) {
         guard !isRecording, !isTranscribing else { return }
+        guard !isExporting else {
+            lastError = "Wait for the current Capture export to finish."
+            return
+        }
         guard !usageTracker.isAtLimit else {
             needsUnlock = true
             lastError = "Free limit reached — unlock Vox.md to keep recording."
             return
         }
-        guard validateSelectedModel(modelManager.selectedModel) else { return }
+        guard validateSelectedModel(modelManager) else { return }
 
         lastError = nil
         lastTranscriptionResult = nil
+        lastRecoveryAudioURL = nil
         if recorder.startRecording() {
+            activeCompletionMode = completionMode ?? .runPreset(flow: presetSnapshot(id: flowId))
             isRecording = true
             recordingDuration = 0
+            startLivePreviewIfSupported(
+                language: modelManager.selectedLanguage,
+                completionMode: activeCompletionMode
+            )
             startDurationTimer()
             CapturePresetStore.selectFlow(id: flowId)
         } else {
@@ -96,24 +107,39 @@ final class MacRecorder {
         isRecording = false
 
         let duration = max(recordingDuration, recorder.recordingDuration)
-        guard let audioURL = recorder.stopRecording() else {
+        let completionMode = activeCompletionMode ?? .runPreset(flow: presetSnapshot(id: flowId))
+        activeCompletionMode = nil
+        stopLivePreview()
+        guard let recordedURL = recorder.stopRecording() else {
+            if case .captureDraft = completionMode {
+                Task { await captureDraftEventHandler?(.cancelLiveTranscript) }
+            }
             lastError = "No audio was captured."
             return
         }
 
         transcribe(
-            audioURL: audioURL,
+            audioURL: recordedURL,
             modelId: modelManager.selectedModelId,
             language: modelManager.selectedLanguage,
             duration: duration,
-            flowId: flowId,
-            sourceAudioURL: audioURL
+            completionMode: completionMode,
+            sourceAudioURL: recordedURL
         )
     }
 
-    func importAudioFile(from url: URL, modelManager: ModelManager, flowId: String) {
+    func importAudioFile(
+        from url: URL,
+        modelManager: ModelManager,
+        flowId: String,
+        completionMode requestedCompletionMode: MacRecordingCompletionMode? = nil
+    ) {
         guard !isRecording, !isTranscribing else {
             lastError = "Wait for the current recording to finish."
+            return
+        }
+        guard !isExporting else {
+            lastError = "Wait for the current Capture export to finish."
             return
         }
         guard !usageTracker.isAtLimit else {
@@ -121,7 +147,7 @@ final class MacRecorder {
             lastError = "Free limit reached — unlock Vox.md to import audio."
             return
         }
-        guard validateSelectedModel(modelManager.selectedModel) else { return }
+        guard validateSelectedModel(modelManager) else { return }
         guard let dir = AppConstants.recordingsDirectoryURL else {
             lastError = "Could not access the recordings folder."
             return
@@ -144,10 +170,12 @@ final class MacRecorder {
                 .appendingPathExtension("wav")
             let modelId = modelManager.selectedModelId
             let language = modelManager.selectedLanguage
+            let completionMode = requestedCompletionMode ?? .runPreset(flow: presetSnapshot(id: flowId))
 
             isTranscribing = true
             lastTranscriptionResult = nil
             lastError = nil
+            lastRecoveryAudioURL = nil
 
             Task.detached(priority: .userInitiated) { [weak self] in
                 guard let self else { return }
@@ -164,7 +192,7 @@ final class MacRecorder {
                         modelId: modelId,
                         language: language,
                         duration: duration,
-                        flowId: flowId,
+                        completionMode: completionMode,
                         sourceAudioURL: sourceCopy
                     )
                     if workingURL != sourceCopy {
@@ -185,8 +213,15 @@ final class MacRecorder {
         }
     }
 
-    private func validateSelectedModel(_ model: WhisperModelInfo?) -> Bool {
-        guard let model else {
+    private func presetSnapshot(id: String) -> CapturePreset {
+        CapturePresetStore.flow(id: id) ?? CapturePresetStore.selectedFlow()
+    }
+
+    private func validateSelectedModel(_ modelManager: ModelManager) -> Bool {
+        if modelManager.selectedModelId == TranscriptionBackendID.automatic {
+            return true
+        }
+        guard let model = modelManager.selectedModel else {
             lastError = "Select or download a transcription model first."
             return false
         }
@@ -202,7 +237,7 @@ final class MacRecorder {
         modelId: String,
         language: String,
         duration: TimeInterval,
-        flowId: String,
+        completionMode: MacRecordingCompletionMode,
         sourceAudioURL: URL?
     ) {
         isTranscribing = true
@@ -215,7 +250,7 @@ final class MacRecorder {
                 modelId: modelId,
                 language: language,
                 duration: duration,
-                flowId: flowId,
+                completionMode: completionMode,
                 sourceAudioURL: sourceAudioURL
             )
         }
@@ -226,82 +261,42 @@ final class MacRecorder {
         modelId: String,
         language: String,
         duration: TimeInterval,
-        flowId: String,
+        completionMode: MacRecordingCompletionMode,
         sourceAudioURL: URL?
     ) async {
-        guard let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelId }),
-              model.isDownloaded else {
-            await finishWithError("Model not found. Download a model first.", cleanupURL: audioURL)
-            return
-        }
-
-        let text: String?
-        if model.engine.isParakeet {
-            guard let context = await parakeetContext(for: model) else {
-                await finishWithError("Failed to load Parakeet model.", cleanupURL: audioURL)
-                return
+        var hasDurableAudioCopy = false
+        do {
+            if case .captureDraft(let attachAudio) = completionMode, attachAudio {
+                hasDurableAudioCopy = await captureDraftEventHandler?(
+                    .audio(sourceAudioURL ?? audioURL)
+                ) ?? false
+                guard hasDurableAudioCopy else { throw MacRecordingHandoffError.audioStagingFailed }
             }
-            text = await context.transcribe(audioURL: audioURL)
-        } else {
-            guard let modelPath = model.localURL?.path else {
-                await finishWithError("Model not found. Download a model first.", cleanupURL: audioURL)
-                return
-            }
-            guard let context = await whisperContext(modelPath: modelPath, modelId: modelId) else {
-                await finishWithError("Failed to load transcription model.", cleanupURL: audioURL)
-                return
-            }
-            text = context.transcribe(audioURL: audioURL, language: language)
+            let result = try await transcriptionService.transcribeResult(
+                audioURL: audioURL,
+                modelID: modelId,
+                fallbackModelID: AppConstants.sharedDefaults?.string(
+                    forKey: AppConstants.selectedFallbackModelKey
+                ),
+                language: language
+            )
+            await finishSuccessfulTranscription(
+                text: result.text,
+                duration: duration,
+                modelName: result.backendName,
+                language: result.language,
+                completionMode: completionMode,
+                audioURL: audioURL,
+                sourceAudioURL: sourceAudioURL
+            )
+        } catch {
+            await finishWithError(
+                error.localizedDescription,
+                cleanupURL: hasDurableAudioCopy ? audioURL : nil,
+                recoveryURL: hasDurableAudioCopy ? nil : audioURL,
+                completionMode: completionMode
+            )
         }
-        await MainActor.run {
-            self.isTranscribing = false
-            if let text, !text.isEmpty {
-                self.finishSuccessfulTranscription(
-                    text: text,
-                    duration: duration,
-                    modelName: model.name,
-                    language: language,
-                    flowId: flowId,
-                    audioURL: audioURL,
-                    sourceAudioURL: sourceAudioURL
-                )
-            } else {
-                self.lastError = "No speech detected."
-                self.lastTranscriptionResult = nil
-                try? FileManager.default.removeItem(at: audioURL)
-            }
-        }
-    }
-
-    private nonisolated func whisperContext(modelPath: String, modelId: String) async -> WhisperContext? {
-        await MainActor.run { () -> WhisperContext? in
-            if cachedModelId == modelId, let cachedWhisperContext {
-                return cachedWhisperContext
-            }
-            guard let loaded = WhisperContext(modelPath: modelPath, useGPU: true) else {
-                return nil
-            }
-            cachedWhisperContext = loaded
-            cachedModelId = modelId
-            return loaded
-        }
-    }
-
-    private nonisolated func parakeetContext(for model: WhisperModelInfo) async -> ParakeetContext? {
-        if let cached = await MainActor.run(body: { () -> ParakeetContext? in
-            cachedParakeetEngine == model.engine ? cachedParakeetContext : nil
-        }) {
-            return cached
-        }
-        guard let modelsDirectory = AppConstants.modelsDirectoryURL else { return nil }
-        guard let loaded = await ParakeetContext.load(modelsDirectory: modelsDirectory, engine: model.engine) else {
-            return nil
-        }
-        await MainActor.run {
-            cachedParakeetContext = loaded
-            cachedParakeetEngine = model.engine
-        }
-        return loaded
     }
 
     private func finishSuccessfulTranscription(
@@ -309,36 +304,74 @@ final class MacRecorder {
         duration: TimeInterval,
         modelName: String,
         language: String,
-        flowId: String,
+        completionMode: MacRecordingCompletionMode,
         audioURL: URL,
         sourceAudioURL: URL?
-    ) {
-        let selectedFlow = prepareFlowForFileExportIfNeeded(
-            CapturePresetStore.flow(id: flowId) ?? CapturePresetStore.selectedFlow()
-        )
+    ) async {
         let rawTranscript = Transcript(text: text, duration: duration, modelUsed: modelName, language: language)
+
+        if case .captureDraft(let attachAudio) = completionMode {
+            let transcriptSaved = await captureDraftEventHandler?(.transcript(text)) ?? false
+            guard transcriptSaved else {
+                _ = await captureDraftEventHandler?(.cancelLiveTranscript)
+                if attachAudio {
+                    // The staged attachment is already durable, so this working
+                    // copy can be removed even though the transcript was rejected.
+                    try? FileManager.default.removeItem(at: audioURL)
+                    lastRecoveryAudioURL = nil
+                } else {
+                    lastRecoveryAudioURL = audioURL
+                }
+                lastError = attachAudio
+                    ? "The transcript could not be saved. The recording remains attached to the Capture draft."
+                    : "The transcript could not be saved. The recording was preserved so it can be recovered."
+                isTranscribing = false
+                return
+            }
+            transcriptStore.add(rawTranscript)
+            usageTracker.addUsage(seconds: duration)
+            lastTranscriptionResult = text
+            lastError = nil
+            lastRecoveryAudioURL = nil
+            try? FileManager.default.removeItem(at: audioURL)
+            isTranscribing = false
+            return
+        }
+
+        guard case .runPreset(let flowSnapshot) = completionMode else { return }
+        let selectedFlow = prepareFlowForFileExportIfNeeded(flowSnapshot)
         let transcript = TranscriptFlowFormatter.apply(flow: selectedFlow, to: rawTranscript)
 
         transcriptStore.add(transcript)
         usageTracker.addUsage(seconds: duration)
         lastTranscriptionResult = transcript.cleanedText ?? transcript.text
         lastError = nil
+        isExporting = true
+        isTranscribing = false
 
+        let audioWasRequested = selectedFlow.audioSaveMode != .off
         let retainedAudioURL = retainAudioIfNeeded(sourceAudioURL ?? audioURL, flow: selectedFlow)
+        if audioWasRequested, retainedAudioURL == nil {
+            lastRecoveryAudioURL = audioURL
+            lastError = "Your transcript was saved locally, but the requested audio could not be prepared. The recording was preserved for recovery."
+        }
         let store = transcriptStore
         let savedId = transcript.id
         let initialTranscript = transcript
         let flowForExport = selectedFlow
         let enricher = transcriptEnricher
         let recorderForExport = self
+        let retryPendingCapture = pendingCaptureRetryHandler
 
         Task.detached(priority: .utility) { [recorderForExport] in
+            defer {
+                Task { @MainActor in recorderForExport.isExporting = false }
+            }
             let captureDestinationID = await ConfiguredTranscriptCaptureDestinationExporter
                 .resolvedDestinationID(flow: flowForExport)
-            // Keep the only retained recording when precise audio staging
-            // fails. Remove it only after delivery or an exact audio-bearing
-            // inbox request becomes durable.
-            var canRemoveRetainedAudio = captureDestinationID == nil
+            // Requested audio is removed only after a durable audio-bearing
+            // Capture request or legacy file export succeeds.
+            var canRemoveRetainedAudio = !audioWasRequested
             defer {
                 if canRemoveRetainedAudio, let retainedAudioURL {
                     try? FileManager.default.removeItem(at: retainedAudioURL)
@@ -359,21 +392,34 @@ final class MacRecorder {
                         transcript: latest,
                         flow: flowForExport,
                         destinationID: captureDestinationID,
-                        audioSourceURL: retainedAudioURL
+                        audioSourceURL: retainedAudioURL,
+                        source: .mac
                     )
                     canRemoveRetainedAudio = true
                     await MainActor.run {
                         recorderForExport.lastExportURL = receipt.noteURL
                     }
                 } catch {
+                    let queuedForRetry: Bool
                     if let configuredError = error as? ConfiguredTranscriptCaptureError,
                        case .queuedForRetry = configuredError {
+                        // The exporter copied the audio into the durable inbox.
                         canRemoveRetainedAudio = true
+                        queuedForRetry = true
+                    } else {
+                        queuedForRetry = false
                     }
                     KeyboardDebugLog.shared.log("[MacRecorder] Precise capture routing failed: \(error)")
+                    let shouldExposeRecovery = !canRemoveRetainedAudio
                     await MainActor.run {
                         recorderForExport.lastError = "Your transcript was saved locally. \(error.localizedDescription)"
                         recorderForExport.lastExportURL = nil
+                        if shouldExposeRecovery {
+                            recorderForExport.lastRecoveryAudioURL = retainedAudioURL ?? audioURL
+                        }
+                    }
+                    if queuedForRetry {
+                        await retryPendingCapture?()
                     }
                 }
                 return
@@ -436,6 +482,7 @@ final class MacRecorder {
                 await MainActor.run {
                     recorderForExport.lastError = "Your transcript was saved locally, but file export failed. \(error.localizedDescription)"
                     recorderForExport.lastExportURL = nil
+                    recorderForExport.lastRecoveryAudioURL = retainedAudioURL ?? audioURL
                 }
                 return
             }
@@ -449,6 +496,9 @@ final class MacRecorder {
                         flow: flowForExport,
                         transcriptFolderScopeURL: noteFolderScopeURL
                     ) {
+                        // The audio file is now durable even if inserting its
+                        // Markdown reference subsequently fails.
+                        canRemoveRetainedAudio = true
                         let relativePath = AudioAttachmentExporter.relativePath(from: exportURL, to: audioExportURL)
                         try TranscriptFileExporter.attachAudioReference(
                             to: exportURL,
@@ -460,18 +510,31 @@ final class MacRecorder {
                     }
                 } catch {
                     KeyboardDebugLog.shared.log("[MacRecorder] Audio export failed: \(error)")
+                    let shouldExposeRecovery = !canRemoveRetainedAudio
                     await MainActor.run {
                         recorderForExport.lastError = "The note was saved, but its audio attachment failed. \(error.localizedDescription)"
+                        if shouldExposeRecovery {
+                            recorderForExport.lastRecoveryAudioURL = retainedAudioURL
+                        }
                     }
                 }
             }
 
+            let shouldExposeRecovery = audioWasRequested && !canRemoveRetainedAudio
             await MainActor.run {
                 recorderForExport.lastExportURL = exportURL
+                if shouldExposeRecovery {
+                    recorderForExport.lastRecoveryAudioURL = retainedAudioURL ?? audioURL
+                    if recorderForExport.lastError == nil {
+                        recorderForExport.lastError = "The transcript was saved, but the requested audio could not be exported. The recording was preserved for recovery."
+                    }
+                }
             }
         }
 
-        try? FileManager.default.removeItem(at: audioURL)
+        if !audioWasRequested || retainedAudioURL != nil {
+            try? FileManager.default.removeItem(at: audioURL)
+        }
     }
 
     private func prepareFlowForFileExportIfNeeded(_ flow: CapturePreset) -> CapturePreset {
@@ -533,15 +596,20 @@ final class MacRecorder {
     }
 
     private func resolveSecurityScopedURL(from bookmarkData: Data?) -> URL? {
-        guard let bookmarkData else { return nil }
-        var isStale = false
-        return try? URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale)
+        guard let bookmarkData,
+              let resolution = try? CaptureBookmarkResolver.resolve(bookmarkData),
+              !resolution.isStale else { return nil }
+        return resolution.url
     }
 
     private func saveUpdatedFlow(_ updated: CapturePreset) {
         var flows = CapturePresetStore.loadFlows()
         if let index = flows.firstIndex(where: { $0.id == updated.id }) {
-            flows[index] = updated
+            // The recording uses an immutable preset snapshot. Persist only
+            // the newly granted folder access so concurrent Settings edits are
+            // not overwritten by that older snapshot.
+            flows[index].exportSettings.folderBookmark = updated.exportSettings.folderBookmark
+            flows[index].exportSettings.folderName = updated.exportSettings.folderName
         } else {
             flows.append(updated)
         }
@@ -564,13 +632,94 @@ final class MacRecorder {
         }
     }
 
-    private func finishWithError(_ message: String, cleanupURL: URL) async {
+    private func startLivePreviewIfSupported(
+        language: String,
+        completionMode: MacRecordingCompletionMode?
+    ) {
+        guard let completionMode, case .captureDraft = completionMode else { return }
+        let sessionID = UUID()
+        livePreviewSessionID = sessionID
+        Task { @MainActor [weak self] in
+            guard let self, self.livePreviewSessionID == sessionID else { return }
+            let status: SFSpeechRecognizerAuthorizationStatus
+            if SFSpeechRecognizer.authorizationStatus() == .notDetermined {
+                status = await withCheckedContinuation { continuation in
+                    SFSpeechRecognizer.requestAuthorization { continuation.resume(returning: $0) }
+                }
+            } else {
+                status = SFSpeechRecognizer.authorizationStatus()
+            }
+            guard status == .authorized,
+                  self.isRecording,
+                  self.livePreviewSessionID == sessionID else { return }
+
+            let locale = language == "auto" || language.isEmpty
+                ? Locale.current
+                : Locale(identifier: language)
+            guard let recognizer = SFSpeechRecognizer(locale: locale),
+                  recognizer.isAvailable,
+                  recognizer.supportsOnDeviceRecognition else { return }
+
+            let request = SFSpeechAudioBufferRecognitionRequest()
+            request.shouldReportPartialResults = true
+            request.requiresOnDeviceRecognition = true
+            self.liveRecognitionRequest = request
+            self.acceptsLivePreview = true
+            self.liveRecognitionTask = recognizer.recognitionTask(with: request) { [weak self] result, _ in
+                guard let result else { return }
+                let text = result.bestTranscription.formattedString
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !text.isEmpty else { return }
+                let isFinal = result.isFinal
+                Task { @MainActor [weak self] in
+                    guard let self,
+                          self.acceptsLivePreview,
+                          self.livePreviewSessionID == sessionID else { return }
+                    _ = await self.captureDraftEventHandler?(.liveTranscript(
+                        sessionID: sessionID,
+                        finalizedText: isFinal ? text : "",
+                        volatileText: isFinal ? nil : text
+                    ))
+                }
+            }
+            self.recorder.audioBufferHandler = { [weak request] buffer in
+                request?.append(buffer)
+            }
+        }
+    }
+
+    private func stopLivePreview() {
+        let invalidatedSessionID = livePreviewSessionID
+        livePreviewSessionID = nil
+        acceptsLivePreview = false
+        recorder.audioBufferHandler = nil
+        liveRecognitionRequest?.endAudio()
+        liveRecognitionTask?.cancel()
+        liveRecognitionRequest = nil
+        liveRecognitionTask = nil
+        if let invalidatedSessionID {
+            liveTranscriptInvalidationHandler?(invalidatedSessionID)
+        }
+    }
+
+    private func finishWithError(
+        _ message: String,
+        cleanupURL: URL?,
+        recoveryURL: URL?,
+        completionMode: MacRecordingCompletionMode
+    ) async {
+        if case .captureDraft = completionMode {
+            _ = await captureDraftEventHandler?(.cancelLiveTranscript)
+        }
         await MainActor.run {
             self.isTranscribing = false
             self.lastTranscriptionResult = nil
-            self.lastError = message
+            self.lastRecoveryAudioURL = recoveryURL
+            self.lastError = recoveryURL == nil
+                ? message
+                : "\(message) The recording was preserved so it can be recovered."
         }
-        try? FileManager.default.removeItem(at: cleanupURL)
+        if let cleanupURL { try? FileManager.default.removeItem(at: cleanupURL) }
     }
 
     private func startDurationTimer() {
@@ -587,4 +736,9 @@ final class MacRecorder {
         durationTimer?.invalidate()
         durationTimer = nil
     }
+}
+
+private enum MacRecordingHandoffError: LocalizedError {
+    case audioStagingFailed
+    var errorDescription: String? { "The recording could not be attached to the Capture draft." }
 }

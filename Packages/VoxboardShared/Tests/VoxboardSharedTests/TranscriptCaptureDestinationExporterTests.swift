@@ -230,7 +230,54 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         XCTAssertEqual(resolved, voxDestination.id)
     }
 
-    func test_configuredExportIsDurableBeforeWritingAndUsesTranscriptIdentity() async throws {
+    func test_directVoiceRunUsesRecordingTimePresetSnapshot() async throws {
+        let captureRoot = try temporaryFolder(named: "voice-preset-snapshot")
+        let suiteName = "voice-preset-snapshot.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer {
+            try? FileManager.default.removeItem(at: captureRoot)
+            defaults.removePersistentDomain(forName: suiteName)
+        }
+        let originalDestination = CaptureDestination(
+            name: "Original",
+            rootBookmark: Data(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Original.md")
+        )
+        let editedDestination = CaptureDestination(
+            name: "Edited",
+            rootBookmark: Data(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Edited.md")
+        )
+        try await CaptureLibraryStore(
+            fileURL: captureRoot.appendingPathComponent(CaptureLibraryStore.defaultFilename),
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        ).save(CaptureLibraryEnvelope(
+            destinations: [originalDestination, editedDestination],
+            defaultDestinationID: editedDestination.id
+        ))
+        defaults.set(
+            CapturePresetProfileStore.currentOwnedRouteMigrationVersion,
+            forKey: CapturePresetProfileStore.ownedRouteMigrationVersionKey
+        )
+
+        var recordingSnapshot = CapturePresetStore.makeCustomFlow()
+        recordingSnapshot.captureDestinationID = originalDestination.id
+        var subsequentlyEdited = recordingSnapshot
+        subsequentlyEdited.captureDestinationID = editedDestination.id
+        CapturePresetStore.saveFlows([subsequentlyEdited], defaults: defaults)
+
+        let resolved = await ConfiguredTranscriptCaptureDestinationExporter.resolvedDestinationID(
+            flow: recordingSnapshot,
+            captureRootURL: captureRoot,
+            defaults: defaults
+        )
+
+        XCTAssertEqual(resolved, originalDestination.id)
+    }
+
+    func test_configuredExportIsDurableBeforeWritingAndUsesTranscriptIdentityAndSource() async throws {
         let captureRoot = try temporaryFolder(named: "durable-before-write")
         let destinationRoot = try temporaryFolder(named: "durable-destination")
         defer {
@@ -247,7 +294,15 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             fileURL: captureRoot.appendingPathComponent(CaptureLibraryStore.defaultFilename),
             coordinator: ProcessLocalCaptureFileCoordinator.shared
         ).save(CaptureLibraryEnvelope(destinations: [destination], defaultDestinationID: destination.id))
-        let transcript = Transcript(text: "Durable voice", duration: 1, modelUsed: "base", language: "en")
+        let recordedAt = Date(timeIntervalSince1970: 1_700_000_000)
+        let transcript = Transcript(
+            id: UUID(),
+            text: "Durable voice",
+            date: recordedAt,
+            duration: 1,
+            modelUsed: "base",
+            language: "en"
+        )
         let writer = InboxStateObservingWriter(captureRootURL: captureRoot)
 
         let receipt = try await ConfiguredTranscriptCaptureDestinationExporter.export(
@@ -255,14 +310,19 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             flow: CapturePresetStore.makeCustomFlow(),
             destinationID: destination.id,
             audioSourceURL: nil,
+            source: .mac,
             captureRootURL: captureRoot,
             pipeline: CapturePipeline(writer: writer)
         )
 
         let observedState = await writer.observedState
+        let observedRequest = await writer.observedRequest
         let finalState = try await CaptureInbox(rootDirectoryURL: captureRoot).state(of: transcript.id)
         XCTAssertEqual(receipt.requestID, transcript.id)
         XCTAssertEqual(observedState, .processing)
+        XCTAssertEqual(observedRequest?.id, transcript.id)
+        XCTAssertEqual(observedRequest?.createdAt, recordedAt)
+        XCTAssertEqual(observedRequest?.source, .mac)
         XCTAssertEqual(finalState, .completed)
         let deliveredHistory = try await CaptureHistoryStore(
             fileURL: captureRoot.appendingPathComponent(AppConstants.captureHistoryFilename),
@@ -270,7 +330,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         ).list()
         XCTAssertEqual(deliveredHistory.map(\.requestID), [transcript.id])
         XCTAssertEqual(deliveredHistory.first?.outcome, .delivered)
-        XCTAssertEqual(deliveredHistory.first?.source, .voice)
+        XCTAssertEqual(deliveredHistory.first?.source, .mac)
     }
 
     func test_configuredExportQueuesExactRequestAndStagedAudioWhenDestinationWriteFails() async throws {
@@ -440,6 +500,7 @@ private actor InboxStateObservingWriter: CaptureMutationWriting {
     let captureRootURL: URL
     private let delegate = CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared)
     private(set) var observedState: CaptureInboxState?
+    private(set) var observedRequest: CaptureRequest?
 
     init(captureRootURL: URL) {
         self.captureRootURL = captureRootURL
@@ -449,10 +510,15 @@ private actor InboxStateObservingWriter: CaptureMutationWriting {
         _ mutation: MarkdownCaptureMutation,
         to fileURL: URL
     ) async throws -> CaptureWriteReceipt {
-        observedState = try await CaptureInbox(
+        let inbox = CaptureInbox(
             rootDirectoryURL: captureRootURL,
             coordinator: ProcessLocalCaptureFileCoordinator.shared
-        ).state(of: mutation.requestID)
+        )
+        observedState = try await inbox.state(of: mutation.requestID)
+        let requestURL = inbox.itemURL(for: mutation.requestID, state: .processing)
+        if let data = try? Data(contentsOf: requestURL) {
+            observedRequest = try? JSONDecoder().decode(CaptureRequest.self, from: data)
+        }
         return try await delegate.write(mutation, to: fileURL)
     }
 }

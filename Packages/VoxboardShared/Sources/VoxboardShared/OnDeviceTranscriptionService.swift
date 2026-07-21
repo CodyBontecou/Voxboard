@@ -236,8 +236,13 @@ public actor OnDeviceTranscriptionService {
             cachedParakeetContext = context
             cachedWhisperContext = nil
         } else {
+            #if os(macOS)
+            let useGPU = true
+            #else
+            let useGPU = false
+            #endif
             guard let modelURL = model.localURL,
-                  let context = WhisperContext(modelPath: modelURL.path, useGPU: false) else {
+                  let context = WhisperContext(modelPath: modelURL.path, useGPU: useGPU) else {
                 throw OnDeviceTranscriptionError.modelLoadFailed
             }
             cachedWhisperContext = context

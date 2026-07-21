@@ -230,7 +230,9 @@ struct VoxboardWatchRecordWidgetView: View {
         case .syncing:
             return "Syncing"
         case .transcribing:
-            return "Processing"
+            return "Transcribing"
+        case .delivering:
+            return "Saving"
         case .pending:
             return "Synced"
         case .error:
@@ -249,7 +251,9 @@ struct VoxboardWatchRecordWidgetView: View {
         case .syncing:
             return "Sync"
         case .transcribing:
-            return "Work"
+            return "Text"
+        case .delivering:
+            return "Save"
         case .pending:
             return "Sent"
         case .error, .unavailable:
@@ -301,7 +305,7 @@ private struct VoxboardComplicationMark: View {
         switch phase {
         case .recording, .error, .unavailable:
             return WatchWidgetGeist.error
-        case .syncing, .transcribing:
+        case .syncing, .transcribing, .delivering:
             return .cyan
         case .pending:
             return .green

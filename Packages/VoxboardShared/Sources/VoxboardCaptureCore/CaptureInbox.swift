@@ -282,6 +282,41 @@ public actor CaptureInbox {
         }
     }
 
+    /// Permanently removes a request that has not begun or has already failed.
+    /// Active processing and completed receipts are never removed. This lets a
+    /// user discard a failed Watch recording without a queued request delivering
+    /// later behind their back.
+    @discardableResult
+    public func discard(requestID: UUID) throws -> Bool {
+        let didDiscard = try coordinator.coordinateWriting(at: rootDirectoryURL) { _ in
+            try ensureDirectories()
+            let processingURL = itemURL(for: requestID, state: .processing)
+            let completedURL = itemURL(for: requestID, state: .completed)
+            guard !fileManager.fileExists(atPath: processingURL.path),
+                  !fileManager.fileExists(atPath: completedURL.path) else {
+                return false
+            }
+
+            var removed = false
+            for state in [CaptureInboxState.pending, .failed] {
+                let url = itemURL(for: requestID, state: state)
+                if fileManager.fileExists(atPath: url.path) {
+                    try fileManager.removeItem(at: url)
+                    removed = true
+                }
+            }
+            return removed
+        }
+
+        if didDiscard {
+            let stagingURL = rootDirectoryURL
+                .appendingPathComponent("inbox-staging", isDirectory: true)
+                .appendingPathComponent(requestID.uuidString.lowercased(), isDirectory: true)
+            try? fileManager.removeItem(at: stagingURL)
+        }
+        return didDiscard
+    }
+
     /// Removes abandoned staging directories only after a grace period and
     /// only when no live pending/processing/failed request references them.
     /// This cleans up extension or intent crashes that happen before enqueue.
@@ -359,6 +394,13 @@ public actor CaptureInbox {
                 let values = try processingURL.resourceValues(forKeys: [.contentModificationDateKey])
                 let modificationDate = values.contentModificationDate ?? .distantPast
                 guard now.timeIntervalSince(modificationDate) >= timeout else { continue }
+                if let requestID = completionRequestID(for: processingURL),
+                   fileManager.fileExists(atPath: itemURL(for: requestID, state: .completed).path) {
+                    // `complete` writes its tombstone before deleting processing.
+                    // A crash between those operations must never redeliver.
+                    try fileManager.removeItem(at: processingURL)
+                    continue
+                }
                 guard let request = try? decoder.decode(
                     CaptureRequest.self,
                     from: Data(contentsOf: processingURL)

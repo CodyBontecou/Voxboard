@@ -181,6 +181,8 @@ if 'providers.prefix(' in share_source:
     errors.append('share extension silently truncates shared providers instead of rejecting overflow')
 
 quick_capture_source = (root / 'Voxboard/Views/QuickCaptureView.swift').read_text()
+watch_queue_source = (root / 'Voxboard/Views/WatchRecordingQueueView.swift').read_text()
+quick_capture_ui_source = quick_capture_source + watch_queue_source
 for required in [
     'allowedContentTypes: [.data]',
     'reserveSharedItems(urls.count)',
@@ -203,7 +205,7 @@ for required in [
     'capture_audio_import',
     'Watch Recordings',
 ]:
-    if required not in quick_capture_source:
+    if required not in quick_capture_ui_source:
         errors.append(f'Quick Capture hardening is missing {required}')
 
 capture_route_picker_source = (root / 'Voxboard/Capture/CaptureRoutePickerView.swift').read_text()
@@ -215,7 +217,7 @@ for required in [
     if required not in capture_route_picker_source:
         errors.append(f'inline Capture destination setup is missing {required}')
 
-quick_capture_view_model_source = (root / 'Voxboard/Capture/QuickCaptureViewModel.swift').read_text()
+quick_capture_view_model_source = (root / 'Voxboard App Shared/CaptureComposerViewModel.swift').read_text()
 for required in [
     'saveSelectedPresetDestination',
     'CapturePresetStore.saveFlows',
@@ -238,7 +240,7 @@ toolbar_source = '\n'.join(
     (root / path).read_text()
     for path in [
         'Voxboard/Capture/CaptureEditorToolbar.swift',
-        'Voxboard/Capture/CaptureToolbarPreferences.swift',
+        'Voxboard App Shared/CaptureToolbarPreferences.swift',
     ]
 )
 for required in ['Set due date', 'Internal link', 'Insert current location', 'Change text case']:
@@ -320,7 +322,7 @@ if 'URLQueryItem(name: "source", value: "widget")' not in capture_widget:
     errors.append('Quick Capture widget does not retain widget provenance')
 if 'URLQueryItem(name: "preset", value: voxID)' not in capture_widget:
     errors.append('Quick Capture widget does not retain its selected Capture Preset context')
-quick_capture_model = (root / 'Voxboard/Capture/QuickCaptureViewModel.swift').read_text()
+quick_capture_model = (root / 'Voxboard App Shared/CaptureComposerViewModel.swift').read_text()
 for required in [
     'initialLoadTask',
     'draft.selectDestination(destinationID)',
@@ -336,12 +338,98 @@ shortcut_source = (root / 'Voxboard/VoxboardShortcutsProvider.swift').read_text(
 if '@available(iOS 18.0, *)' in intent_source or '@available(iOS 18.0, *)' in shortcut_source:
     errors.append('capture App Intents must remain available on the supported iOS 17.6 deployment target')
 
+shared_capture_model = root / 'Voxboard App Shared/CaptureComposerViewModel.swift'
+if not shared_capture_model.exists():
+    errors.append('the durable Capture composer model is not in the shared app source group')
+if project.count('AA8000012FB00000AABB0001 /* Voxboard App Shared */') < 3:
+    errors.append('the shared Capture app source group is not attached to both iOS and macOS targets')
+
+mac_workspace = root / 'Voxboard Mac/MacCaptureWorkspaceView.swift'
+mac_editor = root / 'Voxboard Mac/MacMarkdownComposerTextView.swift'
+mac_root = (root / 'Voxboard Mac/MacRootView.swift').read_text()
+if not mac_workspace.exists() or 'MacCaptureWorkspaceView.swift in Sources' not in project:
+    errors.append('capture-first macOS workspace is missing from the Mac target')
+if not mac_editor.exists() or 'MacMarkdownComposerTextView.swift in Sources' not in project:
+    errors.append('native macOS Markdown composer is missing from the Mac target')
+for required in [
+    'case capture = "Capture"',
+    'MacCaptureWorkspaceView(',
+    'MacHistoryView(viewModel: quickCaptureViewModel)',
+]:
+    if required not in mac_root:
+        errors.append(f'macOS capture-first navigation is missing {required}')
+for removed_destination in ['case listen =', 'case model =', 'case presets =']:
+    if removed_destination in mac_root:
+        errors.append(f'legacy macOS primary navigation must be removed: {removed_destination}')
+mac_workspace_source = mac_workspace.read_text() if mac_workspace.exists() else ''
+for required in [
+    'mac_quick_capture_submit',
+    'mac_capture_destination_banner',
+    'MacCaptureRouteInspector',
+    'dropDestination(for: URL.self)',
+    'CaptureComposerTextEditor().applying',
+    'Add to Draft',
+    'Send with Preset',
+    'Transcribe Audio or Video',
+    'Take Photo',
+    'Import Scan or PDF',
+    'Sketch',
+    'Due date',
+    'Internal link',
+]:
+
+    if required not in mac_workspace_source:
+        errors.append(f'macOS Capture workspace is missing {required}')
+
 mac_routes = root / 'Voxboard Mac/MacCaptureDestinationLibraryView.swift'
 if not mac_routes.exists() or 'MacCaptureDestinationLibraryView.swift in Sources' not in project:
     errors.append('macOS capture-route management is missing from the Mac target')
+for filename in [
+    'MacCameraCaptureView.swift',
+    'MacDocumentScanProcessor.swift',
+    'MacSketchEditor.swift',
+    'MacEntryTemplateLibraryView.swift',
+]:
+    path = root / 'Voxboard Mac' / filename
+    if not path.exists() or f'{filename} in Sources' not in project:
+        errors.append(f'macOS native Capture input/settings adapter is missing: {filename}')
+mac_app = (root / 'Voxboard Mac/VoxboardMacApp.swift').read_text()
+for required in [
+    'quickCaptureViewModel',
+    'await quickCaptureViewModel.processPendingInbox()',
+    'Window("Capture History", id: "history")',
+    'Settings {',
+    'CommandMenu("Capture")',
+    'MacWindowCoordinator',
+    'applicationDidBecomeActive',
+    'applicationShouldTerminate',
+    'flushDraftForTermination()',
+]:
+    if required not in mac_app:
+        errors.append(f'macOS durable Capture integration is missing {required}')
 mac_recorder = (root / 'Voxboard Mac/MacRecorder.swift').read_text()
-if 'processPendingCaptureInbox' not in mac_recorder or 'CaptureInboxDeliveryService.drain' not in mac_recorder:
-    errors.append('macOS durable capture inbox retry integration is missing')
+for required in [
+    'OnDeviceTranscriptionService',
+    'case captureDraft(attachAudio: Bool)',
+    'case runPreset(flow: CapturePreset)',
+    'liveTranscript(sessionID: UUID, finalizedText:',
+    'source: .mac',
+]:
+    if required not in mac_recorder:
+        errors.append(f'macOS unified recording flow is missing {required}')
+for forbidden in ['WhisperContext(', 'ParakeetContext.load(']:
+    if forbidden in mac_recorder:
+        errors.append(f'macOS recorder must use the shared transcription service, not {forbidden}')
+for required in ['lastRecoveryAudioURL', 'hasDurableAudioCopy', 'audioWasRequested']:
+    if required not in mac_recorder:
+        errors.append(f'macOS recorder is missing durable audio handoff guard {required}')
+audio_recorder = (root / 'Packages/VoxboardShared/Sources/VoxboardShared/AudioRecorder.swift').read_text()
+if 'recording.wav' in audio_recorder or 'recording_\\(UUID().uuidString.lowercased())' not in audio_recorder:
+    errors.append('shared audio recorder must use a session-unique file URL')
+mac_info = (root / 'Voxboard Mac/Info.plist').read_text()
+for required in ['<string>voxboard</string>', 'NSSpeechRecognitionUsageDescription']:
+    if required not in mac_info:
+        errors.append(f'macOS Capture deep-link/live-preview configuration is missing {required}')
 
 template_model = (root / 'Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureModels.swift').read_text()
 template_ui = (root / 'Voxboard/Views/CaptureDestinationLibraryView.swift').read_text()

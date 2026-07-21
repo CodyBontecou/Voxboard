@@ -8,18 +8,86 @@ final class WatchLocalRecorder: ObservableObject {
         case idle
         case recording
         case transferring
+        case waitingForPhone
+        case transcribing
+        case delivering
         case transferred
         case error(String)
+    }
+
+    enum TransportState: String, Codable {
+        case local
+        case transferring
+        case uploaded
     }
 
     struct QueuedRecording: Codable, Equatable, Identifiable {
         let id: String
         let filename: String
         let createdAt: Date
-        let duration: TimeInterval
+        var duration: TimeInterval
+        var transportState: TransportState
+        var remotePhase: WatchRemoteRecordingPhase?
+        var remoteRevision: Int
+        var presetID: String?
+        var presetName: String?
+        var presetSnapshot: Data?
 
         var fileURL: URL {
             WatchLocalRecorder.recordingsDirectoryURL.appendingPathComponent(filename)
+        }
+
+        init(
+            id: String,
+            filename: String,
+            createdAt: Date,
+            duration: TimeInterval,
+            transportState: TransportState = .local,
+            remotePhase: WatchRemoteRecordingPhase? = nil,
+            remoteRevision: Int = 0,
+            presetID: String? = nil,
+            presetName: String? = nil,
+            presetSnapshot: Data? = nil
+        ) {
+            self.id = id
+            self.filename = filename
+            self.createdAt = createdAt
+            self.duration = duration
+            self.transportState = transportState
+            self.remotePhase = remotePhase
+            self.remoteRevision = remoteRevision
+            self.presetID = presetID
+            self.presetName = presetName
+            self.presetSnapshot = presetSnapshot
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case id
+            case filename
+            case createdAt
+            case duration
+            case transportState
+            case remotePhase
+            case remoteRevision
+            case presetID
+            case presetName
+            case presetSnapshot
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.init(
+                id: try container.decode(String.self, forKey: .id),
+                filename: try container.decode(String.self, forKey: .filename),
+                createdAt: try container.decode(Date.self, forKey: .createdAt),
+                duration: try container.decode(TimeInterval.self, forKey: .duration),
+                transportState: try container.decodeIfPresent(TransportState.self, forKey: .transportState) ?? .local,
+                remotePhase: try container.decodeIfPresent(WatchRemoteRecordingPhase.self, forKey: .remotePhase),
+                remoteRevision: try container.decodeIfPresent(Int.self, forKey: .remoteRevision) ?? 0,
+                presetID: try container.decodeIfPresent(String.self, forKey: .presetID),
+                presetName: try container.decodeIfPresent(String.self, forKey: .presetName),
+                presetSnapshot: try container.decodeIfPresent(Data.self, forKey: .presetSnapshot)
+            )
         }
     }
 
@@ -31,6 +99,9 @@ final class WatchLocalRecorder: ObservableObject {
 
     private var recorder: AVAudioRecorder?
     private var currentRecordingID: String?
+    private var currentPresetID: String?
+    private var currentPresetName: String?
+    private var currentPresetSnapshot: Data?
     private var timer: Timer?
     private var transferObserver: NSObjectProtocol?
     private var inFlightTransferIDs = Set<String>()
@@ -41,7 +112,7 @@ final class WatchLocalRecorder: ObservableObject {
     #endif
 
     init() {
-        queuedRecordings = Self.loadQueuedRecordings()
+        queuedRecordings = Self.loadQueuedRecordingsRecoveringInterruptedCapture()
         transferObserver = NotificationCenter.default.addObserver(
             forName: .watchRecordingTransferDidFinish,
             object: nil,
@@ -75,6 +146,16 @@ final class WatchLocalRecorder: ObservableObject {
         queuedRecordings.count
     }
 
+    var hasUnuploadedRecordings: Bool {
+        queuedRecordings.contains { $0.transportState != .uploaded }
+    }
+
+    var activePresetName: String {
+        currentPresetName
+            ?? queuedRecordings.last?.presetName
+            ?? "iPhone Default"
+    }
+
     var title: String {
         switch phase {
         case .idle:
@@ -83,6 +164,12 @@ final class WatchLocalRecorder: ObservableObject {
             return "Recording"
         case .transferring:
             return "Syncing"
+        case .waitingForPhone:
+            return "On iPhone"
+        case .transcribing:
+            return "Transcribing"
+        case .delivering:
+            return "Saving"
         case .transferred:
             return "Saved"
         case .error:
@@ -102,8 +189,14 @@ final class WatchLocalRecorder: ObservableObject {
             return "Tap the status card to stop when your thought is captured."
         case .transferring:
             return "Sending Watch recordings to the iPhone queue."
+        case .waitingForPhone:
+            return "Safely queued on iPhone and waiting to process."
+        case .transcribing:
+            return "Your iPhone is transcribing this recording on device."
+        case .delivering:
+            return "Your iPhone is saving the transcript to Capture."
         case .transferred:
-            return "Open Vox.md on iPhone to process. You can record another."
+            return "Saved to Capture. You can record another."
         case .error(let error):
             return error
         }
@@ -118,7 +211,8 @@ final class WatchLocalRecorder: ObservableObject {
     }
 
     var syncTitle: String {
-        queuedCount > 0 ? "Sync Queue (\(queuedCount))" : "Sync Status"
+        if hasUnuploadedRecordings { return "Sync Queue (\(queuedCount))" }
+        return queuedCount > 0 ? "Refresh Status" : "Sync Status"
     }
 
     var queueSummary: String {
@@ -133,6 +227,12 @@ final class WatchLocalRecorder: ObservableObject {
             return .recording
         case .transferring:
             return .syncing
+        case .waitingForPhone:
+            return .pending
+        case .transcribing:
+            return .transcribing
+        case .delivering:
+            return .delivering
         case .transferred:
             return .pending
         case .error:
@@ -156,7 +256,7 @@ final class WatchLocalRecorder: ObservableObject {
         if isRecording {
             await stopAndQueue(using: bridge)
         } else {
-            await start()
+            await start(using: bridge)
         }
     }
 
@@ -166,17 +266,17 @@ final class WatchLocalRecorder: ObservableObject {
         let action = url.host ?? url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         switch action {
         case WatchRecordingDeepLink.startHost:
-            await start()
+            await start(using: bridge)
         case WatchRecordingDeepLink.stopHost:
             await stopAndQueue(using: bridge)
         case WatchRecordingDeepLink.toggleHost:
             await toggle(using: bridge)
         default:
-            await start()
+            await start(using: bridge)
         }
     }
 
-    func start() async {
+    func start(using bridge: WatchPhoneBridge) async {
         guard !isRecording else { return }
         cancelTransientSuccessReset()
 
@@ -195,7 +295,28 @@ final class WatchLocalRecorder: ObservableObject {
             let url = try makeRecordingURL(id: id)
             let recorder = try AVAudioRecorder(url: url, settings: recordingSettings)
             recorder.isMeteringEnabled = false
+
+            let recordingStartedAt = Date()
+            let activeRecording = QueuedRecording(
+                id: id,
+                filename: url.lastPathComponent,
+                createdAt: recordingStartedAt,
+                duration: 0,
+                presetID: bridge.snapshot.selectedPresetID,
+                presetName: bridge.snapshot.selectedPresetName,
+                presetSnapshot: bridge.snapshot.selectedPresetSnapshot
+            )
+            do {
+                try Self.saveActiveRecording(activeRecording)
+            } catch {
+                recorder.stop()
+                try? FileManager.default.removeItem(at: url)
+                setError("Could not safely journal this Watch recording.")
+                return
+            }
             guard recorder.record() else {
+                Self.clearActiveRecording()
+                try? FileManager.default.removeItem(at: url)
                 setError("Could not start Watch recording.")
                 try? session.setActive(false)
                 return
@@ -203,7 +324,10 @@ final class WatchLocalRecorder: ObservableObject {
 
             self.recorder = recorder
             currentRecordingID = id
-            startedAt = Date()
+            currentPresetID = bridge.snapshot.selectedPresetID
+            currentPresetName = bridge.snapshot.selectedPresetName
+            currentPresetSnapshot = bridge.snapshot.selectedPresetSnapshot
+            startedAt = recordingStartedAt
             duration = 0
             message = nil
             phase = .recording
@@ -225,6 +349,12 @@ final class WatchLocalRecorder: ObservableObject {
         recorder.stop()
         self.recorder = nil
         currentRecordingID = nil
+        let presetID = currentPresetID
+        let presetName = currentPresetName
+        let presetSnapshot = currentPresetSnapshot
+        currentPresetID = nil
+        currentPresetName = nil
+        currentPresetSnapshot = nil
         startedAt = nil
         stopTimer()
         try? AVAudioSession.sharedInstance().setActive(false)
@@ -238,9 +368,19 @@ final class WatchLocalRecorder: ObservableObject {
             id: id,
             filename: url.lastPathComponent,
             createdAt: createdAt,
-            duration: recordedDuration
+            duration: recordedDuration,
+            presetID: presetID,
+            presetName: presetName,
+            presetSnapshot: presetSnapshot
         )
-        upsertQueuedRecording(item)
+        do {
+            try upsertQueuedRecording(item)
+            Self.clearActiveRecording()
+        } catch {
+            phase = .error("The recording is safe, but its queue could not be updated.")
+            message = "Recording retained on Watch. Reopen Vox.md to recover it."
+            return
+        }
         phase = .idle
         message = "Saved on Watch. Syncing to iPhone…"
         syncPending(using: bridge)
@@ -259,12 +399,19 @@ final class WatchLocalRecorder: ObservableObject {
         }
 
         let candidates = queuedRecordings.filter { item in
-            FileManager.default.fileExists(atPath: item.fileURL.path) && !inFlightTransferIDs.contains(item.id)
+            FileManager.default.fileExists(atPath: item.fileURL.path)
+                && item.transportState != .uploaded
+                && !inFlightTransferIDs.contains(item.id)
         }
 
         guard !candidates.isEmpty else {
-            phase = .transferring
-            message = "Syncing \(queuedCount) Watch recording\(queuedCount == 1 ? "" : "s") to iPhone…"
+            if queuedRecordings.allSatisfy({ $0.transportState == .uploaded }) {
+                phase = phaseForMostAdvancedRemoteStatus()
+                message = messageForMostAdvancedRemoteStatus()
+            } else {
+                phase = .transferring
+                message = "Syncing \(queuedCount) Watch recording\(queuedCount == 1 ? "" : "s") to iPhone…"
+            }
             return
         }
 
@@ -274,10 +421,18 @@ final class WatchLocalRecorder: ObservableObject {
                 fileURL: item.fileURL,
                 id: item.id,
                 createdAt: item.createdAt,
-                duration: item.duration
+                duration: item.duration,
+                presetID: item.presetID,
+                presetName: item.presetName,
+                presetSnapshot: item.presetSnapshot
             )
 
             if didQueue {
+                updateQueuedRecording(id: item.id) {
+                    $0.transportState = .transferring
+                    $0.remotePhase = nil
+                    $0.remoteRevision = 0
+                }
                 inFlightTransferIDs.insert(item.id)
                 queuedForTransfer += 1
             }
@@ -298,20 +453,25 @@ final class WatchLocalRecorder: ObservableObject {
         }
 
         inFlightTransferIDs.remove(id)
+        guard queuedRecordings.contains(where: { $0.id == id }) else { return }
         let didSucceed = notification.userInfo?[WatchRecordingTransferNotificationKey.success] as? Bool ?? false
 
         if didSucceed {
-            removeQueuedRecording(id: id, deleteFile: true)
+            let shouldRetry = queuedRecordings.first(where: { $0.id == id })?.remotePhase == .transportFailed
+            updateQueuedRecording(id: id) { item in
+                item.transportState = shouldRetry ? .local : .uploaded
+                if item.remotePhase == nil { item.remotePhase = .queued }
+            }
             guard !isRecording else { return }
-            if queuedRecordings.isEmpty {
-                phase = .transferred
-                message = "Synced to iPhone queue. You can record another."
-                scheduleTransientSuccessReset()
+            if shouldRetry {
+                phase = .error("iPhone could not save the transfer.")
+                message = "Recording is safe on Watch. Tap Sync Queue to retry."
             } else {
-                phase = .idle
-                message = queueSummary + " Tap Sync Queue to continue."
+                phase = .waitingForPhone
+                message = "Safely queued on iPhone. Waiting for transcription."
             }
         } else {
+            updateQueuedRecording(id: id) { $0.transportState = .local }
             guard !isRecording else { return }
             cancelTransientSuccessReset()
             let errorMessage = notification.userInfo?[WatchRecordingTransferNotificationKey.errorMessage] as? String
@@ -319,6 +479,90 @@ final class WatchLocalRecorder: ObservableObject {
             message = errorMessage.map { "Saved on Watch. Sync failed: \($0)" }
                 ?? "Saved on Watch. Tap Sync Queue after your iPhone is nearby."
         }
+    }
+
+    func applyRemoteStatuses(
+        _ statuses: [WatchRemoteRecordingStatus],
+        using bridge: WatchPhoneBridge
+    ) {
+        guard !statuses.isEmpty else { return }
+        var terminalAcknowledgements: [(String, Int)] = []
+
+        for status in statuses {
+            guard let existing = queuedRecordings.first(where: { $0.id == status.recordingID }) else {
+                if status.phase == .delivered || status.phase == .discarded {
+                    terminalAcknowledgements.append((status.recordingID, status.revision))
+                }
+                continue
+            }
+            guard status.revision > existing.remoteRevision else { continue }
+
+            if status.phase == .transportFailed {
+                updateQueuedRecording(id: status.recordingID) { item in
+                    item.transportState = .local
+                    item.remotePhase = .transportFailed
+                    item.remoteRevision = status.revision
+                }
+                continue
+            }
+
+            updateQueuedRecording(id: status.recordingID) { item in
+                item.transportState = .uploaded
+                item.remotePhase = status.phase
+                item.remoteRevision = status.revision
+            }
+
+            if status.phase == .delivered || status.phase == .discarded {
+                removeQueuedRecording(id: status.recordingID, deleteFile: true)
+                terminalAcknowledgements.append((status.recordingID, status.revision))
+            }
+        }
+
+        for (recordingID, revision) in terminalAcknowledgements {
+            bridge.acknowledge(recordingID: recordingID, revision: revision)
+        }
+
+        guard !isRecording else { return }
+        if queuedRecordings.isEmpty, !terminalAcknowledgements.isEmpty {
+            phase = .transferred
+            message = "Saved to Capture. You can record another."
+            scheduleTransientSuccessReset()
+        } else if !queuedRecordings.isEmpty {
+            phase = phaseForMostAdvancedRemoteStatus()
+            message = messageForMostAdvancedRemoteStatus()
+        }
+    }
+
+    private func phaseForMostAdvancedRemoteStatus() -> Phase {
+        if queuedRecordings.contains(where: { $0.remotePhase == .delivering }) { return .delivering }
+        if queuedRecordings.contains(where: { $0.remotePhase == .transcribing }) { return .transcribing }
+        if queuedRecordings.contains(where: { $0.transportState == .transferring }) { return .transferring }
+        if queuedRecordings.contains(where: { $0.remotePhase == .transportFailed }) {
+            return .error("iPhone could not save the transfer.")
+        }
+        if queuedRecordings.contains(where: { $0.remotePhase == .failed }) {
+            return .error("The recording is saved and needs attention on iPhone.")
+        }
+        return .waitingForPhone
+    }
+
+    private func messageForMostAdvancedRemoteStatus() -> String {
+        if queuedRecordings.contains(where: { $0.remotePhase == .delivering }) {
+            return "Saving the transcript to Capture on iPhone."
+        }
+        if queuedRecordings.contains(where: { $0.remotePhase == .transcribing }) {
+            return "Transcribing on iPhone with on-device speech recognition."
+        }
+        if queuedRecordings.contains(where: { $0.transportState == .transferring }) {
+            return "Syncing recording to iPhone…"
+        }
+        if queuedRecordings.contains(where: { $0.remotePhase == .transportFailed }) {
+            return "Recording is safe on Watch. Tap Sync Queue to retry."
+        }
+        if queuedRecordings.contains(where: { $0.remotePhase == .failed }) {
+            return "Kept safely. Open Vox.md on iPhone to retry."
+        }
+        return "Safely queued on iPhone. Waiting to process."
     }
 
     private func scheduleTransientSuccessReset(after delay: TimeInterval = 3.5) {
@@ -441,6 +685,9 @@ final class WatchLocalRecorder: ObservableObject {
         recorder?.stop()
         recorder = nil
         currentRecordingID = nil
+        currentPresetID = nil
+        currentPresetName = nil
+        currentPresetSnapshot = nil
         startedAt = nil
         duration = 0
         stopTimer()
@@ -490,22 +737,69 @@ final class WatchLocalRecorder: ObservableObject {
         recordingsDirectoryURL.appendingPathComponent("index.json")
     }
 
+    nonisolated private static var activeRecordingURL: URL {
+        recordingsDirectoryURL.appendingPathComponent("active-recording.json")
+    }
+
     private func recordingsDirectory() throws -> URL {
         try FileManager.default.createDirectory(at: Self.recordingsDirectoryURL, withIntermediateDirectories: true)
         return Self.recordingsDirectoryURL
     }
 
-    private static func loadQueuedRecordings() -> [QueuedRecording] {
-        guard let data = try? Data(contentsOf: queueIndexURL),
-              let decoded = try? JSONDecoder().decode([QueuedRecording].self, from: data) else {
-            return []
+    private static func loadQueuedRecordingsRecoveringInterruptedCapture() -> [QueuedRecording] {
+        let indexData = try? Data(contentsOf: queueIndexURL)
+        let decoded = indexData.flatMap { try? JSONDecoder().decode([QueuedRecording].self, from: $0) }
+        let indexCouldNotDecode = indexData != nil && decoded == nil
+        var existing = (decoded ?? []).filter {
+            FileManager.default.fileExists(atPath: $0.fileURL.path)
         }
 
-        let existing = decoded.filter { FileManager.default.fileExists(atPath: $0.fileURL.path) }
-        if existing.count != decoded.count {
-            try? saveQueuedRecordings(existing)
+        if let activeData = try? Data(contentsOf: activeRecordingURL),
+           var interrupted = try? JSONDecoder().decode(QueuedRecording.self, from: activeData),
+           FileManager.default.fileExists(atPath: interrupted.fileURL.path),
+           !existing.contains(where: { $0.id == interrupted.id }) {
+            interrupted.transportState = .local
+            interrupted.duration = max(
+                interrupted.duration,
+                (try? AVAudioPlayer(contentsOf: interrupted.fileURL).duration) ?? 0
+            )
+            existing.append(interrupted)
         }
-        return existing.sorted { $0.createdAt < $1.createdAt }
+
+        // Recover every orphaned audio file. This is the last line of defense
+        // against a corrupt/incompatible index or termination before indexing.
+        let audioFiles = (try? FileManager.default.contentsOfDirectory(
+            at: recordingsDirectoryURL,
+            includingPropertiesForKeys: [.creationDateKey, .contentModificationDateKey],
+            options: [.skipsHiddenFiles]
+        )) ?? []
+        for url in audioFiles where url.pathExtension.lowercased() == "m4a" {
+            guard !existing.contains(where: { $0.filename == url.lastPathComponent }) else { continue }
+            let stem = url.deletingPathExtension().lastPathComponent
+            let id = stem.hasPrefix("watch-") ? String(stem.dropFirst("watch-".count)) : stem
+            let values = try? url.resourceValues(forKeys: [.creationDateKey, .contentModificationDateKey])
+            existing.append(QueuedRecording(
+                id: id,
+                filename: url.lastPathComponent,
+                createdAt: values?.creationDate ?? values?.contentModificationDate ?? Date(),
+                duration: (try? AVAudioPlayer(contentsOf: url).duration) ?? 0
+            ))
+        }
+
+        existing.sort { $0.createdAt < $1.createdAt }
+        do {
+            if indexCouldNotDecode {
+                let backup = recordingsDirectoryURL.appendingPathComponent(
+                    "index-corrupt-\(Int(Date().timeIntervalSince1970)).json"
+                )
+                try? FileManager.default.copyItem(at: queueIndexURL, to: backup)
+            }
+            try saveQueuedRecordings(existing)
+            clearActiveRecording()
+        } catch {
+            // Keep the original index/active manifest so a later launch can retry.
+        }
+        return existing
     }
 
     private static func saveQueuedRecordings(_ recordings: [QueuedRecording]) throws {
@@ -514,14 +808,38 @@ final class WatchLocalRecorder: ObservableObject {
         try data.write(to: queueIndexURL, options: .atomic)
     }
 
+    private static func saveActiveRecording(_ recording: QueuedRecording) throws {
+        try FileManager.default.createDirectory(at: recordingsDirectoryURL, withIntermediateDirectories: true)
+        try JSONEncoder().encode(recording).write(to: activeRecordingURL, options: .atomic)
+    }
+
+    private static func clearActiveRecording() {
+        try? FileManager.default.removeItem(at: activeRecordingURL)
+    }
+
     private func saveQueuedRecordings() {
         try? Self.saveQueuedRecordings(queuedRecordings)
     }
 
-    private func upsertQueuedRecording(_ item: QueuedRecording) {
+    private func upsertQueuedRecording(_ item: QueuedRecording) throws {
+        let previous = queuedRecordings
         queuedRecordings.removeAll { $0.id == item.id }
         queuedRecordings.append(item)
         queuedRecordings.sort { $0.createdAt < $1.createdAt }
+        do {
+            try Self.saveQueuedRecordings(queuedRecordings)
+        } catch {
+            queuedRecordings = previous
+            throw error
+        }
+    }
+
+    private func updateQueuedRecording(
+        id: String,
+        _ mutation: (inout QueuedRecording) -> Void
+    ) {
+        guard let index = queuedRecordings.firstIndex(where: { $0.id == id }) else { return }
+        mutation(&queuedRecordings[index])
         saveQueuedRecordings()
     }
 
@@ -597,6 +915,9 @@ final class WatchLocalRecorder: ObservableObject {
         message = error
         recorder = nil
         currentRecordingID = nil
+        currentPresetID = nil
+        currentPresetName = nil
+        currentPresetSnapshot = nil
         startedAt = nil
         stopTimer()
         try? AVAudioSession.sharedInstance().setActive(false)

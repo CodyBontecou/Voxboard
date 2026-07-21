@@ -23,6 +23,7 @@ final class QuickCaptureViewModel {
     var needsCaptureUnlock = false
 
     private let captureRootURL: URL?
+    private let defaultCaptureSource: CaptureSource
     private let libraryStore: CaptureLibraryStore?
     private let draftStore: CaptureDraftStore?
     private let historyStore: CaptureHistoryStore?
@@ -34,12 +35,15 @@ final class QuickCaptureViewModel {
     private var pendingCaptureSource: CaptureSource?
     private var pendingVoxID: String?
     private var liveRecordedTranscriptPreview: LiveTranscriptDraftPreview?
+    private var invalidatedLiveTranscriptSessionIDs = Set<UUID>()
 
     init(
         captureRootURL: URL? = AppConstants.captureDirectoryURL,
+        defaultCaptureSource: CaptureSource = .app,
         requestProcessor: CapturePresetRequestProcessor = CapturePresetRequestProcessor()
     ) {
         self.captureRootURL = captureRootURL
+        self.defaultCaptureSource = defaultCaptureSource
         if let captureRootURL {
             self.libraryStore = CaptureLibraryStore(
                 fileURL: captureRootURL.appendingPathComponent(AppConstants.captureLibraryFilename)
@@ -98,7 +102,7 @@ final class QuickCaptureViewModel {
         guard var destination = selectedDestination,
               let destinationID = effectiveDestinationID,
               let request = try? draft.makeRequest(
-                source: .app,
+                source: defaultCaptureSource,
                 resolvedDestinationID: destinationID,
                 voxProfile: selectedVoxProfile
               ) else { return nil }
@@ -220,6 +224,20 @@ final class QuickCaptureViewModel {
         }
     }
 
+    func refreshLibrary() async {
+        guard let libraryStore else { return }
+        do {
+            let library = try await CapturePresetRouteLibrary.load(from: libraryStore)
+            destinations = library.destinations
+            entryTemplates = library.entryTemplates
+            defaultDestinationID = library.defaultDestinationID
+            refreshVoxProfiles()
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func refreshHistory() async {
         historyRecords = (try? await historyStore?.list()) ?? []
     }
@@ -228,6 +246,33 @@ final class QuickCaptureViewModel {
         do {
             try await historyStore?.clear()
             historyRecords = []
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func deleteHistory(requestID: UUID) async {
+        do {
+            try await historyStore?.remove(requestIDs: [requestID])
+            historyRecords.removeAll { $0.requestID == requestID }
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func clearDraft() async {
+        pendingDraftSave?.cancel()
+        pendingDraftSave = nil
+        liveRecordedTranscriptPreview = nil
+        do {
+            try await draftStore?.complete(draftID: draft.id)
+            draft = CaptureDraft(
+                voxID: selectedVoxProfile?.id
+                    ?? CapturePresetProfileStore.selectedProfileID(defaults: AppConstants.sharedDefaults),
+                destinationSelectionMode: .inherited
+            )
+            try await draftStore?.save(draft)
+            errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -339,6 +384,8 @@ final class QuickCaptureViewModel {
                 throw QuickCaptureViewModelError.noteMustBeMarkdown
             }
             let rootURL = try Self.resolveRootURL(for: destination)
+            let didAccessRoot = rootURL.startAccessingSecurityScopedResource()
+            defer { if didAccessRoot { rootURL.stopAccessingSecurityScopedResource() } }
             let rootPath = rootURL.standardizedFileURL.path
             let candidatePath = url.standardizedFileURL.path
             let rootPrefix = rootPath.hasSuffix("/") ? rootPath : rootPath + "/"
@@ -351,7 +398,7 @@ final class QuickCaptureViewModel {
                 rootURL: rootURL
             )
             draft.relativeNotePathOverride = relativePath
-            try await draftStore?.save(draft)
+            try await persistDurableDraft()
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -368,13 +415,48 @@ final class QuickCaptureViewModel {
     }
 
     func saveDraftNow() async {
-        guard let draftStore else { return }
-        draft.updatedAt = Date()
         do {
-            try await draftStore.save(draft)
+            try await persistDurableDraft()
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Flushes the current durable state before macOS termination. Unlike the
+    /// regular UI save helper, failure is returned to the app delegate so quit
+    /// can be cancelled instead of silently discarding final edits.
+    func flushDraftForTermination() async -> Bool {
+        pendingDraftSave?.cancel()
+        pendingDraftSave = nil
+        do {
+            try await persistDurableDraft()
+            errorMessage = nil
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    private func persistDurableDraft() async throws {
+        guard let draftStore else {
+            throw QuickCaptureViewModelError.storageUnavailable
+        }
+        try await saveDurableDraft(using: draftStore)
+    }
+
+    private func saveDurableDraft(using draftStore: CaptureDraftStore) async throws {
+        let savedAt = Date()
+        var durableDraft = draft
+        if var preview = liveRecordedTranscriptPreview {
+            // Volatile Speech text is UI-only until the full transcription is
+            // committed. Any route, attachment, window, deep-link, or quit save
+            // must omit it until the final transcript is committed.
+            durableDraft.text = preview.cancel(in: durableDraft.text)
+        }
+        durableDraft.updatedAt = savedAt
+        try await draftStore.save(durableDraft)
+        draft.updatedAt = savedAt
     }
 
     var hasLiveRecordedTranscriptPreview: Bool {
@@ -382,10 +464,17 @@ final class QuickCaptureViewModel {
     }
 
     func updateLiveRecordedTranscript(
+        sessionID: UUID? = nil,
         finalizedText: String,
         volatileText: String?
     ) async {
+        if let sessionID,
+           invalidatedLiveTranscriptSessionIDs.contains(sessionID) { return }
         await load()
+        // Loading may suspend while the recorder is stopped. Revalidate before
+        // mutating so a stale Speech callback cannot enter a later session.
+        if let sessionID,
+           invalidatedLiveTranscriptSessionIDs.contains(sessionID) { return }
         var preview = liveRecordedTranscriptPreview ?? LiveTranscriptDraftPreview()
         let updatedText = preview.render(
             finalizedText: finalizedText,
@@ -404,6 +493,10 @@ final class QuickCaptureViewModel {
         draft.updatedAt = Date()
     }
 
+    func invalidateLiveRecordedTranscriptSession(_ sessionID: UUID) {
+        invalidatedLiveTranscriptSessionIDs.insert(sessionID)
+    }
+
     func cancelLiveRecordedTranscript() async {
         guard var preview = liveRecordedTranscriptPreview else { return }
         let restoredText = preview.cancel(in: draft.text)
@@ -415,6 +508,10 @@ final class QuickCaptureViewModel {
     @discardableResult
     func appendRecordedTranscript(_ text: String) async -> Bool {
         await load()
+        guard let draftStore else {
+            errorMessage = QuickCaptureViewModelError.storageUnavailable.localizedDescription
+            return false
+        }
         let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else { return false }
 
@@ -440,7 +537,7 @@ final class QuickCaptureViewModel {
         draft.deliveryKind = .meteredVoiceTranscript
         draft.updatedAt = Date()
         do {
-            try await draftStore?.save(draft)
+            try await draftStore.save(draft)
             errorMessage = nil
             return true
         } catch {
@@ -559,7 +656,7 @@ final class QuickCaptureViewModel {
         let previous = draft.additionalPayloads[index]
         draft.additionalPayloads[index] = .audio(asset, transcript: transcript)
         do {
-            try await draftStore?.save(draft)
+            try await persistDurableDraft()
             errorMessage = nil
             return true
         } catch {
@@ -623,7 +720,13 @@ final class QuickCaptureViewModel {
         }
     }
 
-    func stageSketch(drawingData: Data, previewData: Data, altText: String? = nil) async {
+    func stageSketch(
+        drawingData: Data,
+        previewData: Data,
+        altText: String? = nil,
+        drawingFilename: String = "sketch.drawing",
+        drawingContentTypeIdentifier: String = "com.apple.pencilkit.drawing"
+    ) async {
         guard let stagingDirectory = stagingDirectoryURL else {
             errorMessage = QuickCaptureViewModelError.storageUnavailable.localizedDescription
             return
@@ -633,8 +736,8 @@ final class QuickCaptureViewModel {
         do {
             let drawing = try await stager.stage(
                 data: drawingData,
-                preferredFilename: "sketch.drawing",
-                contentTypeIdentifier: "com.apple.pencilkit.drawing"
+                preferredFilename: drawingFilename,
+                contentTypeIdentifier: drawingContentTypeIdentifier
             )
             newlyStaged.append(drawing)
             let preview = try await stager.stage(
@@ -675,7 +778,7 @@ final class QuickCaptureViewModel {
         do {
             // Persist the removed reference before deleting bytes. If saving
             // fails, the durable draft still points at a valid staged file.
-            try await draftStore.save(draft)
+            try await saveDurableDraft(using: draftStore)
         } catch {
             draft.additionalPayloads.insert(payload, at: index)
             errorMessage = error.localizedDescription
@@ -698,6 +801,10 @@ final class QuickCaptureViewModel {
     }
 
     func submit() async {
+        guard liveRecordedTranscriptPreview == nil else {
+            errorMessage = String(localized: "Finish the current recording before sending this Capture.")
+            return
+        }
         guard draft.text.count <= CaptureInputLimits.maximumTextCharacters else {
             errorMessage = QuickCaptureViewModelError.textTooLarge.localizedDescription
             return
@@ -763,7 +870,7 @@ final class QuickCaptureViewModel {
                     request = prepared
                 } else {
                     let unresolved = try draft.makeRequest(
-                        source: .app,
+                        source: defaultCaptureSource,
                         resolvedDestinationID: submittedDestinationID,
                         voxProfile: submittedVoxProfile
                     )
@@ -790,7 +897,7 @@ final class QuickCaptureViewModel {
             try? await draftStore.removePreparedRequest(draftID: submittedDraftID)
             let library = try await libraryStore.load()
             if let request = try? submittedDraft.makeRequest(
-                source: .app,
+                source: defaultCaptureSource,
                 resolvedDestinationID: submittedDestinationID,
                 voxProfile: submittedVoxProfile
             ) {
@@ -834,7 +941,7 @@ final class QuickCaptureViewModel {
             }
         } catch {
             if let request = try? submittedDraft.makeRequest(
-                source: .app,
+                source: defaultCaptureSource,
                 resolvedDestinationID: submittedDestinationID,
                 voxProfile: submittedVoxProfile
             ) {
@@ -884,7 +991,7 @@ final class QuickCaptureViewModel {
                     draft.additionalPayloads.append(.url(url, title: nil))
                 }
                 requestedInput = incoming.requestedInput
-                try await draftStore?.save(draft)
+                try await persistDurableDraft()
 
             case .processInboxRequest(let requestID):
                 try await processInboxRequest(id: requestID)
@@ -996,9 +1103,15 @@ final class QuickCaptureViewModel {
             }
             throw QuickCaptureViewModelError.assetsTooLarge
         }
+        guard let draftStore else {
+            for asset in Self.assets(in: payload) {
+                try? await stager.remove(asset)
+            }
+            throw QuickCaptureViewModelError.storageUnavailable
+        }
         draft.additionalPayloads.append(payload)
         do {
-            try await draftStore?.save(draft)
+            try await saveDurableDraft(using: draftStore)
         } catch {
             _ = draft.additionalPayloads.popLast()
             for asset in Self.assets(in: payload) {
@@ -1202,15 +1315,11 @@ final class QuickCaptureViewModel {
     }
 
     nonisolated private static func resolveRootURL(for destination: CaptureDestination) throws -> URL {
-        var isStale = false
-        let url = try URL(
-            resolvingBookmarkData: destination.rootBookmark,
-            options: [],
-            relativeTo: nil,
-            bookmarkDataIsStale: &isStale
-        )
-        guard !isStale else { throw QuickCaptureViewModelError.staleDestination(destination.name) }
-        return url
+        let resolution = try CaptureBookmarkResolver.resolve(destination.rootBookmark)
+        guard !resolution.isStale else {
+            throw QuickCaptureViewModelError.staleDestination(destination.name)
+        }
+        return resolution.url
     }
 }
 

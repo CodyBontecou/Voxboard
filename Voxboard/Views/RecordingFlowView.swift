@@ -85,6 +85,7 @@ final class CapturePresetController {
         }
 
         Task.detached(priority: .userInitiated) {
+            defer { try? FileManager.default.removeItem(at: audioURL) }
             do {
                 let result = try await service.transcribeResult(
                     audioURL: audioURL,

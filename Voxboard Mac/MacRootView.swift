@@ -3,10 +3,15 @@ import SwiftUI
 import UniformTypeIdentifiers
 import VoxboardShared
 
+extension Notification.Name {
+    static let macShowCapture = Notification.Name("VoxboardMacShowCapture")
+    static let macShowHistory = Notification.Name("VoxboardMacShowHistory")
+    static let macChooseCaptureFiles = Notification.Name("VoxboardMacChooseCaptureFiles")
+    static let macClearCaptureDraft = Notification.Name("VoxboardMacClearCaptureDraft")
+}
+
 private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
-    case listen = "Listen"
-    case model = "Model"
-    case presets = "Presets"
+    case capture = "Capture"
     case history = "History"
     case settings = "Settings"
 
@@ -14,9 +19,7 @@ private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
 
     var symbol: String {
         switch self {
-        case .listen: return "mic.fill"
-        case .model: return "cpu.fill"
-        case .presets: return "slider.horizontal.3"
+        case .capture: return "square.and.pencil"
         case .history: return "clock.arrow.circlepath"
         case .settings: return "gearshape.fill"
         }
@@ -24,8 +27,12 @@ private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
 }
 
 struct MacRootView: View {
+    @Environment(\.openWindow) private var openWindow
     @Bindable var recorder: MacRecorder
-    @State private var selection: MacDestination? = .listen
+    @Bindable var quickCaptureViewModel: QuickCaptureViewModel
+    let windowCoordinator: MacWindowCoordinator
+    @State private var selection: MacDestination? = .capture
+    @State private var windowToken = UUID().uuidString
 
     var body: some View {
         NavigationSplitView {
@@ -42,337 +49,46 @@ struct MacRootView: View {
                 }
             }
             .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(min: 150, ideal: 180, max: 220)
         } detail: {
-            switch selection ?? .listen {
-            case .listen:
-                MacHomeView(recorder: recorder)
-            case .model:
-                MacModelView()
-            case .presets:
-                MacCapturePresetSettingsView()
+            switch selection ?? .capture {
+            case .capture:
+                MacCaptureWorkspaceView(
+                    viewModel: quickCaptureViewModel,
+                    recorder: recorder,
+                    windowToken: windowToken,
+                    windowCoordinator: windowCoordinator,
+                    openHistory: { windowCoordinator.showHistory() },
+                    openSettings: { selection = .settings }
+                )
             case .history:
-                MacHistoryView()
+                MacHistoryView(viewModel: quickCaptureViewModel)
             case .settings:
                 MacSettingsView(recorder: recorder)
             }
         }
         .tint(Geist.Palette.gray1000)
         .frame(minWidth: 980, minHeight: 680)
-    }
-}
-
-// MARK: - Home
-
-private struct MacHomeView: View {
-    @Environment(ModelManager.self) private var modelManager
-    @Environment(TranscriptStore.self) private var transcriptStore
-    @Environment(UsageTracker.self) private var usageTracker
-    @Environment(MacStoreManager.self) private var storeManager
-
-    @Bindable var recorder: MacRecorder
-
-    @State private var flows: [CapturePreset] = CapturePresetStore.loadFlows()
-    @State private var selectedFlowId: String = CapturePresetStore.selectedFlowId()
-    @State private var showPaywall = false
-    @State private var micPermissionGranted = true
-    @State private var isRequestingMicPermission = false
-    @State private var exportToastURL: URL?
-
-    var body: some View {
-        ZStack {
-            Geist.bg.ignoresSafeArea()
-            GeistGridBackground().ignoresSafeArea().allowsHitTesting(false)
-
-            VStack(spacing: 0) {
-                topBar
-                GeistDivider()
-                Spacer(minLength: 24)
-                centerContent
-                    .frame(maxWidth: 720)
-                Spacer(minLength: 24)
-                GeistDivider()
-                bottomBar
-            }
-
-            if let exportToastURL {
-                MacExportToast(url: exportToastURL) {
-                    NSWorkspace.shared.activateFileViewerSelecting([exportToastURL])
-                    self.exportToastURL = nil
-                }
-                .padding(24)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
-        .navigationTitle("Listen")
+        .background(
+            MacSceneWindowRegistrar(
+                kind: .main(token: windowToken),
+                coordinator: windowCoordinator
+            )
+        )
         .onAppear {
-            reloadFlows()
-            if recorder.needsUnlock {
-                recorder.needsUnlock = false
-                showPaywall = true
-            }
+            windowCoordinator.configure(openWindow: openWindow)
+            windowCoordinator.mainRootReady(token: windowToken)
         }
-        .sheet(isPresented: $showPaywall) {
-            MacPaywallView()
-                .environment(usageTracker)
-                .environment(storeManager)
+        .onDisappear {
+            windowCoordinator.mainRootNotReady(token: windowToken)
         }
-        .onChange(of: recorder.needsUnlock) { _, needsUnlock in
-            if needsUnlock {
-                recorder.needsUnlock = false
-                showPaywall = true
-            }
+        .onReceive(NotificationCenter.default.publisher(for: .macShowCapture)) { notification in
+            guard notification.object == nil || (notification.object as? String) == windowToken else { return }
+            selection = .capture
         }
-        .onChange(of: recorder.lastExportURL) { _, url in
-            guard let url else { return }
-            exportToastURL = url
-        }
-    }
-
-    private var topBar: some View {
-        VStack(spacing: 0) {
-            HStack {
-                GeistStatusBadge(
-                    label: recorder.isRecording ? "Recording" : recorder.isTranscribing ? "Transcribing" : "Ready",
-                    isActive: recorder.isRecording || recorder.isTranscribing
-                )
-                Spacer()
-                Text("Vox.md for Mac")
-                    .font(Geist.label(.headline))
-                    .foregroundColor(Geist.text)
-                Spacer()
-                Text(modelManager.selectedModel?.name ?? "No Model")
-                    .font(Geist.caption())
-                    .foregroundColor(Geist.muted)
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 14)
-
-            HStack(spacing: 10) {
-                Text("Preset")
-                    .font(Geist.caption())
-                    .foregroundColor(Geist.muted)
-                Picker("Capture Preset", selection: $selectedFlowId) {
-                    ForEach(enabledFlows) { flow in
-                        Label(flow.displayName, systemImage: MacFlowIconPickerView.iconName(for: flow.symbolName)).tag(flow.id)
-                    }
-                }
-                .labelsHidden()
-                .frame(maxWidth: 260)
-                .onChange(of: selectedFlowId) { _, id in CapturePresetStore.selectFlow(id: id) }
-
-                Spacer()
-
-                if !usageTracker.hasUnlocked {
-                    usageMeter
-                }
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 10)
-            .background(Geist.surface.opacity(0.45))
-        }
-    }
-
-    private var usageMeter: some View {
-        Button { showPaywall = true } label: {
-            HStack(spacing: 10) {
-                Text(
-                    usageTracker.isAtLimit || usageTracker.isCaptureAtLimit
-                        ? "LIMIT REACHED — UNLOCK"
-                        : String(
-                            format: "%.1f / 15 MIN · %d / 10 CAPTURES",
-                            usageTracker.minutesUsed,
-                            usageTracker.successfulCapturesUsed
-                        )
-                )
-                    .font(Geist.caption())
-                    .foregroundColor(
-                        usageTracker.isAtLimit || usageTracker.isCaptureAtLimit ? Geist.error : Geist.muted
-                    )
-                    .monospacedDigit()
-                ProgressView(value: max(usageTracker.fractionUsed, usageTracker.captureFractionUsed))
-                    .progressViewStyle(.linear)
-                    .frame(width: 120)
-                    .tint(
-                        usageTracker.isAtLimit || usageTracker.isCaptureAtLimit ? Geist.error : Geist.text
-                    )
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    @ViewBuilder
-    private var centerContent: some View {
-        if !micPermissionGranted {
-            VStack(spacing: 20) {
-                statusBlock(number: "01", title: "Status", headline: "NO MIC.", detail: "Enable microphone access for Vox.md in macOS Privacy & Security, then start recording again.", color: Geist.error)
-                Button("Open Privacy Settings") { openMicrophonePrivacySettings() }
-                    .buttonStyle(GeistButtonStyle(variant: .secondary))
-                    .frame(maxWidth: 260)
-            }
-        } else if let error = recorder.lastError, !recorder.isRecording, !recorder.isTranscribing {
-            VStack(spacing: 20) {
-                statusBlock(number: "01", title: "Status", headline: "ERROR.", detail: error, color: Geist.error)
-                HStack(spacing: 12) {
-                    if recorder.failedCaptureCount > 0 {
-                        Button(recorder.isRetryingCaptures ? "RETRYING…" : "RETRY CAPTURES") {
-                            Task { await recorder.processPendingCaptureInbox(retryFailed: true) }
-                        }
-                        .buttonStyle(GeistButtonStyle(variant: .primary))
-                        .disabled(recorder.isRetryingCaptures)
-                    }
-                    Button("Dismiss Error") { recorder.lastError = nil }
-                        .buttonStyle(GeistButtonStyle(variant: .secondary))
-                }
-                .frame(maxWidth: 440)
-            }
-        } else if recorder.isRecording {
-            VStack(spacing: 24) {
-                GeistSectionLabel(number: "01", title: "Status")
-                Text("Recording")
-                    .font(Geist.display(56))
-                    .foregroundColor(Geist.text)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.35)
-                Text(formatDuration(recorder.recordingDuration))
-                    .font(Geist.display(64))
-                    .foregroundColor(Geist.text)
-                    .monospacedDigit()
-                Text("Audio is captured locally and transcribed on this Mac.")
-                    .font(Geist.body())
-                    .foregroundColor(Geist.muted)
-            }
-        } else if recorder.isTranscribing {
-            VStack(spacing: 24) {
-                GeistSectionLabel(number: "01", title: "Status")
-                TranscribingDotsView()
-                Text("Processing audio on-device")
-                    .font(Geist.body())
-                    .foregroundColor(Geist.muted)
-            }
-        } else if let result = recorder.lastTranscriptionResult {
-            VStack(spacing: 24) {
-                GeistSectionLabel(number: "01", title: "Status")
-                Text("Transcript Ready")
-                    .font(Geist.display(56))
-                    .foregroundColor(Geist.text)
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("Transcript")
-                            .font(Geist.label())
-                            .foregroundColor(Geist.muted)
-                        Spacer()
-                        Button("Copy") { copyToPasteboard(result) }
-                            .font(Geist.label())
-                            .foregroundColor(Geist.text)
-                            .buttonStyle(.plain)
-                        Button("Clear") { recorder.lastTranscriptionResult = nil }
-                            .font(Geist.label())
-                            .foregroundColor(Geist.muted)
-                            .buttonStyle(.plain)
-                    }
-                    Text(result)
-                        .font(Geist.body())
-                        .foregroundColor(Geist.text)
-                        .lineSpacing(4)
-                        .textSelection(.enabled)
-                }
-                .padding(16)
-                .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
-            }
-        } else {
-            VStack(spacing: 28) {
-                GeistSectionLabel(number: "01", title: "Status")
-                Text("Ready to Record")
-                    .font(Geist.display(64))
-                    .foregroundColor(Geist.text)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.35)
-                IdleWaveformView()
-                Text("Record in-app or import an audio/video file. Capture Presets, history, local models, and file exports match the iOS app.")
-                    .font(Geist.body())
-                    .foregroundColor(Geist.muted)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-            }
-        }
-    }
-
-    private var bottomBar: some View {
-        HStack(spacing: 12) {
-            if recorder.isRecording {
-                Button {
-                    recorder.stopAndTranscribe(modelManager: modelManager, flowId: selectedFlowId)
-                } label: {
-                    Label("Stop and Transcribe", systemImage: "stop.fill")
-                }
-                .buttonStyle(GeistButtonStyle(variant: .destructive))
-            } else {
-                Button {
-                    beginRecording()
-                } label: {
-                    Label(recordButtonTitle, systemImage: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
-                }
-                .buttonStyle(GeistButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .primary))
-                .disabled(recorder.isTranscribing || isRequestingMicPermission)
-            }
-
-            Button {
-                chooseImport()
-            } label: {
-                Label("Import Audio", systemImage: "waveform")
-            }
-            .buttonStyle(GeistButtonStyle(variant: .secondary))
-            .disabled(recorder.isRecording || recorder.isTranscribing)
-        }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 18)
-    }
-
-    private var enabledFlows: [CapturePreset] {
-        let enabled = flows.filter(\.isEnabled)
-        return enabled.isEmpty ? CapturePresetStore.defaultFlows : enabled
-    }
-
-    private var recordButtonTitle: String {
-        if usageTracker.isAtLimit { return "UNLOCK TO RECORD" }
-        return isRequestingMicPermission ? "REQUESTING MIC…" : "START RECORDING"
-    }
-
-    private func reloadFlows() {
-        flows = CapturePresetStore.loadFlows()
-        selectedFlowId = CapturePresetStore.selectedFlowId()
-    }
-
-    private func beginRecording() {
-        if usageTracker.isAtLimit {
-            showPaywall = true
-            return
-        }
-
-        isRequestingMicPermission = true
-        Task { @MainActor in
-            let granted = await AudioRecorder.requestMicrophonePermission()
-            micPermissionGranted = granted
-            isRequestingMicPermission = false
-            guard granted else { return }
-            recorder.startRecording(modelManager: modelManager, flowId: selectedFlowId)
-        }
-    }
-
-    private func openMicrophonePrivacySettings() {
-        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") else { return }
-        NSWorkspace.shared.open(url)
-    }
-
-    private func chooseImport() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [.audio, .movie]
-        panel.allowsMultipleSelection = false
-        panel.canChooseDirectories = false
-        panel.canChooseFiles = true
-        if panel.runModal() == .OK, let url = panel.url {
-            recorder.importAudioFile(from: url, modelManager: modelManager, flowId: selectedFlowId)
+        .onReceive(NotificationCenter.default.publisher(for: .macShowHistory)) { notification in
+            guard notification.object == nil || (notification.object as? String) == windowToken else { return }
+            windowCoordinator.showHistory()
         }
     }
 }
@@ -1237,73 +953,269 @@ private struct MacFlowIconOption: Identifiable {
 
 // MARK: - History
 
-private struct MacHistoryView: View {
+struct MacHistoryView: View {
+    @Bindable var viewModel: QuickCaptureViewModel
     @Environment(TranscriptStore.self) private var store
+    @State private var searchText = ""
+    @State private var showsClearConfirmation = false
+
+    private var unifiedItems: [MacUnifiedHistoryItem] {
+        var captureByID: [UUID: CaptureHistoryRecord] = [:]
+        for record in viewModel.historyRecords { captureByID[record.requestID] = record }
+        let transcriptIDs = Set(store.transcripts.map(\.id))
+        let transcripts = store.transcripts.map {
+            MacUnifiedHistoryItem.transcript($0, delivery: captureByID[$0.id])
+        }
+        let captures = viewModel.historyRecords
+            .filter { !transcriptIDs.contains($0.requestID) }
+            .map(MacUnifiedHistoryItem.capture)
+        return (transcripts + captures).sorted { $0.date > $1.date }
+    }
+
+    private var filteredItems: [MacUnifiedHistoryItem] {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return query.isEmpty ? unifiedItems : unifiedItems.filter { $0.matches(query) }
+    }
 
     var body: some View {
         ZStack {
-            Geist.bg.ignoresSafeArea()
-            if store.transcripts.isEmpty {
-                VStack(spacing: 18) {
-                    GeistSectionLabel(number: "—", title: "Empty")
-                    Text("No Transcripts Yet")
-                        .font(Geist.display(44))
-                        .foregroundColor(Geist.muted)
-                    Text("Record or import audio to build a local transcript history.")
+            Geist.Palette.background200.ignoresSafeArea()
+            if unifiedItems.isEmpty {
+                VStack(spacing: Geist.Spacing.four) {
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.system(size: 34, weight: .medium))
+                        .foregroundStyle(Geist.faint)
+                    Text("No History Yet")
+                        .font(Geist.heading(.title))
+                    Text("Record or send a Capture to create your first history item.")
                         .font(Geist.body())
-                        .foregroundColor(Geist.muted)
+                        .foregroundStyle(Geist.muted)
                 }
+            } else if filteredItems.isEmpty {
+                ContentUnavailableView.search(text: searchText)
             } else {
                 List {
-                    ForEach(store.transcripts) { transcript in
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Text(transcript.title ?? relativeDate(transcript.date))
-                                    .font(Geist.label(.headline))
-                                    .foregroundColor(Geist.text)
-                                Spacer()
-                                Button("Copy") { copyToPasteboard(transcript.cleanedText ?? transcript.text) }
-                                    .font(Geist.caption())
-                                    .buttonStyle(.plain)
-                                Button("Delete") { delete(transcript) }
-                                    .font(Geist.caption())
-                                    .foregroundColor(Geist.error)
-                                    .buttonStyle(.plain)
+                    if viewModel.failedInboxCount > 0 {
+                        Section("Needs Attention") {
+                            Button {
+                                Task { await viewModel.retryFailedInbox() }
+                            } label: {
+                                Label(
+                                    "Retry \(viewModel.failedInboxCount) queued capture\(viewModel.failedInboxCount == 1 ? "" : "s")",
+                                    systemImage: "arrow.clockwise.circle"
+                                )
                             }
-                            Text("\(relativeDate(transcript.date)) · \(transcript.modelUsed) · \(formatDurationShort(transcript.duration))")
-                                .font(Geist.caption())
-                                .foregroundColor(Geist.muted)
-                            Text(transcript.cleanedText ?? transcript.text)
-                                .font(Geist.body())
-                                .foregroundColor(Geist.text)
-                                .lineLimit(6)
-                                .textSelection(.enabled)
                         }
-                        .padding(.vertical, 10)
-                        .listRowBackground(Geist.bg)
+                    }
+
+                    ForEach(filteredItems) { item in
+                        historyRow(item)
+                            .listRowBackground(Geist.Palette.background200)
+                            .listRowSeparator(.hidden)
+                            .padding(.vertical, Geist.Spacing.one)
                     }
                 }
+                .listStyle(.plain)
                 .scrollContentBackground(.hidden)
             }
         }
         .navigationTitle("History")
+        .searchable(text: $searchText, prompt: "Search history")
         .toolbar {
-            Button("Reload") { store.reload() }
-            Button("Clear All", role: .destructive) { store.clear() }
-                .disabled(store.transcripts.isEmpty)
+            Button("Reload", systemImage: "arrow.clockwise") {
+                store.reload()
+                Task { await viewModel.refreshHistory() }
+            }
+            Button("Clear All", systemImage: "trash", role: .destructive) {
+                showsClearConfirmation = true
+            }
+            .disabled(unifiedItems.isEmpty)
+        }
+        .confirmationDialog(
+            "Clear all history?",
+            isPresented: $showsClearConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Clear All", role: .destructive) {
+                store.clear()
+                Task { await viewModel.clearHistory() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This clears transcript content and Capture delivery metadata. Exported Markdown notes and attachments are not deleted.")
         }
         .onAppear { store.reload() }
+        .task { await viewModel.refreshHistory() }
     }
 
-    private func delete(_ transcript: Transcript) {
-        guard let index = store.transcripts.firstIndex(where: { $0.id == transcript.id }) else { return }
-        store.delete(at: IndexSet(integer: index))
+    @ViewBuilder
+    private func historyRow(_ item: MacUnifiedHistoryItem) -> some View {
+        switch item {
+        case .transcript(let transcript, let delivery):
+            VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                        Text(transcript.title ?? relativeDate(transcript.date))
+                            .font(Geist.heading(.headline))
+                        Text("\(relativeDate(transcript.date)) · \(transcript.modelUsed) · \(formatDurationShort(transcript.duration))")
+                            .font(Geist.mono())
+                            .foregroundStyle(Geist.muted)
+                    }
+                    Spacer()
+                    if let delivery {
+                        Label(
+                            delivery.outcome == .delivered ? "Delivered" : "Failed",
+                            systemImage: delivery.outcome == .delivered ? "checkmark.circle" : "exclamationmark.triangle"
+                        )
+                        .font(Geist.caption())
+                        .foregroundStyle(delivery.outcome == .delivered ? Geist.muted : Geist.error)
+                    }
+                    Button("Copy") { copyToPasteboard(transcript.cleanedText ?? transcript.text) }
+                        .buttonStyle(.plain)
+                    Button("Delete", role: .destructive) {
+                        store.delete(ids: [transcript.id])
+                        Task { await viewModel.deleteHistory(requestID: transcript.id) }
+                    }
+                    .buttonStyle(.plain)
+                }
+                Text(transcript.cleanedText ?? transcript.text)
+                    .font(Geist.body())
+                    .lineLimit(6)
+                    .textSelection(.enabled)
+            }
+            .geistCard(padding: Geist.Spacing.four)
+
+        case .capture(let record):
+            HStack(alignment: .top, spacing: Geist.Spacing.three) {
+                Image(systemName: record.outcome == .delivered ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                    .foregroundStyle(record.outcome == .delivered ? Geist.text : Geist.error)
+                    .frame(width: 28)
+                VStack(alignment: .leading, spacing: Geist.Spacing.two) {
+                    HStack {
+                        Text(record.destinationName)
+                            .font(Geist.heading(.headline))
+                        Spacer()
+                        Text(record.deliveredAt ?? record.createdAt, style: .relative)
+                            .font(Geist.caption())
+                            .foregroundStyle(Geist.muted)
+                    }
+                    if let path = record.relativeNotePath {
+                        Text(path)
+                            .font(Geist.mono())
+                            .foregroundStyle(Geist.muted)
+                    }
+                    HStack(spacing: Geist.Spacing.three) {
+                        Text(record.source.rawValue.capitalized)
+                        if let preset = record.voxName {
+                            Label(preset, systemImage: "slider.horizontal.3")
+                        }
+                        if record.attachmentCount > 0 {
+                            Label("\(record.attachmentCount)", systemImage: "paperclip")
+                        }
+                        if let failure = record.failureCategory {
+                            Text(failure.displayName).foregroundStyle(Geist.error)
+                        }
+                        Spacer()
+                        if record.outcome == .delivered, record.relativeNotePath != nil {
+                            Button("Reveal") { reveal(record) }
+                                .buttonStyle(.plain)
+                        }
+                        Button("Delete", role: .destructive) {
+                            Task { await viewModel.deleteHistory(requestID: record.requestID) }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.faint)
+                }
+            }
+            .geistCard(padding: Geist.Spacing.four)
+        }
+    }
+
+    private func reveal(_ record: CaptureHistoryRecord) {
+        Task { @MainActor in
+            do {
+                guard let libraryURL = AppConstants.captureLibraryURL,
+                      let relativePath = record.relativeNotePath else { return }
+                let library = try await CaptureLibraryStore(fileURL: libraryURL).load()
+                guard let destination = library.destinations.first(where: { $0.id == record.destinationID }) else {
+                    throw MacHistoryRevealError.destinationMissing
+                }
+                let rootResolution = try CaptureBookmarkResolver.resolve(destination.rootBookmark)
+                let rootURL = rootResolution.url
+                guard !rootResolution.isStale else { throw MacHistoryRevealError.permissionExpired }
+                let didAccess = rootURL.startAccessingSecurityScopedResource()
+                defer { if didAccess { rootURL.stopAccessingSecurityScopedResource() } }
+                let noteURL = try CapturePathValidation.containedFileURL(
+                    relativePath: relativePath,
+                    rootURL: rootURL
+                )
+                NSWorkspace.shared.activateFileViewerSelecting([noteURL])
+            } catch {
+                viewModel.errorMessage = error.localizedDescription
+            }
+        }
+    }
+}
+
+private enum MacUnifiedHistoryItem: Identifiable {
+    case transcript(Transcript, delivery: CaptureHistoryRecord?)
+    case capture(CaptureHistoryRecord)
+
+    var id: String {
+        switch self {
+        case .transcript(let transcript, _): "transcript-\(transcript.id.uuidString)"
+        case .capture(let record): "capture-\(record.requestID.uuidString)"
+        }
+    }
+
+    var date: Date {
+        switch self {
+        case .transcript(let transcript, _): transcript.date
+        case .capture(let record): record.deliveredAt ?? record.createdAt
+        }
+    }
+
+    func matches(_ query: String) -> Bool {
+        switch self {
+        case .transcript(let transcript, let delivery):
+            if TranscriptSearch.matches(transcript, query: query) { return true }
+            return delivery.map { Self.captureHaystack($0).localizedCaseInsensitiveContains(query) } ?? false
+        case .capture(let record):
+            return Self.captureHaystack(record).localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    private static func captureHaystack(_ record: CaptureHistoryRecord) -> String {
+        [
+            record.destinationName,
+            record.voxName,
+            record.relativeNotePath,
+            record.source.rawValue,
+            record.outcome.rawValue,
+            record.failureCategory?.displayName,
+        ]
+        .compactMap { $0 }
+        .joined(separator: " ")
+    }
+}
+
+private enum MacHistoryRevealError: Error, LocalizedError {
+    case destinationMissing
+    case permissionExpired
+
+    var errorDescription: String? {
+        switch self {
+        case .destinationMissing: "The Capture destination no longer exists."
+        case .permissionExpired: "Folder permission expired. Reauthorize the destination in Capture Presets."
+        }
     }
 }
 
 // MARK: - Settings / Paywall
 
-private struct MacSettingsView: View {
+struct MacSettingsView: View {
     let recorder: MacRecorder
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(MacStoreManager.self) private var storeManager
@@ -1313,6 +1225,9 @@ private struct MacSettingsView: View {
     private var visibilityModeRaw = MacAppVisibilityMode.dockAndMenuBar.rawValue
     @State private var showPaywall = false
     @State private var showDebug = false
+    @State private var showModels = false
+    @State private var showCapturePresets = false
+    @State private var showEntryTemplates = false
     @State private var showHotKeyRecorder = false
     @State private var hotKeyStatusMessage: String?
 
@@ -1341,16 +1256,18 @@ private struct MacSettingsView: View {
                     sectionHeader("01", "Mac Companion")
                     settingsRow(title: "ON-DEVICE TRANSCRIPTION", detail: "Whisper and Parakeet models run locally with Metal/Core ML acceleration.", trailing: "LOCAL")
                     settingsRow(title: "APPLE INTELLIGENCE", detail: appleIntelligenceDetail, trailing: appleIntelligenceStatus)
-                    settingsRow(title: "FILE EXPORT", detail: "Preset destinations, templates, Markdown/YAML/JSON/TXT, and audio attachments are shared with iOS when the App Group is available.", trailing: "ENABLED")
+                    settingsRow(title: "FILE EXPORT", detail: "Presets, templates, Markdown exports, and attachments use local app storage. Folder permissions stay on this Mac.", trailing: "ENABLED")
                     settingsRow(title: "KEYBOARD + LOCK SCREEN", detail: "Custom keyboard, widgets, Dynamic Island, and Live Activities remain iOS-specific.", trailing: "IOS")
-                    sectionHeader("02", "Global Keybind")
+                    sectionHeader("02", "Capture Configuration")
+                    configurationSettings
+                    sectionHeader("03", "Global Keybind")
                     hotKeySettings
-                    sectionHeader("03", "Visibility")
+                    sectionHeader("04", "Visibility")
                     visibilitySettings
-                    sectionHeader("04", "About")
+                    sectionHeader("05", "About")
                     settingsRow(title: "VERSION", detail: appVersionString, trailing: "")
                     settingsRow(title: "PROCESSING", detail: "Voice and text stay on-device.", trailing: "PRIVATE")
-                    sectionHeader("05", "Debug")
+                    sectionHeader("06", "Debug")
                     Button("View Debug Log") { showDebug = true }
                         .buttonStyle(GeistButtonStyle(variant: .secondary))
                         .padding(20)
@@ -1363,6 +1280,17 @@ private struct MacSettingsView: View {
         }
         .sheet(isPresented: $showDebug) {
             MacDebugLogView()
+        }
+        .sheet(isPresented: $showModels) {
+            NavigationStack { MacModelView() }
+                .frame(minWidth: 760, minHeight: 620)
+        }
+        .sheet(isPresented: $showCapturePresets) {
+            NavigationStack { MacCapturePresetSettingsView() }
+                .frame(minWidth: 960, minHeight: 680)
+        }
+        .sheet(isPresented: $showEntryTemplates) {
+            MacEntryTemplateLibraryView()
         }
         .sheet(isPresented: $showHotKeyRecorder) {
             MacHotKeyRecorderSheet(
@@ -1406,6 +1334,66 @@ private struct MacSettingsView: View {
             return "Foundation Models cleans transcripts, adds titles/tags/categories, and powers smart folder routing on-device."
         }
         return "Requires macOS 26+ on an Apple Intelligence-capable Mac."
+    }
+
+    private var configurationSettings: some View {
+        VStack(spacing: 0) {
+            GeistDivider()
+            VStack(spacing: 12) {
+                Button {
+                    showCapturePresets = true
+                } label: {
+                    settingsNavigationRow(
+                        title: "Capture Presets & Destinations",
+                        detail: "Configure processing, vault routes, entry formatting, attachments, and retry behavior.",
+                        image: "slider.horizontal.3"
+                    )
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    showEntryTemplates = true
+                } label: {
+                    settingsNavigationRow(
+                        title: "Entry Templates",
+                        detail: "Create reusable Markdown and YAML formatting for routed notes.",
+                        image: "doc.badge.plus"
+                    )
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    showModels = true
+                } label: {
+                    settingsNavigationRow(
+                        title: "Transcription Models",
+                        detail: "Download, select, and remove local Whisper or Parakeet models.",
+                        image: "cpu"
+                    )
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(20)
+            .background(Geist.bg)
+        }
+    }
+
+    private func settingsNavigationRow(title: String, detail: String, image: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: image)
+                .font(.system(size: 18, weight: .semibold))
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(Geist.label())
+                Text(detail).font(Geist.caption()).foregroundColor(Geist.muted)
+            }
+            Spacer()
+            Image(systemName: "chevron.right").foregroundColor(Geist.faint)
+        }
+        .foregroundColor(Geist.text)
+        .padding(14)
+        .background(Geist.surface)
+        .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
     }
 
     private var visibilitySettings: some View {
@@ -1686,7 +1674,7 @@ private final class MacHotKeyCaptureNSView: NSView {
     }
 }
 
-private struct MacPaywallView: View {
+struct MacPaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(MacStoreManager.self) private var storeManager
@@ -1827,60 +1815,9 @@ private func settingsRow(title: String, detail: String, trailing: String) -> som
     }
 }
 
-private func statusBlock(number: String, title: LocalizedStringKey, headline: String, detail: String, color: Color) -> some View {
-    VStack(spacing: 18) {
-        GeistSectionLabel(number: number, title: title)
-        Text(headline)
-            .font(Geist.display(56))
-            .foregroundColor(color)
-            .lineLimit(1)
-            .minimumScaleFactor(0.35)
-        Text(detail)
-            .font(Geist.body())
-            .foregroundColor(Geist.muted)
-            .multilineTextAlignment(.center)
-    }
-}
-
-private struct MacExportToast: View {
-    let url: URL
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: "checkmark.circle.fill")
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Export Ready")
-                        .font(Geist.caption())
-                        .foregroundColor(Geist.muted)
-                    Text(url.lastPathComponent)
-                        .font(Geist.body())
-                        .foregroundColor(Geist.text)
-                        .lineLimit(1)
-                }
-                Text("Reveal File")
-                    .font(Geist.label())
-                    .foregroundColor(Geist.text)
-            }
-            .padding(12)
-            .background(Geist.surface2)
-            .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-    }
-}
-
 private func copyToPasteboard(_ text: String) {
     NSPasteboard.general.clearContents()
     NSPasteboard.general.setString(text, forType: .string)
-}
-
-private func formatDuration(_ d: TimeInterval) -> String {
-    let m = Int(d) / 60
-    let s = Int(d) % 60
-    let t = Int((d * 10).truncatingRemainder(dividingBy: 10))
-    return String(format: "%d:%02d.%d", m, s, t)
 }
 
 private func formatDurationShort(_ d: TimeInterval) -> String {

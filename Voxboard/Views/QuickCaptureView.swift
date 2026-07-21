@@ -35,6 +35,7 @@ struct QuickCaptureView: View {
     @Environment(TranscriptStore.self) private var transcriptStore
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(StoreManager.self) private var storeManager
+    @Environment(WatchRecordingPipeline.self) private var watchRecordingPipeline
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
@@ -57,6 +58,7 @@ struct QuickCaptureView: View {
     @State private var paywallContext: OnboardingAnalyticsPaywallContext = .limit
     @State private var showsAudioImporter = false
     @State private var showsVoiceCaptureDetails = false
+    @State private var showsWatchRecordingQueue = false
     @State private var recordingMode: CaptureRecordingMode = .draft
     @State private var attachRecordingAudio = false
     @State private var lastStartedRecordingMode: CaptureRecordingMode = .draft
@@ -66,11 +68,6 @@ struct QuickCaptureView: View {
     @State private var fileExportToast: FileExportToast?
     @State private var flows: [CapturePreset] = CapturePresetStore.loadFlows()
     @State private var selectedFlowId: String = CapturePresetStore.selectedFlowId()
-    @State private var watchRecordingInboxItems: [WatchRecordingInboxItem] = WatchRecordingInbox.shared.load()
-    @State private var isProcessingWatchRecordingQueue = false
-    @State private var watchRecordingProcessingQueue: [WatchRecordingInboxItem] = []
-    @State private var watchRecordingProcessingTotal = 0
-    @State private var watchRecordingProcessingIndex = 0
     @State private var linkText = ""
     @State private var isProcessingMedia = false
     @State private var isFindingLocation = false
@@ -111,6 +108,11 @@ struct QuickCaptureView: View {
             VStack(spacing: 0) {
                 if viewModel.selectedDestination == nil {
                     emptyDestinationBanner
+                    GeistDivider()
+                }
+
+                if watchRecordingPipeline.hasVisibleItems {
+                    watchRecordingStatusCard
                     GeistDivider()
                 }
 
@@ -237,10 +239,6 @@ struct QuickCaptureView: View {
     private var recordingLifecycleContent: some View {
         draftLifecycleContent
             .onAppear(perform: prepareRecordingFeatures)
-            .onReceive(NotificationCenter.default.publisher(for: WatchRecordingInbox.didChangeNotification)) { _ in
-                reloadWatchRecordingInbox()
-                autoProcessWatchRecordingQueueIfPossible()
-            }
             .task { await requestMicrophonePermissionIfNeeded() }
             .onChange(of: pendingKeyboardLaunch) { _, isPending in
                 if isPending { consumePendingKeyboardLaunchIfNeeded() }
@@ -260,6 +258,14 @@ struct QuickCaptureView: View {
             }
             .onChange(of: persistentRecorder.isTranscribing) { _, isTranscribing in
                 handleTranscribingChange(isTranscribing)
+            }
+            .onChange(of: persistentRecorder.isSegmentActive) { _, isActive in
+                if !isActive { watchRecordingPipeline.resume() }
+            }
+            .onChange(of: watchRecordingPipeline.lastDeliveredURL) { _, url in
+                guard let url else { return }
+                fileExportToast = FileExportToast(url: url)
+                Task { await viewModel.refreshHistory() }
             }
     }
 
@@ -297,6 +303,9 @@ struct QuickCaptureView: View {
         .sheet(isPresented: $showsCaptureHistory) {
             HistoryView(viewModel: viewModel)
                 .environment(transcriptStore)
+        }
+        .sheet(isPresented: $showsWatchRecordingQueue) {
+            WatchRecordingQueueView(pipeline: watchRecordingPipeline)
         }
         .sheet(isPresented: $showsRoutePicker, onDismiss: reloadFlows) {
             CaptureRoutePickerView(viewModel: viewModel)
@@ -548,10 +557,6 @@ struct QuickCaptureView: View {
                     recordingUsageMeter
                 }
 
-                if !watchRecordingInboxItems.isEmpty {
-                    watchRecordingQueueRow
-                }
-
                 if let phase = keyboardLaunchPhase {
                     keyboardListeningStatusRow(phase)
                 }
@@ -619,26 +624,6 @@ struct QuickCaptureView: View {
             }
         }
         .buttonStyle(.plain)
-    }
-
-    private var watchRecordingQueueRow: some View {
-        HStack(spacing: Geist.Spacing.three) {
-            Image(systemName: "applewatch.radiowaves.left.and.right")
-            Text("Watch Recordings")
-                .font(Geist.label())
-            Spacer()
-            Button(usageTracker.isAtLimit ? "Unlock" : watchRecordingProcessButtonTitle) {
-                processWatchRecordingQueue()
-            }
-            .buttonStyle(GeistButtonStyle(variant: usageTracker.isAtLimit ? .destructive : .secondary, size: .small))
-            if let first = watchRecordingInboxItems.first {
-                Button(role: .destructive) { discardWatchRecording(first) } label: {
-                    Image(systemName: "trash")
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Discard oldest Watch recording")
-            }
-        }
     }
 
     private func keyboardListeningStatusRow(_ phase: KeyboardLaunchPhase) -> some View {
@@ -740,13 +725,15 @@ struct QuickCaptureView: View {
     private func handleVoiceCaptureTap() {
         if persistentRecorder.isSegmentActive {
             persistentRecorder.stopInAppSegment()
-        } else if !persistentRecorder.isTranscribing {
+        } else if !persistentRecorder.isTranscribing, !watchRecordingPipeline.isProcessing {
             startInlineRecording()
         }
     }
 
     private var recordingOptionsAreLocked: Bool {
-        persistentRecorder.isSegmentActive || persistentRecorder.isTranscribing
+        persistentRecorder.isSegmentActive
+            || persistentRecorder.isTranscribing
+            || watchRecordingPipeline.isProcessing
     }
 
     private var recordingUsageLabel: String {
@@ -858,6 +845,59 @@ struct QuickCaptureView: View {
         return trimmed.isEmpty ? nil : trimmed
     }
 
+    @ViewBuilder
+    private var watchRecordingStatusCard: some View {
+        if let item = watchRecordingPipeline.currentItem {
+            HStack(spacing: Geist.Spacing.three) {
+                Button {
+                    dismissComposer()
+                    showsWatchRecordingQueue = true
+                } label: {
+                    HStack(spacing: Geist.Spacing.three) {
+                        Image(systemName: item.watchStatusSymbol)
+                            .foregroundStyle(item.phase == .failed ? Geist.error : Geist.text)
+                            .frame(width: 28, height: 28)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.watchStatusTitle)
+                                .font(Geist.label())
+                            Text(item.watchStatusSubtitle)
+                                .font(Geist.caption(.caption2))
+                                .foregroundStyle(item.phase == .failed ? Geist.error : Geist.muted)
+                                .lineLimit(2)
+                        }
+                        Spacer(minLength: Geist.Spacing.two)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                if item.phase == .transcribing || item.phase == .delivering {
+                    ProgressView()
+                        .controlSize(.small)
+                } else if item.phase == .failed {
+                    Button("Retry") { watchRecordingPipeline.retry(item) }
+                        .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+                }
+                Button {
+                    dismissComposer()
+                    showsWatchRecordingQueue = true
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(Geist.caption(.caption2))
+                        .foregroundStyle(Geist.faint)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Show Watch recording queue")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .foregroundStyle(Geist.text)
+            .background(Geist.surface)
+            .accessibilityIdentifier("watch_recording_status")
+        }
+    }
+
     private var emptyDestinationBanner: some View {
         Button {
             dismissComposer()
@@ -942,7 +982,7 @@ struct QuickCaptureView: View {
         .font(Geist.caption())
         .foregroundStyle(Geist.muted)
         .padding(.horizontal, Geist.Spacing.three)
-        .frame(minHeight: Geist.ControlHeight.large)
+        .frame(minHeight: Geist.ControlHeight.medium)
         .background(Geist.Palette.background100)
     }
 
@@ -1427,9 +1467,7 @@ struct QuickCaptureView: View {
             return String(localized: "Recording \(formatRecordingDuration(persistentRecorder.segmentDuration))")
         }
         if persistentRecorder.isTranscribing {
-            return isProcessingWatchRecordingQueue
-                ? String(localized: "Processing Watch recording")
-                : String(localized: "Transcribing")
+            return String(localized: "Transcribing")
         }
         if persistentRecorder.isListening { return String(localized: "Keyboard Listening On") }
         return String(localized: "Voice Capture")
@@ -1440,9 +1478,6 @@ struct QuickCaptureView: View {
             return String(localized: "Composer remains available while you record")
         }
         if persistentRecorder.isTranscribing {
-            if isProcessingWatchRecordingQueue, watchRecordingProcessingTotal > 1 {
-                return String(localized: "Item \(watchRecordingProcessingIndex) of \(watchRecordingProcessingTotal)")
-            }
             return lastStartedRecordingMode == .draft
                 ? String(localized: "Adding transcript to this Capture")
                 : String(localized: "Running \(selectedFlow.displayName)")
@@ -1475,9 +1510,7 @@ struct QuickCaptureView: View {
             return String(localized: "Stop voice recording, \(formatRecordingDuration(persistentRecorder.segmentDuration))")
         }
         if persistentRecorder.isTranscribing {
-            return isProcessingWatchRecordingQueue
-                ? String(localized: "Processing Watch recording")
-                : String(localized: "Transcribing voice capture")
+            return String(localized: "Transcribing voice capture")
         }
         if usageTracker.isAtLimit { return String(localized: "Unlock voice capture") }
         return recordingMode == .draft
@@ -1485,16 +1518,11 @@ struct QuickCaptureView: View {
             : String(localized: "Start voice capture and run \(selectedFlow.displayName)")
     }
 
-    private var watchRecordingProcessButtonTitle: String {
-        watchRecordingInboxItems.count > 1 ? String(localized: "Process All") : String(localized: "Process")
-    }
-
     private func prepareRecordingFeatures() {
         reloadFlows()
-        reloadWatchRecordingInbox()
         consumePendingKeyboardLaunchIfNeeded()
         consumePendingWidgetRecordIfNeeded()
-        autoProcessWatchRecordingQueueIfPossible()
+        watchRecordingPipeline.resume()
     }
 
     private func requestMicrophonePermissionIfNeeded() async {
@@ -1518,6 +1546,7 @@ struct QuickCaptureView: View {
     private func selectFlow(_ flow: CapturePreset) {
         viewModel.selectVox(flow.id)
         selectedFlowId = flow.id
+        WatchRecordingController.shared.publishState()
     }
 
     private func startInlineRecording() {
@@ -1529,7 +1558,9 @@ struct QuickCaptureView: View {
             persistentRecorder.lastError = String(localized: "Enable microphone access in Settings to record audio.")
             return
         }
-        guard !persistentRecorder.isSegmentActive, !persistentRecorder.isTranscribing else { return }
+        guard !persistentRecorder.isSegmentActive,
+              !persistentRecorder.isTranscribing,
+              !watchRecordingPipeline.isProcessing else { return }
 
         lastStartedRecordingMode = recordingMode
         persistentRecorder.lastTranscriptionResult = nil
@@ -1696,86 +1727,7 @@ struct QuickCaptureView: View {
         if lastStartedRecordingMode == .draft, persistentRecorder.lastTranscriptionResult != nil {
             UIAccessibility.post(notification: .announcement, argument: String(localized: "Transcript added to Capture"))
         }
-        processNextQueuedWatchRecordingIfNeeded()
-        autoProcessWatchRecordingQueueIfPossible()
-    }
-
-    private func reloadWatchRecordingInbox() {
-        watchRecordingInboxItems = WatchRecordingInbox.shared.load()
-    }
-
-    private func autoProcessWatchRecordingQueueIfPossible() {
-        guard !isProcessingWatchRecordingQueue else { return }
-        guard !watchRecordingInboxItems.isEmpty else { return }
-        guard !usageTracker.isAtLimit else { return }
-        guard !persistentRecorder.isSegmentActive, !persistentRecorder.isTranscribing else { return }
-        processWatchRecordingQueue()
-    }
-
-    private func processWatchRecordingQueue() {
-        if usageTracker.isAtLimit {
-            presentPaywall(context: .recording)
-            return
-        }
-        guard !isProcessingWatchRecordingQueue else { return }
-        guard !persistentRecorder.isSegmentActive, !persistentRecorder.isTranscribing else {
-            persistentRecorder.lastError = String(localized: "Wait for the current recording to finish")
-            return
-        }
-
-        let items = WatchRecordingInbox.shared.load()
-        guard !items.isEmpty else {
-            reloadWatchRecordingInbox()
-            return
-        }
-        watchRecordingProcessingQueue = items
-        watchRecordingProcessingTotal = items.count
-        watchRecordingProcessingIndex = 0
-        isProcessingWatchRecordingQueue = true
-        lastStartedRecordingMode = .preset
-        persistentRecorder.lastTranscriptionResult = nil
-        processNextQueuedWatchRecordingIfNeeded()
-    }
-
-    private func processNextQueuedWatchRecordingIfNeeded() {
-        guard isProcessingWatchRecordingQueue else { return }
-        guard !persistentRecorder.isSegmentActive, !persistentRecorder.isTranscribing else { return }
-        guard !watchRecordingProcessingQueue.isEmpty else {
-            resetWatchRecordingProcessingQueue()
-            reloadWatchRecordingInbox()
-            return
-        }
-        if usageTracker.isAtLimit {
-            resetWatchRecordingProcessingQueue()
-            presentPaywall(context: .recording)
-            return
-        }
-
-        let item = watchRecordingProcessingQueue.removeFirst()
-        watchRecordingProcessingIndex = max(1, watchRecordingProcessingTotal - watchRecordingProcessingQueue.count)
-        let flowID = selectedFlow.id
-        if persistentRecorder.importAudioFile(
-            from: item.fileURL,
-            completionMode: .runVox(flowID: flowID)
-        ) {
-            WatchRecordingInbox.shared.remove(item)
-            reloadWatchRecordingInbox()
-        } else {
-            resetWatchRecordingProcessingQueue()
-            reloadWatchRecordingInbox()
-        }
-    }
-
-    private func resetWatchRecordingProcessingQueue() {
-        isProcessingWatchRecordingQueue = false
-        watchRecordingProcessingQueue.removeAll()
-        watchRecordingProcessingTotal = 0
-        watchRecordingProcessingIndex = 0
-    }
-
-    private func discardWatchRecording(_ item: WatchRecordingInboxItem) {
-        WatchRecordingInbox.shared.remove(item)
-        reloadWatchRecordingInbox()
+        watchRecordingPipeline.resume()
     }
 
     private func openExportedFileInFiles(_ url: URL) {

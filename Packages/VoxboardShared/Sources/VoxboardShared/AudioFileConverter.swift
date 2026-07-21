@@ -22,6 +22,7 @@ public enum AudioFileConverter {
         outputURL: URL,
         targetSampleRate: Double = whisperSampleRate
     ) throws -> URL {
+        try Task.checkCancellation()
         let inputFile = try AVAudioFile(forReading: inputURL)
         let sourceFormat = inputFile.processingFormat
         guard let targetFormat = AVAudioFormat(
@@ -36,6 +37,7 @@ public enum AudioFileConverter {
             frameCapacity: AVAudioFrameCount(inputFile.length)
         ) else { throw ConversionError.couldNotCreateBuffer }
         try inputFile.read(into: inputBuffer)
+        try Task.checkCancellation()
 
         let allSamples: [Float]
         if sourceFormat.sampleRate == targetSampleRate, sourceFormat.channelCount == 1,
@@ -63,6 +65,7 @@ public enum AudioFileConverter {
                 return inputBuffer
             }
             if let conversionError { throw conversionError }
+            try Task.checkCancellation()
             guard let floatData = outputBuffer.floatChannelData?[0] else {
                 throw ConversionError.noAudioSamples
             }
@@ -70,6 +73,7 @@ public enum AudioFileConverter {
         }
 
         guard !allSamples.isEmpty else { throw ConversionError.noAudioSamples }
+        try Task.checkCancellation()
         try writeWAV(samples: allSamples, to: outputURL, sampleRate: targetSampleRate)
         return outputURL
     }
