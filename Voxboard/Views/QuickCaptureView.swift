@@ -262,10 +262,11 @@ struct QuickCaptureView: View {
             .onChange(of: persistentRecorder.isSegmentActive) { _, isActive in
                 if !isActive { watchRecordingPipeline.resume() }
             }
-            .onChange(of: watchRecordingPipeline.lastDeliveredURL) { _, url in
-                guard let url else { return }
-                fileExportToast = FileExportToast(url: url)
+            .onChange(of: watchRecordingPipeline.lastDeliveredRecordingID) { _, recordingID in
+                guard recordingID != nil else { return }
+                usageTracker.reload()
                 Task { await viewModel.refreshHistory() }
+                Task { await presentSentToast() }
             }
     }
 

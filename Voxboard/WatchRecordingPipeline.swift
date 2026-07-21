@@ -9,7 +9,7 @@ final class WatchRecordingPipeline {
     private(set) var items: [WatchRecordingInboxItem] = []
     private(set) var isProcessing = false
     private(set) var activeRecordingID: String?
-    private(set) var lastDeliveredURL: URL?
+    private(set) var lastDeliveredRecordingID: String?
 
     private let inbox: WatchRecordingInbox
     private let transcriptStore: TranscriptStore
@@ -54,15 +54,8 @@ final class WatchRecordingPipeline {
         items.filter { $0.phase == .failed }
     }
 
-    var recentDeliveredItems: [WatchRecordingInboxItem] {
-        items.filter { $0.phase == .delivered && $0.acknowledgedAt == nil }
-    }
-
     var hasVisibleItems: Bool {
-        items.contains { item in
-            item.phase != .discarded
-                && !(item.phase.isTerminal && item.acknowledgedAt != nil)
-        }
+        !activeItems.isEmpty
     }
 
     var currentItem: WatchRecordingInboxItem? {
@@ -74,7 +67,6 @@ final class WatchRecordingPipeline {
             ?? activeItems.first(where: { $0.phase == .transcribing })
             ?? activeItems.first(where: { $0.phase == .queued })
             ?? activeItems.first(where: { $0.phase == .failed })
-            ?? recentDeliveredItems.last
     }
 
     func configure(recorder: PersistentRecorder) {
@@ -366,7 +358,7 @@ final class WatchRecordingPipeline {
 
         try ensureProcessingIsActive(for: item.id)
         do {
-            let receipt = try await ConfiguredTranscriptCaptureDestinationExporter.export(
+            _ = try await ConfiguredTranscriptCaptureDestinationExporter.export(
                 transcript: latestTranscript,
                 flow: flow,
                 destinationID: destinationID,
@@ -374,7 +366,7 @@ final class WatchRecordingPipeline {
                 source: .watch
             )
             try ensureProcessingIsActive(for: item.id)
-            lastDeliveredURL = receipt.noteURL
+            lastDeliveredRecordingID = item.id
             complete(item)
         } catch is CancellationError {
             throw CancellationError()
