@@ -195,8 +195,9 @@ if 'providers.prefix(' in share_source:
     errors.append('share extension silently truncates shared providers instead of rejecting overflow')
 
 quick_capture_source = (root / 'Voxboard/Views/QuickCaptureView.swift').read_text()
+multimodal_capture_source = (root / 'Voxboard/Capture/MultimodalCaptureViews.swift').read_text()
 watch_queue_source = (root / 'Voxboard/Views/WatchRecordingQueueView.swift').read_text()
-quick_capture_ui_source = quick_capture_source + watch_queue_source
+quick_capture_ui_source = quick_capture_source + multimodal_capture_source + watch_queue_source
 watch_bridge_source = (root / 'Voxboard Watch Shared/WatchPhoneBridge.swift').read_text()
 watch_controller_source = (root / 'Voxboard/WatchRecordingController.swift').read_text()
 watch_pipeline_source = (root / 'Voxboard/WatchRecordingPipeline.swift').read_text()
@@ -342,7 +343,9 @@ for required in [
     if required not in watch_view_source:
         errors.append(f'Watch Capture Preset picker is missing {required}')
 for required in [
-    'allowedContentTypes: [.data]',
+    'CaptureFilePicker(',
+    'UIDocumentPickerViewController(',
+    'contentTypes: [.data]',
     'reserveSharedItems(urls.count)',
     'matching: .screenshots',
     'CaptureRoutePickerView(viewModel: viewModel)',

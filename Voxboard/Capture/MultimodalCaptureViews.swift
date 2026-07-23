@@ -1,8 +1,57 @@
 import PencilKit
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 import Vision
 import VisionKit
+
+/// Presents UIKit's native Files browser directly. SwiftUI's `fileImporter`
+/// can fail to complete on physical iPhones, while the underlying document
+/// picker remains reliable.
+struct CaptureFilePicker: UIViewControllerRepresentable {
+    var contentTypes: [UTType]
+    var allowsMultipleSelection: Bool
+    var onPick: ([URL]) -> Void
+    var onCancel: () -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator(parent: self) }
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let picker = UIDocumentPickerViewController(
+            forOpeningContentTypes: contentTypes,
+            asCopy: true
+        )
+        picker.allowsMultipleSelection = allowsMultipleSelection
+        picker.shouldShowFileExtensions = true
+        picker.delegate = context.coordinator
+        picker.accessibilityLabel = String(localized: "Choose files to attach")
+        return picker
+    }
+
+    func updateUIViewController(
+        _ uiViewController: UIDocumentPickerViewController,
+        context: Context
+    ) {}
+
+    final class Coordinator: NSObject, UIDocumentPickerDelegate {
+        let parent: CaptureFilePicker
+
+        init(parent: CaptureFilePicker) {
+            self.parent = parent
+        }
+
+        func documentPicker(
+            _ controller: UIDocumentPickerViewController,
+            didPickDocumentsAt urls: [URL]
+        ) {
+            parent.onPick(urls)
+        }
+
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+            parent.onCancel()
+        }
+    }
+}
 
 struct CaptureCameraPicker: UIViewControllerRepresentable {
     var onCapture: (Data) -> Void

@@ -136,6 +136,24 @@ final class CaptureDraftStoreTests: XCTestCase {
         XCTAssertEqual(draft.destinationID, destinationID)
     }
 
+    func test_makeRequestIncludesAttachmentWhenDraftTextIsEmpty() throws {
+        let destinationID = UUID()
+        let asset = try CaptureAssetReference(
+            relativePath: "document.pdf",
+            originalFilename: "document.pdf",
+            contentTypeIdentifier: "com.adobe.pdf"
+        )
+        let draft = CaptureDraft(
+            destinationID: destinationID,
+            additionalPayloads: [.file(asset)]
+        )
+
+        let request = try draft.makeRequest(source: .app)
+
+        XCTAssertTrue(draft.hasCaptureContent)
+        XCTAssertEqual(request.payloads, [.file(asset)])
+    }
+
     func test_makeRequestPreservesMarkdownIndentationAndHardBreakSpaces() throws {
         let destinationID = UUID()
         let draft = CaptureDraft(

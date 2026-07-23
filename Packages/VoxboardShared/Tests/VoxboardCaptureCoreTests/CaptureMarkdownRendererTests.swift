@@ -44,6 +44,49 @@ final class CaptureMarkdownRendererTests: XCTestCase {
         XCTAssertTrue(markdown.contains("[[Assets/sketch.pkdrawing|Editable drawing]]"))
     }
 
+    func test_nonEmbeddedRetainedAudioAloneRendersPlainAttachmentLink() throws {
+        let audio = try asset("voice.m4a", type: "public.mpeg-4-audio")
+        let destination = CaptureDestination(
+            name: "Inbox",
+            rootBookmark: Data([1]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md"),
+            attachmentsFolderName: "Assets"
+        )
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.retainedAudio(audio, embedPlacement: .none)]
+        )
+
+        let markdown = try CaptureMarkdownRenderer().render(request, for: destination)
+
+        XCTAssertEqual(markdown, "[[Assets/voice.m4a|voice.m4a]]")
+    }
+
+    func test_nonEmbeddedRetainedAudioStaysOutOfNoteWhenTextExists() throws {
+        let audio = try asset("voice.m4a", type: "public.mpeg-4-audio")
+        let destination = CaptureDestination(
+            name: "Inbox",
+            rootBookmark: Data([1]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md"),
+            attachmentsFolderName: "Assets"
+        )
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [
+                .text("Spoken note"),
+                .retainedAudio(audio, embedPlacement: .none),
+            ]
+        )
+
+        let markdown = try CaptureMarkdownRenderer().render(request, for: destination)
+
+        XCTAssertEqual(markdown, "Spoken note")
+    }
+
     func test_textPayloadPreservesMarkdownBoundarySpaces() throws {
         let destination = CaptureDestination(
             name: "Inbox",

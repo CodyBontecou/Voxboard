@@ -31,6 +31,7 @@ public struct CaptureMarkdownRenderer: Sendable {
 
         var blocks: [String] = []
         var topAudioBlocks: [String] = []
+        var attachmentOnlyFallbackBlocks: [String] = []
         for payload in request.payloads {
             switch payload {
             case .text(let text):
@@ -52,7 +53,14 @@ public struct CaptureMarkdownRenderer: Sendable {
             case .retainedAudio(let asset, let embedPlacement):
                 let path = try attachmentPath(for: asset, destination: destination, overrides: attachmentPaths)
                 switch embedPlacement {
-                case .none: break
+                case .none:
+                    // A retained recording normally stays out of the note. If it
+                    // is the capture's only content, keep a plain link available
+                    // so the renderer does not reject the request and roll the
+                    // copied attachment back.
+                    attachmentOnlyFallbackBlocks.append(
+                        obsidianLink(path: path, alias: asset.originalFilename)
+                    )
                 case .top: topAudioBlocks.append(obsidianEmbed(path: path))
                 case .bottom: blocks.append(obsidianEmbed(path: path))
                 }
@@ -94,6 +102,9 @@ public struct CaptureMarkdownRenderer: Sendable {
                 topAudioBlocks.joined(separator: "\n\n"),
                 in: rendered
             )
+        }
+        if rendered.isEmpty, !attachmentOnlyFallbackBlocks.isEmpty {
+            rendered = attachmentOnlyFallbackBlocks.joined(separator: "\n\n")
         }
         if request.voxProfile?.metadataScope == .entry,
            !request.frontmatter.isEmpty {

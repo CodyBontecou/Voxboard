@@ -291,12 +291,21 @@ struct QuickCaptureView: View {
             maxSelectionCount: 10,
             matching: .screenshots
         )
-        .fileImporter(
-            isPresented: $showsFileImporter,
-            allowedContentTypes: [.data],
-            allowsMultipleSelection: true,
-            onCompletion: handleFileImport
-        )
+        .sheet(isPresented: $showsFileImporter) {
+            CaptureFilePicker(
+                contentTypes: [.data],
+                allowsMultipleSelection: true,
+                onPick: { urls in
+                    showsFileImporter = false
+                    importFiles(urls)
+                },
+                onCancel: {
+                    showsFileImporter = false
+                    focusComposer()
+                }
+            )
+            .ignoresSafeArea()
+        }
     }
 
     private var presentedContent: some View {
@@ -763,7 +772,7 @@ struct QuickCaptureView: View {
                 showPhotos: { showsPhotoPicker = true },
                 showScreenshots: { showsScreenshotPicker = true },
                 showLinkPrompt: { showsLinkPrompt = true },
-                showFiles: { showsFileImporter = true },
+                showFiles: presentFileImporter,
                 showScan: { showsScanner = VNDocumentCameraViewController.isSupported },
                 isProcessingMedia: isProcessingMedia,
                 isFindingLocation: isFindingLocation,
@@ -1229,6 +1238,11 @@ struct QuickCaptureView: View {
         viewModel.requestedInput = nil
     }
 
+    private func presentFileImporter() {
+        dismissComposer()
+        showsFileImporter = true
+    }
+
     private func handleScenePhaseChange(_ phase: ScenePhase) {
         // Permission prompts make the scene temporarily inactive. Keep explicit
         // one-shot requests alive until the app actually backgrounds.
@@ -1328,7 +1342,7 @@ struct QuickCaptureView: View {
         case .photos: showsPhotoPicker = true
         case .screenshots: showsScreenshotPicker = true
         case .camera: showsCamera = true
-        case .files: showsFileImporter = true
+        case .files: presentFileImporter()
         case .scan: showsScanner = VNDocumentCameraViewController.isSupported
         case .sketch: showsSketch = true
         case .link: showsLinkPrompt = true
@@ -1393,7 +1407,7 @@ struct QuickCaptureView: View {
         }
     }
 
-    private func handleFileImport(_ result: Result<[URL], Error>) {
+    private func importFiles(_ urls: [URL]) {
         Task {
             isProcessingMedia = true
             defer {
@@ -1401,7 +1415,6 @@ struct QuickCaptureView: View {
                 focusComposer()
             }
             do {
-                let urls = try result.get()
                 var budget = CaptureInputBudget()
                 try budget.reserveSharedItems(urls.count)
                 for url in urls {

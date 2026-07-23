@@ -328,6 +328,42 @@ final class CapturePipelineTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: outside.appendingPathComponent("copied.jpg").path))
     }
 
+    func test_attachmentOnlyCaptureCommitsNonEmbeddedRetainedAudio() async throws {
+        let root = try temporaryFolder()
+        let staging = try temporaryFolder()
+        defer {
+            try? FileManager.default.removeItem(at: root)
+            try? FileManager.default.removeItem(at: staging)
+        }
+        try Data("voice".utf8).write(to: staging.appendingPathComponent("voice.wav"))
+        let asset = try CaptureAssetReference(
+            relativePath: "voice.wav",
+            originalFilename: "voice.wav",
+            contentTypeIdentifier: "com.microsoft.waveform-audio",
+            byteCount: 5
+        )
+        let destination = destination(target: .newNote(pathTemplate: "Inbox/capture.md"))
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.retainedAudio(asset, embedPlacement: .none)]
+        )
+
+        let receipt = try await CapturePipeline().capture(
+            request,
+            destination: destination,
+            rootURL: root,
+            assetRootURL: staging
+        )
+
+        XCTAssertEqual(receipt.attachmentURLs.map(\.lastPathComponent), ["voice.wav"])
+        XCTAssertTrue(FileManager.default.fileExists(
+            atPath: root.appendingPathComponent("attachments/voice.wav").path
+        ))
+        let markdown = try String(contentsOf: receipt.noteURL, encoding: .utf8)
+        XCTAssertTrue(markdown.contains("[[attachments/voice.wav|voice.wav]]"))
+    }
+
     func test_requestAttachmentFolderOverrideSurvivesDeferredInboxDelivery() async throws {
         let root = try temporaryFolder()
         let staging = try temporaryFolder()
