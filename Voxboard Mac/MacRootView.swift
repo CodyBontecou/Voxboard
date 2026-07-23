@@ -338,6 +338,7 @@ private struct MacCapturePresetEditor: View {
     @State private var captureEntryTemplates: [CaptureEntryTemplate] = []
     @State private var captureDestinationLoadError: String?
     @State private var isEditingDestination = false
+    @State private var isCaptureProcessingInfoPresented = false
     @AppStorage(
         CapturePresetProfileStore.selectedCaptureProfileIDKey,
         store: AppConstants.sharedDefaults
@@ -390,7 +391,18 @@ private struct MacCapturePresetEditor: View {
             }
 
             Section("Capture Processing") {
-                Toggle("Apply to Capture Text", isOn: $flow.captureProcessingEnabled)
+                HStack(spacing: 10) {
+                    Toggle("Apply to Capture Text", isOn: $flow.captureProcessingEnabled)
+                    Button {
+                        isCaptureProcessingInfoPresented = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("About Apply to Capture Text")
+                    .accessibilityLabel("About Apply to Capture Text")
+                }
                 Picker("Mode", selection: $flow.postProcessingMode) {
                     ForEach(CapturePresetProcessingMode.allCases) { mode in
                         Text(mode.displayName).tag(mode)
@@ -452,6 +464,9 @@ private struct MacCapturePresetEditor: View {
                     }
                     if flow.exportSettings.mode == .newFile {
                         TextField("Filename Template", text: $flow.exportSettings.newFileNameTemplate)
+                        Text("Tokens: {timestamp}, {date}, {time}, {YR} (2-digit year), {id8}, {id}, {model}, {language}")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     } else {
                         TextField("Append Filename", text: $flow.exportSettings.appendFileName)
                     }
@@ -542,6 +557,9 @@ private struct MacCapturePresetEditor: View {
                 try await saveOwnedDestination(destination)
             }
         }
+        .sheet(isPresented: $isCaptureProcessingInfoPresented) {
+            MacCaptureTextProcessingInfoView()
+        }
         .task { await loadCaptureDestinations() }
         .onAppear { flow.exportSettings.usesCustomExportSettings = true }
         .onDisappear { flow.staticFrontmatter = Self.parseFrontmatter(frontmatterText) }
@@ -556,10 +574,14 @@ private struct MacCapturePresetEditor: View {
         return captureDestinations.first(where: { $0.id == id })
     }
 
-    private func saveOwnedDestination(_ destination: CaptureDestination) async throws {
+    private func saveOwnedDestination(_ submittedDestination: CaptureDestination) async throws {
         guard let url = AppConstants.captureLibraryURL else {
             throw MacCapturePresetDestinationError.storageUnavailable
         }
+        let destination = CapturePresetStore.migratingLegacyMarkdownTemplate(
+            into: submittedDestination,
+            from: flow.exportSettings
+        )
         let library = try await CaptureLibraryStore(fileURL: url).update { library in
             if let index = library.destinations.firstIndex(where: { $0.id == destination.id }) {
                 library.destinations[index] = destination
@@ -573,6 +595,11 @@ private struct MacCapturePresetEditor: View {
         flow.captureDestinationID = destination.id
         flow.captureEntryTemplateID = nil
         flow.capturePlacementOverride = nil
+        if destination.markdownTemplatePath != nil {
+            flow.exportSettings.markdownTemplateEnabled = false
+            flow.exportSettings.markdownTemplateBookmark = nil
+            flow.exportSettings.markdownTemplateName = ""
+        }
         captureDestinations = library.destinations
         captureEntryTemplates = library.entryTemplates
         captureDestinationLoadError = nil
@@ -589,7 +616,17 @@ private struct MacCapturePresetEditor: View {
             captureDestinations = library.destinations
             captureEntryTemplates = library.entryTemplates
             if let refreshed = CapturePresetStore.flow(id: flow.id) {
-                flow = refreshed
+                // Route migration owns only these fields. Keep any edits made
+                // while the asynchronous load was in flight.
+                flow.captureDestinationID = refreshed.captureDestinationID
+                flow.captureEntryTemplateID = refreshed.captureEntryTemplateID
+                flow.capturePlacementOverride = refreshed.capturePlacementOverride
+                if let routeID = refreshed.captureDestinationID,
+                   library.destinations.first(where: { $0.id == routeID })?.markdownTemplatePath != nil {
+                    flow.exportSettings.markdownTemplateEnabled = false
+                    flow.exportSettings.markdownTemplateBookmark = nil
+                    flow.exportSettings.markdownTemplateName = ""
+                }
             }
             captureDestinationLoadError = nil
         } catch {
@@ -682,6 +719,70 @@ private struct MacCapturePresetEditor: View {
             if !key.isEmpty, !value.isEmpty { result[key] = value }
         }
         return result
+    }
+}
+
+private struct MacCaptureTextProcessingInfoView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                Image(systemName: "wand.and.stars")
+                    .font(.system(size: 30, weight: .medium))
+                    .accessibilityHidden(true)
+                Text("Apply to Capture Text")
+                    .font(.title2.weight(.semibold))
+                Spacer()
+            }
+
+            Text("When this setting is on, Vox.md uses on-device Apple Intelligence to edit captured text using the selected mode before updating your Markdown file.")
+
+            VStack(alignment: .leading, spacing: 14) {
+                infoRow(
+                    icon: "checkmark.circle",
+                    title: "Follows the selected mode",
+                    detail: "Clean prose, create a todo checklist, format meeting notes, or follow your custom instruction."
+                )
+                infoRow(
+                    icon: "lock.shield",
+                    title: "Runs on device",
+                    detail: "Your captured text is processed locally and is not sent to a cloud AI service."
+                )
+                infoRow(
+                    icon: "doc.text",
+                    title: "Keeps capture reliable",
+                    detail: "If Apple Intelligence is unavailable, Vox.md uses a local fallback when possible or keeps the original text."
+                )
+            }
+
+            Text("This switch applies to typed and mixed-media Capture text. Voice recordings continue to use the preset’s selected mode.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            HStack {
+                Spacer()
+                Button("Done") { dismiss() }
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(24)
+        .frame(width: 460)
+    }
+
+    private func infoRow(icon: String, title: String, detail: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .frame(width: 24)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.headline)
+                Text(detail)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }
 

@@ -95,6 +95,7 @@ final class CaptureModelCodableTests: XCTestCase {
         XCTAssertEqual(destination.placement, .append)
         XCTAssertEqual(destination.attachmentsFolderName, "attachments")
         XCTAssertNil(destination.entryTemplateID)
+        XCTAssertNil(destination.markdownTemplatePath)
         XCTAssertFalse(destination.retryProtectionEnabled)
     }
 
@@ -141,6 +142,38 @@ final class CaptureModelCodableTests: XCTestCase {
         XCTAssertEqual(resolved.entryTemplateID, templateID)
         XCTAssertEqual(resolved.entryPrefix, "- [ ] ")
         XCTAssertEqual(resolved.entrySuffix, " #task")
+    }
+
+    func test_destinationVaultTemplateRoundTripsAndExplicitOverrideTakesPrecedence() throws {
+        let templateID = UUID(uuidString: "99999999-8888-7777-6666-555555555555")!
+        let destination = CaptureDestination(
+            name: "Inbox",
+            rootBookmark: Data([1, 2, 3]),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md"),
+            markdownTemplatePath: "Templates/Capture.md"
+        )
+        let library = CaptureLibraryEnvelope(
+            destinations: [destination],
+            entryTemplates: [
+                CaptureEntryTemplate(id: templateID, name: "Task", entryPrefix: "- [ ] ")
+            ]
+        )
+
+        let decoded = try JSONDecoder.captureCore.decode(
+            CaptureDestination.self,
+            from: JSONEncoder.captureCore.encode(destination)
+        )
+        let presetDefault = library.resolvedDestination(decoded)
+        let oneCaptureOverride = library.resolvedDestination(
+            decoded,
+            overrideEntryTemplateID: templateID
+        )
+
+        XCTAssertEqual(presetDefault.markdownTemplatePath, "Templates/Capture.md")
+        XCTAssertNil(oneCaptureOverride.markdownTemplatePath)
+        XCTAssertEqual(oneCaptureOverride.entryTemplateID, templateID)
+        XCTAssertEqual(oneCaptureOverride.entryPrefix, "- [ ] ")
     }
 
     func test_entryTemplatesRoundTripAndLegacyLibraryDefaultsToEmpty() throws {

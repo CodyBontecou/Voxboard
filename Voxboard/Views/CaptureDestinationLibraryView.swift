@@ -183,12 +183,14 @@ struct CaptureDestinationEditorView: View {
     @State private var headingLevel: Int
     @State private var missingHeadingBehavior: CaptureMissingHeadingBehavior
     @State private var selectedTemplateID: UUID?
+    @State private var markdownTemplatePath: String?
     @State private var entryPrefix: String
     @State private var entrySuffix: String
     @State private var attachmentsFolderName: String
     @State private var retryProtectionEnabled: Bool
     @State private var isChoosingFolder = false
     @State private var isChoosingExistingNote = false
+    @State private var isChoosingMarkdownTemplate = false
     @State private var isSaving = false
     @State private var errorMessage: String?
 
@@ -252,7 +254,10 @@ struct CaptureDestinationEditorView: View {
             $0.entryPrefix == existing?.entryPrefix && $0.entrySuffix == existing?.entrySuffix
         })?.id
         let selectedTemplate = templates.first { $0.id == selectedTemplateID }
-        _selectedTemplateID = State(initialValue: selectedTemplateID)
+        _selectedTemplateID = State(
+            initialValue: existing?.markdownTemplatePath == nil ? selectedTemplateID : nil
+        )
+        _markdownTemplatePath = State(initialValue: existing?.markdownTemplatePath)
         _entryPrefix = State(initialValue: selectedTemplate?.entryPrefix ?? existing?.entryPrefix ?? "")
         _entrySuffix = State(initialValue: selectedTemplate?.entrySuffix ?? existing?.entrySuffix ?? "")
         _attachmentsFolderName = State(initialValue: existing?.attachmentsFolderName ?? "attachments")
@@ -331,39 +336,57 @@ struct CaptureDestinationEditorView: View {
             }
 
             Section("Entry Formatting") {
-                if !templates.isEmpty {
-                    Picker("Reusable Template", selection: $selectedTemplateID) {
-                        Text("Custom").tag(UUID?.none)
-                        ForEach(templates) { template in
-                            Text(template.name).tag(Optional(template.id))
+                if let markdownTemplatePath {
+                    LabeledContent("Vault Template", value: markdownTemplatePath)
+                    Button("Choose Another Template…") {
+                        isChoosingMarkdownTemplate = true
+                    }
+                    Button("Remove Vault Template", role: .destructive) {
+                        self.markdownTemplatePath = nil
+                    }
+                    Text("Vox.md reads this file from your vault for every capture, so edits made in Obsidian apply automatically.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Button("Choose Template from Vault…") {
+                        isChoosingMarkdownTemplate = true
+                    }
+                    .disabled(rootBookmark.isEmpty)
+
+                    if !templates.isEmpty {
+                        Picker("Reusable Template", selection: $selectedTemplateID) {
+                            Text("Custom").tag(UUID?.none)
+                            ForEach(templates) { template in
+                                Text(template.name).tag(Optional(template.id))
+                            }
+                        }
+                        .onChange(of: selectedTemplateID) { _, id in
+                            guard let template = templates.first(where: { $0.id == id }) else { return }
+                            entryPrefix = template.entryPrefix
+                            entrySuffix = template.entrySuffix
                         }
                     }
-                    .onChange(of: selectedTemplateID) { _, id in
-                        guard let template = templates.first(where: { $0.id == id }) else { return }
-                        entryPrefix = template.entryPrefix
-                        entrySuffix = template.entrySuffix
+                    Text("Prefix").font(.caption).foregroundStyle(.secondary)
+                    TextEditor(text: $entryPrefix)
+                        .font(.body.monospaced())
+                        .frame(minHeight: 90)
+                        .disabled(selectedTemplateID != nil)
+                        .accessibilityLabel("Entry prefix")
+                    Text("Suffix").font(.caption).foregroundStyle(.secondary)
+                    TextEditor(text: $entrySuffix)
+                        .font(.body.monospaced())
+                        .frame(minHeight: 70)
+                        .disabled(selectedTemplateID != nil)
+                        .accessibilityLabel("Entry suffix")
+                    if selectedTemplateID != nil {
+                        Text("This destination stays linked to the reusable template. Choose Custom to edit a private snapshot.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-                }
-                Text("Prefix").font(.caption).foregroundStyle(.secondary)
-                TextEditor(text: $entryPrefix)
-                    .font(.body.monospaced())
-                    .frame(minHeight: 90)
-                    .disabled(selectedTemplateID != nil)
-                    .accessibilityLabel("Entry prefix")
-                Text("Suffix").font(.caption).foregroundStyle(.secondary)
-                TextEditor(text: $entrySuffix)
-                    .font(.body.monospaced())
-                    .frame(minHeight: 70)
-                    .disabled(selectedTemplateID != nil)
-                    .accessibilityLabel("Entry suffix")
-                if selectedTemplateID != nil {
-                    Text("This destination stays linked to the reusable template. Choose Custom to edit a private snapshot.")
+                    Text("Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {timestamp}, {source}, {id8}.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Text("Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {timestamp}, {source}, {id8}.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                 TextField("Attachments Folder", text: $attachmentsFolderName)
                     .textInputAutocapitalization(.never)
                     .disableAutocorrection(true)
@@ -421,6 +444,17 @@ struct CaptureDestinationEditorView: View {
             )
             .ignoresSafeArea()
         }
+        .sheet(isPresented: $isChoosingMarkdownTemplate) {
+            CaptureMarkdownNotePicker(
+                initialDirectoryURL: resolvedRootURL,
+                onPick: { url in
+                    isChoosingMarkdownTemplate = false
+                    chooseMarkdownTemplate(url)
+                },
+                onCancel: { isChoosingMarkdownTemplate = false }
+            )
+            .ignoresSafeArea()
+        }
     }
 
     private var resolvedRootURL: URL? {
@@ -446,9 +480,9 @@ struct CaptureDestinationEditorView: View {
     private var pathHelp: String {
         switch targetKind {
         case .newNote:
-            return "Tokens: {timestamp}, {date}, {time}, {id8}, {id}. Existing filenames are automatically uniqued."
+            return "Tokens: {timestamp}, {date}, {time}, {year}, {YR} (2-digit year), {month}, {day}, {id8}, {id}. Existing filenames are automatically uniqued."
         case .rollingNote:
-            return "Use {period} for the selected daily, weekly, monthly, quarterly, or yearly bucket. Tokens also include {date}, {year}, {month}, {day}, and {week}."
+            return "Use {period} for the selected daily, weekly, monthly, quarterly, or yearly bucket. Tokens also include {date}, {year}, {YR} (2-digit year), {month}, {day}, and {week}."
         case .existingNote:
             return "Path relative to the selected vault or folder, for example Projects/Vox.md."
         }
@@ -490,6 +524,7 @@ struct CaptureDestinationEditorView: View {
                 relativeTo: nil
             )
             rootName = url.lastPathComponent
+            markdownTemplatePath = nil
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -537,6 +572,12 @@ struct CaptureDestinationEditorView: View {
 
             if case .existingNote(let relativePath) = target {
                 try preflightExistingNote(relativePath: relativePath, placement: placement)
+                if markdownTemplatePath == relativePath {
+                    throw CaptureVaultMarkdownTemplateError.templateMatchesDestination(relativePath)
+                }
+            }
+            if let markdownTemplatePath {
+                try preflightMarkdownTemplate(relativePath: markdownTemplatePath)
             }
 
             isSaving = true
@@ -547,9 +588,10 @@ struct CaptureDestinationEditorView: View {
                 rootName: rootName,
                 noteTarget: target,
                 placement: placement,
-                entryPrefix: entryPrefix,
-                entrySuffix: entrySuffix,
-                entryTemplateID: selectedTemplateID,
+                entryPrefix: markdownTemplatePath == nil ? entryPrefix : "",
+                entrySuffix: markdownTemplatePath == nil ? entrySuffix : "",
+                entryTemplateID: markdownTemplatePath == nil ? selectedTemplateID : nil,
+                markdownTemplatePath: markdownTemplatePath,
                 attachmentsFolderName: attachmentsFolderName,
                 retryProtectionEnabled: retryProtectionEnabled
             ))
@@ -557,6 +599,73 @@ struct CaptureDestinationEditorView: View {
         } catch {
             isSaving = false
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func chooseMarkdownTemplate(_ url: URL) {
+        let selectedAccess = url.startAccessingSecurityScopedResource()
+        defer { if selectedAccess { url.stopAccessingSecurityScopedResource() } }
+        do {
+            let relativePath = try relativeMarkdownPath(
+                for: url,
+                outsideRootError: DestinationEditorError.templateOutsideRoot
+            )
+            try preflightMarkdownTemplate(relativePath: relativePath)
+            markdownTemplatePath = relativePath
+            selectedTemplateID = nil
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func relativeMarkdownPath(
+        for url: URL,
+        outsideRootError: DestinationEditorError
+    ) throws -> String {
+        var isStale = false
+        let rootURL = try URL(
+            resolvingBookmarkData: rootBookmark,
+            options: [],
+            relativeTo: nil,
+            bookmarkDataIsStale: &isStale
+        ).standardizedFileURL
+        guard !isStale else { throw DestinationEditorError.folderPermissionExpired }
+        let selectedURL = url.standardizedFileURL
+        guard selectedURL.pathExtension.lowercased() == "md" else {
+            throw DestinationEditorError.markdownTemplateRequired
+        }
+        let rootPrefix = rootURL.path.hasSuffix("/") ? rootURL.path : rootURL.path + "/"
+        guard selectedURL.path.hasPrefix(rootPrefix) else { throw outsideRootError }
+        let relativePath = String(selectedURL.path.dropFirst(rootPrefix.count))
+        try CapturePathValidation.validateRelativePath(relativePath)
+        return relativePath
+    }
+
+    private func preflightMarkdownTemplate(relativePath: String) throws {
+        var isStale = false
+        let rootURL = try URL(
+            resolvingBookmarkData: rootBookmark,
+            options: [],
+            relativeTo: nil,
+            bookmarkDataIsStale: &isStale
+        )
+        guard !isStale else { throw DestinationEditorError.folderPermissionExpired }
+        let templateURL = try CapturePathValidation.containedFileURL(
+            relativePath: relativePath,
+            rootURL: rootURL
+        )
+        let rootAccess = rootURL.startAccessingSecurityScopedResource()
+        defer { if rootAccess { rootURL.stopAccessingSecurityScopedResource() } }
+        guard FileManager.default.fileExists(atPath: templateURL.path) else {
+            throw CaptureVaultMarkdownTemplateError.templateMissing(relativePath)
+        }
+        let template = try String(contentsOf: templateURL, encoding: .utf8)
+        guard template.count <= CaptureInputLimits.maximumTextCharacters else {
+            throw CaptureVaultMarkdownTemplateError.templateTooLarge(
+                path: relativePath,
+                limit: CaptureInputLimits.maximumTextCharacters
+            )
         }
     }
 
@@ -633,7 +742,7 @@ struct CaptureEntryTemplateEditorView: View {
             } header: {
                 Text("Template")
             } footer: {
-                Text("Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {timestamp}, {year}, {month}, {day}, {week}, {source}, {id8}, {id}.")
+                Text("Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}.")
             }
             if let errorMessage {
                 Section("Error") { Text(errorMessage).foregroundStyle(.red) }
@@ -682,6 +791,8 @@ private enum DestinationEditorError: Error, LocalizedError {
     case existingNoteMissing(String)
     case folderPermissionExpired
     case noteOutsideRoot
+    case templateOutsideRoot
+    case markdownTemplateRequired
 
     var errorDescription: String? {
         switch self {
@@ -690,6 +801,8 @@ private enum DestinationEditorError: Error, LocalizedError {
         case .existingNoteMissing(let path): return "The existing note ‘\(path)’ was not found in the selected vault or folder."
         case .folderPermissionExpired: return "The selected vault or folder permission expired. Choose it again."
         case .noteOutsideRoot: return "Choose a Markdown note inside the selected vault or folder."
+        case .templateOutsideRoot: return "Choose a Markdown template inside the selected vault or folder."
+        case .markdownTemplateRequired: return "Choose a Markdown (.md) template file."
         }
     }
 }

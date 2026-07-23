@@ -93,6 +93,7 @@ public actor CapturePipeline {
     private let renderer: CaptureMarkdownRenderer
     private let attachmentWriter: CaptureAttachmentWriter
     private let templateRenderer: CaptureEntryTemplateRenderer
+    private let vaultTemplateRenderer: CaptureVaultMarkdownTemplateRenderer
     private let writer: any CaptureMutationWriting
     private let fileManager: FileManager
     private let deliveryAccounting: any CaptureDeliveryAccounting
@@ -110,6 +111,7 @@ public actor CapturePipeline {
         self.renderer = renderer
         self.attachmentWriter = attachmentWriter
         self.templateRenderer = templateRenderer ?? CaptureEntryTemplateRenderer(calendar: pathPlanner.calendar)
+        self.vaultTemplateRenderer = CaptureVaultMarkdownTemplateRenderer(calendar: pathPlanner.calendar)
         self.writer = writer
         self.fileManager = fileManager
         self.deliveryAccounting = deliveryAccounting
@@ -197,6 +199,11 @@ public actor CapturePipeline {
             rootURL: rootURL
         )
         let noteURL = try containedNoteURL(relativePath: relativeNotePath, root: rootURL)
+        let vaultTemplate = try CaptureVaultMarkdownTemplateLoader.load(
+            relativePath: effectiveDestination.markdownTemplatePath,
+            destinationNotePath: relativeNotePath,
+            rootURL: rootURL
+        )
         let attachments = try attachmentWriter.copyAttachments(
             for: request,
             destination: effectiveDestination,
@@ -210,12 +217,23 @@ public actor CapturePipeline {
                 for: effectiveDestination,
                 attachmentPaths: attachments.attachmentPaths
             )
+            let renderedPrefix: String
+            let renderedSuffix: String
+            if let vaultTemplate {
+                let rendered = vaultTemplateRenderer.render(vaultTemplate, for: request)
+                    .trimmingCharacters(in: .newlines)
+                renderedPrefix = rendered.isEmpty ? "" : rendered + "\n\n"
+                renderedSuffix = ""
+            } else {
+                renderedPrefix = templateRenderer.render(effectiveDestination.entryPrefix, for: request)
+                renderedSuffix = templateRenderer.render(effectiveDestination.entrySuffix, for: request)
+            }
             let mutation = MarkdownCaptureMutation(
                 requestID: request.id,
                 entry: entry,
                 placement: effectiveDestination.placement,
-                entryPrefix: templateRenderer.render(effectiveDestination.entryPrefix, for: request),
-                entrySuffix: templateRenderer.render(effectiveDestination.entrySuffix, for: request),
+                entryPrefix: renderedPrefix,
+                entrySuffix: renderedSuffix,
                 frontmatter: request.voxProfile?.metadataScope == .entry ? [:] : request.frontmatter,
                 retryProtectionEnabled: effectiveDestination.retryProtectionEnabled,
                 destinationRootURL: rootURL,

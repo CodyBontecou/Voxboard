@@ -1,16 +1,22 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "‹" : {
+
+    },
+    "›" : {
+
+    },
+    "Automatic" : {
+
+    },
+    "Enable Full Access" : {
+
+    },
     "ENABLE FULL ACCESS" : {
       "comment" : "Keyboard toolbar status shown when Full Access is not enabled in Settings",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ENABLE FULL ACCESS"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27,6 +33,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "VOLLZUGRIFF AKTIVIEREN"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ENABLE FULL ACCESS"
           }
         },
         "es" : {
@@ -149,12 +161,6 @@
       "comment" : "Error status shown in the keyboard toolbar when the free-tier limit is hit",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limit reached — open Vox.md to unlock"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -171,6 +177,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limit erreicht — öffne Vox.md zum Entsperren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limit reached — open Vox.md to unlock"
           }
         },
         "es" : {
@@ -293,12 +305,6 @@
       "comment" : "Keyboard toolbar label when no AI model is downloaded",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No Model"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -315,6 +321,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kein Modell"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Model"
           }
         },
         "es" : {
@@ -437,12 +449,6 @@
       "comment" : "Error message when transcription finds no recognisable speech in the audio",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No speech detected"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -459,6 +465,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keine Sprache erkannt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No speech detected"
           }
         },
         "es" : {
@@ -577,16 +589,13 @@
         }
       }
     },
+    "Open Vox.md" : {
+
+    },
     "OPEN VOX.MD" : {
       "comment" : "Keyboard toolbar status prompting the user to open the main Vox.md app",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OPEN VOX.MD"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -603,6 +612,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "VOX.MD ÖFFNEN"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OPEN VOX.MD"
           }
         },
         "es" : {
@@ -721,16 +736,13 @@
         }
       }
     },
+    "Transcribing…" : {
+
+    },
     "TRANSCRIBING..." : {
       "comment" : "Keyboard toolbar status shown while audio is being transcribed",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRANSCRIBING..."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -747,6 +759,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "TRANSKRIBIERE..."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TRANSCRIBING..."
           }
         },
         "es" : {
@@ -865,16 +883,13 @@
         }
       }
     },
+    "Transcript saved, but the remaining text could not be safely inserted" : {
+
+    },
     "Transcription timed out — try again" : {
       "comment" : "Error status shown in the keyboard toolbar when transcription takes too long",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Transcription timed out — try again"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -891,6 +906,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zeitüberschreitung bei der Transkription — versuche es erneut"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcription timed out — try again"
           }
         },
         "es" : {

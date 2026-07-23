@@ -27,8 +27,10 @@ final class WatchRecordingController: NSObject {
     private let presetSelectionPresetDefaultsKey = "watchPresetSelection.lastPresetID.v1"
     private let presetSelectionResultDefaultsKey = "watchPresetSelection.lastResult.v1"
     private let presetSelectionErrorDefaultsKey = "watchPresetSelection.lastError.v1"
+    nonisolated private let backgroundTaskService: any WatchRecordingBackgroundTaskServicing
 
     private override init() {
+        backgroundTaskService = WatchRecordingBackgroundTaskClient.live()
         super.init()
     }
 
@@ -66,6 +68,12 @@ final class WatchRecordingController: NSObject {
             needsStatePublishAfterActivation = true
             watchLog.error("Failed to update watch application context: \(String(describing: error))")
         }
+    }
+
+    /// Must run from `UIApplicationDelegate` so a WatchConnectivity launch can
+    /// install its delegate before any SwiftUI scene is presented.
+    func activateForBackgroundDelivery() {
+        activateSessionIfNeeded()
     }
 
     private func activateSessionIfNeeded() {
@@ -271,17 +279,23 @@ final class WatchRecordingController: NSObject {
               UUID(uuidString: requestID) != nil,
               let presetID = payload[WatchRecordingPayloadKey.requestedPresetID] as? String,
               isValidWatchPresetID(presetID),
-              let epoch = payload[WatchRecordingPayloadKey.presetSelectionEpoch] as? Int,
+              let epoch = watchInt64(payload[WatchRecordingPayloadKey.presetSelectionEpoch]),
               epoch > 0,
-              let sequence = payload[WatchRecordingPayloadKey.presetSelectionSequence] as? Int,
+              let sequence = watchInt64(payload[WatchRecordingPayloadKey.presetSelectionSequence]),
               sequence > 0 else {
             watchLog.error("Rejected malformed Watch Capture Preset selection")
             return nil
         }
 
         let defaults = UserDefaults.standard
-        let lastEpoch = defaults.integer(forKey: presetSelectionEpochDefaultsKey)
-        let lastSequence = defaults.integer(forKey: presetSelectionSequenceDefaultsKey)
+        let lastEpoch = storedInt64(
+            forKey: presetSelectionEpochDefaultsKey,
+            defaults: defaults
+        )
+        let lastSequence = storedInt64(
+            forKey: presetSelectionSequenceDefaultsKey,
+            defaults: defaults
+        )
         let requestIsStale = epoch < lastEpoch
             || (epoch == lastEpoch && sequence < lastSequence)
         if requestIsStale {
@@ -329,6 +343,14 @@ final class WatchRecordingController: NSObject {
         return response
     }
 
+    private func watchInt64(_ value: Any?) -> Int64? {
+        (value as? NSNumber)?.int64Value
+    }
+
+    private func storedInt64(forKey key: String, defaults: UserDefaults) -> Int64 {
+        (defaults.object(forKey: key) as? NSNumber)?.int64Value ?? 0
+    }
+
     private func persistPresetSelectionAcknowledgement(
         _ response: WatchPresetSelectionResponse
     ) {
@@ -354,8 +376,8 @@ final class WatchRecordingController: NSObject {
         return WatchPresetSelectionResponse(
             requestID: requestID,
             presetID: presetID,
-            epoch: defaults.integer(forKey: presetSelectionEpochDefaultsKey),
-            sequence: defaults.integer(forKey: presetSelectionSequenceDefaultsKey),
+            epoch: storedInt64(forKey: presetSelectionEpochDefaultsKey, defaults: defaults),
+            sequence: storedInt64(forKey: presetSelectionSequenceDefaultsKey, defaults: defaults),
             outcome: outcome,
             errorMessage: defaults.string(forKey: presetSelectionErrorDefaultsKey)
         )
@@ -568,25 +590,50 @@ extension WatchRecordingController: WCSessionDelegate {
         let logger = Logger(subsystem: "bontecou.Voxboard", category: "WatchRecording")
         let metadata = file.metadata ?? [:]
         let recordingID = metadata[WatchRecordingFileMetadataKey.recordingID] as? String
-        do {
-            let kind = metadata[WatchRecordingFileMetadataKey.kind] as? String
-            guard kind == WatchRecordingFileMetadataKey.watchAudioRecordingKind else {
-                logger.notice("Ignoring unknown watch file transfer")
-                return
-            }
+        let kind = metadata[WatchRecordingFileMetadataKey.kind] as? String
+        guard kind == WatchRecordingFileMetadataKey.watchAudioRecordingKind else {
+            logger.notice("Ignoring unknown watch file transfer")
+            return
+        }
 
+        // Acquire finite execution time before doing durable inbox work and,
+        // critically, before this delegate callback returns. The lease remains
+        // strongly captured until MainActor transfers ownership to the pipeline.
+        let backgroundLease = WatchRecordingBackgroundLease.begin(
+            recordingID: recordingID,
+            service: backgroundTaskService
+        ) { token in
+            WatchRecordingController.shared.watchPipeline?
+                .backgroundLeaseDidExpire(token)
+        }
+        logger.notice(
+            "Receiving watch recording under background lease token=\(backgroundLease.token.uuidString, privacy: .public) recording=\(recordingID ?? "unknown", privacy: .public)"
+        )
+
+        do {
             let item = try WatchRecordingInbox.shared.enqueue(
                 fileURL: file.fileURL,
                 metadata: metadata
             )
             logger.notice("Queued watch recording: \(item.id, privacy: .public)")
             Task { @MainActor in
-                WatchRecordingController.shared.clearTransportFailure(recordingID: item.id)
-                WatchRecordingController.shared.watchPipeline?.recordingDidArrive()
-                WatchRecordingController.shared.publishState()
-                WatchRecordingController.shared.notifyWatchRecordingReadyIfNeeded(for: item)
+                let controller = WatchRecordingController.shared
+                controller.clearTransportFailure(recordingID: item.id)
+                guard let pipeline = controller.watchPipeline else {
+                    backgroundLease.end(.pipelineUnavailable)
+                    controller.publishState()
+                    controller.notifyWatchRecordingReadyIfNeeded(for: item)
+                    return
+                }
+                pipeline.recordingDidArrive(
+                    recordingID: item.id,
+                    backgroundLease: backgroundLease
+                )
+                controller.publishState()
+                controller.notifyWatchRecordingReadyIfNeeded(for: item)
             }
         } catch {
+            backgroundLease.end(.enqueueFailed)
             logger.error("Failed to queue watch recording: \(String(describing: error))")
             Task { @MainActor in
                 let message = "iPhone could not save this transfer. Tap Sync on Watch to retry."
@@ -650,8 +697,8 @@ nonisolated enum WatchPresetSelectionOutcome: String {
 nonisolated struct WatchPresetSelectionResponse {
     let requestID: String
     let presetID: String
-    let epoch: Int
-    let sequence: Int
+    let epoch: Int64
+    let sequence: Int64
     let outcome: WatchPresetSelectionOutcome
     let errorMessage: String?
 

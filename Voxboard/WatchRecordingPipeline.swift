@@ -1,8 +1,14 @@
 import Foundation
 import Observation
+import os.log
 import UIKit
 import UserNotifications
 import VoxboardShared
+
+private let watchPipelineBackgroundLog = Logger(
+    subsystem: "bontecou.Voxboard",
+    category: "WatchRecordingBackground"
+)
 
 @MainActor
 @Observable
@@ -17,8 +23,12 @@ final class WatchRecordingPipeline {
     private let usageTracker: UsageTracker
     private let transcriptionService: OnDeviceTranscriptionService
     private let transcriptEnricher: TranscriptEnricher?
+    private let backgroundTaskService: any WatchRecordingBackgroundTaskServicing
     private weak var recorder: PersistentRecorder?
     private var processingTask: Task<Void, Never>?
+    private var activeBackgroundLease: WatchRecordingBackgroundLease?
+    private var pendingBackgroundLease: WatchRecordingBackgroundLease?
+    private var isStoppingAfterExpiration = false
     private var inboxObserver: NSObjectProtocol?
 
     init(
@@ -26,13 +36,16 @@ final class WatchRecordingPipeline {
         transcriptStore: TranscriptStore,
         usageTracker: UsageTracker,
         transcriptionService: OnDeviceTranscriptionService,
-        transcriptEnricher: TranscriptEnricher?
+        transcriptEnricher: TranscriptEnricher?,
+        backgroundTaskService: (any WatchRecordingBackgroundTaskServicing)? = nil
     ) {
         self.inbox = inbox
         self.transcriptStore = transcriptStore
         self.usageTracker = usageTracker
         self.transcriptionService = transcriptionService
         self.transcriptEnricher = transcriptEnricher
+        self.backgroundTaskService = backgroundTaskService
+            ?? WatchRecordingBackgroundTaskClient.live()
         items = inbox.load()
 
         inboxObserver = NotificationCenter.default.addObserver(
@@ -41,8 +54,10 @@ final class WatchRecordingPipeline {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
+                // WCSession arrivals hand their already-acquired background
+                // lease to `recordingDidArrive`. Starting from this observer can
+                // race that handoff and create an unnecessary second assertion.
                 self?.refresh()
-                self?.resume()
             }
         }
     }
@@ -74,9 +89,27 @@ final class WatchRecordingPipeline {
         self.recorder = recorder
     }
 
-    func recordingDidArrive() {
-        refresh()
-        resume()
+    func recordingDidArrive(
+        recordingID: String,
+        backgroundLease: WatchRecordingBackgroundLease
+    ) {
+        watchPipelineBackgroundLog.notice(
+            "Adopting received recording token=\(backgroundLease.token.uuidString, privacy: .public) recording=\(recordingID, privacy: .public)"
+        )
+        resume(backgroundLease: backgroundLease)
+    }
+
+    func backgroundLeaseDidExpire(_ token: UUID) {
+        if activeBackgroundLease?.token == token {
+            isStoppingAfterExpiration = true
+            activeRecordingID = nil
+            watchPipelineBackgroundLog.error(
+                "Cancelling Watch delivery after lease expiration token=\(token.uuidString, privacy: .public)"
+            )
+            processingTask?.cancel()
+        } else if pendingBackgroundLease?.token == token {
+            pendingBackgroundLease = nil
+        }
     }
 
     func refresh() {
@@ -84,24 +117,99 @@ final class WatchRecordingPipeline {
     }
 
     func resume() {
+        resume(backgroundLease: nil)
+    }
+
+    private func resume(backgroundLease incomingLease: WatchRecordingBackgroundLease?) {
         refresh()
-        guard processingTask == nil else { return }
+        if processingTask != nil {
+            if let incomingLease {
+                adoptLeaseWhileProcessing(incomingLease)
+            }
+            return
+        }
+
+        if let orphanedLease = activeBackgroundLease {
+            activeBackgroundLease = nil
+            orphanedLease.end(.completed)
+        }
 
         recoverInterruptedItems()
         let recorderIsBusy = recorder?.isSegmentActive == true || recorder?.isTranscribing == true
-        guard items.contains(where: {
+        let processableItems = items.filter {
             $0.phase == .queued && (!recorderIsBusy || isRecordingOnly($0))
-        }) else {
+        }
+        guard !processableItems.isEmpty else {
+            incomingLease?.end(.noProcessableWork)
             reconcileDeliveredCaptureRequests()
             return
         }
-        if usageTracker.isAtLimit && !items.contains(where: canRunWithoutTranscriptionUsage) {
+        if usageTracker.isAtLimit && !processableItems.contains(where: canRunWithoutTranscriptionUsage) {
+            incomingLease?.end(.noProcessableWork)
             markQueuedItemsWaitingForUnlock()
             return
         }
 
+        isStoppingAfterExpiration = false
+        let lease = incomingLease ?? makeBackgroundLease(
+            recordingID: processableItems.first?.id
+        )
+        guard WatchRecordingBackgroundExecutionPolicy.shouldStart(
+            leaseIsActive: lease.isActive,
+            applicationIsActive: UIApplication.shared.applicationState == .active
+        ) else {
+            // The assertion may have expired before WCSession's MainActor
+            // handoff, or UIKit may have declined it. Keep the durable inbox
+            // item queued rather than starting work that iOS can immediately
+            // suspend. A foreground launch or later Watch event will retry it.
+            watchPipelineBackgroundLog.error(
+                "Deferring Watch queue drain without background execution token=\(lease.token.uuidString, privacy: .public)"
+            )
+            lease.end(.noProcessableWork)
+            return
+        }
+        activeBackgroundLease = lease
+        watchPipelineBackgroundLog.notice(
+            "Starting Watch queue drain token=\(lease.token.uuidString, privacy: .public) active=\(lease.isActive, privacy: .public)"
+        )
         processingTask = Task { @MainActor [weak self] in
             await self?.drainQueue()
+        }
+    }
+
+    private func adoptLeaseWhileProcessing(_ incomingLease: WatchRecordingBackgroundLease) {
+        guard incomingLease.isActive else {
+            incomingLease.end(.coalesced)
+            return
+        }
+
+        if isStoppingAfterExpiration {
+            pendingBackgroundLease?.end(.coalesced)
+            pendingBackgroundLease = incomingLease
+            watchPipelineBackgroundLog.notice(
+                "Queued replacement background lease token=\(incomingLease.token.uuidString, privacy: .public)"
+            )
+            return
+        }
+
+        if activeBackgroundLease?.isActive == true {
+            incomingLease.end(.coalesced)
+            return
+        }
+
+        activeBackgroundLease?.end(.coalesced)
+        activeBackgroundLease = incomingLease
+        watchPipelineBackgroundLog.notice(
+            "Replaced inactive background lease token=\(incomingLease.token.uuidString, privacy: .public)"
+        )
+    }
+
+    private func makeBackgroundLease(recordingID: String?) -> WatchRecordingBackgroundLease {
+        WatchRecordingBackgroundLease.begin(
+            recordingID: recordingID,
+            service: backgroundTaskService
+        ) { [weak self] token in
+            self?.backgroundLeaseDidExpire(token)
         }
     }
 
@@ -222,17 +330,21 @@ final class WatchRecordingPipeline {
 
     private func drainQueue() async {
         isProcessing = true
-        var backgroundTask = beginBackgroundTaskIfNeeded()
         defer {
-            if backgroundTask != .invalid {
-                UIApplication.shared.endBackgroundTask(backgroundTask)
-                backgroundTask = .invalid
-            }
+            let completedLease = activeBackgroundLease
+            let replacementLease = pendingBackgroundLease
+            activeBackgroundLease = nil
+            pendingBackgroundLease = nil
             activeRecordingID = nil
             isProcessing = false
             processingTask = nil
+            isStoppingAfterExpiration = false
             refresh()
             WatchRecordingController.shared.publishState()
+            completedLease?.end(.completed)
+            if let replacementLease {
+                resume(backgroundLease: replacementLease)
+            }
         }
 
         while !Task.isCancelled {
@@ -267,10 +379,7 @@ final class WatchRecordingPipeline {
                     message: error.localizedDescription
                 )
                 if isRecordingOnly(item) {
-                    notifyRecordingOnlyDeliveryFailure(
-                        recordingID: item.id,
-                        message: error.localizedDescription
-                    )
+                    notifyRecordingOnlyDeliveryFailure(recordingID: item.id)
                 }
             } catch {
                 _ = inbox.transition(
@@ -280,10 +389,7 @@ final class WatchRecordingPipeline {
                     message: error.localizedDescription
                 )
                 if isRecordingOnly(item) {
-                    notifyRecordingOnlyDeliveryFailure(
-                        recordingID: item.id,
-                        message: error.localizedDescription
-                    )
+                    notifyRecordingOnlyDeliveryFailure(recordingID: item.id)
                 }
             }
             refresh()
@@ -518,6 +624,9 @@ final class WatchRecordingPipeline {
                 } onCancel: {
                     copyTask.cancel()
                 }
+                watchPipelineBackgroundLog.notice(
+                    "Files delivery verified recording=\(item.id, privacy: .public) reconciled=\(receipt.wasAlreadyDelivered, privacy: .public)"
+                )
                 try ensureProcessingIsActive(for: item.id)
                 guard inbox.markDelivered(
                     id: item.id,
@@ -626,7 +735,15 @@ final class WatchRecordingPipeline {
     }
 
     private func recoverInterruptedItems() {
-        for item in items where item.phase == .transcribing || item.phase == .delivering {
+        let interruptedItems = items.filter {
+            $0.phase == .transcribing || $0.phase == .delivering
+        }
+        if !interruptedItems.isEmpty {
+            watchPipelineBackgroundLog.notice(
+                "Recovering interrupted Watch deliveries count=\(interruptedItems.count, privacy: .public)"
+            )
+        }
+        for item in interruptedItems {
             let message: String
             if isRecordingOnly(item) {
                 message = "Resuming Files delivery"
@@ -685,10 +802,7 @@ final class WatchRecordingPipeline {
         WatchRecordingController.shared.publishState()
     }
 
-    private func notifyRecordingOnlyDeliveryFailure(
-        recordingID: String,
-        message: String
-    ) {
+    private func notifyRecordingOnlyDeliveryFailure(recordingID: String) {
         guard UIApplication.shared.applicationState != .active else { return }
         Task {
             let center = UNUserNotificationCenter.current()
@@ -699,8 +813,10 @@ final class WatchRecordingPipeline {
                 return
             }
             let content = UNMutableNotificationContent()
-            content.title = "Watch recording needs attention"
-            content.body = message
+            content.title = String(localized: "Watch recording needs attention")
+            // Folder names and provider errors can be sensitive. Keep lock-screen
+            // previews generic; the authenticated in-app queue retains details.
+            content.body = String(localized: "Open Vox.md to review a Watch recording delivery problem.")
             content.sound = .default
             let request = UNNotificationRequest(
                 identifier: "watch-recording-files-failed-\(recordingID)",
@@ -709,18 +825,6 @@ final class WatchRecordingPipeline {
             )
             try? await center.add(request)
         }
-    }
-
-    private func beginBackgroundTaskIfNeeded() -> UIBackgroundTaskIdentifier {
-        // Begin while foregrounded too; this protection remains valid if the
-        // user backgrounds the app during transcription or Capture delivery.
-        var identifier: UIBackgroundTaskIdentifier = .invalid
-        identifier = UIApplication.shared.beginBackgroundTask(withName: "WatchRecordingPipeline") { [weak self] in
-            Task { @MainActor [weak self] in
-                self?.processingTask?.cancel()
-            }
-        }
-        return identifier
     }
 }
 

@@ -67,6 +67,27 @@ final class TranscriptExportKitAdapterTests: XCTestCase {
         )
     }
 
+    func test_pathPlannerRendersTwoDigitYearToken() throws {
+        let transcript = Transcript(
+            id: UUID(),
+            text: "Two-digit year",
+            date: Date(timeIntervalSince1970: 1_704_164_645),
+            duration: 1,
+            modelUsed: "base",
+            language: "en"
+        )
+        let config = TranscriptExportConfiguration(
+            format: .txt,
+            mode: .newFile,
+            newFileNameTemplate: "daily-{YR}"
+        )
+
+        let filenameBase = TranscriptExportPathPlanner(configuration: config)
+            .filenameBase(for: TranscriptExportRecord(transcript: transcript))
+
+        XCTAssertEqual(filenameBase, "daily-24")
+    }
+
     func test_newFileModeUsesExportKitWriterAndPreservesUniquing() throws {
         let transcript = Transcript(text: "Unique", duration: 1, modelUsed: "base", language: "en")
         let config = TranscriptExportConfiguration(

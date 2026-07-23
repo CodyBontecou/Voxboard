@@ -1,16 +1,13 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "(cleared)" : {
       "comment" : "Debug log placeholder after user clears the log",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "(cleared)"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27,6 +24,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "(geleert)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(cleared)"
           }
         },
         "es" : {
@@ -149,12 +152,6 @@
       "comment" : "Debug log placeholder when the log is empty",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "(empty)"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -171,6 +168,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "(leer)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(empty)"
           }
         },
         "es" : {
@@ -289,592 +292,29 @@
         }
       }
     },
-    "%dh ago" : {
-      "comment" : "Relative timestamp: N hours ago (e.g. '2h ago')",
-      "extractionState" : "manual",
+    "[[Internal links]]" : {
+
+    },
+    "#%@" : {
+
+    },
+    "%.1f / 15 min · %d / 10 captures used" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dh ago"
-          }
-        },
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "قبل %dس"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dh আগে"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "vor %d Std."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hace %dh"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "il y a %dh"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dघं पहले"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dj lalu"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dh fa"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d時間前"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d시간 전"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%du geleden"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dg temu"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "há %dh"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dч назад"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d மணி முன்"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dชม. ที่แล้ว"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d sa önce"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d год тому"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d گھنٹے پہلے"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dh trước"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d小时前"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d小時前"
+            "state" : "new",
+            "value" : "%1$.1f / 15 min · %2$d / 10 captures used"
           }
         }
       }
     },
-    "%dm %ds" : {
-      "comment" : "Duration: minutes and seconds (e.g. '1m 23s')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm %ds"
-          }
-        },
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dد %dث"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dমি %dসে"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d Min. %d Sek."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm %ds"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm %ds"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dमि %dसे"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d mnt %d dtk"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm %ds"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d分 %d秒"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d분 %d초"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm %ds"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d min %d s"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm %ds"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dм %dс"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dநிமி %dவி"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dน %dวิ"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d dk %d sn"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dхв %dс"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d منٹ %d سیکنڈ"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm %ds"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d分 %d秒"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d分%d秒"
-          }
-        }
-      }
-    },
-    "%dm ago" : {
-      "comment" : "Relative timestamp: N minutes ago (e.g. '5m ago')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm ago"
-          }
-        },
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "قبل %dد"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm আগে"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "vor %d Min."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "hace %dm"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "il y a %dm"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dमि पहले"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm lalu"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm fa"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d分前"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d분 전"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm geleden"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d min temu"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "há %dm"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dм назад"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d நிமி முன்"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dน. ที่แล้ว"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d dk önce"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d хв тому"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d منٹ پہلے"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dm trước"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d分钟前"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d分鐘前"
-          }
-        }
-      }
-    },
-    "%ds" : {
-      "comment" : "Duration: seconds only (e.g. '42s')",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%ds"
-          }
-        },
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dث"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dসে"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d Sek."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%ds"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%ds"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dसे"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d dtk"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%ds"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d秒"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d초"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%ds"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d s"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%ds"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dс"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dவி"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dวิ"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d sn"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dс"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d سیکنڈ"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%ds"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d秒"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d秒"
-          }
-        }
-      }
+    "%.1f / 15 min free" : {
+
     },
     "%.1f / 15 MIN FREE" : {
       "comment" : "Usage meter label: minutes used out of 15 free (e.g. '3.2 / 15 MIN FREE')",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1f / 15 MIN FREE"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -891,6 +331,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%.1f / 15 MIN KOSTENLOS"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 15 MIN FREE"
           }
         },
         "es" : {
@@ -1013,12 +459,6 @@
       "comment" : "Settings upgrade section: minutes used out of 15 free (e.g. '3.2 / 15 min free used')",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1f / 15 min free used"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1035,6 +475,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%.1f / 15 Min. kostenlos verbraucht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f / 15 min free used"
           }
         },
         "es" : {
@@ -1153,16 +599,20 @@
         }
       }
     },
+    "%.1f min and %d captures free remaining" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$.1f min and %2$d captures free remaining"
+          }
+        }
+      }
+    },
     "%.1f min free remaining." : {
       "comment" : "Paywall usage message: minutes remaining on free tier (e.g. '7.3 min free remaining.')",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%.1f min free remaining."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1179,6 +629,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%.1f Min. kostenlos verbleibend."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%.1f min free remaining."
           }
         },
         "es" : {
@@ -1297,16 +753,686 @@
         }
       }
     },
+    "%@" : {
+
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%dh ago" : {
+      "comment" : "Relative timestamp: N hours ago (e.g. '2h ago')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قبل %dس"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dh আগে"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vor %d Std."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dh ago"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hace %dh"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "il y a %dh"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dघं पहले"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dj lalu"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dh fa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d時間前"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d시간 전"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%du geleden"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dg temu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "há %dh"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dч назад"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d மணி முன்"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dชม. ที่แล้ว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d sa önce"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d год тому"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d گھنٹے پہلے"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dh trước"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d小时前"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d小時前"
+          }
+        }
+      }
+    },
+    "%dm %ds" : {
+      "comment" : "Duration: minutes and seconds (e.g. '1m 23s')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dد %dث"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dমি %dসে"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d Min. %d Sek."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm %ds"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm %ds"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm %ds"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dमि %dसे"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d mnt %d dtk"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm %ds"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d分 %d秒"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d분 %d초"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm %ds"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d min %d s"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm %ds"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dм %dс"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dநிமி %dவி"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dน %dวิ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d dk %d sn"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dхв %dс"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d منٹ %d سیکنڈ"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm %ds"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d分 %d秒"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d分%d秒"
+          }
+        }
+      }
+    },
+    "%dm ago" : {
+      "comment" : "Relative timestamp: N minutes ago (e.g. '5m ago')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "قبل %dد"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm আগে"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vor %d Min."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm ago"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hace %dm"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "il y a %dm"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dमि पहले"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm lalu"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm fa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d分前"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d분 전"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm geleden"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d min temu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "há %dm"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dм назад"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d நிமி முன்"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dน. ที่แล้ว"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d dk önce"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d хв тому"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d منٹ پہلے"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dm trước"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d分钟前"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d分鐘前"
+          }
+        }
+      }
+    },
+    "%ds" : {
+      "comment" : "Duration: seconds only (e.g. '42s')",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dث"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dসে"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d Sek."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%ds"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%ds"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%ds"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dसे"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d dtk"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%ds"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d秒"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d초"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%ds"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d s"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%ds"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dс"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dவி"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dวิ"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d sn"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%dс"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d سیکنڈ"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%ds"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d秒"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d秒"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld free" : {
+
+    },
+    "%lld free captures remaining" : {
+
+    },
+    "%lld%%" : {
+
+    },
+    "←" : {
+
+    },
+    "→" : {
+
+    },
+    "↺" : {
+
+    },
+    "A Capture Preset is a complete reusable workflow: what happens to a capture and exactly where it is delivered." : {
+
+    },
+    "A shared capture could not be delivered and is queued for retry. %@" : {
+
+    },
+    "About" : {
+
+    },
+    "Add" : {
+
+    },
+    "Add Destination" : {
+
+    },
+    "Add Entry Template" : {
+
+    },
+    "Add files" : {
+
+    },
+    "Add Files" : {
+
+    },
+    "Add media" : {
+
+    },
+    "Add Media" : {
+
+    },
+    "Add Preset" : {
+
+    },
+    "Add Template" : {
+
+    },
+    "Add the Vox.md recording widget to supported Apple Watch faces for faster access to the Watch recorder." : {
+
+    },
+    "Add the Vox.md Watch face shortcut for a quick path into recording from supported Apple Watch faces." : {
+
+    },
+    "Add to Draft" : {
+
+    },
+    "Add to Note" : {
+
+    },
+    "Adding transcript to this Capture" : {
+
+    },
+    "Adjust due time" : {
+
+    },
+    "Adjust due time by %@" : {
+
+    },
+    "All Models" : {
+
+    },
+    "Allow the Quick Record widget/control to open Vox.md and immediately start recording." : {
+
+    },
+    "App" : {
+
+    },
     "App preferences, upgrade, about, and debug" : {
       "comment" : "Accessibility hint for the Settings tab",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App preferences, upgrade, about, and debug"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1323,6 +1449,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App-Einstellungen, Upgrade, Infos und Debug"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App preferences, upgrade, about, and debug"
           }
         },
         "es" : {
@@ -1441,16 +1573,257 @@
         }
       }
     },
+    "append" : {
+
+    },
+    "Append" : {
+
+    },
+    "Append Filename" : {
+
+    },
+    "Apple Watch and iPhone now share listening, recording, transcribing, Quick Record, and unlock-limit messages so you always know what needs attention." : {
+
+    },
+    "Apple Watch Output" : {
+
+    },
+    "Apply to Capture Text" : {
+
+    },
+    "Attach audio to Capture" : {
+
+    },
+    "Attachments Folder" : {
+
+    },
+    "Audio" : {
+
+    },
+    "Audio Export Directory" : {
+
+    },
+    "Audio goes where you want it" : {
+
+    },
+    "Automatic" : {
+
+    },
+    "Automatic uses Apple Speech on supported iOS 26 devices. Whisper and Parakeet downloads are optional local overrides and fallbacks." : {
+
+    },
+    "Bold" : {
+
+    },
+    "Bottom" : {
+
+    },
+    "Bullet list" : {
+
+    },
+    "Bullet List" : {
+
+    },
+    "Bundled" : {
+
+    },
+    "Camera" : {
+
+    },
+    "Cancel" : {
+
+    },
+    "Cancel %@ download" : {
+
+    },
+    "Cancel voice recording" : {
+
+    },
+    "Capitalize case" : {
+
+    },
+    "Capture" : {
+
+    },
+    "Capture a Screenshot" : {
+
+    },
+    "Capture and Transcribe Without Limits" : {
+
+    },
+    "Capture attachments" : {
+
+    },
+    "Capture attachments exceed the 250 MB total safety limit." : {
+
+    },
+    "Capture Bar" : {
+
+    },
+    "Capture destination" : {
+
+    },
+    "Capture Destination" : {
+
+    },
+    "Capture File" : {
+
+    },
+    "Capture File to Markdown" : {
+
+    },
+    "Capture Link" : {
+
+    },
+    "Capture Link to Markdown" : {
+
+    },
+    "Capture note" : {
+
+    },
+    "Capture Preset" : {
+
+    },
+    "Capture Preset %@" : {
+
+    },
+    "Capture Presets" : {
+
+    },
+    "Capture Processing" : {
+
+    },
+    "Capture route %@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Capture route %1$@, %2$@"
+          }
+        }
+      }
+    },
+    "Capture Screenshot" : {
+
+    },
+    "Capture Sent" : {
+
+    },
+    "Capture Text" : {
+
+    },
+    "Capture text is above the 100,000-character safety limit." : {
+
+    },
+    "Capture Text to Markdown" : {
+
+    },
+    "Capture Voice" : {
+
+    },
+    "Capture voice notes from your wrist with the new Vox.md Watch app. Start recording, stop when you’re done, and keep moving without reaching for your iPhone." : {
+
+    },
+    "Category" : {
+
+    },
+    "Change Preset" : {
+
+    },
+    "Change text case" : {
+
+    },
+    "Change Text Case" : {
+
+    },
+    "Check microphone access, then try again from your keyboard." : {
+
+    },
+    "Checklist" : {
+
+    },
+    "Choose a destination first." : {
+
+    },
+    "Choose a Files folder before using this preset from Apple Watch." : {
+
+    },
+    "Choose a Markdown (.md) note." : {
+
+    },
+    "Choose a note inside the selected destination folder." : {
+
+    },
+    "Choose a vault or folder and define where this Capture Preset writes Markdown." : {
+
+    },
+    "Choose a vault or folder and define where this preset writes Markdown." : {
+
+    },
+    "Choose Capture Preset" : {
+
+    },
+    "Choose Existing Note…" : {
+
+    },
+    "Choose Markdown note" : {
+
+    },
+    "Choose Preset" : {
+
+    },
+    "Choose the Capture Preset this control uses when starting a recording." : {
+
+    },
+    "Choose vault or folder" : {
+
+    },
+    "Choose, reorder, and hide quick actions" : {
+
+    },
+    "Cleaned text" : {
+
+    },
+    "Clear All" : {
+
+    },
+    "Clear all history" : {
+
+    },
+    "Clear all history?" : {
+
+    },
+    "Clear Audio Directory" : {
+
+    },
+    "Clear Export Directory" : {
+
+    },
+    "Clear Log" : {
+
+    },
+    "Clear Recording Folder" : {
+
+    },
+    "Clearer post-processing" : {
+
+    },
+    "Clearer recording status" : {
+
+    },
+    "Clearer Watch status" : {
+
+    },
+    "Close" : {
+
+    },
+    "Composer remains available while you record" : {
+
+    },
     "Configure automatic transcript file export" : {
       "comment" : "Accessibility hint for the Files tab",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Configure automatic transcript file export"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1467,6 +1840,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automatischen Dateiexport von Transkripten konfigurieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configure automatic transcript file export"
           }
         },
         "es" : {
@@ -1585,16 +1964,25 @@
         }
       }
     },
+    "Copies a file or image with a configured Capture Preset." : {
+
+    },
+    "Copy" : {
+
+    },
+    "Copy cleaned" : {
+
+    },
+    "Copy Log" : {
+
+    },
+    "Copy raw" : {
+
+    },
     "Could not access microphone" : {
       "comment" : "Error message when microphone permission is denied during recording",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Could not access microphone"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1611,6 +1999,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kein Zugriff auf das Mikrofon"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not access microphone"
           }
         },
         "es" : {
@@ -1729,16 +2123,97 @@
         }
       }
     },
+    "Create Heading" : {
+
+    },
+    "Create named Capture Presets for journal entries, meeting notes, tasks, or anything custom. Pick one before recording and Vox.md applies its formatting, cleanup, frontmatter, destination, and audio rules." : {
+
+    },
+    "Create presets for meetings, journal entries, tasks, ideas, or any setup you use often." : {
+
+    },
+    "Create reusable Markdown or YAML formatting for your Capture Presets." : {
+
+    },
+    "Current Location" : {
+
+    },
+    "Custom" : {
+
+    },
+    "Custom Capture Presets on macOS now use a searchable icon picker, so you can choose a clear symbol without memorizing SF Symbol names." : {
+
+    },
+    "Customization" : {
+
+    },
+    "Debug" : {
+
+    },
+    "Debug Log" : {
+
+    },
+    "Deep Link" : {
+
+    },
+    "Default" : {
+
+    },
+    "Delete" : {
+
+    },
+    "Delete %@ model" : {
+
+    },
+    "Deleted destination" : {
+
+    },
+    "Delivered" : {
+
+    },
+    "Delivery" : {
+
+    },
+    "Delivery failed" : {
+
+    },
+    "Describe exactly how Vox.md should shape captured text. Leave blank to preserve the original when AI enrichment is unavailable." : {
+
+    },
+    "Destination" : {
+
+    },
+    "Destination Name (Optional)" : {
+
+    },
+    "Destination Not Configured" : {
+
+    },
+    "Discard" : {
+
+    },
+    "Discard Recording" : {
+
+    },
+    "Discard this Watch recording?" : {
+
+    },
+    "Dismiss error" : {
+
+    },
+    "Dismiss Error" : {
+
+    },
+    "Dismiss keyboard listening message" : {
+
+    },
+    "Done" : {
+
+    },
     "Download and select Whisper or Parakeet AI models" : {
       "comment" : "Accessibility hint for the Model tab",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download and select Whisper or Parakeet AI models"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1755,6 +2230,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Whisper- oder Parakeet-KI-Modelle herunterladen und auswählen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download and select Whisper or Parakeet AI models"
           }
         },
         "es" : {
@@ -1873,16 +2354,112 @@
         }
       }
     },
+    "Download Model" : {
+
+    },
+    "Download the selected local model to generate a transcript. The audio is ready to add." : {
+
+    },
+    "Download the selected local model, or choose Automatic to use Apple Speech when available. Audio recording still works." : {
+
+    },
+    "Drag actions into the order you want. Turn off actions you do not want on the capture bar." : {
+
+    },
+    "Due date" : {
+
+    },
+    "Each Capture Preset can save notes to its own destination with its own file format, filename template, Obsidian/YAML options, and Markdown template." : {
+
+    },
+    "Each Capture Preset controls whether saved audio stays beside the note, moves into an attachments/audio folder, or stays off entirely, with irrelevant folder options hidden automatically." : {
+
+    },
+    "Each preset owns how captures are processed, formatted, and delivered. Voice-specific audio and legacy export options live in the same preset." : {
+
+    },
+    "Edit" : {
+
+    },
+    "Edit Destination" : {
+
+    },
+    "Edit Markdown" : {
+
+    },
+    "Edit Preset Destination" : {
+
+    },
+    "Edit Template" : {
+
+    },
+    "Edit Transcript" : {
+
+    },
+    "Embed Audio in Markdown" : {
+
+    },
+    "Embed Position" : {
+
+    },
+    "Empty" : {
+
+    },
+    "Empty Capture Prompt" : {
+
+    },
+    "Enable microphone access in Settings to record audio." : {
+
+    },
+    "Enabled" : {
+
+    },
+    "Enter a complete http:// or https:// link." : {
+
+    },
+    "Enter a valid link." : {
+
+    },
+    "Enter raw Markdown to send to the selected destination" : {
+
+    },
+    "Entry Formatting" : {
+
+    },
+    "Entry prefix" : {
+
+    },
+    "Entry suffix" : {
+
+    },
+    "Entry template" : {
+
+    },
+    "Entry Templates" : {
+
+    },
+    "Error" : {
+
+    },
+    "Example: What do you want to remember?" : {
+
+    },
+    "Existing file export settings migrate into your default Capture Preset, and smart folder routing respects explicit Preset destinations." : {
+
+    },
+    "Export" : {
+
+    },
+    "Export Directory" : {
+
+    },
+    "Export Ready" : {
+
+    },
     "Failed to load model" : {
       "comment" : "Error message when the AI model fails to initialize",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to load model"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -1899,6 +2476,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modell konnte nicht geladen werden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to load model"
           }
         },
         "es" : {
@@ -2017,16 +2600,37 @@
         }
       }
     },
+    "Falls back only to a model you have chosen to download." : {
+
+    },
+    "Faster Watch access" : {
+
+    },
+    "Feedback" : {
+
+    },
+    "File" : {
+
+    },
+    "File Import" : {
+
+    },
+    "Filename Template" : {
+
+    },
+    "Finish the current recording before sending this Capture." : {
+
+    },
+    "Format" : {
+
+    },
+    "Format Markdown" : {
+
+    },
     "Free Tier" : {
       "comment" : "Paywall status badge label for users on the free plan",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Free Tier"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2043,6 +2647,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kostenlose Stufe"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free Tier"
           }
         },
         "es" : {
@@ -2161,16 +2771,307 @@
         }
       }
     },
+    "Free transcription time is used. Unlock Unlimited to keep recording." : {
+
+    },
+    "Free Usage" : {
+
+    },
+    "Friendlier Preset icons on Mac" : {
+
+    },
+    "Generate Transcript" : {
+
+    },
+    "Generating Transcript" : {
+
+    },
+    "Global recording keybind on Mac" : {
+
+    },
+    "Haptic Feedback" : {
+
+    },
+    "Hashtag" : {
+
+    },
+    "Heading" : {
+
+    },
+    "Heading %lld" : {
+
+    },
+    "Heading level: %lld" : {
+
+    },
+    "Heading title" : {
+
+    },
+    "Hide detailed recording controls" : {
+
+    },
+    "History" : {
+
+    },
+    "History Error" : {
+
+    },
+    "Home now shows incoming Watch audio with recording time, a Process action, and a discard button before Vox.md transcribes it." : {
+
+    },
+    "https://example.com" : {
+
+    },
+    "Icon" : {
+
+    },
+    "Identity" : {
+
+    },
+    "If missing" : {
+
+    },
+    "Import audio" : {
+
+    },
+    "Included" : {
+
+    },
+    "Indexing filenames on device…" : {
+
+    },
+    "Inline Entry Fields writes queryable `key:: value` lines with each entry, keeping rolling-note metadata separate." : {
+
+    },
+    "Insert" : {
+
+    },
+    "Insert current location" : {
+
+    },
+    "Insert date" : {
+
+    },
+    "Insert Date" : {
+
+    },
+    "Insert filename from vault" : {
+
+    },
+    "Insert timestamp" : {
+
+    },
+    "Insert Timestamp" : {
+
+    },
+    "Insert today’s date" : {
+
+    },
+    "Inspirational quotes provided by ZenQuotes API" : {
+
+    },
+    "Internal link" : {
+
+    },
+    "Internal Link" : {
+
+    },
+    "Italic" : {
+
+    },
+    "Join our Discord" : {
+
+    },
+    "Join Our Discord" : {
+
+    },
+    "JSON" : {
+
+    },
+    "just now" : {
+      "comment" : "Relative timestamp for events less than 60 seconds ago",
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الآن للتو"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "এইমাত্র"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gerade eben"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "just now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "justo ahora"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "à l'instant"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अभी-अभी"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "baru saja"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "proprio adesso"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "たった今"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "방금 전"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "zojuist"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "przed chwilą"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "agora mesmo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "только что"
+          }
+        },
+        "ta" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "இப்போதுதான்"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เมื่อสักครู่"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "az önce"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "щойно"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ابھی ابھی"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "vừa xong"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刚刚"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剛剛"
+          }
+        }
+      }
+    },
+    "Keyboard" : {
+
+    },
+    "Keyboard Integration" : {
+
+    },
+    "Keyboard listening could not start" : {
+
+    },
+    "Keyboard listening couldn't start" : {
+
+    },
+    "Keyboard listening is on" : {
+
+    },
+    "Keyboard listening is ready" : {
+
+    },
+    "Keyboard listening is ready. Return to your keyboard to use it." : {
+
+    },
+    "Keyboard Listening On" : {
+
+    },
+    "Legacy Destination Override" : {
+
+    },
+    "Legacy Voice File Export" : {
+
+    },
+    "Lifetime Access" : {
+
+    },
+    "Lifetime access — no limits" : {
+
+    },
     "Limit Reached" : {
       "comment" : "Paywall status badge label when the user has used all free minutes",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limit Reached"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2187,6 +3088,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Limit erreicht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limit Reached"
           }
         },
         "es" : {
@@ -2305,16 +3212,13 @@
         }
       }
     },
+    "Limit reached · Unlock" : {
+
+    },
     "Listening" : {
       "comment" : "Status badge label when the microphone is active and always-on listening is enabled",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Listening"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2331,6 +3235,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hört zu"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listening"
           }
         },
         "es" : {
@@ -2449,16 +3359,46 @@
         }
       }
     },
+    "Live Activity Monitor" : {
+
+    },
+    "Lock Screen" : {
+
+    },
+    "Lock Screen controls you can tune" : {
+
+    },
+    "Lock Screen Record Button" : {
+
+    },
+    "Lowercase" : {
+
+    },
+    "Mac" : {
+
+    },
+    "Markdown and capture tools" : {
+
+    },
+    "Markdown link" : {
+
+    },
+    "Markdown Link" : {
+
+    },
+    "Markdown Template" : {
+
+    },
+    "MD" : {
+
+    },
+    "Metadata" : {
+
+    },
     "Mic unavailable" : {
       "comment" : "IPC error message when the microphone cannot be accessed",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mic unavailable"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2475,6 +3415,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mikrofon nicht verfügbar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mic unavailable"
           }
         },
         "es" : {
@@ -2593,16 +3539,19 @@
         }
       }
     },
+    "Microphone access is required to attach a voice recording." : {
+
+    },
+    "Microphone level" : {
+
+    },
+    "Mode" : {
+
+    },
     "Model load failed" : {
       "comment" : "IPC error response when the AI model fails to load",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Model load failed"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2619,6 +3568,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Laden des Modells fehlgeschlagen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model load failed"
           }
         },
         "es" : {
@@ -2741,12 +3696,6 @@
       "comment" : "IPC error response when the requested AI model cannot be found on disk",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Model not found"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2763,6 +3712,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modell nicht gefunden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model not found"
           }
         },
         "es" : {
@@ -2885,12 +3840,6 @@
       "comment" : "Error message with model ID when the AI model file does not exist (e.g. 'Model not found: whisper-base')",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Model not found: %@"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -2907,6 +3856,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modell nicht gefunden: %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model not found: %@"
           }
         },
         "es" : {
@@ -3025,16 +3980,34 @@
         }
       }
     },
+    "Models" : {
+
+    },
+    "Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {timestamp}, {source}, {id8}." : {
+
+    },
+    "Name" : {
+
+    },
+    "Native" : {
+
+    },
+    "Needs attention" : {
+
+    },
+    "New File" : {
+
+    },
+    "New Watch Queue on iPhone" : {
+
+    },
+    "Next" : {
+
+    },
     "No audio captured" : {
       "comment" : "IPC error response when recording produced no audio data",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No audio captured"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3051,6 +4024,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kein Audio aufgezeichnet"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No audio captured"
           }
         },
         "es" : {
@@ -3173,12 +4152,6 @@
       "comment" : "User-facing error message when the recording ended with no audio",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No audio was captured"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3195,6 +4168,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Es wurde kein Audio aufgezeichnet"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No audio was captured"
           }
         },
         "es" : {
@@ -3313,16 +4292,22 @@
         }
       }
     },
+    "No Entry Templates" : {
+
+    },
+    "No History Yet" : {
+
+    },
+    "No Markdown notes found." : {
+
+    },
+    "No matching icons" : {
+
+    },
     "No speech detected" : {
       "comment" : "Error message when transcription finds no recognisable speech in the audio",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No speech detected"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3339,6 +4324,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keine Sprache erkannt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No speech detected"
           }
         },
         "es" : {
@@ -3457,16 +4448,22 @@
         }
       }
     },
+    "No subscription or renewal." : {
+
+    },
+    "No time caps" : {
+
+    },
+    "No usable audio was captured. Try recording again." : {
+
+    },
+    "No Watch Recordings" : {
+
+    },
     "Not set" : {
       "comment" : "Placeholder shown in the file export folder picker when no folder has been chosen",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not set"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3483,6 +4480,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nicht festgelegt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not set"
           }
         },
         "es" : {
@@ -3601,16 +4604,22 @@
         }
       }
     },
+    "Note Frontmatter is best for one note per capture. On rolling notes, later captures may update the note-wide values." : {
+
+    },
+    "Note Target" : {
+
+    },
+    "Notifications are off. Vox.md cannot alert you if an unattended Files delivery needs attention." : {
+
+    },
+    "Obsidian Bases" : {
+
+    },
     "Off" : {
       "comment" : "Status badge label when always-on listening is disabled",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Off"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3627,6 +4636,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aus"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
           }
         },
         "es" : {
@@ -3745,16 +4760,46 @@
         }
       }
     },
+    "Off by default. After you tap Done, Vox.md adds the recording and, when available, its on-device transcript to the current draft automatically. Turn this on to play, retry, copy, or review them before adding." : {
+
+    },
+    "OK" : {
+
+    },
+    "On-Device Models" : {
+
+    },
+    "On-Device Processing" : {
+
+    },
+    "One `key: value` per line. Example: `tags: [journal, idea]`." : {
+
+    },
+    "One purchase unlocks unlimited local Capture and private, on-device transcription across Vox.md." : {
+
+    },
+    "one time" : {
+
+    },
+    "Only for this capture" : {
+
+    },
+    "Open File" : {
+
+    },
+    "Open Notification Settings" : {
+
+    },
+    "Open Vox.md to review a Watch recording delivery problem." : {
+
+    },
+    "Open Quick Capture" : {
+
+    },
     "Opens an email draft to contact support with app diagnostics" : {
       "comment" : "Accessibility hint for the Send Feedback button",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Opens an email draft to contact support with app diagnostics"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3771,6 +4816,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Öffnet einen E-Mail-Entwurf, um den Support mit App-Diagnosen zu kontaktieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens an email draft to contact support with app diagnostics"
           }
         },
         "es" : {
@@ -3889,16 +4940,136 @@
         }
       }
     },
+    "Opens Quick Capture and adds screenshots with the selected Capture Preset." : {
+
+    },
+    "Opens Quick Capture and records with the selected Capture Preset entirely on device." : {
+
+    },
+    "Opens the durable Vox.md composer with a Capture Preset." : {
+
+    },
+    "Opens the Vox.md Discord community in your browser" : {
+
+    },
+    "Opens Vox.md and starts recording with the selected Capture Preset." : {
+
+    },
+    "Optional local models you can download and select explicitly." : {
+
+    },
+    "Optional optimized local models you can download and select explicitly." : {
+
+    },
+    "Output" : {
+
+    },
+    "Override" : {
+
+    },
+    "Parakeet" : {
+
+    },
+    "Parakeet detects language automatically. Manual language hints are unavailable for this engine." : {
+
+    },
+    "Paste" : {
+
+    },
+    "Pause" : {
+
+    },
+    "Pay once and keep it" : {
+
+    },
+    "Period" : {
+
+    },
+    "Photo" : {
+
+    },
+    "Placement" : {
+
+    },
+    "Play" : {
+
+    },
+    "Playback is unavailable, but the audio can still be added." : {
+
+    },
+    "Playback is unavailable, but the audio remains safely attached." : {
+
+    },
+    "Prefix" : {
+
+    },
+    "Preparing keyboard listening…" : {
+
+    },
+    "Preparing microphone…" : {
+
+    },
+    "prepend" : {
+
+    },
+    "Preset" : {
+
+    },
+    "Preset Default" : {
+
+    },
+    "Preset Destination" : {
+
+    },
+    "Presets for every workflow" : {
+
+    },
+    "Prevents duplicate entries when delivery is retried. This adds a vox-capture HTML comment to each captured entry, which may be visible while editing Markdown." : {
+
+    },
+    "Processing audio on-device" : {
+
+    },
+    "Processing, formatting, metadata, and destinations" : {
+
+    },
+    "Purchased" : {
+
+    },
+    "Purchasing…" : {
+
+    },
+    "Quick Actions" : {
+
+    },
+    "Quick Capture" : {
+
+    },
+    "Quick links" : {
+
+    },
+    "Quiet" : {
+
+    },
+    "Raw transcript" : {
+
+    },
+    "Ready for the Vox.md keyboard in any app" : {
+
+    },
+    "Record" : {
+
+    },
+    "Record a Capture" : {
+
+    },
+    "Record and export with %@" : {
+
+    },
     "Record and transcribe audio in real time" : {
       "comment" : "Accessibility hint for the Listen tab",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record and transcribe audio in real time"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3915,6 +5086,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Audio in Echtzeit aufnehmen und transkribieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record and transcribe audio in real time"
           }
         },
         "es" : {
@@ -4033,16 +5210,179 @@
         }
       }
     },
+    "Record on Apple Watch" : {
+
+    },
+    "Record on Apple Watch and it will appear here automatically." : {
+
+    },
+    "Record or send a Capture to create your first history item." : {
+
+    },
+    "Record with ${vox}" : {
+
+    },
+    "Record with Preset" : {
+
+    },
+    "Record with Vox.md" : {
+
+    },
+    "Recording" : {
+
+    },
+    "Recording %@" : {
+
+    },
+    "Recording continues. Tap Stop on the keyboard when done." : {
+
+    },
+    "Recording duration %@" : {
+
+    },
+    "Recording Folder" : {
+
+    },
+    "Recording result" : {
+
+    },
+    "Recording stopped because another audio session needed the microphone. The audio is ready to add." : {
+
+    },
+    "Recording stopped when Vox.md left the foreground. The audio is ready to add." : {
+
+    },
+    "Recordings are saved on Apple Watch and sent to your iPhone queue when the devices reconnect, so you can process them whenever you’re ready." : {
+
+    },
+    "Relative to the unified Markdown destination. Leave blank to use that destination’s default attachment folder." : {
+
+    },
+    "Remove %@" : {
+
+    },
+    "Reset Quick Actions" : {
+
+    },
+    "Resolved note" : {
+
+    },
+    "Restore a previous purchase made with your Apple Account." : {
+
+    },
+    "Restore Purchase" : {
+
+    },
+    "Restoring…" : {
+
+    },
+    "Retained for existing shortcuts. New shortcuts should choose only a Capture Preset." : {
+
+    },
+    "Retry" : {
+
+    },
+    "Retry %lld queued capture%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Retry %1$lld queued capture%2$@"
+          }
+        }
+      }
+    },
+    "Retry Protection" : {
+
+    },
+    "Retry queued captures" : {
+
+    },
+    "Return to Your App" : {
+
+    },
+    "Return to your keyboard to start using voice input." : {
+
+    },
+    "Reusable Template" : {
+
+    },
+    "Review Before Adding" : {
+
+    },
+    "Route notes by Preset" : {
+
+    },
+    "Running %@" : {
+
+    },
+    "Safer export routing" : {
+
+    },
+    "Save" : {
+
+    },
+    "Save Audio" : {
+
+    },
+    "Save Notes to Files" : {
+
+    },
+    "Saved Watch queue" : {
+
+    },
+    "Saving Recording" : {
+
+    },
+    "Saving the recording to your durable draft…" : {
+
+    },
+    "Saving…" : {
+
+    },
+    "Scan · %lld page(s)" : {
+
+    },
+    "Scan document" : {
+
+    },
+    "Scan Document" : {
+
+    },
+    "Scope" : {
+
+    },
+    "Screenshot" : {
+
+    },
+    "Search filenames" : {
+
+    },
+    "Search history" : {
+
+    },
+    "Search icons" : {
+
+    },
+    "See the new Watch flow: record from your wrist, save locally, then sync back to the iPhone queue when you reconnect." : {
+
+    },
+    "Select Model" : {
+
+    },
+    "Selected" : {
+
+    },
+    "Selected Icon" : {
+
+    },
+    "Send as many local notes as you like" : {
+
+    },
     "Send Feedback" : {
       "comment" : "Accessibility label for the Send Feedback button in Settings",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Send Feedback"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4059,6 +5399,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Feedback senden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send Feedback"
           }
         },
         "es" : {
@@ -4177,16 +5523,85 @@
         }
       }
     },
+    "Send with Preset" : {
+
+    },
+    "Sends a web link with a configured Capture Preset." : {
+
+    },
+    "Sends text with a configured Capture Preset." : {
+
+    },
+    "Sent with Preset" : {
+
+    },
+    "Sentence case" : {
+
+    },
+    "Set due date" : {
+
+    },
+    "Set Due Date" : {
+
+    },
+    "Set Up" : {
+
+    },
+    "Set up destination" : {
+
+    },
+    "Set Up Destination" : {
+
+    },
+    "Set Up Preset Destination" : {
+
+    },
+    "Set up where this Capture Preset writes Markdown" : {
+
+    },
+    "Settings" : {
+
+    },
+    "Settings now lets you turn the Live Activity/Dynamic Island monitor and Lock Screen Quick Record button on or off, with disabled widgets showing an off state instead of starting a recording." : {
+
+    },
+    "Share" : {
+
+    },
+    "Shared capture storage is unavailable." : {
+
+    },
+    "Shared capture storage is unavailable. Reinstall Vox.md or verify its App Group entitlement." : {
+
+    },
+    "Shared Formatting" : {
+
+    },
+    "Shortcut" : {
+
+    },
+    "Show detailed recording controls" : {
+
+    },
+    "Show Error" : {
+
+    },
+    "Show Vox.md status and Record/Stop controls on the Lock Screen and Dynamic Island while listening." : {
+
+    },
+    "Show Watch recording queue" : {
+
+    },
+    "Sketch" : {
+
+    },
+    "Slugify case" : {
+
+    },
     "Something went wrong" : {
       "comment" : "Fallback error message shown in the recording flow when no specific error is available",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Something went wrong"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4203,6 +5618,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Etwas ist schiefgelaufen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong"
           }
         },
         "es" : {
@@ -4321,16 +5742,196 @@
         }
       }
     },
+    "Speech detected" : {
+
+    },
+    "Start and stop voice notes directly from Vox.md on Apple Watch without reaching for your iPhone." : {
+
+    },
+    "Start keyboard listening" : {
+
+    },
+    "Start Recording" : {
+
+    },
+    "Start talking…" : {
+
+    },
+    "Start voice capture and add transcript to Capture" : {
+
+    },
+    "Start voice capture and run %@" : {
+
+    },
+    "Starting…" : {
+
+    },
+    "Starts a Vox.md recording segment." : {
+
+    },
+    "Status" : {
+
+    },
+    "Stop" : {
+
+    },
+    "Stop and Transcribe" : {
+
+    },
+    "Stop keyboard listening" : {
+
+    },
+    "Stop keyboard listening or finish the current recording before adding a voice attachment." : {
+
+    },
+    "Stop Recording" : {
+
+    },
+    "Stop voice recording, %@" : {
+
+    },
+    "Stops the active Vox.md recording segment." : {
+
+    },
+    "Suffix" : {
+
+    },
+    "System Language follows your device language. Choose a language explicitly when the recording uses another language." : {
+
+    },
+    "System managed · No app model download" : {
+
+    },
+    "Tags, comma separated" : {
+
+    },
+    "Tap to start or stop. Long-press for detailed recording controls." : {
+
+    },
+    "Target" : {
+
+    },
+    "Template" : {
+
+    },
+    "Template prefix" : {
+
+    },
+    "Template suffix" : {
+
+    },
+    "Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {timestamp}, {source}, and {id8}." : {
+
+    },
+    "Text" : {
+
+    },
+    "The Capture Preset editor explains Keep Original, Clean Prose, Todo Checklist, Meeting Notes, and Custom Instruction modes." : {
+
+    },
+    "The Capture Preset to use for recordings started by this control." : {
+
+    },
+    "The Capture Preset to use for this recording." : {
+
+    },
+    "The complete workflow and destination for this capture." : {
+
+    },
+    "The Files permission for ‘%@’ expired. Edit the destination and choose its folder again." : {
+
+    },
+    "The link stays in your durable draft until the note is captured." : {
+
+    },
+    "The Mac app can now listen for your custom shortcut and use it to start recording from anywhere, then stop and transcribe with the same shortcut." : {
+
+    },
+    "The microphone could not start recording." : {
+
+    },
+    "The previous recording is still safely attached. Remove it from the draft before retrying." : {
+
+    },
+    "The recording could not be encoded." : {
+
+    },
+    "The recording could not be saved to the durable draft. The temporary audio is still available while this screen remains open." : {
+
+    },
+    "The recording remains available even if transcription fails." : {
+
+    },
+    "The recording remains safely attached to the draft because it could not be removed." : {
+
+    },
+    "The requested capture destination no longer exists." : {
+
+    },
+    "The requested Capture Preset no longer exists or is disabled." : {
+
+    },
+    "The shared capture request is no longer pending." : {
+
+    },
+    "The transcript could not be attached, but the audio recording is safely staged." : {
+
+    },
+    "The Watch recorder now shows bold Ready, Recording, Syncing, Queued, and Sent states so you always know what is happening." : {
+
+    },
+    "These compatibility settings apply to direct voice runs only when no unified Capture route is selected." : {
+
+    },
+    "This clears transcript content and Capture delivery metadata. It does not delete exported Markdown notes or attachments." : {
+
+    },
+    "This destination belongs to this preset. It includes the note target, placement, entry formatting, attachments folder, and retry behavior." : {
+
+    },
+    "This destination stays linked to the reusable template. Choose Custom to edit a private snapshot." : {
+
+    },
+    "This removes the retained audio and any capture that is still queued for delivery." : {
+
+    },
+    "This Weekend" : {
+
+    },
+    "Time" : {
+
+    },
+    "Title" : {
+
+    },
+    "Title and organization" : {
+
+    },
+    "Today" : {
+
+    },
+    "Tokens: {timestamp}, {date}, {time}, {id8}, {id}, {model}, {language}" : {
+
+    },
+    "Tokens: {timestamp}, {date}, {time}, {id8}, {id}, {preset}, {original}" : {
+
+    },
+    "Tomorrow" : {
+
+    },
+    "Top" : {
+
+    },
+    "Transcribe from other apps" : {
+
+    },
+    "Transcribing" : {
+
+    },
     "TRANSCRIBING" : {
       "comment" : "Base text for the animated transcribing indicator (dots are appended programmatically)",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRANSCRIBING"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4347,6 +5948,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "TRANSKRIBIEREN"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "TRANSCRIBING"
           }
         },
         "es" : {
@@ -4465,16 +6072,67 @@
         }
       }
     },
+    "Transcribing entirely on this device…" : {
+
+    },
+    "Transcribing recording" : {
+
+    },
+    "Transcribing voice capture" : {
+
+    },
+    "Transcribing…" : {
+
+    },
+    "Transcript added to Capture" : {
+
+    },
+    "Transcript Ready" : {
+
+    },
+    "Transcript will be added to the editor" : {
+
+    },
+    "Transcription" : {
+
+    },
+    "Transcription engines, model downloads, and language" : {
+
+    },
+    "Transcription Error" : {
+
+    },
+    "Transcription Language" : {
+
+    },
+    "Try Again" : {
+
+    },
+    "Turning on keyboard listening" : {
+
+    },
+    "Turns off voice input for the Vox.md keyboard" : {
+
+    },
+    "TXT" : {
+
+    },
+    "Unable to Delete Model" : {
+
+    },
+    "Unavailable destination" : {
+
+    },
+    "under %@" : {
+
+    },
+    "Undo" : {
+
+    },
     "Unlimited" : {
       "comment" : "Paywall status badge label for users who have purchased unlimited access",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlimited"
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4491,6 +6149,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unbegrenzt"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlimited"
           }
         },
         "es" : {
@@ -4609,16 +6273,13 @@
         }
       }
     },
+    "Unlimited Capture" : {
+
+    },
     "Unlimited is already unlocked on this device." : {
       "comment" : "Paywall usage message for users who have already purchased",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlimited is already unlocked on this device."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4635,6 +6296,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unbegrenzt ist auf diesem Gerät bereits freigeschaltet."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlimited is already unlocked on this device."
           }
         },
         "es" : {
@@ -4753,16 +6420,157 @@
         }
       }
     },
+    "Unlimited Is Unlocked" : {
+
+    },
+    "Unlimited is unlocked on this device." : {
+
+    },
+    "Unlimited Transcription" : {
+
+    },
+    "Unlimited Unlocked" : {
+
+    },
+    "Unlock" : {
+
+    },
+    "Unlock Unlimited" : {
+
+    },
+    "Unlock voice capture" : {
+
+    },
+    "Unlocks and opens Vox.md to a durable Markdown capture draft." : {
+
+    },
+    "Uppercase" : {
+
+    },
+    "URL" : {
+
+    },
+    "Use .md Extension" : {
+
+    },
+    "Use Automatic" : {
+
+    },
+    "Use every supported local model" : {
+
+    },
+    "Use Markdown Template" : {
+
+    },
+    "Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {timestamp}, {year}, {month}, {day}, {week}, {source}, {id8}, {id}." : {
+
+    },
+    "Use Preset defaults" : {
+
+    },
+    "Use Preset destination defaults" : {
+
+    },
+    "Uses Apple's system-managed, on-device speech recognizer when this device and language support it." : {
+
+    },
+    "Vault / Folder" : {
+
+    },
+    "Vibrate on key press. Requires Allow Full Access." : {
+
+    },
+    "View Debug Log" : {
+
+    },
+    "View Upgrade Options" : {
+
+    },
+    "Voice" : {
+
+    },
+    "Voice Audio" : {
+
+    },
+    "Voice Capture" : {
+
+    },
+    "Voice data stays on your device" : {
+
+    },
+    "Voice Notes" : {
+
+    },
+    "Voice Recording" : {
+
+    },
+    "Voice recording added" : {
+
+    },
+    "Voice recording and transcript added" : {
+
+    },
+    "Voice runs always use the selected mode. Applying it to Capture Text is opt-in so existing typed Markdown is never rewritten unexpectedly. Processing runs on device and falls back to deterministic or original text." : {
+
+    },
+    "Vox.md now records from Apple Watch" : {
+
+    },
+    "Vox.md opened to enable voice input. When it’s ready, return to your keyboard to use it." : {
+
+    },
+    "Vox.md Unlimited" : {
+
+    },
+    "Watch" : {
+
+    },
+    "Watch recording needs attention" : {
+
+    },
+    "Watch face shortcut" : {
+
+    },
+    "Watch Recordings" : {
+
+    },
+    "Watch recordings are copied as M4A files to this user-visible Files folder. Transcription, AI processing, and transcription usage are skipped. After one-time folder setup, Vox.md normally saves in the background. iOS may delay delivery, and force-quitting Vox.md prevents background delivery until you reopen it. Recordings remain safely queued for retry." : {
+
+    },
+    "Watch recordings stay saved locally and appear in your iPhone queue when your devices reconnect." : {
+
+    },
+    "Watch recordings sync back" : {
+
+    },
+    "Watch recordings use this preset's normal on-device transcription and Capture destination workflow." : {
+
+    },
+    "Web Link" : {
+
+    },
+    "What is a Capture Preset?" : {
+
+    },
+    "What’s new in Vox.md" : {
+
+    },
+    "Whisper" : {
+
+    },
+    "Widget" : {
+
+    },
+    "Write my own" : {
+
+    },
+    "YAML" : {
+
+    },
     "You've used all your free transcription time." : {
       "comment" : "Paywall usage message when the free tier limit has been reached",
       "extractionState" : "manual",
       "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You've used all your free transcription time."
-          }
-        },
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
@@ -4779,6 +6587,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Du hast deine gesamte kostenlose Transkriptionszeit verbraucht."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've used all your free transcription time."
           }
         },
         "es" : {
@@ -4897,149 +6711,17 @@
         }
       }
     },
-    "just now" : {
-      "comment" : "Relative timestamp for events less than 60 seconds ago",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "just now"
-          }
-        },
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "الآن للتو"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "এইমাত্র"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "gerade eben"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "justo ahora"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "à l'instant"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "अभी-अभी"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "baru saja"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "proprio adesso"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "たった今"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "방금 전"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "zojuist"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "przed chwilą"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "agora mesmo"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "только что"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "இப்போதுதான்"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "เมื่อสักครู่"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "az önce"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "щойно"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ابھی ابھی"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "vừa xong"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "刚刚"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "剛剛"
-          }
-        }
-      }
+    "Your free captures are used. Unlock Unlimited to keep capturing." : {
+
+    },
+    "Your free transcription time and captures are used. Unlock Unlimited to continue." : {
+
+    },
+    "Your transcript was saved locally, but file export failed. %@" : {
+
+    },
+    "ZenQuotes ↗" : {
+
     }
   },
   "version" : "1.0"

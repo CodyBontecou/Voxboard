@@ -59,9 +59,9 @@ struct QuickCaptureView: View {
     @State private var showsAudioImporter = false
     @State private var showsVoiceCaptureDetails = false
     @State private var showsWatchRecordingQueue = false
-    @State private var recordingMode: CaptureRecordingMode = .draft
+    @State private var recordingMode: CaptureRecordingMode = .preset
     @State private var attachRecordingAudio = false
-    @State private var lastStartedRecordingMode: CaptureRecordingMode = .draft
+    @State private var lastStartedRecordingMode: CaptureRecordingMode = .preset
     @State private var micPermissionGranted = Self.currentMicrophonePermissionGranted()
     @State private var keyboardLaunchPhase: KeyboardLaunchPhase?
     @State private var keyboardReturnGuidance: KeyboardReturnGuidance?
@@ -495,7 +495,7 @@ struct QuickCaptureView: View {
             VStack(alignment: .leading, spacing: Geist.Spacing.three) {
                 Picker("Recording result", selection: $recordingMode) {
                     Text("Add to Draft").tag(CaptureRecordingMode.draft)
-                    Text("Send with Preset").tag(CaptureRecordingMode.preset)
+                    Text("Send Immediately").tag(CaptureRecordingMode.preset)
                 }
                 .pickerStyle(.segmented)
                 .disabled(recordingOptionsAreLocked)

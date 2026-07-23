@@ -39,6 +39,7 @@ struct MacCaptureDestinationEditor: View {
     @State private var headingLevel: Int
     @State private var missingHeadingBehavior: CaptureMissingHeadingBehavior
     @State private var templateID: UUID?
+    @State private var markdownTemplatePath: String?
     @State private var prefix: String
     @State private var suffix: String
     @State private var attachmentsFolder: String
@@ -79,7 +80,8 @@ struct MacCaptureDestinationEditor: View {
         }
         let boundID = existing?.entryTemplateID
         let bound = templates.first { $0.id == boundID }
-        _templateID = State(initialValue: boundID)
+        _templateID = State(initialValue: existing?.markdownTemplatePath == nil ? boundID : nil)
+        _markdownTemplatePath = State(initialValue: existing?.markdownTemplatePath)
         _prefix = State(initialValue: bound?.entryPrefix ?? existing?.entryPrefix ?? "")
         _suffix = State(initialValue: bound?.entrySuffix ?? existing?.entrySuffix ?? "")
         _attachmentsFolder = State(initialValue: existing?.attachmentsFolderName ?? "attachments")
@@ -113,7 +115,7 @@ struct MacCaptureDestinationEditor: View {
                             ForEach(CaptureRollingPeriod.allCases, id: \.self) { Text($0.rawValue.capitalized).tag($0) }
                         }
                     }
-                    Text("Path tokens include {date}, {time}, {timestamp}, {period}, {week}, and {id8}.")
+                    Text("Path tokens include {date}, {time}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {period}, {week}, and {id8}.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Section("Placement") {
@@ -130,20 +132,33 @@ struct MacCaptureDestinationEditor: View {
                     }
                 }
                 Section("Entry Formatting") {
-                    if !templates.isEmpty {
-                        Picker("Reusable Template", selection: $templateID) {
-                            Text("Custom").tag(UUID?.none)
-                            ForEach(templates) { Text($0.name).tag(Optional($0.id)) }
+                    if let markdownTemplatePath {
+                        LabeledContent("Vault Template", value: markdownTemplatePath)
+                        Button("Choose Another Template…") { chooseMarkdownTemplate() }
+                        Button("Remove Vault Template", role: .destructive) {
+                            self.markdownTemplatePath = nil
                         }
-                        .onChange(of: templateID) { _, id in
-                            guard let template = templates.first(where: { $0.id == id }) else { return }
-                            prefix = template.entryPrefix; suffix = template.entrySuffix
+                        Text("Vox.md reads this file from your vault for every capture, so edits made in Obsidian apply automatically.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Button("Choose Template from Vault…") { chooseMarkdownTemplate() }
+                            .disabled(rootBookmark.isEmpty)
+                        if !templates.isEmpty {
+                            Picker("Reusable Template", selection: $templateID) {
+                                Text("Custom").tag(UUID?.none)
+                                ForEach(templates) { Text($0.name).tag(Optional($0.id)) }
+                            }
+                            .onChange(of: templateID) { _, id in
+                                guard let template = templates.first(where: { $0.id == id }) else { return }
+                                prefix = template.entryPrefix; suffix = template.entrySuffix
+                            }
                         }
+                        Text("Prefix").font(.caption).foregroundStyle(.secondary)
+                        TextEditor(text: $prefix).frame(minHeight: 80).disabled(templateID != nil)
+                        Text("Suffix").font(.caption).foregroundStyle(.secondary)
+                        TextEditor(text: $suffix).frame(minHeight: 60).disabled(templateID != nil)
                     }
-                    Text("Prefix").font(.caption).foregroundStyle(.secondary)
-                    TextEditor(text: $prefix).frame(minHeight: 80).disabled(templateID != nil)
-                    Text("Suffix").font(.caption).foregroundStyle(.secondary)
-                    TextEditor(text: $suffix).frame(minHeight: 60).disabled(templateID != nil)
                     TextField("Attachments Folder", text: $attachmentsFolder)
                 }
                 Section("Delivery") {
@@ -206,8 +221,65 @@ struct MacCaptureDestinationEditor: View {
                 relativeTo: nil
             )
             rootName = url.lastPathComponent
+            markdownTemplatePath = nil
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func chooseMarkdownTemplate() {
+        do {
+            let resolution = try CaptureBookmarkResolver.resolve(rootBookmark)
+            let rootURL = resolution.url.standardizedFileURL
+            guard !resolution.isStale else { throw MacCaptureRouteError.folderPermissionExpired }
+            let rootAccess = rootURL.startAccessingSecurityScopedResource()
+            defer { if rootAccess { rootURL.stopAccessingSecurityScopedResource() } }
+
+            let panel = NSOpenPanel()
+            panel.canChooseDirectories = false
+            panel.canChooseFiles = true
+            panel.allowsMultipleSelection = false
+            panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText]
+            panel.directoryURL = rootURL
+            panel.prompt = "Choose Template"
+            guard panel.runModal() == .OK, let selectedURL = panel.url?.standardizedFileURL else { return }
+            guard selectedURL.pathExtension.lowercased() == "md" else {
+                throw MacCaptureRouteError.markdownTemplateRequired
+            }
+            let rootPrefix = rootURL.path.hasSuffix("/") ? rootURL.path : rootURL.path + "/"
+            guard selectedURL.path.hasPrefix(rootPrefix) else {
+                throw MacCaptureRouteError.templateOutsideRoot
+            }
+            let relativePath = String(selectedURL.path.dropFirst(rootPrefix.count))
+            try CapturePathValidation.validateRelativePath(relativePath)
+            try preflightMarkdownTemplate(relativePath: relativePath)
+            markdownTemplatePath = relativePath
+            templateID = nil
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func preflightMarkdownTemplate(relativePath: String) throws {
+        let resolution = try CaptureBookmarkResolver.resolve(rootBookmark)
+        let rootURL = resolution.url
+        guard !resolution.isStale else { throw MacCaptureRouteError.folderPermissionExpired }
+        let templateURL = try CapturePathValidation.containedFileURL(
+            relativePath: relativePath,
+            rootURL: rootURL
+        )
+        let rootAccess = rootURL.startAccessingSecurityScopedResource()
+        defer { if rootAccess { rootURL.stopAccessingSecurityScopedResource() } }
+        guard FileManager.default.fileExists(atPath: templateURL.path) else {
+            throw CaptureVaultMarkdownTemplateError.templateMissing(relativePath)
+        }
+        let template = try String(contentsOf: templateURL, encoding: .utf8)
+        guard template.count <= CaptureInputLimits.maximumTextCharacters else {
+            throw CaptureVaultMarkdownTemplateError.templateTooLarge(
+                path: relativePath,
+                limit: CaptureInputLimits.maximumTextCharacters
+            )
         }
     }
 
@@ -268,6 +340,12 @@ struct MacCaptureDestinationEditor: View {
             }
             if case .existingNote(let relativePath) = target {
                 try preflightExistingNote(relativePath: relativePath, placement: placement)
+                if markdownTemplatePath == relativePath {
+                    throw CaptureVaultMarkdownTemplateError.templateMatchesDestination(relativePath)
+                }
+            }
+            if let markdownTemplatePath {
+                try preflightMarkdownTemplate(relativePath: markdownTemplatePath)
             }
             isSaving = true
             try await onSave(CaptureDestination(
@@ -277,9 +355,10 @@ struct MacCaptureDestinationEditor: View {
                 rootName: rootName,
                 noteTarget: target,
                 placement: placement,
-                entryPrefix: prefix,
-                entrySuffix: suffix,
-                entryTemplateID: templateID,
+                entryPrefix: markdownTemplatePath == nil ? prefix : "",
+                entrySuffix: markdownTemplatePath == nil ? suffix : "",
+                entryTemplateID: markdownTemplatePath == nil ? templateID : nil,
+                markdownTemplatePath: markdownTemplatePath,
                 attachmentsFolderName: attachmentsFolder,
                 retryProtectionEnabled: retryProtectionEnabled
             ))
@@ -293,6 +372,7 @@ struct MacCaptureDestinationEditor: View {
 
 private enum MacCaptureRouteError: Error, LocalizedError {
     case storageUnavailable, folderRequired, headingRequired, folderPermissionExpired, noteOutsideRoot
+    case templateOutsideRoot, markdownTemplateRequired
     case existingNoteMissing(String)
 
     var errorDescription: String? {
@@ -302,6 +382,8 @@ private enum MacCaptureRouteError: Error, LocalizedError {
         case .headingRequired: "Enter a heading title."
         case .folderPermissionExpired: "The selected vault or folder permission expired. Choose it again."
         case .noteOutsideRoot: "Choose a Markdown note inside the selected vault or folder."
+        case .templateOutsideRoot: "Choose a Markdown template inside the selected vault or folder."
+        case .markdownTemplateRequired: "Choose a Markdown (.md) template file."
         case .existingNoteMissing(let path): "The existing note ‘\(path)’ was not found in the selected vault or folder."
         }
     }

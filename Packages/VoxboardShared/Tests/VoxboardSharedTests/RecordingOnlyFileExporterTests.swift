@@ -23,6 +23,22 @@ final class RecordingOnlyFileExporterTests: XCTestCase {
         XCTAssertFalse(rendered.hasSuffix(".wav"))
     }
 
+    func test_filenameTemplateRendersTwoDigitYearToken() {
+        let context = RecordingOnlyFileExportContext(
+            recordingID: "ABCDEF12-3456-7890-ABCD-EF1234567890",
+            createdAt: Date(timeIntervalSince1970: 1_704_164_645),
+            presetName: "Daily",
+            originalFilename: "watch.m4a"
+        )
+
+        let rendered = RecordingOnlyFileExporter.renderedFilenameBase(
+            template: "daily-{YR}",
+            context: context
+        )
+
+        XCTAssertEqual(rendered, "daily-24")
+    }
+
     func test_filenameIsBoundedByUTF8Bytes() {
         let context = RecordingOnlyFileExportContext(
             recordingID: "12345678-1234-1234-1234-1234567890AB",
@@ -127,6 +143,27 @@ final class RecordingOnlyFileExporterTests: XCTestCase {
         XCTAssertEqual(filename, "voice-abcdef12-2.m4a")
         XCTAssertEqual(try Data(contentsOf: occupied), occupiedData)
         XCTAssertEqual(try Data(contentsOf: receipt.fileURL), fixture.sourceData)
+    }
+
+    func test_copyRemovesStalePartialFromInterruptedDelivery() throws {
+        let fixture = try makeFixture()
+        defer { try? FileManager.default.removeItem(at: fixture.root) }
+        let exporter = RecordingOnlyFileExporter(
+            coordinator: ProcessLocalCaptureFileCoordinator()
+        )
+        let filename = "reserved.m4a"
+        let partial = fixture.folder.appendingPathComponent(".\(filename).vox-partial")
+        try Data("interrupted-copy".utf8).write(to: partial)
+
+        let receipt = try exporter.copy(
+            sourceURL: fixture.source,
+            reservedFilename: filename,
+            settings: fixture.settings
+        )
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: partial.path))
+        XCTAssertEqual(try Data(contentsOf: receipt.fileURL), fixture.sourceData)
+        XCTAssertEqual(try Data(contentsOf: fixture.source), fixture.sourceData)
     }
 
     func test_existingReservedFileWithSameBytesIsIdempotent() throws {

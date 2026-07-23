@@ -163,7 +163,7 @@ private struct MacEntryTemplateEditor: View {
             Text("Suffix").font(Geist.label())
             TextEditor(text: $suffix).font(.body.monospaced()).frame(minHeight: 110)
                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(Geist.border))
-            Text("Tokens: {date}, {time}, {timestamp}, {year}, {month}, {day}, {week}, {source}, {id8}, and {id}.")
+            Text("Tokens: {date}, {time}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, and {id}.")
                 .font(Geist.caption()).foregroundStyle(Geist.muted)
             if let errorMessage {
                 Text(errorMessage).font(Geist.caption()).foregroundStyle(Geist.error)

@@ -57,6 +57,92 @@ final class CapturePipelineTests: XCTestCase {
         XCTAssertTrue(markdown.contains("Keep {date} literal"))
     }
 
+    func test_vaultMarkdownTemplateUsesLatestFileAndLegacyExpressions() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(
+            at: root.appendingPathComponent("Templates"),
+            withIntermediateDirectories: true
+        )
+        let templateURL = root.appendingPathComponent("Templates/Capture.md")
+        try """
+        ---
+        title:
+        tags: []
+        created: <% tp.date.now("YYYY-MM-DD") %>
+        ---
+        # Capture {date}
+
+        First scaffold
+        """.write(to: templateURL, atomically: true, encoding: .utf8)
+        let destination = CaptureDestination(
+            name: "Inbox",
+            rootBookmark: Data(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md"),
+            markdownTemplatePath: "Templates/Capture.md"
+        )
+        let firstRequest = CaptureRequest(
+            createdAt: Date(timeIntervalSince1970: 1_704_164_645),
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("Keep {date} literal")],
+            frontmatter: ["title": "A meeting", "tags": "[meeting]"]
+        )
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        let pipeline = CapturePipeline(pathPlanner: CapturePathPlanner(calendar: calendar))
+
+        _ = try await pipeline.capture(firstRequest, destination: destination, rootURL: root)
+
+        var markdown = try String(contentsOf: root.appendingPathComponent("Inbox.md"), encoding: .utf8)
+        XCTAssertTrue(markdown.hasPrefix("---\n"))
+        XCTAssertTrue(markdown.contains("tags: [meeting]"))
+        XCTAssertTrue(markdown.contains("title: \"A meeting\""))
+        XCTAssertTrue(markdown.contains("created: 2024-01-02"))
+        XCTAssertTrue(markdown.contains("# Capture 2024-01-02\n\nFirst scaffold\n\nKeep {date} literal"))
+
+        try "Second scaffold".write(to: templateURL, atomically: true, encoding: .utf8)
+        let secondRequest = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("Second capture")]
+        )
+        _ = try await pipeline.capture(secondRequest, destination: destination, rootURL: root)
+
+        markdown = try String(contentsOf: root.appendingPathComponent("Inbox.md"), encoding: .utf8)
+        XCTAssertTrue(markdown.contains("Second scaffold\n\nSecond capture"))
+    }
+
+    func test_missingOrSelfReferentialVaultTemplateFailsBeforeWriting() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        var destination = CaptureDestination(
+            name: "Inbox",
+            rootBookmark: Data(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md"),
+            markdownTemplatePath: "Templates/Missing.md"
+        )
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("Do not write")]
+        )
+
+        await XCTAssertThrowsErrorAsync(
+            try await CapturePipeline().capture(request, destination: destination, rootURL: root)
+        )
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Inbox.md").path))
+
+        destination.markdownTemplatePath = "Inbox.md"
+        await XCTAssertThrowsErrorAsync(
+            try await CapturePipeline().capture(request, destination: destination, rootURL: root)
+        )
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Inbox.md").path))
+    }
+
     func test_newNoteIsUniquedAgainstFilesCreatedOnDisk() async throws {
         let root = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: root) }

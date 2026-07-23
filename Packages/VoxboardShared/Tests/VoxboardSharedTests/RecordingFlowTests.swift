@@ -14,6 +14,8 @@ final class CapturePresetTests: XCTestCase {
         XCTAssertEqual(flows.first?.displayName, "Default")
         XCTAssertEqual(flows.first?.symbolName, CapturePresetStore.defaultSymbolName)
         XCTAssertEqual(flows.first?.kind, .general)
+        XCTAssertEqual(flows.first?.captureProcessingEnabled, false)
+        XCTAssertFalse(CapturePresetStore.makeCustomFlow().captureProcessingEnabled)
     }
 
     func test_usesAIEnrichment_isControlledByPostProcessingMode() {
@@ -169,6 +171,55 @@ final class CapturePresetTests: XCTestCase {
         XCTAssertFalse(CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults))
         XCTAssertEqual(library, stableLibrary)
         XCTAssertEqual(CapturePresetStore.loadFlows(defaults: defaults), stablePresets)
+    }
+
+    func test_ownedRouteMigrationCarriesLegacyVaultTemplateIntoDestination() throws {
+        let suiteName = "test.preset.vault-template.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VoxboardVaultTemplate-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(
+            at: root.appendingPathComponent("Templates"),
+            withIntermediateDirectories: true
+        )
+        defer { try? FileManager.default.removeItem(at: root) }
+        let templateURL = root.appendingPathComponent("Templates/Meeting.md")
+        try "# Meeting".write(to: templateURL, atomically: true, encoding: .utf8)
+
+        let route = CaptureDestination(
+            name: "Meeting",
+            rootBookmark: try root.bookmarkData(),
+            rootName: root.lastPathComponent,
+            noteTarget: .newNote(pathTemplate: "Meetings/{date}.md")
+        )
+        var preset = CapturePresetStore.makeCustomFlow()
+        preset.id = "meeting-template"
+        preset.captureDestinationID = route.id
+        preset.exportSettings.markdownTemplateEnabled = true
+        preset.exportSettings.markdownTemplateBookmark = try templateURL.bookmarkData()
+        preset.exportSettings.markdownTemplateName = templateURL.lastPathComponent
+        CapturePresetStore.saveFlows([preset], defaults: defaults)
+        // Reproduce an install whose Custom Presets already completed the
+        // owned-destination migration before vault templates were restored.
+        defaults.set(
+            CapturePresetProfileStore.currentOwnedRouteMigrationVersion,
+            forKey: CapturePresetProfileStore.ownedRouteMigrationVersionKey
+        )
+        var library = CaptureLibraryEnvelope(destinations: [route], defaultDestinationID: route.id)
+
+        XCTAssertTrue(CapturePresetStore.migrateToOwnedPresetRoutes(library: &library, defaults: defaults))
+
+        let migratedPreset = try XCTUnwrap(
+            CapturePresetStore.flow(id: preset.id, defaults: defaults)
+        )
+        let migratedRoute = try XCTUnwrap(
+            library.destinations.first(where: { $0.id == migratedPreset.captureDestinationID })
+        )
+        XCTAssertEqual(migratedRoute.markdownTemplatePath, "Templates/Meeting.md")
+        XCTAssertFalse(migratedPreset.exportSettings.markdownTemplateEnabled)
+        XCTAssertNil(migratedPreset.exportSettings.markdownTemplateBookmark)
+        XCTAssertEqual(migratedPreset.exportSettings.markdownTemplateName, "")
     }
 
     func test_stalePresetWriterPreservesRouteOwnershipAfterMigration() throws {
@@ -768,6 +819,7 @@ final class CapturePresetTests: XCTestCase {
 
         XCTAssertEqual(flow.id, "custom-legacy-fixture")
         XCTAssertEqual(flow.exportSettings.mode, .append)
+        XCTAssertFalse(flow.captureProcessingEnabled)
         XCTAssertNil(encodedObject["captureDestinationID"])
         XCTAssertNil(encodedObject["captureSchema"])
     }

@@ -31,7 +31,7 @@ struct MacCaptureWorkspaceView: View {
 
     @State private var flows = CapturePresetStore.loadFlows()
     @State private var showsRouteInspector = false
-    @State private var recordingMode: MacCaptureRecordingMode = .draft
+    @State private var recordingMode: MacCaptureRecordingMode = .preset
     @State private var attachRecordingAudio = false
     @State private var showsLinkPrompt = false
     @State private var showsCamera = false
@@ -468,7 +468,7 @@ struct MacCaptureWorkspaceView: View {
 
             Picker("Recording result", selection: $recordingMode) {
                 Text("Add to Draft").tag(MacCaptureRecordingMode.draft)
-                Text("Send with Preset").tag(MacCaptureRecordingMode.preset)
+                Text("Send Immediately").tag(MacCaptureRecordingMode.preset)
             }
             .pickerStyle(.segmented)
             .labelsHidden()

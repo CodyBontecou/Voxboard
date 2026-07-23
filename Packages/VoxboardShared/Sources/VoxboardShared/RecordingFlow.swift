@@ -432,6 +432,7 @@ public enum CapturePresetStore {
             kind: .general,
             staticFrontmatter: ["type": "capture"],
             postProcessingMode: .clean,
+            captureProcessingEnabled: false,
             capturePrompt: "Capture an idea, task, link, file, scan, or recording."
         )
     }
@@ -449,6 +450,7 @@ public enum CapturePresetStore {
             kind: .custom,
             staticFrontmatter: [:],
             postProcessingMode: .custom,
+            captureProcessingEnabled: false,
             capturePrompt: "What do you want to capture?"
         )
     }
@@ -783,6 +785,22 @@ public enum CapturePresetStore {
             if let templateID = presets[index].captureEntryTemplateID {
                 owned.entryTemplateID = templateID
             }
+            if owned.markdownTemplatePath == nil,
+               owned.entryTemplateID == nil,
+               owned.entryPrefix.isEmpty,
+               owned.entrySuffix.isEmpty,
+               let templatePath = migratedVaultTemplatePath(
+                   from: presets[index].exportSettings,
+                   destination: owned
+               ) {
+                owned.markdownTemplatePath = templatePath
+                // The destination now owns the live template. Clearing the
+                // retired voice-only setting prevents a later user removal
+                // from being re-imported on every library load.
+                presets[index].exportSettings.markdownTemplateEnabled = false
+                presets[index].exportSettings.markdownTemplateBookmark = nil
+                presets[index].exportSettings.markdownTemplateName = ""
+            }
 
             if let existingIndex = library.destinations.firstIndex(where: { $0.id == owned.id }) {
                 library.destinations[existingIndex] = owned
@@ -863,6 +881,64 @@ public enum CapturePresetStore {
             )
         }
         return true
+    }
+
+    /// Carries a preset's retired voice-export template into a newly created
+    /// unified destination when the file is inside that destination's vault.
+    /// Existing destination formatting always wins.
+    public static func migratingLegacyMarkdownTemplate(
+        into destination: CaptureDestination,
+        from settings: CapturePresetExportSettings
+    ) -> CaptureDestination {
+        guard destination.markdownTemplatePath == nil,
+              destination.entryTemplateID == nil,
+              destination.entryPrefix.isEmpty,
+              destination.entrySuffix.isEmpty,
+              let templatePath = migratedVaultTemplatePath(
+                  from: settings,
+                  destination: destination
+              ) else { return destination }
+        var migrated = destination
+        migrated.markdownTemplatePath = templatePath
+        return migrated
+    }
+
+    private static func migratedVaultTemplatePath(
+        from settings: CapturePresetExportSettings,
+        destination: CaptureDestination
+    ) -> String? {
+        guard settings.markdownTemplateEnabled,
+              let templateBookmark = settings.markdownTemplateBookmark,
+              !destination.rootBookmark.isEmpty,
+              let rootResolution = try? CaptureBookmarkResolver.resolve(destination.rootBookmark),
+              let templateResolution = try? CaptureBookmarkResolver.resolve(templateBookmark),
+              !rootResolution.isStale,
+              !templateResolution.isStale else { return nil }
+
+        let rootURL = rootResolution.url.standardizedFileURL
+        let templateURL = templateResolution.url.standardizedFileURL
+        let rootAccess = rootURL.startAccessingSecurityScopedResource()
+        let templateAccess = templateURL.startAccessingSecurityScopedResource()
+        defer {
+            if templateAccess { templateURL.stopAccessingSecurityScopedResource() }
+            if rootAccess { rootURL.stopAccessingSecurityScopedResource() }
+        }
+
+        guard templateURL.pathExtension.lowercased() == "md" else { return nil }
+        let rootPrefix = rootURL.path.hasSuffix("/") ? rootURL.path : rootURL.path + "/"
+        guard templateURL.path.hasPrefix(rootPrefix) else { return nil }
+        let relativePath = String(templateURL.path.dropFirst(rootPrefix.count))
+        guard (try? CapturePathValidation.validateRelativePath(relativePath)) != nil,
+              FileManager.default.fileExists(atPath: templateURL.path),
+              let containedURL = try? CapturePathValidation.containedFileURL(
+                  relativePath: relativePath,
+                  rootURL: rootURL
+              ),
+              containedURL.resolvingSymlinksInPath().standardizedFileURL
+                == templateURL.resolvingSymlinksInPath().standardizedFileURL else {
+            return nil
+        }
+        return relativePath
     }
 
     private static func deterministicOwnedRouteID(

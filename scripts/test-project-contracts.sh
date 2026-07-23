@@ -149,6 +149,20 @@ settings_source = (root / 'Voxboard/Views/MetaSettingsView.swift').read_text()
 for required in ['customizationSection', 'ModelTabView()', 'CapturePresetSettingsView()']:
     if required not in settings_source:
         errors.append(f'Settings customization navigation is missing {required}')
+flow_settings_source = (root / 'Voxboard/Views/FlowSettingsView.swift').read_text()
+recording_only_settings_gate = '''            if flow.watchOutputMode != .recordingOnly {
+                postProcessingSection
+                ownedDestinationSection
+                if flow.captureDestinationID == nil {
+                    fileExportSection
+                }
+                if showsFrontmatterSection {
+                    frontmatterSection
+                }
+                audioExportSection
+            }'''
+if recording_only_settings_gate not in flow_settings_source:
+    errors.append('Recording Only Apple Watch presets must hide transcript workflow settings')
 if (root / 'Voxboard/Views/HomeView.swift').exists():
     errors.append('the standalone Home/Listen recording view must be removed')
 if (root / 'Voxboard/Views/CaptureHistoryView.swift').exists():
@@ -185,8 +199,99 @@ watch_queue_source = (root / 'Voxboard/Views/WatchRecordingQueueView.swift').rea
 quick_capture_ui_source = quick_capture_source + watch_queue_source
 watch_bridge_source = (root / 'Voxboard Watch Shared/WatchPhoneBridge.swift').read_text()
 watch_controller_source = (root / 'Voxboard/WatchRecordingController.swift').read_text()
+watch_pipeline_source = (root / 'Voxboard/WatchRecordingPipeline.swift').read_text()
+watch_inbox_source = (root / 'Voxboard/WatchRecordingInbox.swift').read_text()
+watch_background_lease_source = (root / 'Voxboard/WatchRecordingBackgroundLease.swift').read_text()
+watch_background_tests_source = (root / 'VoxboardTests/WatchRecordingBackgroundLeaseTests.swift').read_text()
+watch_app_delegate_source = (root / 'Voxboard/VoxboardAppDelegate.swift').read_text()
 watch_recorder_source = (root / 'Voxboard Watch/WatchLocalRecorder.swift').read_text()
 watch_view_source = (root / 'Voxboard Watch/WatchRecorderView.swift').read_text()
+
+watch_receive_marker = 'nonisolated func session(_ session: WCSession, didReceive file: WCSessionFile)'
+watch_receive_start = watch_controller_source.find(watch_receive_marker)
+watch_receive_end = watch_controller_source.find('\n}\n\nnonisolated enum WatchRecordingPayloadKey', watch_receive_start)
+if watch_receive_start < 0 or watch_receive_end < 0:
+    errors.append('iPhone Watch file receive callback could not be inspected')
+else:
+    watch_receive_source = watch_controller_source[watch_receive_start:watch_receive_end]
+    lease_begin = watch_receive_source.find('WatchRecordingBackgroundLease.begin(')
+    inbox_enqueue = watch_receive_source.find('WatchRecordingInbox.shared.enqueue(')
+    main_actor_handoff = watch_receive_source.find('Task { @MainActor')
+    if lease_begin < 0 or inbox_enqueue < 0 or lease_begin >= inbox_enqueue:
+        errors.append('Watch file receive must acquire its background lease before durable inbox enqueue')
+    if main_actor_handoff < 0 or main_actor_handoff <= inbox_enqueue:
+        errors.append('Watch file receive must enqueue synchronously before its MainActor handoff')
+    for required in [
+        'backgroundLease.end(.enqueueFailed)',
+        'backgroundLease.end(.pipelineUnavailable)',
+        'pipeline.recordingDidArrive(',
+        'backgroundLease: backgroundLease',
+    ]:
+        if required not in watch_receive_source:
+            errors.append(f'Watch file receive background lease handoff is missing {required}')
+
+for required in [
+    'activeBackgroundLease',
+    'pendingBackgroundLease',
+    'func backgroundLeaseDidExpire(_ token: UUID)',
+    'processingTask?.cancel()',
+    'completedLease?.end(.completed)',
+    'WatchRecordingBackgroundExecutionPolicy.shouldStart(',
+]:
+    if required not in watch_pipeline_source:
+        errors.append(f'Watch background pipeline ownership is missing {required}')
+if 'beginBackgroundTaskIfNeeded' in watch_pipeline_source:
+    errors.append('Watch pipeline must not retain the old late background-task acquisition path')
+if '@UIApplicationDelegateAdaptor(VoxboardAppDelegate.self)' not in app_source:
+    errors.append('iOS must install its WatchConnectivity application delegate before scene presentation')
+for required in [
+    'didFinishLaunchingWithOptions',
+    'WatchRecordingController.shared.activateForBackgroundDelivery()',
+]:
+    if required not in watch_app_delegate_source:
+        errors.append(f'iOS background WatchConnectivity launch hook is missing {required}')
+if 'func activateForBackgroundDelivery()' not in watch_controller_source:
+    errors.append('Watch controller must expose early application-delegate activation')
+for required in [
+    'private func wakeCompanionForQueuedRecording(using session: WCSession)',
+    'session.sendMessage(payload)',
+    'wakeCompanionForQueuedRecording(using: session)',
+]:
+    if required not in watch_bridge_source:
+        errors.append(f'Watch completed-file wake hint is missing {required}')
+if 'Open Vox.md to review a Watch recording delivery problem.' not in watch_pipeline_source:
+    errors.append('Watch recording failure notifications must use privacy-safe generic copy')
+if 'content.body = message' in watch_pipeline_source:
+    errors.append('Watch recording failure notifications must not expose folder/provider errors')
+for required in [
+    'nonisolated final class WatchRecordingBackgroundLease',
+    'private let lock = NSLock()',
+    'case expired',
+    'expirationCallback(token)',
+    'service.end(identifier)',
+]:
+    if required not in watch_background_lease_source:
+        errors.append(f'Watch background lease safety is missing {required}')
+watch_sidecar_write = watch_inbox_source.find('try saveSidecarUnlocked(newItem)')
+watch_durable_move = watch_inbox_source.rfind('try FileManager.default.moveItem(at: fileURL, to: destination)')
+if watch_sidecar_write < 0 or watch_durable_move < 0 or watch_sidecar_write >= watch_durable_move:
+    errors.append('Watch inbox must journal metadata before moving the temporary WCSession file')
+watch_filename_reservation = watch_pipeline_source.find('updated.reservedOutputFilename = reservedFilename')
+watch_files_copy = watch_pipeline_source.find('try exporter.copy(')
+if watch_filename_reservation < 0 or watch_files_copy < 0 or watch_filename_reservation >= watch_files_copy:
+    errors.append('Recording Only delivery must persist its filename reservation before copying to Files')
+if 'force-quitting Vox.md prevents background delivery' not in flow_settings_source:
+    errors.append('Recording Only settings must disclose force-quit background delivery limits')
+for required in [
+    'testExpirationDuringBeginEndsReturnedIdentifier',
+    'testInvalidIdentifierNeverAttemptsUIKitEnd',
+    'testBackgroundExecutionPolicyRequiresForegroundOrActiveLease',
+    'testRecordingOnlyPipelineCopiesQueuedWatchFileWithoutUIResume',
+]:
+    if required not in watch_background_tests_source:
+        errors.append(f'Watch background delivery test coverage is missing {required}')
+if not (root / 'Voxboard.xcodeproj/xcshareddata/xcschemes/VoxboardTests.xcscheme').exists():
+    errors.append('Watch background delivery tests must have a shared Xcode scheme')
 for protocol_key in [
     'presetSummaries',
     'presetSelectionAvailable',
@@ -215,6 +320,15 @@ for required in [
     if required not in watch_bridge_source:
         errors.append(f'Watch preset selection safety is missing {required}')
 for required in [
+    'let epoch: Int64',
+    'let sequence: Int64',
+    'Int64(Date().timeIntervalSince1970 * 1_000)',
+]:
+    if required not in watch_bridge_source:
+        errors.append(f'Watch preset counters must remain arm64_32-safe: {required}')
+if 'Int(Date().timeIntervalSince1970 * 1_000)' in watch_bridge_source:
+    errors.append('Watch preset epoch overflows 32-bit Int on physical Watch hardware')
+for required in [
     'hasPresetSelectionAvailabilityPayload',
     'selectedPresetSnapshot != nil',
 ]:
@@ -241,7 +355,7 @@ for required in [
     'capture_recording_details',
     'capture_voice_recording',
     'Add to Draft',
-    'Send with Preset',
+    'Send Immediately',
     'capture_vox_selector',
     'Use Preset destination defaults',
     'Attach audio to Capture',
@@ -413,7 +527,7 @@ for required in [
     'dropDestination(for: URL.self)',
     'CaptureComposerTextEditor().applying',
     'Add to Draft',
-    'Send with Preset',
+    'Send Immediately',
     'Transcribe Audio or Video',
     'Take Photo',
     'Import Scan or PDF',

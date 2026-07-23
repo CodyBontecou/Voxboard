@@ -4,6 +4,8 @@ import VoxboardShared
 
 @main
 struct VoxboardApp: App {
+    @UIApplicationDelegateAdaptor(VoxboardAppDelegate.self) private var appDelegate
+
     @State private var modelManager = ModelManager()
     @State private var transcriptStore = TranscriptStore()
     @State private var persistentRecorder: PersistentRecorder

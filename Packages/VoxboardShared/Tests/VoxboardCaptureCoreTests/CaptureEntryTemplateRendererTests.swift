@@ -15,13 +15,13 @@ final class CaptureEntryTemplateRendererTests: XCTestCase {
         )
 
         let rendered = CaptureEntryTemplateRenderer(calendar: calendar).render(
-            "captured: {date} {time}\nsource: {source}\nrequest: {id8}",
+            "captured: {date} ({YR}) {time}\nsource: {source}\nrequest: {id8}",
             for: request
         )
 
         XCTAssertEqual(
             rendered,
-            "captured: 2024-01-02 030405\nsource: shareExtension\nrequest: aaaaaaaa"
+            "captured: 2024-01-02 (24) 030405\nsource: shareExtension\nrequest: aaaaaaaa"
         )
         guard case .text(let text) = request.payloads[0] else {
             return XCTFail("Expected text")

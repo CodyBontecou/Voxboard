@@ -519,6 +519,10 @@ public struct CaptureDestination: Identifiable, Codable, Equatable, Sendable {
     /// Optional live binding to a reusable library template. Prefix/suffix are
     /// retained as a safe snapshot if the template is later removed.
     public var entryTemplateID: UUID?
+    /// A live reference to an existing Markdown template inside this
+    /// destination's vault. The path is relative to the authorized root so the
+    /// latest file contents can be read safely for every capture.
+    public var markdownTemplatePath: String?
     public var attachmentsFolderName: String
     /// Adds a request-ID HTML comment to each capture so retries can be
     /// detected without duplicating note content. Disabled by default to keep
@@ -535,6 +539,7 @@ public struct CaptureDestination: Identifiable, Codable, Equatable, Sendable {
         entryPrefix: String = "",
         entrySuffix: String = "",
         entryTemplateID: UUID? = nil,
+        markdownTemplatePath: String? = nil,
         attachmentsFolderName: String = "attachments",
         retryProtectionEnabled: Bool = false
     ) {
@@ -547,6 +552,7 @@ public struct CaptureDestination: Identifiable, Codable, Equatable, Sendable {
         self.entryPrefix = entryPrefix
         self.entrySuffix = entrySuffix
         self.entryTemplateID = entryTemplateID
+        self.markdownTemplatePath = markdownTemplatePath
         self.attachmentsFolderName = attachmentsFolderName
         self.retryProtectionEnabled = retryProtectionEnabled
     }
@@ -561,6 +567,7 @@ public struct CaptureDestination: Identifiable, Codable, Equatable, Sendable {
         case entryPrefix
         case entrySuffix
         case entryTemplateID
+        case markdownTemplatePath
         case attachmentsFolderName
         case retryProtectionEnabled
     }
@@ -577,6 +584,7 @@ public struct CaptureDestination: Identifiable, Codable, Equatable, Sendable {
             entryPrefix: try container.decodeIfPresent(String.self, forKey: .entryPrefix) ?? "",
             entrySuffix: try container.decodeIfPresent(String.self, forKey: .entrySuffix) ?? "",
             entryTemplateID: try container.decodeIfPresent(UUID.self, forKey: .entryTemplateID),
+            markdownTemplatePath: try container.decodeIfPresent(String.self, forKey: .markdownTemplatePath),
             attachmentsFolderName: try container.decodeIfPresent(String.self, forKey: .attachmentsFolderName) ?? "attachments",
             retryProtectionEnabled: try container.decodeIfPresent(Bool.self, forKey: .retryProtectionEnabled) ?? false
         )
@@ -660,12 +668,29 @@ public struct CaptureLibraryEnvelope: Codable, Equatable, Sendable {
         _ destination: CaptureDestination,
         overrideEntryTemplateID: UUID? = nil
     ) -> CaptureDestination {
-        guard let templateID = overrideEntryTemplateID ?? destination.entryTemplateID,
+        if let overrideEntryTemplateID {
+            guard let template = entryTemplates.first(where: { $0.id == overrideEntryTemplateID }) else {
+                return destination
+            }
+            var resolved = destination
+            // A valid one-capture reusable-template choice explicitly outranks
+            // the preset's live vault template without mutating the destination.
+            resolved.markdownTemplatePath = nil
+            resolved.entryTemplateID = overrideEntryTemplateID
+            resolved.entryPrefix = template.entryPrefix
+            resolved.entrySuffix = template.entrySuffix
+            return resolved
+        }
+
+        // A vault file is itself the live formatting source. Keep any inline
+        // values only as a backward-compatible snapshot; the pipeline ignores
+        // them while this path is configured.
+        guard destination.markdownTemplatePath == nil,
+              let templateID = destination.entryTemplateID,
               let template = entryTemplates.first(where: { $0.id == templateID }) else {
             return destination
         }
         var resolved = destination
-        resolved.entryTemplateID = templateID
         resolved.entryPrefix = template.entryPrefix
         resolved.entrySuffix = template.entrySuffix
         return resolved

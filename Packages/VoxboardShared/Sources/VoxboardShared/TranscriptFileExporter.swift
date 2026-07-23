@@ -773,6 +773,7 @@ public enum TranscriptFileExporter {
     private static func renderTemplate(_ template: String, transcript: Transcript) -> String {
         let timestamp = dateFormatter.string(from: transcript.date)
         let date = String(timestamp.prefix(10))
+        let shortYear = String(timestamp.prefix(4).suffix(2))
         let time = String(timestamp.suffix(6))
         let id = transcript.id.uuidString.lowercased()
         let id8 = String(id.prefix(8))
@@ -780,6 +781,7 @@ public enum TranscriptFileExporter {
         return template
             .replacingOccurrences(of: "{timestamp}", with: timestamp)
             .replacingOccurrences(of: "{date}", with: date)
+            .replacingOccurrences(of: "{YR}", with: shortYear)
             .replacingOccurrences(of: "{time}", with: time)
             .replacingOccurrences(of: "{id}", with: id)
             .replacingOccurrences(of: "{id8}", with: id8)

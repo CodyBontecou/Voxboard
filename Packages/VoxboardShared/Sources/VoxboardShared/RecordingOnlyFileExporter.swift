@@ -229,6 +229,7 @@ public struct RecordingOnlyFileExporter: @unchecked Sendable {
         timestampFormatter.dateFormat = "yyyy-MM-dd-HHmmss"
         let timestamp = timestampFormatter.string(from: context.createdAt)
         let date = String(timestamp.prefix(10))
+        let shortYear = String(timestamp.prefix(4).suffix(2))
         let time = String(timestamp.suffix(6))
         let id = context.recordingID.lowercased()
         let id8 = String(id.prefix(8))
@@ -241,6 +242,7 @@ public struct RecordingOnlyFileExporter: @unchecked Sendable {
         let rendered = selectedTemplate
             .replacingOccurrences(of: "{timestamp}", with: timestamp)
             .replacingOccurrences(of: "{date}", with: date)
+            .replacingOccurrences(of: "{YR}", with: shortYear)
             .replacingOccurrences(of: "{time}", with: time)
             .replacingOccurrences(of: "{id}", with: id)
             .replacingOccurrences(of: "{id8}", with: id8)

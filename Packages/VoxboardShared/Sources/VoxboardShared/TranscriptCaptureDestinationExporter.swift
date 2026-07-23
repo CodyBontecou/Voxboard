@@ -409,7 +409,7 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
 
     private static func historyFailureCategory(for error: Error) -> CaptureHistoryFailureCategory {
         switch error {
-        case is ConfiguredTranscriptCaptureError:
+        case is ConfiguredTranscriptCaptureError, is CaptureVaultMarkdownTemplateError:
             return .destinationUnavailable
         case is CaptureAttachmentError:
             return .attachment

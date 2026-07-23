@@ -202,7 +202,7 @@ public enum CaptureInboxDeliveryService {
 
     private static func failureCategory(for error: Error) -> CaptureHistoryFailureCategory {
         switch error {
-        case is ConfiguredTranscriptCaptureError:
+        case is ConfiguredTranscriptCaptureError, is CaptureVaultMarkdownTemplateError:
             return .destinationUnavailable
         case is CaptureAttachmentError:
             return .attachment

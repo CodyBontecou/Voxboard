@@ -20,6 +20,16 @@ final class CapturePathPlannerTests: XCTestCase {
         XCTAssertEqual(path, "Inbox/2024-01-02-aaaaaaaa-2.md")
     }
 
+    func test_twoDigitYearTokenSupportsDayMonthYearFilenames() throws {
+        let destination = makeDestination(
+            target: .rollingNote(pathTemplate: "Daily/{day}-{month}-{YR}.md", period: .daily)
+        )
+
+        let path = try planner().relativePath(for: makeRequest(), destination: destination)
+
+        XCTAssertEqual(path, "Daily/02-01-24.md")
+    }
+
     func test_rollingDailyNote_isStableWithinDay() throws {
         let destination = makeDestination(target: .rollingNote(pathTemplate: "Daily/{date}.md", period: .daily))
         let morning = makeRequest(date: date)

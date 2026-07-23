@@ -1175,6 +1175,8 @@ final class QuickCaptureViewModel {
         switch error {
         case is CaptureDraftError:
             return .invalidRequest
+        case is CaptureVaultMarkdownTemplateError:
+            return .destinationUnavailable
         case is CaptureAttachmentError:
             return .attachment
         case is CaptureModelError, is CapturePipelineError:

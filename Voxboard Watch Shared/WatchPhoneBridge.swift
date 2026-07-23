@@ -97,16 +97,16 @@ enum WatchPresetSelectionOutcome: String, Equatable, Sendable {
 struct WatchPresetSelectionAcknowledgement: Equatable, Sendable {
     let requestID: String
     let presetID: String
-    let epoch: Int
-    let sequence: Int
+    let epoch: Int64
+    let sequence: Int64
     let outcome: WatchPresetSelectionOutcome
     let errorMessage: String?
 
     init?(dictionary: [String: Any]) {
         guard let requestID = dictionary[WatchRecordingPayloadKey.presetSelectionRequestID] as? String,
               let presetID = dictionary[WatchRecordingPayloadKey.requestedPresetID] as? String,
-              let epoch = dictionary[WatchRecordingPayloadKey.presetSelectionEpoch] as? Int,
-              let sequence = dictionary[WatchRecordingPayloadKey.presetSelectionSequence] as? Int,
+              let epoch = Self.int64Value(dictionary[WatchRecordingPayloadKey.presetSelectionEpoch]),
+              let sequence = Self.int64Value(dictionary[WatchRecordingPayloadKey.presetSelectionSequence]),
               let rawOutcome = dictionary[WatchRecordingPayloadKey.presetSelectionResult] as? String,
               let outcome = WatchPresetSelectionOutcome(rawValue: rawOutcome) else { return nil }
         self.requestID = requestID
@@ -130,6 +130,10 @@ struct WatchPresetSelectionAcknowledgement: Equatable, Sendable {
         }
         return payload
     }
+
+    private static func int64Value(_ value: Any?) -> Int64? {
+        (value as? NSNumber)?.int64Value
+    }
 }
 
 enum WatchPresetSelectionState: Equatable {
@@ -151,8 +155,8 @@ enum WatchPresetSelectionState: Equatable {
 private struct PendingWatchPresetSelection: Codable, Equatable {
     let requestID: String
     let presetID: String
-    let epoch: Int
-    let sequence: Int
+    let epoch: Int64
+    let sequence: Int64
     let sentAt: TimeInterval
 
     var payload: [String: Any] {
@@ -210,15 +214,18 @@ private enum WatchPresetSelectionStore {
 
     static func makePending(presetID: String) -> PendingWatchPresetSelection {
         let defaults = UserDefaults.standard
-        var epoch = defaults.integer(forKey: epochKey)
+        // Physical Watch devices use arm64_32, where Swift Int is 32-bit.
+        // Keep millisecond epochs and protocol counters explicitly 64-bit.
+        let timestampEpoch = max(1, Int64(Date().timeIntervalSince1970 * 1_000))
+        var epoch = int64(forKey: epochKey, defaults: defaults)
         if epoch <= 0 {
-            epoch = max(1, Int(Date().timeIntervalSince1970 * 1_000))
+            epoch = timestampEpoch
             defaults.set(epoch, forKey: epochKey)
         }
-        let current = defaults.integer(forKey: sequenceKey)
-        let sequence: Int
-        if current == Int.max {
-            epoch = max(epoch + 1, Int(Date().timeIntervalSince1970 * 1_000))
+        let current = int64(forKey: sequenceKey, defaults: defaults)
+        let sequence: Int64
+        if current == Int64.max {
+            epoch = epoch < Int64.max ? max(epoch + 1, timestampEpoch) : timestampEpoch
             defaults.set(epoch, forKey: epochKey)
             sequence = 1
         } else {
@@ -232,6 +239,10 @@ private enum WatchPresetSelectionStore {
             sequence: sequence,
             sentAt: Date().timeIntervalSince1970
         )
+    }
+
+    private static func int64(forKey key: String, defaults: UserDefaults) -> Int64 {
+        (defaults.object(forKey: key) as? NSNumber)?.int64Value ?? 0
     }
 }
 
@@ -769,6 +780,25 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
         return true
     }
 
+    /// `transferFile` is durable but opportunistic. Once watchOS reports the
+    /// transfer complete, an immediate status message gives iOS a wake-up event
+    /// so its application delegate can activate WCSession and drain the file.
+    /// Correctness never depends on this hint; the retained Watch queue remains
+    /// the fallback when the phone is unreachable or iOS delays execution.
+    private func wakeCompanionForQueuedRecording(using session: WCSession) {
+        guard session.activationState == .activated, session.isReachable else { return }
+        let payload: [String: Any] = [
+            WatchRecordingPayloadKey.command: WatchRecordingCommand.status.rawValue,
+            WatchRecordingPayloadKey.sentAt: Date().timeIntervalSince1970,
+        ]
+        session.sendMessage(payload) { [weak self] reply in
+            self?.apply(reply)
+        } errorHandler: { _ in
+            // The file transfer itself is already durable. A failed wake-up hint
+            // must not create a second transfer or discard the Watch copy.
+        }
+    }
+
     @discardableResult
     func send(_ command: WatchRecordingCommand) async -> WatchRecordingSnapshot {
         guard WCSession.isSupported() else {
@@ -1122,6 +1152,7 @@ extension WatchPhoneBridge: WCSessionDelegate {
             object: self,
             userInfo: userInfo
         )
+        wakeCompanionForQueuedRecording(using: session)
         setSnapshot(WatchRecordingSnapshot(
             phase: .pending,
             isQuickRecordEnabled: true,

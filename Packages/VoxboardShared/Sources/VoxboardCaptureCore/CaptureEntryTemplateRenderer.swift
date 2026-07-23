@@ -15,6 +15,7 @@ public struct CaptureEntryTemplateRenderer: Sendable {
             from: request.createdAt
         )
         let year = padded(components.year, width: 4)
+        let shortYear = String(year.suffix(2))
         let month = padded(components.month, width: 2)
         let day = padded(components.day, width: 2)
         let hour = padded(components.hour, width: 2)
@@ -28,6 +29,7 @@ public struct CaptureEntryTemplateRenderer: Sendable {
             "{date}": "\(year)-\(month)-\(day)",
             "{time}": "\(hour)\(minute)\(second)",
             "{year}": year,
+            "{YR}": shortYear,
             "{month}": month,
             "{day}": day,
             "{week}": "\(weekYear)-W\(week)",
