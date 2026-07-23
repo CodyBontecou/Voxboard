@@ -221,6 +221,9 @@ struct QuickCaptureView: View {
             .onChange(of: viewModel.lastReceipt) { _, receipt in
                 guard receipt != nil else { return }
                 usageTracker.reload()
+                ReviewPromptManager.shared.recordSuccessfulCapture(
+                    totalCaptureCount: usageTracker.successfulCapturesUsed
+                )
                 Task { await presentSentToast() }
             }
             .onChange(of: selectedPhotos) { _, items in

@@ -1,1 +1,1 @@
-voice typing,speech to text,transcription,whisper,dictation,on-device,ai,privacy,offline,mic,notes
+obsidian,vault,voice,typing,speech,text,keyboard,transcribe,dictation,offline,files,scanner,photos

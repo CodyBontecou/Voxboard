@@ -1,6 +1,7 @@
-Record voice notes from your Apple Watch, then let Vox.md sync them back to your iPhone when you reconnect.
+File and attachment capture is more reliable in this update. You can now send a file, photo, scan, sketch, or recording without adding text first, and Vox.md keeps it in the Markdown note where it belongs.
 
-New in this update:
-• Apple Watch recording — start and stop local Watch voice notes without reaching for your phone.
-• Watch queue sync — recordings stay saved on Apple Watch and appear in your iPhone queue when the devices reconnect.
-• Clearer status — redesigned Ready, Recording, Syncing, Queued, and Sent states make it easier to trust what is happening.
+Improved
+• File imports now open directly in Quick Capture.
+• Attachment-only captures save correctly instead of being rejected as empty.
+• Capture templates preserve custom filenames more consistently.
+• Apple Watch recordings transfer, refresh, and export more reliably.

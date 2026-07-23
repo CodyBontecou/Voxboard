@@ -3,11 +3,36 @@ import StoreKit
 import UIKit
 import VoxboardShared
 
+struct ReviewPromptPolicy {
+    let captureThreshold = 3
+    let transcriptionThreshold = 5
+    let dayThreshold = 2
+    let recentPromptInterval: TimeInterval = 60 * 60 * 24 * 90
+
+    func isEligible(
+        successfulCaptureCount: Int,
+        successfulTranscriptionCount: Int,
+        usageDayCount: Int,
+        lastPromptAttemptAt: Date?,
+        now: Date
+    ) -> Bool {
+        let captureMilestoneReached = successfulCaptureCount >= captureThreshold
+        let transcriptionMilestoneReached = successfulTranscriptionCount >= transcriptionThreshold
+            && usageDayCount >= dayThreshold
+        let hasPromptedRecently = lastPromptAttemptAt.map {
+            now.timeIntervalSince($0) < recentPromptInterval
+        } ?? false
+
+        return (captureMilestoneReached || transcriptionMilestoneReached)
+            && !hasPromptedRecently
+    }
+}
+
 /// Tracks App Store review prompt eligibility and asks only after a real value moment.
 ///
 /// Policy:
-/// - at least 5 successful transcriptions
-/// - app usage on at least 2 separate local calendar days
+/// - at least 3 successful Capture submissions, or
+/// - at least 5 successful transcriptions across 2 separate local calendar days
 /// - no prompt attempt in the last 90 days
 @MainActor
 final class ReviewPromptManager {
@@ -15,6 +40,7 @@ final class ReviewPromptManager {
 
     private enum Keys {
         static let successfulTranscriptionCount = "reviewPrompt.successfulTranscriptionCount.v1"
+        static let successfulCaptureCount = "reviewPrompt.successfulCaptureCount.v1"
         static let usageDayIdentifiers = "reviewPrompt.usageDayIdentifiers.v1"
         static let lastPromptAttemptAt = "reviewPrompt.lastPromptAttemptAt.v1"
         static let pendingPrompt = "reviewPrompt.pendingPrompt.v1"
@@ -23,11 +49,9 @@ final class ReviewPromptManager {
     private let defaults: UserDefaults
     private let calendar: Calendar
     private let now: () -> Date
+    private let policy = ReviewPromptPolicy()
     private var promptTask: Task<Void, Never>?
 
-    private let transcriptionThreshold = 5
-    private let dayThreshold = 2
-    private let recentPromptInterval: TimeInterval = 60 * 60 * 24 * 90
     private let promptDelayNanoseconds: UInt64 = 900_000_000
 
     init(
@@ -44,6 +68,14 @@ final class ReviewPromptManager {
     /// not only days where a transcription was completed.
     func recordAppUsageDay() {
         recordUsageDays([now()])
+    }
+
+    /// Call after a user-submitted Capture has been delivered successfully.
+    func recordSuccessfulCapture(totalCaptureCount: Int) {
+        let currentCount = defaults.integer(forKey: Keys.successfulCaptureCount)
+        defaults.set(max(currentCount + 1, totalCaptureCount), forKey: Keys.successfulCaptureCount)
+
+        requestIfEligible()
     }
 
     /// Call after a successful transcription has been saved to history.
@@ -68,19 +100,20 @@ final class ReviewPromptManager {
     }
 
     private var isEligible: Bool {
-        defaults.integer(forKey: Keys.successfulTranscriptionCount) >= transcriptionThreshold
-            && usageDayCount >= dayThreshold
-            && !hasPromptedRecently
+        let lastPromptTime = defaults.double(forKey: Keys.lastPromptAttemptAt)
+        return policy.isEligible(
+            successfulCaptureCount: defaults.integer(forKey: Keys.successfulCaptureCount),
+            successfulTranscriptionCount: defaults.integer(forKey: Keys.successfulTranscriptionCount),
+            usageDayCount: usageDayCount,
+            lastPromptAttemptAt: lastPromptTime > 0
+                ? Date(timeIntervalSince1970: lastPromptTime)
+                : nil,
+            now: now()
+        )
     }
 
     private var usageDayCount: Int {
         Set(defaults.stringArray(forKey: Keys.usageDayIdentifiers) ?? []).count
-    }
-
-    private var hasPromptedRecently: Bool {
-        let lastPromptTime = defaults.double(forKey: Keys.lastPromptAttemptAt)
-        guard lastPromptTime > 0 else { return false }
-        return now().timeIntervalSince1970 - lastPromptTime < recentPromptInterval
     }
 
     private func recordUsageDays(_ dates: [Date]) {

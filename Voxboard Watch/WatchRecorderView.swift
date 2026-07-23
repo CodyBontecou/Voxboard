@@ -300,7 +300,7 @@ struct WatchRecorderView: View {
             HStack(spacing: WatchGeist.Spacing.two) {
                 WatchWaveformView(color: WatchGeist.red)
                     .frame(width: 64)
-                Text("Tap Stop")
+                Text("Stop or Cancel")
                     .font(WatchGeist.caption())
                     .foregroundStyle(WatchGeist.muted)
                     .lineLimit(1)
@@ -325,7 +325,12 @@ struct WatchRecorderView: View {
 
     @ViewBuilder
     private var actionButtons: some View {
-        if shouldShowSecondaryAction {
+        if localRecorder.isRecording {
+            HStack(spacing: WatchGeist.Spacing.two) {
+                recordingButton
+                cancelRecordingButton
+            }
+        } else if shouldShowSecondaryAction {
             HStack(spacing: WatchGeist.Spacing.two) {
                 recordingButton
                 secondarySyncButton
@@ -358,6 +363,23 @@ struct WatchRecorderView: View {
         .disabled(isSending || (!localRecorder.isRecording && !canStartRecording))
         .accessibilityLabel(localRecorder.isRecording ? "Stop Watch recording" : "Start Watch recording")
         .accessibilityHint(localRecorder.isRecording ? "Stops and safely saves this recording." : "Starts a recording stored locally on this Watch.")
+    }
+
+    private var cancelRecordingButton: some View {
+        Button {
+            Task { await cancelRecording() }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "xmark")
+                Text("Cancel")
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+        }
+        .buttonStyle(WatchGeistButtonStyle(variant: .secondary))
+        .disabled(isSending)
+        .accessibilityLabel("Cancel and delete Watch recording")
+        .accessibilityHint("Stops and permanently deletes this recording without syncing it to your iPhone.")
     }
 
     private var secondarySyncButton: some View {
@@ -491,7 +513,7 @@ struct WatchRecorderView: View {
         }
         switch localRecorder.phase {
         case .recording:
-            return "Tap Stop when your thought is captured."
+            return "Stop to save, or Cancel to delete."
         case .transferring:
             return "Your recording remains safe while it moves to iPhone."
         case .waitingForPhone:
@@ -587,6 +609,12 @@ struct WatchRecorderView: View {
         isSending = true
         defer { isSending = false }
         await localRecorder.toggle(using: bridge)
+    }
+
+    private func cancelRecording() async {
+        isSending = true
+        defer { isSending = false }
+        localRecorder.cancelRecording()
     }
 
     private func syncQueueOrRefreshStatus() async {

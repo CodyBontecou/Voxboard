@@ -351,6 +351,38 @@ final class WatchLocalRecorder: ObservableObject {
         }
     }
 
+    func cancelRecording() {
+        guard let recorder else { return }
+        cancelTransientSuccessReset()
+
+        let url = recorder.url
+        recorder.stop()
+        _ = recorder.deleteRecording()
+        self.recorder = nil
+        currentRecordingID = nil
+        currentPresetID = nil
+        currentPresetName = nil
+        currentPresetSnapshot = nil
+        startedAt = nil
+        duration = 0
+        stopTimer()
+        try? AVAudioSession.sharedInstance().setActive(false)
+        Self.clearActiveRecording()
+
+        if FileManager.default.fileExists(atPath: url.path) {
+            do {
+                try FileManager.default.removeItem(at: url)
+            } catch {
+                phase = .error("Could not delete the canceled recording.")
+                message = "Recording stopped, but its file could not be deleted from this Watch."
+                return
+            }
+        }
+
+        phase = .idle
+        message = "Recording canceled and deleted."
+    }
+
     func stopAndQueue(using bridge: WatchPhoneBridge) async {
         guard let recorder else { return }
         cancelTransientSuccessReset()

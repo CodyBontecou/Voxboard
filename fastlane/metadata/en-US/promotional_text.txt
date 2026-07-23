@@ -1,0 +1,1 @@
+Capture text, links, photos, files, scans, sketches, and voice directly into Obsidian vaults or local Markdown folders. Transcription stays on device.
