@@ -140,6 +140,17 @@ struct WatchRecordingQueueView: View {
                     Button("Discard", role: .destructive) { pendingDiscard = item }
                         .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
                 }
+
+                if item.canCaptureRecordingWithoutTranscript {
+                    Button {
+                        pipeline.captureRecordingWithoutTranscript(item)
+                    } label: {
+                        Label("Capture Recording Without Transcript", systemImage: "waveform")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+                    .accessibilityHint("Saves the retained audio to Capture without transcription")
+                }
             } else if item.phase == .queued {
                 Button("Discard", role: .destructive) { pendingDiscard = item }
                     .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
@@ -200,6 +211,13 @@ extension WatchRecordingInboxItem {
         case .discarded:
             return "Removed"
         }
+    }
+
+    var canCaptureRecordingWithoutTranscript: Bool {
+        phase == .failed
+            && failureStage == .transcription
+            && !isRecordingOnlyWatchOutput
+            && hasAudio
     }
 
     private var isRecordingOnlyWatchOutput: Bool {

@@ -137,7 +137,7 @@ final class WatchRecordingPipeline {
         recoverInterruptedItems()
         let recorderIsBusy = recorder?.isSegmentActive == true || recorder?.isTranscribing == true
         let processableItems = items.filter {
-            $0.phase == .queued && (!recorderIsBusy || isRecordingOnly($0))
+            $0.phase == .queued && (!recorderIsBusy || canRunWhileRecorderIsBusy($0))
         }
         guard !processableItems.isEmpty else {
             incomingLease?.end(.noProcessableWork)
@@ -247,6 +247,24 @@ final class WatchRecordingPipeline {
         resume()
     }
 
+    func captureRecordingWithoutTranscript(_ item: WatchRecordingInboxItem) {
+        guard activeRecordingID != item.id,
+              let latest = inbox.load().first(where: { $0.id == item.id }),
+              latest.phase == .failed,
+              latest.failureStage == .transcription,
+              latest.flowSnapshot?.watchOutputMode != .recordingOnly,
+              latest.hasAudio else { return }
+
+        _ = inbox.update(id: latest.id) { updated in
+            updated.capturesRecordingWithoutTranscript = true
+            updated.phase = .queued
+            updated.failureStage = nil
+            updated.statusMessage = "Queued to capture the recording without a transcript"
+        }
+        refresh()
+        resume()
+    }
+
     func choosePreset(_ preset: CapturePreset, for item: WatchRecordingInboxItem) {
         guard preset.isEnabled,
               activeRecordingID != item.id,
@@ -297,7 +315,10 @@ final class WatchRecordingPipeline {
                     return
                 }
                 if state == .completed {
-                    _ = self.inbox.markDelivered(id: latest.id)
+                    let message = latest.capturesRecordingWithoutTranscript
+                        ? "Recording captured without a transcript"
+                        : "Saved to Capture"
+                    _ = self.inbox.markDelivered(id: latest.id, message: message)
                     self.refresh()
                     WatchRecordingController.shared.publishState()
                     return
@@ -351,7 +372,7 @@ final class WatchRecordingPipeline {
             refresh()
             let recorderIsBusy = recorder?.isSegmentActive == true || recorder?.isTranscribing == true
             let processableItems = items.filter {
-                $0.phase == .queued && (!recorderIsBusy || isRecordingOnly($0))
+                $0.phase == .queued && (!recorderIsBusy || canRunWhileRecorderIsBusy($0))
             }
             let item: WatchRecordingInboxItem?
             if usageTracker.isAtLimit {
@@ -414,6 +435,10 @@ final class WatchRecordingPipeline {
         }
         if flow.watchOutputMode == .recordingOnly {
             try await deliverRecordingOnly(item, flow: flow)
+            return
+        }
+        if item.capturesRecordingWithoutTranscript {
+            try await deliverCaptureRecording(item, flow: flow)
             return
         }
 
@@ -529,6 +554,81 @@ final class WatchRecordingPipeline {
             throw WatchRecordingPipelineError(
                 stage: .delivery,
                 message: "Capture could not be delivered. The transcript and audio are saved for retry."
+            )
+        }
+    }
+
+    private func deliverCaptureRecording(
+        _ item: WatchRecordingInboxItem,
+        flow: CapturePreset
+    ) async throws {
+        guard item.hasAudio else {
+            throw WatchRecordingPipelineError(
+                stage: .storage,
+                message: "The retained Apple Watch recording is missing."
+            )
+        }
+
+        _ = inbox.transition(
+            id: item.id,
+            to: .delivering,
+            message: "Capturing the recording without a transcript"
+        )
+        refresh()
+        WatchRecordingController.shared.publishState()
+        try ensureProcessingIsActive(for: item.id)
+
+        guard let captureRootURL = AppConstants.captureDirectoryURL else {
+            throw WatchRecordingPipelineError(
+                stage: .storage,
+                message: "Shared Capture storage is unavailable."
+            )
+        }
+        let captureInbox = CaptureInbox(rootDirectoryURL: captureRootURL)
+        _ = try? await captureInbox.recoverStaleProcessing(olderThan: 5 * 60)
+        let existingState = try await captureInbox.state(of: item.requestID)
+        if existingState == .completed {
+            complete(item, message: "Recording captured without a transcript")
+            return
+        }
+        if existingState == .failed {
+            _ = try await captureInbox.retryFailed(requestID: item.requestID)
+        }
+        if existingState == .processing {
+            throw WatchRecordingPipelineError(
+                stage: .delivery,
+                message: "Capture delivery is still in progress. Try again shortly."
+            )
+        }
+
+        guard let destinationID = await ConfiguredTranscriptCaptureDestinationExporter
+            .resolvedDestinationID(flow: flow) else {
+            throw WatchRecordingPipelineError(
+                stage: .delivery,
+                message: "Set a destination for \(flow.displayName) on iPhone, then retry."
+            )
+        }
+
+        try ensureProcessingIsActive(for: item.id)
+        do {
+            _ = try await ConfiguredTranscriptCaptureDestinationExporter.exportRecording(
+                requestID: item.requestID,
+                createdAt: item.createdAt,
+                flow: flow,
+                destinationID: destinationID,
+                audioSourceURL: item.fileURL,
+                preferredFilename: item.originalFilename ?? item.filename,
+                source: .watch
+            )
+            try ensureProcessingIsActive(for: item.id)
+            lastDeliveredRecordingID = item.id
+            complete(item, message: "Recording captured without a transcript")
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            throw WatchRecordingPipelineError(
+                stage: .delivery,
+                message: error.localizedDescription
             )
         }
     }
@@ -682,6 +782,7 @@ final class WatchRecordingPipeline {
         try? FileManager.default.removeItem(at: workingURL)
         defer { try? FileManager.default.removeItem(at: workingURL) }
 
+        let convertedURL: URL
         do {
             let conversionTask = Task.detached(priority: .userInitiated) {
                 try AudioFileConverter.convertToWhisperWAV(
@@ -689,16 +790,29 @@ final class WatchRecordingPipeline {
                     outputURL: workingURL
                 )
             }
-            let convertedURL = try await withTaskCancellationHandler {
+            convertedURL = try await withTaskCancellationHandler {
                 try await conversionTask.value
             } onCancel: {
                 conversionTask.cancel()
             }
-            try Task.checkCancellation()
-            let modelID = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-                ?? AppConstants.defaultTranscriptionBackendID
-            let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
-                ?? "auto"
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            watchPipelineBackgroundLog.error(
+                "Watch audio preparation failed recording=\(item.id, privacy: .public) error=\(error.localizedDescription, privacy: .private)"
+            )
+            throw WatchRecordingPipelineError(
+                stage: .transcription,
+                message: WatchRecordingTranscriptionFailureMessage.audioPreparation(for: error)
+            )
+        }
+
+        try Task.checkCancellation()
+        let modelID = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+            ?? AppConstants.defaultTranscriptionBackendID
+        let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
+            ?? "auto"
+        do {
             let result = try await transcriptionService.transcribeResult(
                 audioURL: convertedURL,
                 modelID: modelID,
@@ -712,9 +826,12 @@ final class WatchRecordingPipeline {
         } catch is CancellationError {
             throw CancellationError()
         } catch {
+            watchPipelineBackgroundLog.error(
+                "Watch transcription failed recording=\(item.id, privacy: .public) error=\(error.localizedDescription, privacy: .private)"
+            )
             throw WatchRecordingPipelineError(
                 stage: .transcription,
-                message: "Transcription failed. The Watch recording is saved for retry."
+                message: WatchRecordingTranscriptionFailureMessage.recognition(for: error)
             )
         }
     }
@@ -728,8 +845,11 @@ final class WatchRecordingPipeline {
         }
     }
 
-    private func complete(_ item: WatchRecordingInboxItem) {
-        _ = inbox.markDelivered(id: item.id)
+    private func complete(
+        _ item: WatchRecordingInboxItem,
+        message: String = "Saved to Capture"
+    ) {
+        _ = inbox.markDelivered(id: item.id, message: message)
         refresh()
         WatchRecordingController.shared.publishState()
     }
@@ -747,6 +867,8 @@ final class WatchRecordingPipeline {
             let message: String
             if isRecordingOnly(item) {
                 message = "Resuming Files delivery"
+            } else if item.capturesRecordingWithoutTranscript {
+                message = "Resuming recording capture"
             } else if transcriptStore.transcripts.contains(where: { $0.id == item.requestID }) {
                 message = "Resuming Capture delivery"
             } else {
@@ -768,7 +890,10 @@ final class WatchRecordingPipeline {
             let captureInbox = CaptureInbox(rootDirectoryURL: captureRootURL)
             for item in candidates {
                 if (try? await captureInbox.state(of: item.requestID)) == .completed {
-                    self.complete(item)
+                    let message = item.capturesRecordingWithoutTranscript
+                        ? "Recording captured without a transcript"
+                        : "Saved to Capture"
+                    self.complete(item, message: message)
                 }
             }
         }
@@ -783,13 +908,20 @@ final class WatchRecordingPipeline {
         item.flowSnapshot?.watchOutputMode == .recordingOnly
     }
 
+    private func canRunWhileRecorderIsBusy(_ item: WatchRecordingInboxItem) -> Bool {
+        isRecordingOnly(item) || item.capturesRecordingWithoutTranscript
+    }
+
     private func canRunWithoutTranscriptionUsage(_ item: WatchRecordingInboxItem) -> Bool {
-        (item.phase == .queued && isRecordingOnly(item)) || isDeliveryOnlyRetry(item)
+        (item.phase == .queued
+            && (isRecordingOnly(item) || item.capturesRecordingWithoutTranscript))
+            || isDeliveryOnlyRetry(item)
     }
 
     private func markQueuedItemsWaitingForUnlock() {
         for item in items where item.phase == .queued
             && !isRecordingOnly(item)
+            && !item.capturesRecordingWithoutTranscript
             && !isDeliveryOnlyRetry(item)
             && item.statusMessage != "Unlock Vox.md on iPhone to transcribe" {
             _ = inbox.transition(
@@ -825,6 +957,43 @@ final class WatchRecordingPipeline {
             )
             try? await center.add(request)
         }
+    }
+}
+
+enum WatchRecordingTranscriptionFailureMessage {
+    private static let retainedRecording = "The Watch recording is saved for retry."
+
+    static func audioPreparation(for error: Error) -> String {
+        let reason: String
+        switch error as? AudioFileConverter.ConversionError {
+        case .couldNotOpenInput:
+            reason = "Transcription failed because the Watch audio file could not be opened."
+        case .noAudioSamples:
+            reason = "Transcription failed because the Watch recording contains no readable audio."
+        case .couldNotCreateFormat, .couldNotCreateConverter, .couldNotCreateBuffer:
+            reason = "Transcription failed because the Watch audio could not be converted to the required format."
+        case nil:
+            reason = "Transcription failed because the Watch audio could not be prepared for speech recognition."
+        }
+        return "\(reason) \(retainedRecording)"
+    }
+
+    static func recognition(for error: Error) -> String {
+        if let transcriptionError = error as? OnDeviceTranscriptionError,
+           transcriptionError == .noSpeechDetected {
+            return "No recognizable speech was found. \(retainedRecording)"
+        }
+
+        let rawReason = error.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+        let reason = rawReason.isEmpty
+            ? "The transcription service did not provide a reason."
+            : sentence(from: rawReason)
+        return "Transcription failed: \(reason) \(retainedRecording)"
+    }
+
+    private static func sentence(from text: String) -> String {
+        guard let last = text.last, !".!?".contains(last) else { return text }
+        return "\(text)."
     }
 }
 

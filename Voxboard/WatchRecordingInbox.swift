@@ -34,6 +34,9 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
     var flowSnapshot: CapturePreset?
     var flowSnapshotPayload: Data?
     var requiresPresetSelection: Bool
+    /// One-shot fallback chosen from the iPhone queue after Watch transcription
+    /// fails. This remains durable across suspension and Capture delivery retries.
+    var capturesRecordingWithoutTranscript: Bool
     /// Stable user-visible filename reserved before a recording-only Files copy.
     /// Persisting it makes a retry idempotent if the app is suspended after copy.
     var reservedOutputFilename: String?
@@ -73,6 +76,7 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         flowSnapshot: CapturePreset?,
         flowSnapshotPayload: Data? = nil,
         requiresPresetSelection: Bool = false,
+        capturesRecordingWithoutTranscript: Bool = false,
         reservedOutputFilename: String? = nil,
         reservedOutputFolderBookmark: Data? = nil,
         phase: WatchRecordingProcessingPhase = .queued,
@@ -94,6 +98,7 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         self.flowSnapshot = flowSnapshot
         self.flowSnapshotPayload = flowSnapshotPayload
         self.requiresPresetSelection = requiresPresetSelection
+        self.capturesRecordingWithoutTranscript = capturesRecordingWithoutTranscript
         self.reservedOutputFilename = reservedOutputFilename
         self.reservedOutputFolderBookmark = reservedOutputFolderBookmark
         self.phase = phase
@@ -117,6 +122,7 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         case flowSnapshot
         case flowSnapshotPayload
         case requiresPresetSelection
+        case capturesRecordingWithoutTranscript
         case reservedOutputFilename
         case reservedOutputFolderBookmark
         case phase
@@ -146,6 +152,10 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
             flowSnapshot: try? container.decode(CapturePreset.self, forKey: .flowSnapshot),
             flowSnapshotPayload: try container.decodeIfPresent(Data.self, forKey: .flowSnapshotPayload),
             requiresPresetSelection: try container.decodeIfPresent(Bool.self, forKey: .requiresPresetSelection) ?? false,
+            capturesRecordingWithoutTranscript: try container.decodeIfPresent(
+                Bool.self,
+                forKey: .capturesRecordingWithoutTranscript
+            ) ?? false,
             reservedOutputFilename: try container.decodeIfPresent(String.self, forKey: .reservedOutputFilename),
             reservedOutputFolderBookmark: try container.decodeIfPresent(Data.self, forKey: .reservedOutputFolderBookmark),
             phase: try container.decodeIfPresent(WatchRecordingProcessingPhase.self, forKey: .phase) ?? .queued,

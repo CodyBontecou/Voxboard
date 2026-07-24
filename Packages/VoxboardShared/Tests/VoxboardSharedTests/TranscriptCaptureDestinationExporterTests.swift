@@ -471,6 +471,66 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         XCTAssertNil(queued)
     }
 
+    func test_configuredRecordingExportCapturesAudioWithoutTranscript() async throws {
+        let captureRoot = try temporaryFolder(named: "recording-capture-root")
+        let destinationRoot = try temporaryFolder(named: "recording-capture-destination")
+        defer {
+            try? FileManager.default.removeItem(at: captureRoot)
+            try? FileManager.default.removeItem(at: destinationRoot)
+        }
+        let destination = CaptureDestination(
+            name: "Inbox",
+            rootBookmark: try destinationRoot.bookmarkData(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md"),
+            attachmentsFolderName: "media"
+        )
+        try await CaptureLibraryStore(
+            fileURL: captureRoot.appendingPathComponent(CaptureLibraryStore.defaultFilename),
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        ).save(CaptureLibraryEnvelope(destinations: [destination], defaultDestinationID: destination.id))
+        let sourceURL = captureRoot.appendingPathComponent("watch-source.m4a")
+        let audio = Data("watch-audio".utf8)
+        try audio.write(to: sourceURL)
+        let requestID = UUID()
+        let recordedAt = Date(timeIntervalSince1970: 1_700_000_100)
+        let writer = InboxStateObservingWriter(captureRootURL: captureRoot)
+
+        let receipt = try await ConfiguredTranscriptCaptureDestinationExporter.exportRecording(
+            requestID: requestID,
+            createdAt: recordedAt,
+            flow: CapturePresetStore.makeCustomFlow(),
+            destinationID: destination.id,
+            audioSourceURL: sourceURL,
+            preferredFilename: "Watch Recording.m4a",
+            captureRootURL: captureRoot,
+            pipeline: CapturePipeline(writer: writer)
+        )
+
+        let observedRequest = await writer.observedRequest
+        XCTAssertEqual(receipt.requestID, requestID)
+        XCTAssertEqual(observedRequest?.id, requestID)
+        XCTAssertEqual(observedRequest?.createdAt, recordedAt)
+        XCTAssertEqual(observedRequest?.source, .watch)
+        XCTAssertEqual(observedRequest?.deliveryKind, .standard)
+        XCTAssertEqual(observedRequest?.payloads.count, 1)
+        guard case .audio(let asset, let transcript)? = observedRequest?.payloads.first else {
+            return XCTFail("Expected one audio payload")
+        }
+        XCTAssertNil(transcript)
+        XCTAssertEqual(asset.originalFilename, "Watch Recording.m4a")
+        XCTAssertEqual(
+            try Data(contentsOf: destinationRoot.appendingPathComponent("media/Watch Recording.m4a")),
+            audio
+        )
+        let markdown = try String(
+            contentsOf: destinationRoot.appendingPathComponent("Inbox.md"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(markdown.contains("![[media/Watch Recording.m4a]]"))
+        XCTAssertFalse(markdown.localizedCaseInsensitiveContains("transcript"))
+    }
+
     func test_recordingFlowRoundTripsCaptureDestinationBinding() throws {
         let destinationID = UUID(uuidString: "11111111-2222-3333-4444-555555555555")!
         var flow = CapturePresetStore.makeCustomFlow()

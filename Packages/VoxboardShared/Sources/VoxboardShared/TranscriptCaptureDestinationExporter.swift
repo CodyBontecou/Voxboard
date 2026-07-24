@@ -290,6 +290,89 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
                 .attachmentFolderOverride(for: flow)
         )
 
+        return try await deliver(
+            request,
+            flow: flow,
+            captureRootURL: captureRootURL,
+            stagingDirectoryURL: stagingDirectoryURL,
+            pipeline: pipeline,
+            fileManager: fileManager
+        )
+    }
+
+    /// Captures a retained voice recording as a first-class audio payload and
+    /// deliberately omits transcription text. The Watch inbox remains the
+    /// source of truth until this durable Capture request completes.
+    public static func exportRecording(
+        requestID: UUID,
+        createdAt: Date,
+        flow: CapturePreset,
+        destinationID: UUID,
+        audioSourceURL: URL,
+        preferredFilename: String? = nil,
+        source: CaptureSource = .watch,
+        captureRootURL: URL? = AppConstants.captureDirectoryURL,
+        pipeline: CapturePipeline = AppCapturePipeline.shared,
+        fileManager: FileManager = .default
+    ) async throws -> CaptureReceipt {
+        guard let captureRootURL else { throw ConfiguredTranscriptCaptureError.storageUnavailable }
+
+        let relativeStagingDirectory = "inbox-staging/\(requestID.uuidString.lowercased())"
+        let stagingDirectoryURL = captureRootURL.appendingPathComponent(
+            relativeStagingDirectory,
+            isDirectory: true
+        )
+        let audioAsset: CaptureAssetReference
+        do {
+            let staged = try await CaptureAssetStager(directoryURL: stagingDirectoryURL).stageCopy(
+                from: audioSourceURL,
+                preferredFilename: preferredFilename ?? audioSourceURL.lastPathComponent,
+                contentTypeIdentifier: TranscriptCaptureDestinationExporter.audioContentType(
+                    forExtension: audioSourceURL.pathExtension
+                )
+            )
+            audioAsset = try CaptureAssetReference(
+                relativePath: "\(relativeStagingDirectory)/\(staged.relativePath)",
+                originalFilename: staged.originalFilename,
+                contentTypeIdentifier: staged.contentTypeIdentifier,
+                byteCount: staged.byteCount
+            )
+        } catch {
+            try? fileManager.removeItem(at: stagingDirectoryURL)
+            throw ConfiguredTranscriptCaptureError.audioPreparationFailed
+        }
+
+        let request = CaptureRequest(
+            id: requestID,
+            createdAt: createdAt,
+            source: source,
+            deliveryKind: .standard,
+            destinationID: destinationID,
+            payloads: [.audio(audioAsset, transcript: nil)],
+            frontmatter: flow.staticFrontmatter,
+            voxProfile: flow.captureProfile,
+            voxProcessingState: .applied,
+            attachmentsFolderNameOverride: TranscriptCaptureDestinationExporter
+                .attachmentFolderOverride(for: flow)
+        )
+        return try await deliver(
+            request,
+            flow: flow,
+            captureRootURL: captureRootURL,
+            stagingDirectoryURL: stagingDirectoryURL,
+            pipeline: pipeline,
+            fileManager: fileManager
+        )
+    }
+
+    private static func deliver(
+        _ request: CaptureRequest,
+        flow: CapturePreset,
+        captureRootURL: URL,
+        stagingDirectoryURL: URL,
+        pipeline: CapturePipeline,
+        fileManager: FileManager
+    ) async throws -> CaptureReceipt {
         let inbox = CaptureInbox(rootDirectoryURL: captureRootURL)
         let history = CaptureHistoryStore(
             fileURL: captureRootURL.appendingPathComponent(AppConstants.captureHistoryFilename)
@@ -308,7 +391,7 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
         do {
             guard try await inbox.claim(requestID: request.id) != nil else {
                 throw ConfiguredTranscriptCaptureError.queuedForRetry(
-                    "This transcript is already queued or being delivered."
+                    "This capture is already queued or being delivered."
                 )
             }
             didClaimRequest = true
@@ -316,8 +399,8 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
                 fileURL: captureRootURL.appendingPathComponent(CaptureLibraryStore.defaultFilename)
             )
             let library = try await CapturePresetRouteLibrary.load(from: libraryStore)
-            guard let storedDestination = library.destinations.first(where: { $0.id == destinationID }) else {
-                throw ConfiguredTranscriptCaptureError.destinationMissing(destinationID)
+            guard let storedDestination = library.destinations.first(where: { $0.id == request.destinationID }) else {
+                throw ConfiguredTranscriptCaptureError.destinationMissing(request.destinationID)
             }
             var destination = library.resolvedDestination(
                 storedDestination,
