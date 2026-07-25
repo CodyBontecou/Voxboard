@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  APP_NAME: Voxboard
+  APP_NAME: Vox.md
   APP_SLUG: voxboard
   ASC_APP_ID: '6758967337'
   APP_STORE_URL: https://apps.apple.com/us/app/voxboard/id6758967337
