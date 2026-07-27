@@ -95,12 +95,22 @@ public struct RecordingStatus: Codable, Sendable {
     /// Timestamp when recording started (TimeInterval since 1970).
     /// The keyboard uses this to display an accurate recording timer.
     public let recordingStartedAt: TimeInterval?
+    /// Timestamp when capture ended and batch transcription began. Optional so
+    /// status files written by older app versions remain decodable.
+    public let recordingStoppedAt: TimeInterval?
 
-    public init(requestId: String, phase: Phase, message: String? = nil, recordingStartedAt: TimeInterval? = nil) {
+    public init(
+        requestId: String,
+        phase: Phase,
+        message: String? = nil,
+        recordingStartedAt: TimeInterval? = nil,
+        recordingStoppedAt: TimeInterval? = nil
+    ) {
         self.requestId = requestId
         self.phase = phase
         self.message = message
         self.recordingStartedAt = recordingStartedAt
+        self.recordingStoppedAt = recordingStoppedAt
     }
 }
 

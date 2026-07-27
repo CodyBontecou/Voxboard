@@ -75,6 +75,15 @@ public final class ModelManager {
         return model.isDownloaded
     }
 
+    public var isVoiceActivityModelDownloaded: Bool {
+        _ = installedModelsRevision
+        #if os(iOS) || os(macOS)
+        return VoiceActivityModelAsset.isInstalled
+        #else
+        return false
+        #endif
+    }
+
     // MARK: - Initialization
 
     public init() {
@@ -154,6 +163,38 @@ public final class ModelManager {
         // Remove any partially-downloaded files so a future download starts clean.
         cleanupPartialDownload(for: model)
         print("[ModelManager] Cancelled download for \(model.name)")
+    }
+
+    /// Explicitly downloads the small Silero companion used for Parakeet
+    /// keyboard pause detection. It is never fetched from a recording path.
+    public func startVoiceActivityDownload() {
+        #if os(iOS) || os(macOS)
+        let modelID = VoiceActivityModelAsset.id
+        guard downloadTasks[modelID] == nil else { return }
+
+        modelOperationError = nil
+        isDownloading[modelID] = true
+        downloadProgress[modelID] = 0
+
+        let task = Task { [weak self] in
+            await self?.downloadVoiceActivityModel()
+            await MainActor.run { [weak self] in
+                self?.downloadTasks[modelID] = nil
+            }
+        }
+        downloadTasks[modelID] = task
+        #endif
+    }
+
+    public func cancelVoiceActivityDownload() {
+        #if os(iOS) || os(macOS)
+        let modelID = VoiceActivityModelAsset.id
+        guard let task = downloadTasks[modelID] else { return }
+        task.cancel()
+        // Keep the task registered until it unwinds so a retry cannot race the
+        // canceled download while both mutate the same repository directory.
+        downloadProgress[modelID] = 0
+        #endif
     }
 
     // MARK: - Whisper Download
@@ -286,6 +327,59 @@ public final class ModelManager {
         #endif
     }
 
+    // MARK: - Voice Activity Download
+
+    private func downloadVoiceActivityModel() async {
+        #if os(iOS) || os(macOS)
+        let modelID = VoiceActivityModelAsset.id
+        guard let modelsDirectory = AppConstants.modelsDirectoryURL else {
+            await finishDownload(
+                modelId: modelID,
+                success: false,
+                errorMessage: "Could not download voice pause detection because the model storage location is unavailable."
+            )
+            return
+        }
+
+        do {
+            try await DownloadUtils.downloadRepo(.vad, to: modelsDirectory) { [weak self] progress in
+                Task { @MainActor [weak self] in
+                    self?.downloadProgress[modelID] = progress.fractionCompleted
+                }
+            }
+            try Task.checkCancellation()
+
+            guard VoiceActivityModelAsset.isInstalled(in: modelsDirectory) else {
+                await finishDownload(
+                    modelId: modelID,
+                    success: false,
+                    errorMessage: "The voice pause detection download finished, but required model files were missing. Please try again."
+                )
+                return
+            }
+
+            print("[ModelManager] Downloaded voice pause detection successfully")
+            await finishDownload(modelId: modelID, success: true)
+        } catch is CancellationError {
+            print("[ModelManager] Voice pause detection download cancelled")
+            cleanupVoiceActivityDownload()
+            await finishDownload(modelId: modelID, success: false)
+        } catch {
+            print("[ModelManager] Voice pause detection download failed: \(error)")
+            if Task.isCancelled {
+                cleanupVoiceActivityDownload()
+            }
+            await finishDownload(
+                modelId: modelID,
+                success: false,
+                errorMessage: Task.isCancelled
+                    ? nil
+                    : "Could not download voice pause detection. \(error.localizedDescription)"
+            )
+        }
+        #endif
+    }
+
     // MARK: - Helpers
 
     @MainActor
@@ -304,6 +398,15 @@ public final class ModelManager {
             downloadProgress[modelId] = 1.0
             installedModelsRevision &+= 1
         }
+    }
+
+    private func cleanupVoiceActivityDownload() {
+        #if os(iOS) || os(macOS)
+        guard let modelsDirectory = AppConstants.modelsDirectoryURL else { return }
+        try? FileManager.default.removeItem(
+            at: VoiceActivityModelAsset.repositoryURL(in: modelsDirectory)
+        )
+        #endif
     }
 
     private func cleanupPartialDownload(for model: WhisperModelInfo) {
@@ -325,6 +428,32 @@ public final class ModelManager {
     }
 
     // MARK: - Delete
+
+    @discardableResult
+    public func deleteVoiceActivityModel() -> Bool {
+        #if os(iOS) || os(macOS)
+        modelOperationError = nil
+        guard let modelsDirectory = AppConstants.modelsDirectoryURL else {
+            modelOperationError = "The model storage location is unavailable."
+            return false
+        }
+
+        do {
+            let repositoryURL = VoiceActivityModelAsset.repositoryURL(in: modelsDirectory)
+            if FileManager.default.fileExists(atPath: repositoryURL.path) {
+                try FileManager.default.removeItem(at: repositoryURL)
+            }
+        } catch {
+            modelOperationError = "Could not delete voice pause detection: \(error.localizedDescription)"
+            return false
+        }
+
+        installedModelsRevision &+= 1
+        return true
+        #else
+        return false
+        #endif
+    }
 
     @discardableResult
     public func deleteModel(_ model: WhisperModelInfo) -> Bool {

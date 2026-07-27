@@ -80,8 +80,14 @@ final class VoiceKeyboardState {
     private var durationTimer: Timer?
     private var recordingStartedAt: TimeInterval?
     private var transcribingStartedAt: TimeInterval?
+    private var recordingAcknowledged = false
+    private var stopRequestedBeforeAcknowledgement = false
+    private var lastCommandNotificationAt: TimeInterval?
     /// Wall-clock time when the user tapped Stop — used by the transcript-store fallback.
     private var segmentStopTime: Date?
+
+    private let startAcknowledgementTimeout: TimeInterval = 3
+    private let commandNotificationRetryInterval: TimeInterval = 0.5
 
     /// Apple may need to prepare a system-managed locale asset on first use.
     /// Keep the existing resilient transcript-store fallback alive long enough.
@@ -265,6 +271,8 @@ final class VoiceKeyboardState {
         pendingRequestId = requestId
         recordingStartedAt = Date().timeIntervalSince1970
         recordingDuration = 0
+        recordingAcknowledged = false
+        stopRequestedBeforeAcknowledgement = false
         status = .recording
 
         // Write startSegment command and post notification immediately
@@ -279,6 +287,7 @@ final class VoiceKeyboardState {
         )
         TranscriptionIPC.writeCommand(command)
         TranscriptionIPC.postCommandNotification()
+        lastCommandNotificationAt = Date().timeIntervalSince1970
 
         log.log("📤 Sent startSegment command (requestId=\(requestId), backend=\(backend.id), flow=\(flowId))")
 
@@ -292,8 +301,18 @@ final class VoiceKeyboardState {
     // MARK: - Stop Recording (send IPC command — no app switch!)
 
     func stopRecording() {
-        guard let requestId = pendingRequestId else {
-            log.log("stopRecording — no pending request")
+        guard status == .recording, let requestId = pendingRequestId else {
+            log.log("stopRecording — no active recording")
+            return
+        }
+
+        guard recordingAcknowledged else {
+            // Never overwrite an unclaimed start command with stop. Remember the
+            // user's intent and stop immediately once the app acknowledges start.
+            stopRequestedBeforeAcknowledgement = true
+            TranscriptionIPC.postCommandNotification()
+            lastCommandNotificationAt = Date().timeIntervalSince1970
+            log.log("⏹ Stop requested while waiting for app start acknowledgement")
             return
         }
 
@@ -306,6 +325,7 @@ final class VoiceKeyboardState {
         )
         TranscriptionIPC.writeCommand(command)
         TranscriptionIPC.postCommandNotification()
+        lastCommandNotificationAt = Date().timeIntervalSince1970
 
         // Update UI immediately
         status = .transcribing
@@ -418,14 +438,17 @@ final class VoiceKeyboardState {
             restoreLiveDeliveryCheckpoint(for: ipcStatus.requestId)
             processLiveSnapshot(for: ipcStatus.requestId)
             recordingStartedAt = ipcStatus.recordingStartedAt
+            recordingAcknowledged = true
             status = .recording
             startPolling()
             startDurationTimer()
 
         case .transcribing:
             // Check if the transcription is stale (> 2 minutes old)
-            if let startedAt = ipcStatus.recordingStartedAt,
-               Date().timeIntervalSince1970 - startedAt > 120 {
+            let stoppedAt = ipcStatus.recordingStoppedAt
+                ?? ipcStatus.recordingStartedAt
+                ?? Date().timeIntervalSince1970
+            if Date().timeIntervalSince1970 - stoppedAt > 120 {
                 log.log("♻️ Clearing stale transcription session (>2 min old)")
                 TranscriptionIPC.clearStatus()
             } else if !hasFreshListener {
@@ -437,6 +460,9 @@ final class VoiceKeyboardState {
                 pendingRequestId = ipcStatus.requestId
                 restoreLiveDeliveryCheckpoint(for: ipcStatus.requestId)
                 processLiveSnapshot(for: ipcStatus.requestId)
+                transcribingStartedAt = stoppedAt
+                segmentStopTime = Date(timeIntervalSince1970: stoppedAt)
+                recordingAcknowledged = true
                 status = .transcribing
                 startPolling()
             }
@@ -568,22 +594,99 @@ final class VoiceKeyboardState {
         guard let requestId = pendingRequestId else { return }
 
         pollCount += 1
+        let now = Date().timeIntervalSince1970
         processLiveSnapshot(for: requestId)
 
-        // Read audio levels during recording for waveform animation
-        if status == .recording {
-            if let level = TranscriptionIPC.readAudioLevel() {
-                // Shift levels left and append the new one
-                audioLevels.removeFirst()
-                audioLevels.append(level)
+        // A terminal response wins over timeout handling, including at the exact
+        // timeout boundary.
+        if let response = TranscriptionIPC.readResponse(), response.requestId == requestId {
+            log.log("📥 Response received for \(requestId.prefix(8))")
+            pollCount = 0
+            finishWithResponse(response)
+            return
+        }
+
+        // Read audio levels during recording for waveform animation.
+        if status == .recording, let level = TranscriptionIPC.readAudioLevel() {
+            audioLevels.removeFirst()
+            audioLevels.append(level)
+        }
+
+        let ipcStatus = TranscriptionIPC.readStatus()
+        let matchingStatus = ipcStatus?.requestId == requestId ? ipcStatus : nil
+
+        if let matchingStatus {
+            switch matchingStatus.phase {
+            case .recording:
+                let wasAcknowledged = recordingAcknowledged
+                recordingAcknowledged = true
+                if !wasAcknowledged {
+                    recordingStartedAt = matchingStatus.recordingStartedAt ?? recordingStartedAt
+                    log.log("🎙 App confirmed segment recording")
+                }
+                // Do not move a locally stopped request back from transcribing
+                // just because the app's recording status is still in flight.
+                if stopRequestedBeforeAcknowledgement {
+                    stopRequestedBeforeAcknowledgement = false
+                    stopRecording()
+                    return
+                }
+
+            case .transcribing:
+                recordingAcknowledged = true
+                if status != .transcribing {
+                    let stoppedAt = matchingStatus.recordingStoppedAt ?? now
+                    status = .transcribing
+                    transcribingStartedAt = stoppedAt
+                    segmentStopTime = Date(timeIntervalSince1970: stoppedAt)
+                    stopDurationTimer()
+                    log.log("⏳ App is transcribing")
+                }
+
+            case .error:
+                let message = matchingStatus.message
+                    ?? String(localized: "Recording failed — try again")
+                log.log("📥 App reported recording error: \(message)")
+                finishWithResponse(TranscriptionResponse(
+                    requestId: requestId,
+                    error: message
+                ))
+                return
+
+            case .done, .listening:
+                break
             }
         }
 
-        // Check for transcription timeout
+        // Darwin notifications can be delayed in the background. Re-post while
+        // the durable command file remains unclaimed; the app also polls it.
+        if let command = TranscriptionIPC.readCommand(), command.requestId == requestId,
+           now - (lastCommandNotificationAt ?? 0) >= commandNotificationRetryInterval {
+            TranscriptionIPC.postCommandNotification()
+            lastCommandNotificationAt = now
+        }
+
+        // Do not display an optimistic recording indefinitely. Most starts are
+        // acknowledged in under 250 ms; three seconds leaves ample background
+        // scheduling margin while avoiding a fake recording with no waveform.
+        if status == .recording, !recordingAcknowledged,
+           let startedAt = recordingStartedAt,
+           now - startedAt > startAcknowledgementTimeout {
+            log.log("⏰ App did not acknowledge startSegment")
+            clearPendingCommand(for: requestId)
+            cleanupPending()
+            TranscriptionIPC.clearLiveTranscriptionState()
+            status = .error(String(localized: "Vox.md did not start recording — reopen Listening Mode and try again"))
+            resetErrorAfterDelay()
+            return
+        }
+
+        // Check for transcription timeout only after terminal artifacts.
         if status == .transcribing,
            let startedAt = transcribingStartedAt,
-           Date().timeIntervalSince1970 - startedAt > transcriptionTimeout {
+           now - startedAt > transcriptionTimeout {
             log.log("⏰ Transcription timed out after \(Int(transcriptionTimeout))s")
+            clearPendingCommand(for: requestId)
             cleanupPending()
             TranscriptionIPC.clearResponse()
             TranscriptionIPC.clearStatus()
@@ -593,70 +696,38 @@ final class VoiceKeyboardState {
             return
         }
 
-        // Check for status updates
-        if let ipcStatus = TranscriptionIPC.readStatus(), ipcStatus.requestId == requestId {
-            switch ipcStatus.phase {
-            case .recording:
-                if status != .recording {
-                    status = .recording
-                    recordingStartedAt = ipcStatus.recordingStartedAt
-                    startDurationTimer()
-                    log.log("🎙 App confirmed segment recording")
-                }
-
-            case .transcribing:
-                if status != .transcribing {
-                    status = .transcribing
-                    transcribingStartedAt = Date().timeIntervalSince1970
-                    stopDurationTimer()
-                    log.log("⏳ App is transcribing")
-                }
-
-            case .done, .error, .listening:
-                break // Handled by response check below
-            }
-        }
-
-        // Check for completed response
-        if let response = TranscriptionIPC.readResponse() {
-            if response.requestId == requestId {
-                // ── Happy path ───────────────────────────────────────────────
-                log.log("📥 Response received for \(requestId.prefix(8))")
-                pollCount = 0
-                finishWithResponse(response)
-            } else if pollCount % 30 == 0 {
-                log.log("⚠️ Ignoring response for a different request — expected=\(requestId.prefix(8)) got=\(response.requestId.prefix(8))")
-            }
-        } else {
-            // ── No response file ────────────────────────────────────────────
-            // Log every ~3 seconds while waiting.
+        if let response = TranscriptionIPC.readResponse(),
+           response.requestId != requestId,
+           pollCount % 30 == 0 {
+            log.log("⚠️ Ignoring response for a different request — expected=\(requestId.prefix(8)) got=\(response.requestId.prefix(8))")
+        } else if TranscriptionIPC.readResponse() == nil {
             if status == .transcribing, pollCount % 30 == 0 {
-                let elapsed = transcribingStartedAt.map { Date().timeIntervalSince1970 - $0 } ?? 0
+                let elapsed = transcribingStartedAt.map { now - $0 } ?? 0
                 log.log("⏳ Waiting for response… poll=\(pollCount) elapsed=\(Int(elapsed))s pendingId=\(requestId.prefix(8))")
             }
 
-            // ── Transcript-store fallback ────────────────────────────────────
-            // The app ALWAYS writes to transcripts.json when transcription completes
-            // (verified: user sees result in History). After 5 seconds with no IPC
-            // response file, read transcripts.json directly and use the latest entry
-            // if it's newer than when the user tapped Stop. This bypasses any IPC
-            // response write failure entirely.
+            // The app writes history before asynchronous post-processing. If the
+            // response artifact is lost, recover a transcript newer than Stop.
             if status == .transcribing,
                let stopTime = segmentStopTime,
                let startedAt = transcribingStartedAt,
-               Date().timeIntervalSince1970 - startedAt > 5,
-               pollCount % 10 == 0,  // check ~once per second, not every 0.1s
+               now - startedAt > 5,
+               pollCount % 10 == 0,
                let text = latestTranscriptSince(stopTime) {
                 log.log("🔄 Transcript-store fallback triggered — using latest entry (\(text.count) chars)")
                 pollCount = 0
-                let syntheticResponse = TranscriptionResponse(
+                finishWithResponse(TranscriptionResponse(
                     requestId: requestId,
                     text: text,
                     usesLiveTranscription: deliveredLiveText.isEmpty ? nil : true
-                )
-                finishWithResponse(syntheticResponse)
+                ))
             }
         }
+    }
+
+    private func clearPendingCommand(for requestId: String) {
+        guard TranscriptionIPC.readCommand()?.requestId == requestId else { return }
+        TranscriptionIPC.clearCommand()
     }
 
     /// Read transcripts.json from the shared container and return the text of the
@@ -777,6 +848,9 @@ final class VoiceKeyboardState {
         pendingRequestId = nil
         recordingStartedAt = nil
         transcribingStartedAt = nil
+        recordingAcknowledged = false
+        stopRequestedBeforeAcknowledgement = false
+        lastCommandNotificationAt = nil
         segmentStopTime = nil
         recordingDuration = 0
         audioLevels = Array(repeating: 0, count: 7)

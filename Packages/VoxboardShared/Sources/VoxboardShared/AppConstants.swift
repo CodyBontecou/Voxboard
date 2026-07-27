@@ -16,6 +16,11 @@ public enum AppConstants: Sendable {
     public static let selectedFallbackModelKey = "selectedFallbackTranscriptionModel"
     public static let transcriptionSelectionMigrationKey = "transcriptionSelectionMigration.v1"
     public static let automaticBackendReadyKey = "automaticTranscriptionBackendReady"
+    public static let parakeetKeyboardAutoStopEnabledKey = "parakeetKeyboardAutoStopEnabled"
+    public static let parakeetKeyboardPauseDurationKey = "parakeetKeyboardPauseDuration"
+    public static let defaultParakeetKeyboardPauseDuration: TimeInterval = 0.75
+    public static let minimumParakeetKeyboardPauseDuration: TimeInterval = 0.5
+    public static let maximumParakeetKeyboardPauseDuration: TimeInterval = 2.0
 
     /// Legacy/local model default retained for the macOS app and as a fallback
     /// candidate. The iOS app defaults to the system-first Automatic backend.
@@ -153,6 +158,40 @@ public enum AppConstants: Sendable {
 
     public static var lockScreenQuickRecordEnabled: Bool {
         boolOrDefault(lockScreenQuickRecordEnabledKey, default: true)
+    }
+
+    /// Explicit Parakeet keyboard selections may end a segment after locally
+    /// detected silence when the optional voice-activity model is installed.
+    public static var parakeetKeyboardAutoStopEnabled: Bool {
+        get { boolOrDefault(parakeetKeyboardAutoStopEnabledKey, default: true) }
+        set { sharedDefaults?.set(newValue, forKey: parakeetKeyboardAutoStopEnabledKey) }
+    }
+
+    public static var parakeetKeyboardPauseDuration: TimeInterval {
+        get {
+            guard let defaults = sharedDefaults,
+                  defaults.object(forKey: parakeetKeyboardPauseDurationKey) != nil else {
+                return defaultParakeetKeyboardPauseDuration
+            }
+            return clampedParakeetKeyboardPauseDuration(
+                defaults.double(forKey: parakeetKeyboardPauseDurationKey)
+            )
+        }
+        set {
+            sharedDefaults?.set(
+                clampedParakeetKeyboardPauseDuration(newValue),
+                forKey: parakeetKeyboardPauseDurationKey
+            )
+        }
+    }
+
+    public static func clampedParakeetKeyboardPauseDuration(
+        _ duration: TimeInterval
+    ) -> TimeInterval {
+        min(
+            maximumParakeetKeyboardPauseDuration,
+            max(minimumParakeetKeyboardPauseDuration, duration)
+        )
     }
 
     public static var exportUseEnrichedTitleInFilename: Bool {

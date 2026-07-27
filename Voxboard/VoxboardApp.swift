@@ -122,6 +122,7 @@ struct VoxboardApp: App {
             .environment(watchRecordingPipeline)
             .voxboardReleaseNotesSheet()
             .onAppear {
+                updateIdleTimer()
                 WatchRecordingController.shared.configure(
                     recorder: persistentRecorder,
                     usageTracker: usageTracker,
@@ -155,6 +156,9 @@ struct VoxboardApp: App {
                 watchRecordingPipeline.resume()
                 Task { await quickCaptureViewModel.processPendingInbox() }
             }
+            .onChange(of: modelManager.isDownloading.values.contains(true)) { _, _ in
+                updateIdleTimer()
+            }
             .task(id: "\(modelManager.selectedModelId)|\(modelManager.selectedLanguage)") {
                 let service = AppTranscriptionServices.shared
                 let fallbackID = modelManager.preferredFallbackModelID
@@ -179,6 +183,7 @@ struct VoxboardApp: App {
             }
         }
         .onChange(of: scenePhase) { _, phase in
+            updateIdleTimer(for: phase)
             if phase == .active {
                 transcriptionServer.checkForPendingRequest()
                 usageTracker.reload()
@@ -203,6 +208,14 @@ struct VoxboardApp: App {
                 }
             }
         }
+    }
+
+    // MARK: - Model Downloads
+
+    @MainActor
+    private func updateIdleTimer(for phase: ScenePhase? = nil) {
+        let isDownloadingModel = modelManager.isDownloading.values.contains(true)
+        UIApplication.shared.isIdleTimerDisabled = (phase ?? scenePhase) == .active && isDownloadingModel
     }
 
     // MARK: - Pending Quick Record

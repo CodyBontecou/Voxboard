@@ -30,4 +30,27 @@ final class TranscriptionIPCTests: XCTestCase {
         XCTAssertEqual(command.requestId, "request")
         XCTAssertNil(command.origin)
     }
+
+    func testLegacyRecordingStatusDecodesWithoutStoppedTimestamp() throws {
+        let data = Data(#"{"requestId":"request","phase":"transcribing","message":null,"recordingStartedAt":40}"#.utf8)
+        let status = try JSONDecoder().decode(RecordingStatus.self, from: data)
+
+        XCTAssertEqual(status.recordingStartedAt, 40)
+        XCTAssertNil(status.recordingStoppedAt)
+    }
+
+    func testRecordingStatusRoundTripsStoppedTimestamp() throws {
+        let status = RecordingStatus(
+            requestId: "request",
+            phase: .transcribing,
+            recordingStartedAt: 40,
+            recordingStoppedAt: 45
+        )
+
+        let data = try JSONEncoder().encode(status)
+        let decoded = try JSONDecoder().decode(RecordingStatus.self, from: data)
+
+        XCTAssertEqual(decoded.recordingStartedAt, 40)
+        XCTAssertEqual(decoded.recordingStoppedAt, 45)
+    }
 }

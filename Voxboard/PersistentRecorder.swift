@@ -87,7 +87,11 @@ final class PersistentRecorder {
     private var segmentCompletionMode: RecordingCompletionMode?
     private var segmentStartedAt: TimeInterval = 0
     private var liveTranscriptionSetupTask: Task<LiveSegmentTranscriptionCoordinator?, Never>?
+    private var endOfSpeechSetupTask: Task<KeyboardEndOfSpeechCoordinator?, Never>?
     private var liveCaptureRequestId: String?
+    /// Retained after segment state is cleared so competing manual/VAD stop
+    /// commands for the same request can be ignored while transcription runs.
+    private var processingRequestId: String?
 
     /// Pre-roll: capture this many seconds before the user tapped Start.
     private let preRollSeconds: TimeInterval = 2.0
@@ -102,6 +106,7 @@ final class PersistentRecorder {
 
     private var durationTimer: Timer?
     private var listeningHeartbeatTimer: Timer?
+    private var commandPollTimer: Timer?
     private var listeningStartedAt: TimeInterval?
 
     /// Shared transcript store — injected so saved transcripts appear in the UI immediately.
@@ -110,6 +115,9 @@ final class PersistentRecorder {
     /// Shared Apple-first dispatcher used by recordings, imports, Quick Capture,
     /// Watch imports, and keyboard requests.
     private let transcriptionService: OnDeviceTranscriptionService
+
+    /// Offline-only loader for the explicitly downloaded Silero companion model.
+    private let voiceActivityDetectionService: VoiceActivityDetectionService
 
     /// Delivers app-owned draft recordings into the durable Capture draft.
     /// Keyboard, Widget, Watch, and explicit Capture Preset runs bypass this callback.
@@ -144,12 +152,14 @@ final class PersistentRecorder {
         transcriptStore: TranscriptStore,
         usageTracker: UsageTracker,
         transcriptionService: OnDeviceTranscriptionService,
+        voiceActivityDetectionService: VoiceActivityDetectionService = VoiceActivityDetectionService(),
         captureDraftEventHandler: CaptureDraftRecordingEventHandler? = nil,
         transcriptEnricher: TranscriptEnricher? = nil
     ) {
         self.transcriptStore = transcriptStore
         self.usageTracker = usageTracker
         self.transcriptionService = transcriptionService
+        self.voiceActivityDetectionService = voiceActivityDetectionService
         self.captureDraftEventHandler = captureDraftEventHandler
         self.transcriptEnricher = transcriptEnricher
         ensureRecordingsDirectory()
@@ -291,6 +301,12 @@ final class PersistentRecorder {
         lastError = nil
         listeningStartedAt = Date().timeIntervalSince1970
 
+        // Arm both command paths before advertising readiness. The keyboard can
+        // react to the listening notification immediately; publishing first can
+        // lose its start command in the few milliseconds before observer setup.
+        registerCommandObserver()
+        startCommandPolling()
+
         // Write listening state for the keyboard to read and keep it fresh with
         // a heartbeat while the recorder is actually alive. Without this, a
         // killed background app can leave behind `isListening=true`, causing the
@@ -300,9 +316,6 @@ final class PersistentRecorder {
         WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
         WatchRecordingController.shared.publishState()
         LiveActivityController.shared.startIfNeeded()
-
-        // Start listening for commands from the keyboard
-        registerCommandObserver()
 
         // Persist only explicit keyboard-listening sessions. One-shot recordings
         // should not re-open the microphone on the next app activation.
@@ -531,6 +544,7 @@ final class PersistentRecorder {
 
         isListening = false
         stopListeningHeartbeat()
+        stopCommandPolling()
 
         // Deactivate audio session
         let session = AVAudioSession.sharedInstance()
@@ -833,8 +847,9 @@ final class PersistentRecorder {
             return
         }
 
-        guard !isSegmentActive else {
-            log.log("[PersistentRecorder] ⚠️ startSegment but segment already active")
+        guard !isSegmentActive, !isTranscribing, processingRequestId == nil else {
+            log.log("[PersistentRecorder] ⚠️ startSegment but another segment is active or transcribing")
+            writeErrorResponse(requestId: command.requestId, message: "Wait for the current transcription to finish")
             return
         }
 
@@ -881,6 +896,10 @@ final class PersistentRecorder {
             command: command,
             startIndex: segmentStartIndex,
             language: segmentLanguage ?? "auto"
+        )
+        startParakeetEndOfSpeechDetectionIfSupported(
+            command: command,
+            startIndex: currentIndex
         )
 
         // Start duration timer
@@ -991,6 +1010,77 @@ final class PersistentRecorder {
         }
     }
 
+    private func startParakeetEndOfSpeechDetectionIfSupported(
+        command: RecordingCommand,
+        startIndex: Int64
+    ) {
+        cancelEndOfSpeechDetection()
+
+        guard ParakeetKeyboardEndOfSpeechPolicy.isEligible(command: command),
+              AppConstants.parakeetKeyboardAutoStopEnabled,
+              VoiceActivityModelAsset.isInstalled else {
+            return
+        }
+
+        let requestID = command.requestId
+        let service = voiceActivityDetectionService
+        let buffer = circularBuffer
+        let minimumSilenceDuration = AppConstants.parakeetKeyboardPauseDuration
+
+        endOfSpeechSetupTask = Task.detached(priority: .userInitiated) { [weak self] in
+            do {
+                let session = try await service.makeStreamingSession(
+                    minimumSilenceDuration: minimumSilenceDuration
+                )
+                try Task.checkCancellation()
+
+                let isStillActive = await MainActor.run { [weak self] in
+                    self?.isSegmentActive == true && self?.segmentRequestId == requestID
+                }
+                guard isStillActive else { return nil }
+
+                let coordinator = KeyboardEndOfSpeechCoordinator(
+                    requestID: requestID,
+                    session: session,
+                    circularBuffer: buffer,
+                    startIndex: startIndex
+                ) { [weak self] in
+                    guard let self,
+                          self.isSegmentActive,
+                          self.segmentRequestId == requestID else { return }
+                    log.log("[PersistentRecorder] ⏹ Auto-stopping Parakeet after pause: \(requestID.prefix(8))")
+                    self.handleStopSegment(
+                        RecordingCommand(requestId: requestID, action: .stopSegment),
+                        trigger: .endOfSpeech
+                    )
+                }
+                await coordinator.start()
+                await MainActor.run {
+                    log.log("[PersistentRecorder] Voice pause detection armed for \(requestID.prefix(8))")
+                }
+                return coordinator
+            } catch is CancellationError {
+                return nil
+            } catch {
+                await MainActor.run {
+                    log.log("[PersistentRecorder] Voice pause detection unavailable; manual stop remains active: \(error.localizedDescription)")
+                }
+                return nil
+            }
+        }
+    }
+
+    private func cancelEndOfSpeechDetection() {
+        guard let setupTask = endOfSpeechSetupTask else { return }
+        endOfSpeechSetupTask = nil
+        setupTask.cancel()
+        Task.detached {
+            if let coordinator = await setupTask.value {
+                await coordinator.cancel()
+            }
+        }
+    }
+
     private func clearCaptureLiveTranscription(requestId: String?) {
         guard let requestId, liveCaptureRequestId == requestId else { return }
         liveCaptureRequestId = nil
@@ -1000,10 +1090,23 @@ final class PersistentRecorder {
         }
     }
 
+    private enum SegmentStopTrigger: String {
+        case manual
+        case endOfSpeech
+    }
+
     /// Mark the end of a segment — extract audio and transcribe.
-    private func handleStopSegment(_ command: RecordingCommand) {
-        osLog.notice("⏹ handleStopSegment called — isSegmentActive=\(self.isSegmentActive) segmentRequestId=\(self.segmentRequestId ?? "nil") command.requestId=\(command.requestId)")
+    private func handleStopSegment(
+        _ command: RecordingCommand,
+        trigger: SegmentStopTrigger = .manual
+    ) {
+        osLog.notice("⏹ handleStopSegment called — trigger=\(trigger.rawValue) isSegmentActive=\(self.isSegmentActive) segmentRequestId=\(self.segmentRequestId ?? "nil") command.requestId=\(command.requestId)")
         guard isSegmentActive else {
+            if processingRequestId == command.requestId {
+                log.log("[PersistentRecorder] Ignoring duplicate stop for request already transcribing: \(command.requestId.prefix(8))")
+                return
+            }
+
             log.log("[PersistentRecorder] ⚠️ stopSegment but no active segment")
             osLog.error("❌ stopSegment but isSegmentActive=false! Writing error response.")
             // Write an error response so the keyboard doesn't get stuck in "Transcribing…" forever
@@ -1019,11 +1122,13 @@ final class PersistentRecorder {
         }
 
         let requestId = command.requestId
-        log.log("[PersistentRecorder] ⏹ Stopping segment: \(requestId.prefix(8)) (segmentRequestId=\(segmentRequestId?.prefix(8) ?? "nil"), command.requestId=\(command.requestId.prefix(8)))")
+        processingRequestId = requestId
+        log.log("[PersistentRecorder] ⏹ Stopping segment: \(requestId.prefix(8)) trigger=\(trigger.rawValue) (segmentRequestId=\(segmentRequestId?.prefix(8) ?? "nil"), command.requestId=\(command.requestId.prefix(8)))")
         osLog.notice("⏹ Stopping segment: \(requestId)")
 
         stopDurationTimer()
         isSegmentActive = false
+        cancelEndOfSpeechDetection()
         TranscriptionIPC.clearAudioLevel()
 
         // Extract audio from the circular buffer
@@ -1043,6 +1148,7 @@ final class PersistentRecorder {
                 } else {
                     writeErrorResponse(requestId: requestId, message: "Microphone wasn't receiving audio — please try again")
                     clearCaptureLiveTranscription(requestId: requestId)
+                    processingRequestId = nil
                     clearSegmentState()
                     stopListening()
                     startListening()
@@ -1086,7 +1192,9 @@ final class PersistentRecorder {
         isTranscribing = true
         TranscriptionIPC.writeStatus(RecordingStatus(
             requestId: requestId,
-            phase: .transcribing
+            phase: .transcribing,
+            recordingStartedAt: segmentStartedAt,
+            recordingStoppedAt: Date().timeIntervalSince1970
         ))
         LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: true, startedAt: nil)
         WatchRecordingController.shared.publishState()
@@ -1152,6 +1260,9 @@ final class PersistentRecorder {
 
             await MainActor.run {
                 self.isTranscribing = false
+                if self.processingRequestId == requestId {
+                    self.processingRequestId = nil
+                }
                 self.finishLiveActivityAfterTranscription()
                 WatchRecordingController.shared.publishState()
                 if bgTask != .invalid {
@@ -1167,6 +1278,10 @@ final class PersistentRecorder {
     private func finishStoppedSegmentWithError(requestId: String, message: String) {
         writeErrorResponse(requestId: requestId, message: message)
         clearCaptureLiveTranscription(requestId: requestId)
+        isTranscribing = false
+        if processingRequestId == requestId {
+            processingRequestId = nil
+        }
         clearSegmentState()
 
         if shouldAutoStopListeningAfterCurrentRecording {
@@ -1188,6 +1303,7 @@ final class PersistentRecorder {
 
     private func clearSegmentState() {
         cancelLiveTranscription()
+        cancelEndOfSpeechDetection()
         segmentRequestId = nil
         segmentModelId = nil
         segmentLanguage = nil
@@ -1621,6 +1737,33 @@ final class PersistentRecorder {
             CFNotificationName(TranscriptionIPC.stopCommandNotificationName),
             nil
         )
+    }
+
+    /// Darwin notifications are only a latency optimization. iOS can delay or
+    /// drop them while the host is transitioning to the background, so poll the
+    /// durable command file as the source of truth. The same serial queue handles
+    /// notifications and polling to ensure a command is claimed only once.
+    private func startCommandPolling() {
+        stopCommandPolling()
+
+        let timer = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
+            guard let self, self.isListening else { return }
+            PersistentRecorder.commandQueue.async { [weak self] in
+                self?.handlePendingCommandFromPoll()
+            }
+        }
+        commandPollTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    private func stopCommandPolling() {
+        commandPollTimer?.invalidate()
+        commandPollTimer = nil
+    }
+
+    private func handlePendingCommandFromPoll() {
+        guard TranscriptionIPC.readCommand() != nil else { return }
+        handleCommandFromBackground()
     }
 
     /// Process command on the high-priority background queue.
