@@ -124,7 +124,7 @@ struct VoxboardMacApp: App {
                     storeManager.start()
                     transcriptStore.reload()
                     usageTracker.reload()
-                    configureGlobalHotKey()
+                    configureGlobalHotKeys()
                     Task {
                         await storeManager.syncCurrentEntitlements()
                         usageTracker.reload()
@@ -269,17 +269,31 @@ struct VoxboardMacApp: App {
         }
     }
 
-    private func configureGlobalHotKey() {
+    private func configureGlobalHotKeys() {
         let recorder = recorder
         let modelManager = modelManager
         let usageTracker = usageTracker
         let windowCoordinator = windowCoordinator
-        MacGlobalHotKeyCenter.shared.configure {
+        MacGlobalHotKeyCenter.shared.configure { target in
+            let flowID: String?
+            switch target {
+            case .selectedPreset:
+                flowID = nil
+            case .preset(let presetID):
+                guard CapturePresetStore.loadFlows().contains(where: {
+                    $0.id == presetID && $0.isEnabled
+                }) else {
+                    NSSound.beep()
+                    return
+                }
+                flowID = presetID
+            }
             Self.handleGlobalHotKey(
                 recorder: recorder,
                 modelManager: modelManager,
                 usageTracker: usageTracker,
-                windowCoordinator: windowCoordinator
+                windowCoordinator: windowCoordinator,
+                flowID: flowID
             )
         }
     }
@@ -289,14 +303,15 @@ struct VoxboardMacApp: App {
         recorder: MacRecorder,
         modelManager: ModelManager,
         usageTracker: UsageTracker,
-        windowCoordinator: MacWindowCoordinator
+        windowCoordinator: MacWindowCoordinator,
+        flowID requestedFlowID: String? = nil
     ) {
         guard !recorder.isTranscribing, !recorder.isExporting else {
             NSSound.beep()
             return
         }
 
-        let flowId = CapturePresetStore.selectedFlowId()
+        let flowId = requestedFlowID ?? CapturePresetStore.selectedFlowId()
         if recorder.isRecording {
             recorder.stopAndTranscribe(modelManager: modelManager, flowId: flowId)
             return
@@ -650,6 +665,18 @@ final class VoxboardMacAppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+enum MacHotKeyTarget: Hashable, Identifiable {
+    case selectedPreset
+    case preset(String)
+
+    var id: String {
+        switch self {
+        case .selectedPreset: "selected-preset"
+        case .preset(let presetID): "preset:\(presetID)"
+        }
+    }
+}
+
 struct MacHotKeyShortcut: Codable, Equatable {
     static let allowedModifierFlags: NSEvent.ModifierFlags = [.command, .option, .control, .shift]
     private static let requiredModifierFlags: NSEvent.ModifierFlags = [.command, .option, .control]
@@ -698,6 +725,10 @@ struct MacHotKeyShortcut: Codable, Equatable {
         return pieces.joined()
     }
 
+    func conflicts(with other: MacHotKeyShortcut) -> Bool {
+        keyCode == other.keyCode && modifierFlags == other.modifierFlags
+    }
+
     private static func keyName(keyCode: UInt16, charactersIgnoringModifiers: String?) -> String {
         switch keyCode {
         case 36: return "Return"
@@ -737,20 +768,70 @@ struct MacHotKeyShortcut: Codable, Equatable {
 }
 
 enum MacHotKeyStore {
+    /// Retained for compatibility with existing installations that configured
+    /// the original single start/stop shortcut.
     static let storageKey = "macGlobalHotKeyShortcut"
+    static let presetStorageKey = "macCapturePresetHotKeyShortcuts"
 
-    static func load() -> MacHotKeyShortcut? {
-        guard let encoded = AppConstants.sharedDefaults?.string(forKey: storageKey) else { return nil }
-        return decode(encoded)
+    static func load(for target: MacHotKeyTarget = .selectedPreset) -> MacHotKeyShortcut? {
+        switch target {
+        case .selectedPreset:
+            guard let encoded = AppConstants.sharedDefaults?.string(forKey: storageKey) else { return nil }
+            return decode(encoded)
+        case .preset(let presetID):
+            return loadPresetShortcuts()[presetID]
+        }
     }
 
-    static func save(_ shortcut: MacHotKeyShortcut) {
-        guard let encoded = encode(shortcut) else { return }
-        AppConstants.sharedDefaults?.set(encoded, forKey: storageKey)
+    static func save(_ shortcut: MacHotKeyShortcut, for target: MacHotKeyTarget = .selectedPreset) {
+        switch target {
+        case .selectedPreset:
+            guard let encoded = encode(shortcut) else { return }
+            AppConstants.sharedDefaults?.set(encoded, forKey: storageKey)
+        case .preset(let presetID):
+            var shortcuts = loadPresetShortcuts()
+            shortcuts[presetID] = shortcut
+            savePresetShortcuts(shortcuts)
+        }
     }
 
-    static func clear() {
-        AppConstants.sharedDefaults?.removeObject(forKey: storageKey)
+    static func clear(_ target: MacHotKeyTarget = .selectedPreset) {
+        switch target {
+        case .selectedPreset:
+            AppConstants.sharedDefaults?.removeObject(forKey: storageKey)
+        case .preset(let presetID):
+            var shortcuts = loadPresetShortcuts()
+            shortcuts.removeValue(forKey: presetID)
+            savePresetShortcuts(shortcuts)
+        }
+    }
+
+    static func configuredBindings() -> [(target: MacHotKeyTarget, shortcut: MacHotKeyShortcut)] {
+        var bindings: [(MacHotKeyTarget, MacHotKeyShortcut)] = []
+        if let shortcut = load() {
+            bindings.append((.selectedPreset, shortcut))
+        }
+        bindings.append(contentsOf: loadPresetShortcuts()
+            .sorted(by: { $0.key < $1.key })
+            .map { (.preset($0.key), $0.value) })
+        return bindings
+    }
+
+    static func conflictingTarget(
+        for shortcut: MacHotKeyShortcut,
+        excluding excludedTarget: MacHotKeyTarget,
+        activePresetIDs: Set<String>
+    ) -> MacHotKeyTarget? {
+        configuredBindings().first(where: { binding in
+            guard binding.target != excludedTarget,
+                  binding.shortcut.conflicts(with: shortcut) else { return false }
+            switch binding.target {
+            case .selectedPreset:
+                return true
+            case .preset(let presetID):
+                return activePresetIDs.contains(presetID)
+            }
+        })?.target
     }
 
     static func decode(_ encoded: String) -> MacHotKeyShortcut? {
@@ -762,10 +843,25 @@ enum MacHotKeyStore {
         guard let data = try? JSONEncoder().encode(shortcut) else { return nil }
         return String(data: data, encoding: .utf8)
     }
+
+    private static func loadPresetShortcuts() -> [String: MacHotKeyShortcut] {
+        guard let encoded = AppConstants.sharedDefaults?.string(forKey: presetStorageKey),
+              let data = encoded.data(using: .utf8) else { return [:] }
+        return (try? JSONDecoder().decode([String: MacHotKeyShortcut].self, from: data)) ?? [:]
+    }
+
+    private static func savePresetShortcuts(_ shortcuts: [String: MacHotKeyShortcut]) {
+        guard !shortcuts.isEmpty else {
+            AppConstants.sharedDefaults?.removeObject(forKey: presetStorageKey)
+            return
+        }
+        guard let data = try? JSONEncoder().encode(shortcuts),
+              let encoded = String(data: data, encoding: .utf8) else { return }
+        AppConstants.sharedDefaults?.set(encoded, forKey: presetStorageKey)
+    }
 }
 
 private let macHotKeySignature: OSType = 0x564F5848 // VOXH
-private let macHotKeyIDValue: UInt32 = 1
 
 nonisolated private func macHotKeyHandler(
     _ nextHandler: EventHandlerCallRef?,
@@ -783,13 +879,13 @@ nonisolated private func macHotKeyHandler(
         &hotKeyID
     )
     guard status == noErr,
-          hotKeyID.signature == 0x564F5848,
-          hotKeyID.id == 1 else {
+          hotKeyID.signature == 0x564F5848 else {
         return noErr
     }
 
+    let pressedHotKeyID = hotKeyID.id
     Task { @MainActor in
-        MacGlobalHotKeyCenter.shared.handleHotKeyPressed()
+        MacGlobalHotKeyCenter.shared.handleHotKeyPressed(id: pressedHotKeyID)
     }
     return noErr
 }
@@ -798,50 +894,74 @@ nonisolated private func macHotKeyHandler(
 final class MacGlobalHotKeyCenter {
     static let shared = MacGlobalHotKeyCenter()
 
-    private var action: (() -> Void)?
+    private var action: ((MacHotKeyTarget) -> Void)?
     private var eventHandlerRef: EventHandlerRef?
-    private var hotKeyRef: EventHotKeyRef?
+    private var hotKeyRefs: [EventHotKeyRef] = []
+    private var targetsByHotKeyID: [UInt32: MacHotKeyTarget] = [:]
 
     private(set) var lastRegistrationError: String?
 
-    func configure(action: @escaping () -> Void) {
+    func configure(action: @escaping (MacHotKeyTarget) -> Void) {
         self.action = action
         installEventHandlerIfNeeded()
         reloadRegistration()
     }
 
     func reloadRegistration() {
-        unregisterHotKey()
+        unregisterHotKeys()
         lastRegistrationError = nil
 
-        guard let shortcut = MacHotKeyStore.load() else { return }
-
-        let modifiers = shortcut.carbonModifiers
-        guard modifiers != 0 else { return }
-
-        let hotKeyID = EventHotKeyID(signature: macHotKeySignature, id: macHotKeyIDValue)
-        var newHotKeyRef: EventHotKeyRef?
-        let status = RegisterEventHotKey(
-            shortcut.keyCode,
-            modifiers,
-            hotKeyID,
-            GetApplicationEventTarget(),
-            0,
-            &newHotKeyRef
+        let enabledPresetIDs = Set(
+            CapturePresetStore.loadFlows()
+                .filter(\.isEnabled)
+                .map(\.id)
         )
-
-        if status == noErr {
-            hotKeyRef = newHotKeyRef
-            KeyboardDebugLog.shared.log("[MacHotKey] Registered global hotkey: \(shortcut.displayString)")
-        } else {
-            lastRegistrationError = "Could not register \(shortcut.displayString). Try a different shortcut. (OSStatus \(status))"
-            KeyboardDebugLog.shared.log("[MacHotKey] ❌ RegisterEventHotKey failed: \(status)")
+        let bindings = MacHotKeyStore.configuredBindings().filter { binding in
+            switch binding.target {
+            case .selectedPreset:
+                true
+            case .preset(let presetID):
+                enabledPresetIDs.contains(presetID)
+            }
         }
+        var errors: [String] = []
+
+        for (index, binding) in bindings.enumerated() {
+            let modifiers = binding.shortcut.carbonModifiers
+            guard modifiers != 0 else { continue }
+
+            let id = UInt32(index + 1)
+            let hotKeyID = EventHotKeyID(signature: macHotKeySignature, id: id)
+            var newHotKeyRef: EventHotKeyRef?
+            let status = RegisterEventHotKey(
+                binding.shortcut.keyCode,
+                modifiers,
+                hotKeyID,
+                GetApplicationEventTarget(),
+                0,
+                &newHotKeyRef
+            )
+
+            if status == noErr, let newHotKeyRef {
+                hotKeyRefs.append(newHotKeyRef)
+                targetsByHotKeyID[id] = binding.target
+                KeyboardDebugLog.shared.log(
+                    "[MacHotKey] Registered \(binding.target.id): \(binding.shortcut.displayString)"
+                )
+            } else {
+                errors.append("Could not register \(binding.shortcut.displayString). Try a different shortcut. (OSStatus \(status))")
+                KeyboardDebugLog.shared.log(
+                    "[MacHotKey] ❌ RegisterEventHotKey failed for \(binding.target.id): \(status)"
+                )
+            }
+        }
+        lastRegistrationError = errors.isEmpty ? nil : errors.joined(separator: "\n")
     }
 
-    func handleHotKeyPressed() {
-        KeyboardDebugLog.shared.log("[MacHotKey] Hotkey pressed")
-        action?()
+    func handleHotKeyPressed(id: UInt32) {
+        guard let target = targetsByHotKeyID[id] else { return }
+        KeyboardDebugLog.shared.log("[MacHotKey] Hotkey pressed for \(target.id)")
+        action?(target)
     }
 
     private func installEventHandlerIfNeeded() {
@@ -865,10 +985,12 @@ final class MacGlobalHotKeyCenter {
         }
     }
 
-    private func unregisterHotKey() {
-        guard let hotKeyRef else { return }
-        UnregisterEventHotKey(hotKeyRef)
-        self.hotKeyRef = nil
+    private func unregisterHotKeys() {
+        for hotKeyRef in hotKeyRefs {
+            UnregisterEventHotKey(hotKeyRef)
+        }
+        hotKeyRefs.removeAll()
+        targetsByHotKeyID.removeAll()
     }
 }
 

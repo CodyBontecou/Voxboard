@@ -294,14 +294,9 @@ public enum TranscriptFileExporter {
         options: TranscriptExportEnrichmentOptions
     ) -> String {
         let dateString = displayDateFormatter.string(from: transcript.date)
-        let durationString = String(format: "%.1fs", transcript.duration)
         let body = bodyText(transcript, options: options)
         var result = """
         ## Transcript - \(dateString)
-
-        - **Duration**: \(durationString)
-        - **Model**: \(transcript.modelUsed)
-        - **Language**: \(transcript.language)
 
         \(body)
         """

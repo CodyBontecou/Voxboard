@@ -126,6 +126,7 @@ public final class ModelManager {
     public func startDownload(_ model: WhisperModelInfo) {
         guard downloadTasks[model.id] == nil else { return }
 
+        modelOperationError = nil
         isDownloading[model.id] = true
         downloadProgress[model.id] = 0
 
@@ -159,7 +160,11 @@ public final class ModelManager {
 
     private func downloadWhisperModel(_ model: WhisperModelInfo) async {
         guard let modelsDir = AppConstants.modelsDirectoryURL else {
-            await finishDownload(modelId: model.id, success: false)
+            await finishDownload(
+                modelId: model.id,
+                success: false,
+                errorMessage: "Could not download \(model.name) because the model storage location is unavailable."
+            )
             return
         }
         let destURL = modelsDir.appendingPathComponent(model.fileName)
@@ -196,7 +201,13 @@ public final class ModelManager {
             await finishDownload(modelId: model.id, success: false)
         } catch {
             print("[ModelManager] Download failed for \(model.name): \(error)")
-            await finishDownload(modelId: model.id, success: false)
+            await finishDownload(
+                modelId: model.id,
+                success: false,
+                errorMessage: Task.isCancelled
+                    ? nil
+                    : "Could not download \(model.name). \(error.localizedDescription)"
+            )
         }
     }
 
@@ -205,7 +216,11 @@ public final class ModelManager {
     private func downloadParakeetModel(_ model: WhisperModelInfo) async {
         #if os(iOS) || os(macOS)
         guard let modelsDir = AppConstants.modelsDirectoryURL else {
-            await finishDownload(modelId: model.id, success: false)
+            await finishDownload(
+                modelId: model.id,
+                success: false,
+                errorMessage: "Could not download \(model.name) because the model storage location is unavailable."
+            )
             return
         }
 
@@ -238,7 +253,11 @@ public final class ModelManager {
 
             guard model.isDownloaded else {
                 print("[ModelManager] Parakeet download finished but required files are missing for \(model.name)")
-                await finishDownload(modelId: model.id, success: false)
+                await finishDownload(
+                    modelId: model.id,
+                    success: false,
+                    errorMessage: "The \(model.name) download finished, but required model files were missing. Please try again."
+                )
                 return
             }
 
@@ -249,21 +268,38 @@ public final class ModelManager {
             await finishDownload(modelId: model.id, success: false)
         } catch {
             print("[ModelManager] Parakeet download failed for \(model.name): \(error)")
-            await finishDownload(modelId: model.id, success: false)
+            await finishDownload(
+                modelId: model.id,
+                success: false,
+                errorMessage: Task.isCancelled
+                    ? nil
+                    : "Could not download \(model.name). \(error.localizedDescription)"
+            )
         }
         #else
         print("[ModelManager] Parakeet downloads are not available on this platform")
-        await finishDownload(modelId: model.id, success: false)
+        await finishDownload(
+            modelId: model.id,
+            success: false,
+            errorMessage: "Parakeet downloads are not available on this platform."
+        )
         #endif
     }
 
     // MARK: - Helpers
 
     @MainActor
-    private func finishDownload(modelId: String, success: Bool) {
+    private func finishDownload(
+        modelId: String,
+        success: Bool,
+        errorMessage: String? = nil
+    ) {
         isDownloading[modelId] = false
         if !success {
             downloadProgress[modelId] = 0
+            if let errorMessage {
+                modelOperationError = errorMessage
+            }
         } else {
             downloadProgress[modelId] = 1.0
             installedModelsRevision &+= 1

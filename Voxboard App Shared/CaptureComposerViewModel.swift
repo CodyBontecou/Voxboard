@@ -576,6 +576,49 @@ final class QuickCaptureViewModel {
         }
     }
 
+    @discardableResult
+    func appendRecognizedText(_ text: String) async -> Bool {
+        await load()
+        guard liveRecordedTranscriptPreview == nil else {
+            errorMessage = String(localized: "Finish the current recording before extracting text from images.")
+            return false
+        }
+        guard let draftStore else {
+            errorMessage = QuickCaptureViewModelError.storageUnavailable.localizedDescription
+            return false
+        }
+
+        let normalized = CaptureOCRMarkdownFormatter().render(pageTexts: [text])
+        guard !normalized.isEmpty else { return false }
+        let separator = draft.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "" : "\n\n"
+        let updatedText = draft.text + separator + normalized
+        guard updatedText.count <= CaptureInputLimits.maximumTextCharacters else {
+            errorMessage = QuickCaptureViewModelError.textTooLarge.localizedDescription
+            return false
+        }
+
+        let previousDraft = draft
+        draft.text = updatedText
+        draft.updatedAt = Date()
+        let candidateDraft = draft
+        do {
+            try await draftStore.save(candidateDraft)
+            errorMessage = nil
+            return true
+        } catch {
+            // The main actor can accept typing or attachment changes while the
+            // actor-backed save is suspended. Roll back only if nothing newer
+            // has replaced the OCR candidate; otherwise preserve and resave it.
+            if draft == candidateDraft {
+                draft = previousDraft
+            } else {
+                scheduleDraftSave()
+            }
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
     func stageImage(
         data: Data,
         filename: String,

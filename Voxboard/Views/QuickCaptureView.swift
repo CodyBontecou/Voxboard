@@ -43,11 +43,14 @@ struct QuickCaptureView: View {
 
     @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var selectedScreenshots: [PhotosPickerItem] = []
+    @State private var selectedOCRPhotos: [PhotosPickerItem] = []
     @State private var showsPhotoPicker = false
     @State private var showsScreenshotPicker = false
+    @State private var showsOCRPhotoPicker = false
     @State private var showsCamera = false
     @State private var showsFileImporter = false
     @State private var showsScanner = false
+    @State private var showsJournalPageCapture = false
     @State private var showsSketch = false
     @State private var showsLinkPrompt = false
     @State private var showsCaptureHistory = false
@@ -70,6 +73,7 @@ struct QuickCaptureView: View {
     @State private var selectedFlowId: String = CapturePresetStore.selectedFlowId()
     @State private var linkText = ""
     @State private var isProcessingMedia = false
+    @State private var isExtractingText = false
     @State private var isFindingLocation = false
     @State private var locationRequestTask: Task<Void, Never>?
     @State private var showsSentToast = false
@@ -106,6 +110,23 @@ struct QuickCaptureView: View {
             Geist.Palette.background100.ignoresSafeArea()
 
             VStack(spacing: 0) {
+                if isExtractingText {
+                    HStack(spacing: Geist.Spacing.two) {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text("Extracting text on this device…")
+                            .font(Geist.caption())
+                            .foregroundStyle(Geist.muted)
+                        Spacer()
+                    }
+                    .padding(.horizontal, Geist.Spacing.three)
+                    .frame(minHeight: Geist.ControlHeight.medium)
+                    .background(Geist.Palette.background200)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("capture_ocr_progress")
+                    GeistDivider()
+                }
+
                 if viewModel.selectedDestination == nil {
                     emptyDestinationBanner
                     GeistDivider()
@@ -234,6 +255,10 @@ struct QuickCaptureView: View {
                 guard !items.isEmpty else { return }
                 Task { await importScreenshots(items) }
             }
+            .onChange(of: selectedOCRPhotos) { _, items in
+                guard !items.isEmpty else { return }
+                Task { await importOCRPhotos(items) }
+            }
             .onChange(of: viewModel.requestedInput) { _, input in
                 handleRequestedInputChange(input)
             }
@@ -293,6 +318,13 @@ struct QuickCaptureView: View {
             selection: $selectedScreenshots,
             maxSelectionCount: 10,
             matching: .screenshots
+        )
+        .photosPicker(
+            isPresented: $showsOCRPhotoPicker,
+            selection: $selectedOCRPhotos,
+            maxSelectionCount: 10,
+            selectionBehavior: .ordered,
+            matching: .images
         )
         .sheet(isPresented: $showsFileImporter) {
             CaptureFilePicker(
@@ -389,6 +421,19 @@ struct QuickCaptureView: View {
             )
             .ignoresSafeArea()
         }
+        .sheet(isPresented: $showsJournalPageCapture) {
+            CaptureManualJournalPages(
+                maxPageCount: 10,
+                onCapture: { pages in
+                    showsJournalPageCapture = false
+                    Task { await processOCRScan(pages) }
+                },
+                onCancel: {
+                    showsJournalPageCapture = false
+                    focusComposer()
+                }
+            )
+        }
         .sheet(isPresented: $showsSketch) {
             CaptureSketchEditor(
                 onSave: { drawing, preview in
@@ -448,6 +493,7 @@ struct QuickCaptureView: View {
             presentVoiceCaptureDetails()
         }
         .accessibilityIdentifier("capture_voice_recording")
+        .opacity(isProcessingMedia ? 0.35 : 1)
     }
 
     private var voiceCaptureGesture: some Gesture {
@@ -464,6 +510,7 @@ struct QuickCaptureView: View {
     }
 
     private func presentVoiceCaptureDetails() {
+        guard !isProcessingMedia else { return }
         withAnimation(.easeInOut(duration: 0.2)) {
             showsVoiceCaptureDetails = true
         }
@@ -737,16 +784,38 @@ struct QuickCaptureView: View {
 
     private func handleVoiceCaptureTap() {
         if persistentRecorder.isSegmentActive {
+            // Never block stopping an active recording because unrelated media
+            // work happens to be finishing in the draft.
             persistentRecorder.stopInAppSegment()
-        } else if !persistentRecorder.isTranscribing, !watchRecordingPipeline.isProcessing {
+        } else if !isProcessingMedia,
+                  !persistentRecorder.isTranscribing,
+                  !watchRecordingPipeline.isProcessing {
             startInlineRecording()
         }
+    }
+
+    private var canExtractJournalText: Bool {
+        !persistentRecorder.isSegmentActive
+            && !persistentRecorder.isTranscribing
+            && !watchRecordingPipeline.isProcessing
+            && !viewModel.hasLiveRecordedTranscriptPreview
+    }
+
+    private func requireIdleVoiceCaptureForOCR() -> Bool {
+        guard canExtractJournalText else {
+            viewModel.errorMessage = String(
+                localized: "Finish the current voice capture before extracting journal text."
+            )
+            return false
+        }
+        return true
     }
 
     private var recordingOptionsAreLocked: Bool {
         persistentRecorder.isSegmentActive
             || persistentRecorder.isTranscribing
             || watchRecordingPipeline.isProcessing
+            || isProcessingMedia
     }
 
     private var recordingUsageLabel: String {
@@ -777,6 +846,12 @@ struct QuickCaptureView: View {
                 showLinkPrompt: { showsLinkPrompt = true },
                 showFiles: presentFileImporter,
                 showScan: { showsScanner = VNDocumentCameraViewController.isSupported },
+                captureTextPages: {
+                    showsJournalPageCapture = UIImagePickerController.isSourceTypeAvailable(.camera)
+                },
+                chooseTextPhotos: { showsOCRPhotoPicker = true },
+                canExtractText: canExtractJournalText,
+                canCaptureTextPages: UIImagePickerController.isSourceTypeAvailable(.camera),
                 isProcessingMedia: isProcessingMedia,
                 isFindingLocation: isFindingLocation,
                 preferences: captureToolbarPreferences
@@ -1386,6 +1461,40 @@ struct QuickCaptureView: View {
         }
     }
 
+    private func importOCRPhotos(_ items: [PhotosPickerItem]) async {
+        guard requireIdleVoiceCaptureForOCR() else {
+            selectedOCRPhotos = []
+            focusComposer()
+            return
+        }
+        isProcessingMedia = true
+        isExtractingText = true
+        UIAccessibility.post(
+            notification: .announcement,
+            argument: String(localized: "Extracting text on this device")
+        )
+        defer {
+            selectedOCRPhotos = []
+            isExtractingText = false
+            isProcessingMedia = false
+            focusComposer()
+        }
+
+        do {
+            var pages: [Data] = []
+            pages.reserveCapacity(items.count)
+            for (index, item) in items.enumerated() {
+                guard let data = try await item.loadTransferable(type: Data.self) else {
+                    throw JournalImageOCRProcessorError.unreadableImage(page: index + 1)
+                }
+                pages.append(data)
+            }
+            try await extractJournalText(from: pages)
+        } catch {
+            viewModel.errorMessage = error.localizedDescription
+        }
+    }
+
     private func importScreenshots(_ items: [PhotosPickerItem]) async {
         isProcessingMedia = true
         defer {
@@ -1450,6 +1559,42 @@ struct QuickCaptureView: View {
         } catch {
             viewModel.errorMessage = error.localizedDescription
         }
+    }
+
+    private func processOCRScan(_ pages: [Data]) async {
+        guard requireIdleVoiceCaptureForOCR() else {
+            focusComposer()
+            return
+        }
+        isProcessingMedia = true
+        isExtractingText = true
+        UIAccessibility.post(
+            notification: .announcement,
+            argument: String(localized: "Extracting text on this device")
+        )
+        defer {
+            isExtractingText = false
+            isProcessingMedia = false
+            focusComposer()
+        }
+
+        do {
+            try await extractJournalText(from: pages)
+        } catch {
+            viewModel.errorMessage = error.localizedDescription
+        }
+    }
+
+    private func extractJournalText(from pages: [Data]) async throws {
+        let markdown = try await JournalImageOCRProcessor.process(pageImages: pages)
+        // Watch delivery can begin while a picker or Vision request is active.
+        // Never merge two asynchronous transcript sources into the same draft.
+        guard requireIdleVoiceCaptureForOCR() else { return }
+        guard await viewModel.appendRecognizedText(markdown) else { return }
+        UIAccessibility.post(
+            notification: .announcement,
+            argument: String(localized: "Extracted text added to Capture")
+        )
     }
 
     // MARK: - Inline recording
@@ -1577,7 +1722,8 @@ struct QuickCaptureView: View {
         }
         guard !persistentRecorder.isSegmentActive,
               !persistentRecorder.isTranscribing,
-              !watchRecordingPipeline.isProcessing else { return }
+              !watchRecordingPipeline.isProcessing,
+              !isProcessingMedia else { return }
 
         lastStartedRecordingMode = recordingMode
         persistentRecorder.lastTranscriptionResult = nil

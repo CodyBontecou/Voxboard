@@ -10,6 +10,7 @@ enum CaptureToolbarAction: String, CaseIterable, Identifiable {
     case addMedia
     case addFiles
     case scanDocument
+    case extractText
     case undo
     case formatMarkdown
     case markdownLink
@@ -31,6 +32,7 @@ enum CaptureToolbarAction: String, CaseIterable, Identifiable {
         case .addMedia: "Add Media"
         case .addFiles: "Add Files"
         case .scanDocument: "Scan Document"
+        case .extractText: "Extract Text"
         case .undo: "Undo"
         case .formatMarkdown: "Format Markdown"
         case .markdownLink: "Markdown Link"
@@ -52,6 +54,7 @@ enum CaptureToolbarAction: String, CaseIterable, Identifiable {
         case .addMedia: String(localized: "Add media")
         case .addFiles: String(localized: "Add files")
         case .scanDocument: String(localized: "Scan document")
+        case .extractText: String(localized: "Extract text from journal images")
         case .undo: String(localized: "Undo")
         case .formatMarkdown: String(localized: "Format Markdown")
         case .markdownLink: String(localized: "Markdown link")
@@ -73,6 +76,7 @@ enum CaptureToolbarAction: String, CaseIterable, Identifiable {
         case .addMedia: "photo"
         case .addFiles: "paperclip"
         case .scanDocument: "doc.viewfinder"
+        case .extractText: "text.viewfinder"
         case .undo: "arrow.uturn.backward"
         case .formatMarkdown: "textformat"
         case .markdownLink: "link"
@@ -119,17 +123,33 @@ final class CaptureToolbarPreferences {
         let stored = defaults.data(forKey: Self.storageKey)
             .flatMap { try? JSONDecoder().decode(StoredConfiguration.self, from: $0) }
 
-        var seen = Set<CaptureToolbarAction>()
-        var order = stored?.order
-            .compactMap(CaptureToolbarAction.init(rawValue:))
-            .filter { seen.insert($0).inserted }
-            ?? []
-        order.append(contentsOf: CaptureToolbarAction.allCases.filter { !seen.contains($0) })
-
-        orderedActions = order
+        orderedActions = Self.migratedActionOrder(from: stored?.order)
         hiddenActions = Set(stored?.hidden.compactMap(CaptureToolbarAction.init(rawValue:)) ?? [])
         confirmsVoiceNotesBeforeAdding = defaults.bool(forKey: CapturePreferenceKeys.confirmVoiceNoteBeforeAdding)
         persist()
+    }
+
+    nonisolated static func migratedActionOrder(from storedRawValues: [String]?) -> [CaptureToolbarAction] {
+        var seen = Set<CaptureToolbarAction>()
+        var order: [CaptureToolbarAction] = []
+        for rawValue in storedRawValues ?? [] {
+            guard let action = CaptureToolbarAction(rawValue: rawValue),
+                  seen.insert(action).inserted else { continue }
+            order.append(action)
+        }
+
+        for action in CaptureToolbarAction.allCases {
+            guard seen.insert(action).inserted else { continue }
+            // Keep newly introduced OCR discoverable for existing custom bars
+            // instead of silently appending it beyond the initial viewport.
+            if action == .extractText,
+               let scanIndex = order.firstIndex(of: .scanDocument) {
+                order.insert(action, at: scanIndex + 1)
+            } else {
+                order.append(action)
+            }
+        }
+        return order
     }
 
     var visibleActions: [CaptureToolbarAction] {

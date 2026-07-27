@@ -119,6 +119,19 @@ private struct MacModelView: View {
             }
         }
         .navigationTitle("Model")
+        .alert(
+            "Model Operation Failed",
+            isPresented: Binding(
+                get: { modelManager.modelOperationError != nil },
+                set: { if !$0 { modelManager.modelOperationError = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {
+                modelManager.modelOperationError = nil
+            }
+        } message: {
+            Text(modelManager.modelOperationError ?? "The model operation could not be completed.")
+        }
     }
 
     private func pageHeader(_ text: String) -> some View {
@@ -208,7 +221,7 @@ private struct MacModelView: View {
 
     @ViewBuilder
     private func modelAction(_ model: WhisperModelInfo) -> some View {
-        if model.isDownloaded {
+        if modelManager.isModelDownloaded(model) {
             HStack(spacing: 12) {
                 if modelManager.selectedModelId == model.id {
                     Text("Selected")
@@ -239,13 +252,18 @@ private struct MacModelView: View {
                     .buttonStyle(.plain)
             }
         } else {
-            Button("↓ DOWNLOAD") { modelManager.startDownload(model) }
-                .font(Geist.caption())
-                .foregroundColor(Geist.text)
-                .buttonStyle(.plain)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
+            Button {
+                modelManager.startDownload(model)
+            } label: {
+                Text("↓ DOWNLOAD")
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.text)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .contentShape(Rectangle())
+                    .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
         }
     }
 }
@@ -253,6 +271,7 @@ private struct MacModelView: View {
 // MARK: - Capture Presets
 
 private struct MacCapturePresetSettingsView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var flows: [CapturePreset] = CapturePresetStore.loadFlows()
     @State private var selectedFlowId: String = CapturePresetStore.selectedFlowId()
 
@@ -291,6 +310,12 @@ private struct MacCapturePresetSettingsView: View {
             }
         }
         .navigationTitle("Capture Presets")
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Done") { dismiss() }
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
         .onAppear { reload() }
         .onChange(of: flows) { _, newValue in CapturePresetStore.saveFlows(newValue) }
         .onChange(of: selectedFlowId) { _, id in CapturePresetStore.selectFlow(id: id) }
@@ -1059,6 +1084,7 @@ struct MacHistoryView: View {
     @Environment(TranscriptStore.self) private var store
     @State private var searchText = ""
     @State private var showsClearConfirmation = false
+    @State private var selectedTranscript: Transcript?
 
     private var unifiedItems: [MacUnifiedHistoryItem] {
         var captureByID: [UUID: CaptureHistoryRecord] = [:]
@@ -1132,6 +1158,12 @@ struct MacHistoryView: View {
             }
             .disabled(unifiedItems.isEmpty)
         }
+        .sheet(item: $selectedTranscript) { transcript in
+            NavigationStack {
+                MacTranscriptDetailView(transcript: transcript)
+            }
+            .frame(minWidth: 680, minHeight: 560)
+        }
         .confirmationDialog(
             "Clear all history?",
             isPresented: $showsClearConfirmation,
@@ -1171,6 +1203,8 @@ struct MacHistoryView: View {
                         .font(Geist.caption())
                         .foregroundStyle(delivery.outcome == .delivered ? Geist.muted : Geist.error)
                     }
+                    Button("Open") { selectedTranscript = transcript }
+                        .buttonStyle(.plain)
                     Button("Copy") { copyToPasteboard(transcript.cleanedText ?? transcript.text) }
                         .buttonStyle(.plain)
                     Button("Delete", role: .destructive) {
@@ -1185,6 +1219,12 @@ struct MacHistoryView: View {
                     .textSelection(.enabled)
             }
             .geistCard(padding: Geist.Spacing.four)
+            .contentShape(RoundedRectangle(cornerRadius: Geist.Radius.medium, style: .continuous))
+            .onTapGesture { selectedTranscript = transcript }
+            .help("Open full transcript")
+            .accessibilityAction(named: "Open full transcript") {
+                selectedTranscript = transcript
+            }
 
         case .capture(let record):
             HStack(alignment: .top, spacing: Geist.Spacing.three) {
@@ -1260,6 +1300,138 @@ struct MacHistoryView: View {
     }
 }
 
+private struct MacTranscriptDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    let transcript: Transcript
+
+    private var cleanedText: String? {
+        guard let cleanedText = transcript.cleanedText,
+              !cleanedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return nil
+        }
+        return cleanedText
+    }
+
+    private var displayTitle: String {
+        guard let title = transcript.title?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !title.isEmpty else {
+            return "Transcript"
+        }
+        return title
+    }
+
+    private var primaryText: String {
+        cleanedText ?? transcript.text
+    }
+
+    private var showsRawTranscript: Bool {
+        guard let cleanedText else { return false }
+        return cleanedText != transcript.text
+    }
+
+    var body: some View {
+        ZStack {
+            Geist.Palette.background200.ignoresSafeArea()
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: Geist.Spacing.six) {
+                    header
+                    transcriptSection(
+                        cleanedText == nil ? "Transcript" : "Cleaned Transcript",
+                        text: primaryText
+                    )
+                    if showsRawTranscript {
+                        transcriptSection("Raw Transcript", text: transcript.text)
+                    }
+                }
+                .frame(maxWidth: 860, alignment: .leading)
+                .padding(Geist.Spacing.six)
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .navigationTitle("History Detail")
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                copyControl
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Done") { dismiss() }
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            Text(displayTitle)
+                .font(Geist.heading(.title))
+                .foregroundStyle(Geist.text)
+                .textSelection(.enabled)
+
+            Text(transcript.date.formatted(date: .long, time: .shortened))
+                .font(Geist.mono())
+                .foregroundStyle(Geist.muted)
+
+            HStack(spacing: Geist.Spacing.four) {
+                Label(formatDurationShort(transcript.duration), systemImage: "clock")
+                Label(transcript.modelUsed, systemImage: "waveform")
+                Label(transcript.language.uppercased(), systemImage: "globe")
+                if let category = transcript.category, !category.isEmpty {
+                    Label(category, systemImage: "folder")
+                }
+            }
+            .font(Geist.caption())
+            .foregroundStyle(Geist.muted)
+
+            if let tags = transcript.tags, !tags.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: Geist.Spacing.two) {
+                        ForEach(tags, id: \.self) { tag in
+                            Text("#\(tag)")
+                                .font(Geist.caption())
+                                .foregroundStyle(Geist.muted)
+                                .padding(.horizontal, Geist.Spacing.three)
+                                .frame(height: 28)
+                                .background(Geist.Palette.gray100)
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func transcriptSection(_ title: String, text: String) -> some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            Text(title.uppercased())
+                .font(Geist.mono(.caption, medium: true))
+                .foregroundStyle(Geist.faint)
+            Text(text)
+                .font(Geist.body())
+                .foregroundStyle(Geist.text)
+                .lineSpacing(4)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .geistCard(padding: Geist.Spacing.six)
+    }
+
+    @ViewBuilder
+    private var copyControl: some View {
+        if showsRawTranscript {
+            Menu("Copy", systemImage: "doc.on.doc") {
+                Button("Copy Cleaned") { copyToPasteboard(primaryText) }
+                Button("Copy Raw") { copyToPasteboard(transcript.text) }
+            }
+        } else {
+            Button("Copy", systemImage: "doc.on.doc") {
+                copyToPasteboard(primaryText)
+            }
+        }
+    }
+}
+
 private enum MacUnifiedHistoryItem: Identifiable {
     case transcript(Transcript, delivery: CaptureHistoryRecord?)
     case capture(CaptureHistoryRecord)
@@ -1320,8 +1492,6 @@ struct MacSettingsView: View {
     let recorder: MacRecorder
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(MacStoreManager.self) private var storeManager
-    @AppStorage(MacHotKeyStore.storageKey, store: AppConstants.sharedDefaults)
-    private var hotKeyStorage = ""
     @AppStorage(MacAppVisibilityMode.storageKey, store: AppConstants.sharedDefaults)
     private var visibilityModeRaw = MacAppVisibilityMode.dockAndMenuBar.rawValue
     @State private var showPaywall = false
@@ -1329,7 +1499,10 @@ struct MacSettingsView: View {
     @State private var showModels = false
     @State private var showCapturePresets = false
     @State private var showEntryTemplates = false
-    @State private var showHotKeyRecorder = false
+    @State private var hotKeyFlows = CapturePresetStore.loadFlows()
+    @State private var hotKeyDestinations: [CaptureDestination] = []
+    @State private var hotKeyBindings: [MacHotKeyTarget: MacHotKeyShortcut] = [:]
+    @State private var editingHotKeyTarget: MacHotKeyTarget?
     @State private var hotKeyStatusMessage: String?
 
     var body: some View {
@@ -1361,7 +1534,7 @@ struct MacSettingsView: View {
                     settingsRow(title: "KEYBOARD + LOCK SCREEN", detail: "Custom keyboard, widgets, Dynamic Island, and Live Activities remain iOS-specific.", trailing: "IOS")
                     sectionHeader("02", "Capture Configuration")
                     configurationSettings
-                    sectionHeader("03", "Global Keybind")
+                    sectionHeader("03", "Global Keybinds")
                     hotKeySettings
                     sectionHeader("04", "Visibility")
                     visibilitySettings
@@ -1386,24 +1559,28 @@ struct MacSettingsView: View {
             NavigationStack { MacModelView() }
                 .frame(minWidth: 760, minHeight: 620)
         }
-        .sheet(isPresented: $showCapturePresets) {
+        .sheet(isPresented: $showCapturePresets, onDismiss: {
+            Task { await reloadHotKeyConfiguration() }
+        }) {
             NavigationStack { MacCapturePresetSettingsView() }
                 .frame(minWidth: 960, minHeight: 680)
         }
         .sheet(isPresented: $showEntryTemplates) {
             MacEntryTemplateLibraryView()
         }
-        .sheet(isPresented: $showHotKeyRecorder) {
+        .sheet(item: $editingHotKeyTarget) { target in
             MacHotKeyRecorderSheet(
-                currentShortcut: currentHotKey,
-                onSave: saveHotKey,
-                onClear: clearHotKey
+                title: hotKeyTitle(for: target),
+                detail: hotKeyDetail(for: target),
+                currentShortcut: hotKeyBindings[target],
+                conflictingBindingName: { shortcut in
+                    conflictingBindingName(for: shortcut, excluding: target)
+                },
+                onSave: { shortcut in saveHotKey(shortcut, for: target) },
+                onClear: { clearHotKey(for: target) }
             )
         }
-    }
-
-    private var currentHotKey: MacHotKeyShortcut? {
-        MacHotKeyStore.decode(hotKeyStorage)
+        .task { await reloadHotKeyConfiguration() }
     }
 
     private var visibilityMode: MacAppVisibilityMode {
@@ -1563,32 +1740,34 @@ struct MacSettingsView: View {
         VStack(spacing: 0) {
             GeistDivider()
             VStack(alignment: .leading, spacing: 14) {
-                HStack(spacing: 16) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Start or Stop Listening")
-                            .font(Geist.label())
-                            .foregroundColor(Geist.text)
-                        Text("Press your keybind from anywhere on macOS to start recording; press it again to stop and transcribe.")
-                            .font(Geist.caption())
-                            .foregroundColor(Geist.muted)
-                    }
-                    Spacer()
-                    Text(currentHotKey?.displayString ?? "OFF")
+                Text("Start or stop a recording from anywhere on macOS while Vox.md is running. A preset keybind selects that route before recording, so each destination can have its own shortcut.")
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
+
+                hotKeyRow(
+                    target: .selectedPreset,
+                    title: "Selected Capture Preset",
+                    detail: "Use whichever preset is currently selected in Capture."
+                )
+
+                if !enabledHotKeyFlows.isEmpty {
+                    Text("CAPTURE PRESETS")
                         .font(Geist.caption())
-                        .foregroundColor(Geist.text)
-                }
+                        .foregroundColor(Geist.faint)
+                        .padding(.top, 4)
 
-                HStack(spacing: 12) {
-                    Button(currentHotKey == nil ? "SET KEYBIND" : "CHANGE KEYBIND") {
-                        showHotKeyRecorder = true
+                    ForEach(enabledHotKeyFlows) { flow in
+                        hotKeyRow(
+                            target: .preset(flow.id),
+                            title: flow.displayName,
+                            detail: hotKeyRouteSummary(for: flow)
+                        )
                     }
-                    .buttonStyle(GeistButtonStyle(variant: .secondary))
-
-                    Button("Clear") { clearHotKey() }
-                        .buttonStyle(.plain)
-                        .foregroundColor(Geist.error)
-                        .disabled(currentHotKey == nil)
                 }
+
+                Text("For a fast reading workflow, configure one preset to create a New Note and another to use an Existing Note, then assign a keybind to each. Press any recording keybind again to stop the active recording.")
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.faint)
 
                 if let hotKeyStatusMessage {
                     Text(hotKeyStatusMessage)
@@ -1601,20 +1780,153 @@ struct MacSettingsView: View {
         }
     }
 
-    private func saveHotKey(_ shortcut: MacHotKeyShortcut) {
-        MacHotKeyStore.save(shortcut)
-        hotKeyStorage = MacHotKeyStore.encode(shortcut) ?? ""
-        MacGlobalHotKeyCenter.shared.reloadRegistration()
-        hotKeyStatusMessage = MacGlobalHotKeyCenter.shared.lastRegistrationError
-        showHotKeyRecorder = false
+    private var enabledHotKeyFlows: [CapturePreset] {
+        hotKeyFlows.filter(\.isEnabled)
     }
 
-    private func clearHotKey() {
-        MacHotKeyStore.clear()
-        hotKeyStorage = ""
+    private func hotKeyRow(
+        target: MacHotKeyTarget,
+        title: String,
+        detail: String
+    ) -> some View {
+        let shortcut = hotKeyBindings[target]
+        return HStack(spacing: 14) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(Geist.label())
+                    .foregroundColor(Geist.text)
+                Text(detail)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
+                    .lineLimit(2)
+            }
+
+            Spacer(minLength: 16)
+
+            Text(shortcut?.displayString ?? "OFF")
+                .font(Geist.mono(.caption, medium: true))
+                .foregroundColor(shortcut == nil ? Geist.faint : Geist.text)
+                .frame(minWidth: 72, alignment: .trailing)
+
+            Button(shortcut == nil ? "Set" : "Change") {
+                editingHotKeyTarget = target
+            }
+            .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+
+            if shortcut != nil {
+                Button {
+                    clearHotKey(for: target)
+                } label: {
+                    Image(systemName: "xmark")
+                        .frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(Geist.error)
+                .accessibilityLabel("Clear \(title) keybind")
+            }
+        }
+        .padding(14)
+        .background(Geist.surface)
+        .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
+    }
+
+    private func hotKeyTitle(for target: MacHotKeyTarget) -> String {
+        switch target {
+        case .selectedPreset:
+            return "Selected Capture Preset"
+        case .preset(let presetID):
+            return hotKeyFlows.first(where: { $0.id == presetID })?.displayName ?? "Capture Preset"
+        }
+    }
+
+    private func hotKeyDetail(for target: MacHotKeyTarget) -> String {
+        switch target {
+        case .selectedPreset:
+            return "Start or stop recording with whichever Capture Preset is currently selected."
+        case .preset(let presetID):
+            guard let flow = hotKeyFlows.first(where: { $0.id == presetID }) else {
+                return "Start or stop recording with this Capture Preset."
+            }
+            return hotKeyRouteSummary(for: flow)
+        }
+    }
+
+    private func hotKeyRouteSummary(for flow: CapturePreset) -> String {
+        guard let destinationID = flow.captureDestinationID,
+              let destination = hotKeyDestinations.first(where: { $0.id == destinationID }) else {
+            return "Destination not configured."
+        }
+
+        switch destination.noteTarget {
+        case .newNote(let pathTemplate):
+            return "Create a new note at \(pathTemplate) in \(destination.rootName)."
+        case .rollingNote(let pathTemplate, let period):
+            return "Write to the \(period.rawValue) rolling note at \(pathTemplate)."
+        case .existingNote(let relativePath):
+            let verb: String
+            switch destination.placement {
+            case .append: verb = "Append to"
+            case .prepend: verb = "Prepend to"
+            case .beneathHeading: verb = "Insert into"
+            }
+            return "\(verb) \(relativePath) in \(destination.rootName)."
+        }
+    }
+
+    private func conflictingBindingName(
+        for shortcut: MacHotKeyShortcut,
+        excluding target: MacHotKeyTarget
+    ) -> String? {
+        guard let conflict = MacHotKeyStore.conflictingTarget(
+            for: shortcut,
+            excluding: target,
+            activePresetIDs: Set(enabledHotKeyFlows.map(\.id))
+        ) else { return nil }
+        return hotKeyTitle(for: conflict)
+    }
+
+    private func saveHotKey(_ shortcut: MacHotKeyShortcut, for target: MacHotKeyTarget) {
+        MacHotKeyStore.save(shortcut, for: target)
+        reloadHotKeyBindings()
         MacGlobalHotKeyCenter.shared.reloadRegistration()
-        hotKeyStatusMessage = nil
-        showHotKeyRecorder = false
+        hotKeyStatusMessage = MacGlobalHotKeyCenter.shared.lastRegistrationError
+        editingHotKeyTarget = nil
+    }
+
+    private func clearHotKey(for target: MacHotKeyTarget) {
+        MacHotKeyStore.clear(target)
+        reloadHotKeyBindings()
+        MacGlobalHotKeyCenter.shared.reloadRegistration()
+        hotKeyStatusMessage = MacGlobalHotKeyCenter.shared.lastRegistrationError
+        editingHotKeyTarget = nil
+    }
+
+    private func reloadHotKeyBindings() {
+        hotKeyBindings = Dictionary(
+            uniqueKeysWithValues: MacHotKeyStore.configuredBindings().map {
+                ($0.target, $0.shortcut)
+            }
+        )
+    }
+
+    private func reloadHotKeyConfiguration() async {
+        hotKeyFlows = CapturePresetStore.loadFlows()
+        reloadHotKeyBindings()
+        guard let captureLibraryURL = AppConstants.captureLibraryURL else {
+            hotKeyDestinations = []
+            return
+        }
+        do {
+            let library = try await CapturePresetRouteLibrary.load(
+                from: CaptureLibraryStore(fileURL: captureLibraryURL)
+            )
+            // Loading the route library may complete legacy destination
+            // ownership migration, so refresh the matching preset IDs too.
+            hotKeyFlows = CapturePresetStore.loadFlows()
+            hotKeyDestinations = library.destinations
+        } catch {
+            hotKeyDestinations = []
+        }
     }
 
     private var appVersionString: String {
@@ -1627,7 +1939,10 @@ struct MacSettingsView: View {
 private struct MacHotKeyRecorderSheet: View {
     @Environment(\.dismiss) private var dismiss
 
+    let title: String
+    let detail: String
     let currentShortcut: MacHotKeyShortcut?
+    let conflictingBindingName: (MacHotKeyShortcut) -> String?
     let onSave: (MacHotKeyShortcut) -> Void
     let onClear: () -> Void
 
@@ -1637,10 +1952,10 @@ private struct MacHotKeyRecorderSheet: View {
     var body: some View {
         VStack(spacing: 22) {
             VStack(spacing: 8) {
-                Text("Set Global Keybind")
+                Text("Set \(title) Keybind")
                     .font(Geist.heading(.title2))
                     .foregroundColor(Geist.text)
-                Text("Choose a shortcut Vox.md will listen for while the Mac app is running.")
+                Text(detail)
                     .font(Geist.body())
                     .foregroundColor(Geist.muted)
                     .multilineTextAlignment(.center)
@@ -1682,6 +1997,10 @@ private struct MacHotKeyRecorderSheet: View {
 
                 Button("Save Keybind") {
                     guard let capturedShortcut else { return }
+                    if let conflict = conflictingBindingName(capturedShortcut) {
+                        errorMessage = "\(capturedShortcut.displayString) is already assigned to \(conflict)."
+                        return
+                    }
                     onSave(capturedShortcut)
                 }
                 .buttonStyle(GeistButtonStyle(variant: .primary))
@@ -1711,6 +2030,11 @@ private struct MacHotKeyRecorderSheet: View {
 
         guard let shortcut = MacHotKeyShortcut(event: event) else {
             errorMessage = "Press one non-modifier key with Control, Option, or Command."
+            return
+        }
+        if let conflict = conflictingBindingName(shortcut) {
+            capturedShortcut = nil
+            errorMessage = "\(shortcut.displayString) is already assigned to \(conflict)."
             return
         }
 

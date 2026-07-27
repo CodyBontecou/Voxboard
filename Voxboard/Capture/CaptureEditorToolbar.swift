@@ -31,6 +31,10 @@ struct CaptureEditorToolbar: View {
     var showLinkPrompt: () -> Void
     var showFiles: () -> Void
     var showScan: () -> Void
+    var captureTextPages: () -> Void
+    var chooseTextPhotos: () -> Void
+    var canExtractText: Bool
+    var canCaptureTextPages: Bool
     var isProcessingMedia: Bool
     var isFindingLocation: Bool
     @Bindable var preferences: CaptureToolbarPreferences
@@ -84,6 +88,20 @@ struct CaptureEditorToolbar: View {
         case .scanDocument:
             toolbarButton(action.accessibilityLabel, icon: action.systemImage, action: showScan)
                 .disabled(isProcessingMedia)
+
+        case .extractText:
+            Menu {
+                Button(action: captureTextPages) {
+                    Label("Capture Journal Pages", systemImage: "camera.viewfinder")
+                }
+                .disabled(!canCaptureTextPages)
+                Button(action: chooseTextPhotos) {
+                    Label("Choose Journal Photos", systemImage: "photo.on.rectangle")
+                }
+            } label: {
+                toolbarLabel(action.accessibilityLabel, icon: action.systemImage)
+            }
+            .disabled(isProcessingMedia || !canExtractText)
 
         case .undo:
             toolbarButton(action.accessibilityLabel, icon: action.systemImage) { command(.undo) }

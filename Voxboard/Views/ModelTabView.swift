@@ -60,7 +60,7 @@ struct ModelTabView: View {
             }
         }
         .alert(
-            "Unable to Delete Model",
+            "Model Operation Failed",
             isPresented: Binding(
                 get: { modelManager.modelOperationError != nil },
                 set: { if !$0 { modelManager.modelOperationError = nil } }
@@ -70,7 +70,7 @@ struct ModelTabView: View {
                 modelManager.modelOperationError = nil
             }
         } message: {
-            Text(modelManager.modelOperationError ?? "The model could not be deleted.")
+            Text(modelManager.modelOperationError ?? "The model operation could not be completed.")
         }
     }
 

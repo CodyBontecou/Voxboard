@@ -61,6 +61,13 @@ for path in entitlement_paths:
     if 'group.bontecou.VoxVault' in content:
         errors.append(f'{path.relative_to(root)} still uses the legacy VoxVault App Group')
 
+mac_entitlements = (root / 'Voxboard Mac/VoxboardMac.entitlements').read_text()
+if not re.search(
+    r'<key>\s*com\.apple\.security\.network\.client\s*</key>\s*<true\s*/>',
+    mac_entitlements,
+):
+    errors.append('macOS app must allow outgoing network connections for model downloads')
+
 main_target_matches = re.findall(
     r'PRODUCT_BUNDLE_IDENTIFIER = bontecou\.Voxboard;.*?IPHONEOS_DEPLOYMENT_TARGET = ([^;]+);',
     project,

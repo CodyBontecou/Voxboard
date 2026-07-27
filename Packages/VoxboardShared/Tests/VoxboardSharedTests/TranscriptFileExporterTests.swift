@@ -68,7 +68,7 @@ final class TranscriptFileExporterTests: XCTestCase {
 
     // MARK: - MD New File
 
-    func test_export_md_newFile_includesMetadataHeader() throws {
+    func test_export_md_newFile_omitsMetadataByDefault() throws {
         let transcript = Transcript(text: "Hello markdown", duration: 45.0, modelUsed: "ggml-base", language: "en")
 
         let url = try TranscriptFileExporter.export(transcript, format: .md, mode: .newFile, folderURL: tempFolder)
@@ -76,9 +76,10 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertTrue(url.lastPathComponent.hasSuffix(".md"))
         let content = try String(contentsOf: url, encoding: .utf8)
         XCTAssertTrue(content.contains("## Transcript"), "Should have markdown heading")
-        XCTAssertTrue(content.contains("Duration"), "Should include duration metadata")
-        XCTAssertTrue(content.contains("ggml-base"), "Should include model name")
         XCTAssertTrue(content.contains("Hello markdown"), "Should include transcript text")
+        XCTAssertFalse(content.contains("**Duration**"), "Should omit duration metadata")
+        XCTAssertFalse(content.contains("**Model**"), "Should omit model metadata")
+        XCTAssertFalse(content.contains("**Language**"), "Should omit language metadata")
     }
 
     // MARK: - MD Append
