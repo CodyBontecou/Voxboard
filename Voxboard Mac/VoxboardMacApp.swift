@@ -276,9 +276,14 @@ struct VoxboardMacApp: App {
         let windowCoordinator = windowCoordinator
         MacGlobalHotKeyCenter.shared.configure { target in
             let flowID: String?
+            let completionMode: MacRecordingCompletionMode?
             switch target {
+            case .transcriptionOnly:
+                flowID = nil
+                completionMode = .transcriptionOnly
             case .selectedPreset:
                 flowID = nil
+                completionMode = nil
             case .preset(let presetID):
                 guard CapturePresetStore.loadFlows().contains(where: {
                     $0.id == presetID && $0.isEnabled
@@ -287,13 +292,15 @@ struct VoxboardMacApp: App {
                     return
                 }
                 flowID = presetID
+                completionMode = nil
             }
             Self.handleGlobalHotKey(
                 recorder: recorder,
                 modelManager: modelManager,
                 usageTracker: usageTracker,
                 windowCoordinator: windowCoordinator,
-                flowID: flowID
+                flowID: flowID,
+                completionMode: completionMode
             )
         }
     }
@@ -304,7 +311,8 @@ struct VoxboardMacApp: App {
         modelManager: ModelManager,
         usageTracker: UsageTracker,
         windowCoordinator: MacWindowCoordinator,
-        flowID requestedFlowID: String? = nil
+        flowID requestedFlowID: String? = nil,
+        completionMode: MacRecordingCompletionMode? = nil
     ) {
         guard !recorder.isTranscribing, !recorder.isExporting else {
             NSSound.beep()
@@ -331,7 +339,11 @@ struct VoxboardMacApp: App {
                 return
             }
 
-            recorder.startRecording(modelManager: modelManager, flowId: flowId)
+            recorder.startRecording(
+                modelManager: modelManager,
+                flowId: flowId,
+                completionMode: completionMode
+            )
             if !recorder.isRecording, recorder.lastError != nil {
                 windowCoordinator.showMain(.showCapture)
             }
@@ -630,6 +642,11 @@ final class VoxboardMacAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         MacAppVisibilityMode.current.applyImmediately()
+        MacKeyboardHintCenter.shared.start()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        MacKeyboardHintCenter.shared.stop()
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
@@ -666,11 +683,13 @@ final class VoxboardMacAppDelegate: NSObject, NSApplicationDelegate {
 }
 
 enum MacHotKeyTarget: Hashable, Identifiable {
+    case transcriptionOnly
     case selectedPreset
     case preset(String)
 
     var id: String {
         switch self {
+        case .transcriptionOnly: "transcription-only"
         case .selectedPreset: "selected-preset"
         case .preset(let presetID): "preset:\(presetID)"
         }
@@ -771,10 +790,14 @@ enum MacHotKeyStore {
     /// Retained for compatibility with existing installations that configured
     /// the original single start/stop shortcut.
     static let storageKey = "macGlobalHotKeyShortcut"
+    static let transcriptionOnlyStorageKey = "macTranscriptionOnlyHotKeyShortcut"
     static let presetStorageKey = "macCapturePresetHotKeyShortcuts"
 
     static func load(for target: MacHotKeyTarget = .selectedPreset) -> MacHotKeyShortcut? {
         switch target {
+        case .transcriptionOnly:
+            guard let encoded = AppConstants.sharedDefaults?.string(forKey: transcriptionOnlyStorageKey) else { return nil }
+            return decode(encoded)
         case .selectedPreset:
             guard let encoded = AppConstants.sharedDefaults?.string(forKey: storageKey) else { return nil }
             return decode(encoded)
@@ -785,6 +808,9 @@ enum MacHotKeyStore {
 
     static func save(_ shortcut: MacHotKeyShortcut, for target: MacHotKeyTarget = .selectedPreset) {
         switch target {
+        case .transcriptionOnly:
+            guard let encoded = encode(shortcut) else { return }
+            AppConstants.sharedDefaults?.set(encoded, forKey: transcriptionOnlyStorageKey)
         case .selectedPreset:
             guard let encoded = encode(shortcut) else { return }
             AppConstants.sharedDefaults?.set(encoded, forKey: storageKey)
@@ -797,6 +823,8 @@ enum MacHotKeyStore {
 
     static func clear(_ target: MacHotKeyTarget = .selectedPreset) {
         switch target {
+        case .transcriptionOnly:
+            AppConstants.sharedDefaults?.removeObject(forKey: transcriptionOnlyStorageKey)
         case .selectedPreset:
             AppConstants.sharedDefaults?.removeObject(forKey: storageKey)
         case .preset(let presetID):
@@ -808,6 +836,9 @@ enum MacHotKeyStore {
 
     static func configuredBindings() -> [(target: MacHotKeyTarget, shortcut: MacHotKeyShortcut)] {
         var bindings: [(MacHotKeyTarget, MacHotKeyShortcut)] = []
+        if let shortcut = load(for: .transcriptionOnly) {
+            bindings.append((.transcriptionOnly, shortcut))
+        }
         if let shortcut = load() {
             bindings.append((.selectedPreset, shortcut))
         }
@@ -826,7 +857,7 @@ enum MacHotKeyStore {
             guard binding.target != excludedTarget,
                   binding.shortcut.conflicts(with: shortcut) else { return false }
             switch binding.target {
-            case .selectedPreset:
+            case .transcriptionOnly, .selectedPreset:
                 return true
             case .preset(let presetID):
                 return activePresetIDs.contains(presetID)
@@ -918,7 +949,7 @@ final class MacGlobalHotKeyCenter {
         )
         let bindings = MacHotKeyStore.configuredBindings().filter { binding in
             switch binding.target {
-            case .selectedPreset:
+            case .transcriptionOnly, .selectedPreset:
                 true
             case .preset(let presetID):
                 enabledPresetIDs.contains(presetID)

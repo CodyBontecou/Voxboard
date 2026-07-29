@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 import VoxboardShared
 
 enum MacRecordingCompletionMode: Equatable, Sendable {
+    case transcriptionOnly
     case captureDraft(attachAudio: Bool)
     case runPreset(flow: CapturePreset)
 }
@@ -290,10 +291,16 @@ final class MacRecorder {
                 sourceAudioURL: sourceAudioURL
             )
         } catch {
+            let discardsRecording: Bool
+            if case .transcriptionOnly = completionMode {
+                discardsRecording = true
+            } else {
+                discardsRecording = false
+            }
             await finishWithError(
                 error.localizedDescription,
-                cleanupURL: hasDurableAudioCopy ? audioURL : nil,
-                recoveryURL: hasDurableAudioCopy ? nil : audioURL,
+                cleanupURL: hasDurableAudioCopy || discardsRecording ? audioURL : nil,
+                recoveryURL: hasDurableAudioCopy || discardsRecording ? nil : audioURL,
                 completionMode: completionMode
             )
         }
@@ -308,6 +315,22 @@ final class MacRecorder {
         audioURL: URL,
         sourceAudioURL: URL?
     ) async {
+        if case .transcriptionOnly = completionMode {
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            let copied = pasteboard.setString(text, forType: .string)
+            usageTracker.addUsage(seconds: duration)
+            lastTranscriptionResult = text
+            lastError = copied ? nil : "The transcript was created but could not be copied to the clipboard."
+            lastRecoveryAudioURL = nil
+            try? FileManager.default.removeItem(at: audioURL)
+            if let sourceAudioURL, sourceAudioURL != audioURL {
+                try? FileManager.default.removeItem(at: sourceAudioURL)
+            }
+            isTranscribing = false
+            return
+        }
+
         let rawTranscript = Transcript(text: text, duration: duration, modelUsed: modelName, language: language)
 
         if case .captureDraft(let attachAudio) = completionMode {

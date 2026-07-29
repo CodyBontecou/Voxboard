@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Best Voice-to-Text Keyboard for iPhone — Vox.md</title>
-  <meta name="description" content="A practical guide to choosing the best iPhone voice-to-text keyboard for private dictation, no Full Access, local transcription, and typing directly into any app.">
+  <meta name="description" content="A practical guide to choosing the best iPhone voice-to-text keyboard for private dictation, transparent Full Access setup, local transcription, and typing directly into any app.">
   <link rel="canonical" href="https://voxboard.isolated.tech/blog/best-voice-to-text-keyboard-iphone/">
+  <link rel="alternate" type="text/plain" href="../../llms.txt" title="Vox.md documentation for language models">
 
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Vox.md">
@@ -31,10 +32,10 @@
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "headline": "Best Voice-to-Text Keyboard for iPhone",
-    "description": "A practical guide to choosing the best iPhone voice-to-text keyboard for private dictation, no Full Access, local transcription, and typing directly into any app.",
+    "description": "A practical guide to choosing the best iPhone voice-to-text keyboard for private dictation, transparent Full Access setup, local transcription, and typing directly into any app.",
     "image": "https://voxboard.isolated.tech/blog/best-voice-to-text-keyboard-iphone/assets/voxboard-main.png",
     "datePublished": "2026-06-13",
-    "dateModified": "2026-06-13",
+    "dateModified": "2026-07-29",
     "author": {
       "@type": "Person",
       "name": "Cody Bontecou"
@@ -85,6 +86,7 @@
     </a>
     <ul class="nav-links">
       <li><a href="../../index.html#how">How It Works</a></li>
+      <li><a href="../../docs/">Docs</a></li>
       <li><a href="../" aria-current="page">Blog</a></li>
       <li><a href="../../privacy.html">Privacy</a></li>
       <li><a href="../../terms.html">Terms</a></li>
@@ -127,7 +129,7 @@
   <div class="container">
     <div class="lead-grid">
       <div class="lead-card"><strong>Works Anywhere</strong><span>Use dictation in Safari, Messages, Notes, Mail, Slack, forms, and search boxes.</span></div>
-      <div class="lead-card"><strong>No Full Access</strong><span>The core keyboard workflow should not require Apple's Full Access switch.</span></div>
+      <div class="lead-card"><strong>Transparent Access</strong><span>Understand why Vox.md requires Full Access for its shared on-device app workflow.</span></div>
       <div class="lead-card"><strong>No Audio Uploads</strong><span>Prefer local transcription so microphone audio is processed on your iPhone.</span></div>
       <div class="lead-card"><strong>Local History</strong><span>Keep a local record of transcripts you can review, copy, or delete.</span></div>
     </div>
@@ -154,7 +156,7 @@
 
       <div class="answer-box" id="short-answer">
         <div class="label">Short Answer</div>
-        <p><strong>Vox.md is built for people who want private iPhone dictation in every app.</strong> It adds a microphone keyboard to iOS, uses on-device transcription after setup with an installed model, does not require Full Access for core dictation, and keeps transcripts in local history instead of sending your spoken text to a server.</p>
+        <p><strong>Vox.md is built for people who want private iPhone dictation in every app.</strong> It adds a microphone keyboard to iOS, uses on-device transcription after setup, explains the required Full Access setting, and keeps transcripts in local history instead of sending your spoken text to a server.</p>
       </div>
 
       <section class="screenshot-feature" aria-labelledby="main-screenshot-title">
@@ -182,8 +184,8 @@
           <span>Audio, transcripts, keystrokes, and dictated text should stay on the device whenever possible.</span>
         </div>
         <div class="check-row">
-          <strong>No Full Access</strong>
-          <span>Full Access gives a third-party keyboard broader capabilities. For a privacy-focused dictation keyboard, core typing should work without it.</span>
+          <strong>Access Explained</strong>
+          <span>If Full Access is required, the app should explain why and limit its use. Vox.md uses it for shared App Group state and coordination with the main app, not to upload keyboard content.</span>
         </div>
         <div class="check-row">
           <strong>Transparent Setup</strong>
@@ -228,9 +230,9 @@
 
       <p>Vox.md is an iOS app and keyboard extension. After installing the app, you enable the Vox.md keyboard in iOS Settings. Then, anywhere the iPhone keyboard appears, you can switch to Vox.md and dictate text directly into the field.</p>
 
-      <p>The privacy model is intentionally simple: <strong>core transcription runs locally on your iPhone after setup with an installed model.</strong> Vox.md's website and privacy policy describe that microphone audio is processed on-device, not uploaded to a server, and discarded after transcription. The app also does not require an account for dictation.</p>
+      <p>The privacy model is intentionally simple: <strong>core transcription runs locally on your iPhone after Automatic preparation or optional local-model setup.</strong> Vox.md's website and privacy policy describe that microphone audio is processed on-device, not uploaded to a server, and discarded after transcription unless you explicitly retain it. The app also does not require an account for dictation.</p>
 
-      <p>Vox.md's keyboard does <strong>not</strong> require Apple's Full Access permission for the core voice-to-text workflow. That is important because Full Access can allow a third-party keyboard to communicate more broadly. Vox.md is designed so the main dictation path works without asking for that switch.</p>
+      <p>Vox.md's keyboard <strong>requires Apple's Allow Full Access setting</strong> for the current voice-to-text workflow. That permission lets the keyboard use shared App Group state and coordinate recording with the main Vox.md app. Vox.md does not use it to upload keystrokes, dictated text, transcripts, or microphone audio to Vox.md or third-party servers.</p>
 
       <div class="screenshot-grid" aria-label="Vox.md app screenshots">
         <figure>
@@ -243,7 +245,7 @@
           <div class="phone-frame">
             <img src="assets/voxboard-settings.png" alt="Vox.md settings screen with keyboard and lock screen options" width="1206" height="2622" loading="lazy" decoding="async">
           </div>
-          <figcaption>Settings make keyboard options explicit; optional haptics call out when Full Access would be required.</figcaption>
+          <figcaption>Settings make keyboard options explicit, including haptics and the Full Access requirement.</figcaption>
         </figure>
       </div>
 
@@ -267,13 +269,13 @@
 
       <p>Use Apple's built-in dictation if you want the default option and do not need a separate local history or custom keyboard workflow. Use a cloud transcription product if you need meeting notes, summaries, speaker labels, or team collaboration around long recordings.</p>
 
-      <p>Choose Vox.md if your main need is <strong>private voice-to-text inside the apps you already use</strong>. It is built around a keyboard extension, local processing after setup, no required Full Access for core dictation, and a local transcript history.</p>
+      <p>Choose Vox.md if your main need is <strong>private voice-to-text inside the apps you already use</strong>. It is built around a keyboard extension, clearly disclosed Full Access setup, local processing, and a local transcript history.</p>
 
       <p>One final note: speech recognition is still machine learning. Transcription quality can vary based on model choice, microphone quality, background noise, accent, cadence, and the words being spoken. Always review important text before sending it, and do not rely on any dictation tool for critical legal, medical, safety, or emergency transcription without independent verification.</p>
 
       <section class="cta" aria-labelledby="cta-title">
         <h2 id="cta-title">Try Private Voice-to-Text on iPhone</h2>
-        <p>Install Vox.md, enable the keyboard, keep Full Access off for core dictation, and start speaking into the places you already type.</p>
+        <p>Install Vox.md, enable the keyboard and Allow Full Access, prepare an on-device backend, and start speaking into the places you already type.</p>
         <div class="button-row">
           <a class="btn-primary" href="https://apps.apple.com/us/app/voxboard/id6758967337" target="_blank" rel="noopener">Download Vox.md</a>
           <a class="btn-secondary" href="../../privacy.html">Read Privacy Policy</a>
@@ -289,6 +291,7 @@
     <div class="footer-inner">
       <ul class="footer-links">
         <li><a href="../../index.html">Home</a></li>
+        <li><a href="../../docs/">Docs</a></li>
         <li><a href="../" aria-current="page">Blog</a></li>
         <li><a href="../../privacy.html">Privacy</a></li>
         <li><a href="../../terms.html">Terms</a></li>

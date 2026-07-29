@@ -8,7 +8,7 @@
 
 Vox.md gets text, links, photos, files, scans, sketches, and voice into Obsidian vaults or local Markdown folders with minimal friction. Capture Presets combine processing, metadata, and a complete destination that can create a note, update a rolling note, target an existing file, or insert beneath a heading. Voice transcription runs on device, preferring Apple Speech on supported iOS 26 devices and using Whisper or Parakeet only when the user opts into a local model download. Audio is never uploaded to Vox.md servers.
 
-**[🌐 Website](https://voxboard-app.vercel.app/)** · **[📲 Download](https://voxboard-app.vercel.app/)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[💬 Discussions](https://github.com/CodyBontecou/Voxboard/discussions)** · **[👥 Discord](https://discord.gg/RaQYS4t6gn)** · **[⭐ Star this repo](https://github.com/CodyBontecou/Voxboard)**
+**[🌐 Website](https://voxboard.isolated.tech/)** · **[📚 Documentation](https://voxboard.isolated.tech/docs/)** · **[🤖 llms.txt](https://voxboard.isolated.tech/llms.txt)** · **[📲 Download](https://apps.apple.com/us/app/voxboard/id6758967337)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[💬 Discussions](https://github.com/CodyBontecou/Voxboard/discussions)** · **[👥 Discord](https://discord.gg/RaQYS4t6gn)** · **[⭐ Star this repo](https://github.com/CodyBontecou/Voxboard)**
 
 ## Screenshots
 
@@ -51,7 +51,7 @@ Every transcription is stored locally in the shared App Group container. Search 
 Automatically save transcripts after each session as TXT, Markdown, or YAML. Choose a destination folder, use filename templates, append to a single file, render Markdown templates, and enable Obsidian-friendly frontmatter.
 
 ### Apple Intelligence Enrichment
-On iOS 26+ devices and macOS 26+ Macs with Apple Intelligence, Vox.md can generate titles, tags, categories, cleaned-up text, and smart folder routing — still locally on-device through Apple's Foundation Models framework.
+On iOS 26+ devices and macOS 26+ Macs with Apple Intelligence, eligible Capture Presets can generate titles, tags, categories, cleaned-up text, checklists, meeting-note structure, and custom transformations — still locally on-device through Apple's Foundation Models framework.
 
 ### Widgets & Live Activities
 Open a durable Quick Capture draft or start and monitor recording from widgets, Live Activities, the lock screen, and Dynamic Island. The widget target shares state through the same private App Group container.

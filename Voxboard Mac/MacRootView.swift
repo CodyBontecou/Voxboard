@@ -1222,7 +1222,8 @@ struct MacHistoryView: View {
             .contentShape(RoundedRectangle(cornerRadius: Geist.Radius.medium, style: .continuous))
             .onTapGesture { selectedTranscript = transcript }
             .help("Open full transcript")
-            .accessibilityAction(named: "Open full transcript") {
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction {
                 selectedTranscript = transcript
             }
 
@@ -1740,9 +1741,15 @@ struct MacSettingsView: View {
         VStack(spacing: 0) {
             GeistDivider()
             VStack(alignment: .leading, spacing: 14) {
-                Text("Start or stop a recording from anywhere on macOS while Vox.md is running. A preset keybind selects that route before recording, so each destination can have its own shortcut.")
+                Text("Start or stop a recording from anywhere on macOS while Vox.md is running. Use the transcription-only keybind for temporary dictation, or assign preset keybinds to write to specific destinations.")
                     .font(Geist.caption())
                     .foregroundColor(Geist.muted)
+
+                hotKeyRow(
+                    target: .transcriptionOnly,
+                    title: "Transcribe to Clipboard",
+                    detail: "Copy plain text to the clipboard without creating a note, saving to History, or retaining audio."
+                )
 
                 hotKeyRow(
                     target: .selectedPreset,
@@ -1832,6 +1839,8 @@ struct MacSettingsView: View {
 
     private func hotKeyTitle(for target: MacHotKeyTarget) -> String {
         switch target {
+        case .transcriptionOnly:
+            return "Transcribe to Clipboard"
         case .selectedPreset:
             return "Selected Capture Preset"
         case .preset(let presetID):
@@ -1841,6 +1850,8 @@ struct MacSettingsView: View {
 
     private func hotKeyDetail(for target: MacHotKeyTarget) -> String {
         switch target {
+        case .transcriptionOnly:
+            return "Start or stop a temporary transcription. The result is copied to the clipboard without being saved to a file or History."
         case .selectedPreset:
             return "Start or stop recording with whichever Capture Preset is currently selected."
         case .preset(let presetID):
@@ -2072,7 +2083,7 @@ private struct MacHotKeyCaptureView: NSViewRepresentable {
     }
 }
 
-private final class MacHotKeyCaptureNSView: NSView {
+private final class MacHotKeyCaptureNSView: NSView, MacKeyboardHintSuppressingResponder {
     var onKeyDown: ((NSEvent) -> Void)?
     var onFlagsChanged: ((NSEvent) -> Void)?
 

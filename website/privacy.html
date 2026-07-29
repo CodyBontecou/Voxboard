@@ -6,6 +6,7 @@
   <title>Privacy Policy — Vox.md</title>
   <meta name="description" content="How Vox.md handles local capture drafts, Markdown destinations, attachments, keyboard input, and on-device voice transcription.">
   <link rel="canonical" href="https://voxboard.isolated.tech/privacy.html">
+  <link rel="alternate" type="text/plain" href="llms.txt" title="Vox.md documentation for language models">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Privacy Policy — Vox.md">
   <meta property="og:description" content="Privacy details for quick capture, local Markdown files, attachments, system extensions, and on-device voice transcription.">
@@ -28,6 +29,7 @@
     </a>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
+      <li><a href="docs/">Docs</a></li>
       <li><a href="blog/">Blog</a></li>
       <li><a href="terms.html">Terms</a></li>
     </ul>
@@ -40,7 +42,7 @@
   <div class="container">
     <div class="page-eyebrow">Legal · Privacy</div>
     <h1 class="page-title">Privacy Policy</h1>
-    <p class="page-meta">Effective: February 9, 2026 · Last updated: July 17, 2026</p>
+    <p class="page-meta">Effective: February 9, 2026 · Last updated: July 29, 2026</p>
   </div>
 </section>
 
@@ -85,9 +87,9 @@
     <h2>Keyboard Extension</h2>
     <p>Vox.md includes a custom keyboard extension that enables voice-to-text input across all apps on your device. Apple requires us to disclose the following about keyboard extensions:</p>
     <ul>
-      <li><strong>Full Access is not required.</strong> Vox.md's keyboard extension does not request or require "Full Access." It operates without any network connectivity.</li>
-      <li>The keyboard extension does not log, store, or transmit any keystrokes or text input beyond the active transcription session.</li>
-      <li>The keyboard extension communicates with the main Vox.md app only through the shared App Group container — all on-device.</li>
+      <li><strong>Allow Full Access is required for the current keyboard workflow.</strong> It lets the keyboard use shared App Group state and coordinate recording with the main Vox.md app.</li>
+      <li>Vox.md does not use Full Access to upload, sell, or analyze keystrokes, dictated text, transcripts, or microphone audio. The keyboard does not transmit that content to Vox.md or third-party servers.</li>
+      <li>The keyboard extension communicates with signed Vox.md app components through the shared App Group container on the device.</li>
     </ul>
 
     <h2>Microphone Usage</h2>
@@ -103,10 +105,11 @@
     <p>Vox.md requests location access only after you tap the location command in the Capture editor. It performs a one-time lookup and can reverse-geocode a short place label, then inserts the coordinates into a Google Maps link in your local Markdown draft. Vox.md does not monitor location in the background, retain separate location history, include coordinates in analytics or logs, or send location to a Vox.md server. The coordinates become part of the note you chose to create, and Apple and your selected file-sync provider may process data under their own terms.</p>
 
     <h2>Speech Models</h2>
-    <p>Vox.md does not bundle speech model weights. Apple's supported language assets are managed by iOS. Optional Whisper and Parakeet downloads begin only after you choose them and are stored locally on your device. No account or personal information is required to prepare or download a model.</p>
+    <p>Vox.md does not bundle speech model weights. Apple's supported language assets are managed by iOS. Optional Whisper, Parakeet, and voice-pause model downloads begin only after you choose them and are stored locally on your device. No account or personal information is required to prepare or download a model.</p>
 
     <h2>Third-Party Services</h2>
-    <p>Vox.md does not integrate with third-party analytics SDKs, advertising networks, crash-reporting SDKs, or cross-app tracking services. The Capture editor requests batches of inspirational quotes from <a href="https://zenquotes.io/">ZenQuotes API</a> and rotates through them from an on-device cache. These requests never include capture drafts, typed text, audio, attachments, file paths, location, install identifiers, or analytics. Like any HTTPS service, ZenQuotes may receive technical connection data such as an IP address and user agent under its own terms. If first-party onboarding events are explicitly enabled in a development build, they are sent directly to a Vox.md Cloudflare Worker with the strict allowlist described above.</p>
+    <p>Vox.md does not integrate with third-party analytics SDKs, advertising networks, crash-reporting SDKs, or cross-app tracking services. User-initiated Whisper and Parakeet model downloads connect to model-distribution infrastructure hosted by Hugging Face, either directly or through FluidAudio. Model requests never include capture drafts, typed text, audio, transcripts, attachments, file paths, or location, but the provider may receive ordinary HTTPS connection data and the requested model identifier under its own terms.</p>
+    <p>The Capture editor requests batches of inspirational quotes from <a href="https://zenquotes.io/">ZenQuotes API</a> and rotates through them from an on-device cache. These requests never include capture drafts, typed text, audio, attachments, file paths, location, install identifiers, or analytics. Like any HTTPS service, ZenQuotes may receive technical connection data such as an IP address and user agent under its own terms. If first-party onboarding events are explicitly enabled in a development build, they are sent directly to a Vox.md Cloudflare Worker with the strict allowlist described above.</p>
 
     <h2>Data Storage &amp; Deletion</h2>
     <p>All app data — including transcription history, capture drafts, staged attachments, downloaded models, templates, and settings — is stored locally on your device or in a file destination you explicitly choose. Vox.md also keeps a content-free high-water record of successful free Capture deliveries in the system Keychain so a normal uninstall and reinstall on the same device does not reset the free allowance. It contains only the count and random identifiers for up to ten successful requests, which prevent retries from being charged twice. It contains no captured text, filenames, destinations, or attachment metadata and is never sent to Vox.md.</p>
@@ -137,6 +140,7 @@
     <div class="footer-inner">
       <ul class="footer-links">
         <li><a href="index.html">Home</a></li>
+        <li><a href="docs/">Docs</a></li>
         <li><a href="blog/">Blog</a></li>
         <li><a href="privacy.html">Privacy</a></li>
         <li><a href="terms.html">Terms</a></li>

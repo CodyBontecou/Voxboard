@@ -49,6 +49,7 @@
 		AA9000012F900000AABB0001 /* Notelet in Frameworks */ = {isa = PBXBuildFile; productRef = AA9000032F900000AABB0003 /* Notelet */; };
 		AB147B12EBE0E233F987E666 /* WatchConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AB9642BD71C79ACF551A1DD /* WatchConnectivity.framework */; };
 		AB2600022F901000AABB0002 /* FoundationModelsBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */; };
+		AB7000022FC10000AABB0002 /* MacKeyboardHintCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7000012FC10000AABB0001 /* MacKeyboardHintCenter.swift */; };
 		B2D00855F0FF7DCEB1C58193 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 622B4C7F2F78B09600FDC4CA /* WidgetKit.framework */; };
 		B697081A9BF8FA5A952C4260 /* WatchRecorderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 614794E6E2D71284FDBD73B5 /* WatchRecorderView.swift */; };
 		BE5B35152DDF08F23D11F96B /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AD4BA7D540CBA8530066F9 /* ShareViewController.swift */; };
@@ -190,6 +191,7 @@
 		AA8100062FB10000AABB0006 /* MacEntryTemplateLibraryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacEntryTemplateLibraryView.swift; path = "Voxboard Mac/MacEntryTemplateLibraryView.swift"; sourceTree = "<group>"; };
 		AAE000012FC00000AABB0001 /* VoxboardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VoxboardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FoundationModelsBackend.swift; path = Voxboard/FoundationModelsBackend.swift; sourceTree = "<group>"; };
+		AB7000012FC10000AABB0001 /* MacKeyboardHintCenter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacKeyboardHintCenter.swift; path = "Voxboard Mac/MacKeyboardHintCenter.swift"; sourceTree = "<group>"; };
 		B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchPhoneBridge.swift; sourceTree = "<group>"; };
 		B42D87F76743327017AE80B3 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Voxboard/Assets.xcassets; sourceTree = "<group>"; };
 		B7CCD1646C8EA9E9C4F0979E /* Voxboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Voxboard.app; path = Vox.md.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -361,6 +363,7 @@
 			isa = PBXGroup;
 			children = (
 				DC7E10646EA0B56748352D67 /* VoxboardMacApp.swift */,
+				AB7000012FC10000AABB0001 /* MacKeyboardHintCenter.swift */,
 				39AB3B931CCF85C9706AD3C0 /* MacRootView.swift */,
 				9C52E8DD3842F298B7583550 /* MacRecorder.swift */,
 				8CA2E8D9B126FE68EF96A0C1 /* MacStoreManager.swift */,
@@ -872,6 +875,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E00A9CF58799DA14B1DFFCCD /* VoxboardMacApp.swift in Sources */,
+				AB7000022FC10000AABB0002 /* MacKeyboardHintCenter.swift in Sources */,
 				F714E206EA01CB59CAD495BC /* MacRootView.swift in Sources */,
 				9B15EF5409110CBDF04C40C5 /* MacRecorder.swift in Sources */,
 				643BAC287FB3B9EB19C8A1D8 /* MacStoreManager.swift in Sources */,

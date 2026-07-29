@@ -279,6 +279,7 @@ struct MacCaptureWorkspaceView: View {
             }
             .buttonStyle(.plain)
             .help("History")
+            .accessibilityLabel("History")
 
             Button(action: openSettings) {
                 Image(systemName: "gearshape")
@@ -286,6 +287,7 @@ struct MacCaptureWorkspaceView: View {
             }
             .buttonStyle(.plain)
             .help("Settings")
+            .accessibilityLabel("Settings")
         }
         .padding(.horizontal, Geist.Spacing.four)
         .padding(.vertical, Geist.Spacing.three)

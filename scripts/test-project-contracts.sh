@@ -613,11 +613,50 @@ website_root = root / 'website'
 website_css = website_root / 'geist.css'
 website_pages = [
     website_root / 'index.html',
+    website_root / 'docs/index.html',
     website_root / 'privacy.html',
     website_root / 'terms.html',
     website_root / 'blog/index.html',
     website_root / 'blog/best-voice-to-text-keyboard-iphone/index.html',
 ]
+
+website_docs = website_root / 'docs/index.html'
+if website_docs.exists():
+    docs_html = website_docs.read_text()
+    for section_id in [
+        'getting-started',
+        'quick-capture',
+        'presets',
+        'models',
+        'keyboard',
+        'system-integrations',
+        'apple-watch',
+        'mac',
+        'history-settings',
+        'troubleshooting',
+    ]:
+        if f'id="{section_id}"' not in docs_html:
+            errors.append(f'website documentation is missing the {section_id} category')
+
+website_llms = website_root / 'llms.txt'
+if not website_llms.exists():
+    errors.append('website is missing its root llms.txt agent interface')
+else:
+    llms = website_llms.read_text()
+    for required in [
+        '# Vox.md',
+        'https://voxboard.isolated.tech/docs/',
+        '## Keyboard Safety Note',
+        'Allow Full Access',
+    ]:
+        if required not in llms:
+            errors.append(f'website llms.txt is missing {required}')
+
+website_sitemap = website_root / 'sitemap.xml'
+if not website_sitemap.exists():
+    errors.append('website is missing sitemap.xml')
+elif 'https://voxboard.isolated.tech/docs/' not in website_sitemap.read_text():
+    errors.append('website sitemap does not include documentation')
 
 for font_name in [
     'Geist-Regular.ttf',
