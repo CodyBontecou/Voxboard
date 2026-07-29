@@ -20,6 +20,11 @@ nonisolated enum WatchRecordingFailureStage: String, Codable, Sendable {
     case delivery
 }
 
+nonisolated enum WatchRecordingStatusMessage {
+    static let transcriptionLimitReached =
+        "You've used your free transcription time. Get Vox.md Unlimited to continue."
+}
+
 /// Durable, privacy-safe state for one recording received from Apple Watch.
 /// The original audio remains in WatchInbox until delivery succeeds or the user
 /// explicitly discards it.

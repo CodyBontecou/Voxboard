@@ -936,47 +936,57 @@ struct QuickCaptureView: View {
     @ViewBuilder
     private var watchRecordingStatusCard: some View {
         if let item = watchRecordingPipeline.currentItem {
-            HStack(spacing: Geist.Spacing.three) {
-                Button {
-                    dismissComposer()
-                    showsWatchRecordingQueue = true
-                } label: {
-                    HStack(spacing: Geist.Spacing.three) {
-                        Image(systemName: item.watchStatusSymbol)
-                            .foregroundStyle(item.phase == .failed ? Geist.error : Geist.text)
-                            .frame(width: 28, height: 28)
+            VStack(alignment: .leading, spacing: Geist.Spacing.two) {
+                HStack(spacing: Geist.Spacing.three) {
+                    Button {
+                        dismissComposer()
+                        showsWatchRecordingQueue = true
+                    } label: {
+                        HStack(spacing: Geist.Spacing.three) {
+                            Image(systemName: item.watchStatusSymbol)
+                                .foregroundStyle(item.phase == .failed ? Geist.error : Geist.text)
+                                .frame(width: 28, height: 28)
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(item.watchStatusTitle)
-                                .font(Geist.label())
-                            Text(item.watchStatusSubtitle)
-                                .font(Geist.caption(.caption2))
-                                .foregroundStyle(item.phase == .failed ? Geist.error : Geist.muted)
-                                .lineLimit(2)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.watchStatusTitle)
+                                    .font(Geist.label())
+                                Text(item.watchStatusSubtitle)
+                                    .font(Geist.caption(.caption2))
+                                    .foregroundStyle(item.phase == .failed ? Geist.error : Geist.muted)
+                                    .lineLimit(3)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer(minLength: Geist.Spacing.two)
                         }
-                        Spacer(minLength: Geist.Spacing.two)
+                        .contentShape(Rectangle())
                     }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
+                    .buttonStyle(.plain)
 
-                if item.phase == .transcribing || item.phase == .delivering {
-                    ProgressView()
-                        .controlSize(.small)
+                    if item.phase == .transcribing || item.phase == .delivering {
+                        ProgressView()
+                            .controlSize(.small)
+                    }
+                    Button {
+                        dismissComposer()
+                        showsWatchRecordingQueue = true
+                    } label: {
+                        Image(systemName: "chevron.right")
+                            .font(Geist.caption(.caption2))
+                            .foregroundStyle(Geist.faint)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Show Watch recording queue")
+                }
+
+                if item.isWaitingForTranscriptionUpgrade {
+                    Button("Get Vox.md Unlimited") { presentPaywall(context: .limit) }
+                        .frame(maxWidth: .infinity)
+                        .buttonStyle(GeistButtonStyle(variant: .primary, size: .small))
                 } else if item.phase == .failed {
                     Button("Retry") { watchRecordingPipeline.retry(item) }
+                        .frame(maxWidth: .infinity)
                         .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
                 }
-                Button {
-                    dismissComposer()
-                    showsWatchRecordingQueue = true
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .font(Geist.caption(.caption2))
-                        .foregroundStyle(Geist.faint)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("Show Watch recording queue")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)

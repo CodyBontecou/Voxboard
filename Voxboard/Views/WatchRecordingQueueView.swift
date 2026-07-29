@@ -5,6 +5,7 @@ struct WatchRecordingQueueView: View {
     @Bindable var pipeline: WatchRecordingPipeline
     @Environment(\.dismiss) private var dismiss
     @State private var pendingDiscard: WatchRecordingInboxItem?
+    @State private var showsPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -35,6 +36,9 @@ struct WatchRecordingQueueView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .sheet(isPresented: $showsPaywall) {
+                PaywallView(context: .limit)
             }
             .confirmationDialog(
                 "Discard this Watch recording?",
@@ -152,8 +156,14 @@ struct WatchRecordingQueueView: View {
                     .accessibilityHint("Saves the retained audio to Capture without transcription")
                 }
             } else if item.phase == .queued {
-                Button("Discard", role: .destructive) { pendingDiscard = item }
-                    .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+                HStack(spacing: Geist.Spacing.two) {
+                    if item.isWaitingForTranscriptionUpgrade {
+                        Button("Get Unlimited") { showsPaywall = true }
+                            .buttonStyle(GeistButtonStyle(variant: .primary, size: .small))
+                    }
+                    Button("Discard", role: .destructive) { pendingDiscard = item }
+                        .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+                }
             }
         }
         .padding(.vertical, Geist.Spacing.two)
@@ -166,6 +176,11 @@ struct WatchRecordingQueueView: View {
 }
 
 extension WatchRecordingInboxItem {
+    var isWaitingForTranscriptionUpgrade: Bool {
+        phase == .queued
+            && statusMessage == WatchRecordingStatusMessage.transcriptionLimitReached
+    }
+
     var watchStatusTitle: String {
         switch phase {
         case .queued:

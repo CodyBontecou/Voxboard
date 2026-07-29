@@ -923,11 +923,11 @@ final class WatchRecordingPipeline {
             && !isRecordingOnly(item)
             && !item.capturesRecordingWithoutTranscript
             && !isDeliveryOnlyRetry(item)
-            && item.statusMessage != "Unlock Vox.md on iPhone to transcribe" {
+            && item.statusMessage != WatchRecordingStatusMessage.transcriptionLimitReached {
             _ = inbox.transition(
                 id: item.id,
                 to: .queued,
-                message: "Unlock Vox.md on iPhone to transcribe"
+                message: WatchRecordingStatusMessage.transcriptionLimitReached
             )
         }
         refresh()

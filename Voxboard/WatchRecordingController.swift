@@ -186,7 +186,7 @@ final class WatchRecordingController: NSObject {
             message = "Quick Record is disabled in Vox.md Settings."
         } else if usageAppliesToCurrentWork
                     && (usageTracker?.isAtLimit == true || recorder?.needsUnlock == true) {
-            message = "Free limit reached — unlock Vox.md on iPhone."
+            message = "Free transcription time used. Get Vox.md Unlimited on iPhone."
         } else if let activeJob {
             message = activeJob.statusMessage
         } else {

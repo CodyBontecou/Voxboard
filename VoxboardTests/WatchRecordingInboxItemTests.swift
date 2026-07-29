@@ -30,8 +30,27 @@ final class WatchRecordingInboxItemTests: XCTestCase {
         XCTAssertFalse(decoded.capturesRecordingWithoutTranscript)
     }
 
+    func testTranscriptionLimitStatusOffersUpgrade() {
+        let item = makeItem(
+            capturesRecordingWithoutTranscript: false,
+            statusMessage: WatchRecordingStatusMessage.transcriptionLimitReached
+        )
+
+        XCTAssertTrue(item.isWaitingForTranscriptionUpgrade)
+    }
+
+    func testOrdinaryQueuedStatusDoesNotOfferUpgrade() {
+        let item = makeItem(
+            capturesRecordingWithoutTranscript: false,
+            statusMessage: "Received from Apple Watch"
+        )
+
+        XCTAssertFalse(item.isWaitingForTranscriptionUpgrade)
+    }
+
     private func makeItem(
-        capturesRecordingWithoutTranscript: Bool
+        capturesRecordingWithoutTranscript: Bool,
+        statusMessage: String? = nil
     ) -> WatchRecordingInboxItem {
         WatchRecordingInboxItem(
             id: UUID().uuidString,
@@ -42,7 +61,8 @@ final class WatchRecordingInboxItemTests: XCTestCase {
             receivedAt: Date(timeIntervalSince1970: 1_700_000_001),
             duration: 8,
             flowSnapshot: nil,
-            capturesRecordingWithoutTranscript: capturesRecordingWithoutTranscript
+            capturesRecordingWithoutTranscript: capturesRecordingWithoutTranscript,
+            statusMessage: statusMessage
         )
     }
 }
