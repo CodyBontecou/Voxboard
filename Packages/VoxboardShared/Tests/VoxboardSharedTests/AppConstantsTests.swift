@@ -59,5 +59,10 @@ final class AppConstantsTests: XCTestCase {
             AppConstants.captureHistoryURL?.lastPathComponent,
             AppConstants.captureHistoryFilename
         )
+        XCTAssertEqual(AppConstants.activityStatsFilename, "activity-stats-v1.json")
+        XCTAssertEqual(
+            AppConstants.activityStatsURL?.lastPathComponent,
+            AppConstants.activityStatsFilename
+        )
     }
 }

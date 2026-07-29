@@ -275,6 +275,7 @@ public actor CaptureHistoryStore {
 
     private let coordinator: any CaptureFileCoordinating
     private let fileManager: FileManager
+    private let activityStatsStore: ActivityStatsStore
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
 
@@ -294,6 +295,12 @@ public actor CaptureHistoryStore {
         self.coordinator = coordinator
         self.maximumRecordCount = max(0, maximumRecordCount)
         self.fileManager = fileManager
+        self.activityStatsStore = ActivityStatsStore(
+            fileURL: fileURL.deletingLastPathComponent()
+                .appendingPathComponent(ActivityStatsStore.defaultFilename),
+            coordinator: coordinator,
+            fileManager: fileManager
+        )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         self.encoder = encoder
@@ -332,7 +339,7 @@ public actor CaptureHistoryStore {
     public func upsert(_ record: CaptureHistoryRecord) throws -> CaptureHistoryRecord {
         do {
             try record.validateForPersistence()
-            return try coordinator.coordinateWriting(at: fileURL) { coordinatedURL in
+            let persisted = try coordinator.coordinateWriting(at: fileURL) { coordinatedURL in
                 var records = try loadLatest(from: coordinatedURL)
                 records.removeAll { $0.requestID == record.requestID }
                 records.append(record)
@@ -340,6 +347,17 @@ public actor CaptureHistoryStore {
                 try persist(records, to: coordinatedURL)
                 return record
             }
+            if persisted.outcome == .delivered {
+                // Stats are best-effort and must never turn a completed Capture
+                // into a reported delivery failure.
+                _ = try? activityStatsStore.record(CaptureActivityEvent(
+                    id: persisted.requestID,
+                    date: persisted.deliveredAt ?? persisted.createdAt,
+                    source: persisted.source,
+                    attachmentCount: persisted.attachmentCount
+                ))
+            }
+            return persisted
         } catch let error as CaptureHistoryWriteError {
             throw error
         } catch {

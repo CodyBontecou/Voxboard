@@ -33,21 +33,31 @@ public final class TranscriptStore {
     private let fileURL: URL?
     private let coordinator: any CaptureFileCoordinating
     private let fileManager: FileManager
+    private let activityStatsStore: ActivityStatsStore?
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
     public convenience init() {
-        self.init(fileURL: AppConstants.sharedContainerURL?.appendingPathComponent("transcripts.json"))
+        let coordinator = NSFileCoordinatorCaptureFileCoordinator.shared
+        self.init(
+            fileURL: AppConstants.sharedContainerURL?.appendingPathComponent("transcripts.json"),
+            coordinator: coordinator,
+            activityStatsStore: AppConstants.activityStatsURL.map {
+                ActivityStatsStore(fileURL: $0, coordinator: coordinator)
+            }
+        )
     }
 
     init(
         fileURL: URL?,
         coordinator: any CaptureFileCoordinating = NSFileCoordinatorCaptureFileCoordinator.shared,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        activityStatsStore: ActivityStatsStore? = nil
     ) {
         self.fileURL = fileURL
         self.coordinator = coordinator
         self.fileManager = fileManager
+        self.activityStatsStore = activityStatsStore
         load()
     }
 
@@ -56,6 +66,14 @@ public final class TranscriptStore {
             latest.removeAll { $0.id == transcript.id }
             latest.insert(transcript, at: 0)
         }
+        guard lastPersistenceError == nil else { return }
+        // Stats are content-free and best-effort; history persistence remains
+        // the source of truth for whether this recording completed.
+        _ = try? activityStatsStore?.record(RecordingActivityEvent(
+            id: transcript.id,
+            date: transcript.date,
+            duration: transcript.duration
+        ))
     }
 
     /// Replace an existing transcript by id. No-op if the id is unknown.

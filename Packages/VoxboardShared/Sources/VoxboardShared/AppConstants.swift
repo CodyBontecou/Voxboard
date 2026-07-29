@@ -9,6 +9,7 @@ public enum AppConstants: Sendable {
     public static let captureDirectoryName = "Capture"
     public static let captureLibraryFilename = CaptureLibraryStore.defaultFilename
     public static let captureHistoryFilename = "capture-history-v1.json"
+    public static let activityStatsFilename = ActivityStatsStore.defaultFilename
     public static let captureUsageFilename = "capture-usage-v1.json"
     public static let captureUsageMirrorKey = "successfulCaptureDeliveries.v1"
     public static let selectedModelKey = "selectedWhisperModel"
@@ -91,6 +92,10 @@ public enum AppConstants: Sendable {
 
     public static var captureHistoryURL: URL? {
         captureDirectoryURL?.appendingPathComponent(captureHistoryFilename)
+    }
+
+    public static var activityStatsURL: URL? {
+        captureDirectoryURL?.appendingPathComponent(activityStatsFilename)
     }
 
     public static var captureUsageURL: URL? {

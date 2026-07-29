@@ -588,6 +588,7 @@ final class WatchRecordingPipeline {
         _ = try? await captureInbox.recoverStaleProcessing(olderThan: 5 * 60)
         let existingState = try await captureInbox.state(of: item.requestID)
         if existingState == .completed {
+            recordCompletedRecording(item)
             complete(item, message: "Recording captured without a transcript")
             return
         }
@@ -621,6 +622,7 @@ final class WatchRecordingPipeline {
                 source: .watch
             )
             try ensureProcessingIsActive(for: item.id)
+            recordCompletedRecording(item)
             lastDeliveredRecordingID = item.id
             complete(item, message: "Recording captured without a transcript")
         } catch is CancellationError {
@@ -737,6 +739,7 @@ final class WatchRecordingPipeline {
                         message: "The Files copy succeeded, but delivery state could not be saved. Retry is safe."
                     )
                 }
+                recordCompletedRecording(item)
                 lastDeliveredRecordingID = item.id
                 refresh()
                 WatchRecordingController.shared.publishState()
@@ -765,6 +768,16 @@ final class WatchRecordingPipeline {
             stage: .delivery,
             message: RecordingOnlyFileExportError.filenameConflict.localizedDescription
         )
+    }
+
+    private func recordCompletedRecording(_ item: WatchRecordingInboxItem) {
+        guard let statsURL = AppConstants.activityStatsURL else { return }
+        let duration = item.duration ?? AudioFileConverter.duration(of: item.fileURL) ?? 0
+        _ = try? ActivityStatsStore(fileURL: statsURL).record(RecordingActivityEvent(
+            id: item.requestID,
+            date: item.createdAt,
+            duration: duration
+        ))
     }
 
     private func recordingOnlyPipelineError(_ error: Error) -> WatchRecordingPipelineError {

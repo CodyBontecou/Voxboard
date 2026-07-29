@@ -30,6 +30,8 @@ struct MetaSettingsView: View {
                 VStack(spacing: 0) {
                     upgradeSection
                     GeistDivider()
+                    activitySection
+                    GeistDivider()
                     customizationSection
                     GeistDivider()
                     keyboardSection
@@ -152,14 +154,31 @@ struct MetaSettingsView: View {
         }
     }
 
+    // MARK: - Activity Section
+
+    private var activitySection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("01", "Activity")
+            GeistDivider()
+
+            settingsNavigationRow(
+                "Stats",
+                description: "Recordings, recording time, and Capture activity",
+                systemImage: "chart.bar.xaxis"
+            ) {
+                StatsView()
+            }
+        }
+    }
+
     // MARK: - Customization Section
 
     private var customizationSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("01", "Customization")
+            sectionHeader("02", "Customization")
             GeistDivider()
 
-            customizationRow(
+            settingsNavigationRow(
                 "Models",
                 description: "Transcription engines, model downloads, and language",
                 systemImage: "cpu"
@@ -169,7 +188,7 @@ struct MetaSettingsView: View {
 
             GeistDivider()
 
-            customizationRow(
+            settingsNavigationRow(
                 "Capture Presets",
                 description: "Processing, formatting, metadata, and destinations",
                 systemImage: "slider.horizontal.3"
@@ -179,7 +198,7 @@ struct MetaSettingsView: View {
 
             GeistDivider()
 
-            customizationRow(
+            settingsNavigationRow(
                 "Capture Bar",
                 description: "Choose, reorder, and hide quick actions",
                 systemImage: "rectangle.3.group"
@@ -189,7 +208,7 @@ struct MetaSettingsView: View {
         }
     }
 
-    private func customizationRow<Destination: View>(
+    private func settingsNavigationRow<Destination: View>(
         _ title: LocalizedStringKey,
         description: LocalizedStringKey,
         systemImage: String,
@@ -231,7 +250,7 @@ struct MetaSettingsView: View {
 
     private var keyboardSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("02", "Keyboard")
+            sectionHeader("03", "Keyboard")
             GeistDivider()
 
             HStack {
@@ -261,7 +280,7 @@ struct MetaSettingsView: View {
 
     private var lockScreenSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("03", "Lock Screen")
+            sectionHeader("04", "Lock Screen")
             GeistDivider()
 
             HStack {
@@ -325,7 +344,7 @@ struct MetaSettingsView: View {
 
     private var aboutSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("04", "About")
+            sectionHeader("05", "About")
             GeistDivider()
 
             var rows: [(String, String)] = [
@@ -367,7 +386,7 @@ struct MetaSettingsView: View {
 
     private var feedbackSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("05", "Feedback")
+            sectionHeader("06", "Feedback")
             GeistDivider()
 
             Button(action: openDiscord) {
@@ -419,7 +438,7 @@ struct MetaSettingsView: View {
 
     private var debugSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("06", "Debug")
+            sectionHeader("07", "Debug")
             GeistDivider()
 
             Button {
