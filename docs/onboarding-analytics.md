@@ -30,10 +30,10 @@ ONBOARDING_ANALYTICS_TRANSPORT=offline
 The updated privacy policy is deployed at:
 
 ```text
-https://voxboard-app.vercel.app/privacy.html
+https://vox.isolated.tech/privacy.html
 ```
 
-The fastlane privacy/support/marketing URLs now point at the live Vercel site instead of the old `isolated.tech/voxboard` URL, which currently returns 404.
+The fastlane privacy, support, and marketing URLs use the canonical `vox.isolated.tech` domain.
 
 App Store Connect App Privacy is now published for app `6758967337` with the canonical declaration in `app-store-privacy.json`:
 

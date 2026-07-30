@@ -10,7 +10,7 @@ Vox.md turns text, voice, links, photos, scans, sketches, and files into Markdow
 
 Capture from the main app, the Vox.md keyboard, Share Sheet, widgets, Control Center, Live Activities, Shortcuts, deep links, Mac keyboard shortcuts, or Apple Watch. Voice transcription runs on device with Apple Speech, Whisper, or Parakeet. Apple Intelligence processing also stays on device when it is available.
 
-**[🌐 Website](https://voxboard.isolated.tech/)** · **[📚 Documentation](https://voxboard.isolated.tech/docs/)** · **[🤖 llms.txt](https://voxboard.isolated.tech/llms.txt)** · **[📲 Download](https://apps.apple.com/us/app/voxboard/id6758967337)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[💬 Discussions](https://github.com/CodyBontecou/Voxboard/discussions)** · **[👥 Discord](https://discord.gg/RaQYS4t6gn)** · **[⭐ Star this repo](https://github.com/CodyBontecou/Voxboard)**
+**[🌐 Website](https://vox.isolated.tech/)** · **[📚 Documentation](https://vox.isolated.tech/docs/)** · **[🤖 llms.txt](https://vox.isolated.tech/llms.txt)** · **[📲 Download](https://apps.apple.com/us/app/voxboard/id6758967337)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[💬 Discussions](https://github.com/CodyBontecou/Voxboard/discussions)** · **[👥 Discord](https://discord.gg/RaQYS4t6gn)** · **[⭐ Star this repo](https://github.com/CodyBontecou/Voxboard)**
 
 ## Vox.md 2.0
 

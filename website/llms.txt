@@ -3,7 +3,7 @@
 > Vox.md is an open-source, local-first quick-capture app for iPhone, iPad, Mac, and Apple Watch. It captures text, links, photos, files, scans, sketches, and voice, then writes standard Markdown and attachments into a user-selected Obsidian vault or Files folder. Voice transcription and supported AI processing run on the Apple device; capture content is not sent to Vox.md servers.
 
 Canonical product name: Vox.md
-Canonical website: https://voxboard.isolated.tech/
+Canonical website: https://vox.isolated.tech/
 App Store: https://apps.apple.com/us/app/voxboard/id6758967337
 Source: https://github.com/CodyBontecou/Voxboard
 URL scheme: voxboard://
@@ -11,17 +11,17 @@ Documentation updated: 2026-07-29
 
 ## Documentation
 
-- [Complete Feature Guide](https://voxboard.isolated.tech/docs/): Every shipped user-facing feature, organized by category.
-- [Getting Started](https://voxboard.isolated.tech/docs/#getting-started): Platforms, minimum versions, setup, permissions, and first capture.
-- [Quick Capture](https://voxboard.isolated.tech/docs/#quick-capture): Durable composer, capture types, Capture Bar, inline voice, and input limits.
-- [Capture Presets and Routes](https://voxboard.isolated.tech/docs/#presets): Processing modes, metadata, Markdown destinations, placement, templates, overrides, retry protection, and audio rules.
-- [Models and Transcription](https://voxboard.isolated.tech/docs/#models): Automatic Apple Speech, Whisper, Parakeet, languages, downloads, and pause detection.
-- [iOS Keyboard](https://voxboard.isolated.tech/docs/#keyboard): Full Access setup, dictation, live insertion, fallback behavior, haptics, and auto-stop.
-- [System Integrations](https://voxboard.isolated.tech/docs/#system-integrations): Share Extension, widgets, Lock Screen, Control Center, Live Activities, Shortcuts, and deep links.
-- [Apple Watch](https://voxboard.isolated.tech/docs/#apple-watch): Local recording, preset selection, iPhone queue, recording-only output, and complication.
-- [Mac Companion](https://voxboard.isolated.tech/docs/#mac): Capture workspace, audio import, menu bar, visibility, global keybinds, history, and models.
-- [History, Settings, Pricing, and Privacy](https://voxboard.isolated.tech/docs/#history-settings): Local history, recovery, settings map, free allowances, lifetime unlock, and data handling.
-- [Troubleshooting](https://voxboard.isolated.tech/docs/#troubleshooting): Destination, keyboard, model, transcription, heading, and Watch queue issues.
+- [Complete Feature Guide](https://vox.isolated.tech/docs/): Every shipped user-facing feature, organized by category.
+- [Getting Started](https://vox.isolated.tech/docs/#getting-started): Platforms, minimum versions, setup, permissions, and first capture.
+- [Quick Capture](https://vox.isolated.tech/docs/#quick-capture): Durable composer, capture types, Capture Bar, inline voice, and input limits.
+- [Capture Presets and Routes](https://vox.isolated.tech/docs/#presets): Processing modes, metadata, Markdown destinations, placement, templates, overrides, retry protection, and audio rules.
+- [Models and Transcription](https://vox.isolated.tech/docs/#models): Automatic Apple Speech, Whisper, Parakeet, languages, downloads, and pause detection.
+- [iOS Keyboard](https://vox.isolated.tech/docs/#keyboard): Full Access setup, dictation, live insertion, fallback behavior, haptics, and auto-stop.
+- [System Integrations](https://vox.isolated.tech/docs/#system-integrations): Share Extension, widgets, Lock Screen, Control Center, Live Activities, Shortcuts, and deep links.
+- [Apple Watch](https://vox.isolated.tech/docs/#apple-watch): Local recording, preset selection, iPhone queue, recording-only output, and complication.
+- [Mac Companion](https://vox.isolated.tech/docs/#mac): Capture workspace, audio import, menu bar, visibility, global keybinds, history, and models.
+- [History, Settings, Pricing, and Privacy](https://vox.isolated.tech/docs/#history-settings): Local history, recovery, settings map, free allowances, lifetime unlock, and data handling.
+- [Troubleshooting](https://vox.isolated.tech/docs/#troubleshooting): Destination, keyboard, model, transcription, heading, and Watch queue issues.
 
 ## Product Facts
 
@@ -108,8 +108,8 @@ Capture drafts, attachments, audio, transcripts, templates, routes, file paths, 
 
 Production onboarding analytics are disabled by default. Vox.md has no third-party analytics SDK, ad network, or cross-app tracker. User-initiated model downloads contact external model-distribution infrastructure, currently Hugging Face directly or through FluidAudio, which can receive ordinary connection metadata but no capture content. After successful Capture delivery, recoverable request content is replaced with an identifier-and-timestamp-only tombstone. Completed Capture history stores coarse delivery metadata, not note content, URLs, coordinates, bookmarks, absolute paths, or attachment filenames.
 
-- [Privacy Policy](https://voxboard.isolated.tech/privacy.html): Complete data handling and retention details.
-- [Terms of Service](https://voxboard.isolated.tech/terms.html): Product terms and transcription disclaimers.
+- [Privacy Policy](https://vox.isolated.tech/privacy.html): Complete data handling and retention details.
+- [Terms of Service](https://vox.isolated.tech/terms.html): Product terms and transcription disclaimers.
 
 ## Pricing
 
@@ -117,8 +117,8 @@ The free tier includes 15 minutes of transcription and 10 successful Capture del
 
 ## Additional Resources
 
-- [Homepage](https://voxboard.isolated.tech/): Product overview and screenshots.
-- [Blog](https://voxboard.isolated.tech/blog/): Capture and private dictation guides.
+- [Homepage](https://vox.isolated.tech/): Product overview and screenshots.
+- [Blog](https://vox.isolated.tech/blog/): Capture and private dictation guides.
 - [GitHub README](https://github.com/CodyBontecou/Voxboard#readme): Technical overview and repository map.
 - [Setup](https://github.com/CodyBontecou/Voxboard/blob/main/SETUP.md): Local development setup.
 - [Contributing](https://github.com/CodyBontecou/Voxboard/blob/main/CONTRIBUTING.md): Contribution workflow.

@@ -645,7 +645,7 @@ else:
     llms = website_llms.read_text()
     for required in [
         '# Vox.md',
-        'https://voxboard.isolated.tech/docs/',
+        'https://vox.isolated.tech/docs/',
         '## Keyboard Safety Note',
         'Allow Full Access',
     ]:
@@ -655,7 +655,7 @@ else:
 website_sitemap = website_root / 'sitemap.xml'
 if not website_sitemap.exists():
     errors.append('website is missing sitemap.xml')
-elif 'https://voxboard.isolated.tech/docs/' not in website_sitemap.read_text():
+elif 'https://vox.isolated.tech/docs/' not in website_sitemap.read_text():
     errors.append('website sitemap does not include documentation')
 
 for font_name in [

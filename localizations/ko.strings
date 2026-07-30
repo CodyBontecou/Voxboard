@@ -6,5 +6,5 @@
 • Apple Watch 녹음 — iPhone을 꺼내지 않고 Watch에서 로컬 음성 메모를 시작하고 중지할 수 있습니다.
 • Watch 대기열 동기화 — 녹음은 Apple Watch에 저장되고 기기가 다시 연결되면 iPhone 대기열에 나타납니다.
 • 더 명확한 상태 — 준비, 녹음 중, 동기화 중, 대기 중, 전송됨 상태를 더 이해하기 쉽게 다듬었습니다.";
-"supportUrl" = "https://isolated.tech/voxboard";
-"marketingUrl" = "https://isolated.tech/voxboard";
+"supportUrl" = "https://vox.isolated.tech/";
+"marketingUrl" = "https://vox.isolated.tech/";

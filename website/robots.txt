@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://voxboard.isolated.tech/sitemap.xml
+Sitemap: https://vox.isolated.tech/sitemap.xml

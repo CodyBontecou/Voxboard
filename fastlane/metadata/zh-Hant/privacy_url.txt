@@ -1,1 +1,1 @@
-https://voxboard-app.vercel.app/privacy.html
+https://vox.isolated.tech/privacy.html

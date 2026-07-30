@@ -157,12 +157,12 @@
 html {
   min-width: 320px;
   scroll-behavior: smooth;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
   background: var(--background-100);
   color: var(--gray-1000);
   font-family: var(--font-sans);

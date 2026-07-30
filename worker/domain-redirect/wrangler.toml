@@ -1,0 +1,7 @@
+name = "vox-domain-redirect"
+main = "src/index.ts"
+compatibility_date = "2026-07-30"
+
+routes = [
+  { pattern = "voxboard.isolated.tech/*", zone_name = "isolated.tech" }
+]
