@@ -181,6 +181,8 @@ struct VoxboardWatchRecordWidgetView: View {
             Label {
                 if entry.snapshot.shouldShowTimer, let started = entry.snapshot.recordingStartedAt {
                     Text(Date(timeIntervalSince1970: started), style: .timer)
+                } else if let pausedDuration = entry.snapshot.pausedDuration {
+                    Text("Paused \(formattedDuration(pausedDuration))")
                 } else {
                     Text(inlineTitle)
                 }
@@ -207,6 +209,9 @@ struct VoxboardWatchRecordWidgetView: View {
         if entry.snapshot.shouldShowTimer, let started = entry.snapshot.recordingStartedAt {
             Text(Date(timeIntervalSince1970: started), style: .timer)
                 .monospacedDigit()
+        } else if let pausedDuration = entry.snapshot.pausedDuration {
+            Text("Paused · \(formattedDuration(pausedDuration))")
+                .monospacedDigit()
         } else {
             Text(entry.snapshot.subtitle)
         }
@@ -220,7 +225,7 @@ struct VoxboardWatchRecordWidgetView: View {
         switch entry.snapshot.phase {
         case .recording, .error, .unavailable:
             return WatchWidgetGeist.error
-        case .syncing, .transcribing, .delivering, .pending:
+        case .paused, .syncing, .transcribing, .delivering, .pending:
             return WatchWidgetGeist.active
         case .idle, .listening:
             return .primary
@@ -231,6 +236,8 @@ struct VoxboardWatchRecordWidgetView: View {
         switch entry.snapshot.phase {
         case .recording:
             return "Recording"
+        case .paused:
+            return "Paused"
         case .syncing:
             return "Syncing"
         case .transcribing:
@@ -250,7 +257,7 @@ struct VoxboardWatchRecordWidgetView: View {
 
     private var cornerLabel: String {
         switch entry.snapshot.phase {
-        case .recording:
+        case .recording, .paused:
             return "Stop"
         case .syncing:
             return "Sync"
@@ -265,6 +272,17 @@ struct VoxboardWatchRecordWidgetView: View {
         default:
             return entry.snapshot.queuedCount > 0 ? "Sync" : "Record"
         }
+    }
+
+    private func formattedDuration(_ duration: TimeInterval) -> String {
+        let totalSeconds = max(0, Int(duration))
+        let hours = totalSeconds / 3_600
+        let minutes = (totalSeconds % 3_600) / 60
+        let seconds = totalSeconds % 60
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        }
+        return String(format: "%d:%02d", minutes, seconds)
     }
 }
 
@@ -309,7 +327,7 @@ private struct VoxboardComplicationMark: View {
         switch phase {
         case .recording, .error, .unavailable:
             return WatchWidgetGeist.error
-        case .syncing, .transcribing, .delivering, .pending:
+        case .paused, .syncing, .transcribing, .delivering, .pending:
             return WatchWidgetGeist.active
         case .idle, .listening:
             return .primary

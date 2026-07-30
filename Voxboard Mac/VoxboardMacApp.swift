@@ -104,7 +104,13 @@ struct VoxboardMacApp: App {
                 .onAppear {
                     appDelegate.configureURLHandler(handleURL)
                     appDelegate.configureLifecycleHandlers(
-                        didBecomeActive: { [weak quickCaptureViewModel] in
+                        didBecomeActive: { [weak quickCaptureViewModel, weak windowCoordinator] in
+                            if let quickCaptureViewModel, let windowCoordinator {
+                                Self.consumePendingQuickCaptureOpenIfNeeded(
+                                    quickCaptureViewModel: quickCaptureViewModel,
+                                    windowCoordinator: windowCoordinator
+                                )
+                            }
                             await quickCaptureViewModel?.retryFailedInbox()
                         },
                         flushDraft: { [weak quickCaptureViewModel, weak recorder, weak windowCoordinator] in
@@ -125,6 +131,10 @@ struct VoxboardMacApp: App {
                     transcriptStore.reload()
                     usageTracker.reload()
                     configureGlobalHotKeys()
+                    Self.consumePendingQuickCaptureOpenIfNeeded(
+                        quickCaptureViewModel: quickCaptureViewModel,
+                        windowCoordinator: windowCoordinator
+                    )
                     Task {
                         await storeManager.syncCurrentEntitlements()
                         usageTracker.reload()
@@ -267,6 +277,37 @@ struct VoxboardMacApp: App {
         default:
             break
         }
+    }
+
+    @MainActor
+    private static func consumePendingQuickCaptureOpenIfNeeded(
+        quickCaptureViewModel: QuickCaptureViewModel,
+        windowCoordinator: MacWindowCoordinator
+    ) {
+        guard AppConstants.sharedDefaults?.bool(
+            forKey: AppConstants.pendingQuickCaptureOpenKey
+        ) == true else { return }
+
+        AppConstants.sharedDefaults?.set(false, forKey: AppConstants.pendingQuickCaptureOpenKey)
+        if let rawSource = AppConstants.sharedDefaults?.string(
+            forKey: AppConstants.pendingQuickCaptureSourceKey
+        ), let source = CaptureSource(rawValue: rawSource) {
+            AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureSourceKey)
+            quickCaptureViewModel.requestCaptureSource(source)
+        }
+        if let voxID = AppConstants.sharedDefaults?.string(
+            forKey: AppConstants.pendingQuickCaptureVoxIdKey
+        ) {
+            AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureVoxIdKey)
+            quickCaptureViewModel.requestVox(voxID)
+        }
+        if let rawInput = AppConstants.sharedDefaults?.string(
+            forKey: AppConstants.pendingQuickCaptureInputKey
+        ), let input = CaptureRequestedInput(rawValue: rawInput) {
+            AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureInputKey)
+            quickCaptureViewModel.requestedInput = input
+        }
+        windowCoordinator.showMain(.showCapture)
     }
 
     private func configureGlobalHotKeys() {

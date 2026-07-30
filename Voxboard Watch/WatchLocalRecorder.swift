@@ -7,6 +7,7 @@ final class WatchLocalRecorder: ObservableObject {
     enum Phase: Equatable {
         case idle
         case recording
+        case paused
         case transferring
         case waitingForPhone
         case transcribing
@@ -137,8 +138,18 @@ final class WatchLocalRecorder: ObservableObject {
         }
     }
 
+    /// Whether a recording session is active, including while audio capture is paused.
     var isRecording: Bool {
-        if case .recording = phase { return true }
+        switch phase {
+        case .recording, .paused:
+            return true
+        default:
+            return false
+        }
+    }
+
+    var isPaused: Bool {
+        if case .paused = phase { return true }
         return false
     }
 
@@ -166,6 +177,8 @@ final class WatchLocalRecorder: ObservableObject {
             return queuedCount > 0 ? "Saved" : "Vox.md"
         case .recording:
             return "Recording"
+        case .paused:
+            return "Paused"
         case .transferring:
             return "Syncing"
         case .waitingForPhone:
@@ -190,7 +203,9 @@ final class WatchLocalRecorder: ObservableObject {
             }
             return "Record on this Watch. Syncs to iPhone later."
         case .recording:
-            return "Tap the status card to stop when your thought is captured."
+            return "Pause when you need a break, or stop when your thought is captured."
+        case .paused:
+            return "Recording paused. Resume when you're ready, or stop to save it."
         case .transferring:
             return "Sending Watch recordings to the iPhone queue."
         case .waitingForPhone:
@@ -229,6 +244,8 @@ final class WatchLocalRecorder: ObservableObject {
             return .idle
         case .recording:
             return .recording
+        case .paused:
+            return .paused
         case .transferring:
             return .syncing
         case .waitingForPhone:
@@ -245,10 +262,14 @@ final class WatchLocalRecorder: ObservableObject {
     }
 
     private func publishWidgetSnapshot() {
+        let widgetTimerStartedAt = phase == .recording
+            ? Date().addingTimeInterval(-duration).timeIntervalSince1970
+            : nil
         let snapshot = WatchRecordingSnapshot(
             phase: widgetPhase,
             isQuickRecordEnabled: true,
-            recordingStartedAt: startedAt?.timeIntervalSince1970,
+            recordingStartedAt: widgetTimerStartedAt,
+            recordingDuration: isRecording ? duration : nil,
             message: message,
             queuedCount: queuedCount
         )
@@ -262,6 +283,36 @@ final class WatchLocalRecorder: ObservableObject {
         } else {
             await start(using: bridge)
         }
+    }
+
+    func togglePause() {
+        if isPaused {
+            resumeRecording()
+        } else {
+            pauseRecording()
+        }
+    }
+
+    func pauseRecording() {
+        guard case .recording = phase, let recorder else { return }
+        recorder.pause()
+        duration = max(duration, recorder.currentTime)
+        stopTimer()
+        message = nil
+        phase = .paused
+    }
+
+    func resumeRecording() {
+        guard case .paused = phase, let recorder else { return }
+        guard recorder.record() else {
+            message = "Could not resume this recording. Stop to save what was captured."
+            return
+        }
+
+        duration = max(duration, recorder.currentTime)
+        message = nil
+        phase = .recording
+        startTimer()
     }
 
     func handleDeepLink(_ url: URL, using bridge: WatchPhoneBridge) async {
@@ -959,8 +1010,8 @@ final class WatchLocalRecorder: ObservableObject {
         stopTimer()
         timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
-                guard let self, let startedAt = self.startedAt else { return }
-                self.duration = Date().timeIntervalSince(startedAt)
+                guard let self, let recorder = self.recorder else { return }
+                self.duration = max(self.duration, recorder.currentTime)
             }
         }
     }
@@ -980,6 +1031,7 @@ final class WatchLocalRecorder: ObservableObject {
         currentPresetName = nil
         currentPresetSnapshot = nil
         startedAt = nil
+        duration = 0
         stopTimer()
         try? AVAudioSession.sharedInstance().setActive(false)
     }

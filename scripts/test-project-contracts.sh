@@ -501,7 +501,7 @@ for required in [
     if required not in quick_capture_model:
         errors.append(f'Quick Capture cold-launch routing hardening is missing {required}')
 
-intent_source = (root / 'Voxboard/Capture/CaptureAppIntents.swift').read_text()
+intent_source = (root / 'Voxboard App Shared/CaptureAppIntents.swift').read_text()
 shortcut_source = (root / 'Voxboard/VoxboardShortcutsProvider.swift').read_text()
 if '@available(iOS 18.0, *)' in intent_source or '@available(iOS 18.0, *)' in shortcut_source:
     errors.append('capture App Intents must remain available on the supported iOS 17.6 deployment target')

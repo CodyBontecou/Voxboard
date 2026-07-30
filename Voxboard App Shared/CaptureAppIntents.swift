@@ -3,7 +3,7 @@ import Foundation
 import UniformTypeIdentifiers
 import VoxboardShared
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 struct CaptureDestinationEntity: AppEntity, Identifiable, Hashable {
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Capture Destination"
     static var defaultQuery = CaptureDestinationEntityQuery()
@@ -23,7 +23,7 @@ struct CaptureDestinationEntity: AppEntity, Identifiable, Hashable {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 struct CaptureDestinationEntityQuery: EntityQuery, EnumerableEntityQuery {
     func entities(for identifiers: [String]) async throws -> [CaptureDestinationEntity] {
         let requested = Set(identifiers)
@@ -53,7 +53,7 @@ struct CaptureDestinationEntityQuery: EntityQuery, EnumerableEntityQuery {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 struct CaptureVoxEntity: AppEntity, Identifiable, Hashable {
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "Capture Preset"
     static var defaultQuery = CaptureVoxEntityQuery()
@@ -73,7 +73,7 @@ struct CaptureVoxEntity: AppEntity, Identifiable, Hashable {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 struct CaptureVoxEntityQuery: EntityQuery, EnumerableEntityQuery {
     func entities(for identifiers: [String]) async throws -> [CaptureVoxEntity] {
         let requested = Set(identifiers)
@@ -94,7 +94,7 @@ struct CaptureVoxEntityQuery: EntityQuery, EnumerableEntityQuery {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 struct CaptureTextIntent: AppIntent {
     static let title: LocalizedStringResource = "Capture Text to Markdown"
     static let description = IntentDescription("Sends text with a configured Capture Preset.")
@@ -134,7 +134,7 @@ struct CaptureTextIntent: AppIntent {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 struct CaptureURLIntent: AppIntent {
     static let title: LocalizedStringResource = "Capture Link to Markdown"
     static let description = IntentDescription("Sends a web link with a configured Capture Preset.")
@@ -174,7 +174,7 @@ struct CaptureURLIntent: AppIntent {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 struct CaptureFileIntent: AppIntent {
     static let title: LocalizedStringResource = "Capture File to Markdown"
     static let description = IntentDescription("Copies a file or image with a configured Capture Preset.")
@@ -211,7 +211,7 @@ struct CaptureFileIntent: AppIntent {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 struct OpenQuickCaptureIntent: AppIntent {
     static let title: LocalizedStringResource = "Open Quick Capture"
     static let description = IntentDescription("Opens the durable Vox.md composer with a Capture Preset.")
@@ -233,7 +233,7 @@ struct OpenQuickCaptureIntent: AppIntent {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 struct OpenCaptureVoiceIntent: AppIntent {
     static let title: LocalizedStringResource = "Record a Capture"
     static let description = IntentDescription("Opens Quick Capture and records with the selected Capture Preset entirely on device.")
@@ -255,7 +255,7 @@ struct OpenCaptureVoiceIntent: AppIntent {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 struct OpenCaptureScreenshotIntent: AppIntent {
     static let title: LocalizedStringResource = "Capture a Screenshot"
     static let description = IntentDescription("Opens Quick Capture and adds screenshots with the selected Capture Preset.")
@@ -277,7 +277,7 @@ struct OpenCaptureScreenshotIntent: AppIntent {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 enum CaptureIntentSupport {
     static func requestComposer(
         input: CaptureRequestedInput? = nil,
@@ -433,7 +433,7 @@ enum CaptureIntentSupport {
     }
 }
 
-@available(iOS 17.0, *)
+@available(iOS 17.0, macOS 14.0, *)
 enum CaptureIntentError: Error, LocalizedError {
     case storageUnavailable
     case destinationRequired

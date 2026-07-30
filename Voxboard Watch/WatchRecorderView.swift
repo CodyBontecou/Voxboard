@@ -282,29 +282,35 @@ struct WatchRecorderView: View {
                 statusIcon(size: 44, symbolSize: 18)
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Recording")
+                    Text(localRecorder.isPaused ? "Paused" : "Recording")
                         .font(WatchGeist.label(.caption))
                         .foregroundStyle(WatchGeist.text)
-                    if let startedAt = localRecorder.startedAt {
-                        Text(startedAt, style: .timer)
-                            .font(.system(size: 27, weight: .semibold, design: .monospaced))
-                            .foregroundStyle(WatchGeist.text)
-                            .monospacedDigit()
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.72)
-                    }
+                    Text(formattedDuration(localRecorder.duration))
+                        .font(.system(size: 27, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(WatchGeist.text)
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.72)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             HStack(spacing: WatchGeist.Spacing.two) {
-                WatchWaveformView(color: WatchGeist.red)
-                    .frame(width: 64)
-                Text("Stop or Cancel")
+                if localRecorder.isPaused {
+                    Image(systemName: "pause.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(WatchGeist.blue)
+                        .frame(width: 64, height: 24)
+                        .accessibilityHidden(true)
+                } else {
+                    WatchWaveformView(color: WatchGeist.red)
+                        .frame(width: 64)
+                }
+                Text(localRecorder.isPaused ? "Resume • Stop • Cancel" : "Pause • Stop • Cancel")
                     .font(WatchGeist.caption())
                     .foregroundStyle(WatchGeist.muted)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.72)
+                    .minimumScaleFactor(0.62)
             }
             .frame(maxWidth: .infinity)
         }
@@ -326,8 +332,11 @@ struct WatchRecorderView: View {
     @ViewBuilder
     private var actionButtons: some View {
         if localRecorder.isRecording {
-            HStack(spacing: WatchGeist.Spacing.two) {
-                recordingButton
+            VStack(spacing: WatchGeist.Spacing.two) {
+                HStack(spacing: WatchGeist.Spacing.two) {
+                    recordingButton
+                    pauseResumeButton
+                }
                 cancelRecordingButton
             }
         } else if shouldShowSecondaryAction {
@@ -363,6 +372,23 @@ struct WatchRecorderView: View {
         .disabled(isSending || (!localRecorder.isRecording && !canStartRecording))
         .accessibilityLabel(localRecorder.isRecording ? "Stop Watch recording" : "Start Watch recording")
         .accessibilityHint(localRecorder.isRecording ? "Stops and safely saves this recording." : "Starts a recording stored locally on this Watch.")
+    }
+
+    private var pauseResumeButton: some View {
+        Button {
+            localRecorder.togglePause()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: localRecorder.isPaused ? "play.fill" : "pause.fill")
+                Text(localRecorder.isPaused ? "Resume" : "Pause")
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+        }
+        .buttonStyle(WatchGeistButtonStyle(variant: .secondary))
+        .disabled(isSending)
+        .accessibilityLabel(localRecorder.isPaused ? "Resume Watch recording" : "Pause Watch recording")
+        .accessibilityHint(localRecorder.isPaused ? "Continues adding audio to this recording." : "Temporarily stops adding audio without ending the recording.")
     }
 
     private var cancelRecordingButton: some View {
@@ -479,6 +505,8 @@ struct WatchRecorderView: View {
         switch localRecorder.phase {
         case .recording:
             return "Recording"
+        case .paused:
+            return "Paused"
         case .transferring:
             return "Syncing to iPhone"
         case .waitingForPhone:
@@ -500,7 +528,7 @@ struct WatchRecorderView: View {
         switch localRecorder.phase {
         case .transferring, .delivering, .transferred:
             return 16
-        case .recording, .waitingForPhone, .transcribing, .error:
+        case .recording, .paused, .waitingForPhone, .transcribing, .error:
             return 18
         case .idle:
             return 17
@@ -513,7 +541,12 @@ struct WatchRecorderView: View {
         }
         switch localRecorder.phase {
         case .recording:
-            return "Stop to save, or Cancel to delete."
+            return "Pause for a break, Stop to save, or Cancel to delete."
+        case .paused:
+            if let message = localRecorder.message, !message.isEmpty {
+                return message
+            }
+            return "Resume to continue, Stop to save, or Cancel to delete."
         case .transferring:
             return "Your recording remains safe while it moves to iPhone."
         case .waitingForPhone:
@@ -548,6 +581,8 @@ struct WatchRecorderView: View {
         switch localRecorder.phase {
         case .recording:
             return "Live"
+        case .paused:
+            return "Paused"
         case .transferring:
             return "Sync"
         case .waitingForPhone:
@@ -569,7 +604,7 @@ struct WatchRecorderView: View {
         switch localRecorder.phase {
         case .recording, .error:
             return .destructive
-        case .transferring, .waitingForPhone, .transcribing, .delivering, .transferred:
+        case .paused, .transferring, .waitingForPhone, .transcribing, .delivering, .transferred:
             return .active
         case .idle:
             return localRecorder.queuedCount > 0 ? .active : .neutral
@@ -580,6 +615,8 @@ struct WatchRecorderView: View {
         switch localRecorder.phase {
         case .recording:
             return "waveform"
+        case .paused:
+            return "pause.fill"
         case .transferring:
             return "iphone.radiowaves.left.and.right"
         case .waitingForPhone:
@@ -598,11 +635,22 @@ struct WatchRecorderView: View {
     }
 
     private var accessibilityStatusLabel: String {
-        if localRecorder.isRecording, let startedAt = localRecorder.startedAt {
-            let elapsed = Date().timeIntervalSince(startedAt)
-            return "Vox.md recording for \(Int(elapsed)) seconds. \(statusSubtitle)"
+        if localRecorder.isRecording {
+            let state = localRecorder.isPaused ? "paused" : "recording"
+            return "Vox.md \(state) at \(formattedDuration(localRecorder.duration)). \(statusSubtitle)"
         }
         return "Vox.md Watch status: \(phaseBadgeLabel). \(statusSubtitle)"
+    }
+
+    private func formattedDuration(_ duration: TimeInterval) -> String {
+        let totalSeconds = max(0, Int(duration))
+        let hours = totalSeconds / 3_600
+        let minutes = (totalSeconds % 3_600) / 60
+        let seconds = totalSeconds % 60
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        }
+        return String(format: "%d:%02d", minutes, seconds)
     }
 
     private func toggleRecording() async {

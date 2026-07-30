@@ -13,6 +13,56 @@ enum VoxboardReleaseNotes {
 
     static let notes: [NoteletVersionNotes] = [
         .init(
+            version: "2.0.3",
+            items: [
+                .list(
+                    title: "What’s new in Vox.md",
+                    rows: [
+                        .init(
+                            symbolSystemName: "pause.fill",
+                            title: "Pause Watch recordings",
+                            description: "Pause a recording on Apple Watch when you need a break, then resume in the same voice note without creating separate files."
+                        ),
+                        .init(
+                            symbolSystemName: "timer",
+                            title: "Accurate recording time",
+                            description: "The Watch timer freezes while paused and continues when you resume, with the paused state also reflected in Watch widgets."
+                        )
+                    ]
+                )
+            ]
+        ),
+        .init(
+            version: "2.0.2",
+            items: [
+                .list(
+                    title: "What’s new in Vox.md",
+                    rows: [
+                        .init(
+                            symbolSystemName: "chart.bar.xaxis",
+                            title: "Private Activity Stats",
+                            description: "Open Stats from Settings to see lifetime totals for recordings, captures, recorded time, and attachments, all stored on your device."
+                        ),
+                        .init(
+                            symbolSystemName: "calendar",
+                            title: "See your recent activity",
+                            description: "Review a seven-day activity chart and a breakdown of captures from the app, keyboard, Share Sheet, widgets, Shortcuts, and Apple Watch."
+                        ),
+                        .init(
+                            symbolSystemName: "applewatch",
+                            title: "Clearer Watch upgrades",
+                            description: "Apple Watch recordings now explain when free transcription time has been used and provide a direct path to unlock unlimited transcription."
+                        ),
+                        .init(
+                            symbolSystemName: "lock.shield",
+                            title: "Private by design",
+                            description: "Stats update as you capture while keeping captured content, filenames, and destinations out of analytics."
+                        )
+                    ]
+                )
+            ]
+        ),
+        .init(
             version: "1.9.5",
             items: [
                 .media(

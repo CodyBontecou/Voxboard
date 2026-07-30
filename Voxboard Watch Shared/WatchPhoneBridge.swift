@@ -8,6 +8,7 @@ enum WatchRecordingPayloadKey {
     static let phase = "phase"
     static let isQuickRecordEnabled = "isQuickRecordEnabled"
     static let recordingStartedAt = "recordingStartedAt"
+    static let recordingDuration = "recordingDuration"
     static let message = "message"
     static let queuedCount = "queuedCount"
     static let selectedPresetID = "selectedPresetID"
@@ -292,6 +293,7 @@ enum WatchRecordingPhase: String {
     case idle
     case listening
     case recording
+    case paused
     case syncing
     case transcribing
     case delivering
@@ -306,6 +308,7 @@ struct WatchRecordingSnapshot: Equatable {
     let stateRevision: Int?
     let isQuickRecordEnabled: Bool
     let recordingStartedAt: TimeInterval?
+    let recordingDuration: TimeInterval?
     let message: String?
     let queuedCount: Int
     let selectedPresetID: String?
@@ -350,6 +353,7 @@ struct WatchRecordingSnapshot: Equatable {
         stateRevision: Int? = nil,
         isQuickRecordEnabled: Bool,
         recordingStartedAt: TimeInterval? = nil,
+        recordingDuration: TimeInterval? = nil,
         message: String? = nil,
         queuedCount: Int = 0,
         selectedPresetID: String? = nil,
@@ -369,6 +373,7 @@ struct WatchRecordingSnapshot: Equatable {
         self.stateRevision = stateRevision
         self.isQuickRecordEnabled = isQuickRecordEnabled
         self.recordingStartedAt = recordingStartedAt
+        self.recordingDuration = recordingDuration.map { max(0, $0) }
         self.message = message
         self.queuedCount = max(0, queuedCount)
         self.selectedPresetID = selectedPresetID
@@ -391,6 +396,7 @@ struct WatchRecordingSnapshot: Equatable {
         let stateRevision = dictionary[WatchRecordingPayloadKey.stateRevision] as? Int
         let isQuickRecordEnabled = dictionary[WatchRecordingPayloadKey.isQuickRecordEnabled] as? Bool ?? true
         let recordingStartedAt = dictionary[WatchRecordingPayloadKey.recordingStartedAt] as? TimeInterval
+        let recordingDuration = dictionary[WatchRecordingPayloadKey.recordingDuration] as? TimeInterval
         let message = dictionary[WatchRecordingPayloadKey.message] as? String
         let queuedCount = dictionary[WatchRecordingPayloadKey.queuedCount] as? Int ?? 0
         let selectedPresetID = dictionary[WatchRecordingPayloadKey.selectedPresetID] as? String
@@ -412,6 +418,7 @@ struct WatchRecordingSnapshot: Equatable {
             stateRevision: stateRevision,
             isQuickRecordEnabled: isQuickRecordEnabled,
             recordingStartedAt: recordingStartedAt,
+            recordingDuration: recordingDuration,
             message: message,
             queuedCount: queuedCount,
             selectedPresetID: selectedPresetID,
@@ -441,6 +448,9 @@ struct WatchRecordingSnapshot: Equatable {
         }
         if let recordingStartedAt {
             payload[WatchRecordingPayloadKey.recordingStartedAt] = recordingStartedAt
+        }
+        if let recordingDuration {
+            payload[WatchRecordingPayloadKey.recordingDuration] = recordingDuration
         }
         if let message, !message.isEmpty {
             payload[WatchRecordingPayloadKey.message] = message
@@ -484,6 +494,7 @@ struct WatchRecordingSnapshot: Equatable {
             stateRevision: stateRevision,
             isQuickRecordEnabled: isQuickRecordEnabled,
             recordingStartedAt: recordingStartedAt,
+            recordingDuration: recordingDuration,
             message: message,
             queuedCount: queuedCount,
             selectedPresetID: id,
@@ -502,6 +513,7 @@ struct WatchRecordingSnapshot: Equatable {
     var title: String {
         switch phase {
         case .recording: return "Recording"
+        case .paused: return "Paused"
         case .syncing: return "Syncing"
         case .transcribing: return "Transcribing"
         case .delivering: return "Saving"
@@ -520,6 +532,7 @@ struct WatchRecordingSnapshot: Equatable {
         }
         switch phase {
         case .recording: return "Tap to stop"
+        case .paused: return "Paused · tap to stop"
         case .syncing: return "Syncing to iPhone"
         case .transcribing: return "Transcribing on iPhone"
         case .delivering: return "Saving on iPhone"
@@ -532,12 +545,17 @@ struct WatchRecordingSnapshot: Equatable {
     }
 
     var actionTitle: String {
-        phase == .recording ? "Stop" : "Record"
+        switch phase {
+        case .recording, .paused:
+            return "Stop"
+        default:
+            return "Record"
+        }
     }
 
     var actionSymbol: String {
         switch phase {
-        case .recording:
+        case .recording, .paused:
             return "stop.fill"
         case .syncing:
             return "arrow.triangle.2.circlepath"
@@ -554,6 +572,10 @@ struct WatchRecordingSnapshot: Equatable {
 
     var shouldShowTimer: Bool {
         phase == .recording && recordingStartedAt != nil
+    }
+
+    var pausedDuration: TimeInterval? {
+        phase == .paused ? recordingDuration : nil
     }
 }
 
@@ -1027,6 +1049,7 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
                 stateRevision: preservingRemoteContext ? current.stateRevision : incoming.stateRevision,
                 isQuickRecordEnabled: incoming.isQuickRecordEnabled,
                 recordingStartedAt: incoming.recordingStartedAt,
+                recordingDuration: incoming.recordingDuration,
                 message: incoming.message,
                 queuedCount: preservingRemoteContext
                     ? max(incoming.queuedCount, current.queuedCount)
