@@ -20,7 +20,8 @@ public enum LiveActivityCommandBuilder {
             action: .startSegment,
             modelId: modelId,
             language: language,
-            flowId: flowId
+            flowId: flowId,
+            origin: .liveActivity
         )
     }
 

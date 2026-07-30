@@ -194,10 +194,21 @@ struct MacCaptureDestinationEditor: View {
             panel.directoryURL = rootURL
             panel.prompt = "Choose Note"
             guard panel.runModal() == .OK, let selectedURL = panel.url?.standardizedFileURL else { return }
-            let rootPrefix = rootURL.path.hasSuffix("/") ? rootURL.path : rootURL.path + "/"
-            guard selectedURL.path.hasPrefix(rootPrefix) else { throw MacCaptureRouteError.noteOutsideRoot }
-            let relativePath = String(selectedURL.path.dropFirst(rootPrefix.count))
-            try CapturePathValidation.validateRelativePath(relativePath)
+            let rootAccess = rootURL.startAccessingSecurityScopedResource()
+            let selectedAccess = selectedURL.startAccessingSecurityScopedResource()
+            defer {
+                if selectedAccess { selectedURL.stopAccessingSecurityScopedResource() }
+                if rootAccess { rootURL.stopAccessingSecurityScopedResource() }
+            }
+            let relativePath: String
+            do {
+                relativePath = try CapturePathValidation.relativePath(
+                    for: selectedURL,
+                    containedIn: rootURL
+                )
+            } catch {
+                throw MacCaptureRouteError.noteOutsideRoot
+            }
             path = relativePath
             errorMessage = nil
         } catch {
@@ -246,12 +257,17 @@ struct MacCaptureDestinationEditor: View {
             guard selectedURL.pathExtension.lowercased() == "md" else {
                 throw MacCaptureRouteError.markdownTemplateRequired
             }
-            let rootPrefix = rootURL.path.hasSuffix("/") ? rootURL.path : rootURL.path + "/"
-            guard selectedURL.path.hasPrefix(rootPrefix) else {
+            let selectedAccess = selectedURL.startAccessingSecurityScopedResource()
+            defer { if selectedAccess { selectedURL.stopAccessingSecurityScopedResource() } }
+            let relativePath: String
+            do {
+                relativePath = try CapturePathValidation.relativePath(
+                    for: selectedURL,
+                    containedIn: rootURL
+                )
+            } catch {
                 throw MacCaptureRouteError.templateOutsideRoot
             }
-            let relativePath = String(selectedURL.path.dropFirst(rootPrefix.count))
-            try CapturePathValidation.validateRelativePath(relativePath)
             try preflightMarkdownTemplate(relativePath: relativePath)
             markdownTemplatePath = relativePath
             templateID = nil
@@ -265,12 +281,12 @@ struct MacCaptureDestinationEditor: View {
         let resolution = try CaptureBookmarkResolver.resolve(rootBookmark)
         let rootURL = resolution.url
         guard !resolution.isStale else { throw MacCaptureRouteError.folderPermissionExpired }
+        let rootAccess = rootURL.startAccessingSecurityScopedResource()
+        defer { if rootAccess { rootURL.stopAccessingSecurityScopedResource() } }
         let templateURL = try CapturePathValidation.containedFileURL(
             relativePath: relativePath,
             rootURL: rootURL
         )
-        let rootAccess = rootURL.startAccessingSecurityScopedResource()
-        defer { if rootAccess { rootURL.stopAccessingSecurityScopedResource() } }
         guard FileManager.default.fileExists(atPath: templateURL.path) else {
             throw CaptureVaultMarkdownTemplateError.templateMissing(relativePath)
         }
@@ -290,12 +306,12 @@ struct MacCaptureDestinationEditor: View {
         let resolution = try CaptureBookmarkResolver.resolve(rootBookmark)
         let rootURL = resolution.url
         guard !resolution.isStale else { throw MacCaptureRouteError.folderPermissionExpired }
+        let didAccess = rootURL.startAccessingSecurityScopedResource()
+        defer { if didAccess { rootURL.stopAccessingSecurityScopedResource() } }
         let noteURL = try CapturePathValidation.containedFileURL(
             relativePath: relativePath,
             rootURL: rootURL
         )
-        let didAccess = rootURL.startAccessingSecurityScopedResource()
-        defer { if didAccess { rootURL.stopAccessingSecurityScopedResource() } }
         guard FileManager.default.fileExists(atPath: noteURL.path) else {
             throw MacCaptureRouteError.existingNoteMissing(relativePath)
         }

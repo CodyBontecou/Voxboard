@@ -34,6 +34,52 @@ public enum CapturePathValidation {
         }
     }
 
+    /// Returns a safe path relative to `rootURL` for an existing file selected
+    /// through a document picker. File providers can vend a different URL spelling
+    /// for a child than the one produced by resolving the root bookmark, so this
+    /// checks standardized, symlink-resolved, canonical, and file-identity forms.
+    public static func relativePath(for fileURL: URL, containedIn rootURL: URL) throws -> String {
+        let lexicalRoot = rootURL.standardizedFileURL
+        let lexicalFile = fileURL.standardizedFileURL
+
+        for equivalentRoot in equivalentFileURLs(for: lexicalRoot) {
+            for equivalentFile in equivalentFileURLs(for: lexicalFile) {
+                guard let relativePath = lexicalRelativePath(
+                    for: equivalentFile,
+                    containedIn: equivalentRoot
+                ),
+                validatedRelativePath(
+                    relativePath,
+                    resolvesFrom: lexicalRoot,
+                    to: lexicalFile
+                ) else { continue }
+                return relativePath
+            }
+        }
+
+        // Some File Provider URLs have unrelated canonical path spellings even
+        // though an ancestor is the same directory as the bookmarked root. Walk
+        // the selected hierarchy by resource identity to recover its child path.
+        var ancestor = lexicalFile
+        var components: [String] = []
+        while ancestor.path != "/" {
+            if urlsReferToSameFile(ancestor, lexicalRoot), !components.isEmpty {
+                let relativePath = components.reversed().joined(separator: "/")
+                if validatedRelativePath(
+                    relativePath,
+                    resolvesFrom: lexicalRoot,
+                    to: lexicalFile
+                ) {
+                    return relativePath
+                }
+            }
+            components.append(ancestor.lastPathComponent)
+            ancestor.deleteLastPathComponent()
+        }
+
+        throw CaptureModelError.invalidRelativePath(fileURL.path)
+    }
+
     /// Resolves both the authorized root and every existing symlink component
     /// before accepting a child path. The lexical check blocks traversal while
     /// the resolved check blocks a symlink inside the root from redirecting I/O.
@@ -66,9 +112,60 @@ public enum CapturePathValidation {
         }
     }
 
+    private static func validatedRelativePath(
+        _ relativePath: String,
+        resolvesFrom rootURL: URL,
+        to selectedURL: URL
+    ) -> Bool {
+        guard let candidate = try? containedFileURL(
+            relativePath: relativePath,
+            rootURL: rootURL
+        ) else { return false }
+        return urlsReferToSameFile(candidate, selectedURL)
+    }
+
+    private static func lexicalRelativePath(for fileURL: URL, containedIn rootURL: URL) -> String? {
+        let rootComponents = rootURL.pathComponents
+        let fileComponents = fileURL.pathComponents
+        guard fileComponents.count > rootComponents.count,
+              fileComponents.prefix(rootComponents.count).elementsEqual(rootComponents) else {
+            return nil
+        }
+        let relativePath = fileComponents.dropFirst(rootComponents.count).joined(separator: "/")
+        guard (try? validateRelativePath(relativePath)) != nil else { return nil }
+        return relativePath
+    }
+
+    private static func equivalentFileURLs(for url: URL) -> [URL] {
+        let standardized = url.standardizedFileURL
+        var urls = [standardized, standardized.resolvingSymlinksInPath().standardizedFileURL]
+        if let canonicalPath = try? standardized
+            .resourceValues(forKeys: [.canonicalPathKey])
+            .canonicalPath {
+            urls.append(URL(fileURLWithPath: canonicalPath).standardizedFileURL)
+        }
+        var seenPaths = Set<String>()
+        return urls.filter { seenPaths.insert($0.path).inserted }
+    }
+
+    private static func urlsReferToSameFile(_ lhs: URL, _ rhs: URL) -> Bool {
+        let lhsPaths = Set(equivalentFileURLs(for: lhs).map(\.path))
+        let rhsPaths = Set(equivalentFileURLs(for: rhs).map(\.path))
+        if !lhsPaths.isDisjoint(with: rhsPaths) { return true }
+
+        let keys: Set<URLResourceKey> = [.fileResourceIdentifierKey]
+        guard let lhsIdentifier = try? lhs.resourceValues(forKeys: keys).fileResourceIdentifier,
+              let rhsIdentifier = try? rhs.resourceValues(forKeys: keys).fileResourceIdentifier else {
+            return false
+        }
+        return lhsIdentifier.isEqual(rhsIdentifier)
+    }
+
     private static func isChild(_ candidate: URL, of root: URL) -> Bool {
-        let rootPrefix = root.path.hasSuffix("/") ? root.path : root.path + "/"
-        return candidate.path.hasPrefix(rootPrefix)
+        let rootComponents = root.pathComponents
+        let candidateComponents = candidate.pathComponents
+        return candidateComponents.count > rootComponents.count
+            && candidateComponents.prefix(rootComponents.count).elementsEqual(rootComponents)
     }
 
     private static func resolvedURLIncludingExistingAncestors(_ url: URL) -> URL {

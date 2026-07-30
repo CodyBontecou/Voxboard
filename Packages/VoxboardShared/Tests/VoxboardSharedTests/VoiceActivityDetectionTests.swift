@@ -23,9 +23,9 @@ final class VoiceActivityDetectionTests: XCTestCase {
     }
 
     func testPauseDurationIsClampedToSupportedRange() {
-        XCTAssertEqual(AppConstants.clampedParakeetKeyboardPauseDuration(0.1), 0.5)
-        XCTAssertEqual(AppConstants.clampedParakeetKeyboardPauseDuration(0.75), 0.75)
-        XCTAssertEqual(AppConstants.clampedParakeetKeyboardPauseDuration(5), 2.0)
+        XCTAssertEqual(AppConstants.clampedVoiceAutoStopPauseDuration(0.1), 0.5)
+        XCTAssertEqual(AppConstants.clampedVoiceAutoStopPauseDuration(0.75), 0.75)
+        XCTAssertEqual(AppConstants.clampedVoiceAutoStopPauseDuration(5), 2.0)
     }
 
     func testVadSilenceDurationCompensatesForFirstQuietFrame() {
@@ -41,37 +41,48 @@ final class VoiceActivityDetectionTests: XCTestCase {
         )
     }
 
-    func testOnlyExplicitKeyboardParakeetIsEligible() {
-        let parakeet = RecordingCommand(
-            requestId: "parakeet",
-            action: .startSegment,
-            modelId: "parakeet-v3",
-            origin: .keyboardExtension
-        )
-        XCTAssertTrue(ParakeetKeyboardEndOfSpeechPolicy.isEligible(command: parakeet))
+    func testLiveSegmentOriginsResolveToIndependentCapturePaths() {
+        let cases: [(RecordingCommand.Origin, VoiceAutoStopCapturePath)] = [
+            (.keyboardExtension, .keyboard),
+            (.inAppDraft, .inAppDraft),
+            (.inAppImmediate, .inAppImmediate),
+            (.quickRecord, .quickRecord),
+            (.liveActivity, .liveActivity),
+            (.watch, .watch),
+        ]
 
-        let automatic = RecordingCommand(
-            requestId: "automatic",
+        for (origin, expectedPath) in cases {
+            let command = RecordingCommand(
+                requestId: origin.rawValue,
+                action: .startSegment,
+                modelId: origin == .keyboardExtension
+                    ? "parakeet-v3"
+                    : TranscriptionBackendID.automatic,
+                origin: origin
+            )
+
+            XCTAssertEqual(
+                VoiceAutoStopPolicy.capturePath(for: command),
+                expectedPath
+            )
+        }
+    }
+
+    func testUnidentifiedAndStopCommandsDoNotResolveAutoStopPath() {
+        let unidentifiedStart = RecordingCommand(
+            requestId: "unidentified",
             action: .startSegment,
+            modelId: "ggml-base"
+        )
+        let stop = RecordingCommand(
+            requestId: "stop",
+            action: .stopSegment,
             modelId: TranscriptionBackendID.automatic,
             origin: .keyboardExtension
         )
-        XCTAssertFalse(ParakeetKeyboardEndOfSpeechPolicy.isEligible(command: automatic))
 
-        let whisper = RecordingCommand(
-            requestId: "whisper",
-            action: .startSegment,
-            modelId: "ggml-base",
-            origin: .keyboardExtension
-        )
-        XCTAssertFalse(ParakeetKeyboardEndOfSpeechPolicy.isEligible(command: whisper))
-
-        let inAppParakeet = RecordingCommand(
-            requestId: "inapp",
-            action: .startSegment,
-            modelId: "parakeet-v2"
-        )
-        XCTAssertFalse(ParakeetKeyboardEndOfSpeechPolicy.isEligible(command: inAppParakeet))
+        XCTAssertNil(VoiceAutoStopPolicy.capturePath(for: unidentifiedStart))
+        XCTAssertNil(VoiceAutoStopPolicy.capturePath(for: stop))
     }
 }
 #endif

@@ -47,6 +47,28 @@ final class AppConstantsTests: XCTestCase {
         XCTAssertFalse(AppConstants.pendingWidgetRecordFlowIdKey.isEmpty)
     }
 
+    func test_voiceAutoStopRetainsLegacyPreferenceKeys() {
+        XCTAssertEqual(
+            AppConstants.voiceAutoStopEnabledKey,
+            AppConstants.parakeetKeyboardAutoStopEnabledKey
+        )
+        XCTAssertEqual(
+            AppConstants.voiceAutoStopPauseDurationKey,
+            AppConstants.parakeetKeyboardPauseDurationKey
+        )
+    }
+
+    func test_voiceAutoStopCapturePathsHaveIndependentPreferenceKeys() {
+        let keys = VoiceAutoStopCapturePath.allCases.map {
+            AppConstants.voiceAutoStopCapturePathKey(for: $0)
+        }
+
+        XCTAssertEqual(Set(keys).count, VoiceAutoStopCapturePath.allCases.count)
+        XCTAssertTrue(keys.allSatisfy {
+            $0.hasPrefix(AppConstants.voiceAutoStopCapturePathKeyPrefix)
+        })
+    }
+
     func test_captureStorageUsesVersionedStableNames() {
         XCTAssertEqual(AppConstants.captureDirectoryName, "Capture")
         XCTAssertEqual(AppConstants.captureLibraryFilename, "capture-library-v1.json")

@@ -1,7 +1,7 @@
 import Foundation
 import VoxboardShared
 
-enum KeyboardEndOfSpeechCoordinatorError: Error, LocalizedError, Sendable {
+enum VoiceAutoStopCoordinatorError: Error, LocalizedError, Sendable {
     case audioOverwritten
 
     var errorDescription: String? {
@@ -14,7 +14,7 @@ enum KeyboardEndOfSpeechCoordinatorError: Error, LocalizedError, Sendable {
 
 /// Feeds exact 4,096-sample, 16 kHz frames from the recorder's rolling buffer
 /// into FluidAudio VAD. Work stays off the AVAudioEngine real-time callback.
-actor KeyboardEndOfSpeechCoordinator {
+actor VoiceAutoStopCoordinator {
     typealias EndHandler = @MainActor @Sendable () -> Void
 
     private let requestID: String
@@ -69,7 +69,7 @@ actor KeyboardEndOfSpeechCoordinator {
     func processAvailableAudio() async throws {
         guard !isFinished else { return }
         if cursor < circularBuffer.earliestAvailableIndex {
-            throw KeyboardEndOfSpeechCoordinatorError.audioOverwritten
+            throw VoiceAutoStopCoordinatorError.audioOverwritten
         }
 
         while !Task.isCancelled, !isFinished {
@@ -100,7 +100,7 @@ actor KeyboardEndOfSpeechCoordinator {
             } catch is CancellationError {
                 return
             } catch {
-                KeyboardDebugLog.shared.log("[KeyboardEndOfSpeech] Detection stopped for \(requestID.prefix(8)): \(error.localizedDescription)")
+                KeyboardDebugLog.shared.log("[VoiceAutoStop] Detection stopped for \(requestID.prefix(8)): \(error.localizedDescription)")
                 isFinished = true
                 return
             }
@@ -117,12 +117,12 @@ actor KeyboardEndOfSpeechCoordinator {
             guard let speechStartSample else { return }
             self.speechStartSample = nil
             guard sampleIndex - speechStartSample >= minimumSpeechSamples else {
-                KeyboardDebugLog.shared.log("[KeyboardEndOfSpeech] Ignoring speech shorter than minimum for \(requestID.prefix(8))")
+                KeyboardDebugLog.shared.log("[VoiceAutoStop] Ignoring speech shorter than minimum for \(requestID.prefix(8))")
                 return
             }
 
             isFinished = true
-            KeyboardDebugLog.shared.log("[KeyboardEndOfSpeech] End of speech detected for \(requestID.prefix(8))")
+            KeyboardDebugLog.shared.log("[VoiceAutoStop] End of speech detected for \(requestID.prefix(8))")
             await onSpeechEnd()
         }
     }

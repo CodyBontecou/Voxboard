@@ -142,7 +142,7 @@ final class WatchRecordingController: NSObject {
             return
         }
 
-        _ = recorder.startOneShotInAppSegment()
+        _ = recorder.startOneShotInAppSegment(origin: .watch)
     }
 
     private func stopRecordingFromWatch() {

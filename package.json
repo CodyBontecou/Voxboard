@@ -1,5 +1,10 @@
 {
   "dependencies": {
     "puppeteer": "^24.37.2"
+  },
+  "scripts": {
+    "appstore:images:plan": "npm --prefix scripts/app-store-images run plan",
+    "appstore:images:store-key": "npm --prefix scripts/app-store-images run store-key",
+    "appstore:images:generate": "npm --prefix scripts/app-store-images run generate"
   }
 }

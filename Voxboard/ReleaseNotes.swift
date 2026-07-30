@@ -6,12 +6,17 @@ import VoxboardShared
 // MARK: - In-app release notes
 
 enum VoxboardReleaseNotes {
+    private struct VersionNotes {
+        let version: String
+        let items: [NoteletVersionNoteItem]
+    }
+
     private static var watchFeatureVideoURL: URL {
         Bundle.main.url(forResource: "voxboard-watch-notelet-square-mobile", withExtension: "mp4")
             ?? Bundle.main.bundleURL.appendingPathComponent("voxboard-watch-notelet-square-mobile.mp4")
     }
 
-    static let notes: [NoteletVersionNotes] = [
+    private static let versionNotes: [VersionNotes] = [
         .init(
             version: "2.0.3",
             items: [
@@ -185,12 +190,40 @@ enum VoxboardReleaseNotes {
         )
     ]
 
+    static let notes = versionNotes.map {
+        NoteletVersionNotes(version: $0.version, items: $0.items)
+    }
+
     static var presentedVersion: NoteletPresentedVersion? {
         if ProcessInfo.processInfo.arguments.contains("--disable-release-notes") {
             return nil
         }
 
         return .current
+    }
+
+    static var shouldPresentCurrentVersion: Bool {
+        let currentAppVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+        let userDefaults = AppConstants.sharedDefaults ?? .standard
+        return shouldPresentCurrentVersion(
+            currentAppVersion: currentAppVersion,
+            latestSeenAppVersion: NoteletStorage.getLatestSeenAppVersion(userDefaults: userDefaults),
+            releaseNotesEnabled: presentedVersion != nil
+        )
+    }
+
+    static func shouldPresentCurrentVersion(
+        currentAppVersion: String,
+        latestSeenAppVersion: String?,
+        releaseNotesEnabled: Bool
+    ) -> Bool {
+        let hasNotesForCurrentVersion = versionNotes
+            .first(where: { $0.version == currentAppVersion })?
+            .items.isEmpty == false
+
+        return releaseNotesEnabled
+            && hasNotesForCurrentVersion
+            && latestSeenAppVersion != currentAppVersion
     }
 
     private static let actionButtonTint = Color(uiColor: UIColor { traits in
@@ -211,11 +244,23 @@ enum VoxboardReleaseNotes {
     )
 }
 
+private struct DefersCaptureInputFocusForReleaseNotesKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var defersCaptureInputFocusForReleaseNotes: Bool {
+        get { self[DefersCaptureInputFocusForReleaseNotesKey.self] }
+        set { self[DefersCaptureInputFocusForReleaseNotesKey.self] = newValue }
+    }
+}
+
 extension View {
-    func voxboardReleaseNotesSheet() -> some View {
+    func voxboardReleaseNotesSheet(onDismiss: @escaping () -> Void = { }) -> some View {
         noteletSheet(
             notes: VoxboardReleaseNotes.notes,
             version: VoxboardReleaseNotes.presentedVersion,
+            onDismiss: onDismiss,
             configuration: VoxboardReleaseNotes.configuration,
             userDefaults: AppConstants.sharedDefaults ?? .standard
         )

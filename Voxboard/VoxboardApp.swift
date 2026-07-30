@@ -14,6 +14,7 @@ struct VoxboardApp: App {
     @State private var storeManager: StoreManager
     @State private var quickCaptureViewModel: QuickCaptureViewModel
     @State private var rootDestination: RootDestination = .capture
+    @State private var defersCaptureInputFocusForReleaseNotes = VoxboardReleaseNotes.shouldPresentCurrentVersion
 
     /// Set to true when the app is opened via the keyboard's "Open" button.
     /// Capture's inline recording controls consume this launch request.
@@ -69,13 +70,14 @@ struct VoxboardApp: App {
                 switch event {
                 case .audio(let url):
                     await captureViewModel.stageRecordedAudio(at: url)
-                case .liveTranscript(let finalizedText, let volatileText):
+                case .liveTranscript(let sessionID, let finalizedText, let volatileText):
                     await captureViewModel.updateLiveRecordedTranscript(
+                        sessionID: sessionID,
                         finalizedText: finalizedText,
                         volatileText: volatileText
                     )
-                case .cancelLiveTranscript:
-                    await captureViewModel.cancelLiveRecordedTranscript()
+                case .cancelLiveTranscript(let sessionID):
+                    await captureViewModel.cancelLiveRecordedTranscript(sessionID: sessionID)
                 case .transcript(let text):
                     await captureViewModel.appendRecordedTranscript(text)
                 }
@@ -120,7 +122,13 @@ struct VoxboardApp: App {
             .environment(usageTracker)
             .environment(storeManager)
             .environment(watchRecordingPipeline)
-            .voxboardReleaseNotesSheet()
+            .environment(
+                \.defersCaptureInputFocusForReleaseNotes,
+                defersCaptureInputFocusForReleaseNotes
+            )
+            .voxboardReleaseNotesSheet {
+                defersCaptureInputFocusForReleaseNotes = false
+            }
             .onAppear {
                 updateIdleTimer()
                 WatchRecordingController.shared.configure(

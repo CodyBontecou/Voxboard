@@ -3,12 +3,12 @@ import VoxboardShared
 @testable import Voxboard
 
 @MainActor
-final class KeyboardEndOfSpeechCoordinatorTests: XCTestCase {
+final class VoiceAutoStopCoordinatorTests: XCTestCase {
     func testAccumulatesArbitraryAudioIntoExactVadFrames() async throws {
         let buffer = CircularAudioBuffer(capacity: 20_000)
         let session = FakeVoiceActivitySession(events: [nil])
         var endCount = 0
-        let coordinator = KeyboardEndOfSpeechCoordinator(
+        let coordinator = VoiceAutoStopCoordinator(
             requestID: "request",
             session: session,
             circularBuffer: buffer,
@@ -37,7 +37,7 @@ final class KeyboardEndOfSpeechCoordinatorTests: XCTestCase {
             .speechEnded(sampleIndex: 10_000),
         ])
         var endCount = 0
-        let coordinator = KeyboardEndOfSpeechCoordinator(
+        let coordinator = VoiceAutoStopCoordinator(
             requestID: "request",
             session: session,
             circularBuffer: buffer,
@@ -64,7 +64,7 @@ final class KeyboardEndOfSpeechCoordinatorTests: XCTestCase {
             .speechEnded(sampleIndex: 14_000),
         ])
         var endCount = 0
-        let coordinator = KeyboardEndOfSpeechCoordinator(
+        let coordinator = VoiceAutoStopCoordinator(
             requestID: "request",
             session: session,
             circularBuffer: buffer,
@@ -89,7 +89,7 @@ final class KeyboardEndOfSpeechCoordinatorTests: XCTestCase {
             .speechEnded(sampleIndex: 8_000),
         ])
         var endCount = 0
-        let coordinator = KeyboardEndOfSpeechCoordinator(
+        let coordinator = VoiceAutoStopCoordinator(
             requestID: "request",
             session: session,
             circularBuffer: buffer,

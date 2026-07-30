@@ -35,4 +35,39 @@ final class QuickCaptureRecognizedTextTests: XCTestCase {
         let stagingURL = rootURL.appendingPathComponent("staging", isDirectory: true)
         XCTAssertFalse(FileManager.default.fileExists(atPath: stagingURL.path))
     }
+
+    func test_cancelledLiveTranscriptSessionRejectsStaleCallbacksWithoutClearingNewSession() async throws {
+        let rootURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("QuickCaptureLiveTranscriptTests-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: rootURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: rootURL) }
+
+        let viewModel = QuickCaptureViewModel(captureRootURL: rootURL)
+        await viewModel.load()
+        let cancelledSessionID = UUID()
+        await viewModel.updateLiveRecordedTranscript(
+            sessionID: cancelledSessionID,
+            finalizedText: "Old session",
+            volatileText: nil
+        )
+        XCTAssertEqual(viewModel.draft.text, "Old session")
+
+        await viewModel.cancelLiveRecordedTranscript(sessionID: cancelledSessionID)
+        XCTAssertEqual(viewModel.draft.text, "")
+        await viewModel.updateLiveRecordedTranscript(
+            sessionID: cancelledSessionID,
+            finalizedText: "Stale callback",
+            volatileText: nil
+        )
+        XCTAssertEqual(viewModel.draft.text, "")
+
+        let currentSessionID = UUID()
+        await viewModel.updateLiveRecordedTranscript(
+            sessionID: currentSessionID,
+            finalizedText: "Current session",
+            volatileText: nil
+        )
+        await viewModel.cancelLiveRecordedTranscript(sessionID: cancelledSessionID)
+        XCTAssertEqual(viewModel.draft.text, "Current session")
+    }
 }

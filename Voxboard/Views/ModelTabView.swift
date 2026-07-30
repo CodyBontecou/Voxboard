@@ -5,8 +5,13 @@ import VoxboardShared
 struct ModelTabView: View {
     @Environment(ModelManager.self) private var modelManager
     @State private var automaticAvailability: SystemTranscriptionAvailability = .unavailable
-    @State private var parakeetAutoStopEnabled = AppConstants.parakeetKeyboardAutoStopEnabled
-    @State private var parakeetPauseDuration = AppConstants.parakeetKeyboardPauseDuration
+    @State private var voiceAutoStopEnabled = AppConstants.voiceAutoStopEnabled
+    @State private var voiceAutoStopPauseDuration = AppConstants.voiceAutoStopPauseDuration
+    @State private var enabledVoiceAutoStopCapturePaths = Set(
+        VoiceAutoStopCapturePath.allCases.filter {
+            AppConstants.voiceAutoStopCapturePathEnabled($0)
+        }
+    )
 
     private var whisperModels: [WhisperModelInfo] {
         WhisperModelInfo.availableModels.filter { !$0.engine.isParakeet }
@@ -23,7 +28,7 @@ struct ModelTabView: View {
                 automaticSection
                 modelSection(title: "Whisper", description: "Optional local models you can download and select explicitly.", models: whisperModels)
                 modelSection(title: "Parakeet", description: "Optional optimized local models you can download and select explicitly.", models: parakeetModels)
-                parakeetAutoStopSection
+                voiceAutoStopSection
                 languageSection
             }
             .padding(.horizontal, Geist.Spacing.four)
@@ -62,11 +67,19 @@ struct ModelTabView: View {
                 AppConstants.sharedDefaults?.set(ready, forKey: AppConstants.automaticBackendReadyKey)
             }
         }
-        .onChange(of: parakeetAutoStopEnabled) { _, enabled in
-            AppConstants.parakeetKeyboardAutoStopEnabled = enabled
+        .onChange(of: voiceAutoStopEnabled) { _, enabled in
+            AppConstants.voiceAutoStopEnabled = enabled
         }
-        .onChange(of: parakeetPauseDuration) { _, duration in
-            AppConstants.parakeetKeyboardPauseDuration = duration
+        .onChange(of: voiceAutoStopPauseDuration) { _, duration in
+            AppConstants.voiceAutoStopPauseDuration = duration
+        }
+        .onChange(of: enabledVoiceAutoStopCapturePaths) { _, enabledPaths in
+            for path in VoiceAutoStopCapturePath.allCases {
+                AppConstants.setVoiceAutoStopCapturePathEnabled(
+                    enabledPaths.contains(path),
+                    for: path
+                )
+            }
         }
         .alert(
             "Model Operation Failed",
@@ -304,7 +317,7 @@ struct ModelTabView: View {
         }
     }
 
-    private var parakeetAutoStopSection: some View {
+    private var voiceAutoStopSection: some View {
         let modelID = VoiceActivityModelAsset.id
         let isDownloaded = modelManager.isVoiceActivityModelDownloaded
         let isDownloading = modelManager.isDownloading[modelID] == true
@@ -312,10 +325,10 @@ struct ModelTabView: View {
 
         return VStack(alignment: .leading, spacing: Geist.Spacing.three) {
             VStack(alignment: .leading, spacing: Geist.Spacing.one) {
-                Text("Parakeet Keyboard Auto-Stop")
+                Text("Voice Auto-Stop")
                     .font(Geist.heading(.headline))
                     .foregroundStyle(Geist.text)
-                Text("A small local voice detector can stop a Parakeet keyboard recording after you finish speaking, so the transcript appears without a second mic tap.")
+                Text("A small on-device voice detector can stop any live recording on this iPhone or iPad after you finish speaking, regardless of the transcription model or capture destination.")
                     .font(Geist.caption())
                     .foregroundStyle(Geist.muted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -374,12 +387,32 @@ struct ModelTabView: View {
 
                 GeistDivider()
 
-                Toggle("Stop Parakeet after a pause", isOn: $parakeetAutoStopEnabled)
+                Toggle("Enable Voice Auto-Stop", isOn: $voiceAutoStopEnabled)
                     .font(Geist.body())
                     .foregroundStyle(Geist.text)
                     .disabled(!isDownloaded)
 
-                Picker("Pause Length", selection: $parakeetPauseDuration) {
+                VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+                    Text("Capture Paths")
+                        .font(Geist.label(.body))
+                        .foregroundStyle(Geist.text)
+
+                    ForEach(VoiceAutoStopCapturePath.allCases, id: \.self) { path in
+                        Toggle(isOn: voiceAutoStopCapturePathBinding(for: path)) {
+                            VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                                Text(voiceAutoStopCapturePathTitle(path))
+                                    .font(Geist.body())
+                                    .foregroundStyle(Geist.text)
+                                Text(voiceAutoStopCapturePathDescription(path))
+                                    .font(Geist.caption())
+                                    .foregroundStyle(Geist.muted)
+                            }
+                        }
+                    }
+                }
+                .disabled(!isDownloaded || !voiceAutoStopEnabled)
+
+                Picker("Pause Length", selection: $voiceAutoStopPauseDuration) {
                     Text("0.5 seconds").tag(0.5)
                     Text("0.75 seconds").tag(0.75)
                     Text("1 second").tag(1.0)
@@ -389,11 +422,11 @@ struct ModelTabView: View {
                 .pickerStyle(.menu)
                 .font(Geist.body())
                 .tint(Geist.text)
-                .disabled(!isDownloaded || !parakeetAutoStopEnabled)
+                .disabled(!isDownloaded || !voiceAutoStopEnabled)
 
                 Text(isDownloaded
-                    ? "Applies only when Parakeet v2 or v3 is explicitly selected in the keyboard. Pause timing is approximate; Automatic and Whisper are unchanged."
-                    : "Until this companion is downloaded, Parakeet keeps using manual stop.")
+                    ? "Choose exactly where auto-stop runs. Every enabled path works with Automatic, Whisper, and Parakeet. Pause timing is approximate."
+                    : "Until this companion is downloaded, live recordings keep using manual stop.")
                     .font(Geist.caption())
                     .foregroundStyle(Geist.muted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -405,6 +438,59 @@ struct ModelTabView: View {
                     .stroke(Geist.border, lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.medium, style: .continuous))
+        }
+    }
+
+    private func voiceAutoStopCapturePathBinding(
+        for path: VoiceAutoStopCapturePath
+    ) -> Binding<Bool> {
+        Binding(
+            get: { enabledVoiceAutoStopCapturePaths.contains(path) },
+            set: { isEnabled in
+                if isEnabled {
+                    enabledVoiceAutoStopCapturePaths.insert(path)
+                } else {
+                    enabledVoiceAutoStopCapturePaths.remove(path)
+                }
+            }
+        )
+    }
+
+    private func voiceAutoStopCapturePathTitle(
+        _ path: VoiceAutoStopCapturePath
+    ) -> LocalizedStringKey {
+        switch path {
+        case .keyboard:
+            return "Keyboard"
+        case .inAppDraft:
+            return "In-App · Add to Draft"
+        case .inAppImmediate:
+            return "In-App · Send Immediately"
+        case .quickRecord:
+            return "Widgets & Quick Record"
+        case .liveActivity:
+            return "Live Activity"
+        case .watch:
+            return "Apple Watch"
+        }
+    }
+
+    private func voiceAutoStopCapturePathDescription(
+        _ path: VoiceAutoStopCapturePath
+    ) -> LocalizedStringKey {
+        switch path {
+        case .keyboard:
+            return "Voice input from the Vox.md keyboard"
+        case .inAppDraft:
+            return "Voice Capture with Add to Draft selected"
+        case .inAppImmediate:
+            return "Voice Capture with Send Immediately selected"
+        case .quickRecord:
+            return "Lock Screen widgets, controls, and Quick Record shortcuts"
+        case .liveActivity:
+            return "Recording started from the Live Activity"
+        case .watch:
+            return "iPhone recording started from Apple Watch"
         }
     }
 

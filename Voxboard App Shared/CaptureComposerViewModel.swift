@@ -35,6 +35,7 @@ final class QuickCaptureViewModel {
     private var pendingCaptureSource: CaptureSource?
     private var pendingVoxID: String?
     private var liveRecordedTranscriptPreview: LiveTranscriptDraftPreview?
+    private var liveRecordedTranscriptSessionID: UUID?
     private var invalidatedLiveTranscriptSessionIDs = Set<UUID>()
 
     init(
@@ -264,6 +265,7 @@ final class QuickCaptureViewModel {
         pendingDraftSave?.cancel()
         pendingDraftSave = nil
         liveRecordedTranscriptPreview = nil
+        liveRecordedTranscriptSessionID = nil
         do {
             try await draftStore?.complete(draftID: draft.id)
             draft = CaptureDraft(
@@ -386,17 +388,15 @@ final class QuickCaptureViewModel {
             let rootURL = try Self.resolveRootURL(for: destination)
             let didAccessRoot = rootURL.startAccessingSecurityScopedResource()
             defer { if didAccessRoot { rootURL.stopAccessingSecurityScopedResource() } }
-            let rootPath = rootURL.standardizedFileURL.path
-            let candidatePath = url.standardizedFileURL.path
-            let rootPrefix = rootPath.hasSuffix("/") ? rootPath : rootPath + "/"
-            guard candidatePath.hasPrefix(rootPrefix) else {
+            let relativePath: String
+            do {
+                relativePath = try CapturePathValidation.relativePath(
+                    for: url,
+                    containedIn: rootURL
+                )
+            } catch {
                 throw QuickCaptureViewModelError.noteOutsideDestination
             }
-            let relativePath = String(candidatePath.dropFirst(rootPrefix.count))
-            _ = try CapturePathValidation.containedFileURL(
-                relativePath: relativePath,
-                rootURL: rootURL
-            )
             draft.relativeNotePathOverride = relativePath
             try await persistDurableDraft()
             errorMessage = nil
@@ -468,13 +468,20 @@ final class QuickCaptureViewModel {
         finalizedText: String,
         volatileText: String?
     ) async {
-        if let sessionID,
-           invalidatedLiveTranscriptSessionIDs.contains(sessionID) { return }
+        if let sessionID {
+            guard !invalidatedLiveTranscriptSessionIDs.contains(sessionID) else { return }
+            if let activeSessionID = liveRecordedTranscriptSessionID,
+               activeSessionID != sessionID { return }
+        }
         await load()
         // Loading may suspend while the recorder is stopped. Revalidate before
         // mutating so a stale Speech callback cannot enter a later session.
-        if let sessionID,
-           invalidatedLiveTranscriptSessionIDs.contains(sessionID) { return }
+        if let sessionID {
+            guard !invalidatedLiveTranscriptSessionIDs.contains(sessionID) else { return }
+            if let activeSessionID = liveRecordedTranscriptSessionID,
+               activeSessionID != sessionID { return }
+            liveRecordedTranscriptSessionID = sessionID
+        }
         var preview = liveRecordedTranscriptPreview ?? LiveTranscriptDraftPreview()
         let updatedText = preview.render(
             finalizedText: finalizedText,
@@ -497,10 +504,18 @@ final class QuickCaptureViewModel {
         invalidatedLiveTranscriptSessionIDs.insert(sessionID)
     }
 
-    func cancelLiveRecordedTranscript() async {
-        guard var preview = liveRecordedTranscriptPreview else { return }
+    func cancelLiveRecordedTranscript(sessionID: UUID? = nil) async {
+        if let sessionID {
+            invalidatedLiveTranscriptSessionIDs.insert(sessionID)
+            guard liveRecordedTranscriptSessionID == sessionID else { return }
+        }
+        guard var preview = liveRecordedTranscriptPreview else {
+            liveRecordedTranscriptSessionID = nil
+            return
+        }
         let restoredText = preview.cancel(in: draft.text)
         liveRecordedTranscriptPreview = nil
+        liveRecordedTranscriptSessionID = nil
         draft.text = restoredText
         await saveDraftNow()
     }
@@ -517,6 +532,7 @@ final class QuickCaptureViewModel {
 
         let previousDraft = draft
         let previousPreview = liveRecordedTranscriptPreview
+        let previousPreviewSessionID = liveRecordedTranscriptSessionID
         let updatedText: String
         if var preview = liveRecordedTranscriptPreview {
             updatedText = preview.commit(normalized, in: draft.text)
@@ -530,6 +546,7 @@ final class QuickCaptureViewModel {
         }
 
         liveRecordedTranscriptPreview = nil
+        liveRecordedTranscriptSessionID = nil
         draft.text = updatedText
         // The recorder adds transcription seconds only after a successful
         // result. Mark this durable request so sending it does not consume a
@@ -543,6 +560,7 @@ final class QuickCaptureViewModel {
         } catch {
             draft = previousDraft
             liveRecordedTranscriptPreview = previousPreview
+            liveRecordedTranscriptSessionID = previousPreviewSessionID
             errorMessage = error.localizedDescription
             return false
         }

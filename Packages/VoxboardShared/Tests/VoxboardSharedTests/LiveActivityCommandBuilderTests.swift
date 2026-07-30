@@ -15,6 +15,7 @@ final class LiveActivityCommandBuilderTests: XCTestCase {
         XCTAssertEqual(cmd.modelId, "whisper-base")
         XCTAssertEqual(cmd.language, "en")
         XCTAssertEqual(cmd.flowId, "meeting")
+        XCTAssertEqual(cmd.origin, .liveActivity)
     }
 
     func test_buildStopCommand_usesStopSegmentAction() {

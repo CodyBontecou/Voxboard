@@ -4,7 +4,7 @@ import Foundation
 import FluidAudio
 
 /// Metadata and filesystem checks for the small Silero model used to detect
-/// speech boundaries before batch Parakeet transcription.
+/// speech boundaries during live voice capture.
 public enum VoiceActivityModelAsset: Sendable {
     public static let id = "silero-vad"
     public static let displayName = "Voice Pause Detection"
@@ -78,7 +78,7 @@ public enum VoiceActivityDetectionError: Error, LocalizedError, Sendable {
 
 /// Loads the explicitly downloaded Silero model without allowing FluidAudio to
 /// perform an implicit network request, then creates independent stream state
-/// for each keyboard recording segment.
+/// for each live recording segment.
 public actor VoiceActivityDetectionService {
     private var manager: VadManager?
 
@@ -162,16 +162,30 @@ private actor FluidAudioVoiceActivitySession: VoiceActivityStreamingSession {
     }
 }
 
-/// Eligibility remains tied to the exact command captured at segment start.
-/// Automatic fallback and non-keyboard recordings intentionally do not opt in.
-public enum ParakeetKeyboardEndOfSpeechPolicy: Sendable {
-    public static func isEligible(command: RecordingCommand) -> Bool {
-        guard command.origin == .keyboardExtension,
-              let modelID = command.modelId,
-              let model = WhisperModelInfo.availableModels.first(where: { $0.id == modelID }) else {
-            return false
+/// Resolves each live recording command to its independently configurable
+/// capture path. Transcription backend selection does not affect eligibility.
+public enum VoiceAutoStopPolicy: Sendable {
+    public static func capturePath(
+        for command: RecordingCommand
+    ) -> VoiceAutoStopCapturePath? {
+        guard command.action == .startSegment else { return nil }
+
+        switch command.origin {
+        case .keyboardExtension:
+            return .keyboard
+        case .inAppDraft:
+            return .inAppDraft
+        case .inAppImmediate:
+            return .inAppImmediate
+        case .quickRecord:
+            return .quickRecord
+        case .liveActivity:
+            return .liveActivity
+        case .watch:
+            return .watch
+        case nil:
+            return nil
         }
-        return model.engine.isParakeet
     }
 }
 #endif

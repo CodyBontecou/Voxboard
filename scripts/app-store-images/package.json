@@ -1,0 +1,29 @@
+{
+  "name": "repo-app-store-images",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Repo-aware draft App Store image generator for any iOS app repo.",
+  "scripts": {
+    "plan": "tsx generate.ts --dry-run",
+    "generate": "tsx generate.ts --generate --max-images 3",
+    "reddit:plan": "tsx reddit-generate.ts --dry-run",
+    "reddit:generate": "tsx reddit-generate.ts --generate",
+    "reddit:landscape": "tsx reddit-landscape.ts",
+    "reddit:watch:plan": "tsx reddit-watch-generate.ts --dry-run",
+    "reddit:watch:generate": "tsx reddit-watch-generate.ts --generate",
+    "reddit:watch:brand-align": "tsx reddit-watch-brand-align.ts",
+    "store-key": "node store-openai-key.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "openai": "^6.9.1",
+    "sharp": "^0.34.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0"
+  }
+}

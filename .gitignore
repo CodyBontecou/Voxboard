@@ -32,3 +32,7 @@ output/
 
 # Whisper framework (large binary)
 whisper.xcframework/
+# App Store draft image output
+app-store-output/
+# Node dependencies for the self-contained App Store image tool
+scripts/app-store-images/node_modules/

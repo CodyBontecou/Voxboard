@@ -500,13 +500,17 @@ struct CaptureDestinationEditorView: View {
                 bookmarkDataIsStale: &isStale
             ).standardizedFileURL
             guard !isStale else { throw DestinationEditorError.folderPermissionExpired }
-            let selectedURL = url.standardizedFileURL
-            let rootPrefix = rootURL.path.hasSuffix("/") ? rootURL.path : rootURL.path + "/"
-            guard selectedURL.path.hasPrefix(rootPrefix) else {
+            let rootAccess = rootURL.startAccessingSecurityScopedResource()
+            defer { if rootAccess { rootURL.stopAccessingSecurityScopedResource() } }
+            let relativePath: String
+            do {
+                relativePath = try CapturePathValidation.relativePath(
+                    for: url,
+                    containedIn: rootURL
+                )
+            } catch {
                 throw DestinationEditorError.noteOutsideRoot
             }
-            let relativePath = String(selectedURL.path.dropFirst(rootPrefix.count))
-            try CapturePathValidation.validateRelativePath(relativePath)
             pathTemplate = relativePath
             errorMessage = nil
         } catch {
@@ -631,15 +635,19 @@ struct CaptureDestinationEditorView: View {
             bookmarkDataIsStale: &isStale
         ).standardizedFileURL
         guard !isStale else { throw DestinationEditorError.folderPermissionExpired }
-        let selectedURL = url.standardizedFileURL
-        guard selectedURL.pathExtension.lowercased() == "md" else {
+        guard url.pathExtension.lowercased() == "md" else {
             throw DestinationEditorError.markdownTemplateRequired
         }
-        let rootPrefix = rootURL.path.hasSuffix("/") ? rootURL.path : rootURL.path + "/"
-        guard selectedURL.path.hasPrefix(rootPrefix) else { throw outsideRootError }
-        let relativePath = String(selectedURL.path.dropFirst(rootPrefix.count))
-        try CapturePathValidation.validateRelativePath(relativePath)
-        return relativePath
+        let rootAccess = rootURL.startAccessingSecurityScopedResource()
+        defer { if rootAccess { rootURL.stopAccessingSecurityScopedResource() } }
+        do {
+            return try CapturePathValidation.relativePath(
+                for: url,
+                containedIn: rootURL
+            )
+        } catch {
+            throw outsideRootError
+        }
     }
 
     private func preflightMarkdownTemplate(relativePath: String) throws {
@@ -651,12 +659,12 @@ struct CaptureDestinationEditorView: View {
             bookmarkDataIsStale: &isStale
         )
         guard !isStale else { throw DestinationEditorError.folderPermissionExpired }
+        let rootAccess = rootURL.startAccessingSecurityScopedResource()
+        defer { if rootAccess { rootURL.stopAccessingSecurityScopedResource() } }
         let templateURL = try CapturePathValidation.containedFileURL(
             relativePath: relativePath,
             rootURL: rootURL
         )
-        let rootAccess = rootURL.startAccessingSecurityScopedResource()
-        defer { if rootAccess { rootURL.stopAccessingSecurityScopedResource() } }
         guard FileManager.default.fileExists(atPath: templateURL.path) else {
             throw CaptureVaultMarkdownTemplateError.templateMissing(relativePath)
         }
@@ -681,12 +689,12 @@ struct CaptureDestinationEditorView: View {
             bookmarkDataIsStale: &isStale
         )
         guard !isStale else { throw DestinationEditorError.folderPermissionExpired }
+        let didAccess = rootURL.startAccessingSecurityScopedResource()
+        defer { if didAccess { rootURL.stopAccessingSecurityScopedResource() } }
         let noteURL = try CapturePathValidation.containedFileURL(
             relativePath: relativePath,
             rootURL: rootURL
         )
-        let didAccess = rootURL.startAccessingSecurityScopedResource()
-        defer { if didAccess { rootURL.stopAccessingSecurityScopedResource() } }
         guard FileManager.default.fileExists(atPath: noteURL.path) else {
             throw DestinationEditorError.existingNoteMissing(relativePath)
         }

@@ -17,11 +17,44 @@ private struct KeyboardReturnGuidance: Equatable, Identifiable {
     var phase: KeyboardLaunchPhase
 }
 
+private struct InitialComposerFocusTaskID: Equatable {
+    let isPending: Bool
+    let hasCompletedInitialLoad: Bool
+    let defersForReleaseNotes: Bool
+}
+
 private enum CaptureRecordingMode: String, CaseIterable, Identifiable {
     case draft
     case preset
 
     var id: Self { self }
+}
+
+/// Mirrors the keyboard extension's seven-bar recording waveform while using
+/// the app's adaptive foreground color so it stays visible in either theme.
+private struct CaptureRecordingWaveform: View {
+    let levels: [Float]
+
+    private let minFraction: CGFloat = 0.15
+    private let maxHeight: CGFloat = 20
+    private let barWidth: CGFloat = 3
+    private let barSpacing: CGFloat = 2
+
+    var body: some View {
+        HStack(spacing: barSpacing) {
+            ForEach(Array(levels.enumerated()), id: \.offset) { _, level in
+                Rectangle()
+                    .fill(Geist.text.opacity(0.8))
+                    .frame(
+                        width: barWidth,
+                        height: maxHeight * max(minFraction, CGFloat(level))
+                    )
+                    .animation(.easeInOut(duration: 0.08), value: level)
+            }
+        }
+        .frame(height: maxHeight)
+        .accessibilityHidden(true)
+    }
 }
 
 struct QuickCaptureView: View {
@@ -36,6 +69,7 @@ struct QuickCaptureView: View {
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(StoreManager.self) private var storeManager
     @Environment(WatchRecordingPipeline.self) private var watchRecordingPipeline
+    @Environment(\.defersCaptureInputFocusForReleaseNotes) private var defersCaptureInputFocusForReleaseNotes
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.calendar) private var calendar
     @Environment(\.locale) private var locale
@@ -80,10 +114,13 @@ struct QuickCaptureView: View {
     @State private var composerSelection = NSRange(location: 0, length: 0)
     @State private var composerIsFocused = false
     @State private var hasPerformedInitialLoad = false
+    @State private var hasCompletedInitialLoad = false
+    @State private var initialComposerFocusIsPending = false
     @State private var composerController = MarkdownComposerController()
     @State private var locationService = CaptureLocationService()
     @State private var inspirationQuote = InspirationQuote.fallback
     @State private var hasLoadedInspirationQuote = false
+    @State private var recordingAudioLevels: [Float] = Array(repeating: 0, count: 7)
 
     init(
         viewModel: QuickCaptureViewModel,
@@ -139,6 +176,11 @@ struct QuickCaptureView: View {
 
                 composer
                     .layoutPriority(1)
+
+                if shouldShowImmediateLiveTranscription {
+                    GeistDivider()
+                    immediateLiveTranscriptionBar
+                }
 
                 if !viewModel.draft.additionalPayloads.isEmpty {
                     attachmentStrip
@@ -217,6 +259,16 @@ struct QuickCaptureView: View {
             .task {
                 await loadAndPresentRequestedInput()
                 handleCaptureNeedsUnlock(viewModel.needsCaptureUnlock)
+            }
+            .task(id: InitialComposerFocusTaskID(
+                isPending: initialComposerFocusIsPending,
+                hasCompletedInitialLoad: hasCompletedInitialLoad,
+                defersForReleaseNotes: defersCaptureInputFocusForReleaseNotes
+            )) {
+                await fulfillInitialComposerFocusIfReady()
+            }
+            .onChange(of: defersCaptureInputFocusForReleaseNotes) { _, isDeferring in
+                if isDeferring { dismissComposer() }
             }
             .onChange(of: viewModel.draft.text) { _, _ in
                 if !viewModel.hasLiveRecordedTranscriptPreview {
@@ -470,18 +522,81 @@ struct QuickCaptureView: View {
         }
     }
 
+    private var shouldShowImmediateLiveTranscription: Bool {
+        persistentRecorder.isSegmentActive
+            && persistentRecorder.isCaptureLiveTranscriptionActive
+            && lastStartedRecordingMode == .preset
+    }
+
+    private var immediateLiveTranscriptionText: String {
+        let finalized = (persistentRecorder.liveFinalizedTranscription ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let volatile = (persistentRecorder.liveVolatileTranscription ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return [finalized, volatile].filter { !$0.isEmpty }.joined(separator: " ")
+    }
+
+    private var immediateLiveTranscriptionBar: some View {
+        let transcript = immediateLiveTranscriptionText
+        let visibleTranscript = transcript.count > 320
+            ? "…" + String(transcript.suffix(320))
+            : transcript
+
+        return HStack(alignment: .top, spacing: Geist.Spacing.three) {
+            Image(systemName: "waveform")
+                .foregroundStyle(Geist.Palette.blue700)
+                .symbolEffect(.variableColor.iterative, isActive: persistentRecorder.isSegmentActive)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                Text("Live transcript · sending immediately")
+                    .font(Geist.caption(.caption2))
+                    .foregroundStyle(Geist.Palette.blue700)
+                Text(visibleTranscript.isEmpty ? "Listening for speech…" : visibleTranscript)
+                    .font(Geist.body())
+                    .foregroundStyle(visibleTranscript.isEmpty ? Geist.muted : Geist.text)
+                    .lineLimit(4)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, Geist.Spacing.four)
+        .padding(.vertical, Geist.Spacing.three)
+        .background(Geist.Palette.blue700.opacity(0.08))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(
+            transcript.isEmpty
+                ? String(localized: "Live transcript, listening for speech")
+                : String(localized: "Live transcript, \(transcript)")
+        )
+        .accessibilityIdentifier("capture_live_transcription")
+    }
+
     private var voiceCaptureButton: some View {
         Group {
             if persistentRecorder.isTranscribing {
                 ProgressView()
                     .controlSize(.small)
+            } else if persistentRecorder.isSegmentActive {
+                HStack(spacing: Geist.Spacing.two) {
+                    Text(formatRecordingDuration(persistentRecorder.segmentDuration))
+                        .font(Geist.caption(.caption2))
+                        .foregroundStyle(Geist.muted)
+                        .monospacedDigit()
+
+                    CaptureRecordingWaveform(levels: recordingAudioLevels)
+
+                    Image(systemName: "stop.fill")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(Geist.error)
+                }
+                .fixedSize(horizontal: true, vertical: false)
             } else {
-                Image(systemName: persistentRecorder.isSegmentActive ? "stop.fill" : "mic")
+                Image(systemName: "mic")
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(persistentRecorder.isSegmentActive ? Geist.error : Geist.text)
+                    .foregroundStyle(Geist.text)
             }
         }
-        .frame(width: 36, height: 36)
+        .frame(minWidth: 36, minHeight: 36)
         .contentShape(Rectangle())
         .gesture(voiceCaptureGesture)
         .accessibilityElement()
@@ -494,6 +609,9 @@ struct QuickCaptureView: View {
         }
         .accessibilityIdentifier("capture_voice_recording")
         .opacity(isProcessingMedia ? 0.35 : 1)
+        .task(id: persistentRecorder.isSegmentActive) {
+            await updateRecordingAudioLevels()
+        }
     }
 
     private var voiceCaptureGesture: some Gesture {
@@ -1351,6 +1469,7 @@ struct QuickCaptureView: View {
 
     private func handleCaptureDisappear() {
         locationRequestTask?.cancel()
+        initialComposerFocusIsPending = false
         dismissComposer()
     }
 
@@ -1404,12 +1523,60 @@ struct QuickCaptureView: View {
         composerIsFocused = true
     }
 
+    private var isPresentingCaptureModal: Bool {
+        showsPhotoPicker
+            || showsScreenshotPicker
+            || showsOCRPhotoPicker
+            || showsCamera
+            || showsFileImporter
+            || showsScanner
+            || showsJournalPageCapture
+            || showsSketch
+            || showsLinkPrompt
+            || showsCaptureHistory
+            || showsRoutePicker
+            || showsDueDate
+            || showsInternalLinks
+            || showsPaywall
+            || showsAudioImporter
+            || showsVoiceCaptureDetails
+            || showsWatchRecordingQueue
+    }
+
+    private func fulfillInitialComposerFocusIfReady() async {
+        guard initialComposerFocusIsPending,
+              hasCompletedInitialLoad,
+              !defersCaptureInputFocusForReleaseNotes else { return }
+
+        guard !isPresentingCaptureModal else {
+            initialComposerFocusIsPending = false
+            return
+        }
+
+        try? await Task.sleep(for: .milliseconds(180))
+        guard !Task.isCancelled,
+              initialComposerFocusIsPending,
+              hasCompletedInitialLoad,
+              !defersCaptureInputFocusForReleaseNotes else { return }
+
+        guard !isPresentingCaptureModal else {
+            initialComposerFocusIsPending = false
+            return
+        }
+
+        initialComposerFocusIsPending = false
+        focusComposer()
+    }
+
     private func loadAndPresentRequestedInput() async {
         // Navigation restarts this task when Capture reappears. Auto-focusing on
         // every restart races the pop transition and can put the keyboard over
         // controls before SwiftUI has restored the keyboard safe area.
         let shouldAutoFocus = !hasPerformedInitialLoad
         hasPerformedInitialLoad = true
+        if shouldAutoFocus {
+            initialComposerFocusIsPending = true
+        }
 
         await viewModel.load()
         guard !Task.isCancelled else { return }
@@ -1417,14 +1584,14 @@ struct QuickCaptureView: View {
         if let input = viewModel.requestedInput {
             presentRequestedInput(input)
             viewModel.requestedInput = nil
-        } else if shouldAutoFocus {
-            try? await Task.sleep(for: .milliseconds(180))
-            guard !Task.isCancelled else { return }
-            focusComposer()
+        }
+        if shouldAutoFocus {
+            hasCompletedInitialLoad = true
         }
     }
 
     private func presentRequestedInput(_ input: CaptureRequestedInput) {
+        initialComposerFocusIsPending = false
         dismissComposer()
         switch input {
         case .photos: showsPhotoPicker = true
@@ -1866,7 +2033,8 @@ struct QuickCaptureView: View {
         persistentRecorder.lastTranscriptionResult = nil
         _ = persistentRecorder.startOneShotInAppSegment(
             flowId: flowID,
-            completionMode: .runVox(flowID: flowID)
+            completionMode: .runVox(flowID: flowID),
+            origin: .quickRecord
         )
     }
 
@@ -1915,6 +2083,21 @@ struct QuickCaptureView: View {
                 if didScopeFolder { folderURL.stopAccessingSecurityScopedResource() }
             }
         }
+    }
+
+    private func updateRecordingAudioLevels() async {
+        recordingAudioLevels = Array(repeating: 0, count: 7)
+        guard persistentRecorder.isSegmentActive else { return }
+
+        while !Task.isCancelled, persistentRecorder.isSegmentActive {
+            if let level = TranscriptionIPC.readAudioLevel() {
+                recordingAudioLevels.removeFirst()
+                recordingAudioLevels.append(level)
+            }
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+
+        recordingAudioLevels = Array(repeating: 0, count: 7)
     }
 
     private func formatRecordingDuration(_ duration: TimeInterval) -> String {

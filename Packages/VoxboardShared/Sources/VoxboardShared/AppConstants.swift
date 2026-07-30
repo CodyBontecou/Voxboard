@@ -1,5 +1,15 @@
 import Foundation
 
+/// User-configurable live capture sources that can independently opt into auto-stop.
+public enum VoiceAutoStopCapturePath: String, CaseIterable, Codable, Hashable, Sendable {
+    case keyboard
+    case inAppDraft
+    case inAppImmediate
+    case quickRecord
+    case liveActivity
+    case watch
+}
+
 /// Shared constants used by both the main app and keyboard extension.
 /// The App Group allows sharing files (models, transcripts) and UserDefaults between targets.
 public enum AppConstants: Sendable {
@@ -17,11 +27,20 @@ public enum AppConstants: Sendable {
     public static let selectedFallbackModelKey = "selectedFallbackTranscriptionModel"
     public static let transcriptionSelectionMigrationKey = "transcriptionSelectionMigration.v1"
     public static let automaticBackendReadyKey = "automaticTranscriptionBackendReady"
-    public static let parakeetKeyboardAutoStopEnabledKey = "parakeetKeyboardAutoStopEnabled"
-    public static let parakeetKeyboardPauseDurationKey = "parakeetKeyboardPauseDuration"
-    public static let defaultParakeetKeyboardPauseDuration: TimeInterval = 0.75
-    public static let minimumParakeetKeyboardPauseDuration: TimeInterval = 0.5
-    public static let maximumParakeetKeyboardPauseDuration: TimeInterval = 2.0
+    // Keep the existing raw keys so users retain their configured auto-stop behavior.
+    public static let voiceAutoStopEnabledKey = "parakeetKeyboardAutoStopEnabled"
+    public static let voiceAutoStopPauseDurationKey = "parakeetKeyboardPauseDuration"
+    public static let defaultVoiceAutoStopPauseDuration: TimeInterval = 0.75
+    public static let minimumVoiceAutoStopPauseDuration: TimeInterval = 0.5
+    public static let maximumVoiceAutoStopPauseDuration: TimeInterval = 2.0
+    public static let voiceAutoStopCapturePathKeyPrefix = "voiceAutoStop.capturePath"
+
+    // Legacy source-compatible aliases.
+    public static let parakeetKeyboardAutoStopEnabledKey = voiceAutoStopEnabledKey
+    public static let parakeetKeyboardPauseDurationKey = voiceAutoStopPauseDurationKey
+    public static let defaultParakeetKeyboardPauseDuration = defaultVoiceAutoStopPauseDuration
+    public static let minimumParakeetKeyboardPauseDuration = minimumVoiceAutoStopPauseDuration
+    public static let maximumParakeetKeyboardPauseDuration = maximumVoiceAutoStopPauseDuration
 
     /// Legacy/local model default retained for the macOS app and as a fallback
     /// candidate. The iOS app defaults to the system-first Automatic backend.
@@ -165,38 +184,80 @@ public enum AppConstants: Sendable {
         boolOrDefault(lockScreenQuickRecordEnabledKey, default: true)
     }
 
-    /// Explicit Parakeet keyboard selections may end a segment after locally
-    /// detected silence when the optional voice-activity model is installed.
-    public static var parakeetKeyboardAutoStopEnabled: Bool {
-        get { boolOrDefault(parakeetKeyboardAutoStopEnabledKey, default: true) }
-        set { sharedDefaults?.set(newValue, forKey: parakeetKeyboardAutoStopEnabledKey) }
+    /// Live captures may end after locally detected silence when the optional
+    /// voice-activity model is installed.
+    public static var voiceAutoStopEnabled: Bool {
+        get { boolOrDefault(voiceAutoStopEnabledKey, default: true) }
+        set { sharedDefaults?.set(newValue, forKey: voiceAutoStopEnabledKey) }
     }
 
-    public static var parakeetKeyboardPauseDuration: TimeInterval {
+    public static var voiceAutoStopPauseDuration: TimeInterval {
         get {
             guard let defaults = sharedDefaults,
-                  defaults.object(forKey: parakeetKeyboardPauseDurationKey) != nil else {
-                return defaultParakeetKeyboardPauseDuration
+                  defaults.object(forKey: voiceAutoStopPauseDurationKey) != nil else {
+                return defaultVoiceAutoStopPauseDuration
             }
-            return clampedParakeetKeyboardPauseDuration(
-                defaults.double(forKey: parakeetKeyboardPauseDurationKey)
+            return clampedVoiceAutoStopPauseDuration(
+                defaults.double(forKey: voiceAutoStopPauseDurationKey)
             )
         }
         set {
             sharedDefaults?.set(
-                clampedParakeetKeyboardPauseDuration(newValue),
-                forKey: parakeetKeyboardPauseDurationKey
+                clampedVoiceAutoStopPauseDuration(newValue),
+                forKey: voiceAutoStopPauseDurationKey
             )
         }
+    }
+
+    public static func clampedVoiceAutoStopPauseDuration(
+        _ duration: TimeInterval
+    ) -> TimeInterval {
+        min(
+            maximumVoiceAutoStopPauseDuration,
+            max(minimumVoiceAutoStopPauseDuration, duration)
+        )
+    }
+
+    public static func voiceAutoStopCapturePathKey(
+        for path: VoiceAutoStopCapturePath
+    ) -> String {
+        "\(voiceAutoStopCapturePathKeyPrefix).\(path.rawValue).enabled"
+    }
+
+    /// The stored path preference without applying the global master switch.
+    public static func voiceAutoStopCapturePathEnabled(
+        _ path: VoiceAutoStopCapturePath
+    ) -> Bool {
+        boolOrDefault(voiceAutoStopCapturePathKey(for: path), default: true)
+    }
+
+    public static func setVoiceAutoStopCapturePathEnabled(
+        _ enabled: Bool,
+        for path: VoiceAutoStopCapturePath
+    ) {
+        sharedDefaults?.set(enabled, forKey: voiceAutoStopCapturePathKey(for: path))
+    }
+
+    public static func voiceAutoStopEnabled(
+        for path: VoiceAutoStopCapturePath
+    ) -> Bool {
+        voiceAutoStopEnabled && voiceAutoStopCapturePathEnabled(path)
+    }
+
+    public static var parakeetKeyboardAutoStopEnabled: Bool {
+        get { voiceAutoStopEnabled }
+        set { voiceAutoStopEnabled = newValue }
+    }
+
+    public static var parakeetKeyboardPauseDuration: TimeInterval {
+        get { voiceAutoStopPauseDuration }
+        set { voiceAutoStopPauseDuration = newValue }
     }
 
     public static func clampedParakeetKeyboardPauseDuration(
         _ duration: TimeInterval
     ) -> TimeInterval {
-        min(
-            maximumParakeetKeyboardPauseDuration,
-            max(minimumParakeetKeyboardPauseDuration, duration)
-        )
+        clampedVoiceAutoStopPauseDuration(duration)
     }
 
     public static var exportUseEnrichedTitleInFilename: Bool {

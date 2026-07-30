@@ -114,7 +114,7 @@ public struct RecordingStatus: Codable, Sendable {
     }
 }
 
-/// Command file written by the keyboard extension to control the main app.
+/// Describes a live recording segment started directly in the app or through IPC.
 public struct RecordingCommand: Codable, Sendable {
     public enum Action: String, Codable, Sendable {
         case stop          // Legacy: stop recording (kept for compat)
@@ -124,6 +124,11 @@ public struct RecordingCommand: Codable, Sendable {
 
     public enum Origin: String, Codable, Sendable {
         case keyboardExtension
+        case inAppDraft
+        case inAppImmediate
+        case quickRecord
+        case liveActivity
+        case watch
     }
 
     public let requestId: String
