@@ -2,33 +2,40 @@ import Foundation
 import StoreKit
 import VoxboardShared
 
-/// Manages the one-time purchase that unlocks unlimited transcription and Capture.
+/// Manages lifetime individual and Family Sharing purchases.
 @Observable
 @MainActor
 final class StoreManager {
 
-    // MARK: - Product ID
+    // MARK: - Product IDs
 
-    static let unlockProductID = "bontecou.Voxboard.unlock"
+    static let unlockProductID = VoxboardPurchaseProduct.individual.rawValue
+    static let familyProductID = VoxboardPurchaseProduct.family.rawValue
+    static let familyUpgradeProductID = VoxboardPurchaseProduct.familyUpgrade.rawValue
 
     // MARK: - Migration
 
     /// The highest build number that was shipped as a paid ($4.99) app.
-    /// Users who downloaded any of these builds should be grandfathered into
-    /// the unlimited tier automatically when the app transitions to free.
     private static let lastPaidBuildNumber = 4
 
     // MARK: - State
 
-    var product: Product?
-    var isPurchasing: Bool = false
-    var isRestoring: Bool = false
+    private(set) var productsByID: [String: Product] = [:]
+    private(set) var isEntitlementStateReady = false
+    var purchasingProductID: String?
+    var isRestoring = false
     var errorMessage: String?
+
+    var isPurchasing: Bool { purchasingProductID != nil }
+    var product: Product? { product(for: .individual) }
+    var familyProduct: Product? { product(for: .family) }
+    var familyUpgradeProduct: Product? { product(for: .familyUpgrade) }
 
     // MARK: - Dependencies
 
     private let usageTracker: UsageTracker
-    nonisolated(unsafe) private var transactionListenerTask: Task<Void, Never>?
+    @ObservationIgnored private var transactionListenerTask: Task<Void, Never>?
+    @ObservationIgnored private var hasVerifiedAppTransaction = false
 
     // MARK: - Init / Deinit
 
@@ -37,9 +44,16 @@ final class StoreManager {
     }
 
     func start() {
-        migrateIfNeeded()          // ← run before anything else
-        transactionListenerTask = listenForTransactions()
-        Task { await loadProducts() }
+        if transactionListenerTask == nil {
+            transactionListenerTask = listenForTransactions()
+        }
+        Task { await prepareForPurchases() }
+    }
+
+    func prepareForPurchases() async {
+        await verifyAppTransactionIfNeeded()
+        await syncCurrentEntitlements()
+        await loadProducts()
     }
 
     deinit {
@@ -48,144 +62,146 @@ final class StoreManager {
 
     // MARK: - Legacy Paid-App Migration
 
-    /// Grants unlimited access to users who purchased the original $4.99 app.
-    ///
-    /// How it works: the App Store receipt embeds `originalApplicationVersion`,
-    /// which holds the CFBundleVersion (build number) of the first build the user
-    /// downloaded. If that build is ≤ `lastPaidBuildNumber`, the user paid for the
-    /// app and should receive the unlock for free.
-    ///
-    /// This runs at most once per install (guarded by a UserDefaults flag).
-    private func migrateIfNeeded() {
+    /// Uses Apple's signed AppTransaction to distinguish original paid-app
+    /// owners from users whose old `hasUnlocked` Boolean came from StoreKit.
+    private func verifyAppTransactionIfNeeded(forceRefresh: Bool = false) async {
         let defaults = AppConstants.sharedDefaults ?? UserDefaults.standard
-        let flagKey  = "v2_legacyPaidMigrationDone"
-        guard !defaults.bool(forKey: flagKey) else { return }
-        defaults.set(true, forKey: flagKey)
-
-        // Already unlocked? Nothing to do.
-        guard !usageTracker.hasUnlocked else { return }
-
-        guard
-            let receiptURL  = Bundle.main.appStoreReceiptURL,
-            let receiptData = try? Data(contentsOf: receiptURL),
-            let originalBuildStr = Self.extractOriginalApplicationVersion(from: receiptData),
-            let originalBuild    = Int(originalBuildStr)
-        else { return }
-
-        print("[StoreManager] Receipt originalApplicationVersion = \(originalBuildStr)")
-
-        if originalBuild <= Self.lastPaidBuildNumber {
-            print("[StoreManager] Granting legacy unlock (paid build \(originalBuild))")
-            usageTracker.unlock()
+        let flagKey = "v3_verifiedLegacyPaidAccessMigrationDone"
+        if defaults.bool(forKey: flagKey) {
+            hasVerifiedAppTransaction = true
+            return
         }
-    }
 
-    /// Minimal ASN.1 scanner that extracts `originalApplicationVersion` (attribute
-    /// type 19, 0x13) from the App Store receipt without requiring full PKCS#7 parsing.
-    ///
-    /// Receipt attribute layout (each attribute):
-    /// ```
-    /// SEQUENCE {
-    ///   INTEGER  (attribute type)
-    ///   INTEGER  (attribute version)
-    ///   OCTET STRING {
-    ///     IA5String (value)
-    ///   }
-    /// }
-    /// ```
-    nonisolated private static func extractOriginalApplicationVersion(from receipt: Data) -> String? {
-        let bytes = [UInt8](receipt)
-        let count = bytes.count
-
-        // We look for the byte sequence [0x02, 0x01, 0x13] which encodes
-        // INTEGER (length 1) value = 19 (0x13) — the originalApplicationVersion
-        // attribute type.
-        let needle: [UInt8] = [0x02, 0x01, 0x13]
-
-        var i = 0
-        while i <= count - needle.count {
-            guard bytes[i] == needle[0],
-                  bytes[i + 1] == needle[1],
-                  bytes[i + 2] == needle[2] else {
-                i += 1
-                continue
+        do {
+            let verification: VerificationResult<AppTransaction>
+            if forceRefresh {
+                verification = try await AppTransaction.refresh()
+            } else {
+                verification = try await AppTransaction.shared
+            }
+            guard case .verified(let appTransaction) = verification,
+                  appTransaction.bundleID == Bundle.main.bundleIdentifier else {
+                errorMessage = "Could not verify your App Store purchase history. Try Restore Purchases."
+                return
             }
 
-            // Found attribute type 19. Advance past [02 01 13].
-            var pos = i + 3
-
-            // Skip the attribute-version INTEGER: 02 <len> <bytes…>
-            guard pos + 1 < count, bytes[pos] == 0x02 else { i += 1; continue }
-            pos += 1
-            let verLen = Int(bytes[pos]); pos += 1
-            pos += verLen
-
-            // Expect an OCTET STRING (0x04) wrapping the IA5String.
-            guard pos + 1 < count, bytes[pos] == 0x04 else { i += 1; continue }
-            pos += 1
-            // Read the OCTET STRING length (handle multi-byte lengths).
-            let (octetLen, octetAdvance) = decodeBerLength(bytes: bytes, pos: pos)
-            guard octetLen > 0 else { i += 1; continue }
-            pos += octetAdvance
-
-            // Inside the OCTET STRING: IA5String (0x16) <len> <ascii…>
-            guard pos + 1 < count, bytes[pos] == 0x16 else { i += 1; continue }
-            pos += 1
-            let (strLen, strAdvance) = decodeBerLength(bytes: bytes, pos: pos)
-            pos += strAdvance
-
-            guard strLen > 0, pos + strLen <= count else { i += 1; continue }
-            let strBytes = bytes[pos ..< pos + strLen]
-            return String(bytes: strBytes, encoding: .ascii)
+            let isOriginalPaidAppOwner: Bool
+            if let originalBuild = Int(appTransaction.originalAppVersion) {
+                isOriginalPaidAppOwner = originalBuild <= Self.lastPaidBuildNumber
+                if isOriginalPaidAppOwner {
+                    print("[StoreManager] Granting verified paid-app access (build \(originalBuild))")
+                }
+            } else if appTransaction.environment != .production {
+                // Sandbox/TestFlight commonly reports the placeholder `1.0`
+                // instead of the production CFBundleVersion. Never grandfather
+                // that placeholder, but allow purchase testing to continue.
+                isOriginalPaidAppOwner = false
+            } else {
+                errorMessage = "Could not verify your App Store purchase history. Try Restore Purchases."
+                return
+            }
+            usageTracker.completeLegacyAccessClassification(
+                isOriginalPaidAppOwner: isOriginalPaidAppOwner
+            )
+            defaults.set(true, forKey: flagKey)
+            hasVerifiedAppTransaction = true
+        } catch {
+            print("[StoreManager] App transaction verification failed: \(error)")
+            errorMessage = "Could not verify your App Store purchase history. Try Restore Purchases."
         }
-        return nil
     }
 
-    /// Decodes a BER/DER length field. Returns (length, bytesConsumed).
-    nonisolated private static func decodeBerLength(bytes: [UInt8], pos: Int) -> (Int, Int) {
-        guard pos < bytes.count else { return (0, 0) }
-        let first = bytes[pos]
-        if first & 0x80 == 0 {
-            // Short form: length fits in one byte.
-            return (Int(first), 1)
-        }
-        let numOctets = Int(first & 0x7F)
-        guard pos + numOctets < bytes.count else { return (0, 1) }
-        var length = 0
-        for k in 0 ..< numOctets {
-            length = (length << 8) | Int(bytes[pos + 1 + k])
-        }
-        return (length, 1 + numOctets)
-    }
-
-    // MARK: - Load Products
+    // MARK: - Products
 
     func loadProducts() async {
         do {
-            let products = try await Product.products(for: [Self.unlockProductID])
-            product = products.first
+            let products = try await Product.products(
+                for: VoxboardPurchaseProduct.allCases.map(\.rawValue)
+            )
+            productsByID = Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0) })
+            let hasMissingOffer = usageTracker.purchaseOptions.contains {
+                productsByID[$0.rawValue] == nil
+            }
+            if hasMissingOffer {
+                errorMessage = "Some purchase options are temporarily unavailable."
+            } else if isEntitlementStateReady {
+                errorMessage = nil
+            }
         } catch {
             print("[StoreManager] Failed to load products: \(error)")
+            errorMessage = "Purchases are not available right now."
         }
     }
 
+    func product(for purchaseProduct: VoxboardPurchaseProduct) -> Product? {
+        productsByID[purchaseProduct.rawValue]
+    }
+
+    func displayPrice(for purchaseProduct: VoxboardPurchaseProduct) -> String? {
+        product(for: purchaseProduct)?.displayPrice
+    }
+
+    var displayPrice: String? { displayPrice(for: .individual) }
+    var familyDisplayPrice: String? { displayPrice(for: .family) }
+    var familyUpgradeDisplayPrice: String? { displayPrice(for: .familyUpgrade) }
+
     // MARK: - Purchase
 
-    func purchase(context: OnboardingAnalyticsPaywallContext = .limit) async {
-        guard let product else {
+    func purchase(
+        _ purchaseProduct: VoxboardPurchaseProduct,
+        context: OnboardingAnalyticsPaywallContext = .limit
+    ) async {
+        // Persisted access can be stale after reinstall, refund, or a Family
+        // Sharing change. Verify and reconcile before deciding which price applies.
+        await verifyAppTransactionIfNeeded()
+        await syncCurrentEntitlements()
+        let analyticsProduct = OnboardingAnalyticsProductID(purchaseProduct)
+
+        guard isEntitlementStateReady else {
+            errorMessage = "Could not verify purchase eligibility. Try Restore Purchases."
+            OnboardingAnalyticsClient.shared.trackPurchaseFinished(
+                outcome: .failed,
+                context: context,
+                errorCategory: .verificationFailed,
+                productId: analyticsProduct,
+                quotaState: usageTracker.onboardingAnalyticsQuotaState
+            )
+            return
+        }
+
+        guard usageTracker.purchaseOptions.contains(purchaseProduct) else {
+            errorMessage = purchaseProduct == .familyUpgrade
+                ? "The Family upgrade is available to existing Unlimited owners."
+                : "This purchase is not available for your current access level."
+            OnboardingAnalyticsClient.shared.trackPurchaseFinished(
+                outcome: .failed,
+                context: context,
+                errorCategory: .notUnlocked,
+                productId: analyticsProduct,
+                quotaState: usageTracker.onboardingAnalyticsQuotaState
+            )
+            return
+        }
+
+        guard let product = product(for: purchaseProduct) else {
             errorMessage = "Product not available"
             OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                 outcome: .failed,
                 context: context,
                 errorCategory: .storeUnavailable,
+                productId: analyticsProduct,
                 quotaState: usageTracker.onboardingAnalyticsQuotaState
             )
             return
         }
-        isPurchasing = true
+
+        purchasingProductID = purchaseProduct.rawValue
         errorMessage = nil
+        defer { purchasingProductID = nil }
+
         OnboardingAnalyticsClient.shared.trackPurchaseStarted(
             context: context,
+            productId: analyticsProduct,
             quotaState: usageTracker.onboardingAnalyticsQuotaState
         )
 
@@ -195,11 +211,16 @@ final class StoreManager {
             case .success(let verification):
                 do {
                     let transaction = try checkVerified(verification)
-                    usageTracker.unlock()
+                    guard let verifiedProduct = VoxboardPurchaseProduct(rawValue: transaction.productID) else {
+                        throw StoreError.unrecognizedProduct
+                    }
+                    usageTracker.applyVerifiedPurchase(verifiedProduct)
                     await transaction.finish()
+                    await syncCurrentEntitlements(including: [verifiedProduct])
                     OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                         outcome: .succeeded,
                         context: context,
+                        productId: analyticsProduct,
                         quotaState: usageTracker.onboardingAnalyticsQuotaState
                     )
                 } catch {
@@ -208,6 +229,7 @@ final class StoreManager {
                         outcome: .failed,
                         context: context,
                         errorCategory: .verificationFailed,
+                        productId: analyticsProduct,
                         quotaState: usageTracker.onboardingAnalyticsQuotaState
                     )
                 }
@@ -216,6 +238,7 @@ final class StoreManager {
                     outcome: .cancelled,
                     context: context,
                     errorCategory: .userCancelled,
+                    productId: analyticsProduct,
                     quotaState: usageTracker.onboardingAnalyticsQuotaState
                 )
             case .pending:
@@ -223,6 +246,7 @@ final class StoreManager {
                 OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                     outcome: .pending,
                     context: context,
+                    productId: analyticsProduct,
                     quotaState: usageTracker.onboardingAnalyticsQuotaState
                 )
             @unknown default:
@@ -230,6 +254,7 @@ final class StoreManager {
                     outcome: .failed,
                     context: context,
                     errorCategory: .unknown,
+                    productId: analyticsProduct,
                     quotaState: usageTracker.onboardingAnalyticsQuotaState
                 )
             }
@@ -239,18 +264,24 @@ final class StoreManager {
                 outcome: .failed,
                 context: context,
                 errorCategory: .storeUnavailable,
+                productId: analyticsProduct,
                 quotaState: usageTracker.onboardingAnalyticsQuotaState
             )
         }
-
-        isPurchasing = false
     }
 
-    // MARK: - Restore
+    /// Backward-compatible entry point for the original individual unlock.
+    func purchase(context: OnboardingAnalyticsPaywallContext = .limit) async {
+        await purchase(.individual, context: context)
+    }
+
+    // MARK: - Restore / Entitlements
 
     func restorePurchases(context: OnboardingAnalyticsPaywallContext = .restore) async {
         isRestoring = true
         errorMessage = nil
+        defer { isRestoring = false }
+
         OnboardingAnalyticsClient.shared.trackRestoreStarted(
             context: context,
             quotaState: usageTracker.onboardingAnalyticsQuotaState
@@ -258,60 +289,74 @@ final class StoreManager {
 
         do {
             try await AppStore.sync()
+            await verifyAppTransactionIfNeeded(forceRefresh: true)
+            let restoredProducts = await syncCurrentEntitlements()
+            let restored = !restoredProducts.isEmpty
+                || (usageTracker.hasUnlocked && !usageTracker.isLegacyAccessClassificationPending)
+            let analyticsProduct = VoxboardPurchaseProduct.strongest(in: restoredProducts)
+                .map(OnboardingAnalyticsProductID.init)
+
+            if restored {
+                errorMessage = nil
+            } else {
+                errorMessage = usageTracker.isLegacyAccessClassificationPending
+                    ? "Could not verify your previous purchase. Please try again."
+                    : "No Vox.md Unlimited purchase was found."
+            }
+            OnboardingAnalyticsClient.shared.trackRestoreFinished(
+                outcome: restored ? .succeeded : .failed,
+                context: context,
+                errorCategory: restored ? nil : .notUnlocked,
+                productId: analyticsProduct,
+                quotaState: usageTracker.onboardingAnalyticsQuotaState
+            )
         } catch {
             errorMessage = "Restore failed: \(error.localizedDescription)"
-            isRestoring = false
             OnboardingAnalyticsClient.shared.trackRestoreFinished(
                 outcome: .failed,
                 context: context,
                 errorCategory: .storeUnavailable,
                 quotaState: usageTracker.onboardingAnalyticsQuotaState
             )
-            return
         }
-
-        var restoredUnlock = false
-        for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result,
-               transaction.productID == Self.unlockProductID {
-                usageTracker.unlock()
-                restoredUnlock = true
-                await transaction.finish()
-            }
-        }
-
-        OnboardingAnalyticsClient.shared.trackRestoreFinished(
-            outcome: restoredUnlock ? .succeeded : .failed,
-            context: context,
-            errorCategory: restoredUnlock ? nil : .notUnlocked,
-            quotaState: usageTracker.onboardingAnalyticsQuotaState
-        )
-        isRestoring = false
     }
 
-    // MARK: - Transaction Listener
+    /// App Group defaults are removed on uninstall, while StoreKit and shared
+    /// family entitlements persist. Reconcile before quota-gated launch work.
+    @discardableResult
+    func syncCurrentEntitlements(
+        including additionalProducts: [VoxboardPurchaseProduct] = []
+    ) async -> [VoxboardPurchaseProduct] {
+        var currentProducts = additionalProducts
 
-    /// App Group defaults are removed on uninstall, while StoreKit
-    /// entitlements persist. Call this before any launch-time quota-gated work.
-    func syncCurrentEntitlements() async {
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result,
-                  transaction.productID == Self.unlockProductID else { continue }
-            usageTracker.unlock()
+                  transaction.revocationDate == nil,
+                  let product = VoxboardPurchaseProduct(rawValue: transaction.productID) else {
+                continue
+            }
+            if !currentProducts.contains(product) {
+                currentProducts.append(product)
+            }
             await transaction.finish()
         }
+
+        usageTracker.reconcileStoreEntitlements(currentProducts)
+        isEntitlementStateReady = hasVerifiedAppTransaction || !currentProducts.isEmpty
+        return currentProducts
     }
 
     private func listenForTransactions() -> Task<Void, Never> {
-        // Inherit MainActor context so we can safely mutate @Observable state directly.
         Task { [weak self] in
             for await result in Transaction.updates {
                 guard let self else { return }
-                if case .verified(let transaction) = result,
-                   transaction.productID == Self.unlockProductID {
-                    self.usageTracker.unlock()
-                    await transaction.finish()
+                guard case .verified(let transaction) = result,
+                      let product = VoxboardPurchaseProduct(rawValue: transaction.productID) else {
+                    continue
                 }
+                await transaction.finish()
+                let additionalProducts = transaction.revocationDate == nil ? [product] : []
+                await self.syncCurrentEntitlements(including: additionalProducts)
             }
         }
     }
@@ -326,23 +371,20 @@ final class StoreManager {
             return safe
         }
     }
-
-    // MARK: - Display Helpers
-
-    var displayPrice: String {
-        product?.displayPrice ?? "$9.99"
-    }
 }
 
 // MARK: - Errors
 
 enum StoreError: LocalizedError {
     case failedVerification
+    case unrecognizedProduct
 
     var errorDescription: String? {
         switch self {
         case .failedVerification:
-            return "Transaction verification failed"
+            "Transaction verification failed"
+        case .unrecognizedProduct:
+            "The transaction did not match a Vox.md product"
         }
     }
 }

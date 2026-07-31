@@ -321,7 +321,7 @@ public extension OnboardingAnalyticsClient {
 
     func trackRestoreStarted(
         context: OnboardingAnalyticsPaywallContext = .restore,
-        productId: OnboardingAnalyticsProductID = .lifetimeUnlock,
+        productId: OnboardingAnalyticsProductID? = nil,
         quotaState: OnboardingAnalyticsQuotaState? = nil
     ) {
         track(OnboardingAnalyticsEvent(
@@ -339,7 +339,7 @@ public extension OnboardingAnalyticsClient {
         outcome: OnboardingAnalyticsPurchaseOutcome,
         context: OnboardingAnalyticsPaywallContext = .restore,
         errorCategory: OnboardingAnalyticsErrorCategory? = nil,
-        productId: OnboardingAnalyticsProductID = .lifetimeUnlock,
+        productId: OnboardingAnalyticsProductID? = nil,
         quotaState: OnboardingAnalyticsQuotaState? = nil
     ) {
         track(OnboardingAnalyticsEvent(

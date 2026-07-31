@@ -20,11 +20,15 @@ struct FileExportEvent: Equatable {
 }
 
 enum RecordingCompletionMode: Equatable, Sendable {
+    /// Return text to the Vox.md keyboard without running a Capture Preset.
+    case keyboardTranscription
     case captureDraft(attachAudio: Bool)
     case runVox(flowID: String)
 
     var defaultCommandOrigin: RecordingCommand.Origin {
         switch self {
+        case .keyboardTranscription:
+            return .keyboardExtension
         case .captureDraft:
             return .inAppDraft
         case .runVox:
@@ -36,6 +40,22 @@ enum RecordingCompletionMode: Equatable, Sendable {
         overriding requestedOrigin: RecordingCommand.Origin?
     ) -> RecordingCommand.Origin {
         requestedOrigin ?? defaultCommandOrigin
+    }
+
+    /// IPC segments do not have an app-owned completion mode assigned before
+    /// their start command arrives. Keyboard commands must remain transcription
+    /// only; otherwise the generic Preset fallback also exports the dictated text.
+    static func completionMode(
+        forExternalCommand command: RecordingCommand,
+        fallbackFlowID: String
+    ) -> RecordingCompletionMode {
+        switch command.origin {
+        case .keyboardExtension, nil:
+            // Commands from keyboard builds predating `origin` also decode as nil.
+            return .keyboardTranscription
+        case .inAppDraft, .inAppImmediate, .quickRecord, .liveActivity, .watch:
+            return .runVox(flowID: command.flowId ?? fallbackFlowID)
+        }
     }
 }
 
@@ -69,6 +89,16 @@ final class PersistentRecorder {
     var isTranscribing: Bool = false
     var segmentDuration: TimeInterval = 0
     var lastError: String?
+
+    /// Keyboard recordings share this recorder but are not app-owned Capture
+    /// recordings. Keep the app mic UI independent from the keyboard mic UI.
+    var isAppRecordingSegmentActive: Bool {
+        isSegmentActive && segmentCompletionMode != .keyboardTranscription
+    }
+
+    var isAppRecordingTranscribing: Bool {
+        isTranscribing && transcribingCompletionMode != .keyboardTranscription
+    }
 
     /// Last transcription result from an in-app recording. Observable for UI display.
     var lastTranscriptionResult: String?
@@ -106,6 +136,7 @@ final class PersistentRecorder {
     private var segmentLanguage: String?
     private var segmentFlowId: String?
     private var segmentCompletionMode: RecordingCompletionMode?
+    private var transcribingCompletionMode: RecordingCompletionMode?
     private var segmentStartedAt: TimeInterval = 0
     private var liveTranscriptionSetupTask: Task<LiveSegmentTranscriptionCoordinator?, Never>?
     private var endOfSpeechSetupTask: Task<VoiceAutoStopCoordinator?, Never>?
@@ -742,6 +773,7 @@ final class PersistentRecorder {
             let completionMode = requestedCompletionMode ?? .runVox(flowID: flowId)
             let requestId = "import-\(UUID().uuidString)"
 
+            transcribingCompletionMode = completionMode
             isTranscribing = true
             lastTranscriptionResult = nil
             lastError = nil
@@ -788,6 +820,7 @@ final class PersistentRecorder {
                 }
                 await MainActor.run {
                     self?.isTranscribing = false
+                    self?.transcribingCompletionMode = nil
                     if bgTask != .invalid {
                         UIApplication.shared.endBackgroundTask(bgTask)
                         bgTask = .invalid
@@ -864,6 +897,10 @@ final class PersistentRecorder {
             self.segmentModelId = command.modelId
             self.segmentLanguage = command.language
             self.segmentFlowId = command.flowId
+            self.segmentCompletionMode = .completionMode(
+                forExternalCommand: command,
+                fallbackFlowID: command.flowId ?? CapturePresetStore.selectedFlowId()
+            )
             self.segmentStartedAt = startedAt
             self.isSegmentActive = true
             self.segmentDuration = 0
@@ -920,6 +957,15 @@ final class PersistentRecorder {
         segmentModelId = command.modelId
         segmentLanguage = command.language
         segmentFlowId = command.flowId
+        if segmentCompletionMode == nil {
+            segmentCompletionMode = .completionMode(
+                forExternalCommand: command,
+                fallbackFlowID: command.flowId ?? CapturePresetStore.selectedFlowId()
+            )
+        }
+        if segmentCompletionMode == .keyboardTranscription {
+            lastTranscriptionResult = nil
+        }
         segmentStartedAt = Date().timeIntervalSince1970
         isSegmentActive = true
         segmentDuration = 0
@@ -1194,7 +1240,11 @@ final class PersistentRecorder {
         }
 
         let requestId = command.requestId
+        let flowId = segmentFlowId ?? command.flowId ?? CapturePresetStore.selectedFlowId()
+        let completionMode = segmentCompletionMode
+            ?? .completionMode(forExternalCommand: command, fallbackFlowID: flowId)
         processingRequestId = requestId
+        transcribingCompletionMode = completionMode
         log.log("[PersistentRecorder] ⏹ Stopping segment: \(requestId.prefix(8)) trigger=\(trigger.rawValue) (segmentRequestId=\(segmentRequestId?.prefix(8) ?? "nil"), command.requestId=\(command.requestId.prefix(8)))")
         osLog.notice("⏹ Stopping segment: \(requestId)")
 
@@ -1221,6 +1271,7 @@ final class PersistentRecorder {
                     writeErrorResponse(requestId: requestId, message: "Microphone wasn't receiving audio — please try again")
                     clearCaptureLiveTranscription(requestId: requestId)
                     processingRequestId = nil
+                    transcribingCompletionMode = nil
                     clearSegmentState()
                     stopListening()
                     startListening()
@@ -1289,8 +1340,6 @@ final class PersistentRecorder {
         // Transcribe
         let modelId = segmentModelId ?? command.modelId ?? AppConstants.defaultTranscriptionBackendID
         let language = segmentLanguage ?? command.language ?? "auto"
-        let flowId = segmentFlowId ?? command.flowId ?? CapturePresetStore.selectedFlowId()
-        let completionMode = segmentCompletionMode ?? .runVox(flowID: flowId)
         let duration = TimeInterval(durationSec)
         let liveSetupTask = liveTranscriptionSetupTask
         liveTranscriptionSetupTask = nil
@@ -1332,6 +1381,7 @@ final class PersistentRecorder {
 
             await MainActor.run {
                 self.isTranscribing = false
+                self.transcribingCompletionMode = nil
                 if self.processingRequestId == requestId {
                     self.processingRequestId = nil
                 }
@@ -1351,6 +1401,7 @@ final class PersistentRecorder {
         writeErrorResponse(requestId: requestId, message: message)
         clearCaptureLiveTranscription(requestId: requestId)
         isTranscribing = false
+        transcribingCompletionMode = nil
         if processingRequestId == requestId {
             processingRequestId = nil
         }
@@ -1488,7 +1539,7 @@ final class PersistentRecorder {
                 // formatting, enrichment, and configured export behavior.
                 let selectedFlow: CapturePreset?
                 switch completionMode {
-                case .captureDraft:
+                case .keyboardTranscription, .captureDraft:
                     selectedFlow = nil
                 case .runVox(let flowID):
                     selectedFlow = CapturePresetStore.flow(id: flowID) ?? CapturePresetStore.selectedFlow()
@@ -1689,8 +1740,11 @@ final class PersistentRecorder {
                 }
                 self.trackOnboardingCompletedIfNeeded(metadata: analyticsMetadata)
 
-                // Surface result for in-app recording UI
-                self.lastTranscriptionResult = text
+                // Keyboard requests return through IPC. Do not also surface them
+                // as app-owned Capture results.
+                if completionMode != .keyboardTranscription {
+                    self.lastTranscriptionResult = text
+                }
 
                 log.log("[PersistentRecorder] ✅ Transcription complete: \(text.count) chars")
             } else {

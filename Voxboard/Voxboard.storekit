@@ -7,13 +7,43 @@
       "internalID" : "bontecou.Voxboard.unlock",
       "localizations" : [
         {
-          "description" : "Unlock unlimited transcription. One-time purchase, no subscription.",
-          "displayName" : "Voxboard Unlimited",
+          "description" : "Unlock unlimited transcription and Capture for one user. One-time purchase, no subscription.",
+          "displayName" : "Vox.md Individual Unlimited",
           "locale" : "en_US"
         }
       ],
       "productID" : "bontecou.Voxboard.unlock",
-      "referenceName" : "Voxboard Unlimited",
+      "referenceName" : "Vox.md Individual Unlimited",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "14.99",
+      "familySharable" : true,
+      "internalID" : "bontecou.Voxboard.family",
+      "localizations" : [
+        {
+          "description" : "Unlock unlimited transcription and Capture with Apple Family Sharing. One-time purchase, no subscription.",
+          "displayName" : "Vox.md Family Unlimited",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "bontecou.Voxboard.family",
+      "referenceName" : "Vox.md Family Unlimited",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familySharable" : true,
+      "internalID" : "bontecou.Voxboard.familyUpgrade",
+      "localizations" : [
+        {
+          "description" : "Upgrade an existing Vox.md Individual Unlimited purchase to support Apple Family Sharing.",
+          "displayName" : "Vox.md Family Upgrade",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "bontecou.Voxboard.familyUpgrade",
+      "referenceName" : "Vox.md Family Upgrade",
       "type" : "NonConsumable"
     }
   ],

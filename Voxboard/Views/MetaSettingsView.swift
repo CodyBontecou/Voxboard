@@ -65,6 +65,9 @@ struct MetaSettingsView: View {
         .sheet(isPresented: $showDebugLog) {
             SettingsDebugLogView()
         }
+        // Settings can be opened before StoreKit finishes its launch sync.
+        // Refresh here so existing owners always get the Family upgrade offer.
+        .task { await storeManager.prepareForPurchases() }
 #if os(iOS)
         .sheet(isPresented: $showMailCompose) {
             MailComposeView()
@@ -92,65 +95,90 @@ struct MetaSettingsView: View {
             sectionHeader("—", "Vox.md Unlimited")
             GeistDivider()
 
-            if usageTracker.hasUnlocked {
+            VStack(spacing: 16) {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Unlimited Unlocked")
+                        Text(accessTitle)
                             .font(Geist.label())
                             .foregroundColor(Geist.text)
-                        Text("Lifetime access — no limits")
+                        Text(accessDetail)
                             .font(Geist.caption())
                             .foregroundColor(Geist.muted)
                     }
                     Spacer()
-                    HStack(spacing: 6) {
-                        Rectangle()
-                            .fill(Geist.text)
-                            .frame(width: 6, height: 6)
-                        Text("Purchased")
-                            .font(Geist.caption())
+                    if usageTracker.hasUnlocked {
+                        HStack(spacing: 6) {
+                            Rectangle()
+                                .fill(Geist.text)
+                                .frame(width: 6, height: 6)
+                            Text(usageTracker.hasFamilyAccess ? "Family" : "Purchased")
+                                .font(Geist.caption())
+                                .foregroundColor(Geist.text)
+                        }
+                    } else if let price = storeManager.displayPrice {
+                        Text("From \(price)")
+                            .font(Geist.label(.headline))
                             .foregroundColor(Geist.text)
+                    } else {
+                        Text("Checking price…")
+                            .font(Geist.caption())
+                            .foregroundColor(Geist.muted)
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .background(Geist.bg)
-            } else {
-                VStack(spacing: 16) {
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Unlock Unlimited")
-                                .font(Geist.label())
-                                .foregroundColor(Geist.text)
-                            Text(String(
-                                format: String(localized: "%.1f / 15 min · %d / 10 captures used"),
-                                usageTracker.minutesUsed,
-                                usageTracker.successfulCapturesUsed
-                            ))
-                                .font(Geist.caption())
-                                .foregroundColor(Geist.muted)
-                        }
-                        Spacer()
-                        Text(storeManager.displayPrice)
-                            .font(Geist.label(.headline))
-                            .foregroundColor(Geist.text)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 16)
+                .padding(.top, 16)
 
+                if !usageTracker.hasFamilyAccess {
                     Button(action: { showPaywall = true }) {
                         HStack(spacing: 8) {
-                            Image(systemName: "lock.open.fill")
+                            Image(systemName: usageTracker.hasUnlocked ? "person.3.fill" : "lock.open.fill")
                                 .font(.system(.subheadline))
-                            Text("View Upgrade Options")
+                            if usageTracker.accessLevel == .individual,
+                               let price = storeManager.familyUpgradeDisplayPrice {
+                                Text("Upgrade to Family — \(price)")
+                            } else if usageTracker.accessLevel == .individual {
+                                Text("Upgrade to Family")
+                            } else {
+                                Text("View Lifetime Options")
+                            }
                         }
                     }
+                    .accessibilityIdentifier(
+                        usageTracker.accessLevel == .individual
+                            ? "settings.familyUpgradeButton"
+                            : "settings.lifetimeOptionsButton"
+                    )
                     .buttonStyle(GeistButtonStyle(variant: .primary))
                     .padding(.horizontal, 20)
                     .padding(.bottom, 16)
+                } else {
+                    Spacer().frame(height: 1)
                 }
-                .background(Geist.bg)
             }
+            .background(Geist.bg)
+        }
+    }
+
+    private var accessTitle: LocalizedStringKey {
+        switch usageTracker.accessLevel {
+        case .free: "Unlock Unlimited"
+        case .individual: "Individual Unlimited"
+        case .family: "Family Unlimited"
+        }
+    }
+
+    private var accessDetail: String {
+        switch usageTracker.accessLevel {
+        case .free:
+            String(
+                format: String(localized: "%.1f / 15 min · %d / 10 captures used"),
+                usageTracker.minutesUsed,
+                usageTracker.successfulCapturesUsed
+            )
+        case .individual:
+            String(localized: "Lifetime access — upgrade to share with family")
+        case .family:
+            String(localized: "Lifetime access with Apple Family Sharing")
         }
     }
 

@@ -159,7 +159,7 @@ struct MacCaptureWorkspaceView: View {
             MacCaptureDueDateSheet(onInsert: insertDueDate)
         }
         .sheet(isPresented: $showsPaywall) {
-            MacPaywallView()
+            MacPaywallView(context: .captureLimit)
                 .environment(usageTracker)
                 .environment(storeManager)
         }

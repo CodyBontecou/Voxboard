@@ -18,6 +18,36 @@ enum VoxboardReleaseNotes {
 
     private static let versionNotes: [VersionNotes] = [
         .init(
+            version: "2.0.4",
+            items: [
+                .list(
+                    title: "What’s new in Vox.md",
+                    rows: [
+                        .init(
+                            symbolSystemName: "timer",
+                            title: "Voice Auto-Stop everywhere",
+                            description: "Use the optional on-device Voice Pause Detection model with the keyboard, Quick Capture, widgets, Live Activities, and Apple Watch. Choose exactly where auto-stop runs in Settings."
+                        ),
+                        .init(
+                            symbolSystemName: "waveform.badge.plus",
+                            title: "See recordings as they happen",
+                            description: "Active Quick Capture recordings now show elapsed time and a live waveform. Send Immediately recordings can also show live Apple Speech text without adding it to your draft."
+                        ),
+                        .init(
+                            symbolSystemName: "arrow.triangle.2.circlepath",
+                            title: "More reliable live transcripts",
+                            description: "Cancelled or previous recording sessions can no longer replace or clear the text from a newer recording."
+                        ),
+                        .init(
+                            symbolSystemName: "folder.badge.gearshape",
+                            title: "Choose existing notes reliably",
+                            description: "Vox.md now handles more Files and File Provider path variations when you select an existing Markdown note or template, while keeping destination boundaries protected."
+                        )
+                    ]
+                )
+            ]
+        ),
+        .init(
             version: "2.0.3",
             items: [
                 .list(

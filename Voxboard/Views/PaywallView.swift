@@ -1,7 +1,7 @@
 import SwiftUI
 import VoxboardShared
 
-/// One-time purchase screen shown from usage limits and Settings.
+/// Lifetime purchase screen shown from usage limits and Settings.
 struct PaywallView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(UsageTracker.self) private var usageTracker
@@ -18,8 +18,16 @@ struct PaywallView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Geist.Spacing.eight) {
                     hero
-                    usageCard
-                    purchaseCard
+                    if !usageTracker.hasUnlocked {
+                        usageCard
+                    }
+                    purchaseSection
+                    if let error = storeManager.errorMessage {
+                        Label(error, systemImage: "exclamationmark.triangle.fill")
+                            .font(Geist.caption())
+                            .foregroundStyle(Geist.error)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     features
                     restorePurchases
                 }
@@ -47,19 +55,19 @@ struct PaywallView: View {
                 quotaState: usageTracker.onboardingAnalyticsQuotaState
             )
         }
-        .task { await storeManager.loadProducts() }
+        .task { await storeManager.prepareForPurchases() }
     }
 
     private var hero: some View {
         VStack(alignment: .leading, spacing: Geist.Spacing.three) {
             GeistStatusBadge(label: statusBadgeLabel, isActive: usageTracker.hasUnlocked)
 
-            Text(usageTracker.hasUnlocked ? "Unlimited Is Unlocked" : "Capture and Transcribe Without Limits")
+            Text(heroTitle)
                 .font(Geist.heading(.largeTitle))
                 .tracking(-1.28)
                 .foregroundStyle(Geist.text)
 
-            Text("One purchase unlocks unlimited local Capture and private, on-device transcription across Vox.md.")
+            Text(heroDetail)
                 .font(Geist.body())
                 .foregroundStyle(Geist.muted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -119,47 +127,128 @@ struct PaywallView: View {
         }
     }
 
-    private var purchaseCard: some View {
-        VStack(alignment: .leading, spacing: Geist.Spacing.six) {
+    @ViewBuilder
+    private var purchaseSection: some View {
+        if !storeManager.isEntitlementStateReady {
+            HStack(spacing: Geist.Spacing.three) {
+                ProgressView()
+                Text("Checking Purchases…")
+                    .font(Geist.body())
+                    .foregroundStyle(Geist.muted)
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .geistCard()
+        } else {
+            purchaseOptions
+        }
+    }
+
+    @ViewBuilder
+    private var purchaseOptions: some View {
+        switch usageTracker.accessLevel {
+        case .free:
+            VStack(alignment: .leading, spacing: Geist.Spacing.four) {
+                VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                    Text("Choose Lifetime Access")
+                        .font(Geist.heading(.headline))
+                        .foregroundStyle(Geist.text)
+                    Text("Pay once. No subscription or renewal.")
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.muted)
+                }
+
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 260), spacing: Geist.Spacing.four)],
+                    alignment: .leading,
+                    spacing: Geist.Spacing.four
+                ) {
+                    offerCard(
+                        product: .individual,
+                        title: "Individual Unlimited",
+                        detail: "Unlimited Capture and transcription on devices signed in to your Apple Account.",
+                        buttonTitle: "Unlock Individual"
+                    )
+                    offerCard(
+                        product: .family,
+                        title: "Family Unlimited",
+                        detail: "Unlimited access you can share with your Apple Family Sharing group.",
+                        buttonTitle: "Unlock Family",
+                        badge: "FAMILY"
+                    )
+                }
+            }
+
+        case .individual:
+            offerCard(
+                product: .familyUpgrade,
+                title: "Upgrade to Family",
+                detail: "Add Apple Family Sharing to your existing lifetime Unlimited purchase.",
+                buttonTitle: "Upgrade to Family",
+                badge: "EXISTING OWNER PRICE"
+            )
+
+        case .family:
+            VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+                Label("Family Unlimited Is Unlocked", systemImage: "person.3.fill")
+                    .font(Geist.heading(.headline))
+                    .foregroundStyle(Geist.text)
+                Text("Your lifetime Unlimited access supports Apple Family Sharing.")
+                    .font(Geist.body())
+                    .foregroundStyle(Geist.muted)
+            }
+            .geistCard()
+        }
+    }
+
+    private func offerCard(
+        product: VoxboardPurchaseProduct,
+        title: LocalizedStringKey,
+        detail: LocalizedStringKey,
+        buttonTitle: LocalizedStringKey,
+        badge: LocalizedStringKey? = nil
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.four) {
             VStack(alignment: .leading, spacing: Geist.Spacing.two) {
-                Text("Lifetime Access")
+                if let badge {
+                    Text(badge)
+                        .font(Geist.mono(.caption2, medium: true))
+                        .foregroundStyle(Geist.Palette.blue900)
+                }
+                Text(title)
                     .font(Geist.heading(.headline))
                     .foregroundStyle(Geist.text)
                 HStack(alignment: .lastTextBaseline, spacing: Geist.Spacing.two) {
-                    Text(storeManager.displayPrice)
-                        .font(Geist.heading(.largeTitle))
-                        .tracking(-1.28)
+                    Text(storeManager.displayPrice(for: product) ?? String(localized: "Price unavailable"))
+                        .font(Geist.heading(.title))
                         .foregroundStyle(Geist.text)
                     Text("one time")
-                        .font(Geist.body())
+                        .font(Geist.caption())
                         .foregroundStyle(Geist.muted)
                 }
-                Text("No subscription or renewal.")
+                Text(detail)
                     .font(Geist.caption())
                     .foregroundStyle(Geist.muted)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
+            Spacer(minLength: 0)
+
             Button {
-                Task { await storeManager.purchase(context: context) }
+                Task { await storeManager.purchase(product, context: context) }
             } label: {
                 HStack(spacing: Geist.Spacing.two) {
-                    if storeManager.isPurchasing {
+                    if storeManager.purchasingProductID == product.rawValue {
                         ProgressView().tint(Geist.Palette.background100)
                         Text("Purchasing…")
                     } else {
-                        Image(systemName: "lock.open.fill")
-                        Text("Unlock Unlimited")
+                        Image(systemName: product == .individual ? "person.fill" : "person.3.fill")
+                        Text(buttonTitle)
                     }
                 }
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(GeistButtonStyle(variant: .primary))
-            .disabled(storeManager.isPurchasing || storeManager.product == nil || usageTracker.hasUnlocked)
-
-            if let error = storeManager.errorMessage {
-                Label(error, systemImage: "exclamationmark.triangle.fill")
-                    .font(Geist.caption())
-                    .foregroundStyle(Geist.error)
-            }
+            .disabled(storeManager.isPurchasing || storeManager.product(for: product) == nil)
         }
         .geistCard()
     }
@@ -179,7 +268,7 @@ struct PaywallView: View {
                 GeistDivider()
                 featureRow("All Models", detail: "Use every supported local model", icon: "cpu")
                 GeistDivider()
-                featureRow("Keyboard Integration", detail: "Transcribe from other apps", icon: "keyboard")
+                featureRow("Family Sharing", detail: "Included with Family Unlimited", icon: "person.3")
                 GeistDivider()
                 featureRow("Lifetime Access", detail: "Pay once and keep it", icon: "checkmark.seal")
             }
@@ -220,29 +309,50 @@ struct PaywallView: View {
                         ProgressView()
                         Text("Restoring…")
                     } else {
-                        Text("Restore Purchase")
+                        Text("Restore Purchases")
                     }
                 }
             }
             .buttonStyle(GeistButtonStyle(variant: .secondary))
-            .disabled(storeManager.isRestoring)
+            .disabled(storeManager.isRestoring || storeManager.isPurchasing)
 
-            Text("Restore a previous purchase made with your Apple Account.")
+            Text("Restore purchases or Family Sharing access from your Apple Account.")
                 .font(Geist.caption())
                 .foregroundStyle(Geist.muted)
                 .multilineTextAlignment(.center)
         }
+        .frame(maxWidth: .infinity)
     }
 
     private var statusBadgeLabel: LocalizedStringKey {
-        if usageTracker.hasUnlocked { return "Unlimited" }
-        return usageTracker.isAtLimit || usageTracker.isCaptureAtLimit ? "Limit Reached" : "Free Tier"
+        switch usageTracker.accessLevel {
+        case .family: "Family Unlimited"
+        case .individual: "Individual Unlimited"
+        case .free:
+            usageTracker.isAtLimit || usageTracker.isCaptureAtLimit ? "Limit Reached" : "Free Tier"
+        }
+    }
+
+    private var heroTitle: LocalizedStringKey {
+        switch usageTracker.accessLevel {
+        case .family: "Family Unlimited Is Unlocked"
+        case .individual: "Unlimited Is Unlocked"
+        case .free: "Capture and Transcribe Without Limits"
+        }
+    }
+
+    private var heroDetail: LocalizedStringKey {
+        switch usageTracker.accessLevel {
+        case .family:
+            "Your lifetime purchase includes Unlimited access and Apple Family Sharing."
+        case .individual:
+            "You have lifetime Unlimited access. Upgrade once to share it with your Family Sharing group."
+        case .free:
+            "Choose individual or Family lifetime access for unlimited local Capture and private, on-device transcription."
+        }
     }
 
     private var usageStatusMessage: String {
-        if usageTracker.hasUnlocked {
-            return String(localized: "Unlimited is unlocked on this device.")
-        }
         if usageTracker.isAtLimit && usageTracker.isCaptureAtLimit {
             return String(localized: "Your free transcription time and captures are used. Unlock Unlimited to continue.")
         }

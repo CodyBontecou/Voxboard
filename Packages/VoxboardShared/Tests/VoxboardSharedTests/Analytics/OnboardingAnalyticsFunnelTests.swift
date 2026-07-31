@@ -50,6 +50,25 @@ final class OnboardingAnalyticsFunnelTests: XCTestCase {
         XCTAssertEqual(appleSpeech.sizeBucket, .unknown)
     }
 
+    func testRestoreStartedDoesNotMisattributeAnUnknownProduct() async {
+        let transport = RecordingOnboardingAnalyticsTransport()
+        let client = OnboardingAnalyticsClient(
+            transport: transport,
+            defaults: FakeOnboardingAnalyticsDefaults(),
+            queueKey: "onboarding.analytics.test.restore",
+            isEnabled: true,
+            retryDelayNanoseconds: 0,
+            runtimeContextProvider: { nil }
+        )
+
+        client.trackRestoreStarted()
+        await client.flushAndWait()
+
+        let payload = await transport.payloadsValue().first
+        XCTAssertEqual(payload?.eventName, "onboarding_restore_started")
+        XCTAssertNil(payload?.properties[.productId])
+    }
+
     func testPaywallHelperBuildsTypedFunnelEvent() async {
         let transport = RecordingOnboardingAnalyticsTransport()
         let client = OnboardingAnalyticsClient(

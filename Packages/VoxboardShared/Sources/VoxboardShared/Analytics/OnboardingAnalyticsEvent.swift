@@ -388,6 +388,16 @@ public enum OnboardingAnalyticsPaywallContext: String, CaseIterable, Sendable {
 
 public enum OnboardingAnalyticsProductID: String, CaseIterable, Sendable {
     case lifetimeUnlock = "bontecou.Voxboard.unlock"
+    case familyUnlock = "bontecou.Voxboard.family"
+    case familyUpgrade = "bontecou.Voxboard.familyUpgrade"
+
+    public init(_ product: VoxboardPurchaseProduct) {
+        switch product {
+        case .individual: self = .lifetimeUnlock
+        case .family: self = .familyUnlock
+        case .familyUpgrade: self = .familyUpgrade
+        }
+    }
 }
 
 public enum OnboardingAnalyticsPurchaseOutcome: String, CaseIterable, Sendable {

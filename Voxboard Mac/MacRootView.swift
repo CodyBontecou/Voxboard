@@ -1513,20 +1513,21 @@ struct MacSettingsView: View {
                 VStack(spacing: 0) {
                     sectionHeader("—", "Vox.md Unlimited")
                     settingsRow(
-                        title: usageTracker.hasUnlocked ? "UNLIMITED UNLOCKED" : "UNLOCK UNLIMITED",
-                        detail: usageTracker.hasUnlocked
-                            ? "Lifetime access — no limits"
-                            : String(
-                                format: "%.1f / 15 min · %d / 10 captures used",
-                                usageTracker.minutesUsed,
-                                usageTracker.successfulCapturesUsed
-                            ),
-                        trailing: usageTracker.hasUnlocked ? "PURCHASED" : storeManager.displayPrice
+                        title: unlimitedAccessTitle,
+                        detail: unlimitedAccessDetail,
+                        trailing: unlimitedAccessTrailing
                     )
-                    if !usageTracker.hasUnlocked {
-                        Button("View Upgrade Options") { showPaywall = true }
-                            .buttonStyle(GeistButtonStyle(variant: .primary))
-                            .padding(20)
+                    if !usageTracker.hasFamilyAccess {
+                        Button(unlimitedPurchaseButtonTitle) {
+                            showPaywall = true
+                        }
+                        .accessibilityIdentifier(
+                            usageTracker.accessLevel == .individual
+                                ? "settings.familyUpgradeButton"
+                                : "settings.lifetimeOptionsButton"
+                        )
+                        .buttonStyle(GeistButtonStyle(variant: .primary))
+                        .padding(20)
                     }
                     sectionHeader("01", "Mac Companion")
                     settingsRow(title: "ON-DEVICE TRANSCRIPTION", detail: "Whisper and Parakeet models run locally with Metal/Core ML acceleration.", trailing: "LOCAL")
@@ -1582,6 +1583,49 @@ struct MacSettingsView: View {
             )
         }
         .task { await reloadHotKeyConfiguration() }
+        // Settings may open before the app-level StoreKit task completes.
+        // Refresh here so existing owners always see the Family upgrade.
+        .task { await storeManager.prepareForPurchases() }
+    }
+
+    private var unlimitedAccessTitle: String {
+        switch usageTracker.accessLevel {
+        case .free: "UNLOCK UNLIMITED"
+        case .individual: "INDIVIDUAL UNLIMITED"
+        case .family: "FAMILY UNLIMITED"
+        }
+    }
+
+    private var unlimitedAccessDetail: String {
+        switch usageTracker.accessLevel {
+        case .free:
+            String(
+                format: "%.1f / 15 min · %d / 10 captures used",
+                usageTracker.minutesUsed,
+                usageTracker.successfulCapturesUsed
+            )
+        case .individual:
+            "Lifetime access — upgrade once to share with your family."
+        case .family:
+            "Lifetime access with Apple Family Sharing."
+        }
+    }
+
+    private var unlimitedAccessTrailing: String {
+        switch usageTracker.accessLevel {
+        case .free:
+            storeManager.displayPrice.map { "FROM \($0)" } ?? "CHECKING PRICE"
+        case .individual: "PURCHASED"
+        case .family: "FAMILY"
+        }
+    }
+
+    private var unlimitedPurchaseButtonTitle: String {
+        guard usageTracker.accessLevel == .individual else {
+            return "View Lifetime Options"
+        }
+        return storeManager.familyUpgradeDisplayPrice.map { "Upgrade to Family — \($0)" }
+            ?? "Upgrade to Family"
     }
 
     private var visibilityMode: MacAppVisibilityMode {
@@ -2115,41 +2159,42 @@ struct MacPaywallView: View {
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(MacStoreManager.self) private var storeManager
 
+    let context: OnboardingAnalyticsPaywallContext
+
+    init(context: OnboardingAnalyticsPaywallContext = .settings) {
+        self.context = context
+    }
+
     var body: some View {
         VStack(spacing: 22) {
-            Text("Vox.md Unlimited")
+            Text(paywallTitle)
                 .font(Geist.heading(.title))
                 .foregroundColor(Geist.text)
-            Text("Unlock unlimited local Capture and private, on-device transcription across Vox.md. No subscription, no server, no ads.")
+            Text(paywallDetail)
                 .font(Geist.body())
                 .foregroundColor(Geist.muted)
                 .multilineTextAlignment(.center)
-                .frame(maxWidth: 420)
+                .frame(maxWidth: 520)
+
             if !usageTracker.hasUnlocked {
                 Text(String(
                     format: "%.1f / 15 min transcription · %d / 10 captures used",
                     usageTracker.minutesUsed,
                     usageTracker.successfulCapturesUsed
                 ))
-                    .font(Geist.mono(.footnote, medium: true))
-                    .foregroundColor(Geist.muted)
+                .font(Geist.mono(.footnote, medium: true))
+                .foregroundColor(Geist.muted)
             }
-            if usageTracker.hasUnlocked {
-                Text("Unlimited Unlocked")
-                    .font(Geist.label())
-                    .foregroundColor(Geist.text)
-            } else {
-                Button(storeManager.isPurchasing ? "PURCHASING…" : "UNLOCK — \(storeManager.displayPrice)") {
-                    Task { await storeManager.purchase() }
-                }
-                .buttonStyle(GeistButtonStyle(variant: .primary))
-                .frame(maxWidth: 360)
-                Button(storeManager.isRestoring ? "RESTORING…" : "RESTORE PURCHASE") {
-                    Task { await storeManager.restore() }
-                }
-                .buttonStyle(GeistButtonStyle(variant: .secondary))
-                .frame(maxWidth: 360)
+
+            purchaseOptions
+
+            Button(storeManager.isRestoring ? "RESTORING…" : "RESTORE PURCHASES") {
+                Task { await storeManager.restore() }
             }
+            .buttonStyle(GeistButtonStyle(variant: .secondary))
+            .frame(maxWidth: 440)
+            .disabled(storeManager.isRestoring || storeManager.isPurchasing)
+
             if let error = storeManager.errorMessage {
                 Text(error)
                     .font(Geist.caption())
@@ -2160,8 +2205,115 @@ struct MacPaywallView: View {
                 .foregroundColor(Geist.muted)
         }
         .padding(36)
-        .frame(width: 520)
+        .frame(width: 620)
         .background(Geist.Palette.background100)
+        .task { await storeManager.prepareForPurchases() }
+    }
+
+    @ViewBuilder
+    private var purchaseOptions: some View {
+        if !storeManager.isEntitlementStateReady {
+            HStack(spacing: 10) {
+                ProgressView()
+                Text("CHECKING PURCHASES…")
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
+            }
+            .frame(maxWidth: 440)
+        } else {
+            availablePurchaseOptions
+        }
+    }
+
+    @ViewBuilder
+    private var availablePurchaseOptions: some View {
+        switch usageTracker.accessLevel {
+        case .free:
+            HStack(alignment: .top, spacing: 16) {
+                macOffer(
+                    product: .individual,
+                    title: "INDIVIDUAL UNLIMITED",
+                    detail: "Lifetime access on devices using your Apple Account."
+                )
+                macOffer(
+                    product: .family,
+                    title: "FAMILY UNLIMITED",
+                    detail: "Lifetime access for your Apple Family Sharing group."
+                )
+            }
+        case .individual:
+            macOffer(
+                product: .familyUpgrade,
+                title: "UPGRADE TO FAMILY",
+                detail: "Add Apple Family Sharing to your existing Unlimited purchase."
+            )
+            .frame(maxWidth: 440)
+        case .family:
+            Label("Family Unlimited Unlocked", systemImage: "person.3.fill")
+                .font(Geist.label())
+                .foregroundColor(Geist.text)
+                .padding(18)
+                .frame(maxWidth: 440)
+                .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
+        }
+    }
+
+    private func macOffer(
+        product: VoxboardPurchaseProduct,
+        title: String,
+        detail: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(Geist.label())
+                .foregroundColor(Geist.text)
+            Text(storeManager.displayPrice(for: product) ?? "PRICE UNAVAILABLE")
+                .font(Geist.heading(.title2))
+                .foregroundColor(Geist.text)
+            Text(detail)
+                .font(Geist.caption())
+                .foregroundColor(Geist.muted)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+            Button(purchaseButtonTitle(for: product)) {
+                Task { await storeManager.purchase(product, context: context) }
+            }
+            .buttonStyle(GeistButtonStyle(variant: .primary))
+            .disabled(storeManager.isPurchasing || storeManager.product(for: product) == nil)
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, minHeight: 190, alignment: .leading)
+        .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
+    }
+
+    private func purchaseButtonTitle(for product: VoxboardPurchaseProduct) -> String {
+        if storeManager.purchasingProductID == product.rawValue {
+            return "PURCHASING…"
+        }
+        return switch product {
+        case .individual: "UNLOCK INDIVIDUAL"
+        case .family: "UNLOCK FAMILY"
+        case .familyUpgrade: "UPGRADE TO FAMILY"
+        }
+    }
+
+    private var paywallTitle: String {
+        switch usageTracker.accessLevel {
+        case .free: "Choose Vox.md Unlimited"
+        case .individual: "Share Unlimited with Family"
+        case .family: "Vox.md Family Unlimited"
+        }
+    }
+
+    private var paywallDetail: String {
+        switch usageTracker.accessLevel {
+        case .free:
+            "Unlock unlimited local Capture and private, on-device transcription. Pay once with no subscription."
+        case .individual:
+            "You already own lifetime Unlimited. Upgrade once to support Apple Family Sharing."
+        case .family:
+            "Your lifetime Unlimited access supports Apple Family Sharing."
+        }
     }
 }
 

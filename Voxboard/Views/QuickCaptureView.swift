@@ -573,10 +573,10 @@ struct QuickCaptureView: View {
 
     private var voiceCaptureButton: some View {
         Group {
-            if persistentRecorder.isTranscribing {
+            if persistentRecorder.isAppRecordingTranscribing {
                 ProgressView()
                     .controlSize(.small)
-            } else if persistentRecorder.isSegmentActive {
+            } else if persistentRecorder.isAppRecordingSegmentActive {
                 HStack(spacing: Geist.Spacing.two) {
                     Text(formatRecordingDuration(persistentRecorder.segmentDuration))
                         .font(Geist.caption(.caption2))
@@ -609,7 +609,7 @@ struct QuickCaptureView: View {
         }
         .accessibilityIdentifier("capture_voice_recording")
         .opacity(isProcessingMedia ? 0.35 : 1)
-        .task(id: persistentRecorder.isSegmentActive) {
+        .task(id: persistentRecorder.isAppRecordingSegmentActive) {
             await updateRecordingAudioLevels()
         }
     }
@@ -760,13 +760,13 @@ struct QuickCaptureView: View {
 
     @ViewBuilder
     private var recordingPrimaryButton: some View {
-        if persistentRecorder.isSegmentActive {
+        if persistentRecorder.isAppRecordingSegmentActive {
             Button(action: { persistentRecorder.stopInAppSegment() }) {
                 Label("Stop", systemImage: "stop.fill")
             }
             .buttonStyle(GeistButtonStyle(variant: .destructive, size: .small))
             .accessibilityIdentifier("capture_recording_stop")
-        } else if persistentRecorder.isTranscribing {
+        } else if persistentRecorder.isAppRecordingTranscribing {
             ProgressView()
                 .controlSize(.small)
                 .frame(width: 72, height: 36)
@@ -901,11 +901,12 @@ struct QuickCaptureView: View {
     }
 
     private func handleVoiceCaptureTap() {
-        if persistentRecorder.isSegmentActive {
-            // Never block stopping an active recording because unrelated media
+        if persistentRecorder.isAppRecordingSegmentActive {
+            // Never block stopping an app-owned recording because unrelated media
             // work happens to be finishing in the draft.
             persistentRecorder.stopInAppSegment()
-        } else if !isProcessingMedia,
+        } else if !persistentRecorder.isSegmentActive,
+                  !isProcessingMedia,
                   !persistentRecorder.isTranscribing,
                   !watchRecordingPipeline.isProcessing {
             startInlineRecording()
@@ -1802,10 +1803,10 @@ struct QuickCaptureView: View {
     }
 
     private var recordingDetailsTitle: String {
-        if persistentRecorder.isSegmentActive {
+        if persistentRecorder.isAppRecordingSegmentActive {
             return String(localized: "Recording \(formatRecordingDuration(persistentRecorder.segmentDuration))")
         }
-        if persistentRecorder.isTranscribing {
+        if persistentRecorder.isAppRecordingTranscribing {
             return String(localized: "Transcribing")
         }
         if persistentRecorder.isListening { return String(localized: "Keyboard Listening On") }
@@ -1813,10 +1814,10 @@ struct QuickCaptureView: View {
     }
 
     private var recordingDetailsSubtitle: String {
-        if persistentRecorder.isSegmentActive {
+        if persistentRecorder.isAppRecordingSegmentActive {
             return String(localized: "Composer remains available while you record")
         }
-        if persistentRecorder.isTranscribing {
+        if persistentRecorder.isAppRecordingTranscribing {
             return lastStartedRecordingMode == .draft
                 ? String(localized: "Adding transcript to this Capture")
                 : String(localized: "Running \(selectedFlow.displayName)")
@@ -1830,25 +1831,25 @@ struct QuickCaptureView: View {
     }
 
     private var recordingDetailsIcon: String {
-        if persistentRecorder.isSegmentActive { return "record.circle.fill" }
-        if persistentRecorder.isTranscribing { return "waveform.badge.magnifyingglass" }
+        if persistentRecorder.isAppRecordingSegmentActive { return "record.circle.fill" }
+        if persistentRecorder.isAppRecordingTranscribing { return "waveform.badge.magnifyingglass" }
         if persistentRecorder.isListening { return "headphones.circle.fill" }
         return "waveform.circle"
     }
 
     private var recordingDetailsColor: Color {
-        if persistentRecorder.isSegmentActive { return Geist.error }
-        if persistentRecorder.isTranscribing || persistentRecorder.isListening {
+        if persistentRecorder.isAppRecordingSegmentActive { return Geist.error }
+        if persistentRecorder.isAppRecordingTranscribing || persistentRecorder.isListening {
             return Geist.Palette.blue700
         }
         return Geist.text
     }
 
     private var recordingStatusTitle: String {
-        if persistentRecorder.isSegmentActive {
+        if persistentRecorder.isAppRecordingSegmentActive {
             return String(localized: "Stop voice recording, \(formatRecordingDuration(persistentRecorder.segmentDuration))")
         }
-        if persistentRecorder.isTranscribing {
+        if persistentRecorder.isAppRecordingTranscribing {
             return String(localized: "Transcribing voice capture")
         }
         if usageTracker.isAtLimit { return String(localized: "Unlock voice capture") }
@@ -2087,9 +2088,9 @@ struct QuickCaptureView: View {
 
     private func updateRecordingAudioLevels() async {
         recordingAudioLevels = Array(repeating: 0, count: 7)
-        guard persistentRecorder.isSegmentActive else { return }
+        guard persistentRecorder.isAppRecordingSegmentActive else { return }
 
-        while !Task.isCancelled, persistentRecorder.isSegmentActive {
+        while !Task.isCancelled, persistentRecorder.isAppRecordingSegmentActive {
             if let level = TranscriptionIPC.readAudioLevel() {
                 recordingAudioLevels.removeFirst()
                 recordingAudioLevels.append(level)
