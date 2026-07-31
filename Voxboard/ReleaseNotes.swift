@@ -18,6 +18,31 @@ enum VoxboardReleaseNotes {
 
     private static let versionNotes: [VersionNotes] = [
         .init(
+            version: "2.0.5",
+            items: [
+                .list(
+                    title: "What’s new in Vox.md",
+                    rows: [
+                        .init(
+                            symbolSystemName: "keyboard",
+                            title: "Keyboard dictation stays in the keyboard",
+                            description: "Voice input from the Vox.md keyboard now transcribes into your text field without also activating or sending an in-app Capture."
+                        ),
+                        .init(
+                            symbolSystemName: "waveform.badge.minus",
+                            title: "No duplicate microphone state",
+                            description: "Keyboard-owned recordings no longer light up the Quick Capture microphone or export a second raw-audio capture."
+                        ),
+                        .init(
+                            symbolSystemName: "person.2.fill",
+                            title: "Clearer lifetime purchase options",
+                            description: "The unlock screen now explains individual and Family Sharing access more clearly, including upgrade eligibility and trial status."
+                        )
+                    ]
+                )
+            ]
+        ),
+        .init(
             version: "2.0.4",
             items: [
                 .list(
