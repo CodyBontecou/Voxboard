@@ -183,6 +183,7 @@ private struct CapturePresetEditorView: View {
             identitySection
             watchOutputSection
             if flow.watchOutputMode != .recordingOnly {
+                voiceProcessingSection
                 postProcessingSection
                 ownedDestinationSection
                 if flow.captureDestinationID == nil {
@@ -324,6 +325,23 @@ private struct CapturePresetEditorView: View {
             } else {
                 Text("Watch recordings use this preset's normal on-device transcription and Capture destination workflow.")
             }
+        }
+    }
+
+    private var voiceProcessingSection: some View {
+        Section {
+            Toggle("Identify Speakers", isOn: $flow.speakerDiarizationEnabled)
+                .tint(Geist.muted)
+
+            if flow.speakerDiarizationEnabled {
+                Label("Speaker labels are added after transcription.", systemImage: "person.2.wave.2")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Voice Processing")
+        } footer: {
+            Text("Detects and labels multiple voices entirely on device. The speaker model downloads the first time this preset uses it. Speaker identification is best-effort; if it cannot run, Vox.md keeps the normal transcript.")
         }
     }
 

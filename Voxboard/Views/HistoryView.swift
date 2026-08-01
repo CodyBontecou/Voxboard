@@ -213,6 +213,14 @@ struct HistoryView: View {
                         .font(Geist.caption(.caption2))
                         .foregroundStyle(delivery.outcome == .delivered ? Geist.muted : Geist.error)
                     }
+                    if transcript.speakerCount > 0 {
+                        Label(
+                            "\(transcript.speakerCount) speaker\(transcript.speakerCount == 1 ? "" : "s")",
+                            systemImage: "person.2.wave.2"
+                        )
+                        .font(Geist.caption(.caption2))
+                        .foregroundStyle(Geist.muted)
+                    }
                 }
                 Spacer()
                 copyMenu(for: transcript)

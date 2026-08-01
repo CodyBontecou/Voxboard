@@ -3,9 +3,18 @@ import XCTest
 
 final class OnDeviceTranscriptionServiceTests: XCTestCase {
     func testAutomaticUsesAvailableSystemBackendAndReportsActualBackend() async throws {
+        let timedSegment = TimedTranscriptionSegment(
+            text: "Native transcript",
+            startTime: 0,
+            endTime: 1
+        )
         let backend = FakeSystemTranscriptionBackend(
             availability: .ready,
-            result: .success(SystemTranscriptionOutput(text: "Native transcript", language: "en-US"))
+            result: .success(SystemTranscriptionOutput(
+                text: "Native transcript",
+                language: "en-US",
+                segments: [timedSegment]
+            ))
         )
         let service = OnDeviceTranscriptionService(
             systemBackend: backend,
@@ -23,6 +32,7 @@ final class OnDeviceTranscriptionServiceTests: XCTestCase {
         XCTAssertEqual(result.backendName, "Apple Speech")
         XCTAssertEqual(result.backendKind, .appleSpeech)
         XCTAssertEqual(result.language, "en-US")
+        XCTAssertEqual(result.segments, [timedSegment])
         let callCount = await backend.transcriptionCallCount
         XCTAssertEqual(callCount, 1)
     }

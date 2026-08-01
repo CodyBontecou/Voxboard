@@ -93,9 +93,10 @@ public struct TranscriptEnricher: Sendable {
         }
 
         // Prefer native structured generation for plain cleanup. Workflow-
-        // specific formatting uses the prompt path so its instruction shapes
-        // the resulting Markdown.
+        // specific formatting and diarized transcripts use the prompt path so
+        // speaker labels and the selected instruction remain explicit.
         if !Self.requiresPromptDrivenFormatting(profile),
+           !Self.containsSpeakerLabels(trimmed),
            let native = try await backend.enrichNative(rawText: trimmed) {
             return Self.applyVoxDefaults(Self.normalize(native), profile: profile)
         }
@@ -117,6 +118,15 @@ public struct TranscriptEnricher: Sendable {
             category: category,
             cleanedText: enrichment.cleanedText
         )
+    }
+
+    private static func containsSpeakerLabels(_ text: String) -> Bool {
+        text.components(separatedBy: .newlines).contains { line in
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard trimmed.hasPrefix("Speaker "), trimmed.hasSuffix(":") else { return false }
+            let number = trimmed.dropFirst("Speaker ".count).dropLast()
+            return Int(number) != nil
+        }
     }
 
     private static func requiresPromptDrivenFormatting(_ profile: CapturePresetProfile?) -> Bool {
@@ -141,7 +151,9 @@ public struct TranscriptEnricher: Sendable {
         let cleanedText: String
         switch profile.postProcessingMode {
         case .todoList:
-            cleanedText = TranscriptFlowFormatter.formatTodoList(enrichment.cleanedText)
+            cleanedText = TranscriptFlowFormatter.formatTodoListPreservingSpeakerLabels(
+                enrichment.cleanedText
+            )
         case .none, .clean, .meetingNotes, .custom:
             cleanedText = enrichment.cleanedText
         }
@@ -211,9 +223,12 @@ public struct TranscriptEnricher: Sendable {
         let staticTags = profile?.staticTags ?? []
         let staticTagLine = staticTags.isEmpty ? "" : "\nPrefer including these tags when relevant: \(staticTags.joined(separator: ", "))"
         let staticCategoryLine = profile?.staticCategory.map { "\nPrefer this category when appropriate: \($0)" } ?? ""
+        let speakerInstruction = containsSpeakerLabels(rawText)
+            ? " Preserve every anonymous `Speaker N:` label and keep each statement with its original speaker."
+            : ""
         let cleanedTextInstruction = flowInstruction.map {
-            "For \"cleanedText\": \($0) Preserve the author's meaning and do not add information that was not in the original."
-        } ?? "For \"cleanedText\": improve casing and punctuation while preserving meaning and existing Markdown structure; do not add information that was not in the original."
+            "For \"cleanedText\": \($0) Preserve the author's meaning and do not add information that was not in the original.\(speakerInstruction)"
+        } ?? "For \"cleanedText\": improve casing and punctuation while preserving meaning and existing Markdown structure; do not add information that was not in the original.\(speakerInstruction)"
 
         return """
         You are organizing text for a private, local-first capture app. The text may \

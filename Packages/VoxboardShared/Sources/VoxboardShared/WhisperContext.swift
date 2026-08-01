@@ -4,6 +4,11 @@ import whisper
 
 private let log = KeyboardDebugLog.shared
 
+struct WhisperTranscriptionOutput: Equatable, Sendable {
+    let text: String
+    let segments: [TimedTranscriptionSegment]
+}
+
 /// Swift wrapper around the whisper.cpp C API.
 /// Runs transcription on whatever thread it's called from — call from a background thread.
 ///
@@ -50,7 +55,19 @@ public final class WhisperContext: @unchecked Sendable {
     ///   - maxThreads: Cap on compute threads (use 2 in extensions to reduce memory)
     /// - Returns: The transcribed text, or nil on failure
     public func transcribe(audioURL: URL, language: String = "auto", maxThreads: Int? = nil) -> String? {
-        log.log("[WhisperContext] transcribe() — audio=\(audioURL.lastPathComponent), lang=\(language)")
+        transcribeResult(
+            audioURL: audioURL,
+            language: language,
+            maxThreads: maxThreads
+        )?.text
+    }
+
+    func transcribeResult(
+        audioURL: URL,
+        language: String = "auto",
+        maxThreads: Int? = nil
+    ) -> WhisperTranscriptionOutput? {
+        log.log("[WhisperContext] transcribeResult() — audio=\(audioURL.lastPathComponent), lang=\(language)")
 
         guard let samples = loadAudioSamples(from: audioURL) else {
             log.log("[WhisperContext] ❌ Failed to load audio from: \(audioURL.path)")
@@ -70,12 +87,14 @@ public final class WhisperContext: @unchecked Sendable {
         let cpuThreads = max(1, ProcessInfo.processInfo.activeProcessorCount - 1)
         params.n_threads = Int32(min(maxThreads ?? cpuThreads, cpuThreads))
         params.translate = false
-        params.no_timestamps = true
+        params.no_timestamps = false
         params.single_segment = false
         params.print_special = false
         params.print_progress = false
         params.print_realtime = false
         params.print_timestamps = false
+        params.token_timestamps = true
+        params.split_on_word = true
 
         // Language handling: nil = auto-detect
         let languageCStr: UnsafeMutablePointer<CChar>? = (language == "auto") ? nil : strdup(language)
@@ -100,10 +119,23 @@ public final class WhisperContext: @unchecked Sendable {
 
         let nSegments = whisper_full_n_segments(context)
         var transcription = ""
+        var timedSegments: [TimedTranscriptionSegment] = []
 
         for i in 0..<nSegments {
+            let segmentText: String
             if let cText = whisper_full_get_segment_text(context, i) {
-                transcription += String(cString: cText)
+                segmentText = String(cString: cText)
+                transcription += segmentText
+            } else {
+                segmentText = ""
+            }
+            let words = timedWords(inSegment: i)
+            if timedText(words) == normalizedCoverageText(segmentText), !words.isEmpty {
+                timedSegments.append(contentsOf: words)
+            } else if let fallback = timedSegmentFallback(inSegment: i) {
+                // Token timestamps are experimental and can be absent for a
+                // subset of tokens. Never let partial timing drop recognized text.
+                timedSegments.append(fallback)
             }
         }
 
@@ -119,7 +151,86 @@ public final class WhisperContext: @unchecked Sendable {
         }
 
         log.log("[WhisperContext] ✅ Transcription result: \(trimmed.count) chars")
-        return trimmed
+        return WhisperTranscriptionOutput(text: trimmed, segments: timedSegments)
+    }
+
+    private func timedWords(inSegment segment: Int32) -> [TimedTranscriptionSegment] {
+        let tokenCount = whisper_full_n_tokens(context, segment)
+        guard tokenCount > 0 else { return [] }
+
+        var words: [TimedTranscriptionSegment] = []
+        var currentText = ""
+        var currentStart: TimeInterval?
+        var currentEnd: TimeInterval?
+
+        func flush() {
+            let text = currentText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty,
+               let start = currentStart,
+               let end = currentEnd,
+               end > max(0, start) {
+                words.append(TimedTranscriptionSegment(
+                    text: text,
+                    startTime: max(0, start),
+                    endTime: end
+                ))
+            }
+            currentText = ""
+            currentStart = nil
+            currentEnd = nil
+        }
+
+        for tokenIndex in 0..<tokenCount {
+            guard let cText = whisper_full_get_token_text(context, segment, tokenIndex) else {
+                continue
+            }
+            let rawText = String(cString: cText)
+            let trimmed = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty,
+                  !(trimmed.hasPrefix("<|") && trimmed.hasSuffix("|>")) else {
+                continue
+            }
+
+            let timing = whisper_full_get_token_data(context, segment, tokenIndex)
+            let start = Double(timing.t0) / 100.0
+            let end = Double(timing.t1) / 100.0
+            guard timing.t1 > timing.t0 else { continue }
+
+            if rawText.first?.isWhitespace == true, !currentText.isEmpty {
+                flush()
+            }
+            if currentText.isEmpty {
+                currentStart = start
+            }
+            currentText += trimmed
+            currentEnd = max(currentEnd ?? end, end)
+        }
+        flush()
+        return words
+    }
+
+    private func timedText(_ segments: [TimedTranscriptionSegment]) -> String {
+        normalizedCoverageText(segments.map(\.text).joined())
+    }
+
+    private func normalizedCoverageText(_ text: String) -> String {
+        String(text.unicodeScalars.filter {
+            CharacterSet.alphanumerics.contains($0)
+        })
+        .folding(
+            options: [.caseInsensitive, .diacriticInsensitive, .widthInsensitive],
+            locale: Locale(identifier: "en_US_POSIX")
+        )
+        .lowercased()
+    }
+
+    private func timedSegmentFallback(inSegment segment: Int32) -> TimedTranscriptionSegment? {
+        guard let cText = whisper_full_get_segment_text(context, segment) else { return nil }
+        let text = String(cString: cText).trimmingCharacters(in: .whitespacesAndNewlines)
+        let start = Double(whisper_full_get_segment_t0(context, segment)) / 100.0
+        let end = Double(whisper_full_get_segment_t1(context, segment)) / 100.0
+        guard !text.isEmpty, end > start else { return nil }
+        return TimedTranscriptionSegment(text: text, startTime: max(0, start), endTime: end)
     }
 
     // MARK: - Hallucination Filtering

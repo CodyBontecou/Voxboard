@@ -1,5 +1,32 @@
 import Foundation
 
+/// A contiguous piece of a transcript attributed to one anonymous speaker.
+/// Speaker indices are zero-based in storage and rendered as “Speaker 1”,
+/// “Speaker 2”, and so on.
+public struct TranscriptSpeakerTurn: Codable, Equatable, Sendable, Identifiable {
+    public let id: UUID
+    public let speaker: Int
+    public let text: String
+    public let startTime: TimeInterval
+    public let endTime: TimeInterval
+
+    public init(
+        id: UUID = UUID(),
+        speaker: Int,
+        text: String,
+        startTime: TimeInterval,
+        endTime: TimeInterval
+    ) {
+        self.id = id
+        self.speaker = speaker
+        self.text = text
+        self.startTime = startTime
+        self.endTime = endTime
+    }
+
+    public var speakerLabel: String { "Speaker \(speaker + 1)" }
+}
+
 /// A single voice transcription record, persisted as JSON in the App Group container.
 public struct Transcript: Identifiable, Codable, Equatable, Sendable {
     public let id: UUID
@@ -8,6 +35,9 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
     public let duration: TimeInterval
     public let modelUsed: String
     public let language: String
+    /// Present only when the user opted into local speaker identification and
+    /// the best-effort diarization pass completed successfully.
+    public let speakerTurns: [TranscriptSpeakerTurn]?
 
     // MARK: - On-device LLM enrichment (optional)
     //
@@ -42,6 +72,7 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
         duration: TimeInterval,
         modelUsed: String,
         language: String,
+        speakerTurns: [TranscriptSpeakerTurn]? = nil,
         title: String? = nil,
         tags: [String]? = nil,
         category: String? = nil,
@@ -53,6 +84,7 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
         self.duration = duration
         self.modelUsed = modelUsed
         self.language = language
+        self.speakerTurns = speakerTurns
         self.title = title
         self.tags = tags
         self.category = category
@@ -75,6 +107,7 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
             duration: duration,
             modelUsed: modelUsed,
             language: language,
+            speakerTurns: text == self.text ? speakerTurns : nil,
             title: title,
             tags: tags,
             category: category,
@@ -98,10 +131,16 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
             duration: duration,
             modelUsed: modelUsed,
             language: language,
+            speakerTurns: speakerTurns,
             title: title,
             tags: tags,
             category: category,
             cleanedText: cleanedText
         )
+    }
+
+    public var speakerCount: Int {
+        guard let highest = speakerTurns?.map(\.speaker).max() else { return 0 }
+        return highest + 1
     }
 }

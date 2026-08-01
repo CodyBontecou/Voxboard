@@ -11,21 +11,27 @@ public struct VoxboardLiveActivityState: Codable, Hashable, Sendable {
     public var isSegmentActive: Bool
     public var isTranscribing: Bool
     public var segmentStartedAt: TimeInterval?
+    /// Recorder-owned segment identity used by the Stop intent. Optional so
+    /// activities created by older app versions still decode safely.
+    public var segmentRequestId: String?
 
     public init(
         isSegmentActive: Bool = false,
         isTranscribing: Bool = false,
-        segmentStartedAt: TimeInterval? = nil
+        segmentStartedAt: TimeInterval? = nil,
+        segmentRequestId: String? = nil
     ) {
         self.isSegmentActive = isSegmentActive
         self.isTranscribing = isTranscribing
         self.segmentStartedAt = segmentStartedAt
+        self.segmentRequestId = segmentRequestId
     }
 
     public static let idle = VoxboardLiveActivityState(
         isSegmentActive: false,
         isTranscribing: false,
-        segmentStartedAt: nil
+        segmentStartedAt: nil,
+        segmentRequestId: nil
     )
 }
 

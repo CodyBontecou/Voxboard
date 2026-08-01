@@ -30,12 +30,22 @@ struct StopRecordingLiveActivityIntent: LiveActivityIntent {
     static let title: LocalizedStringResource = "Stop Recording"
     static let description = IntentDescription("Stops the active Vox.md recording segment.")
 
-    init() {}
+    @Parameter(title: "Recording")
+    var requestId: String?
+
+    init() {
+        requestId = nil
+    }
+
+    init(requestId: String?) {
+        self.requestId = requestId
+    }
 
     func perform() async throws -> some IntentResult {
-        // The recorder uses its own stored requestId when a segment is active,
-        // so any non-empty id works here.
-        let cmd = LiveActivityCommandBuilder.buildStopCommand(requestId: UUID().uuidString)
+        // Bind Stop to the segment displayed by this exact activity. A stale
+        // duplicate must never stop a newer recording that reused the monitor.
+        guard let requestId, !requestId.isEmpty else { return .result() }
+        let cmd = LiveActivityCommandBuilder.buildStopCommand(requestId: requestId)
         LiveActivityCommandBuilder.enqueue(cmd)
         return .result()
     }

@@ -173,7 +173,8 @@ public actor OnDeviceTranscriptionService {
                     backendID: TranscriptionBackendID.appleSpeech,
                     backendName: "Apple Speech",
                     backendKind: .appleSpeech,
-                    language: output.language
+                    language: output.language,
+                    segments: output.segments
                 )
             } catch is CancellationError {
                 throw CancellationError()
@@ -283,22 +284,36 @@ public actor OnDeviceTranscriptionService {
 
         try await prepareLocalModel(model)
 
-        let rawText: String?
+        let text: String
+        let segments: [TimedTranscriptionSegment]
         if model.engine.isParakeet {
-            rawText = await cachedParakeetContext?.transcribe(audioURL: workingURL)
+            guard let output = try await cachedParakeetContext?.transcribeResult(audioURL: workingURL) else {
+                throw OnDeviceTranscriptionError.noSpeechDetected
+            }
+            text = output.text
+            segments = output.segments
         } else {
-            rawText = cachedWhisperContext?.transcribe(audioURL: workingURL, language: language)
+            guard let output = cachedWhisperContext?.transcribeResult(
+                audioURL: workingURL,
+                language: language
+            ) else {
+                throw OnDeviceTranscriptionError.noSpeechDetected
+            }
+            text = output.text
+            segments = output.segments
         }
 
-        guard let text = rawText?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else {
             throw OnDeviceTranscriptionError.noSpeechDetected
         }
         return OnDeviceTranscriptionResult(
-            text: text,
+            text: trimmedText,
             backendID: model.id,
             backendName: model.name,
             backendKind: model.engine.isParakeet ? .parakeet : .whisper,
-            language: model.engine.isParakeet ? "auto" : language
+            language: model.engine.isParakeet ? "auto" : language,
+            segments: segments
         )
         #else
         throw OnDeviceTranscriptionError.modelUnavailable

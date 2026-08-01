@@ -1,7 +1,12 @@
-File and attachment capture is more reliable in this update. You can now send a file, photo, scan, sketch, or recording without adding text first, and Vox.md keeps it in the Markdown note where it belongs.
+Meeting recordings can now separate the conversation into anonymous speaker labels, entirely on device. Enable Speaker Diarization in a Capture Preset to make long transcripts easier to follow.
+
+New
+• Add best-effort Speaker 1, Speaker 2, and other anonymous labels to iPhone recordings, imported audio, and Apple Watch transcripts.
+• See the detected speaker count in History after transcription finishes.
 
 Improved
-• File imports now open directly in Quick Capture.
-• Attachment-only captures save correctly instead of being rejected as empty.
-• Capture templates preserve custom filenames more consistently.
-• Apple Watch recordings transfer, refresh, and export more reliably.
+• Live Activity controls now stop the recording you intended, while stale recording activities are cleaned up automatically.
+• Long recordings stop safely before their rolling audio buffer can overwrite the beginning.
+
+Fixed
+• Quick Capture and Quick Record widgets now match light and dark appearance, keeping text and controls readable.

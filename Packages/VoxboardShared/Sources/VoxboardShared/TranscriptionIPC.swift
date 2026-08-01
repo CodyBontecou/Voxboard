@@ -154,6 +154,17 @@ public struct RecordingCommand: Codable, Sendable {
         self.flowId = flowId
         self.origin = origin
     }
+
+    /// Resolve the recorder-owned request ID that a stop command may target.
+    /// Requiring an exact identity prevents stale extensions or Live Activities
+    /// from stopping a newer, unrelated recording.
+    public func resolvedStopRequestId(activeRequestId: String?) -> String? {
+        guard action == .stopSegment || action == .stop,
+              let activeRequestId,
+              !activeRequestId.isEmpty,
+              requestId == activeRequestId else { return nil }
+        return activeRequestId
+    }
 }
 
 /// Persistent state written by the main app so the keyboard knows if the

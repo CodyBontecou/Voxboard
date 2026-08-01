@@ -4,7 +4,7 @@ import XCTest
 final class ReleaseNotesPresentationTests: XCTestCase {
     func testUnseenCurrentVersionWithNotesIsPresented() {
         XCTAssertTrue(VoxboardReleaseNotes.shouldPresentCurrentVersion(
-            currentAppVersion: "2.0.5",
+            currentAppVersion: "2.0.6",
             latestSeenAppVersion: nil,
             releaseNotesEnabled: true
         ))
@@ -12,8 +12,8 @@ final class ReleaseNotesPresentationTests: XCTestCase {
 
     func testSeenCurrentVersionIsNotPresented() {
         XCTAssertFalse(VoxboardReleaseNotes.shouldPresentCurrentVersion(
-            currentAppVersion: "2.0.5",
-            latestSeenAppVersion: "2.0.5",
+            currentAppVersion: "2.0.6",
+            latestSeenAppVersion: "2.0.6",
             releaseNotesEnabled: true
         ))
     }
@@ -28,7 +28,7 @@ final class ReleaseNotesPresentationTests: XCTestCase {
 
     func testDisabledReleaseNotesAreNotPresented() {
         XCTAssertFalse(VoxboardReleaseNotes.shouldPresentCurrentVersion(
-            currentAppVersion: "2.0.5",
+            currentAppVersion: "2.0.6",
             latestSeenAppVersion: nil,
             releaseNotesEnabled: false
         ))

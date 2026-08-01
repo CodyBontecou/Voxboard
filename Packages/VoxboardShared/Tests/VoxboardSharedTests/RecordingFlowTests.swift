@@ -15,7 +15,27 @@ final class CapturePresetTests: XCTestCase {
         XCTAssertEqual(flows.first?.symbolName, CapturePresetStore.defaultSymbolName)
         XCTAssertEqual(flows.first?.kind, .general)
         XCTAssertEqual(flows.first?.captureProcessingEnabled, false)
+        XCTAssertEqual(flows.first?.speakerDiarizationEnabled, false)
         XCTAssertFalse(CapturePresetStore.makeCustomFlow().captureProcessingEnabled)
+        XCTAssertFalse(CapturePresetStore.makeCustomFlow().speakerDiarizationEnabled)
+    }
+
+    func test_speakerDiarizationIsOptInAndRoundTrips() throws {
+        var flow = CapturePresetStore.makeCustomFlow()
+        flow.speakerDiarizationEnabled = true
+
+        let encoded = try JSONEncoder().encode(flow)
+        XCTAssertTrue(try JSONDecoder().decode(CapturePreset.self, from: encoded).speakerDiarizationEnabled)
+
+        var object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: encoded) as? [String: Any]
+        )
+        object.removeValue(forKey: "speakerDiarizationEnabled")
+        let legacy = try JSONDecoder().decode(
+            CapturePreset.self,
+            from: JSONSerialization.data(withJSONObject: object)
+        )
+        XCTAssertFalse(legacy.speakerDiarizationEnabled)
     }
 
     func test_usesAIEnrichment_isControlledByPostProcessingMode() {
@@ -707,6 +727,21 @@ final class CapturePresetTests: XCTestCase {
         XCTAssertTrue(formatted.cleanedText?.contains("- [ ] Email Sam about the launch") == true)
         XCTAssertEqual(formatted.category, "task")
         XCTAssertTrue(formatted.tags?.contains("todo") == true)
+    }
+
+    func test_todoFlowFormatter_preservesDiarizedSpeakerLabels() {
+        let formatted = TranscriptFlowFormatter.formatTodoListPreservingSpeakerLabels("""
+        Speaker 1:
+        Send the notes. Schedule the follow-up.
+
+        Speaker 2:
+        Email the recording.
+        """)
+
+        XCTAssertTrue(formatted.contains("Speaker 1:\n- [ ] Send the notes"))
+        XCTAssertTrue(formatted.contains("- [ ] Schedule the follow-up"))
+        XCTAssertTrue(formatted.contains("Speaker 2:\n- [ ] Email the recording"))
+        XCTAssertFalse(formatted.contains("- [ ] Speaker 1"))
     }
 
     func test_todoFlowFormatter_convertsPlainBulletsToMarkdownCheckboxes() {

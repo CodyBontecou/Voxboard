@@ -17,14 +17,37 @@ public enum SystemTranscriptionAvailability: String, Equatable, Sendable {
     case ready
 }
 
-/// Text and locale returned by a system-managed transcription backend.
+/// A piece of recognized text aligned to the source audio timeline.
+///
+/// Backends may provide word-level or phrase-level units. Speaker diarization
+/// uses the same overlap-based attribution for either granularity.
+public struct TimedTranscriptionSegment: Codable, Equatable, Sendable {
+    public let text: String
+    public let startTime: TimeInterval
+    public let endTime: TimeInterval
+
+    public init(text: String, startTime: TimeInterval, endTime: TimeInterval) {
+        self.text = text
+        self.startTime = startTime
+        self.endTime = endTime
+    }
+}
+
+/// Text, locale, and optional timestamped units returned by a system-managed
+/// transcription backend.
 public struct SystemTranscriptionOutput: Equatable, Sendable {
     public let text: String
     public let language: String
+    public let segments: [TimedTranscriptionSegment]
 
-    public init(text: String, language: String) {
+    public init(
+        text: String,
+        language: String,
+        segments: [TimedTranscriptionSegment] = []
+    ) {
         self.text = text
         self.language = language
+        self.segments = segments
     }
 }
 
@@ -90,18 +113,21 @@ public struct OnDeviceTranscriptionResult: Equatable, Sendable {
     public let backendName: String
     public let backendKind: TranscriptionBackendKind
     public let language: String
+    public let segments: [TimedTranscriptionSegment]
 
     public init(
         text: String,
         backendID: String,
         backendName: String,
         backendKind: TranscriptionBackendKind,
-        language: String
+        language: String,
+        segments: [TimedTranscriptionSegment] = []
     ) {
         self.text = text
         self.backendID = backendID
         self.backendName = backendName
         self.backendKind = backendKind
         self.language = language
+        self.segments = segments
     }
 }

@@ -159,9 +159,15 @@ final class PersistentRecorder {
     // MARK: - Timers
 
     private var durationTimer: Timer?
+    private var segmentSafetyStopTask: Task<Void, Never>?
     private var listeningHeartbeatTimer: Timer?
     private var commandPollTimer: Timer?
     private var listeningStartedAt: TimeInterval?
+
+    /// The circular buffer retains ten minutes. Finalize before the segment's
+    /// pre-roll can be overwritten so an accidentally abandoned recording still
+    /// produces a transcript instead of running forever and failing on Stop.
+    private let maximumSegmentDuration: TimeInterval = 9 * 60 + 45
 
     /// Shared transcript store — injected so saved transcripts appear in the UI immediately.
     private let transcriptStore: TranscriptStore
@@ -169,6 +175,10 @@ final class PersistentRecorder {
     /// Shared Apple-first dispatcher used by recordings, imports, Quick Capture,
     /// Watch imports, and keyboard requests.
     private let transcriptionService: OnDeviceTranscriptionService
+
+    /// Optional second pass for app-owned presets that identify speakers.
+    /// Keyboard and draft transcription never invoke this service.
+    private let speakerDiarizationService: SpeakerDiarizationService
 
     /// Offline-only loader for the explicitly downloaded Silero companion model.
     private let voiceActivityDetectionService: VoiceActivityDetectionService
@@ -206,6 +216,7 @@ final class PersistentRecorder {
         transcriptStore: TranscriptStore,
         usageTracker: UsageTracker,
         transcriptionService: OnDeviceTranscriptionService,
+        speakerDiarizationService: SpeakerDiarizationService = SpeakerDiarizationService(),
         voiceActivityDetectionService: VoiceActivityDetectionService = VoiceActivityDetectionService(),
         captureDraftEventHandler: CaptureDraftRecordingEventHandler? = nil,
         transcriptEnricher: TranscriptEnricher? = nil
@@ -213,6 +224,7 @@ final class PersistentRecorder {
         self.transcriptStore = transcriptStore
         self.usageTracker = usageTracker
         self.transcriptionService = transcriptionService
+        self.speakerDiarizationService = speakerDiarizationService
         self.voiceActivityDetectionService = voiceActivityDetectionService
         self.captureDraftEventHandler = captureDraftEventHandler
         self.transcriptEnricher = transcriptEnricher
@@ -226,8 +238,17 @@ final class PersistentRecorder {
             isListening: false,
             lastHeartbeatAt: Date().timeIntervalSince1970
         ))
+        TranscriptionIPC.clearStatus()
+        TranscriptionIPC.clearCommand()
+        TranscriptionIPC.clearAudioLevel()
+        TranscriptionIPC.clearLiveTranscriptionState()
         TranscriptionIPC.postListeningStateNotification()
         WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")
+
+        // A new recorder instance cannot own audio from the previous process.
+        // Dismiss any orphaned/duplicate lock-screen activities before this
+        // session optionally starts one fresh monitor.
+        LiveActivityController.shared.end()
     }
 
     deinit {
@@ -990,7 +1011,11 @@ final class PersistentRecorder {
             recordingStartedAt: segmentStartedAt
         ))
 
-        LiveActivityController.shared.update(isSegmentActive: true, startedAt: segmentStartedAt)
+        LiveActivityController.shared.update(
+            isSegmentActive: true,
+            startedAt: segmentStartedAt,
+            requestId: command.requestId
+        )
         WatchRecordingController.shared.publishState()
 
         log.log("[PersistentRecorder] ✅ Segment started at buffer index \(segmentStartIndex) (pre-roll: \(preRollSamples) samples)")
@@ -1224,6 +1249,10 @@ final class PersistentRecorder {
                 log.log("[PersistentRecorder] Ignoring duplicate stop for request already transcribing: \(command.requestId.prefix(8))")
                 return
             }
+            if command.origin == .liveActivity {
+                log.log("[PersistentRecorder] Ignoring Live Activity stop because no segment is active")
+                return
+            }
 
             log.log("[PersistentRecorder] ⚠️ stopSegment but no active segment")
             osLog.error("❌ stopSegment but isSegmentActive=false! Writing error response.")
@@ -1234,12 +1263,10 @@ final class PersistentRecorder {
             return
         }
 
-        guard segmentRequestId == command.requestId else {
+        guard let requestId = command.resolvedStopRequestId(activeRequestId: segmentRequestId) else {
             log.log("[PersistentRecorder] ⚠️ Ignoring stop for mismatched request \(command.requestId.prefix(8))")
             return
         }
-
-        let requestId = command.requestId
         let flowId = segmentFlowId ?? command.flowId ?? CapturePresetStore.selectedFlowId()
         let completionMode = segmentCompletionMode
             ?? .completionMode(forExternalCommand: command, fallbackFlowID: flowId)
@@ -1471,10 +1498,39 @@ final class PersistentRecorder {
             await captureDraftEventHandler?(.audio(sourceAudioURL ?? audioURL))
         }
 
+        let selectedFlow: CapturePreset?
+        switch completionMode {
+        case .keyboardTranscription, .captureDraft:
+            selectedFlow = nil
+        case .runVox(let flowID):
+            selectedFlow = CapturePresetStore.flow(id: flowID) ?? CapturePresetStore.selectedFlow()
+        }
+        let identifiesSpeakers = selectedFlow?.speakerDiarizationEnabled == true
+
         let result: OnDeviceTranscriptionResult
         do {
+            // Live Apple Speech returns text optimized for immediate insertion.
+            // An opted-in speaker pass needs batch timestamps, so prefer batch
+            // recognition but retain the valid live text if that optional pass
+            // fails before diarization can begin.
             if let resolvedResult {
-                result = resolvedResult
+                if identifiesSpeakers {
+                    do {
+                        result = try await transcriptionService.transcribeResult(
+                            audioURL: audioURL,
+                            modelID: modelId,
+                            fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
+                            language: language
+                        )
+                    } catch is CancellationError {
+                        throw CancellationError()
+                    } catch {
+                        log.log("[PersistentRecorder] ⚠️ Timestamped batch recognition failed; keeping live transcript: \(error.localizedDescription)")
+                        result = resolvedResult
+                    }
+                } else {
+                    result = resolvedResult
+                }
             } else {
                 result = try await transcriptionService.transcribeResult(
                     audioURL: audioURL,
@@ -1483,6 +1539,9 @@ final class PersistentRecorder {
                     language: language
                 )
             }
+        } catch is CancellationError {
+            await cancelTranscription(requestId: requestId, audioURL: audioURL)
+            return
         } catch {
             log.log("[PersistentRecorder] ❌ Transcription failed: \(error.localizedDescription)")
             await MainActor.run {
@@ -1494,12 +1553,36 @@ final class PersistentRecorder {
             return
         }
 
-        let text: String? = result.text
-        log.log("[PersistentRecorder] Result from \(result.backendName): \(result.text.count) chars")
-        osLog.notice("✅ Transcription result: \(result.text.count) chars")
+        var resolvedText = result.text
+        var speakerTurns: [TranscriptSpeakerTurn]?
+        if identifiesSpeakers {
+            do {
+                let diarization = try await speakerDiarizationService.diarize(
+                    audioURL: audioURL,
+                    transcriptText: result.text,
+                    transcriptionSegments: result.segments
+                )
+                if !diarization.renderedText.isEmpty {
+                    resolvedText = diarization.renderedText
+                    speakerTurns = diarization.turns
+                    log.log("[PersistentRecorder] ✅ Identified \(Set(diarization.turns.map(\.speaker)).count) speakers")
+                }
+            } catch is CancellationError {
+                await cancelTranscription(requestId: requestId, audioURL: audioURL)
+                return
+            } catch {
+                // Match Rescript's mobile behavior: diarization is best-effort,
+                // while the timestamped transcription remains fully usable.
+                log.log("[PersistentRecorder] ⚠️ Speaker identification skipped: \(error.localizedDescription)")
+            }
+        }
 
-        if case .captureDraft = completionMode, !result.text.isEmpty {
-            await captureDraftEventHandler?(.transcript(result.text))
+        let text: String? = resolvedText
+        log.log("[PersistentRecorder] Result from \(result.backendName): \(resolvedText.count) chars")
+        osLog.notice("✅ Transcription result: \(resolvedText.count) chars")
+
+        if case .captureDraft = completionMode, !resolvedText.isEmpty {
+            await captureDraftEventHandler?(.transcript(resolvedText))
         }
 
         await MainActor.run {
@@ -1537,18 +1620,14 @@ final class PersistentRecorder {
                 // Save one record to the unified history. Draft recordings keep
                 // the raw transcript editable; explicit Preset runs preserve their
                 // formatting, enrichment, and configured export behavior.
-                let selectedFlow: CapturePreset?
-                switch completionMode {
-                case .keyboardTranscription, .captureDraft:
-                    selectedFlow = nil
-                case .runVox(let flowID):
-                    selectedFlow = CapturePresetStore.flow(id: flowID) ?? CapturePresetStore.selectedFlow()
-                }
                 let rawTranscript = Transcript(
+                    id: UUID(),
                     text: text,
+                    date: Date(),
                     duration: duration,
                     modelUsed: result.backendName,
-                    language: result.language
+                    language: result.language,
+                    speakerTurns: speakerTurns
                 )
                 let transcript = selectedFlow.map { TranscriptFlowFormatter.apply(flow: $0, to: rawTranscript) }
                     ?? rawTranscript
@@ -1754,6 +1833,15 @@ final class PersistentRecorder {
         }
 
         // Clean up WAV file
+        try? FileManager.default.removeItem(at: audioURL)
+    }
+
+    private func cancelTranscription(requestId: String, audioURL: URL) async {
+        await MainActor.run {
+            self.clearCaptureLiveTranscription(requestId: requestId)
+            self.lastTranscriptionResult = nil
+            TranscriptionIPC.clearStatus()
+        }
         try? FileManager.default.removeItem(at: audioURL)
     }
 
@@ -1985,11 +2073,30 @@ final class PersistentRecorder {
                 self.segmentDuration = Date().timeIntervalSince1970 - startedAt
             }
         }
+
+        guard let requestId = segmentRequestId else { return }
+        let maximumSegmentDuration = maximumSegmentDuration
+        segmentSafetyStopTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(maximumSegmentDuration))
+            guard !Task.isCancelled,
+                  let self,
+                  self.isSegmentActive,
+                  self.segmentRequestId == requestId else { return }
+
+            log.log("[PersistentRecorder] ⏹ Auto-stopping at the circular-buffer safety limit")
+            self.lastError = String(localized: "Recording reached the 9:45 safety limit and was stopped automatically.")
+            self.handleStopSegment(RecordingCommand(
+                requestId: requestId,
+                action: .stopSegment
+            ))
+        }
     }
 
     private func stopDurationTimer() {
         durationTimer?.invalidate()
         durationTimer = nil
+        segmentSafetyStopTask?.cancel()
+        segmentSafetyStopTask = nil
     }
 
     // MARK: - Helpers

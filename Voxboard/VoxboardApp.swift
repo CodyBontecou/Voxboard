@@ -55,6 +55,7 @@ struct VoxboardApp: App {
             enricher = nil
         }
 
+        let speakerDiarizationService = SpeakerDiarizationService()
         let captureRequestProcessor = CapturePresetRequestProcessor(
             textProcessor: enricher.map(EnrichedCapturePresetTextProcessor.init(enricher:))
         )
@@ -65,6 +66,7 @@ struct VoxboardApp: App {
             transcriptStore: store,
             usageTracker: usage,
             transcriptionService: AppTranscriptionServices.shared,
+            speakerDiarizationService: speakerDiarizationService,
             captureDraftEventHandler: { [weak captureViewModel] event in
                 guard let captureViewModel else { return }
                 switch event {
@@ -90,6 +92,7 @@ struct VoxboardApp: App {
             transcriptStore: store,
             usageTracker: usage,
             transcriptionService: AppTranscriptionServices.shared,
+            speakerDiarizationService: speakerDiarizationService,
             transcriptEnricher: enricher
         )
         watchPipeline.configure(recorder: recorder)

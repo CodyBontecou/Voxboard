@@ -73,7 +73,7 @@ struct VoxboardRecordWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: VoxboardWidgetProvider()) { entry in
             VoxboardWidgetEntryView(entry: entry)
-                .containerBackground(.black, for: .widget)
+                .containerBackground(.background, for: .widget)
                 .widgetURL(entry.isQuickRecordEnabled ? URL(string: "voxboard://widget-record") : nil)
         }
         .configurationDisplayName("Quick Record")

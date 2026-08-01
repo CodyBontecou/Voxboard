@@ -112,7 +112,7 @@ private struct RecordButton: View {
 
     var body: some View {
         if state.isSegmentActive {
-            Button(intent: StopRecordingLiveActivityIntent()) {
+            Button(intent: StopRecordingLiveActivityIntent(requestId: state.segmentRequestId)) {
                 Label("Stop", systemImage: "stop.fill")
                     .labelStyle(.titleAndIcon)
                     .font(compact ? .subheadline.weight(.semibold) : .headline)

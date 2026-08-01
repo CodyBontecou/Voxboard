@@ -18,6 +18,31 @@ enum VoxboardReleaseNotes {
 
     private static let versionNotes: [VersionNotes] = [
         .init(
+            version: "2.0.6",
+            items: [
+                .list(
+                    title: "What’s new in Vox.md",
+                    rows: [
+                        .init(
+                            symbolSystemName: "person.2.fill",
+                            title: "Follow every speaker",
+                            description: "Capture Presets can now add anonymous, best-effort speaker labels to meeting recordings entirely on your device."
+                        ),
+                        .init(
+                            symbolSystemName: "record.circle",
+                            title: "Safer recording controls",
+                            description: "Live Activity actions now target the recording you intended, stale activities clean themselves up, and long recordings stop before earlier audio can be overwritten."
+                        ),
+                        .init(
+                            symbolSystemName: "sun.max.fill",
+                            title: "Widgets match your appearance",
+                            description: "Quick Capture and Quick Record widgets now adapt to light and dark mode so their text and controls stay readable."
+                        )
+                    ]
+                )
+            ]
+        ),
+        .init(
             version: "2.0.5",
             items: [
                 .list(

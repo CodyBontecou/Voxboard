@@ -24,7 +24,7 @@ struct VoxboardCaptureWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: VoxboardCaptureProvider()) { _ in
             VoxboardCaptureWidgetView()
-                .containerBackground(.black, for: .widget)
+                .containerBackground(.background, for: .widget)
         }
         .configurationDisplayName("Quick Capture")
         .description("Open Vox.md directly to a durable Markdown capture draft.")
@@ -119,7 +119,7 @@ private struct VoxboardCaptureWidgetView: View {
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, minHeight: 54)
-            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+            .background(.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
         }
         .accessibilityLabel(title + " capture")
     }

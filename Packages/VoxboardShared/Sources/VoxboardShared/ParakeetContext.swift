@@ -4,6 +4,11 @@ import FluidAudio
 
 private let log = KeyboardDebugLog.shared
 
+struct ParakeetTranscriptionOutput: Equatable, Sendable {
+    let text: String
+    let segments: [TimedTranscriptionSegment]
+}
+
 /// Swift wrapper around FluidAudio's `AsrManager` for on-device Parakeet TDT transcription.
 ///
 /// Parakeet uses Apple's CoreML / Neural Engine instead of whisper.cpp, giving much better
@@ -74,7 +79,15 @@ public final class ParakeetContext: @unchecked Sendable {
     /// Transcribe audio from a 16 kHz mono WAV file.
     /// - Returns: The transcribed text, or `nil` if the audio is silent / transcription fails.
     public func transcribe(audioURL: URL) async -> String? {
-        log.log("[ParakeetContext] transcribe() — \(audioURL.lastPathComponent)")
+        do {
+            return try await transcribeResult(audioURL: audioURL)?.text
+        } catch {
+            return nil
+        }
+    }
+
+    func transcribeResult(audioURL: URL) async throws -> ParakeetTranscriptionOutput? {
+        log.log("[ParakeetContext] transcribeResult() — \(audioURL.lastPathComponent)")
         let startTime = CFAbsoluteTimeGetCurrent()
 
         do {
@@ -82,11 +95,53 @@ public final class ParakeetContext: @unchecked Sendable {
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
             log.log("[ParakeetContext] ✅ Done in \(String(format: "%.2f", elapsed))s — \(text.count) chars")
-            return text.isEmpty ? nil : text
+            guard !text.isEmpty else { return nil }
+            return ParakeetTranscriptionOutput(
+                text: text,
+                segments: Self.timedWords(from: result.tokenTimings ?? [])
+            )
+        } catch is CancellationError {
+            throw CancellationError()
         } catch {
             log.log("[ParakeetContext] ❌ Transcription failed: \(error)")
             return nil
         }
+    }
+
+    private static func timedWords(from timings: [TokenTiming]) -> [TimedTranscriptionSegment] {
+        var words: [TimedTranscriptionSegment] = []
+        var text = ""
+        var start = 0.0
+        var end = 0.0
+
+        func flush() {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return }
+            words.append(TimedTranscriptionSegment(
+                text: trimmed,
+                startTime: max(0, start),
+                endTime: max(end, start + 0.01)
+            ))
+        }
+
+        for timing in timings {
+            let token = timing.token
+            guard !token.isEmpty, token != "<blank>", token != "<pad>" else { continue }
+            let startsWord = token.hasPrefix("▁") || token.first?.isWhitespace == true
+            if startsWord, !text.isEmpty {
+                flush()
+                text = ""
+            }
+            let clean = token
+                .trimmingCharacters(in: CharacterSet(charactersIn: "▁"))
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !clean.isEmpty else { continue }
+            if text.isEmpty { start = timing.startTime }
+            text += clean
+            end = timing.endTime
+        }
+        flush()
+        return words
     }
 }
 #endif

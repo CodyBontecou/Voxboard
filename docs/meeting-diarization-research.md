@@ -1,77 +1,42 @@
-# Meeting / Call Speaker Transcript Research
+# Meeting / Call Speaker Transcripts
 
-## Summary
+## Implemented approach
 
-Vox.md can ship a useful meeting/call import MVP now, but accurate line-by-line `Speaker 1` / `Speaker 2` diarization should be treated as a separate research/model dependency.
+Vox.md supports opt-in, on-device speaker diarization for voice recordings that run a Capture Preset.
 
-The implemented MVP path is:
+The pipeline is:
 
-1. Import an arbitrary audio file.
-2. Transcribe it locally with the selected Whisper/Parakeet model.
-3. Create a custom Meeting / Call flow to export structured notes with frontmatter and best-effort action items.
+1. Record or import audio and normalize it to 16 kHz mono WAV.
+2. Transcribe locally with Apple Speech, Whisper, or Parakeet while retaining timed text units.
+3. If the selected Capture Preset has **Identify Speakers** enabled, run FluidAudio’s offline Pyannote Community-1/VBx diarizer on the same audio.
+4. Assign every timed text unit to the overlapping speaker segment. When there is no overlap, use the nearest segment midpoint.
+5. Group adjacent units into anonymous `Speaker 1`, `Speaker 2`, and later turns.
+6. Save both rendered speaker-labelled text and structured speaker turns in history and JSON exports.
 
-This satisfies private meeting-note workflows without promising speaker labels that the current engines do not provide.
+This follows the mobile approach in `~/dev/rescript`: diarization is a post-transcription, best-effort pass; its model is downloaded only after opt-in; and a diarization failure never discards a valid transcript. Vox.md uses its existing, newer FluidAudio dependency rather than adding Rescript’s separate SpeakerKit dependency.
 
-## Current engine constraints
+## Product behavior
 
-- `WhisperContext` currently returns a single plain-text transcript string.
-- The wrapper sets `params.no_timestamps = true`, so segment timestamps are not exposed today.
-- `ParakeetContext` currently returns `result.text`, not speaker turns.
-- Neither current path performs speaker diarization.
+- The toggle is per Capture Preset and defaults to off for new and existing presets.
+- Processing and audio stay on device.
+- The speaker model downloads on first use.
+- Direct preset recordings, imported audio, and Watch transcript presets can use diarization.
+- Keyboard insertion, Capture draft dictation, and Watch **Recording Only** mode do not use diarization.
+- Audio over 120 MiB skips the speaker pass and keeps the normal transcript.
+- History displays the detected speaker count. TXT/Markdown/Capture exports naturally include the rendered labels; JSON also includes structured turns and timestamps.
+- User edits to the raw transcript invalidate structured turns. Enrichment-only updates preserve them.
 
-## Feasible next steps
+## Engine timing support
 
-### Phase 1 — Timestamped transcript
+- Whisper enables token timestamps and merges timestamped tokens into words, with segment timestamps as a fallback.
+- Parakeet maps FluidAudio token timings into words.
+- Apple Speech requests `audioTimeRange` attributes from final iOS 26 results, with each result’s time range as a fallback.
+- Live Apple Speech is still used for previews, but an opted-in preset runs batch recognition at completion so diarization has timestamps.
 
-Expose model segments from Whisper before diarization:
+## Limitations
 
-- Set `params.no_timestamps = false` or add a separate timestamped transcription path.
-- Return an array of segments: start time, end time, text.
-- Export as Markdown like:
-
-```md
-[00:00:03] We should launch this next week.
-[00:00:12] I'll write the announcement.
-```
-
-This is feasible with the current Whisper wrapper and would improve meetings even without speaker IDs.
-
-### Phase 2 — Best-effort speaker grouping
-
-Once segments exist, evaluate simple heuristics:
-
-- Paragraph breaks on long pauses.
-- Alternating speaker labels only when confidence is clear.
-- UI language should say "speaker groups" or "best effort", not accurate diarization.
-
-This is low-confidence but may help short two-person call recordings.
-
-### Phase 3 — Real diarization
-
-Reliable speaker labels require a diarization model or service. Requirements:
-
-- Runs on-device or is explicitly opt-in if cloud-based.
-- Fits iOS memory/CPU constraints.
-- Produces speaker embeddings or speaker-change boundaries.
-- Works with common meeting/call audio quality.
-
-Until such a model is validated, avoid promising line-by-line speakers.
-
-## Product recommendation
-
-Ship these now:
-
-- Imported audio transcription.
-- Custom Meeting / Call flow.
-- Markdown meeting notes with action items.
-- Optional saved source audio attachment.
-
-Defer these:
-
-- Accurate speaker labels.
-- Phone-call recording claims.
-- Cloud diarization, unless introduced later as an explicit opt-in non-default mode.
+Speaker labels are anonymous and recording-local; Vox.md does not identify people by name or persist voice embeddings. Accuracy varies with background noise, overlapping speech, short utterances, and similar voices. If timestamps, model assets, storage, or inference are unavailable, Vox.md logs the failure and saves the plain transcript.
 
 ## Platform/legal note
 
-iOS does not provide a general-purpose API for silently recording phone calls, and call recording laws vary by jurisdiction. Vox.md should frame this feature as importing recordings the user already has permission to record/transcribe, not as built-in phone call recording.
+iOS does not provide a general-purpose API for silently recording phone calls, and call-recording laws vary by jurisdiction. Vox.md should frame this feature as recording or importing audio the user has permission to process, not as built-in phone-call recording.

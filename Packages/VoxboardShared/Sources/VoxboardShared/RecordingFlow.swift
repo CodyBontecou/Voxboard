@@ -17,6 +17,9 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
     public var metadataScope: CapturePresetMetadataScope
     public var postProcessingMode: CapturePresetProcessingMode
     public var customPostProcessingInstruction: String
+    /// Opt-in for a second, fully on-device pass that labels anonymous
+    /// speakers in voice recordings. Existing presets decode as disabled.
+    public var speakerDiarizationEnabled: Bool
     /// Opt-in for applying this preset’s processing mode to typed and
     /// multimodal Capture text. Existing records decode as false to avoid
     /// rewriting Markdown.
@@ -49,6 +52,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         metadataScope: CapturePresetMetadataScope = .document,
         postProcessingMode: CapturePresetProcessingMode = .clean,
         customPostProcessingInstruction: String = "",
+        speakerDiarizationEnabled: Bool = false,
         captureProcessingEnabled: Bool = false,
         capturePrompt: String = "",
         watchOutputMode: CapturePresetWatchOutputMode = .transcript,
@@ -70,6 +74,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         self.metadataScope = metadataScope
         self.postProcessingMode = postProcessingMode
         self.customPostProcessingInstruction = customPostProcessingInstruction
+        self.speakerDiarizationEnabled = speakerDiarizationEnabled
         self.captureProcessingEnabled = captureProcessingEnabled
         self.capturePrompt = capturePrompt
         self.watchOutputMode = watchOutputMode
@@ -143,6 +148,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         case metadataScope
         case postProcessingMode
         case customPostProcessingInstruction
+        case speakerDiarizationEnabled
         case captureProcessingEnabled
         case capturePrompt
         case watchOutputMode
@@ -170,6 +176,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
             metadataScope: try container.decodeIfPresent(CapturePresetMetadataScope.self, forKey: .metadataScope) ?? .document,
             postProcessingMode: try container.decodeIfPresent(CapturePresetProcessingMode.self, forKey: .postProcessingMode) ?? .clean,
             customPostProcessingInstruction: try container.decodeIfPresent(String.self, forKey: .customPostProcessingInstruction) ?? "",
+            speakerDiarizationEnabled: try container.decodeIfPresent(Bool.self, forKey: .speakerDiarizationEnabled) ?? false,
             captureProcessingEnabled: try container.decodeIfPresent(Bool.self, forKey: .captureProcessingEnabled) ?? false,
             capturePrompt: try container.decodeIfPresent(String.self, forKey: .capturePrompt) ?? "",
             watchOutputMode: try container.decodeIfPresent(CapturePresetWatchOutputMode.self, forKey: .watchOutputMode) ?? .transcript,
@@ -196,6 +203,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         try container.encode(metadataScope, forKey: .metadataScope)
         try container.encode(postProcessingMode, forKey: .postProcessingMode)
         try container.encode(customPostProcessingInstruction, forKey: .customPostProcessingInstruction)
+        try container.encode(speakerDiarizationEnabled, forKey: .speakerDiarizationEnabled)
         try container.encode(captureProcessingEnabled, forKey: .captureProcessingEnabled)
         try container.encode(capturePrompt, forKey: .capturePrompt)
         try container.encode(watchOutputMode, forKey: .watchOutputMode)

@@ -1,7 +1,13 @@
 @preconcurrency import AVFoundation
+import CoreMedia
 import Foundation
 import Speech
 import VoxboardShared
+
+private struct AppleSpeechBatchOutput: Sendable {
+    var text = AttributedString()
+    var segments: [TimedTranscriptionSegment] = []
+}
 
 @available(iOS 26.0, *)
 actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
@@ -45,16 +51,23 @@ actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
             throw AppleSpeechSetupError.localeUnsupported(language)
         }
 
-        let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
+        let transcriber = SpeechTranscriber(
+            locale: locale,
+            transcriptionOptions: [],
+            reportingOptions: [],
+            attributeOptions: [.audioTimeRange]
+        )
         try await ensureAssets(for: transcriber, locale: locale)
 
         let audioFile = try AVAudioFile(forReading: audioURL)
         let analyzer = SpeechAnalyzer(modules: [transcriber])
 
-        async let collectedText: AttributedString = transcriber.results.reduce(into: AttributedString()) {
-            transcript, result in
+        async let collectedOutput: AppleSpeechBatchOutput = transcriber.results.reduce(
+            into: AppleSpeechBatchOutput()
+        ) { output, result in
             if result.isFinal {
-                transcript += result.text
+                output.text += result.text
+                output.segments.append(contentsOf: Self.timedSegments(from: result))
             }
         }
 
@@ -65,15 +78,16 @@ actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
                 await analyzer.cancelAndFinishNow()
             }
 
-            let attributedText = try await collectedText
-            let text = String(attributedText.characters)
+            let output = try await collectedOutput
+            let text = String(output.text.characters)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             guard !text.isEmpty else {
                 throw OnDeviceTranscriptionError.noSpeechDetected
             }
             return SystemTranscriptionOutput(
                 text: text,
-                language: localeIdentifier(locale)
+                language: localeIdentifier(locale),
+                segments: output.segments
             )
         } catch {
             await analyzer.cancelAndFinishNow()
@@ -128,6 +142,53 @@ actor AppleSpeechTranscriptionBackend: SystemTranscriptionBackend {
             await session.cancel()
             throw error
         }
+    }
+
+    private nonisolated static func timedSegments(
+        from result: SpeechTranscriber.Result
+    ) -> [TimedTranscriptionSegment] {
+        let attributedText = result.text
+        var attributedSegments: [TimedTranscriptionSegment] = []
+        var hasUntimedText = false
+
+        for run in attributedText.runs {
+            let text = String(attributedText[run.range].characters)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { continue }
+            guard let timeRange = run.audioTimeRange else {
+                hasUntimedText = true
+                continue
+            }
+            let start = CMTimeGetSeconds(timeRange.start)
+            let duration = CMTimeGetSeconds(timeRange.duration)
+            let end = start + duration
+            guard start.isFinite, end.isFinite, end > max(0, start) else {
+                hasUntimedText = true
+                continue
+            }
+            attributedSegments.append(TimedTranscriptionSegment(
+                text: text,
+                startTime: max(0, start),
+                endTime: end
+            ))
+        }
+        if !attributedSegments.isEmpty, !hasUntimedText {
+            return attributedSegments
+        }
+
+        // A partially attributed result must never drop untimed words. Fall
+        // back to the coarser result range so the full recognition stays intact.
+        let text = String(attributedText.characters)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let start = CMTimeGetSeconds(result.range.start)
+        let duration = CMTimeGetSeconds(result.range.duration)
+        let end = start + duration
+        guard !text.isEmpty, start.isFinite, end.isFinite, end > max(0, start) else { return [] }
+        return [TimedTranscriptionSegment(
+            text: text,
+            startTime: max(0, start),
+            endTime: end
+        )]
     }
 
     private func ensureAssets(

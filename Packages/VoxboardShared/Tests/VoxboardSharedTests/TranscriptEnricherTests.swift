@@ -340,6 +340,27 @@ final class TranscriptEnricherTests: XCTestCase {
         XCTAssertEqual(backend.lastNativeInput, "raw input")
     }
 
+    func test_enrich_usesPromptPathAndPreservesInstructionsForSpeakerLabels() async throws {
+        let backend = FakeLLMBackend(
+            nativeResponse: TranscriptEnrichment(
+                title: "Should Not Be Used",
+                tags: [],
+                category: "meeting",
+                cleanedText: "labels removed"
+            ),
+            response: #"{"title":"Meeting","tags":[],"category":"meeting","cleanedText":"Speaker 1:\nHello\n\nSpeaker 2:\nHi"}"#
+        )
+        let enricher = TranscriptEnricher(backend: backend)
+
+        let result = try await enricher.enrich(
+            rawText: "Speaker 1:\nHello\n\nSpeaker 2:\nHi"
+        )
+
+        XCTAssertNil(backend.lastNativeInput)
+        XCTAssertTrue(backend.lastPrompt?.contains("Preserve every anonymous `Speaker N:` label") == true)
+        XCTAssertTrue(result.cleanedText.contains("Speaker 2:"))
+    }
+
     func test_enrich_fallsBackToStringPathWhenNativeReturnsNil() async throws {
         // Backend's native path returns nil (not supported for this input).
         // The enricher should fall through to complete(prompt:) + parse.

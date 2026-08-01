@@ -10,6 +10,12 @@ private let watchPipelineBackgroundLog = Logger(
     category: "WatchRecordingBackground"
 )
 
+private struct WatchTranscriptionOutput: Sendable {
+    let result: OnDeviceTranscriptionResult
+    let text: String
+    let speakerTurns: [TranscriptSpeakerTurn]?
+}
+
 @MainActor
 @Observable
 final class WatchRecordingPipeline {
@@ -22,6 +28,7 @@ final class WatchRecordingPipeline {
     private let transcriptStore: TranscriptStore
     private let usageTracker: UsageTracker
     private let transcriptionService: OnDeviceTranscriptionService
+    private let speakerDiarizationService: SpeakerDiarizationService
     private let transcriptEnricher: TranscriptEnricher?
     private let backgroundTaskService: any WatchRecordingBackgroundTaskServicing
     private weak var recorder: PersistentRecorder?
@@ -36,6 +43,7 @@ final class WatchRecordingPipeline {
         transcriptStore: TranscriptStore,
         usageTracker: UsageTracker,
         transcriptionService: OnDeviceTranscriptionService,
+        speakerDiarizationService: SpeakerDiarizationService = SpeakerDiarizationService(),
         transcriptEnricher: TranscriptEnricher?,
         backgroundTaskService: (any WatchRecordingBackgroundTaskServicing)? = nil
     ) {
@@ -43,6 +51,7 @@ final class WatchRecordingPipeline {
         self.transcriptStore = transcriptStore
         self.usageTracker = usageTracker
         self.transcriptionService = transcriptionService
+        self.speakerDiarizationService = speakerDiarizationService
         self.transcriptEnricher = transcriptEnricher
         self.backgroundTaskService = backgroundTaskService
             ?? WatchRecordingBackgroundTaskClient.live()
@@ -461,9 +470,9 @@ final class WatchRecordingPipeline {
             refresh()
             WatchRecordingController.shared.publishState()
 
-            let result = try await transcribe(item)
+            let output = try await transcribe(item, flow: flow)
             try ensureProcessingIsActive(for: item.id)
-            guard !result.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            guard !output.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 throw WatchRecordingPipelineError(
                     stage: .transcription,
                     message: "No recognizable speech was found. The recording is kept for retry."
@@ -472,11 +481,12 @@ final class WatchRecordingPipeline {
 
             let raw = Transcript(
                 id: item.requestID,
-                text: result.text,
+                text: output.text,
                 date: item.createdAt,
                 duration: item.duration ?? AudioFileConverter.duration(of: item.fileURL) ?? 0,
-                modelUsed: result.backendName,
-                language: result.language
+                modelUsed: output.result.backendName,
+                language: output.result.language,
+                speakerTurns: output.speakerTurns
             )
             let formatted = TranscriptFlowFormatter.apply(flow: flow, to: raw)
             transcriptStore.add(formatted)
@@ -787,7 +797,10 @@ final class WatchRecordingPipeline {
         )
     }
 
-    private func transcribe(_ item: WatchRecordingInboxItem) async throws -> OnDeviceTranscriptionResult {
+    private func transcribe(
+        _ item: WatchRecordingInboxItem,
+        flow: CapturePreset
+    ) async throws -> WatchTranscriptionOutput {
         let sourceURL = item.fileURL
         let workingURL = (AppConstants.recordingsDirectoryURL ?? WatchRecordingInbox.inboxDirectory)
             .appendingPathComponent("watch-transcription-\(item.requestID.uuidString.lowercased())")
@@ -835,7 +848,37 @@ final class WatchRecordingPipeline {
                 language: language
             )
             try Task.checkCancellation()
-            return result
+
+            guard flow.speakerDiarizationEnabled else {
+                return WatchTranscriptionOutput(
+                    result: result,
+                    text: result.text,
+                    speakerTurns: nil
+                )
+            }
+            do {
+                let diarization = try await speakerDiarizationService.diarize(
+                    audioURL: convertedURL,
+                    transcriptText: result.text,
+                    transcriptionSegments: result.segments
+                )
+                return WatchTranscriptionOutput(
+                    result: result,
+                    text: diarization.renderedText,
+                    speakerTurns: diarization.turns
+                )
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                watchPipelineBackgroundLog.warning(
+                    "Watch speaker identification skipped recording=\(item.id, privacy: .public) error=\(error.localizedDescription, privacy: .private)"
+                )
+                return WatchTranscriptionOutput(
+                    result: result,
+                    text: result.text,
+                    speakerTurns: nil
+                )
+            }
         } catch is CancellationError {
             throw CancellationError()
         } catch {

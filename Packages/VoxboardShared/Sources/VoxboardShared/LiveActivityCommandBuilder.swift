@@ -26,7 +26,11 @@ public enum LiveActivityCommandBuilder {
     }
 
     public static func buildStopCommand(requestId: String) -> RecordingCommand {
-        RecordingCommand(requestId: requestId, action: .stopSegment)
+        RecordingCommand(
+            requestId: requestId,
+            action: .stopSegment,
+            origin: .liveActivity
+        )
     }
 
     /// Write the command to `commandURL` and call `notify()`.

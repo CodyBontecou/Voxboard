@@ -16,7 +16,7 @@ public enum TranscriptFlowFormatter {
         case .clean, .custom:
             formattedText = nil
         case .todoList:
-            formattedText = formatTodoList(baseText)
+            formattedText = formatTodoListPreservingSpeakerLabels(baseText)
         case .meetingNotes:
             formattedText = formatMeetingNotes(baseText)
         }
@@ -47,6 +47,46 @@ public enum TranscriptFlowFormatter {
             out.append(tag)
         }
         return out
+    }
+
+    public static func formatTodoListPreservingSpeakerLabels(_ text: String) -> String {
+        let lines = text
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .components(separatedBy: "\n")
+        guard lines.contains(where: isSpeakerLabel) else {
+            return formatTodoList(text)
+        }
+
+        var sections: [String] = []
+        var currentLabel: String?
+        var currentContent: [String] = []
+
+        func flush() {
+            let content = currentContent
+                .joined(separator: "\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if let currentLabel {
+                sections.append(
+                    content.isEmpty
+                        ? currentLabel
+                        : "\(currentLabel)\n\(formatTodoList(content))"
+                )
+            } else if !content.isEmpty {
+                sections.append(formatTodoList(content))
+            }
+            currentContent = []
+        }
+
+        for line in lines {
+            if isSpeakerLabel(line) {
+                flush()
+                currentLabel = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            } else {
+                currentContent.append(line)
+            }
+        }
+        flush()
+        return sections.joined(separator: "\n\n")
     }
 
     public static func formatTodoList(_ text: String) -> String {
@@ -82,6 +122,12 @@ public enum TranscriptFlowFormatter {
             sections.append("## Action Items\n\n" + actionItems.map { "- [ ] \($0)" }.joined(separator: "\n"))
         }
         return sections.joined(separator: "\n\n")
+    }
+
+    private static func isSpeakerLabel(_ line: String) -> Bool {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("Speaker "), trimmed.hasSuffix(":") else { return false }
+        return Int(trimmed.dropFirst("Speaker ".count).dropLast()) != nil
     }
 
     private static func splitIntoItems(_ text: String) -> [String] {

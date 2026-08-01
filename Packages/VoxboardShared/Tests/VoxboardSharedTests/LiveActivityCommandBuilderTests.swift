@@ -22,8 +22,28 @@ final class LiveActivityCommandBuilderTests: XCTestCase {
         let cmd = LiveActivityCommandBuilder.buildStopCommand(requestId: "req-1")
         XCTAssertEqual(cmd.action, .stopSegment)
         XCTAssertEqual(cmd.requestId, "req-1")
+        XCTAssertEqual(cmd.origin, .liveActivity)
         XCTAssertNil(cmd.modelId)
         XCTAssertNil(cmd.language)
+    }
+
+    func test_liveActivityStop_resolvesMatchingActiveRequest() {
+        let cmd = LiveActivityCommandBuilder.buildStopCommand(requestId: "active-request")
+        XCTAssertEqual(cmd.resolvedStopRequestId(activeRequestId: "active-request"), "active-request")
+    }
+
+    func test_staleLiveActivityStop_doesNotResolveNewerRequest() {
+        let cmd = LiveActivityCommandBuilder.buildStopCommand(requestId: "stale-ui-request")
+        XCTAssertNil(cmd.resolvedStopRequestId(activeRequestId: "active-request"))
+    }
+
+    func test_nonLiveActivityStop_doesNotResolveMismatchedRequest() {
+        let cmd = RecordingCommand(
+            requestId: "other-request",
+            action: .stopSegment,
+            origin: .keyboardExtension
+        )
+        XCTAssertNil(cmd.resolvedStopRequestId(activeRequestId: "active-request"))
     }
 
     func test_buildStartCommand_generatesUniqueRequestIdByDefault() {

@@ -158,6 +158,7 @@ for required in ['customizationSection', 'ModelTabView()', 'CapturePresetSetting
         errors.append(f'Settings customization navigation is missing {required}')
 flow_settings_source = (root / 'Voxboard/Views/FlowSettingsView.swift').read_text()
 recording_only_settings_gate = '''            if flow.watchOutputMode != .recordingOnly {
+                voiceProcessingSection
                 postProcessingSection
                 ownedDestinationSection
                 if flow.captureDestinationID == nil {
