@@ -22,6 +22,9 @@ struct ParakeetTranscriptionOutput: Equatable, Sendable {
 public final class ParakeetContext: @unchecked Sendable {
 
     private let manager: AsrManager
+    /// FluidAudio exposes one progress stream and shared decoder state per
+    /// manager, so the complete inference session must remain exclusive.
+    private let sessionGate = AsyncExclusiveGate()
 
     private init(manager: AsrManager) {
         self.manager = manager
@@ -78,20 +81,79 @@ public final class ParakeetContext: @unchecked Sendable {
 
     /// Transcribe audio from a 16 kHz mono WAV file.
     /// - Returns: The transcribed text, or `nil` if the audio is silent / transcription fails.
-    public func transcribe(audioURL: URL) async -> String? {
+    public func transcribe(
+        audioURL: URL,
+        onProgress: TranscriptionProgressHandler? = nil
+    ) async -> String? {
         do {
-            return try await transcribeResult(audioURL: audioURL)?.text
+            return try await transcribeResult(
+                audioURL: audioURL,
+                onProgress: onProgress
+            )?.text
         } catch {
             return nil
         }
     }
 
-    func transcribeResult(audioURL: URL) async throws -> ParakeetTranscriptionOutput? {
+    func transcribeResult(
+        audioURL: URL,
+        onProgress: TranscriptionProgressHandler? = nil
+    ) async throws -> ParakeetTranscriptionOutput? {
+        try await sessionGate.withExclusiveAccess { [self] in
+            try await transcribeResultExclusively(
+                audioURL: audioURL,
+                onProgress: onProgress
+            )
+        }
+    }
+
+    private func transcribeResultExclusively(
+        audioURL: URL,
+        onProgress: TranscriptionProgressHandler?
+    ) async throws -> ParakeetTranscriptionOutput? {
         log.log("[ParakeetContext] transcribeResult() — \(audioURL.lastPathComponent)")
         let startTime = CFAbsoluteTimeGetCurrent()
 
+        let audioDuration = AudioFileConverter.duration(of: audioURL)
+        let shouldObserveProgress = onProgress != nil
+            && ParakeetProgressObservationPolicy.shouldObserve(audioDuration: audioDuration)
+        let progressTask: Task<Void, Never>?
+        if shouldObserveProgress, let onProgress {
+            // FluidAudio 0.13.4 finishes or fails this cached stream only for
+            // input strictly longer than 240,000 samples. The service has
+            // normalized this WAV to 16 kHz, so never subscribe at or below 15s
+            // (or when duration cannot be verified).
+            let stream = await manager.transcriptionProgressStream
+            progressTask = Task {
+                var relay = MonotonicAudioCoverageProgressRelay()
+                do {
+                    for try await fraction in stream {
+                        // FluidAudio emits 1.0 before returning the recognition
+                        // result. Reserve exact completion for the service after
+                        // it has verified that nonempty text was produced.
+                        guard let progress = relay.accept(fraction) else { continue }
+                        onProgress(progress)
+                    }
+                } catch {
+                    // The long-input manager path owns stream failure. Its
+                    // transcription error is handled by the request below.
+                }
+            }
+        } else {
+            progressTask = nil
+        }
+
+        func drainProgressObserver() async {
+            // For an observed long request, FluidAudio naturally finishes or
+            // fails the stream before `transcribe` returns or throws. Draining
+            // avoids late callbacks without cancelling and poisoning its cached
+            // stream storage.
+            _ = await progressTask?.value
+        }
+
         do {
             let result = try await manager.transcribe(audioURL, source: .microphone)
+            await drainProgressObserver()
             let elapsed = CFAbsoluteTimeGetCurrent() - startTime
             let text = result.text.trimmingCharacters(in: .whitespacesAndNewlines)
             log.log("[ParakeetContext] ✅ Done in \(String(format: "%.2f", elapsed))s — \(text.count) chars")
@@ -101,8 +163,10 @@ public final class ParakeetContext: @unchecked Sendable {
                 segments: Self.timedWords(from: result.tokenTimings ?? [])
             )
         } catch is CancellationError {
+            await drainProgressObserver()
             throw CancellationError()
         } catch {
+            await drainProgressObserver()
             log.log("[ParakeetContext] ❌ Transcription failed: \(error)")
             return nil
         }

@@ -88,6 +88,9 @@ final class PersistentRecorder {
     var isSegmentActive: Bool = false
     var isTranscribing: Bool = false
     var segmentDuration: TimeInterval = 0
+    /// Backend-reported progress for the active ASR request. Preparing and
+    /// unsupported backends intentionally have no exact fraction.
+    var transcriptionProgress: TranscriptionProgress?
     var lastError: String?
 
     /// Keyboard recordings share this recorder but are not app-owned Capture
@@ -146,6 +149,8 @@ final class PersistentRecorder {
     /// Retained after segment state is cleared so competing manual/VAD stop
     /// commands for the same request can be ignored while transcription runs.
     private var processingRequestId: String?
+    private var progressRequestId: String?
+    private var lastPublishedTranscriptionPercent: Int?
 
     /// Pre-roll: capture this many seconds before the user tapped Start.
     private let preRollSeconds: TimeInterval = 2.0
@@ -795,6 +800,10 @@ final class PersistentRecorder {
             let requestId = "import-\(UUID().uuidString)"
 
             transcribingCompletionMode = completionMode
+            processingRequestId = requestId
+            progressRequestId = requestId
+            lastPublishedTranscriptionPercent = nil
+            transcriptionProgress = nil
             isTranscribing = true
             lastTranscriptionResult = nil
             lastError = nil
@@ -835,6 +844,12 @@ final class PersistentRecorder {
                     await MainActor.run {
                         self?.lastError = "Could not import audio: \(error.localizedDescription)"
                         self?.lastTranscriptionResult = nil
+                        if self?.processingRequestId == requestId {
+                            self?.processingRequestId = nil
+                            self?.progressRequestId = nil
+                            self?.transcriptionProgress = nil
+                            self?.lastPublishedTranscriptionPercent = nil
+                        }
                     }
                     try? FileManager.default.removeItem(at: sourceCopy)
                     try? FileManager.default.removeItem(at: wavURL)
@@ -842,6 +857,12 @@ final class PersistentRecorder {
                 await MainActor.run {
                     self?.isTranscribing = false
                     self?.transcribingCompletionMode = nil
+                    if self?.processingRequestId == requestId {
+                        self?.processingRequestId = nil
+                        self?.progressRequestId = nil
+                        self?.transcriptionProgress = nil
+                        self?.lastPublishedTranscriptionPercent = nil
+                    }
                     if bgTask != .invalid {
                         UIApplication.shared.endBackgroundTask(bgTask)
                         bgTask = .invalid
@@ -1271,6 +1292,9 @@ final class PersistentRecorder {
         let completionMode = segmentCompletionMode
             ?? .completionMode(forExternalCommand: command, fallbackFlowID: flowId)
         processingRequestId = requestId
+        progressRequestId = requestId
+        lastPublishedTranscriptionPercent = nil
+        transcriptionProgress = nil
         transcribingCompletionMode = completionMode
         log.log("[PersistentRecorder] ⏹ Stopping segment: \(requestId.prefix(8)) trigger=\(trigger.rawValue) (segmentRequestId=\(segmentRequestId?.prefix(8) ?? "nil"), command.requestId=\(command.requestId.prefix(8)))")
         osLog.notice("⏹ Stopping segment: \(requestId)")
@@ -1340,11 +1364,13 @@ final class PersistentRecorder {
         // tear down audio capture now (restoring system haptics) while leaving
         // the Live Activity visible in a lightweight processing state.
         isTranscribing = true
+        let recordingStartedAt = segmentStartedAt
+        let transcriptionStartedAt = Date().timeIntervalSince1970
         TranscriptionIPC.writeStatus(RecordingStatus(
             requestId: requestId,
             phase: .transcribing,
-            recordingStartedAt: segmentStartedAt,
-            recordingStoppedAt: Date().timeIntervalSince1970
+            recordingStartedAt: recordingStartedAt,
+            recordingStoppedAt: transcriptionStartedAt
         ))
         LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: true, startedAt: nil)
         WatchRecordingController.shared.publishState()
@@ -1403,7 +1429,9 @@ final class PersistentRecorder {
                 completionMode: completionMode,
                 sourceAudioURL: wavURL,
                 resolvedResult: liveResult,
-                usesLiveDelivery: usesLiveDelivery
+                usesLiveDelivery: usesLiveDelivery,
+                recordingStartedAt: recordingStartedAt,
+                transcriptionStartedAt: transcriptionStartedAt
             )
 
             await MainActor.run {
@@ -1411,6 +1439,9 @@ final class PersistentRecorder {
                 self.transcribingCompletionMode = nil
                 if self.processingRequestId == requestId {
                     self.processingRequestId = nil
+                    self.progressRequestId = nil
+                    self.transcriptionProgress = nil
+                    self.lastPublishedTranscriptionPercent = nil
                 }
                 self.finishLiveActivityAfterTranscription()
                 WatchRecordingController.shared.publishState()
@@ -1431,6 +1462,9 @@ final class PersistentRecorder {
         transcribingCompletionMode = nil
         if processingRequestId == requestId {
             processingRequestId = nil
+            progressRequestId = nil
+            transcriptionProgress = nil
+            lastPublishedTranscriptionPercent = nil
         }
         clearSegmentState()
 
@@ -1489,7 +1523,9 @@ final class PersistentRecorder {
         completionMode: RecordingCompletionMode,
         sourceAudioURL: URL? = nil,
         resolvedResult: OnDeviceTranscriptionResult? = nil,
-        usesLiveDelivery: Bool = false
+        usesLiveDelivery: Bool = false,
+        recordingStartedAt: TimeInterval? = nil,
+        transcriptionStartedAt: TimeInterval? = nil
     ) async {
         osLog.notice("🔄 Transcribing audio: \(audioURL.lastPathComponent) backend=\(modelId)")
         log.log("[PersistentRecorder] Transcribing with backend \(modelId)…")
@@ -1506,6 +1542,17 @@ final class PersistentRecorder {
             selectedFlow = CapturePresetStore.flow(id: flowID) ?? CapturePresetStore.selectedFlow()
         }
         let identifiesSpeakers = selectedFlow?.speakerDiarizationEnabled == true
+        let progressHandler: TranscriptionProgressHandler = { [weak self] progress in
+            Task { @MainActor [weak self] in
+                self?.acceptTranscriptionProgress(
+                    progress,
+                    requestId: requestId,
+                    completionMode: completionMode,
+                    recordingStartedAt: recordingStartedAt,
+                    transcriptionStartedAt: transcriptionStartedAt
+                )
+            }
+        }
 
         let result: OnDeviceTranscriptionResult
         do {
@@ -1520,7 +1567,8 @@ final class PersistentRecorder {
                             audioURL: audioURL,
                             modelID: modelId,
                             fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
-                            language: language
+                            language: language,
+                            onProgress: progressHandler
                         )
                     } catch is CancellationError {
                         throw CancellationError()
@@ -1536,7 +1584,8 @@ final class PersistentRecorder {
                     audioURL: audioURL,
                     modelID: modelId,
                     fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
-                    language: language
+                    language: language,
+                    onProgress: progressHandler
                 )
             }
         } catch is CancellationError {
@@ -1545,12 +1594,19 @@ final class PersistentRecorder {
         } catch {
             log.log("[PersistentRecorder] ❌ Transcription failed: \(error.localizedDescription)")
             await MainActor.run {
+                self.stopAcceptingTranscriptionProgress(requestId: requestId)
                 self.clearCaptureLiveTranscription(requestId: requestId)
                 self.lastTranscriptionResult = nil
                 self.writeErrorResponse(requestId: requestId, message: error.localizedDescription)
             }
             try? FileManager.default.removeItem(at: audioURL)
             return
+        }
+
+        // Percentage covers ASR only. Reject queued callbacks before optional
+        // diarization, formatting, enrichment, delivery, or export begins.
+        await MainActor.run {
+            self.stopAcceptingTranscriptionProgress(requestId: requestId)
         }
 
         var resolvedText = result.text
@@ -1836,8 +1892,62 @@ final class PersistentRecorder {
         try? FileManager.default.removeItem(at: audioURL)
     }
 
+    @MainActor
+    private func acceptTranscriptionProgress(
+        _ progress: TranscriptionProgress,
+        requestId: String,
+        completionMode: RecordingCompletionMode,
+        recordingStartedAt: TimeInterval?,
+        transcriptionStartedAt: TimeInterval?
+    ) {
+        guard progressRequestId == requestId else { return }
+        if let current = transcriptionProgress?.exactFractionCompleted {
+            guard let incoming = progress.exactFractionCompleted,
+                  incoming >= current else { return }
+        }
+        transcriptionProgress = progress
+
+        guard let percent = progress.wholePercentCompleted,
+              percent != lastPublishedTranscriptionPercent,
+              let fraction = progress.exactFractionCompleted else { return }
+        lastPublishedTranscriptionPercent = percent
+
+        if completionMode == .keyboardTranscription {
+            TranscriptionIPC.writeStatus(RecordingStatus(
+                requestId: requestId,
+                phase: .transcribing,
+                recordingStartedAt: recordingStartedAt,
+                recordingStoppedAt: transcriptionStartedAt,
+                transcriptionProgress: fraction
+            ))
+        }
+        LiveActivityController.shared.update(
+            isSegmentActive: false,
+            isTranscribing: true,
+            startedAt: nil,
+            transcriptionProgress: fraction
+        )
+    }
+
+    @MainActor
+    private func stopAcceptingTranscriptionProgress(requestId: String) {
+        guard progressRequestId == requestId else { return }
+        progressRequestId = nil
+        transcriptionProgress = nil
+        lastPublishedTranscriptionPercent = nil
+        if isTranscribing {
+            LiveActivityController.shared.update(
+                isSegmentActive: false,
+                isTranscribing: true,
+                startedAt: nil,
+                transcriptionProgress: nil
+            )
+        }
+    }
+
     private func cancelTranscription(requestId: String, audioURL: URL) async {
         await MainActor.run {
+            self.stopAcceptingTranscriptionProgress(requestId: requestId)
             self.clearCaptureLiveTranscription(requestId: requestId)
             self.lastTranscriptionResult = nil
             TranscriptionIPC.clearStatus()

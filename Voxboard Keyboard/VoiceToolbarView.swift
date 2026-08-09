@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 import VoxboardShared
 
@@ -72,9 +73,16 @@ struct VoiceToolbarView: View {
                         .fill(K.error)
                         .frame(width: 6, height: 6)
                 case .transcribing:
-                    ProgressView()
-                        .scaleEffect(0.6)
-                        .tint(.secondary)
+                    if let progress = voiceState.transcriptionProgress {
+                        ProgressView(value: progress)
+                            .progressViewStyle(.circular)
+                            .scaleEffect(0.6)
+                            .tint(.secondary)
+                    } else {
+                        ProgressView()
+                            .scaleEffect(0.6)
+                            .tint(.secondary)
+                    }
                 default:
                     Image(systemName: "mic.fill")
                         .font(.system(.footnote, weight: .medium))
@@ -111,7 +119,12 @@ struct VoiceToolbarView: View {
                         .monospacedDigit()
                 }
             case .transcribing:
-                Text("Transcribing…")
+                if let percent = transcriptionPercentLabel {
+                    Text("Transcribing \(percent)")
+                        .monospacedDigit()
+                } else {
+                    Text("Transcribing…")
+                }
             case .error(let msg):
                 Text(msg)
                     .foregroundColor(K.error)
@@ -144,11 +157,21 @@ struct VoiceToolbarView: View {
             .buttonStyle(.plain)
 
         case .transcribing:
-            // Spinner, no background
-            ProgressView()
-                .scaleEffect(0.7)
-                .tint(.secondary)
-                .frame(width: 32, height: 32)
+            // Exact FluidAudio coverage when available; otherwise retain the spinner.
+            if let progress = voiceState.transcriptionProgress,
+               let percent = transcriptionPercentLabel {
+                ProgressView(value: progress)
+                    .progressViewStyle(.linear)
+                    .tint(.secondary)
+                    .frame(width: 32, height: 32)
+                    .accessibilityLabel("Transcription progress")
+                    .accessibilityValue("\(percent) complete")
+            } else {
+                ProgressView()
+                    .scaleEffect(0.7)
+                    .tint(.secondary)
+                    .frame(width: 32, height: 32)
+            }
 
         case .appNotListening, .noModel:
             // Mic icon — prompts opening the app to start listening or prepare transcription.
@@ -173,6 +196,15 @@ struct VoiceToolbarView: View {
     }
 
     // MARK: - Helpers
+
+    private var transcriptionPercentLabel: String? {
+        guard let progress = voiceState.transcriptionProgress,
+              progress.isFinite else { return nil }
+        let wholePercent = Int((min(1, max(0, progress)) * 100).rounded(.down))
+        return (Double(wholePercent) / 100).formatted(
+            .percent.precision(.fractionLength(0))
+        )
+    }
 
     private func formatDuration(_ d: TimeInterval) -> String {
         String(format: "%d:%02d", Int(d) / 60, Int(d) % 60)

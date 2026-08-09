@@ -131,7 +131,18 @@ struct QuickCaptureVoiceView: View {
     private var transcribingView: some View {
         VStack(spacing: 18) {
             Spacer()
-            ProgressView().controlSize(.large)
+            if let progress = session.transcriptionProgress,
+               let fraction = progress.exactFractionCompleted,
+               let percent = progress.formattedWholePercentCompleted {
+                ProgressView(value: fraction)
+                    .frame(maxWidth: 260)
+                Text("\(percent) complete")
+                    .font(Geist.mono())
+                    .foregroundStyle(Geist.muted)
+                    .accessibilityLabel("Transcription \(percent) complete")
+            } else {
+                ProgressView().controlSize(.large)
+            }
             Text("Transcribing entirely on this device…")
                 .font(Geist.body())
             Text("The recording remains available even if transcription fails.")
@@ -243,9 +254,11 @@ struct QuickCaptureVoiceView: View {
         let announcement = session.transcript == nil
             ? String(localized: "Voice recording added")
             : String(localized: "Voice recording and transcript added")
-        session.commitStagedRecordingAndCleanup()
-        UIAccessibility.post(notification: .announcement, argument: announcement)
-        dismiss()
+        Task { @MainActor in
+            guard await session.commitStagedRecordingAndCleanup() else { return }
+            UIAccessibility.post(notification: .announcement, argument: announcement)
+            dismiss()
+        }
     }
 
     private func barHeight(_ index: Int) -> CGFloat {

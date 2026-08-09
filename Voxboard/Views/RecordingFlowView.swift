@@ -12,6 +12,7 @@ final class CapturePresetController {
     var phase: Phase = .starting
     var transcriptionResult: String?
     var errorMessage: String?
+    var transcriptionProgress: TranscriptionProgress?
 
     let modelId: String
     let language: String
@@ -22,6 +23,8 @@ final class CapturePresetController {
     private let transcriptStore: TranscriptStore
     private let transcriptionService: OnDeviceTranscriptionService
     private var recordingStartedAt: TimeInterval = 0
+    private var transcriptionStartedAt: TimeInterval?
+    private var lastPublishedProgressPercent: Int?
 
     var recordingDuration: TimeInterval { recorder.recordingDuration }
 
@@ -71,7 +74,15 @@ final class CapturePresetController {
         }
 
         phase = .transcribing
-        TranscriptionIPC.writeStatus(RecordingStatus(requestId: requestId, phase: .transcribing))
+        transcriptionProgress = nil
+        lastPublishedProgressPercent = nil
+        transcriptionStartedAt = Date().timeIntervalSince1970
+        TranscriptionIPC.writeStatus(RecordingStatus(
+            requestId: requestId,
+            phase: .transcribing,
+            recordingStartedAt: recordingStartedAt,
+            recordingStoppedAt: transcriptionStartedAt
+        ))
         let duration = recorder.recordingDuration
 
         let lang = language
@@ -91,7 +102,30 @@ final class CapturePresetController {
                     audioURL: audioURL,
                     modelID: selectedModelID,
                     fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
-                    language: lang
+                    language: lang,
+                    onProgress: { [weak self] progress in
+                        Task { @MainActor [weak self] in
+                            guard let self,
+                                  self.requestId == reqId,
+                                  self.phase == .transcribing else { return }
+                            if let current = self.transcriptionProgress?.exactFractionCompleted {
+                                guard let incoming = progress.exactFractionCompleted,
+                                      incoming >= current else { return }
+                            }
+                            self.transcriptionProgress = progress
+                            guard let percent = progress.wholePercentCompleted,
+                                  let fraction = progress.exactFractionCompleted,
+                                  percent != self.lastPublishedProgressPercent else { return }
+                            self.lastPublishedProgressPercent = percent
+                            TranscriptionIPC.writeStatus(RecordingStatus(
+                                requestId: reqId,
+                                phase: .transcribing,
+                                recordingStartedAt: self.recordingStartedAt,
+                                recordingStoppedAt: self.transcriptionStartedAt,
+                                transcriptionProgress: fraction
+                            ))
+                        }
+                    }
                 )
                 log.log("[App:RecFlow] Transcription complete")
 
@@ -100,6 +134,7 @@ final class CapturePresetController {
                         if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
                         return
                     }
+                    self.transcriptionProgress = nil
                     self.transcriptionResult = result.text
                     let response = TranscriptionResponse(requestId: reqId, text: result.text)
                     try? TranscriptionIPC.writeResponse(response)
@@ -120,6 +155,7 @@ final class CapturePresetController {
                 }
             } catch {
                 await MainActor.run { [weak self] in
+                    self?.transcriptionProgress = nil
                     self?.phase = .error
                     self?.errorMessage = error.localizedDescription
                     self?.writeErrorResponse(error.localizedDescription)
@@ -251,7 +287,22 @@ struct CapturePresetView: View {
         case .transcribing:
             VStack(spacing: 24) {
                 GeistSectionLabel(number: "01", title: "Status")
-                TranscribingDotsView()
+                if let progress = controller.transcriptionProgress,
+                   let fraction = progress.exactFractionCompleted,
+                   let percent = progress.formattedWholePercentCompleted {
+                    VStack(spacing: 12) {
+                        Text("Transcribing \(percent)")
+                            .font(Geist.display(48))
+                            .foregroundColor(Geist.text)
+                            .minimumScaleFactor(0.4)
+                        ProgressView(value: fraction)
+                            .frame(maxWidth: 280)
+                    }
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("Transcription \(percent) complete")
+                } else {
+                    TranscribingDotsView()
+                }
                 Text("Processing audio on-device")
                     .font(Geist.body())
                     .foregroundColor(Geist.muted)

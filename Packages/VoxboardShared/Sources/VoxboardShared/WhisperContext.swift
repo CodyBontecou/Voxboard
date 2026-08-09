@@ -9,6 +9,42 @@ struct WhisperTranscriptionOutput: Equatable, Sendable {
     let segments: [TimedTranscriptionSegment]
 }
 
+/// Converts whisper.cpp's integer source-audio traversal percentage into the
+/// shared strictly advancing progress representation. Native completion remains
+/// reserved for result validation after `whisper_full` returns.
+struct WhisperAudioCoverageProgressRelay: Sendable {
+    private var relay = MonotonicAudioCoverageProgressRelay()
+
+    mutating func accept(_ rawPercent: Int32) -> TranscriptionProgress? {
+        relay.accept(Double(rawPercent) / 100)
+    }
+}
+
+private final class WhisperProgressCallbackBridge {
+    private let handler: TranscriptionProgressHandler
+    private var relay = WhisperAudioCoverageProgressRelay()
+
+    init(handler: @escaping TranscriptionProgressHandler) {
+        self.handler = handler
+    }
+
+    func receive(_ rawPercent: Int32) {
+        guard let progress = relay.accept(rawPercent) else { return }
+        handler(progress)
+    }
+}
+
+/// whisper.cpp calls this synchronously during `whisper_full`. The bridge is
+/// kept alive by the caller for the complete native call.
+private let whisperProgressCallback: whisper_progress_callback = {
+    _, _, rawPercent, userData in
+    guard let userData else { return }
+    Unmanaged<WhisperProgressCallbackBridge>
+        .fromOpaque(userData)
+        .takeUnretainedValue()
+        .receive(rawPercent)
+}
+
 /// Swift wrapper around the whisper.cpp C API.
 /// Runs transcription on whatever thread it's called from — call from a background thread.
 ///
@@ -53,19 +89,27 @@ public final class WhisperContext: @unchecked Sendable {
     ///   - audioURL: Path to the .wav recording
     ///   - language: ISO 639-1 code ("en", "es", etc.) or "auto" for detection
     ///   - maxThreads: Cap on compute threads (use 2 in extensions to reduce memory)
+    ///   - onProgress: Optional exact source-audio coverage callback during inference
     /// - Returns: The transcribed text, or nil on failure
-    public func transcribe(audioURL: URL, language: String = "auto", maxThreads: Int? = nil) -> String? {
+    public func transcribe(
+        audioURL: URL,
+        language: String = "auto",
+        maxThreads: Int? = nil,
+        onProgress: TranscriptionProgressHandler? = nil
+    ) -> String? {
         transcribeResult(
             audioURL: audioURL,
             language: language,
-            maxThreads: maxThreads
+            maxThreads: maxThreads,
+            onProgress: onProgress
         )?.text
     }
 
     func transcribeResult(
         audioURL: URL,
         language: String = "auto",
-        maxThreads: Int? = nil
+        maxThreads: Int? = nil,
+        onProgress: TranscriptionProgressHandler? = nil
     ) -> WhisperTranscriptionOutput? {
         log.log("[WhisperContext] transcribeResult() — audio=\(audioURL.lastPathComponent), lang=\(language)")
 
@@ -95,17 +139,27 @@ public final class WhisperContext: @unchecked Sendable {
         params.print_timestamps = false
         params.token_timestamps = true
         params.split_on_word = true
+        // Keep native progress mapped to the original source-audio timeline.
+        params.vad = false
 
         // Language handling: nil = auto-detect
         let languageCStr: UnsafeMutablePointer<CChar>? = (language == "auto") ? nil : strdup(language)
         defer { languageCStr.map { free($0) } }
         params.language = UnsafePointer(languageCStr)
 
+        let progressBridge = onProgress.map { WhisperProgressCallbackBridge(handler: $0) }
+        if let progressBridge {
+            params.progress_callback = whisperProgressCallback
+            params.progress_callback_user_data = Unmanaged.passUnretained(progressBridge).toOpaque()
+        }
+
         log.log("[WhisperContext] Starting whisper_full (threads=\(params.n_threads), samples=\(samples.count))…")
         let startTime = CFAbsoluteTimeGetCurrent()
 
-        let result = samples.withUnsafeBufferPointer { buffer in
-            whisper_full(context, params, buffer.baseAddress, Int32(buffer.count))
+        let result = withExtendedLifetime(progressBridge) {
+            samples.withUnsafeBufferPointer { buffer in
+                whisper_full(context, params, buffer.baseAddress, Int32(buffer.count))
+            }
         }
 
         let elapsed = CFAbsoluteTimeGetCurrent() - startTime

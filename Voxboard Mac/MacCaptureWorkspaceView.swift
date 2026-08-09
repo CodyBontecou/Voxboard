@@ -439,6 +439,20 @@ struct MacCaptureWorkspaceView: View {
                 }
                 .buttonStyle(GeistButtonStyle(variant: .destructive, size: .small))
                 .fixedSize()
+            } else if recorder.isTranscribing,
+                      let progress = recorder.transcriptionProgress,
+                      let fraction = progress.exactFractionCompleted,
+                      let percent = progress.formattedWholePercentCompleted {
+                VStack(alignment: .trailing, spacing: 3) {
+                    ProgressView(value: fraction)
+                        .frame(width: 110)
+                    Text("\(percent) complete")
+                        .font(Geist.mono(.caption2))
+                        .foregroundStyle(Geist.muted)
+                        .monospacedDigit()
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("Transcription \(percent) complete")
             } else {
                 ProgressView().controlSize(.small)
             }

@@ -574,8 +574,14 @@ struct QuickCaptureView: View {
     private var voiceCaptureButton: some View {
         Group {
             if persistentRecorder.isAppRecordingTranscribing {
-                ProgressView()
-                    .controlSize(.small)
+                if let fraction = persistentRecorder.transcriptionProgress?.exactFractionCompleted {
+                    ProgressView(value: fraction)
+                        .progressViewStyle(.circular)
+                        .controlSize(.small)
+                } else {
+                    ProgressView()
+                        .controlSize(.small)
+                }
             } else if persistentRecorder.isAppRecordingSegmentActive {
                 HStack(spacing: Geist.Spacing.two) {
                     Text(formatRecordingDuration(persistentRecorder.segmentDuration))
@@ -767,10 +773,26 @@ struct QuickCaptureView: View {
             .buttonStyle(GeistButtonStyle(variant: .destructive, size: .small))
             .accessibilityIdentifier("capture_recording_stop")
         } else if persistentRecorder.isAppRecordingTranscribing {
-            ProgressView()
-                .controlSize(.small)
+            if let progress = persistentRecorder.transcriptionProgress,
+               let fraction = progress.exactFractionCompleted,
+               let percent = progress.formattedWholePercentCompleted {
+                VStack(spacing: 2) {
+                    ProgressView(value: fraction)
+                        .frame(width: 64)
+                    Text(percent)
+                        .font(Geist.mono(.caption2))
+                        .foregroundStyle(Geist.muted)
+                }
                 .frame(width: 72, height: 36)
+                .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Transcribing recording")
+                .accessibilityValue("\(percent) complete")
+            } else {
+                ProgressView()
+                    .controlSize(.small)
+                    .frame(width: 72, height: 36)
+                    .accessibilityLabel("Transcribing recording")
+            }
         } else {
             Button(action: startInlineRecording) {
                 Label(
@@ -1807,6 +1829,9 @@ struct QuickCaptureView: View {
             return String(localized: "Recording \(formatRecordingDuration(persistentRecorder.segmentDuration))")
         }
         if persistentRecorder.isAppRecordingTranscribing {
+            if let percent = persistentRecorder.transcriptionProgress?.formattedWholePercentCompleted {
+                return String(localized: "Transcribing \(percent)")
+            }
             return String(localized: "Transcribing")
         }
         if persistentRecorder.isListening { return String(localized: "Keyboard Listening On") }
@@ -1850,6 +1875,9 @@ struct QuickCaptureView: View {
             return String(localized: "Stop voice recording, \(formatRecordingDuration(persistentRecorder.segmentDuration))")
         }
         if persistentRecorder.isAppRecordingTranscribing {
+            if let percent = persistentRecorder.transcriptionProgress?.formattedWholePercentCompleted {
+                return String(localized: "Transcribing voice capture, \(percent) complete")
+            }
             return String(localized: "Transcribing voice capture")
         }
         if usageTracker.isAtLimit { return String(localized: "Unlock voice capture") }

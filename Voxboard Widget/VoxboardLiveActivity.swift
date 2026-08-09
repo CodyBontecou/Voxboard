@@ -31,6 +31,11 @@ struct VoxboardLiveActivity: Widget {
                             .monospacedDigit()
                             .font(.headline)
                             .foregroundStyle(.white)
+                    } else if let percent = context.state.transcriptionPercentLabel {
+                        Text(percent)
+                            .monospacedDigit()
+                            .font(.headline)
+                            .foregroundStyle(.white)
                     } else {
                         Text(context.state.isTranscribing ? "Working" : "Ready")
                             .font(.headline)
@@ -38,7 +43,17 @@ struct VoxboardLiveActivity: Widget {
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    RecordButton(state: context.state, compact: false)
+                    VStack(spacing: 8) {
+                        if let progress = context.state.transcriptionProgress,
+                           let percent = context.state.transcriptionPercentLabel,
+                           context.state.isTranscribing {
+                            ProgressView(value: progress)
+                                .tint(.white)
+                                .accessibilityLabel("Transcription progress")
+                                .accessibilityValue("\(percent) complete")
+                        }
+                        RecordButton(state: context.state, compact: false)
+                    }
                 }
             } compactLeading: {
                 Image(systemName: context.state.activitySymbolName(expanded: false))
@@ -48,6 +63,11 @@ struct VoxboardLiveActivity: Widget {
                     Text(Date(timeIntervalSince1970: started), style: .timer)
                         .monospacedDigit()
                         .frame(maxWidth: 44)
+                } else if let percent = context.state.transcriptionPercentLabel {
+                    Text(percent)
+                        .monospacedDigit()
+                        .font(.caption2.weight(.bold))
+                        .foregroundStyle(.white)
                 } else if context.state.isTranscribing {
                     Text("…")
                         .font(.caption.weight(.bold))
@@ -91,6 +111,13 @@ private struct LockScreenBanner: View {
                             .font(.subheadline.monospacedDigit())
                             .foregroundStyle(.white)
                     }
+                } else if let percent = state.transcriptionPercentLabel,
+                          let progress = state.transcriptionProgress {
+                    Text("Processing audio · \(percent)")
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.8))
+                    ProgressView(value: progress)
+                        .tint(.white)
                 } else {
                     Text(state.isTranscribing ? "Processing audio" : "Tap to record")
                         .font(.subheadline)
@@ -123,7 +150,13 @@ private struct RecordButton: View {
             }
             .buttonStyle(.plain)
         } else if state.isTranscribing {
-            Label("Processing", systemImage: "hourglass")
+            Group {
+                if let percent = state.transcriptionPercentLabel {
+                    Label(percent, systemImage: "hourglass")
+                } else {
+                    Label("Processing", systemImage: "hourglass")
+                }
+            }
                 .labelStyle(.titleAndIcon)
                 .font(compact ? .subheadline.weight(.semibold) : .headline)
                 .padding(.horizontal, compact ? 14 : 20)
@@ -147,6 +180,18 @@ private struct RecordButton: View {
 
 @available(iOS 17.0, *)
 private extension VoxboardLiveActivityState {
+    var transcriptionPercentLabel: String? {
+        guard isTranscribing,
+              let transcriptionProgress,
+              transcriptionProgress.isFinite else { return nil }
+        let wholePercent = Int(
+            (min(1, max(0, transcriptionProgress)) * 100).rounded(.down)
+        )
+        return (Double(wholePercent) / 100).formatted(
+            .percent.precision(.fractionLength(0))
+        )
+    }
+
     var activityTitle: String {
         if isSegmentActive { return "Recording" }
         if isTranscribing { return "Processing" }

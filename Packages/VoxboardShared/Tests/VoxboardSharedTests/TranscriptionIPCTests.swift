@@ -37,6 +37,8 @@ final class TranscriptionIPCTests: XCTestCase {
 
         XCTAssertEqual(status.recordingStartedAt, 40)
         XCTAssertNil(status.recordingStoppedAt)
+        XCTAssertNil(status.transcriptionProgress)
+        XCTAssertNil(status.updatedAt)
     }
 
     func testRecordingStatusRoundTripsStoppedTimestamp() throws {
@@ -44,7 +46,9 @@ final class TranscriptionIPCTests: XCTestCase {
             requestId: "request",
             phase: .transcribing,
             recordingStartedAt: 40,
-            recordingStoppedAt: 45
+            recordingStoppedAt: 45,
+            transcriptionProgress: 0.42,
+            updatedAt: 46
         )
 
         let data = try JSONEncoder().encode(status)
@@ -52,5 +56,25 @@ final class TranscriptionIPCTests: XCTestCase {
 
         XCTAssertEqual(decoded.recordingStartedAt, 40)
         XCTAssertEqual(decoded.recordingStoppedAt, 45)
+        XCTAssertEqual(decoded.transcriptionProgress, 0.42)
+        XCTAssertEqual(decoded.updatedAt, 46)
+    }
+
+    func testRecordingStatusClampsInvalidProgress() {
+        XCTAssertEqual(
+            RecordingStatus(
+                requestId: "request",
+                phase: .transcribing,
+                transcriptionProgress: 2
+            ).transcriptionProgress,
+            1
+        )
+        XCTAssertNil(
+            RecordingStatus(
+                requestId: "request",
+                phase: .transcribing,
+                transcriptionProgress: .nan
+            ).transcriptionProgress
+        )
     }
 }

@@ -31,6 +31,7 @@ final class VoiceKeyboardState {
 
     var status: Status = .idle
     var recordingDuration: TimeInterval = 0
+    var transcriptionProgress: Double?
     var selectedModelIndex: Int = 0
     var selectedFlowId: String = CapturePresetStore.selectedFlowId()
 
@@ -80,6 +81,7 @@ final class VoiceKeyboardState {
     private var durationTimer: Timer?
     private var recordingStartedAt: TimeInterval?
     private var transcribingStartedAt: TimeInterval?
+    private var lastTranscriptionActivityAt: TimeInterval?
     private var recordingAcknowledged = false
     private var stopRequestedBeforeAcknowledgement = false
     private var lastCommandNotificationAt: TimeInterval?
@@ -330,6 +332,8 @@ final class VoiceKeyboardState {
         // Update UI immediately
         status = .transcribing
         transcribingStartedAt = Date().timeIntervalSince1970
+        lastTranscriptionActivityAt = transcribingStartedAt
+        transcriptionProgress = nil
         segmentStopTime = Date()
         stopDurationTimer()
     }
@@ -448,8 +452,13 @@ final class VoiceKeyboardState {
             let stoppedAt = ipcStatus.recordingStoppedAt
                 ?? ipcStatus.recordingStartedAt
                 ?? Date().timeIntervalSince1970
-            if Date().timeIntervalSince1970 - stoppedAt > 120 {
-                log.log("♻️ Clearing stale transcription session (>2 min old)")
+            let hasExactProgress = ipcStatus.transcriptionProgress != nil
+            let lastActivityAt = hasExactProgress
+                ? (ipcStatus.updatedAt ?? stoppedAt)
+                : stoppedAt
+            let reconnectTimeout = hasExactProgress ? transcriptionTimeout : 120
+            if Date().timeIntervalSince1970 - lastActivityAt > reconnectTimeout {
+                log.log("♻️ Clearing stale transcription session (>\(Int(reconnectTimeout))s old)")
                 TranscriptionIPC.clearStatus()
             } else if !hasFreshListener {
                 log.log("♻️ Clearing stale transcription session — listening heartbeat missing")
@@ -461,6 +470,8 @@ final class VoiceKeyboardState {
                 restoreLiveDeliveryCheckpoint(for: ipcStatus.requestId)
                 processLiveSnapshot(for: ipcStatus.requestId)
                 transcribingStartedAt = stoppedAt
+                lastTranscriptionActivityAt = lastActivityAt
+                transcriptionProgress = ipcStatus.transcriptionProgress
                 segmentStopTime = Date(timeIntervalSince1970: stoppedAt)
                 recordingAcknowledged = true
                 status = .transcribing
@@ -638,9 +649,18 @@ final class VoiceKeyboardState {
                     let stoppedAt = matchingStatus.recordingStoppedAt ?? now
                     status = .transcribing
                     transcribingStartedAt = stoppedAt
+                    lastTranscriptionActivityAt = stoppedAt
                     segmentStopTime = Date(timeIntervalSince1970: stoppedAt)
                     stopDurationTimer()
                     log.log("⏳ App is transcribing")
+                }
+                if let reported = matchingStatus.transcriptionProgress,
+                   reported.isFinite {
+                    let clamped = min(1, max(0, reported))
+                    if transcriptionProgress == nil || clamped > (transcriptionProgress ?? 0) {
+                        transcriptionProgress = clamped
+                        lastTranscriptionActivityAt = matchingStatus.updatedAt ?? now
+                    }
                 }
 
             case .error:
@@ -683,7 +703,9 @@ final class VoiceKeyboardState {
 
         // Check for transcription timeout only after terminal artifacts.
         if status == .transcribing,
-           let startedAt = transcribingStartedAt,
+           let startedAt = transcriptionProgress == nil
+                ? transcribingStartedAt
+                : lastTranscriptionActivityAt,
            now - startedAt > transcriptionTimeout {
             log.log("⏰ Transcription timed out after \(Int(transcriptionTimeout))s")
             clearPendingCommand(for: requestId)
@@ -848,6 +870,8 @@ final class VoiceKeyboardState {
         pendingRequestId = nil
         recordingStartedAt = nil
         transcribingStartedAt = nil
+        lastTranscriptionActivityAt = nil
+        transcriptionProgress = nil
         recordingAcknowledged = false
         stopRequestedBeforeAcknowledgement = false
         lastCommandNotificationAt = nil

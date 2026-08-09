@@ -110,7 +110,8 @@ final class LiveActivityController {
         isSegmentActive: Bool,
         isTranscribing: Bool = false,
         startedAt: TimeInterval?,
-        requestId: String? = nil
+        requestId: String? = nil,
+        transcriptionProgress: Double? = nil
     ) {
         #if canImport(ActivityKit)
         guard #available(iOS 16.1, *) else { return }
@@ -118,7 +119,8 @@ final class LiveActivityController {
             isSegmentActive: isSegmentActive,
             isTranscribing: isTranscribing,
             segmentStartedAt: isSegmentActive ? startedAt : nil,
-            segmentRequestId: isSegmentActive ? requestId : nil
+            segmentRequestId: isSegmentActive ? requestId : nil,
+            transcriptionProgress: isTranscribing ? transcriptionProgress : nil
         )
         desiredState = state
         guard AppConstants.liveActivityMonitorEnabled else {

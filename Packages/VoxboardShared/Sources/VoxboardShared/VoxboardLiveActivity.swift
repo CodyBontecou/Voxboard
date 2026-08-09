@@ -14,24 +14,32 @@ public struct VoxboardLiveActivityState: Codable, Hashable, Sendable {
     /// Recorder-owned segment identity used by the Stop intent. Optional so
     /// activities created by older app versions still decode safely.
     public var segmentRequestId: String?
+    /// Exact source-audio coverage while transcribing, or nil for an
+    /// indeterminate backend/preparation phase.
+    public var transcriptionProgress: Double?
 
     public init(
         isSegmentActive: Bool = false,
         isTranscribing: Bool = false,
         segmentStartedAt: TimeInterval? = nil,
-        segmentRequestId: String? = nil
+        segmentRequestId: String? = nil,
+        transcriptionProgress: Double? = nil
     ) {
         self.isSegmentActive = isSegmentActive
         self.isTranscribing = isTranscribing
         self.segmentStartedAt = segmentStartedAt
         self.segmentRequestId = segmentRequestId
+        self.transcriptionProgress = transcriptionProgress.flatMap {
+            $0.isFinite ? min(1, max(0, $0)) : nil
+        }
     }
 
     public static let idle = VoxboardLiveActivityState(
         isSegmentActive: false,
         isTranscribing: false,
         segmentStartedAt: nil,
-        segmentRequestId: nil
+        segmentRequestId: nil,
+        transcriptionProgress: nil
     )
 }
 

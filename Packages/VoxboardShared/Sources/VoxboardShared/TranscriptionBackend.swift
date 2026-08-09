@@ -105,6 +105,95 @@ public enum TranscriptionBackendKind: String, Equatable, Sendable {
     case parakeet
 }
 
+/// Progress reported by an on-device transcription backend.
+///
+/// ``preparing`` means the app can confirm that work is active but cannot
+/// truthfully calculate a completion percentage. ``exactAudioCoverage`` is
+/// emitted only when the backend reports how much source audio it has processed;
+/// it does not include model preparation, speaker diarization, enrichment,
+/// delivery, or export work.
+public struct TranscriptionProgress: Equatable, Sendable {
+    public enum Kind: Equatable, Sendable {
+        case preparing
+        case exactAudioCoverage
+    }
+
+    public let kind: Kind
+    private let fractionCompleted: Double?
+
+    public static let preparing = TranscriptionProgress(
+        kind: .preparing,
+        fractionCompleted: nil
+    )
+
+    /// Creates truthful source-audio coverage progress. Non-finite values cannot
+    /// represent a percentage and are downgraded to ``preparing``.
+    public static func exactAudioCoverage(_ fractionCompleted: Double) -> TranscriptionProgress {
+        guard fractionCompleted.isFinite else { return .preparing }
+        return TranscriptionProgress(
+            kind: .exactAudioCoverage,
+            fractionCompleted: min(1, max(0, fractionCompleted))
+        )
+    }
+
+    /// Exact completion in the closed range `0...1`, or `nil` while the backend
+    /// only exposes an indeterminate active state.
+    public var exactFractionCompleted: Double? {
+        kind == .exactAudioCoverage ? fractionCompleted : nil
+    }
+
+    /// Whole completed percent for compact UI and throttled cross-process state.
+    public var wholePercentCompleted: Int? {
+        exactFractionCompleted.map { Int(($0 * 100).rounded(.down)) }
+    }
+
+    /// Locale-aware display text using the same floor semantics as
+    /// ``wholePercentCompleted``. This never rounds 99.x% up to 100%.
+    public var formattedWholePercentCompleted: String? {
+        guard let wholePercentCompleted else { return nil }
+        return (Double(wholePercentCompleted) / 100).formatted(
+            .percent.precision(.fractionLength(0))
+        )
+    }
+
+    private init(kind: Kind, fractionCompleted: Double?) {
+        self.kind = kind
+        self.fractionCompleted = fractionCompleted
+    }
+}
+
+/// May be invoked from a backend-owned executor. UI clients must hop to their
+/// owning actor before mutating observable state.
+public typealias TranscriptionProgressHandler = @Sendable (TranscriptionProgress) -> Void
+
+/// Mirrors FluidAudio 0.13.4's strict `> 240_000` sample progress branch.
+/// Parakeet input has already been normalized to 16 kHz, so exactly 15 seconds
+/// remains indeterminate and an unknown duration must not create a cached stream.
+struct ParakeetProgressObservationPolicy: Sendable {
+    static let minimumAudioDuration: TimeInterval = 15
+
+    static func shouldObserve(audioDuration: TimeInterval?) -> Bool {
+        guard let audioDuration,
+              audioDuration.isFinite else { return false }
+        return audioDuration > minimumAudioDuration
+    }
+}
+
+/// Filters backend stream values into strictly advancing, finite source
+/// coverage. Exact completion is reserved for result validation by the service.
+struct MonotonicAudioCoverageProgressRelay: Sendable {
+    private var lastFraction = -Double.infinity
+
+    mutating func accept(_ fraction: Double) -> TranscriptionProgress? {
+        guard fraction.isFinite,
+              fraction >= 0,
+              fraction < 1,
+              fraction > lastFraction else { return nil }
+        lastFraction = fraction
+        return .exactAudioCoverage(fraction)
+    }
+}
+
 /// A transcription plus the backend that actually produced it. Automatic mode
 /// may resolve to Apple Speech or to a downloaded local fallback.
 public struct OnDeviceTranscriptionResult: Equatable, Sendable {

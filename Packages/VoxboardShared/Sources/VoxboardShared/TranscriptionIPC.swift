@@ -98,19 +98,31 @@ public struct RecordingStatus: Codable, Sendable {
     /// Timestamp when capture ended and batch transcription began. Optional so
     /// status files written by older app versions remain decodable.
     public let recordingStoppedAt: TimeInterval?
+    /// Exact source-audio coverage in `0...1` when the active backend exposes it.
+    /// Nil means active but indeterminate, not zero progress.
+    public let transcriptionProgress: Double?
+    /// Last time the host confirmed activity for this request. Keyboard timeout
+    /// recovery uses it to distinguish a long advancing job from a stalled one.
+    public let updatedAt: TimeInterval?
 
     public init(
         requestId: String,
         phase: Phase,
         message: String? = nil,
         recordingStartedAt: TimeInterval? = nil,
-        recordingStoppedAt: TimeInterval? = nil
+        recordingStoppedAt: TimeInterval? = nil,
+        transcriptionProgress: Double? = nil,
+        updatedAt: TimeInterval? = Date().timeIntervalSince1970
     ) {
         self.requestId = requestId
         self.phase = phase
         self.message = message
         self.recordingStartedAt = recordingStartedAt
         self.recordingStoppedAt = recordingStoppedAt
+        self.transcriptionProgress = transcriptionProgress.flatMap {
+            $0.isFinite ? min(1, max(0, $0)) : nil
+        }
+        self.updatedAt = updatedAt
     }
 }
 

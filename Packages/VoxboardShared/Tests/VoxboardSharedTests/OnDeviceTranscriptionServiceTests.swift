@@ -1,3 +1,4 @@
+import Foundation
 import XCTest
 @testable import VoxboardShared
 
@@ -35,6 +36,27 @@ final class OnDeviceTranscriptionServiceTests: XCTestCase {
         XCTAssertEqual(result.segments, [timedSegment])
         let callCount = await backend.transcriptionCallCount
         XCTAssertEqual(callCount, 1)
+    }
+
+    func testSystemBackendReportsActiveButNeverFabricatesExactProgress() async throws {
+        let backend = FakeSystemTranscriptionBackend(
+            availability: .ready,
+            result: .success(SystemTranscriptionOutput(text: "Native", language: "en-US"))
+        )
+        let service = OnDeviceTranscriptionService(
+            systemBackend: backend,
+            usesDownloadedLocalFallbacks: false
+        )
+        let progress = LockedProgressRecorder()
+
+        _ = try await service.transcribeResult(
+            audioURL: URL(fileURLWithPath: "/tmp/ignored.wav"),
+            modelID: TranscriptionBackendID.automatic,
+            onProgress: { progress.append($0) }
+        )
+
+        XCTAssertEqual(progress.values, [.preparing])
+        XCTAssertTrue(progress.values.allSatisfy { $0.exactFractionCompleted == nil })
     }
 
     func testSupportedButUninstalledSystemAssetIsNotReportedReady() async {
@@ -253,6 +275,23 @@ final class OnDeviceTranscriptionServiceTests: XCTestCase {
         }
         let callCount = await backend.transcriptionCallCount
         XCTAssertEqual(callCount, 0)
+    }
+}
+
+private final class LockedProgressRecorder: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storage: [TranscriptionProgress] = []
+
+    var values: [TranscriptionProgress] {
+        lock.lock()
+        defer { lock.unlock() }
+        return storage
+    }
+
+    func append(_ progress: TranscriptionProgress) {
+        lock.lock()
+        storage.append(progress)
+        lock.unlock()
     }
 }
 

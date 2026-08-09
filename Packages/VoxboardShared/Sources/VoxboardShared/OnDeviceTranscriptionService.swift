@@ -139,12 +139,14 @@ public actor OnDeviceTranscriptionService {
     public func transcribe(
         audioURL: URL,
         modelID: String,
-        language: String = "auto"
+        language: String = "auto",
+        onProgress: TranscriptionProgressHandler? = nil
     ) async throws -> String {
         try await transcribeResult(
             audioURL: audioURL,
             modelID: modelID,
-            language: language
+            language: language,
+            onProgress: onProgress
         ).text
     }
 
@@ -152,13 +154,25 @@ public actor OnDeviceTranscriptionService {
         audioURL: URL,
         modelID: String,
         fallbackModelID: String? = nil,
-        language: String = "auto"
+        language: String = "auto",
+        onProgress: TranscriptionProgressHandler? = nil
     ) async throws -> OnDeviceTranscriptionResult {
+        // Conversion and model loading remain indeterminate. Local backends
+        // switch to exact source-audio coverage only when inference begins;
+        // Apple Speech exposes no verified processing cursor and stays active
+        // without a fabricated completion estimate.
+        onProgress?(.preparing)
+
         if modelID != TranscriptionBackendID.automatic {
             guard let model = localModel(id: modelID), model.isDownloaded else {
                 throw OnDeviceTranscriptionError.modelUnavailable
             }
-            return try await transcribeLocally(audioURL: audioURL, model: model, language: language)
+            return try await transcribeLocally(
+                audioURL: audioURL,
+                model: model,
+                language: language,
+                onProgress: onProgress
+            )
         }
 
         var systemFailure: OnDeviceTranscriptionError?
@@ -193,7 +207,12 @@ public actor OnDeviceTranscriptionService {
         guard let fallback = resolvedFallbackModel(preferredID: fallbackModelID) else {
             throw systemFailure ?? OnDeviceTranscriptionError.noAvailableBackend
         }
-        return try await transcribeLocally(audioURL: audioURL, model: fallback, language: language)
+        return try await transcribeLocally(
+            audioURL: audioURL,
+            model: fallback,
+            language: language,
+            onProgress: onProgress
+        )
     }
 
     // MARK: - Local model routing
@@ -258,7 +277,8 @@ public actor OnDeviceTranscriptionService {
     private func transcribeLocally(
         audioURL: URL,
         model: WhisperModelInfo,
-        language: String
+        language: String,
+        onProgress: TranscriptionProgressHandler?
     ) async throws -> OnDeviceTranscriptionResult {
         #if os(iOS) || os(macOS)
         let workingURL: URL
@@ -287,26 +307,39 @@ public actor OnDeviceTranscriptionService {
         let text: String
         let segments: [TimedTranscriptionSegment]
         if model.engine.isParakeet {
-            guard let output = try await cachedParakeetContext?.transcribeResult(audioURL: workingURL) else {
+            guard let output = try await cachedParakeetContext?.transcribeResult(
+                audioURL: workingURL,
+                onProgress: onProgress
+            ) else {
                 throw OnDeviceTranscriptionError.noSpeechDetected
             }
             text = output.text
             segments = output.segments
         } else {
-            guard let output = cachedWhisperContext?.transcribeResult(
+            try Task.checkCancellation()
+            let output = cachedWhisperContext?.transcribeResult(
                 audioURL: workingURL,
-                language: language
-            ) else {
+                language: language,
+                onProgress: onProgress
+            )
+            // `whisper_full` is synchronous and cannot currently be interrupted;
+            // never accept its eventual result after the calling task was cancelled.
+            try Task.checkCancellation()
+            guard let output else {
                 throw OnDeviceTranscriptionError.noSpeechDetected
             }
             text = output.text
             segments = output.segments
         }
 
+        try Task.checkCancellation()
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty else {
             throw OnDeviceTranscriptionError.noSpeechDetected
         }
+        // Both local engines report source coverage, but only Vox.md knows that
+        // the final recognition result is nonempty and usable.
+        onProgress?(.exactAudioCoverage(1))
         return OnDeviceTranscriptionResult(
             text: trimmedText,
             backendID: model.id,

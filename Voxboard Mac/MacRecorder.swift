@@ -28,6 +28,7 @@ final class MacRecorder {
     var isTranscribing = false
     var isExporting = false
     var recordingDuration: TimeInterval = 0
+    var transcriptionProgress: TranscriptionProgress?
     var lastTranscriptionResult: String?
     var lastError: String?
     var lastExportURL: URL?
@@ -48,6 +49,7 @@ final class MacRecorder {
     private var livePreviewSessionID: UUID?
     private var acceptsLivePreview = false
     private var durationTimer: Timer?
+    private var progressRequestID: UUID?
 
     init(
         transcriptStore: TranscriptStore,
@@ -172,7 +174,10 @@ final class MacRecorder {
             let modelId = modelManager.selectedModelId
             let language = modelManager.selectedLanguage
             let completionMode = requestedCompletionMode ?? .runPreset(flow: presetSnapshot(id: flowId))
+            let progressRequestID = UUID()
 
+            self.progressRequestID = progressRequestID
+            transcriptionProgress = nil
             isTranscribing = true
             lastTranscriptionResult = nil
             lastError = nil
@@ -194,7 +199,8 @@ final class MacRecorder {
                         language: language,
                         duration: duration,
                         completionMode: completionMode,
-                        sourceAudioURL: sourceCopy
+                        sourceAudioURL: sourceCopy,
+                        progressRequestID: progressRequestID
                     )
                     if workingURL != sourceCopy {
                         try? FileManager.default.removeItem(at: sourceCopy)
@@ -204,6 +210,10 @@ final class MacRecorder {
                         self.lastError = "Could not import audio: \(error.localizedDescription)"
                         self.lastTranscriptionResult = nil
                         self.isTranscribing = false
+                        if self.progressRequestID == progressRequestID {
+                            self.progressRequestID = nil
+                            self.transcriptionProgress = nil
+                        }
                     }
                     try? FileManager.default.removeItem(at: sourceCopy)
                     try? FileManager.default.removeItem(at: wavURL)
@@ -241,6 +251,9 @@ final class MacRecorder {
         completionMode: MacRecordingCompletionMode,
         sourceAudioURL: URL?
     ) {
+        let progressRequestID = UUID()
+        self.progressRequestID = progressRequestID
+        transcriptionProgress = nil
         isTranscribing = true
         lastError = nil
         lastTranscriptionResult = nil
@@ -252,7 +265,8 @@ final class MacRecorder {
                 language: language,
                 duration: duration,
                 completionMode: completionMode,
-                sourceAudioURL: sourceAudioURL
+                sourceAudioURL: sourceAudioURL,
+                progressRequestID: progressRequestID
             )
         }
     }
@@ -263,7 +277,8 @@ final class MacRecorder {
         language: String,
         duration: TimeInterval,
         completionMode: MacRecordingCompletionMode,
-        sourceAudioURL: URL?
+        sourceAudioURL: URL?,
+        progressRequestID: UUID
     ) async {
         var hasDurableAudioCopy = false
         do {
@@ -279,8 +294,25 @@ final class MacRecorder {
                 fallbackModelID: AppConstants.sharedDefaults?.string(
                     forKey: AppConstants.selectedFallbackModelKey
                 ),
-                language: language
+                language: language,
+                onProgress: { [weak self] progress in
+                    Task { @MainActor [weak self] in
+                        guard let self,
+                              self.progressRequestID == progressRequestID else { return }
+                        if let current = self.transcriptionProgress?.exactFractionCompleted {
+                            guard let incoming = progress.exactFractionCompleted,
+                                  incoming >= current else { return }
+                        }
+                        self.transcriptionProgress = progress
+                    }
+                }
             )
+            await MainActor.run {
+                if self.progressRequestID == progressRequestID {
+                    self.progressRequestID = nil
+                    self.transcriptionProgress = nil
+                }
+            }
             await finishSuccessfulTranscription(
                 text: result.text,
                 duration: duration,
@@ -296,6 +328,12 @@ final class MacRecorder {
                 discardsRecording = true
             } else {
                 discardsRecording = false
+            }
+            await MainActor.run {
+                if self.progressRequestID == progressRequestID {
+                    self.progressRequestID = nil
+                    self.transcriptionProgress = nil
+                }
             }
             await finishWithError(
                 error.localizedDescription,

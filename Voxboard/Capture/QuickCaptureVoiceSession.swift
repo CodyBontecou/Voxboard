@@ -15,12 +15,18 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
         case error(String)
     }
 
+    private enum TranscriptionTaskResult: Sendable {
+        case success(String)
+        case failure(String)
+    }
+
     var phase: Phase = .idle
     var elapsed: TimeInterval = 0
     var level: Float = 0
     var generateTranscript: Bool
     var transcript: String?
     var transcriptionMessage: String?
+    var transcriptionProgress: TranscriptionProgress?
     var isPlaying = false
 
     private var recorder: AVAudioRecorder?
@@ -29,6 +35,8 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
     private var temporaryAudioURL: URL?
     private var lifecycle = CaptureVoiceLifecycle()
     private var activeGeneration: UInt64?
+    private var progressGeneration: UInt64?
+    @ObservationIgnored private var activeTranscriptionTask: Task<TranscriptionTaskResult, Never>?
     private(set) var stagedAsset: CaptureAssetReference?
     @ObservationIgnored private var interruptionObserver: NSObjectProtocol?
     private let microphoneIsBusy: () -> Bool
@@ -79,6 +87,7 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
     }
 
     func start() async {
+        await cancelActiveTranscription()
         cleanupPlayback()
         purgeStaleTemporaryAudio()
 
@@ -99,6 +108,8 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
         generateTranscript = backendReady
         transcript = nil
         transcriptionMessage = nil
+        transcriptionProgress = nil
+        progressGeneration = nil
         stagedAsset = nil
         let generation = lifecycle.beginAttempt()
         activeGeneration = generation
@@ -204,15 +215,35 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
                 ?? AppConstants.defaultTranscriptionBackendID
             let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
                 ?? "auto"
-            let result: Result<String, Error>
-            do {
-                result = .success(try await transcriptionService.transcribe(
-                    audioURL: url,
-                    modelID: modelID,
-                    language: language
-                ))
-            } catch {
-                result = .failure(error)
+            progressGeneration = generation
+            let transcriptionTask = Task<TranscriptionTaskResult, Never> { [transcriptionService] in
+                do {
+                    return .success(try await transcriptionService.transcribe(
+                        audioURL: url,
+                        modelID: modelID,
+                        language: language,
+                        onProgress: { [weak self] progress in
+                            Task { @MainActor [weak self] in
+                                guard let self,
+                                      self.progressGeneration == generation else { return }
+                                if let current = self.transcriptionProgress?.exactFractionCompleted {
+                                    guard let incoming = progress.exactFractionCompleted,
+                                          incoming >= current else { return }
+                                }
+                                self.transcriptionProgress = progress
+                            }
+                        }
+                    ))
+                } catch {
+                    return .failure(error.localizedDescription)
+                }
+            }
+            activeTranscriptionTask = transcriptionTask
+            let result = await transcriptionTask.value
+            if progressGeneration == generation {
+                activeTranscriptionTask = nil
+                progressGeneration = nil
+                transcriptionProgress = nil
             }
             guard lifecycle.transcriptionFinished(generation: generation) else { return }
             switch result {
@@ -224,9 +255,9 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
                         transcriptionMessage = String(localized: "The transcript could not be attached, but the audio recording is safely staged.")
                     }
                 }
-            case .failure(let error):
+            case .failure(let message):
                 // Audio remains a first-class result even when local inference fails.
-                transcriptionMessage = error.localizedDescription
+                transcriptionMessage = message
             }
         }
 
@@ -236,17 +267,20 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
     }
 
     func retry() async {
+        lifecycle.cancel()
+        await cancelActiveTranscription()
         guard await discardStagedRecording() else {
             phase = .error(String(localized: "The previous recording is still safely attached. Remove it from the draft before retrying."))
             return
         }
         cleanup(removeAudio: true)
-        lifecycle.cancel()
         activeGeneration = nil
         elapsed = 0
         level = 0
         transcript = nil
         transcriptionMessage = nil
+        transcriptionProgress = nil
+        progressGeneration = nil
         phase = .idle
         await start()
     }
@@ -271,21 +305,31 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
         }
     }
 
-    func commitStagedRecordingAndCleanup() {
+    @discardableResult
+    func commitStagedRecordingAndCleanup() async -> Bool {
+        guard stagedAsset != nil else { return false }
+        await cancelActiveTranscription()
+        guard stagedAsset != nil else { return false }
         // The durable draft now owns the staged asset. Only the disposable
         // recorder working file should be removed when the recording is added.
         stagedAsset = nil
         cleanup(removeAudio: true)
         lifecycle.inserted()
         activeGeneration = nil
+        progressGeneration = nil
+        transcriptionProgress = nil
         phase = .idle
+        return true
     }
 
     func cancel() async {
         lifecycle.cancel()
+        await cancelActiveTranscription()
         let removed = await discardStagedRecording()
         cleanup(removeAudio: true)
         activeGeneration = nil
+        progressGeneration = nil
+        transcriptionProgress = nil
         phase = removed
             ? .idle
             : .error(String(localized: "The recording remains safely attached to the draft because it could not be removed."))
@@ -407,6 +451,15 @@ final class QuickCaptureVoiceSession: NSObject, AVAudioRecorderDelegate, AVAudio
         }
         stagedAsset = asset
         return true
+    }
+
+    private func cancelActiveTranscription() async {
+        let task = activeTranscriptionTask
+        activeTranscriptionTask = nil
+        progressGeneration = nil
+        transcriptionProgress = nil
+        task?.cancel()
+        _ = await task?.value
     }
 
     private func discardStagedRecording() async -> Bool {
