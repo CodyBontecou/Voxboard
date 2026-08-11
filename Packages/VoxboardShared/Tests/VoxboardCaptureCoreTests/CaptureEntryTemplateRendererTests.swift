@@ -29,6 +29,26 @@ final class CaptureEntryTemplateRendererTests: XCTestCase {
         XCTAssertEqual(text, "Keep {date} literal in user content")
     }
 
+    func test_rendersComposableHourMinuteAndSecondTokens() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let request = CaptureRequest(
+            createdAt: Date(timeIntervalSince1970: 1_704_164_645),
+            source: .app,
+            destinationID: UUID(),
+            payloads: [.text("Literal {hour}:{minute}:{second} stays untouched")]
+        )
+
+        let rendered = CaptureEntryTemplateRenderer(calendar: calendar).render(
+            "{hour}:{minute}:{second} {date}",
+            for: request
+        )
+
+        XCTAssertEqual(rendered, "03:04:05 2024-01-02")
+        XCTAssertEqual(request.payloads, [.text("Literal {hour}:{minute}:{second} stays untouched")])
+    }
+
     func test_unknownTokensArePreservedForForwardCompatibility() {
         let request = CaptureRequest(source: .app, destinationID: UUID(), payloads: [.text("Hi")])
 

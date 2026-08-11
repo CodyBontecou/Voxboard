@@ -46,7 +46,7 @@ struct CaptureEntryTemplateLibraryView: View {
                     Label("Add Entry Template", systemImage: "doc.badge.plus")
                 }
             } footer: {
-                Text("Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {timestamp}, {source}, and {id8}.")
+                Text("Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, and {id8}.")
             }
 
             if let errorMessage {
@@ -383,7 +383,7 @@ struct CaptureDestinationEditorView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
-                    Text("Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {timestamp}, {source}, {id8}.")
+                    Text("Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -480,9 +480,9 @@ struct CaptureDestinationEditorView: View {
     private var pathHelp: String {
         switch targetKind {
         case .newNote:
-            return String(localized: "Tokens: {timestamp}, {date}, {time}, {year}, {YR} (2-digit year), {month}, {day}, {id8}, {id}. Existing filenames are automatically uniqued.")
+            return String(localized: "Tokens: {timestamp}, {date}, {time}, {hour}, {minute}, {second}, {year}, {YR} (2-digit year), {month}, {day}, {id8}, {id}. Existing filenames are automatically uniqued.")
         case .rollingNote:
-            return String(localized: "Use {period} for the selected daily, weekly, monthly, quarterly, or yearly bucket. Tokens also include {date}, {year}, {YR} (2-digit year), {month}, {day}, and {week}.")
+            return String(localized: "Use {period} for the selected daily, weekly, monthly, quarterly, or yearly bucket. Tokens also include {date}, {hour}, {minute}, {second}, {year}, {YR} (2-digit year), {month}, {day}, and {week}.")
         case .existingNote:
             return String(localized: "Path relative to the selected vault or folder, for example Projects/Vox.md.")
         }
@@ -750,7 +750,7 @@ struct CaptureEntryTemplateEditorView: View {
             } header: {
                 Text("Template")
             } footer: {
-                Text("Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}.")
+                Text("Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}.")
             }
             if let errorMessage {
                 Section("Error") { Text(errorMessage).foregroundStyle(.red) }

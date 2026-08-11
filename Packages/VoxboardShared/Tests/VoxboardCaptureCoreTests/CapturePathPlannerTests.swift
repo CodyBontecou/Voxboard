@@ -66,6 +66,50 @@ final class CapturePathPlannerTests: XCTestCase {
         }
     }
 
+    func test_rollingPeriodChangesAcrossEverySelectedBoundary() throws {
+        let planner = planner()
+        let calendar = planner.calendar
+        let date = { (year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int) in
+            calendar.date(from: DateComponents(
+                year: year,
+                month: month,
+                day: day,
+                hour: hour,
+                minute: minute,
+                second: second
+            ))!
+        }
+        let weeklyStart = try XCTUnwrap(
+            calendar.dateInterval(of: .weekOfYear, for: date(2024, 1, 10, 12, 0, 0))?.start
+        )
+        let boundaries: [(CaptureRollingPeriod, Date, Date)] = [
+            (.daily, date(2024, 1, 1, 23, 59, 59), date(2024, 1, 2, 0, 0, 0)),
+            (.weekly, weeklyStart.addingTimeInterval(-1), weeklyStart),
+            (.monthly, date(2024, 1, 31, 23, 59, 59), date(2024, 2, 1, 0, 0, 0)),
+            (.quarterly, date(2024, 3, 31, 23, 59, 59), date(2024, 4, 1, 0, 0, 0)),
+            (.yearly, date(2024, 12, 31, 23, 59, 59), date(2025, 1, 1, 0, 0, 0)),
+        ]
+
+        for (period, before, after) in boundaries {
+            let destination = makeDestination(
+                target: .rollingNote(pathTemplate: "Rolling/{period}.md", period: period)
+            )
+            let beforePath = try planner.relativePath(for: makeRequest(date: before), destination: destination)
+            let afterPath = try planner.relativePath(for: makeRequest(date: after), destination: destination)
+            XCTAssertNotEqual(beforePath, afterPath, "Expected \(period) period to change at its boundary")
+        }
+    }
+
+    func test_hourMinuteAndSecondTokensRenderAsPathSafeComponents() throws {
+        let destination = makeDestination(
+            target: .newNote(pathTemplate: "Inbox/{hour}-{minute}-{second}-{date}.md")
+        )
+
+        let path = try planner().relativePath(for: makeRequest(), destination: destination)
+
+        XCTAssertEqual(path, "Inbox/03-04-05-2024-01-02.md")
+    }
+
     func test_rollingNote_respectsInjectedCalendarAndTimeZone() throws {
         let destination = makeDestination(
             target: .rollingNote(pathTemplate: "Journal/{year}/{month}/{date}.md", period: .daily)

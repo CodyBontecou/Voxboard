@@ -29,44 +29,36 @@ public struct CapturePathPlanner: Sendable {
         request: CaptureRequest,
         rollingPeriod: CaptureRollingPeriod?
     ) throws -> String {
-        let components = calendar.dateComponents(
-            [.year, .month, .day, .hour, .minute, .second, .weekOfYear, .yearForWeekOfYear],
-            from: request.createdAt
-        )
-        let year = padded(components.year, width: 4)
-        let shortYear = String(year.suffix(2))
-        let month = padded(components.month, width: 2)
-        let day = padded(components.day, width: 2)
-        let hour = padded(components.hour, width: 2)
-        let minute = padded(components.minute, width: 2)
-        let second = padded(components.second, width: 2)
-        let weekYear = padded(components.yearForWeekOfYear ?? components.year, width: 4)
-        let weekNumber = padded(components.weekOfYear, width: 2)
+        let components = calendar.dateComponents([.month], from: request.createdAt)
+        let values = CaptureDateTokenValues(date: request.createdAt, calendar: calendar)
         let id = request.id.uuidString.lowercased()
 
         let rollingBucket: String
         switch rollingPeriod {
-        case .daily: rollingBucket = "\(year)-\(month)-\(day)"
-        case .weekly: rollingBucket = "\(weekYear)-W\(weekNumber)"
-        case .monthly: rollingBucket = "\(year)-\(month)"
+        case .daily: rollingBucket = values.date
+        case .weekly: rollingBucket = values.weekToken
+        case .monthly: rollingBucket = "\(values.year)-\(values.month)"
         case .quarterly:
             let quarter = ((components.month ?? 1) - 1) / 3 + 1
-            rollingBucket = "\(year)-Q\(quarter)"
-        case .yearly: rollingBucket = year
-        case nil: rollingBucket = "\(year)-\(month)-\(day)"
+            rollingBucket = "\(values.year)-Q\(quarter)"
+        case .yearly: rollingBucket = values.year
+        case nil: rollingBucket = values.date
         }
 
         var rendered = template
         let replacements = [
             "{period}": rollingBucket,
-            "{timestamp}": "\(year)-\(month)-\(day)-\(hour)\(minute)\(second)",
-            "{date}": "\(year)-\(month)-\(day)",
-            "{time}": "\(hour)\(minute)\(second)",
-            "{year}": year,
-            "{YR}": shortYear,
-            "{month}": month,
-            "{day}": day,
-            "{week}": "\(weekYear)-W\(weekNumber)",
+            "{timestamp}": values.timestamp,
+            "{date}": values.date,
+            "{time}": values.time,
+            "{year}": values.year,
+            "{YR}": values.shortYear,
+            "{month}": values.month,
+            "{day}": values.day,
+            "{week}": values.weekToken,
+            "{hour}": values.hour,
+            "{minute}": values.minute,
+            "{second}": values.second,
             "{id}": id,
             "{id8}": String(id.prefix(8)),
         ]
@@ -100,7 +92,4 @@ public struct CapturePathPlanner: Sendable {
         }
     }
 
-    private func padded(_ value: Int?, width: Int) -> String {
-        String(format: "%0*d", width, value ?? 0)
-    }
 }

@@ -197,7 +197,8 @@ final class QuickCaptureViewModel {
                 draft.selectVox(pendingVoxID)
                 self.pendingVoxID = nil
             }
-            try await draftStore.save(draft)
+            let persistedDraft = try await draftStore.save(draft)
+            draft.preserveCaptureStart(from: persistedDraft)
             historyRecords = (try? await historyStore?.list()) ?? []
             errorMessage = nil
             return true
@@ -455,7 +456,9 @@ final class QuickCaptureViewModel {
             durableDraft.text = preview.cancel(in: durableDraft.text)
         }
         durableDraft.updatedAt = savedAt
-        try await draftStore.save(durableDraft)
+        durableDraft.beginCaptureIfNeeded(at: savedAt)
+        let persistedDraft = try await draftStore.save(durableDraft, now: savedAt)
+        draft.preserveCaptureStart(from: persistedDraft)
         draft.updatedAt = savedAt
     }
 
@@ -552,9 +555,12 @@ final class QuickCaptureViewModel {
         // result. Mark this durable request so sending it does not consume a
         // second, independent Capture allowance.
         draft.deliveryKind = .meteredVoiceTranscript
-        draft.updatedAt = Date()
+        let savedAt = Date()
+        draft.updatedAt = savedAt
+        draft.beginCaptureIfNeeded(at: savedAt)
         do {
-            try await draftStore.save(draft)
+            let persistedDraft = try await draftStore.save(draft, now: savedAt)
+            draft.preserveCaptureStart(from: persistedDraft)
             errorMessage = nil
             return true
         } catch {
@@ -616,11 +622,14 @@ final class QuickCaptureViewModel {
         }
 
         let previousDraft = draft
+        let savedAt = Date()
         draft.text = updatedText
-        draft.updatedAt = Date()
+        draft.updatedAt = savedAt
+        draft.beginCaptureIfNeeded(at: savedAt)
         let candidateDraft = draft
         do {
-            try await draftStore.save(candidateDraft)
+            let persistedDraft = try await draftStore.save(candidateDraft, now: savedAt)
+            draft.preserveCaptureStart(from: persistedDraft)
             errorMessage = nil
             return true
         } catch {
@@ -886,7 +895,9 @@ final class QuickCaptureViewModel {
         pendingDraftSave = nil
         pendingSave?.cancel()
         await pendingSave?.value
-        let submittedDraft = draft
+        let submittedAt = Date()
+        draft.beginCaptureIfNeeded(at: submittedAt)
+        var submittedDraft = draft
         let submittedVoxProfile = selectedVoxProfile
         guard let submittedDestinationID = effectiveDestinationID else {
             isSubmitting = false
@@ -894,7 +905,8 @@ final class QuickCaptureViewModel {
             return
         }
         do {
-            try await draftStore.save(submittedDraft)
+            submittedDraft = try await draftStore.save(submittedDraft, now: submittedAt)
+            draft.preserveCaptureStart(from: submittedDraft)
             let submittedDraftID = submittedDraft.id
             let pipeline = self.pipeline
             let requestProcessor = self.requestProcessor

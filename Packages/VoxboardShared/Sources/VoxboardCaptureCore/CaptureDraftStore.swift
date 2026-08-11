@@ -27,6 +27,10 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
     public var requestID: UUID
     public var createdAt: Date
     public var updatedAt: Date
+    /// The effective capture time, assigned once when substantive durable
+    /// content first enters an allocated draft. `createdAt` remains the draft
+    /// allocation time for backward-compatible persistence.
+    public private(set) var captureStartedAt: Date?
     public var text: String
     /// The reusable capture workflow selected for this durable draft.
     public var voxID: String?
@@ -52,6 +56,7 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         requestID: UUID = UUID(),
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
+        captureStartedAt: Date? = nil,
         text: String = "",
         voxID: String? = nil,
         destinationSelectionMode: CaptureDestinationSelectionMode? = nil,
@@ -68,6 +73,12 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.text = text
+        self.captureStartedAt = captureStartedAt
+        if self.captureStartedAt == nil,
+           (!text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !additionalPayloads.isEmpty) {
+            self.captureStartedAt = createdAt
+        }
         self.voxID = voxID
         self.destinationSelectionMode = destinationSelectionMode
             ?? (destinationID == nil ? .inherited : .explicit)
@@ -83,6 +94,30 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
     public var hasCaptureContent: Bool {
         !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             || !additionalPayloads.isEmpty
+    }
+
+    /// The timestamp used by requests and date-based destination formatting.
+    /// Empty legacy drafts have no start time until substantive content arrives.
+    public var effectiveCreatedAt: Date {
+        captureStartedAt ?? createdAt
+    }
+
+    /// Starts an allocated draft exactly once, and only for substantive content.
+    /// Route changes, provenance, and whitespace-only edits do not start it.
+    @discardableResult
+    public mutating func beginCaptureIfNeeded(at date: Date = Date()) -> Bool {
+        guard captureStartedAt == nil, hasCaptureContent else { return false }
+        captureStartedAt = date
+        return true
+    }
+
+    /// Carries an already-durable lifecycle transition into a concurrently
+    /// edited in-memory version without refreshing an existing capture time.
+    public mutating func preserveCaptureStart(from persistedDraft: CaptureDraft) {
+        guard id == persistedDraft.id,
+              requestID == persistedDraft.requestID,
+              let persistedStart = persistedDraft.captureStartedAt else { return }
+        captureStartedAt = persistedStart
     }
 
     /// Changes the reusable destination without carrying an existing-note
@@ -188,7 +223,7 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         }
         return CaptureRequest(
             id: requestID,
-            createdAt: createdAt,
+            createdAt: effectiveCreatedAt,
             source: captureSource ?? source,
             deliveryKind: deliveryKind,
             destinationID: destinationID,
@@ -208,6 +243,7 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         case requestID
         case createdAt
         case updatedAt
+        case captureStartedAt
         case text
         case voxID
         case destinationSelectionMode
@@ -228,6 +264,7 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
             requestID: try container.decode(UUID.self, forKey: .requestID),
             createdAt: try container.decode(Date.self, forKey: .createdAt),
             updatedAt: try container.decode(Date.self, forKey: .updatedAt),
+            captureStartedAt: try container.decodeIfPresent(Date.self, forKey: .captureStartedAt),
             text: try container.decodeIfPresent(String.self, forKey: .text) ?? "",
             voxID: try container.decodeIfPresent(String.self, forKey: .voxID),
             destinationSelectionMode: try container.decodeIfPresent(
@@ -282,16 +319,27 @@ public actor CaptureDraftStore {
         self.decoder = JSONDecoder()
     }
 
-    public func save(_ draft: CaptureDraft) throws {
-        let url = draftFileURL(for: draft.id)
+    @discardableResult
+    public func save(_ draft: CaptureDraft, now: Date = Date()) throws -> CaptureDraft {
+        var durableDraft = draft
+        let url = draftFileURL(for: durableDraft.id)
         try coordinator.coordinateWriting(at: url) { coordinatedURL in
-            let data = try encoder.encode(draft)
+            if fileManager.fileExists(atPath: coordinatedURL.path),
+               let persistedDraft = try? decoder.decode(
+                   CaptureDraft.self,
+                   from: Data(contentsOf: coordinatedURL)
+               ) {
+                durableDraft.preserveCaptureStart(from: persistedDraft)
+            }
+            durableDraft.beginCaptureIfNeeded(at: now)
+            let data = try encoder.encode(durableDraft)
             try fileManager.createDirectory(
                 at: coordinatedURL.deletingLastPathComponent(),
                 withIntermediateDirectories: true
             )
             try data.write(to: coordinatedURL, options: .atomic)
         }
+        return durableDraft
     }
 
     public func load(id: UUID) throws -> CaptureDraft? {

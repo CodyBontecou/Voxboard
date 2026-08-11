@@ -169,6 +169,228 @@ final class CaptureDraftStoreTests: XCTestCase {
         )
     }
 
+    func test_stalePersistedEmptyDraftStartsAtFirstSubstantiveSave() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        let allocatedAt = Date(timeIntervalSince1970: 100)
+        let startedAt = Date(timeIntervalSince1970: 500)
+        var draft = CaptureDraft(
+            createdAt: allocatedAt,
+            updatedAt: allocatedAt,
+            text: "   \n",
+            destinationID: UUID()
+        )
+
+        try await store.save(draft, now: allocatedAt)
+        let emptyRestored = try await store.load(id: draft.id)
+        XCTAssertNil(emptyRestored?.captureStartedAt)
+
+        draft.text = "A later thought"
+        try await store.save(draft, now: startedAt)
+        let loaded = try await store.load(id: draft.id)
+        let restored = try XCTUnwrap(loaded)
+        let request = try restored.makeRequest(source: .app)
+
+        XCTAssertEqual(restored.createdAt, allocatedAt)
+        XCTAssertEqual(restored.captureStartedAt, startedAt)
+        XCTAssertEqual(request.createdAt, startedAt)
+    }
+
+    func test_repeatedStaleSavesPreserveFirstPersistedCaptureStart() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        let allocatedAt = Date(timeIntervalSince1970: 100)
+        let firstStartedAt = Date(timeIntervalSince1970: 500)
+        let laterSaveAt = Date(timeIntervalSince1970: 900)
+        let emptySnapshot = CaptureDraft(
+            createdAt: allocatedAt,
+            updatedAt: allocatedAt,
+            destinationID: UUID()
+        )
+        try await store.save(emptySnapshot, now: allocatedAt)
+
+        var firstContentSnapshot = emptySnapshot
+        firstContentSnapshot.text = "First durable content"
+        let firstSaved = try await store.save(firstContentSnapshot, now: firstStartedAt)
+
+        var staleContentSnapshot = emptySnapshot
+        staleContentSnapshot.text = "A concurrent stale snapshot"
+        let staleSaved = try await store.save(staleContentSnapshot, now: laterSaveAt)
+        let loaded = try await store.load(id: emptySnapshot.id)
+        let restored = try XCTUnwrap(loaded)
+
+        XCTAssertEqual(firstSaved.captureStartedAt, firstStartedAt)
+        XCTAssertEqual(staleSaved.captureStartedAt, firstStartedAt)
+        XCTAssertEqual(restored.captureStartedAt, firstStartedAt)
+        XCTAssertEqual(try restored.makeRequest(source: .app).createdAt, firstStartedAt)
+    }
+
+    func test_staleEmptyDraftStartsWhenFirstDurableContentIsAPayload() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        let startedAt = Date(timeIntervalSince1970: 600)
+        var draft = CaptureDraft(createdAt: Date(timeIntervalSince1970: 100), destinationID: UUID())
+        let asset = try CaptureAssetReference(
+            relativePath: "photo.jpg",
+            originalFilename: "photo.jpg",
+            contentTypeIdentifier: "public.jpeg"
+        )
+        try await store.save(draft, now: Date(timeIntervalSince1970: 100))
+
+        draft.additionalPayloads.append(.image(asset, altText: nil))
+        try await store.save(draft, now: startedAt)
+        let loaded = try await store.load(id: draft.id)
+        let restored = try XCTUnwrap(loaded)
+
+        XCTAssertEqual(restored.captureStartedAt, startedAt)
+        XCTAssertEqual(try restored.makeRequest(source: .app).createdAt, startedAt)
+    }
+
+    func test_emptyDraftStartsAcrossColdStoreRestorationAndKeepsRequestIdentity() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let allocatedAt = Date(timeIntervalSince1970: 100)
+        let startedAt = Date(timeIntervalSince1970: 900)
+        let draft = CaptureDraft(
+            requestID: UUID(),
+            createdAt: allocatedAt,
+            updatedAt: allocatedAt,
+            destinationID: UUID()
+        )
+        let firstStore = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        try await firstStore.save(draft, now: allocatedAt)
+
+        let secondStore = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        let secondLoaded = try await secondStore.load(id: draft.id)
+        var restored = try XCTUnwrap(secondLoaded)
+        restored.text = "Started after relaunch"
+        try await secondStore.save(restored, now: startedAt)
+
+        let thirdStore = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        let thirdLoaded = try await thirdStore.load(id: draft.id)
+        let coldRestored = try XCTUnwrap(thirdLoaded)
+        XCTAssertEqual(coldRestored.captureStartedAt, startedAt)
+        XCTAssertEqual(coldRestored.requestID, draft.requestID)
+        XCTAssertEqual(try coldRestored.makeRequest(source: .widget).createdAt, startedAt)
+    }
+
+    func test_appAndWidgetProvenanceDoesNotStartEmptyDraftOrRefreshContentfulDraft() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        let startedAt = Date(timeIntervalSince1970: 700)
+        let later = Date(timeIntervalSince1970: 1_200)
+
+        for source in [CaptureSource.app, .widget] {
+            var draft = CaptureDraft(destinationID: UUID(), captureSource: source)
+            try await store.save(draft, now: Date(timeIntervalSince1970: 100))
+            let emptyLoaded = try await store.load(id: draft.id)
+            XCTAssertNil(emptyLoaded?.captureStartedAt)
+
+            draft.text = "From \(source.rawValue)"
+            try await store.save(draft, now: startedAt)
+            let contentLoaded = try await store.load(id: draft.id)
+            var restored = try XCTUnwrap(contentLoaded)
+            restored.captureSource = source == .app ? .widget : .app
+            try await store.save(restored, now: later)
+            let provenanceLoaded = try await store.load(id: draft.id)
+            let request = try XCTUnwrap(provenanceLoaded).makeRequest(source: .deepLink)
+
+            XCTAssertEqual(request.createdAt, startedAt)
+            XCTAssertEqual(request.source, source == .app ? .widget : .app)
+        }
+    }
+
+    func test_legacyNonemptyDraftRetainsCreatedAtAsEffectiveCaptureTime() throws {
+        let createdAt = Date(timeIntervalSince1970: 321)
+        let legacyData = try legacyEncodedDraftData(
+            CaptureDraft(createdAt: createdAt, updatedAt: createdAt, text: "Legacy", destinationID: UUID())
+        )
+
+        let decoded = try JSONDecoder().decode(CaptureDraft.self, from: legacyData)
+
+        XCTAssertEqual(decoded.captureStartedAt, createdAt)
+        XCTAssertEqual(try decoded.makeRequest(source: .app).createdAt, createdAt)
+    }
+
+    func test_legacyEmptyDraftRemainsStartable() throws {
+        let createdAt = Date(timeIntervalSince1970: 321)
+        let startedAt = Date(timeIntervalSince1970: 654)
+        let legacyData = try legacyEncodedDraftData(
+            CaptureDraft(createdAt: createdAt, updatedAt: createdAt, text: " \n", destinationID: UUID())
+        )
+        var decoded = try JSONDecoder().decode(CaptureDraft.self, from: legacyData)
+
+        XCTAssertNil(decoded.captureStartedAt)
+        decoded.text = "New content"
+        XCTAssertTrue(decoded.beginCaptureIfNeeded(at: startedAt))
+        XCTAssertEqual(decoded.captureStartedAt, startedAt)
+        XCTAssertFalse(decoded.beginCaptureIfNeeded(at: Date(timeIntervalSince1970: 999)))
+        XCTAssertEqual(try decoded.makeRequest(source: .app).createdAt, startedAt)
+    }
+
+    func test_failedDeliveryAndPreparedRetryKeepCaptureTimestampStable() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        let destinationID = UUID()
+        let startedAt = Date(timeIntervalSince1970: 800)
+        var draft = CaptureDraft(createdAt: Date(timeIntervalSince1970: 100), destinationID: destinationID)
+        draft.text = "Retry me"
+        try await store.save(draft, now: startedAt)
+        let loaded = try await store.load(id: draft.id)
+        let persisted = try XCTUnwrap(loaded)
+        let prepared = try persisted.makeRequest(source: .app)
+        try await store.savePreparedRequest(prepared, draftID: draft.id)
+
+        do {
+            _ = try await store.submit(draftID: draft.id) { submitted in
+                XCTAssertEqual(submitted.captureStartedAt, startedAt)
+                throw DraftTestError.expected
+            }
+            XCTFail("Expected submit failure")
+        } catch DraftTestError.expected {}
+
+        let retryAt = Date(timeIntervalSince1970: 1_500)
+        let retryLoaded = try await store.load(id: draft.id)
+        let retryDraft = try XCTUnwrap(retryLoaded)
+        try await store.save(retryDraft, now: retryAt)
+        let retryRequest = try retryDraft.makeRequest(source: .widget)
+        let preparedLoaded = try await store.loadPreparedRequest(draftID: draft.id)
+        let restoredPrepared = try XCTUnwrap(preparedLoaded)
+
+        XCTAssertEqual(retryRequest.createdAt, startedAt)
+        XCTAssertEqual(restoredPrepared.createdAt, startedAt)
+        XCTAssertEqual(retryRequest.id, prepared.id)
+    }
+
     func test_draftSaveIsAtomicAndLeavesNoTemporaryFiles() async throws {
         let root = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: root) }
@@ -260,6 +482,7 @@ final class CaptureDraftStoreTests: XCTestCase {
             [.url(URL(string: "https://example.com/second")!, title: nil)]
         )
         XCTAssertEqual(rebased.createdAt, Date(timeIntervalSince1970: 500))
+        XCTAssertEqual(rebased.captureStartedAt, Date(timeIntervalSince1970: 500))
         XCTAssertEqual(rebased.deliveryKind, .standard)
     }
 
@@ -315,8 +538,8 @@ final class CaptureDraftStoreTests: XCTestCase {
         let first = CaptureDraft(text: "First")
         let second = CaptureDraft(text: "Second")
 
-        async let saveFirst: Void = firstStore.save(first)
-        async let saveSecond: Void = secondStore.save(second)
+        async let saveFirst: CaptureDraft = firstStore.save(first)
+        async let saveSecond: CaptureDraft = secondStore.save(second)
         _ = try await (saveFirst, saveSecond)
 
         let drafts = try await firstStore.loadAll()
@@ -348,6 +571,13 @@ final class CaptureDraftStoreTests: XCTestCase {
         try await store.complete(draftID: draft.id)
         let removedPrepared = try await store.loadPreparedRequest(draftID: draft.id)
         XCTAssertNil(removedPrepared)
+    }
+
+    private func legacyEncodedDraftData(_ draft: CaptureDraft) throws -> Data {
+        let encoded = try JSONEncoder().encode(draft)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object.removeValue(forKey: "captureStartedAt")
+        return try JSONSerialization.data(withJSONObject: object)
     }
 
     private func temporaryFolder() throws -> URL {

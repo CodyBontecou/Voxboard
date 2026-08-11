@@ -117,7 +117,7 @@ struct MacCaptureDestinationEditor: View {
                             ForEach(CaptureRollingPeriod.allCases, id: \.self) { Text($0.rawValue.capitalized).tag($0) }
                         }
                     }
-                    Text("Path tokens include {date}, {time}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {period}, {week}, and {id8}.")
+                    Text("Path tokens include {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {period}, {week}, and {id8}.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Section("Placement") {
