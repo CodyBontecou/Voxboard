@@ -82,7 +82,11 @@ struct PaywallView: View {
 
             quotaMeter(
                 title: "Transcription",
-                value: String(format: "%.1f / 15 min", min(usageTracker.minutesUsed, 15)),
+                value: String(
+                    format: String(localized: "%.1f / 15 min"),
+                    locale: Locale.current,
+                    min(usageTracker.minutesUsed, 15)
+                ),
                 progress: usageTracker.fractionUsed,
                 isAtLimit: usageTracker.isAtLimit
             )
@@ -329,7 +333,11 @@ struct PaywallView: View {
         case .family: "Family Unlimited"
         case .individual: "Individual Unlimited"
         case .free:
-            usageTracker.isAtLimit || usageTracker.isCaptureAtLimit ? "Limit Reached" : "Free Tier"
+            if usageTracker.isAtLimit || usageTracker.isCaptureAtLimit {
+                "Limit Reached"
+            } else {
+                "Free Tier"
+            }
         }
     }
 

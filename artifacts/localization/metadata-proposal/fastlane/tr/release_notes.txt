@@ -1,0 +1,5 @@
+Yeni: Uzun kayıtlar için aygıt üzerinde konuşmacı etiketleri.
+
+İyileştirildi: Daha güvenilir Canlı Etkinlik denetimleri ve daha güvenli uzun kayıtlar.
+
+Düzeltildi: Hızlı Yakalama ve Hızlı Kayıt araç takımları artık açık ve koyu görünüme uyuyor.

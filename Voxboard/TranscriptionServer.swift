@@ -105,7 +105,7 @@ final class TranscriptionServer {
                 .appendingPathComponent(request.audioFileName),
               FileManager.default.fileExists(atPath: audioURL.path) else {
             log("❌ Audio file not found: \(request.audioFileName)")
-            writeResponse(.init(requestId: request.id, error: "Audio not found"))
+            writeResponse(.init(requestId: request.id, error: String(localized: "Audio not found")))
             return
         }
 

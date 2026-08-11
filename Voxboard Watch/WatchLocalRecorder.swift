@@ -174,23 +174,23 @@ final class WatchLocalRecorder: ObservableObject {
     var title: String {
         switch phase {
         case .idle:
-            return queuedCount > 0 ? "Saved" : "Vox.md"
+            return queuedCount > 0 ? String(localized: "Saved") : "Vox.md"
         case .recording:
-            return "Recording"
+            return String(localized: "Recording")
         case .paused:
-            return "Paused"
+            return String(localized: "Paused")
         case .transferring:
-            return "Syncing"
+            return String(localized: "Syncing")
         case .waitingForPhone:
-            return "On iPhone"
+            return String(localized: "On iPhone")
         case .transcribing:
-            return "Transcribing"
+            return String(localized: "Transcribing")
         case .delivering:
-            return "Saving"
+            return String(localized: "Saving")
         case .transferred:
-            return "Saved"
+            return String(localized: "Saved")
         case .error:
-            return queuedCount > 0 ? "Saved" : "Needs attention"
+            return queuedCount > 0 ? String(localized: "Saved") : String(localized: "Needs attention")
         }
     }
 
@@ -199,30 +199,30 @@ final class WatchLocalRecorder: ObservableObject {
         switch phase {
         case .idle:
             if queuedCount > 0 {
-                return queueSummary + " Tap Sync Queue when your iPhone is nearby."
+                return queueSummary + " " + String(localized: "Tap Sync Queue when your iPhone is nearby.")
             }
-            return "Record on this Watch. Syncs to iPhone later."
+            return String(localized: "Record on this Watch. Syncs to iPhone later.")
         case .recording:
-            return "Pause when you need a break, or stop when your thought is captured."
+            return String(localized: "Pause when you need a break, or stop when your thought is captured.")
         case .paused:
-            return "Recording paused. Resume when you're ready, or stop to save it."
+            return String(localized: "Recording paused. Resume when you're ready, or stop to save it.")
         case .transferring:
-            return "Sending Watch recordings to the iPhone queue."
+            return String(localized: "Sending Watch recordings to the iPhone queue.")
         case .waitingForPhone:
-            return "Safely queued on iPhone and waiting to process."
+            return String(localized: "Safely queued on iPhone and waiting to process.")
         case .transcribing:
-            return "Your iPhone is transcribing this recording on device."
+            return String(localized: "Your iPhone is transcribing this recording on device.")
         case .delivering:
-            return "Your iPhone is saving this recording."
+            return String(localized: "Your iPhone is saving this recording.")
         case .transferred:
-            return "Saved on iPhone. You can record another."
+            return String(localized: "Saved on iPhone. You can record another.")
         case .error(let error):
             return error
         }
     }
 
     var actionTitle: String {
-        isRecording ? "Stop" : "Record"
+        isRecording ? String(localized: "Stop") : String(localized: "Record")
     }
 
     var actionSymbol: String {
@@ -230,12 +230,14 @@ final class WatchLocalRecorder: ObservableObject {
     }
 
     var syncTitle: String {
-        if hasUnuploadedRecordings { return "Sync Queue (\(queuedCount))" }
-        return queuedCount > 0 ? "Refresh Status" : "Sync Status"
+        if hasUnuploadedRecordings { return String(localized: "Sync Queue (\(queuedCount))") }
+        return queuedCount > 0 ? String(localized: "Refresh Status") : String(localized: "Sync Status")
     }
 
     var queueSummary: String {
-        queuedCount == 1 ? "1 recording saved on Watch." : "\(queuedCount) recordings saved on Watch."
+        queuedCount == 1
+            ? String(localized: "1 recording saved on Watch.")
+            : String(localized: "\(queuedCount) recordings saved on Watch.")
     }
 
     private var widgetPhase: WatchRecordingPhase {
@@ -305,7 +307,7 @@ final class WatchLocalRecorder: ObservableObject {
     func resumeRecording() {
         guard case .paused = phase, let recorder else { return }
         guard recorder.record() else {
-            message = "Could not resume this recording. Stop to save what was captured."
+            message = String(localized: "Could not resume this recording. Stop to save what was captured.")
             return
         }
 
@@ -340,14 +342,14 @@ final class WatchLocalRecorder: ObservableObject {
                   bridge.snapshot.selectedPresetID != nil,
                   bridge.snapshot.selectedPresetName != nil,
                   bridge.snapshot.selectedPresetSnapshot != nil else {
-                setError("Enable a Capture Preset in Vox.md on iPhone before recording.")
+                setError(String(localized: "Enable a Capture Preset in Vox.md on iPhone before recording."))
                 return
             }
         }
 
         let hasPermission = await requestMicrophonePermission()
         guard hasPermission else {
-            setError("Microphone permission required on Apple Watch.")
+            setError(String(localized: "Microphone permission required on Apple Watch."))
             return
         }
 
@@ -376,13 +378,13 @@ final class WatchLocalRecorder: ObservableObject {
             } catch {
                 recorder.stop()
                 try? FileManager.default.removeItem(at: url)
-                setError("Could not safely journal this Watch recording.")
+                setError(String(localized: "Could not safely journal this Watch recording."))
                 return
             }
             guard recorder.record() else {
                 Self.clearActiveRecording()
                 try? FileManager.default.removeItem(at: url)
-                setError("Could not start Watch recording.")
+                setError(String(localized: "Could not start Watch recording."))
                 try? session.setActive(false)
                 return
             }
@@ -398,7 +400,7 @@ final class WatchLocalRecorder: ObservableObject {
             phase = .recording
             startTimer()
         } catch {
-            setError("Watch microphone error: \(error.localizedDescription)")
+            setError(String(localized: "Watch microphone error: \(error.localizedDescription)"))
         }
     }
 
@@ -424,14 +426,14 @@ final class WatchLocalRecorder: ObservableObject {
             do {
                 try FileManager.default.removeItem(at: url)
             } catch {
-                phase = .error("Could not delete the canceled recording.")
-                message = "Recording stopped, but its file could not be deleted from this Watch."
+                phase = .error(String(localized: "Could not delete the canceled recording."))
+                message = String(localized: "Recording stopped, but its file could not be deleted from this Watch.")
                 return
             }
         }
 
         phase = .idle
-        message = "Recording canceled and deleted."
+        message = String(localized: "Recording canceled and deleted.")
     }
 
     func stopAndQueue(using bridge: WatchPhoneBridge) async {
@@ -457,7 +459,7 @@ final class WatchLocalRecorder: ObservableObject {
         try? AVAudioSession.sharedInstance().setActive(false)
 
         guard FileManager.default.fileExists(atPath: url.path) else {
-            setError("Watch recording file was not saved.")
+            setError(String(localized: "Watch recording file was not saved."))
             return
         }
 
@@ -474,12 +476,12 @@ final class WatchLocalRecorder: ObservableObject {
             try upsertQueuedRecording(item)
             Self.clearActiveRecording()
         } catch {
-            phase = .error("The recording is safe, but its queue could not be updated.")
-            message = "Recording retained on Watch. Reopen Vox.md to recover it."
+            phase = .error(String(localized: "The recording is safe, but its queue could not be updated."))
+            message = String(localized: "Recording retained on Watch. Reopen Vox.md to recover it.")
             return
         }
         phase = .idle
-        message = "Saved on Watch. Syncing to iPhone…"
+        message = String(localized: "Saved on Watch. Syncing to iPhone…")
         syncPending(using: bridge)
     }
 
@@ -490,7 +492,7 @@ final class WatchLocalRecorder: ObservableObject {
         guard !queuedRecordings.isEmpty else {
             if !isRecording {
                 phase = .idle
-                message = "No Watch recordings waiting to sync."
+                message = String(localized: "No Watch recordings waiting to sync.")
             }
             return
         }
@@ -507,7 +509,9 @@ final class WatchLocalRecorder: ObservableObject {
                 message = messageForMostAdvancedRemoteStatus()
             } else {
                 phase = .transferring
-                message = "Syncing \(queuedCount) Watch recording\(queuedCount == 1 ? "" : "s") to iPhone…"
+                message = queuedCount == 1
+                    ? String(localized: "Syncing 1 Watch recording to iPhone…")
+                    : String(localized: "Syncing \(queuedCount) Watch recordings to iPhone…")
             }
             return
         }
@@ -538,10 +542,12 @@ final class WatchLocalRecorder: ObservableObject {
 
         if queuedForTransfer > 0 {
             phase = .transferring
-            message = "Syncing \(queuedCount) Watch recording\(queuedCount == 1 ? "" : "s") to iPhone…"
+            message = queuedCount == 1
+                ? String(localized: "Syncing 1 Watch recording to iPhone…")
+                : String(localized: "Syncing \(queuedCount) Watch recordings to iPhone…")
         } else {
-            phase = .error("Saved on Watch, but iPhone sync is unavailable.")
-            message = "Saved on Watch. Tap Sync Queue after your iPhone is nearby."
+            phase = .error(String(localized: "Saved on Watch, but iPhone sync is unavailable."))
+            message = String(localized: "Saved on Watch. Tap Sync Queue after your iPhone is nearby.")
         }
     }
 
@@ -562,20 +568,20 @@ final class WatchLocalRecorder: ObservableObject {
             }
             guard !isRecording else { return }
             if shouldRetry {
-                phase = .error("iPhone could not save the transfer.")
-                message = "Recording is safe on Watch. Tap Sync Queue to retry."
+                phase = .error(String(localized: "iPhone could not save the transfer."))
+                message = String(localized: "Recording is safe on Watch. Tap Sync Queue to retry.")
             } else {
                 phase = .waitingForPhone
-                message = "Safely queued on iPhone. Waiting to process."
+                message = String(localized: "Safely queued on iPhone. Waiting to process.")
             }
         } else {
             updateQueuedRecording(id: id) { $0.transportState = .local }
             guard !isRecording else { return }
             cancelTransientSuccessReset()
             let errorMessage = notification.userInfo?[WatchRecordingTransferNotificationKey.errorMessage] as? String
-            phase = .error("Saved on Watch, sync failed.")
-            message = errorMessage.map { "Saved on Watch. Sync failed: \($0)" }
-                ?? "Saved on Watch. Tap Sync Queue after your iPhone is nearby."
+            phase = .error(String(localized: "Saved on Watch, sync failed."))
+            message = errorMessage.map { String(localized: "Saved on Watch. Sync failed: \($0)") }
+                ?? String(localized: "Saved on Watch. Tap Sync Queue after your iPhone is nearby.")
         }
     }
 
@@ -625,7 +631,7 @@ final class WatchLocalRecorder: ObservableObject {
         guard !isRecording else { return }
         if queuedRecordings.isEmpty, !terminalAcknowledgements.isEmpty {
             phase = .transferred
-            message = "Saved on iPhone. You can record another."
+            message = String(localized: "Saved on iPhone. You can record another.")
             scheduleTransientSuccessReset()
         } else if !queuedRecordings.isEmpty {
             phase = phaseForMostAdvancedRemoteStatus()
@@ -638,35 +644,35 @@ final class WatchLocalRecorder: ObservableObject {
         if queuedRecordings.contains(where: { $0.remotePhase == .transcribing }) { return .transcribing }
         if queuedRecordings.contains(where: { $0.transportState == .transferring }) { return .transferring }
         if queuedRecordings.contains(where: { $0.remotePhase == .transportFailed }) {
-            return .error("iPhone could not save the transfer.")
+            return .error(String(localized: "iPhone could not save the transfer."))
         }
         if queuedRecordings.contains(where: { $0.remotePhase == .failed }) {
-            return .error("The recording is saved and needs attention on iPhone.")
+            return .error(String(localized: "The recording is saved and needs attention on iPhone."))
         }
         return .waitingForPhone
     }
 
     private func messageForMostAdvancedRemoteStatus() -> String {
         if queuedRecordings.contains(where: { $0.remotePhase == .delivering }) {
-            return remoteMessage(for: .delivering) ?? "Saving the recording on iPhone."
+            return remoteMessage(for: .delivering) ?? String(localized: "Saving the recording on iPhone.")
         }
         if queuedRecordings.contains(where: { $0.remotePhase == .transcribing }) {
             return remoteMessage(for: .transcribing)
-                ?? "Transcribing on iPhone with on-device speech recognition."
+                ?? String(localized: "Transcribing on iPhone with on-device speech recognition.")
         }
         if queuedRecordings.contains(where: { $0.transportState == .transferring }) {
-            return "Syncing recording to iPhone…"
+            return String(localized: "Syncing recording to iPhone…")
         }
         if queuedRecordings.contains(where: { $0.remotePhase == .transportFailed }) {
             return remoteMessage(for: .transportFailed)
-                ?? "Recording is safe on Watch. Tap Sync Queue to retry."
+                ?? String(localized: "Recording is safe on Watch. Tap Sync Queue to retry.")
         }
         if queuedRecordings.contains(where: { $0.remotePhase == .failed }) {
             return remoteMessage(for: .failed)
-                ?? "Kept safely. Open Vox.md on iPhone to retry."
+                ?? String(localized: "Kept safely. Open Vox.md on iPhone to retry.")
         }
         return remoteMessage(for: .queued)
-            ?? "Safely queued on iPhone. Waiting to process."
+            ?? String(localized: "Safely queued on iPhone. Waiting to process.")
     }
 
     private func remoteMessage(for phase: WatchRemoteRecordingPhase) -> String? {
@@ -697,6 +703,35 @@ final class WatchLocalRecorder: ObservableObject {
     }
 
     #if DEBUG
+    @discardableResult
+    func configureLocalizationScreenshotIfNeeded() -> Bool {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "--localization-screenshot"),
+              arguments.indices.contains(index + 1) else { return false }
+
+        switch arguments[index + 1] {
+        case "01-ready":
+            resetDemoState(
+                phase: .idle,
+                queuedCount: 0,
+                message: String(localized: "Record on this Watch. Syncs to iPhone later.")
+            )
+        case "02-recording":
+            resetDemoState(phase: .recording, queuedCount: 0, message: nil)
+            startedAt = Date().addingTimeInterval(-42)
+            duration = 42
+        case "03-synced":
+            resetDemoState(
+                phase: .transferred,
+                queuedCount: 0,
+                message: String(localized: "Synced to iPhone queue. You can record another.")
+            )
+        default:
+            return false
+        }
+        return true
+    }
+
     var isRunningDemoScript: Bool {
         Self.debugDemoMode != nil
     }
@@ -740,7 +775,7 @@ final class WatchLocalRecorder: ObservableObject {
         resetDemoState(
             phase: .idle,
             queuedCount: 0,
-            message: "Record on this Watch. Syncs to iPhone later."
+            message: String(localized: "Record on this Watch. Syncs to iPhone later.")
         )
         await sleepForDemo(seconds: 1.15)
 
@@ -758,18 +793,18 @@ final class WatchLocalRecorder: ObservableObject {
         stopTimer()
         setDemoQueue(count: 1)
         phase = .idle
-        message = "Saved on Watch. Syncing to iPhone…"
+        message = String(localized: "Saved on Watch. Syncing to iPhone…")
         await sleepForDemo(seconds: 1.8)
 
         guard !Task.isCancelled else { return }
         phase = .transferring
-        message = "Sending Watch recording to the iPhone queue."
+        message = String(localized: "Sending Watch recording to the iPhone queue.")
         await sleepForDemo(seconds: 1.8)
 
         guard !Task.isCancelled else { return }
         setDemoQueue(count: 0)
         phase = .transferred
-        message = "Synced to iPhone queue. You can record another."
+        message = String(localized: "Synced to iPhone queue. You can record another.")
         scheduleTransientSuccessReset()
     }
 
@@ -783,13 +818,13 @@ final class WatchLocalRecorder: ObservableObject {
 
         guard !Task.isCancelled else { return }
         phase = .transferring
-        message = "Syncing 2 Watch recordings to iPhone…"
+        message = String(localized: "Syncing 2 Watch recordings to iPhone…")
         await sleepForDemo(seconds: 3.0)
 
         guard !Task.isCancelled else { return }
         setDemoQueue(count: 0)
         phase = .transferred
-        message = "Synced to iPhone queue. You can record another."
+        message = String(localized: "Synced to iPhone queue. You can record another.")
         scheduleTransientSuccessReset()
     }
 

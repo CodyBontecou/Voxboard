@@ -17,6 +17,14 @@ private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
 
     var id: String { rawValue }
 
+    var title: String {
+        switch self {
+        case .capture: String(localized: "Capture")
+        case .history: String(localized: "History")
+        case .settings: String(localized: "Settings")
+        }
+    }
+
     var symbol: String {
         switch self {
         case .capture: return "square.and.pencil"
@@ -34,13 +42,39 @@ struct MacRootView: View {
     @State private var selection: MacDestination? = .capture
     @State private var windowToken = UUID().uuidString
 
+    #if DEBUG
+    private static var localizationScreenshotStory: String? {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "--localization-screenshot"),
+              arguments.indices.contains(index + 1) else { return nil }
+        return arguments[index + 1]
+    }
+    #endif
+
+    init(
+        recorder: MacRecorder,
+        quickCaptureViewModel: QuickCaptureViewModel,
+        windowCoordinator: MacWindowCoordinator
+    ) {
+        self.recorder = recorder
+        self.quickCaptureViewModel = quickCaptureViewModel
+        self.windowCoordinator = windowCoordinator
+        #if DEBUG
+        switch Self.localizationScreenshotStory {
+        case "02-history": _selection = State(initialValue: .history)
+        case "03-settings", "04-models", "05-presets": _selection = State(initialValue: .settings)
+        default: break
+        }
+        #endif
+    }
+
     var body: some View {
         NavigationSplitView {
             List(selection: $selection) {
                 Section("VOX.MD") {
                     ForEach(MacDestination.allCases) { destination in
                         NavigationLink(value: destination) {
-                            Label(destination.rawValue, systemImage: destination.symbol)
+                            Label(destination.title, systemImage: destination.symbol)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .contentShape(Rectangle())
                         }
@@ -51,21 +85,17 @@ struct MacRootView: View {
             .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: 150, ideal: 180, max: 220)
         } detail: {
-            switch selection ?? .capture {
-            case .capture:
-                MacCaptureWorkspaceView(
-                    viewModel: quickCaptureViewModel,
-                    recorder: recorder,
-                    windowToken: windowToken,
-                    windowCoordinator: windowCoordinator,
-                    openHistory: { windowCoordinator.showHistory() },
-                    openSettings: { selection = .settings }
-                )
-            case .history:
-                MacHistoryView(viewModel: quickCaptureViewModel)
-            case .settings:
-                MacSettingsView(recorder: recorder)
+            #if DEBUG
+            if Self.localizationScreenshotStory == "04-models" {
+                NavigationStack { MacModelView() }
+            } else if Self.localizationScreenshotStory == "05-presets" {
+                NavigationStack { MacCapturePresetSettingsView() }
+            } else {
+                selectedDetail
             }
+            #else
+            selectedDetail
+            #endif
         }
         .tint(Geist.Palette.gray1000)
         .frame(minWidth: 980, minHeight: 680)
@@ -91,7 +121,67 @@ struct MacRootView: View {
             windowCoordinator.showHistory()
         }
     }
+
+    @ViewBuilder
+    private var selectedDetail: some View {
+        switch selection ?? .capture {
+        case .capture:
+            MacCaptureWorkspaceView(
+                viewModel: quickCaptureViewModel,
+                recorder: recorder,
+                windowToken: windowToken,
+                windowCoordinator: windowCoordinator,
+                openHistory: { windowCoordinator.showHistory() },
+                openSettings: { selection = .settings }
+            )
+        case .history:
+            MacHistoryView(viewModel: quickCaptureViewModel)
+        case .settings:
+            MacSettingsView(recorder: recorder)
+        }
+    }
 }
+
+#if DEBUG
+/// Hosts the real Mac feature surfaces without the vibrancy-backed sidebar,
+/// which AppKit omits from off-screen view-cache screenshots.
+struct MacLocalizationScreenshotRoot: View {
+    @Bindable var recorder: MacRecorder
+    @Bindable var quickCaptureViewModel: QuickCaptureViewModel
+    let windowCoordinator: MacWindowCoordinator
+    @State private var windowToken = UUID().uuidString
+
+    private var story: String {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "--localization-screenshot"),
+              arguments.indices.contains(index + 1) else { return "01-capture" }
+        return arguments[index + 1]
+    }
+
+    @ViewBuilder
+    var body: some View {
+        switch story {
+        case "02-history":
+            MacHistoryView(viewModel: quickCaptureViewModel)
+        case "03-settings":
+            MacSettingsView(recorder: recorder)
+        case "04-models":
+            NavigationStack { MacModelView() }
+        case "05-presets":
+            NavigationStack { MacCapturePresetSettingsView() }
+        default:
+            MacCaptureWorkspaceView(
+                viewModel: quickCaptureViewModel,
+                recorder: recorder,
+                windowToken: windowToken,
+                windowCoordinator: windowCoordinator,
+                openHistory: {},
+                openSettings: {}
+            )
+        }
+    }
+}
+#endif
 
 // MARK: - Model
 
@@ -130,11 +220,12 @@ private struct MacModelView: View {
                 modelManager.modelOperationError = nil
             }
         } message: {
-            Text(modelManager.modelOperationError ?? "The model operation could not be completed.")
+            Text(modelManager.modelOperationError
+                 ?? String(localized: "The model operation could not be completed."))
         }
     }
 
-    private func pageHeader(_ text: String) -> some View {
+    private func pageHeader(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(Geist.caption())
             .foregroundColor(Geist.muted)
@@ -206,7 +297,7 @@ private struct MacModelView: View {
                 Text(model.sizeLabel)
                     .font(Geist.caption())
                     .foregroundColor(Geist.muted)
-                if let description = model.modelDescription {
+                if let description = model.localizedModelDescription {
                     Text(description)
                         .font(Geist.caption())
                         .foregroundColor(Geist.muted)
@@ -296,6 +387,7 @@ private struct MacCapturePresetSettingsView: View {
                 }
                 .listStyle(.sidebar)
             }
+            .background(Geist.surface)
             .frame(width: 260)
             GeistDivider().frame(width: 1)
 
@@ -309,6 +401,7 @@ private struct MacCapturePresetSettingsView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .background(Geist.surface)
         .navigationTitle("Capture Presets")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
@@ -378,7 +471,13 @@ private struct MacCapturePresetEditor: View {
     var body: some View {
         Form {
             Section("Identity") {
-                TextField("Name", text: $flow.name)
+                TextField(
+                    "Name",
+                    text: Binding(
+                        get: { flow.displayName },
+                        set: { flow.name = $0 }
+                    )
+                )
                 Button {
                     isIconPickerPresented = true
                 } label: {
@@ -437,7 +536,13 @@ private struct MacCapturePresetEditor: View {
                     TextEditor(text: $flow.customPostProcessingInstruction)
                         .frame(minHeight: 90)
                 }
-                TextField("Empty Capture Prompt", text: $flow.capturePrompt)
+                TextField(
+                    "Empty Capture Prompt",
+                    text: Binding(
+                        get: { flow.displayCapturePrompt },
+                        set: { flow.capturePrompt = $0 }
+                    )
+                )
                 Text(flow.postProcessingMode.helpText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -632,7 +737,7 @@ private struct MacCapturePresetEditor: View {
 
     private func loadCaptureDestinations() async {
         guard let url = AppConstants.captureLibraryURL else {
-            captureDestinationLoadError = "Shared capture storage is unavailable."
+            captureDestinationLoadError = String(localized: "Shared capture storage is unavailable.")
             return
         }
         do {
@@ -663,23 +768,24 @@ private struct MacCapturePresetEditor: View {
         let target: String
         switch destination.noteTarget {
         case .newNote(let path): target = path
-        case .rollingNote(let path, let period): target = "\(period.rawValue.capitalized): \(path)"
+        case .rollingNote(let path, let period):
+            target = String(localized: "\(period.rawValue.capitalized): \(path)")
         case .existingNote(let path): target = path
         }
         let placement: String
         switch destination.placement {
-        case .append: placement = "append"
-        case .prepend: placement = "prepend"
-        case .beneathHeading(let heading, _): placement = "under \(heading.title)"
+        case .append: placement = String(localized: "append")
+        case .prepend: placement = String(localized: "prepend")
+        case .beneathHeading(let heading, _): placement = String(localized: "under \(heading.title)")
         }
         return "\(target) · \(placement)"
     }
 
-    private func settingRow(_ title: String, value: String, image: String) -> some View {
+    private func settingRow(_ title: LocalizedStringKey, value: String, image: String) -> some View {
         HStack {
             Label(title, systemImage: image)
             Spacer()
-            Text(value.isEmpty ? "Not set" : value)
+            Text(value.isEmpty ? String(localized: "Not set") : value)
                 .foregroundStyle(.secondary)
         }
         .contentShape(Rectangle())
@@ -695,12 +801,12 @@ private struct MacCapturePresetEditor: View {
 
     private var markdownAudioEmbedHelpText: String {
         if flow.captureDestinationID != nil {
-            return "Adds an Obsidian-style audio link to the unified Markdown note at the selected position."
+            return String(localized: "Adds an Obsidian-style audio link to the unified Markdown note at the selected position.")
         }
         guard markdownAudioEmbedAvailable else {
-            return "Audio embeds require a Markdown note export. Switch this preset to MD, a Markdown template, or YAML with the .md extension."
+            return String(localized: "Audio embeds require a Markdown note export. Switch this preset to MD, a Markdown template, or YAML with the .md extension.")
         }
-        return "Adds an Obsidian-style `![[recording.m4a]]` link to the note so you can replay the recording while reviewing the transcript."
+        return String(localized: "Adds an Obsidian-style `![[recording.m4a]]` link to the note so you can replay the recording while reviewing the transcript.")
     }
 
     private func markPerFlow() {
@@ -795,7 +901,7 @@ private struct MacCaptureTextProcessingInfoView: View {
         .frame(width: 460)
     }
 
-    private func infoRow(icon: String, title: String, detail: String) -> some View {
+    private func infoRow(icon: String, title: LocalizedStringKey, detail: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
                 .frame(width: 24)
@@ -956,7 +1062,10 @@ private struct MacFlowIconPickerView: View {
 
     static func title(for symbolName: String) -> String {
         let iconName = iconName(for: symbolName)
-        return allOptions.first(where: { $0.symbolName == iconName })?.title ?? iconName
+        let title = allOptions.first(where: { $0.symbolName == iconName })?.title ?? iconName
+        return title == "Waveform"
+            ? String(localized: "Waveform", bundle: .main)
+            : title
     }
 
     private static func filteredCategories(matching query: String) -> [MacFlowIconCategory] {
@@ -1127,10 +1236,10 @@ struct MacHistoryView: View {
                             Button {
                                 Task { await viewModel.retryFailedInbox() }
                             } label: {
-                                Label(
-                                    "Retry \(viewModel.failedInboxCount) queued capture\(viewModel.failedInboxCount == 1 ? "" : "s")",
-                                    systemImage: "arrow.clockwise.circle"
-                                )
+                                Label(viewModel.failedInboxCount == 1
+                                      ? String(localized: "Retry 1 queued capture")
+                                      : String(localized: "Retry \(viewModel.failedInboxCount) queued captures"),
+                                      systemImage: "arrow.clockwise.circle")
                             }
                         }
                     }
@@ -1197,7 +1306,9 @@ struct MacHistoryView: View {
                     Spacer()
                     if let delivery {
                         Label(
-                            delivery.outcome == .delivered ? "Delivered" : "Failed",
+                            delivery.outcome == .delivered
+                                ? String(localized: "Delivered")
+                                : String(localized: "Failed"),
                             systemImage: delivery.outcome == .delivered ? "checkmark.circle" : "exclamationmark.triangle"
                         )
                         .font(Geist.caption())
@@ -1316,7 +1427,7 @@ private struct MacTranscriptDetailView: View {
     private var displayTitle: String {
         guard let title = transcript.title?.trimmingCharacters(in: .whitespacesAndNewlines),
               !title.isEmpty else {
-            return "Transcript"
+            return String(localized: "Transcript")
         }
         return title
     }
@@ -1338,11 +1449,13 @@ private struct MacTranscriptDetailView: View {
                 VStack(alignment: .leading, spacing: Geist.Spacing.six) {
                     header
                     transcriptSection(
-                        cleanedText == nil ? "Transcript" : "Cleaned Transcript",
+                        cleanedText == nil
+                            ? String(localized: "Transcript")
+                            : String(localized: "Cleaned Transcript"),
                         text: primaryText
                     )
                     if showsRawTranscript {
-                        transcriptSection("Raw Transcript", text: transcript.text)
+                        transcriptSection(String(localized: "Raw Transcript"), text: transcript.text)
                     }
                 }
                 .frame(maxWidth: 860, alignment: .leading)
@@ -1481,8 +1594,8 @@ private enum MacHistoryRevealError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .destinationMissing: "The Capture destination no longer exists."
-        case .permissionExpired: "Folder permission expired. Reauthorize the destination in Capture Presets."
+        case .destinationMissing: String(localized: "The Capture destination no longer exists.")
+        case .permissionExpired: String(localized: "Folder permission expired. Reauthorize the destination in Capture Presets.")
         }
     }
 }
@@ -1530,10 +1643,26 @@ struct MacSettingsView: View {
                         .padding(20)
                     }
                     sectionHeader("01", "Mac Companion")
-                    settingsRow(title: "ON-DEVICE TRANSCRIPTION", detail: "Whisper and Parakeet models run locally with Metal/Core ML acceleration.", trailing: "LOCAL")
-                    settingsRow(title: "APPLE INTELLIGENCE", detail: appleIntelligenceDetail, trailing: appleIntelligenceStatus)
-                    settingsRow(title: "FILE EXPORT", detail: "Presets, templates, Markdown exports, and attachments use local app storage. Folder permissions stay on this Mac.", trailing: "ENABLED")
-                    settingsRow(title: "KEYBOARD + LOCK SCREEN", detail: "Custom keyboard, widgets, Dynamic Island, and Live Activities remain iOS-specific.", trailing: "IOS")
+                    settingsRow(
+                        title: String(localized: "ON-DEVICE TRANSCRIPTION"),
+                        detail: String(localized: "Whisper and Parakeet models run locally with Metal/Core ML acceleration."),
+                        trailing: String(localized: "LOCAL")
+                    )
+                    settingsRow(
+                        title: String(localized: "APPLE INTELLIGENCE"),
+                        detail: appleIntelligenceDetail,
+                        trailing: appleIntelligenceStatus
+                    )
+                    settingsRow(
+                        title: String(localized: "FILE EXPORT"),
+                        detail: String(localized: "Presets, templates, Markdown exports, and attachments use local app storage. Folder permissions stay on this Mac."),
+                        trailing: String(localized: "ENABLED")
+                    )
+                    settingsRow(
+                        title: String(localized: "KEYBOARD + LOCK SCREEN"),
+                        detail: String(localized: "Custom keyboard, widgets, Dynamic Island, and Live Activities remain iOS-specific."),
+                        trailing: String(localized: "IOS")
+                    )
                     sectionHeader("02", "Capture Configuration")
                     configurationSettings
                     sectionHeader("03", "Global Keybinds")
@@ -1541,8 +1670,12 @@ struct MacSettingsView: View {
                     sectionHeader("04", "Visibility")
                     visibilitySettings
                     sectionHeader("05", "About")
-                    settingsRow(title: "VERSION", detail: appVersionString, trailing: "")
-                    settingsRow(title: "PROCESSING", detail: "Voice and text stay on-device.", trailing: "PRIVATE")
+                    settingsRow(title: String(localized: "VERSION"), detail: appVersionString, trailing: "")
+                    settingsRow(
+                        title: String(localized: "PROCESSING"),
+                        detail: String(localized: "Voice and text stay on-device."),
+                        trailing: String(localized: "PRIVATE")
+                    )
                     sectionHeader("06", "Debug")
                     Button("View Debug Log") { showDebug = true }
                         .buttonStyle(GeistButtonStyle(variant: .secondary))
@@ -1590,9 +1723,9 @@ struct MacSettingsView: View {
 
     private var unlimitedAccessTitle: String {
         switch usageTracker.accessLevel {
-        case .free: "UNLOCK UNLIMITED"
-        case .individual: "INDIVIDUAL UNLIMITED"
-        case .family: "FAMILY UNLIMITED"
+        case .free: String(localized: "UNLOCK UNLIMITED")
+        case .individual: String(localized: "INDIVIDUAL UNLIMITED")
+        case .family: String(localized: "FAMILY UNLIMITED")
         }
     }
 
@@ -1600,21 +1733,23 @@ struct MacSettingsView: View {
         switch usageTracker.accessLevel {
         case .free:
             String(
-                format: "%.1f / 15 min · %d / 10 captures used",
+                format: String(localized: "%.1f / 15 min · %d / 10 captures used"),
+                locale: Locale.current,
                 usageTracker.minutesUsed,
                 usageTracker.successfulCapturesUsed
             )
         case .individual:
-            "Lifetime access — upgrade once to share with your family."
+            String(localized: "Lifetime access — upgrade once to share with your family.")
         case .family:
-            "Lifetime access with Apple Family Sharing."
+            String(localized: "Lifetime access with Apple Family Sharing.")
         }
     }
 
     private var unlimitedAccessTrailing: String {
         switch usageTracker.accessLevel {
         case .free:
-            storeManager.displayPrice.map { "FROM \($0)" } ?? "CHECKING PRICE"
+            storeManager.displayPrice.map { String(localized: "FROM \($0)") }
+                ?? String(localized: "CHECKING PRICE")
         case .individual: "PURCHASED"
         case .family: "FAMILY"
         }
@@ -1622,10 +1757,10 @@ struct MacSettingsView: View {
 
     private var unlimitedPurchaseButtonTitle: String {
         guard usageTracker.accessLevel == .individual else {
-            return "View Lifetime Options"
+            return String(localized: "View Lifetime Options")
         }
         return storeManager.familyUpgradeDisplayPrice.map { "Upgrade to Family — \($0)" }
-            ?? "Upgrade to Family"
+            ?? String(localized: "Upgrade to Family")
     }
 
     private var visibilityMode: MacAppVisibilityMode {
@@ -1635,28 +1770,30 @@ struct MacSettingsView: View {
     private var visibilityFootnote: String {
         switch visibilityMode {
         case .dockAndMenuBar:
-            return "Default. Click “Show Vox.md” from the menu bar or use Cmd-Tab."
+            return String(localized: "Default. Click “Show Vox.md” from the menu bar or use Cmd-Tab.")
         case .menuBarOnly:
-            return "No Dock icon or Cmd-Tab entry. Click the menu bar item to reveal Vox.md."
+            return String(localized: "No Dock icon or Cmd-Tab entry. Click the menu bar item to reveal Vox.md.")
         case .dockOnly:
-            return "Use the Dock icon or Cmd-Tab to bring Vox.md forward."
+            return String(localized: "Use the Dock icon or Cmd-Tab to bring Vox.md forward.")
         case .hidden:
-            return "Fully hidden. Reopen Vox.md from Spotlight, Finder, or Launchpad to access it again."
+            return String(localized: "Fully hidden. Reopen Vox.md from Spotlight, Finder, or Launchpad to access it again.")
         }
     }
 
     private var appleIntelligenceStatus: String {
         if #available(macOS 26, *) {
-            return FoundationModelsBackend.isAvailable ? "READY" : "UNAVAILABLE"
+            return FoundationModelsBackend.isAvailable
+                ? String(localized: "READY")
+                : String(localized: "UNAVAILABLE")
         }
-        return "MACOS 26+"
+        return String(localized: "MACOS 26+")
     }
 
     private var appleIntelligenceDetail: String {
         if #available(macOS 26, *) {
-            return "Foundation Models cleans transcripts, adds titles/tags/categories, and powers smart folder routing on-device."
+            return String(localized: "Foundation Models cleans transcripts, adds titles/tags/categories, and powers smart folder routing on-device.")
         }
-        return "Requires macOS 26+ on an Apple Intelligence-capable Mac."
+        return String(localized: "Requires macOS 26+ on an Apple Intelligence-capable Mac.")
     }
 
     private var configurationSettings: some View {
@@ -1701,7 +1838,11 @@ struct MacSettingsView: View {
         }
     }
 
-    private func settingsNavigationRow(title: String, detail: String, image: String) -> some View {
+    private func settingsNavigationRow(
+        title: LocalizedStringKey,
+        detail: LocalizedStringKey,
+        image: String
+    ) -> some View {
         HStack(spacing: 14) {
             Image(systemName: image)
                 .font(.system(size: 18, weight: .semibold))
@@ -1791,14 +1932,14 @@ struct MacSettingsView: View {
 
                 hotKeyRow(
                     target: .transcriptionOnly,
-                    title: "Transcribe to Clipboard",
-                    detail: "Copy plain text to the clipboard without creating a note, saving to History, or retaining audio."
+                    title: String(localized: "Transcribe to Clipboard"),
+                    detail: String(localized: "Copy plain text to the clipboard without creating a note, saving to History, or retaining audio.")
                 )
 
                 hotKeyRow(
                     target: .selectedPreset,
-                    title: "Selected Capture Preset",
-                    detail: "Use whichever preset is currently selected in Capture."
+                    title: String(localized: "Selected Capture Preset"),
+                    detail: String(localized: "Use whichever preset is currently selected in Capture.")
                 )
 
                 if !enabledHotKeyFlows.isEmpty {
@@ -1854,12 +1995,12 @@ struct MacSettingsView: View {
 
             Spacer(minLength: 16)
 
-            Text(shortcut?.displayString ?? "OFF")
+            Text(shortcut?.displayString ?? String(localized: "OFF"))
                 .font(Geist.mono(.caption, medium: true))
                 .foregroundColor(shortcut == nil ? Geist.faint : Geist.text)
                 .frame(minWidth: 72, alignment: .trailing)
 
-            Button(shortcut == nil ? "Set" : "Change") {
+            Button(shortcut == nil ? String(localized: "Set") : String(localized: "Change")) {
                 editingHotKeyTarget = target
             }
             .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
@@ -1884,23 +2025,24 @@ struct MacSettingsView: View {
     private func hotKeyTitle(for target: MacHotKeyTarget) -> String {
         switch target {
         case .transcriptionOnly:
-            return "Transcribe to Clipboard"
+            return String(localized: "Transcribe to Clipboard")
         case .selectedPreset:
-            return "Selected Capture Preset"
+            return String(localized: "Selected Capture Preset")
         case .preset(let presetID):
-            return hotKeyFlows.first(where: { $0.id == presetID })?.displayName ?? "Capture Preset"
+            return hotKeyFlows.first(where: { $0.id == presetID })?.displayName
+                ?? String(localized: "Capture Preset")
         }
     }
 
     private func hotKeyDetail(for target: MacHotKeyTarget) -> String {
         switch target {
         case .transcriptionOnly:
-            return "Start or stop a temporary transcription. The result is copied to the clipboard without being saved to a file or History."
+            return String(localized: "Start or stop a temporary transcription. The result is copied to the clipboard without being saved to a file or History.")
         case .selectedPreset:
-            return "Start or stop recording with whichever Capture Preset is currently selected."
+            return String(localized: "Start or stop recording with whichever Capture Preset is currently selected.")
         case .preset(let presetID):
             guard let flow = hotKeyFlows.first(where: { $0.id == presetID }) else {
-                return "Start or stop recording with this Capture Preset."
+                return String(localized: "Start or stop recording with this Capture Preset.")
             }
             return hotKeyRouteSummary(for: flow)
         }
@@ -1909,22 +2051,22 @@ struct MacSettingsView: View {
     private func hotKeyRouteSummary(for flow: CapturePreset) -> String {
         guard let destinationID = flow.captureDestinationID,
               let destination = hotKeyDestinations.first(where: { $0.id == destinationID }) else {
-            return "Destination not configured."
+            return String(localized: "Destination not configured.")
         }
 
         switch destination.noteTarget {
         case .newNote(let pathTemplate):
-            return "Create a new note at \(pathTemplate) in \(destination.rootName)."
+            return String(localized: "Create a new note at \(pathTemplate) in \(destination.rootName).")
         case .rollingNote(let pathTemplate, let period):
-            return "Write to the \(period.rawValue) rolling note at \(pathTemplate)."
+            return String(localized: "Write to the \(period.rawValue) rolling note at \(pathTemplate).")
         case .existingNote(let relativePath):
             let verb: String
             switch destination.placement {
-            case .append: verb = "Append to"
-            case .prepend: verb = "Prepend to"
-            case .beneathHeading: verb = "Insert into"
+            case .append: verb = String(localized: "Append to")
+            case .prepend: verb = String(localized: "Prepend to")
+            case .beneathHeading: verb = String(localized: "Insert into")
             }
-            return "\(verb) \(relativePath) in \(destination.rootName)."
+            return String(localized: "\(verb) \(relativePath) in \(destination.rootName).")
         }
     }
 
@@ -2017,7 +2159,7 @@ private struct MacHotKeyRecorderSheet: View {
             }
 
             VStack(spacing: 10) {
-                Text(capturedShortcut?.displayString ?? "PRESS A KEYBIND")
+                Text(capturedShortcut?.displayString ?? String(localized: "PRESS A KEYBIND"))
                     .font(Geist.display(42))
                     .foregroundColor(Geist.text)
                     .lineLimit(1)
@@ -2053,7 +2195,7 @@ private struct MacHotKeyRecorderSheet: View {
                 Button("Save Keybind") {
                     guard let capturedShortcut else { return }
                     if let conflict = conflictingBindingName(capturedShortcut) {
-                        errorMessage = "\(capturedShortcut.displayString) is already assigned to \(conflict)."
+                        errorMessage = String(localized: "\(capturedShortcut.displayString) is already assigned to \(conflict).")
                         return
                     }
                     onSave(capturedShortcut)
@@ -2084,12 +2226,12 @@ private struct MacHotKeyRecorderSheet: View {
         }
 
         guard let shortcut = MacHotKeyShortcut(event: event) else {
-            errorMessage = "Press one non-modifier key with Control, Option, or Command."
+            errorMessage = String(localized: "Press one non-modifier key with Control, Option, or Command.")
             return
         }
         if let conflict = conflictingBindingName(shortcut) {
             capturedShortcut = nil
-            errorMessage = "\(shortcut.displayString) is already assigned to \(conflict)."
+            errorMessage = String(localized: "\(shortcut.displayString) is already assigned to \(conflict).")
             return
         }
 
@@ -2102,9 +2244,9 @@ private struct MacHotKeyRecorderSheet: View {
         guard !modifiers.isEmpty else { return }
 
         if modifiers.intersection([.command, .option, .control]).isEmpty {
-            errorMessage = "Shift alone cannot be used. Add Control, Option, or Command plus one non-modifier key."
+            errorMessage = String(localized: "Shift alone cannot be used. Add Control, Option, or Command plus one non-modifier key.")
         } else {
-            errorMessage = "Now press a letter, number, Space, arrow, or function key to finish the shortcut."
+            errorMessage = String(localized: "Now press a letter, number, Space, arrow, or function key to finish the shortcut.")
         }
     }
 }
@@ -2178,7 +2320,8 @@ struct MacPaywallView: View {
 
             if !usageTracker.hasUnlocked {
                 Text(String(
-                    format: "%.1f / 15 min transcription · %d / 10 captures used",
+                    format: String(localized: "%.1f / 15 min transcription · %d / 10 captures used"),
+                    locale: Locale.current,
                     usageTracker.minutesUsed,
                     usageTracker.successfulCapturesUsed
                 ))
@@ -2188,7 +2331,9 @@ struct MacPaywallView: View {
 
             purchaseOptions
 
-            Button(storeManager.isRestoring ? "RESTORING…" : "RESTORE PURCHASES") {
+            Button(storeManager.isRestoring
+                   ? String(localized: "RESTORING…")
+                   : String(localized: "RESTORE PURCHASES")) {
                 Task { await storeManager.restore() }
             }
             .buttonStyle(GeistButtonStyle(variant: .secondary))
@@ -2260,14 +2405,14 @@ struct MacPaywallView: View {
 
     private func macOffer(
         product: VoxboardPurchaseProduct,
-        title: String,
-        detail: String
+        title: LocalizedStringKey,
+        detail: LocalizedStringKey
     ) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(Geist.label())
                 .foregroundColor(Geist.text)
-            Text(storeManager.displayPrice(for: product) ?? "PRICE UNAVAILABLE")
+            Text(storeManager.displayPrice(for: product) ?? String(localized: "PRICE UNAVAILABLE"))
                 .font(Geist.heading(.title2))
                 .foregroundColor(Geist.text)
             Text(detail)
@@ -2288,31 +2433,31 @@ struct MacPaywallView: View {
 
     private func purchaseButtonTitle(for product: VoxboardPurchaseProduct) -> String {
         if storeManager.purchasingProductID == product.rawValue {
-            return "PURCHASING…"
+            return String(localized: "PURCHASING…")
         }
         return switch product {
-        case .individual: "UNLOCK INDIVIDUAL"
-        case .family: "UNLOCK FAMILY"
-        case .familyUpgrade: "UPGRADE TO FAMILY"
+        case .individual: String(localized: "UNLOCK INDIVIDUAL")
+        case .family: String(localized: "UNLOCK FAMILY")
+        case .familyUpgrade: String(localized: "UPGRADE TO FAMILY")
         }
     }
 
     private var paywallTitle: String {
         switch usageTracker.accessLevel {
-        case .free: "Choose Vox.md Unlimited"
-        case .individual: "Share Unlimited with Family"
-        case .family: "Vox.md Family Unlimited"
+        case .free: String(localized: "Choose Vox.md Unlimited")
+        case .individual: String(localized: "Share Unlimited with Family")
+        case .family: String(localized: "Vox.md Family Unlimited")
         }
     }
 
     private var paywallDetail: String {
         switch usageTracker.accessLevel {
         case .free:
-            "Unlock unlimited local Capture and private, on-device transcription. Pay once with no subscription."
+            String(localized: "Unlock unlimited local Capture and private, on-device transcription. Pay once with no subscription.")
         case .individual:
-            "You already own lifetime Unlimited. Upgrade once to support Apple Family Sharing."
+            String(localized: "You already own lifetime Unlimited. Upgrade once to support Apple Family Sharing.")
         case .family:
-            "Your lifetime Unlimited access supports Apple Family Sharing."
+            String(localized: "Your lifetime Unlimited access supports Apple Family Sharing.")
         }
     }
 }
@@ -2336,7 +2481,7 @@ private struct MacDebugLogView: View {
             .padding(12)
             GeistDivider()
             ScrollView {
-                Text(logText.isEmpty ? "(empty)" : logText)
+                Text(logText.isEmpty ? String(localized: "(empty)") : logText)
                     .font(.system(.footnote, design: .monospaced))
                     .foregroundColor(Geist.text)
                     .textSelection(.enabled)
@@ -2353,15 +2498,15 @@ private extension CapturePresetProcessingMode {
     var helpText: String {
         switch self {
         case .none:
-            return "Keeps typed Markdown, OCR, and voice text exactly as captured."
+            return String(localized: "Keeps typed Markdown, OCR, and voice text exactly as captured.")
         case .clean:
-            return "Improves casing and punctuation on device while preserving meaning and Markdown structure."
+            return String(localized: "Improves casing and punctuation on device while preserving meaning and Markdown structure.")
         case .todoList:
-            return "Turns captured tasks into `- [ ]` Markdown checklist items without inventing new tasks."
+            return String(localized: "Turns captured tasks into `- [ ]` Markdown checklist items without inventing new tasks.")
         case .meetingNotes:
-            return "Builds grounded Markdown meeting notes from typed text, OCR, or voice."
+            return String(localized: "Builds grounded Markdown meeting notes from typed text, OCR, or voice.")
         case .custom:
-            return "Follows your instruction on device for any Capture text when enabled."
+            return String(localized: "Follows your instruction on device for any Capture text when enabled.")
         }
     }
 }
@@ -2409,15 +2554,20 @@ private func copyToPasteboard(_ text: String) {
 }
 
 private func formatDurationShort(_ d: TimeInterval) -> String {
-    let s = Int(d)
-    return s < 60 ? "\(s)s" : "\(s / 60)m \(s % 60)s"
+    let formatter = DateComponentsFormatter()
+    formatter.unitsStyle = .abbreviated
+    formatter.allowedUnits = d < 60 ? [.second] : [.minute, .second]
+    formatter.maximumUnitCount = 2
+    return formatter.string(from: max(0, d)) ?? String(localized: "0 sec")
 }
 
 private func relativeDate(_ date: Date) -> String {
-    let diff = Date().timeIntervalSince(date)
-    if diff < 60 { return "just now" }
-    if diff < 3600 { return "\(Int(diff / 60))m ago" }
-    if diff < 86400 { return "\(Int(diff / 3600))h ago" }
+    let now = Date()
+    if now.timeIntervalSince(date) < 86_400 {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: now)
+    }
     let f = DateFormatter()
     f.dateStyle = .short
     f.timeStyle = .none

@@ -1,0 +1,5 @@
+Baru: Label pembicara di perangkat untuk rekaman panjang.
+
+Peningkatan: Kontrol Aktivitas Langsung lebih andal dan rekaman panjang lebih aman.
+
+Perbaikan: Widget Tangkapan Cepat dan Rekam Cepat kini mengikuti tampilan terang dan gelap.

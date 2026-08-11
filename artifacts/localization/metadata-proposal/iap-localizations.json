@@ -1,0 +1,352 @@
+{
+  "ar-SA": {
+    "bontecou.Voxboard.family": {
+      "description": "وصول غير محدود مع المشاركة العائلية",
+      "displayName": "Vox.md عائلي غير محدود"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "أضف المشاركة العائلية إلى خطتك",
+      "displayName": "Vox.md ترقية عائلية"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "التقاط ونسخ صوتي بلا حدود",
+      "displayName": "Vox.md فردي غير محدود"
+    }
+  },
+  "de-DE": {
+    "bontecou.Voxboard.family": {
+      "description": "Unbegrenzt mit Familienfreigabe",
+      "displayName": "Vox.md Familie unbegrenzt"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Familienfreigabe hinzufügen",
+      "displayName": "Vox.md Familien-Upgrade"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Unbegrenzte Erfassung und Transkription",
+      "displayName": "Vox.md Privat unbegrenzt"
+    }
+  },
+  "en-AU": {
+    "bontecou.Voxboard.family": {
+      "description": "Unlimited access with Family Sharing",
+      "displayName": "Vox.md Family Unlimited"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Add Family Sharing to Unlimited",
+      "displayName": "Vox.md Family Upgrade"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Unlimited Capture and transcription",
+      "displayName": "Vox.md Individual Unlimited"
+    }
+  },
+  "en-CA": {
+    "bontecou.Voxboard.family": {
+      "description": "Unlimited access with Family Sharing",
+      "displayName": "Vox.md Family Unlimited"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Add Family Sharing to Unlimited",
+      "displayName": "Vox.md Family Upgrade"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Unlimited Capture and transcription",
+      "displayName": "Vox.md Individual Unlimited"
+    }
+  },
+  "en-GB": {
+    "bontecou.Voxboard.family": {
+      "description": "Unlimited access with Family Sharing",
+      "displayName": "Vox.md Family Unlimited"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Add Family Sharing to Unlimited",
+      "displayName": "Vox.md Family Upgrade"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Unlimited Capture and transcription",
+      "displayName": "Vox.md Individual Unlimited"
+    }
+  },
+  "en-US": {
+    "bontecou.Voxboard.family": {
+      "description": "Unlimited access with Family Sharing",
+      "displayName": "Vox.md Family Unlimited"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Add Family Sharing to Unlimited",
+      "displayName": "Vox.md Family Upgrade"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Unlimited Capture and transcription",
+      "displayName": "Vox.md Individual Unlimited"
+    }
+  },
+  "es-ES": {
+    "bontecou.Voxboard.family": {
+      "description": "Acceso ilimitado con En familia",
+      "displayName": "Vox.md Familia Ilimitada"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Añade En familia a tu plan",
+      "displayName": "Vox.md Mejora familiar"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Captura y transcripción ilimitadas",
+      "displayName": "Vox.md Individual Ilimitado"
+    }
+  },
+  "es-MX": {
+    "bontecou.Voxboard.family": {
+      "description": "Acceso ilimitado con En familia",
+      "displayName": "Vox.md Familia Ilimitada"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Añade En familia a tu plan",
+      "displayName": "Vox.md Mejora familiar"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Captura y transcripción ilimitadas",
+      "displayName": "Vox.md Individual Ilimitado"
+    }
+  },
+  "fr-CA": {
+    "bontecou.Voxboard.family": {
+      "description": "Accès illimité avec Partage familial",
+      "displayName": "Vox.md Famille illimitée"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Ajouter le Partage familial",
+      "displayName": "Vox.md Mise à niveau famille"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Capture et transcription illimitées",
+      "displayName": "Vox.md Individuel illimité"
+    }
+  },
+  "fr-FR": {
+    "bontecou.Voxboard.family": {
+      "description": "Accès illimité avec Partage familial",
+      "displayName": "Vox.md Famille illimitée"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Ajouter le Partage familial",
+      "displayName": "Vox.md Mise à niveau famille"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Capture et transcription illimitées",
+      "displayName": "Vox.md Individuel illimité"
+    }
+  },
+  "hi": {
+    "bontecou.Voxboard.family": {
+      "description": "फ़ैमिली शेयरिंग के साथ अनलिमिटेड एक्सेस",
+      "displayName": "Vox.md परिवार अनलिमिटेड"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "अपने प्लान में फ़ैमिली शेयरिंग जोड़ें",
+      "displayName": "Vox.md परिवार अपग्रेड"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "अनलिमिटेड कैप्चर और ट्रांसक्रिप्शन",
+      "displayName": "Vox.md व्यक्तिगत अनलिमिटेड"
+    }
+  },
+  "id": {
+    "bontecou.Voxboard.family": {
+      "description": "Akses tanpa batas dengan Keluarga Berbagi",
+      "displayName": "Vox.md Keluarga Tanpa Batas"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Tambahkan Keluarga Berbagi ke paket",
+      "displayName": "Vox.md Upgrade Keluarga"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Tangkapan dan transkripsi tanpa batas",
+      "displayName": "Vox.md Individu Tanpa Batas"
+    }
+  },
+  "it": {
+    "bontecou.Voxboard.family": {
+      "description": "Accesso illimitato con In famiglia",
+      "displayName": "Vox.md Famiglia illimitata"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Aggiungi In famiglia al tuo piano",
+      "displayName": "Vox.md Upgrade famiglia"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Acquisizione e trascrizione illimitate",
+      "displayName": "Vox.md Individuale illimitato"
+    }
+  },
+  "ja": {
+    "bontecou.Voxboard.family": {
+      "description": "ファミリー共有付きの無制限アクセス",
+      "displayName": "Vox.md ファミリー無制限"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "プランにファミリー共有を追加",
+      "displayName": "Vox.md ファミリーアップグレード"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "キャプチャと文字起こしが無制限",
+      "displayName": "Vox.md 個人向け無制限"
+    }
+  },
+  "ko": {
+    "bontecou.Voxboard.family": {
+      "description": "가족 공유가 포함된 무제한 이용",
+      "displayName": "Vox.md 가족 무제한"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "요금제에 가족 공유 추가",
+      "displayName": "Vox.md 가족 업그레이드"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "캡처 및 전사 무제한",
+      "displayName": "Vox.md 개인 무제한"
+    }
+  },
+  "nl-NL": {
+    "bontecou.Voxboard.family": {
+      "description": "Onbeperkt met Delen met gezin",
+      "displayName": "Vox.md Gezin onbeperkt"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Voeg Delen met gezin toe",
+      "displayName": "Vox.md Gezinsupgrade"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Onbeperkt vastleggen en transcriberen",
+      "displayName": "Vox.md Individueel onbeperkt"
+    }
+  },
+  "pl": {
+    "bontecou.Voxboard.family": {
+      "description": "Bez limitu z Chmurą rodzinną",
+      "displayName": "Vox.md Rodzinny bez limitu"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Dodaj Chmurę rodzinną do planu",
+      "displayName": "Vox.md Ulepszenie rodzinne"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Przechwytywanie i transkrypcja bez limitu",
+      "displayName": "Vox.md Indywidualny bez limitu"
+    }
+  },
+  "pt-BR": {
+    "bontecou.Voxboard.family": {
+      "description": "Acesso ilimitado com a família",
+      "displayName": "Vox.md Família Ilimitada"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Adicione Compartilhamento Familiar",
+      "displayName": "Vox.md Upgrade Família"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Captura e transcrição ilimitadas",
+      "displayName": "Vox.md Individual Ilimitado"
+    }
+  },
+  "ru": {
+    "bontecou.Voxboard.family": {
+      "description": "Безлимитный доступ для семьи",
+      "displayName": "Vox.md Семейный безлимит"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Добавить Семейный доступ",
+      "displayName": "Vox.md Семейное обновление"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Захват и транскрипция без ограничений",
+      "displayName": "Vox.md Личный безлимит"
+    }
+  },
+  "th": {
+    "bontecou.Voxboard.family": {
+      "description": "ใช้งานไม่จำกัดพร้อมการแชร์ในครอบครัว",
+      "displayName": "Vox.md ครอบครัวไม่จำกัด"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "เพิ่มการแชร์ในครอบครัวในแผน",
+      "displayName": "Vox.md อัปเกรดครอบครัว"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "จับภาพและถอดเสียงไม่จำกัด",
+      "displayName": "Vox.md บุคคลไม่จำกัด"
+    }
+  },
+  "tr": {
+    "bontecou.Voxboard.family": {
+      "description": "Aile Paylaşımı ile sınırsız erişim",
+      "displayName": "Vox.md Aile Sınırsız"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Planına Aile Paylaşımı ekle",
+      "displayName": "Vox.md Aile Yükseltmesi"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Sınırsız yakalama ve transkripsiyon",
+      "displayName": "Vox.md Bireysel Sınırsız"
+    }
+  },
+  "uk": {
+    "bontecou.Voxboard.family": {
+      "description": "Безлімітний доступ для сім’ї",
+      "displayName": "Vox.md Сімейний безліміт"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Додати Сімейний доступ до плану",
+      "displayName": "Vox.md Сімейне оновлення"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Захоплення й транскрипція без обмежень",
+      "displayName": "Vox.md Особистий безліміт"
+    }
+  },
+  "vi": {
+    "bontecou.Voxboard.family": {
+      "description": "Truy cập vô hạn với Chia sẻ gia đình",
+      "displayName": "Vox.md Gia đình vô hạn"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "Thêm Chia sẻ gia đình vào gói",
+      "displayName": "Vox.md Nâng cấp gia đình"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "Ghi nhanh và chép lời không giới hạn",
+      "displayName": "Vox.md Cá nhân vô hạn"
+    }
+  },
+  "zh-Hans": {
+    "bontecou.Voxboard.family": {
+      "description": "无限访问，支持家人共享",
+      "displayName": "Vox.md 家庭无限版"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "为方案添加家人共享",
+      "displayName": "Vox.md 家庭升级"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "无限采集与转录",
+      "displayName": "Vox.md 个人无限版"
+    }
+  },
+  "zh-Hant": {
+    "bontecou.Voxboard.family": {
+      "description": "無限存取，支援家人共享",
+      "displayName": "Vox.md 家庭無限版"
+    },
+    "bontecou.Voxboard.familyUpgrade": {
+      "description": "將家人共享加入方案",
+      "displayName": "Vox.md 家庭升級"
+    },
+    "bontecou.Voxboard.unlock": {
+      "description": "無限擷取與轉錄",
+      "displayName": "Vox.md 個人無限版"
+    }
+  }
+}

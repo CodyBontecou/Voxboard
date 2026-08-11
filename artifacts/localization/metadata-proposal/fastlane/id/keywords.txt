@@ -1,0 +1,1 @@
+mengetik suara,bicara ke teks,transkripsi,whisper,dikte,lokal,ai,privasi,offline,mic,catatan

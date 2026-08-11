@@ -1,0 +1,5 @@
+Nowość: Etykiety mówców na urządzeniu dla długich nagrań.
+
+Ulepszono: Bardziej niezawodne sterowanie aktywnościami na żywo i bezpieczniejsze długie nagrania.
+
+Naprawiono: Widżety Szybkiego przechwytywania i Szybkiego nagrywania są teraz czytelne w jasnym i ciemnym wyglądzie.

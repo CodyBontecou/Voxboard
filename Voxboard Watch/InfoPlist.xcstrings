@@ -1,0 +1,292 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "The Watch app name shown by the system.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "comment": "Privacy prompt explaining microphone access on Apple Watch.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md يُسجلّ نصائح صوتية على Apple Watch ويقوم بتسجيلها إلى iPhonee الخاص بك لتسجيل."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md রেকর্ডিং নোটের ভয়েস Apple Watch তাদেরকে আপনার কাছে নিয়ে যান। iPhone অনুবাদে"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Aufzeichnungen Voice Notes auf Apple Watch und synchronisiert sie mit deinem iPhone für die Transkription."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md records voice notes on Apple Watch and syncs them to your iPhone for transcription."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Notas de voz en Apple Watch y los sincroniza con su iPhone para la transcripción."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Les notes vocales sont en Apple Watch et les synchroniser avec votre iPhone pour la transcription."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Voice Notes पर रिकॉर्ड्स Apple Watch और उन्हें अपने iPhone ट्रांसक्शंस के लिए"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Catatan suara pada Apple Watch dan menyatukan mereka denganmu iPhone Untuk transcription"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md registrazione delle note vocali su Apple Watch e li sincronizza con il tuo iPhone per la trascrizione."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 音声ノート Record Voice Notes On Apple Watch あなたのものに合流し、 iPhone トランスクリプションについて"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Record Voice Notes에 대한 리뷰 보기 Apple Watch 그들을 당신의 곁으로 옮기라. iPhone transcription 을 위한"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Voicemail opnamen op Apple Watch en synchroniseert ze met uw iPhone voor transcriptie."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Zapisywanie notatek głosowych na Apple Watch i synchronizuj je z Twoimi iPhone Dla transkrypcji"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Notas de Voz em Apple Watch e os sinalizes com o vosso iPhone para a transcrição."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md записывает голосовые записи на Apple Watch и синхронизируйте их с вашими iPhone Для транскрипции ."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Voice notes எழுதப்பட்ட Apple Watch உன் கையால் அவர்களை iPhone transcription என்று"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md บันทึกบันทึกเสียง Apple Watch และซิงค์พวกเขาไปยังของคุณ iPhone สําหรับการถ่ายภาพ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Sesli Notlar İle Apple Watch Onları seninle birlikte birleştirin iPhone Transcription için"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Запис голосових записів на Apple Watch і синхронізує їх з вашими iPhone Для транскрипції"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md کی آواز کے نوٹ پر Apple Watch اور ان کو آپ کے ساتھ شامل کریں iPhone ٹرانسفر کے لئے"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Record Voice Notes trên Apple Watch và đồng bộ chúng với bạn iPhone Đối với transcription"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 音频记录在 Apple Watch 并将其合并到您的 iPhone 为了转录。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 音頻記錄在 Apple Watch 並將其合併到您的 iPhone 為了轉錄。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,0 +1,1 @@
+Przechwytuj tekst, linki, pliki, obrazy, skany, szkice i głos do Markdown. Transkrypcja pozostaje na urządzeniu.

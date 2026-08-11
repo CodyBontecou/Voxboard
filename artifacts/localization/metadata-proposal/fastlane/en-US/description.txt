@@ -1,0 +1,31 @@
+Vox.md is a local-first quick capture app for Obsidian vaults and Markdown folders. Send text, links, photos, files, document scans, sketches, and voice to the right note without stopping to organize first.
+
+CAPTURE MORE THAN VOICE
+
+Add typed Markdown, a URL, photos or screenshots, files, a document scanner with on-device OCR, a sketch, or a voice recording. Combine several items in one capture, preview the result, then save it as plain Markdown.
+
+SEND IT WHERE IT BELONGS
+
+Capture Presets remember the destination and formatting for workflows such as your inbox, journal, task list, or meeting notes. Create a note, append or prepend to an existing file, insert beneath a heading, or write to rolling daily, weekly, monthly, quarterly, or yearly notes.
+
+Each preset can keep its own template, metadata, attachment folder, filename rules, placement, and processing preferences. Override a destination or template for one capture without changing the preset.
+
+CAPTURE FROM MORE PLACES
+
+Use Vox.md from the app, Share Sheet, custom keyboard, Home Screen and Lock Screen widgets, Shortcuts, or Apple Watch. Pending and failed deliveries remain available for retry, so a temporary folder permission or sync issue does not lose your work.
+
+PRIVATE VOICE TRANSCRIPTION
+
+Transcribe speech into text on your device with Apple Speech, Whisper, or Parakeet, depending on your settings and device. Audio and transcripts are never sent to Vox.md servers. Use offline dictation and voice typing from the custom keyboard, record on Apple Watch, or export transcripts as TXT, Markdown, JSON, or YAML.
+
+PLAIN FILES, NO LOCK-IN
+
+Vox.md writes standard Markdown to the folders and Obsidian vaults you choose. You do not need an account or a proprietary notes database. Your files remain readable in any Markdown app.
+
+FREE TO TRY
+
+New users receive 15 minutes of free transcription and 10 successful Capture deliveries. A single one-time purchase unlocks unlimited use. There is no recurring subscription.
+
+PRIVACY
+
+Capture contents, exported notes, audio, transcripts, keystrokes, file paths, and bookmarks are not sent to Vox.md servers. Vox.md collects limited, privacy-safe onboarding analytics to understand setup problems. Microphone, camera, photo, and file access are used only when you choose those capture types.

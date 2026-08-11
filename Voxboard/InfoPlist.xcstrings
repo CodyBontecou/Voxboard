@@ -1,0 +1,864 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "The app name shown on the Home Screen.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription": {
+      "comment": "Privacy prompt explaining optional camera access.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md يستخدم الكاميرا فقط عندما تختار الصورة أو تشفيرها إلى الملاحظات المحلية Markdown."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ক্যামেরাটি কেবলমাত্র ব্যবহার করুন যখন আপনি একটি ছবি আঁকতে বা আপনার স্থানীয় Markdown নোট"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md die Kamera nur verwenden, wenn Sie sich entscheiden, ein Foto zu machen oder in Ihre Markdown Die Notizen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md uses the camera only when you choose to capture a photo or scan into your local Markdown notes."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utiliza la cámara sólo cuando elija capturar una foto o escanear en su Markdown de notas."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md n’utilisez l’appareil photo que lorsque vous choisissez de prendre une photo ou de scanner dans votre Markdown Les notes ."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md केवल तब कैमरा का उपयोग करें जब आप एक तस्वीर लेने या अपने स्थानीय Markdown नोट्स"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md menggunakan kamera hanya ketika Anda memilih untuk mengambil foto atau memindai ke Markdown dengan nota."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utilizza la fotocamera solo quando si sceglie di scattare una foto o di scansionare il Markdown di note."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md カメラを使用する場合にのみ、写真を撮影するか、またはローカルにスキャンすることを選択します。 Markdown ノート"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 카메라를 사용하면 사진을 찍거나 로컬로 스캔할 때만 사용합니다. Markdown 노트"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md gebruik de camera alleen wanneer u kiest om een foto te nemen of te scannen naar uw Markdown met notities."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md używać aparatu tylko wtedy, gdy wybierzesz możliwość wykonania zdjęcia lub skanowania do Markdown Notatki"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utilizar a câmera apenas quando optar por capturar uma foto ou digitalizar para o seu local de Markdown Notas de ."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md использует фотокамеру только тогда, когда вы выбираете снять фотографию или сканировать в Markdown Ноты"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md நீங்கள் ஒரு படத்தை எழுதி அல்லது உங்கள் அலுவலகத்தில் ஸ்கேனிக்க விரும்பும் போது மட்டுமே கேமரா பயன்படுத்துகிறீர்கள். Markdown பதிவுகள்"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ใช้กล้องเฉพาะเมื่อคุณเลือกที่จะถ่ายภาพหรือสแกนไปยังสถานีของคุณ Markdown หมายเหตุ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Kamerayı sadece fotoğraf çekmeyi veya yerel Markdown Notlar için."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md використовує камеру тільки тоді, коли ви вирішите зробити знімки або сканувати в Markdown Нотатки"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md صرف جب آپ ایک تصویر کو پکڑنے یا آپ کے مقامی Markdown نوٹیں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md chỉ sử dụng máy ảnh khi bạn chọn chụp ảnh hoặc quét vào Markdown ghi chú"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 仅当您选择拍摄照片或扫描到您的本地时使用相机。 Markdown 笔记本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 僅當您選擇拍攝照片或掃描到您的本地時使用相機。 Markdown 筆記本"
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "comment": "Privacy prompt explaining optional location access.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md تستخدم موقعك فقط عندما تختار إدخال روابط خرائط في موقع محلي. Markdown مشروع"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md আপনার অবস্থানটি কেবলমাত্র ব্যবহার করে যখন আপনি একটি স্থানীয় লিংক মধ্যে একটি মানচিত্র লিঙ্ক ইনপুট করতে চান Markdown নকশা"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md verwendet Ihren Standort nur, wenn Sie einen Kartenlink in eine lokale Markdown Entwurf zu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md uses your location only when you choose to insert a map link into a local Markdown draft."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utiliza su ubicación sólo cuando elija insertar un enlace de mapa en un Markdown El proyecto."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utilisez votre emplacement uniquement lorsque vous choisissez d'insérer un lien de carte dans un Markdown Le projet."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md केवल अपने स्थान का उपयोग करें जब आप एक स्थानीय में नक्शे लिंक डालने का विकल्प चुनते हैं Markdown परियोजना"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md menggunakan lokasi Anda hanya ketika Anda memilih untuk memasukkan tautan peta ke dalam Markdown Rencana tersebut"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utilizza la posizione solo quando si sceglie di inserire un collegamento mappatore in un Markdown Il progetto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 場所を指定する場合にのみ、地図リンクをローカルに挿入することを選択します。 Markdown 草案"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 위치를 사용하면 로컬에 지도 링크를 삽입하기로 선택할 때만 Markdown 프로젝트"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md uw locatie alleen gebruikt wanneer u kiest voor het invoegen van een kaartverbinding in een Markdown Het ontwerp."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md używa lokalizacji tylko wtedy, gdy zdecydujesz się wstawić łącze map do lokalu Markdown Projekty"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utiliza a sua localização somente quando optar por inserir um link de mapa em uma Markdown Projeto de ."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md использует ваше местоположение только тогда, когда вы решите вставить ссылку на карту в локальный Markdown Проект ¦"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md உங்கள் இடத்தை பயன்படுத்தி, நீங்கள் ஒரு இடத்தில் ஒரு மாடல்களை இணைக்க தேர்வு செய்தால் மட்டுமே Markdown திட்டம்"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ใช้ตําแหน่งของคุณเท่านั้นเมื่อคุณเลือกที่จะใส่ลิงก์แผนที่ลงในสถานี Markdown โครงการ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md konumunu yalnızca bir yerel bağlantıya bir harita bağlantısı eklemeyi seçtiğinizde kullanır. Markdown Tasarımı yapın"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md використовує місцезнаходження тільки тоді, коли ви вирішите вставити посилання на карту в локальний Markdown Проекти ."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md آپ کی جگہ صرف جب آپ ایک مقامی میں نقشہ لنک شامل کرنے کا انتخاب کرتے ہیں Markdown منصوبہ بندی"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md chỉ sử dụng vị trí của bạn khi bạn chọn chèn một liên kết bản đồ vào một địa điểm Markdown Dự thảo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 仅当您选择将地图链接插入本地位置时使用您的位置 Markdown 草案。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 僅當您選擇將地圖鏈接插入本地位置時使用您的位置 Markdown 草案。"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "comment": "Privacy prompt explaining microphone access.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستخدم Vox.md الميكروفون عند اختيار الترجمة أو إدراج تسجيل صوت إلى ملاحظة Markdown المحلية."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md মাইক্রোফোন ব্যবহার করে যখন আপনি একটি ভাষণ ট্রান্সক্রিপশন বা একটি স্থানীয় Markdown নোট"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md das Mikrofon verwendet, wenn Sie die Rede transkribieren oder eine Sprachaufnahme an einen lokalen Markdown Notiz zu."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md uses the microphone when you choose to transcribe speech or attach a voice recording to a local Markdown note."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utiliza el micrófono cuando elige transcribir el habla o unir una grabación de voz a un Markdown Nota de ."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Utilisez le microphone lorsque vous choisissez de transcrire une voix ou d’attacher une enregistrement vocale à un Markdown Note à noter."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md जब आप भाषण का ट्रांसक्रिप्शन करने या एक स्थानीय Markdown नोट करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md menggunakan mikrofon ketika Anda memilih untuk mencatat suara atau menempelkan rekaman suara ke Markdown Catatan yang"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utilizza il microfono quando si sceglie di trascrivere la voce o di collegare un'inserzione vocale a un Markdown di nota."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md マイクを使用して、スピーチを転写するか、ローカルに音声録音を付けることを選択する場合 Markdown ノート"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 마이크를 사용하여 음성을 전송하거나 로컬 녹음에 음성 녹음을 연결할 때 Markdown 노트"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md gebruikt de microfoon wanneer u kiest om spraak te transcriberen of een spraakopname aan een lokale Markdown Note op."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md używa mikrofonu, gdy wybierasz transkrypcję mowy lub dołączanie nagrania głosowego do lokalnego Markdown Notatka"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utiliza o microfone quando opta por transcrever a fala ou anexar uma gravação de voz a um Markdown Notas em ."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md использует микрофон, когда вы выбираете транскрипцию речи или прикрепление записи голоса к локальному Markdown Нотарий ."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md நீங்கள் பேச்சை transcribe அல்லது ஒரு இடத்தில் ஒரு பேச்சு எழுத்து இணைக்க தேர்வு போது மைக்ரோபிக் பயன்படுத்துகிறது. Markdown எழுதினேன்"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ใช้ไมโครโฟนเมื่อคุณเลือกที่จะถ่ายทอดการพูดหรือแนบบันทึกเสียงไปยัง Markdown หมายเหตุ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Konuşmayı transkripte etmeyi veya bir ses kaydı yerel bir Markdown Notları"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md використовує мікрофон, коли ви вирішите транскритувати мовлення або приєднати голосовий запис до локального Markdown Нотація ."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md میکروفون استعمال کرتے ہوئے جب آپ بات کی ٹرانسفر کرنے یا مقامی Markdown نوٹ کریں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md sử dụng micro khi bạn chọn để chuyển đổi giọng nói hoặc đính kèm một bản ghi giọng nói vào một Markdown Note Đánh giá"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 使用麦克风,当您选择转录语音或将语音记录附加到本地 Markdown 笔记"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 使用麥克風,當您選擇轉錄語音或將語音記錄附加到本地 Markdown 筆記"
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription": {
+      "comment": "Privacy prompt explaining optional photo-library access.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md يقرر فقط الصور التي تختارها لقطة Markdown المحلية."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md শুধুমাত্র এমন ছবি পড়বে যা আপনি একটি স্থানীয় জন্য নির্বাচন করেন Markdown ধরা পড়া"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md liest nur die Fotos, die Sie für einen lokalen Markdown Die Fangerei."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md reads only the photos you choose for a local Markdown capture."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md sólo lee las fotos que elija para un local Markdown de captura."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ne lit que les photos que vous choisissez pour un local Markdown La capture."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md केवल उन तस्वीरों को पढ़ता है जिन्हें आप एक स्थानीय के लिए चुनते हैं Markdown पकड़ लेते हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md membaca hanya foto yang Anda pilih untuk sebuah Markdown Untuk menangkap"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Legge solo le foto che scegli per un locale Markdown di cattura."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ローカルに選んだ写真のみを読み取ります。 Markdown 捕獲する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 로컬에 대해 선택한 사진만 읽습니다.reads only the photos you choose for a local Markdown 잡아먹기"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md alleen de foto's lezen die u kiest voor een lokale Markdown De gevangenschap."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Czyta tylko zdjęcia wybrane dla lokalnego Markdown Złap się ."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Leia apenas as fotos que você escolhe para um local Markdown capturação ."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md читает только фотографии, которые вы выбрали для местного Markdown Поймать"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md நீங்கள் தேர்வு செய்த பதிவுகளை மட்டுமே எழுதுங்கள் Markdown கட்டிட"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md อ่านเพียงภาพที่คุณเลือกสําหรับสถานี Markdown การจับ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Sadece yerel bir fotoğraf için seçtiğiniz fotoğrafları okuyor Markdown yakalamak için"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md читає тільки фотографії, які ви вибрали для місцевого Markdown Захоплення"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md صرف تصاویر پڑھتا ہے جو آپ نے ایک مقامی کے لئے منتخب کیا ہے Markdown پکڑنے کے"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md chỉ đọc những bức ảnh bạn chọn cho một địa phương Markdown bắt được"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 只读您为本地选择的照片 Markdown 抓住。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 只讀您為本地選擇的照片 Markdown 抓住。"
+          }
+        }
+      }
+    },
+    "NSSpeechRecognitionUsageDescription": {
+      "comment": "Privacy prompt explaining speech recognition.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md يستخدم Apple Speech لتسجيل تسجيلك المحلي أثناء الكلام."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ব্যবহার Apple Speech আপনি কথা বলার সময় আপনার রেকর্ডটি স্থানীয়ভাবে ট্রান্সক্রিপ্ট করতে পারেন।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md benutzt Apple Speech Um Ihre Aufzeichnung lokal zu transkribieren, während Sie sprechen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md uses Apple Speech to transcribe your recording locally while you speak."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Uso Apple Speech para transcribir su grabación localmente mientras habla."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Utilisé Apple Speech pour transcrire votre enregistrement localement pendant que vous parlez."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md उपयोग करें Apple Speech अपने रिकॉर्ड को स्थानीय रूप से ट्रांसक्रिप्शन करने के लिए जब आप बोलते हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Menggunakan Apple Speech untuk mencatat rekaman Anda secara lokal saat Anda berbicara."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utilizzo Apple Speech per trascrivere la registrazione localmente mentre si parla."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 利用 Apple Speech 話す間、録音を地元で書き換える。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 사용하기 Apple Speech 당신이 말하는 동안 로컬로 녹음하기 위해."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Gebruik Apple Speech om uw opname lokaal te transcriberen terwijl u spreekt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Używaj Apple Speech aby transkrybować nagranie lokalnie podczas mówienia."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Usar Apple Speech para transcrever a sua gravação localmente enquanto fala."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md использует Apple Speech для транскрипции записи локально, пока вы говорите."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md பயன்படுத்த Apple Speech உங்கள் பேச்சைப் பற்றி எழுதுவதற்காகவே, நீங்கள் பேசும் போது உங்கள் பதிவுகளை இடையில் எழுதிக் கொள்ளுங்கள்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ใช้ Apple Speech เพื่อถ่ายทอดการบันทึกของคุณในท้องถิ่นขณะที่คุณพูด"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md kullanmak Apple Speech Konuşurken kayıtlarınızı yerel olarak transkripte etmek."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Використовувати Apple Speech Переписуйте запис локально, коли ви говорите."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md استعمال کریں Apple Speech آپ بات کرتے وقت آپ کی ریکارڈنگ کو مقامی طور پر ٹرانسفر کرنے کے لئے."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Sử dụng Apple Speech để ghi lại bản ghi của bạn tại địa phương trong khi bạn nói."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 使用 Apple Speech 将录音转录到本地,而你在说话。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 使用 Apple Speech 將錄音轉錄到本地,而你在說話。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

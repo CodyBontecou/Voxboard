@@ -143,9 +143,9 @@ struct CaptureDestinationEditorView: View {
         var id: String { rawValue }
         var label: String {
             switch self {
-            case .newNote: return "New Note"
-            case .rollingNote: return "Rolling Note"
-            case .existingNote: return "Existing Note"
+            case .newNote: return String(localized: "New Note")
+            case .rollingNote: return String(localized: "Rolling Note")
+            case .existingNote: return String(localized: "Existing Note")
             }
         }
     }
@@ -158,9 +158,9 @@ struct CaptureDestinationEditorView: View {
         var id: String { rawValue }
         var label: String {
             switch self {
-            case .append: return "Bottom"
-            case .prepend: return "Top"
-            case .heading: return "Heading"
+            case .append: return String(localized: "Bottom")
+            case .prepend: return String(localized: "Top")
+            case .heading: return String(localized: "Heading")
             }
         }
     }
@@ -266,7 +266,7 @@ struct CaptureDestinationEditorView: View {
 
     var body: some View {
         Form {
-            Section(fixedName == nil ? "Identity" : "Preset Destination") {
+            Section(fixedName == nil ? String(localized: "Identity") : String(localized: "Preset Destination")) {
                 if let fixedName {
                     LabeledContent("Preset", value: fixedName)
                 } else {
@@ -407,8 +407,8 @@ struct CaptureDestinationEditorView: View {
         }
         .navigationTitle(
             fixedName == nil
-                ? (existing == nil ? "Add Destination" : "Edit Destination")
-                : (existing == nil ? "Set Up Destination" : "Edit Destination")
+                ? (existing == nil ? String(localized: "Add Destination") : String(localized: "Edit Destination"))
+                : (existing == nil ? String(localized: "Set Up Destination") : String(localized: "Edit Destination"))
         )
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -416,7 +416,7 @@ struct CaptureDestinationEditorView: View {
                 Button("Cancel") { dismiss() }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button(isSaving ? "Saving…" : "Save") {
+                Button(isSaving ? String(localized: "Saving…") : String(localized: "Save")) {
                     Task { await save() }
                 }
                 .disabled(isSaving)
@@ -471,20 +471,20 @@ struct CaptureDestinationEditorView: View {
 
     private var pathFieldTitle: String {
         switch targetKind {
-        case .newNote: return "Filename template"
-        case .rollingNote: return "Rolling path template"
-        case .existingNote: return "Existing note path"
+        case .newNote: return String(localized: "Filename template")
+        case .rollingNote: return String(localized: "Rolling path template")
+        case .existingNote: return String(localized: "Existing note path")
         }
     }
 
     private var pathHelp: String {
         switch targetKind {
         case .newNote:
-            return "Tokens: {timestamp}, {date}, {time}, {year}, {YR} (2-digit year), {month}, {day}, {id8}, {id}. Existing filenames are automatically uniqued."
+            return String(localized: "Tokens: {timestamp}, {date}, {time}, {year}, {YR} (2-digit year), {month}, {day}, {id8}, {id}. Existing filenames are automatically uniqued.")
         case .rollingNote:
-            return "Use {period} for the selected daily, weekly, monthly, quarterly, or yearly bucket. Tokens also include {date}, {year}, {YR} (2-digit year), {month}, {day}, and {week}."
+            return String(localized: "Use {period} for the selected daily, weekly, monthly, quarterly, or yearly bucket. Tokens also include {date}, {year}, {YR} (2-digit year), {month}, {day}, and {week}.")
         case .existingNote:
-            return "Path relative to the selected vault or folder, for example Projects/Vox.md."
+            return String(localized: "Path relative to the selected vault or folder, for example Projects/Vox.md.")
         }
     }
 
@@ -756,14 +756,14 @@ struct CaptureEntryTemplateEditorView: View {
                 Section("Error") { Text(errorMessage).foregroundStyle(.red) }
             }
         }
-        .navigationTitle(existing == nil ? "Add Template" : "Edit Template")
+        .navigationTitle(existing == nil ? String(localized: "Add Template") : String(localized: "Edit Template"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") { dismiss() }
             }
             ToolbarItem(placement: .confirmationAction) {
-                Button(isSaving ? "Saving…" : "Save") {
+                Button(isSaving ? String(localized: "Saving…") : String(localized: "Save")) {
                     Task { await save() }
                 }
                 .disabled(isSaving)
@@ -774,7 +774,7 @@ struct CaptureEntryTemplateEditorView: View {
     private func save() async {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else {
-            errorMessage = "Enter a template name."
+            errorMessage = String(localized: "Enter a template name.")
             return
         }
         isSaving = true
@@ -804,13 +804,13 @@ private enum DestinationEditorError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .folderRequired: return "Choose a vault or folder."
-        case .headingRequired: return "Enter the Markdown heading to capture beneath."
-        case .existingNoteMissing(let path): return "The existing note ‘\(path)’ was not found in the selected vault or folder."
-        case .folderPermissionExpired: return "The selected vault or folder permission expired. Choose it again."
-        case .noteOutsideRoot: return "Choose a Markdown note inside the selected vault or folder."
-        case .templateOutsideRoot: return "Choose a Markdown template inside the selected vault or folder."
-        case .markdownTemplateRequired: return "Choose a Markdown (.md) template file."
+        case .folderRequired: return String(localized: "Choose a vault or folder.")
+        case .headingRequired: return String(localized: "Enter the Markdown heading to capture beneath.")
+        case .existingNoteMissing(let path): return String(localized: "The existing note ‘\(path)’ was not found in the selected vault or folder.")
+        case .folderPermissionExpired: return String(localized: "The selected vault or folder permission expired. Choose it again.")
+        case .noteOutsideRoot: return String(localized: "Choose a Markdown note inside the selected vault or folder.")
+        case .templateOutsideRoot: return String(localized: "Choose a Markdown template inside the selected vault or folder.")
+        case .markdownTemplateRequired: return String(localized: "Choose a Markdown (.md) template file.")
         }
     }
 }

@@ -66,6 +66,15 @@
 		F714E206EA01CB59CAD495BC /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39AB3B931CCF85C9706AD3C0 /* MacRootView.swift */; };
 		FB3BB675A89471D862FE7343 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5DCFFC6C307F334D1C010608 /* VoxboardShared */; };
 		FFE3EC5B7FB2E36AFE75DDD9 /* WatchRecordIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF80EC2190458FB40F6EABF8 /* WatchRecordIntent.swift */; };
+		AAF000012FD10000AABB0101 /* Shared Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AAF000002FD10000AABB0002 /* Shared Localizable.xcstrings */; };
+		AAF000022FD10000AABB0102 /* Shared Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AAF000002FD10000AABB0002 /* Shared Localizable.xcstrings */; };
+		AAF000032FD10000AABB0103 /* Shared Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AAF000002FD10000AABB0002 /* Shared Localizable.xcstrings */; };
+		AAF000042FD10000AABB0104 /* Shared Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AAF000002FD10000AABB0002 /* Shared Localizable.xcstrings */; };
+		AAF000052FD10000AABB0105 /* Shared Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AAF000002FD10000AABB0002 /* Shared Localizable.xcstrings */; };
+		AAF100012FD20000AABB0101 /* Mac InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AAF100002FD20000AABB0001 /* Mac InfoPlist.xcstrings */; };
+		AAF100022FD20000AABB0102 /* Watch InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AAF100002FD20000AABB0002 /* Watch InfoPlist.xcstrings */; };
+		AAF100032FD20000AABB0103 /* Watch Widget InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AAF100002FD20000AABB0003 /* Watch Widget InfoPlist.xcstrings */; };
+		AAF100042FD20000AABB0104 /* Share InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AAF100002FD20000AABB0004 /* Share InfoPlist.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -191,6 +200,11 @@
 		AA8100052FB10000AABB0005 /* MacCameraCaptureView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacCameraCaptureView.swift; path = "Voxboard Mac/MacCameraCaptureView.swift"; sourceTree = "<group>"; };
 		AA8100062FB10000AABB0006 /* MacEntryTemplateLibraryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacEntryTemplateLibraryView.swift; path = "Voxboard Mac/MacEntryTemplateLibraryView.swift"; sourceTree = "<group>"; };
 		AAE000012FC00000AABB0001 /* VoxboardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VoxboardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AAF000002FD10000AABB0002 /* Shared Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = "Shared Localizable.xcstrings"; path = Voxboard/Localizable.xcstrings; sourceTree = SOURCE_ROOT; };
+		AAF100002FD20000AABB0001 /* Mac InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = InfoPlist.xcstrings; path = "Voxboard Mac/InfoPlist.xcstrings"; sourceTree = SOURCE_ROOT; };
+		AAF100002FD20000AABB0002 /* Watch InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = InfoPlist.xcstrings; path = "Voxboard Watch/InfoPlist.xcstrings"; sourceTree = SOURCE_ROOT; };
+		AAF100002FD20000AABB0003 /* Watch Widget InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = InfoPlist.xcstrings; path = "Voxboard Watch Widget/InfoPlist.xcstrings"; sourceTree = SOURCE_ROOT; };
+		AAF100002FD20000AABB0004 /* Share InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = InfoPlist.xcstrings; path = "Voxboard Share Extension/InfoPlist.xcstrings"; sourceTree = SOURCE_ROOT; };
 		AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FoundationModelsBackend.swift; path = Voxboard/FoundationModelsBackend.swift; sourceTree = "<group>"; };
 		AB7000012FC10000AABB0001 /* MacKeyboardHintCenter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacKeyboardHintCenter.swift; path = "Voxboard Mac/MacKeyboardHintCenter.swift"; sourceTree = "<group>"; };
 		B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchPhoneBridge.swift; sourceTree = "<group>"; };
@@ -364,6 +378,7 @@
 		339B9880237B6C686475B64C /* Voxboard Mac */ = {
 			isa = PBXGroup;
 			children = (
+				AAF100002FD20000AABB0001 /* Mac InfoPlist.xcstrings */,
 				DC7E10646EA0B56748352D67 /* VoxboardMacApp.swift */,
 				AB7000012FC10000AABB0001 /* MacKeyboardHintCenter.swift */,
 				39AB3B931CCF85C9706AD3C0 /* MacRootView.swift */,
@@ -413,6 +428,7 @@
 		62C951712F392ADB001F79DF = {
 			isa = PBXGroup;
 			children = (
+				AAF000002FD10000AABB0002 /* Shared Localizable.xcstrings */,
 				62C9517C2F392ADB001F79DF /* Voxboard */,
 				AA8000012FB00000AABB0001 /* Voxboard App Shared */,
 				62C952232F393361001F79DF /* Voxboard Keyboard */,
@@ -448,6 +464,7 @@
 		6EC8A447993E0439CE87DF71 /* Voxboard Watch Widget */ = {
 			isa = PBXGroup;
 			children = (
+				AAF100002FD20000AABB0003 /* Watch Widget InfoPlist.xcstrings */,
 				FA22FA2307DC310880D98478 /* VoxboardWatchWidgetBundle.swift */,
 				0F926D3AB92C2D7C92D46C11 /* VoxboardWatchRecordWidget.swift */,
 				BF80EC2190458FB40F6EABF8 /* WatchRecordIntent.swift */,
@@ -476,6 +493,7 @@
 		B0142BC822AB83EF750ED30C /* Voxboard Watch */ = {
 			isa = PBXGroup;
 			children = (
+				AAF100002FD20000AABB0002 /* Watch InfoPlist.xcstrings */,
 				E4C522195CC549F948AD39CA /* VoxboardWatchApp.swift */,
 				614794E6E2D71284FDBD73B5 /* WatchRecorderView.swift */,
 				B87E2AD42AFB283F1BE3A874 /* Assets.xcassets */,
@@ -489,6 +507,7 @@
 		C7146BA1A0F6BF8D87B7017C /* Voxboard Share Extension */ = {
 			isa = PBXGroup;
 			children = (
+				AAF100002FD20000AABB0004 /* Share InfoPlist.xcstrings */,
 				46AD4BA7D540CBA8530066F9 /* ShareViewController.swift */,
 				D066C42B871E9C98E56C5FAB /* Info.plist */,
 				26EFE5EF3EA09B33DF4039CD /* VoxboardShare.entitlements */,
@@ -770,6 +789,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AAF000052FD10000AABB0105 /* Shared Localizable.xcstrings in Resources */,
+				AAF100042FD20000AABB0104 /* Share InfoPlist.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -777,6 +798,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AAF000042FD10000AABB0104 /* Shared Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -806,6 +828,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2A924FF497500A771ED48B42 /* Assets.xcassets in Resources */,
+				AAF000032FD10000AABB0103 /* Shared Localizable.xcstrings in Resources */,
+				AAF100032FD20000AABB0103 /* Watch Widget InfoPlist.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -814,6 +838,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				36A8248FC9457C0B6D996F12 /* Assets.xcassets in Resources */,
+				AAF000022FD10000AABB0102 /* Shared Localizable.xcstrings in Resources */,
+				AAF100022FD20000AABB0102 /* Watch InfoPlist.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -822,6 +848,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				154ED7783EDFF91EC1D07921 /* Assets.xcassets in Resources */,
+				AAF000012FD10000AABB0101 /* Shared Localizable.xcstrings in Resources */,
+				AAF100012FD20000AABB0101 /* Mac InfoPlist.xcstrings in Resources */,
 				AA7100012FA10000AABB0001 /* Geist-Regular.ttf in Resources */,
 				AA7100022FA10000AABB0002 /* Geist-Medium.ttf in Resources */,
 				AA7100032FA10000AABB0003 /* Geist-SemiBold.ttf in Resources */,
@@ -1354,7 +1382,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Vox.md uses the camera to add photos to Capture drafts.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Voxboard records microphone audio locally so it can transcribe speech on this Mac.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Vox.md records microphone audio locally so it can transcribe speech on this Mac.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1428,7 +1456,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Vox.md uses the camera to add photos to Capture drafts.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Voxboard records microphone audio locally so it can transcribe speech on this Mac.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Vox.md records microphone audio locally so it can transcribe speech on this Mac.";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

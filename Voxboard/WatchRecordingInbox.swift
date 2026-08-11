@@ -21,8 +21,9 @@ nonisolated enum WatchRecordingFailureStage: String, Codable, Sendable {
 }
 
 nonisolated enum WatchRecordingStatusMessage {
-    static let transcriptionLimitReached =
-        "You've used your free transcription time. Get Vox.md Unlimited to continue."
+    static var transcriptionLimitReached: String {
+        String(localized: "You've used your free transcription time. Get Vox.md Unlimited to continue.")
+    }
 }
 
 /// Durable, privacy-safe state for one recording received from Apple Watch.
@@ -66,8 +67,8 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
     }
 
     var displayPresetName: String {
-        if requiresPresetSelection { return "Choose a Preset" }
-        return flowSnapshot?.displayName ?? "Capture Preset"
+        if requiresPresetSelection { return String(localized: "Choose a Preset") }
+        return flowSnapshot?.displayName ?? String(localized: "Capture Preset")
     }
 
     init(
@@ -211,7 +212,7 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
                     try FileManager.default.moveItem(at: fileURL, to: destination)
                     existing.phase = .queued
                     existing.failureStage = nil
-                    existing.statusMessage = "Received retry from Apple Watch"
+                    existing.statusMessage = String(localized: "Received retry from Apple Watch")
                     existing.updatedAt = Date()
                     existing.revision += 1
                     items[index] = existing
@@ -253,8 +254,8 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
                 phase: snapshotIsIncompatible ? .failed : .queued,
                 failureStage: snapshotIsIncompatible ? .storage : nil,
                 statusMessage: snapshotIsIncompatible
-                    ? "Update Vox.md on iPhone to use this recording's Capture Preset."
-                    : "Received from Apple Watch"
+                    ? String(localized: "Update Vox.md on iPhone to use this recording's Capture Preset.")
+                    : String(localized: "Received from Apple Watch")
             )
 
             // Journal metadata before moving WCSession's temporary file. If the
@@ -346,7 +347,7 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
     @discardableResult
     func markDelivered(
         id: String,
-        message: String = "Saved to Capture"
+        message: String = String(localized: "Saved to Capture")
     ) -> WatchRecordingInboxItem? {
         let item = transition(id: id, to: .delivered, message: message)
         if let item {
@@ -357,7 +358,7 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
 
     @discardableResult
     func discard(id: String) -> WatchRecordingInboxItem? {
-        let item = transition(id: id, to: .discarded, message: "Discarded on iPhone")
+        let item = transition(id: id, to: .discarded, message: String(localized: "Discarded on iPhone"))
         if let item {
             try? FileManager.default.removeItem(at: item.fileURL)
         }
@@ -453,7 +454,7 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
                 requiresPresetSelection: true,
                 phase: .failed,
                 failureStage: .storage,
-                statusMessage: "Recovered after an interrupted save. Choose a Preset to continue."
+                statusMessage: String(localized: "Recovered after an interrupted save. Choose a Preset to continue.")
             ))
             recovered = true
         }

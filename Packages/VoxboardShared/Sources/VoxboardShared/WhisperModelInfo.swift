@@ -53,6 +53,17 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
     /// Which inference engine this model uses (default `.whisper` for backward compat).
     public let engine: ModelEngine
 
+    public var localizedModelDescription: String? {
+        switch modelDescription {
+        case "Optimized for English.":
+            return String(localized: "Optimized for English.", bundle: .main)
+        case "Supports 25 languages.":
+            return String(localized: "Supports 25 languages.", bundle: .main)
+        default:
+            return modelDescription
+        }
+    }
+
     public init(
         id: String,
         name: String,

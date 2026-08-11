@@ -13,13 +13,13 @@ struct VoxboardRecordControl: ControlWidget {
         AppIntentControlConfiguration(kind: Self.kind, provider: Provider()) { state in
             ControlWidgetButton(action: OpenVoxboardRecordIntent(vox: state.vox)) {
                 Label(
-                    state.isEnabled ? state.vox.name : "Off",
+                    state.isEnabled ? state.vox.name : String(localized: "Off"),
                     systemImage: state.isEnabled ? state.vox.symbolName : "mic.slash"
                 )
                 .controlWidgetActionHint(
                     state.isEnabled
-                        ? "Record with \(state.vox.name)"
-                        : "Disabled in Vox.md Settings"
+                        ? String(localized: "Record with \(state.vox.name)")
+                        : String(localized: "Disabled in Vox.md Settings")
                 )
             }
             .disabled(!state.isEnabled)

@@ -174,6 +174,23 @@ final class PersistentRecorder {
     /// produces a transcript instead of running forever and failing on Stop.
     private let maximumSegmentDuration: TimeInterval = 9 * 60 + 45
 
+    #if DEBUG
+    /// Supplies a stable, microphone-free state for localized simulator screenshots.
+    /// The launch argument is absent from production launches, so normal recording
+    /// behavior and persisted user data are untouched.
+    func configureLocalizationScreenshot(story: String?) {
+        guard story == "02-live-recording" || story == "05-live-recording" else { return }
+        isListening = true
+        isSegmentActive = true
+        isTranscribing = false
+        segmentDuration = 42
+        segmentCompletionMode = .captureDraft(attachAudio: false)
+        liveFinalizedTranscription = String(localized: "Capture ideas as they arrive.")
+        liveVolatileTranscription = String(localized: "Everything stays on this device.")
+        isCaptureLiveTranscriptionActive = true
+    }
+    #endif
+
     /// Shared transcript store — injected so saved transcripts appear in the UI immediately.
     private let transcriptStore: TranscriptStore
 
@@ -287,7 +304,7 @@ final class PersistentRecorder {
 
         guard perm == .granted else {
             log.log("[PersistentRecorder] ❌ Mic permission not granted")
-            lastError = "Microphone permission required"
+            lastError = String(localized: "Microphone permission required")
             return false
         }
 
@@ -297,7 +314,7 @@ final class PersistentRecorder {
             log.log("[PersistentRecorder] Audio session active")
         } catch {
             log.log("[PersistentRecorder] ❌ Session setup failed: \(error)")
-            lastError = "Audio session error"
+            lastError = String(localized: "Audio session error")
             return false
         }
 
@@ -372,7 +389,7 @@ final class PersistentRecorder {
         } catch {
             log.log("[PersistentRecorder] ❌ Engine start failed: \(error)")
             inputNode.removeTap(onBus: 0)
-            lastError = "Microphone error"
+            lastError = String(localized: "Microphone error")
             return false
         }
 
@@ -558,7 +575,7 @@ final class PersistentRecorder {
                 cancelSegment()
             }
             if shouldAutoStopListeningAfterCurrentRecording {
-                lastError = "Recording interrupted — please try again"
+                lastError = String(localized: "Recording interrupted — please try again")
                 stopListening()
             }
 
@@ -668,7 +685,7 @@ final class PersistentRecorder {
         }
         if usageTracker.isAtLimit {
             needsUnlock = true
-            lastError = "Free limit reached — unlock Vox.md to keep recording"
+            lastError = String(localized: "Free limit reached — unlock Vox.md to keep recording")
             return false
         }
 
@@ -704,7 +721,7 @@ final class PersistentRecorder {
         origin requestedOrigin: RecordingCommand.Origin? = nil
     ) {
         guard isListening else {
-            lastError = "Start listening first"
+            lastError = String(localized: "Start listening first")
             log.log("[PersistentRecorder] ❌ startInAppSegment but not listening")
             return
         }
@@ -763,16 +780,16 @@ final class PersistentRecorder {
         completionMode requestedCompletionMode: RecordingCompletionMode? = nil
     ) -> Bool {
         guard !isSegmentActive, !isTranscribing else {
-            lastError = "Wait for the current recording to finish"
+            lastError = String(localized: "Wait for the current recording to finish")
             return false
         }
         if usageTracker.isAtLimit {
             needsUnlock = true
-            lastError = "Free limit reached — unlock Vox.md to import audio"
+            lastError = String(localized: "Free limit reached — unlock Vox.md to import audio")
             return false
         }
         guard let dir = AppConstants.recordingsDirectoryURL else {
-            lastError = "Could not access recordings folder"
+            lastError = String(localized: "Could not access recordings folder")
             return false
         }
 
@@ -842,7 +859,7 @@ final class PersistentRecorder {
                     }
                 } catch {
                     await MainActor.run {
-                        self?.lastError = "Could not import audio: \(error.localizedDescription)"
+                        self?.lastError = String(localized: "Could not import audio: \(error.localizedDescription)")
                         self?.lastTranscriptionResult = nil
                         if self?.processingRequestId == requestId {
                             self?.processingRequestId = nil
@@ -871,7 +888,7 @@ final class PersistentRecorder {
             }
             return true
         } catch {
-            lastError = "Could not import audio: \(error.localizedDescription)"
+            lastError = String(localized: "Could not import audio: \(error.localizedDescription)")
             return false
         }
     }
@@ -902,7 +919,10 @@ final class PersistentRecorder {
         if UsageTracker.staticIsAtLimit {
             log.log("[PersistentRecorder] 🔒 Fast-path: Free limit reached — blocking segment")
             DispatchQueue.main.async { [weak self] in
-                self?.writeErrorResponse(requestId: command.requestId, message: "Free limit reached — open Vox.md to unlock")
+                self?.writeErrorResponse(
+                    requestId: command.requestId,
+                    message: String(localized: "Free limit reached — open Vox.md to unlock")
+                )
                 self?.needsUnlock = true
             }
             return
@@ -960,14 +980,20 @@ final class PersistentRecorder {
 
         guard !isSegmentActive, !isTranscribing, processingRequestId == nil else {
             log.log("[PersistentRecorder] ⚠️ startSegment but another segment is active or transcribing")
-            writeErrorResponse(requestId: command.requestId, message: "Wait for the current transcription to finish")
+            writeErrorResponse(
+                requestId: command.requestId,
+                message: String(localized: "Wait for the current transcription to finish")
+            )
             return
         }
 
         // Paywall check — block if free tier exhausted
         if usageTracker.isAtLimit {
             log.log("[PersistentRecorder] 🔒 Free limit reached — blocking segment")
-            writeErrorResponse(requestId: command.requestId, message: "Free limit reached — open Vox.md to unlock")
+            writeErrorResponse(
+                requestId: command.requestId,
+                message: String(localized: "Free limit reached — open Vox.md to unlock")
+            )
             needsUnlock = true
             return
         }
@@ -1279,7 +1305,10 @@ final class PersistentRecorder {
             osLog.error("❌ stopSegment but isSegmentActive=false! Writing error response.")
             // Write an error response so the keyboard doesn't get stuck in "Transcribing…" forever
             let requestId = segmentRequestId ?? command.requestId
-            writeErrorResponse(requestId: requestId, message: "Recording session expired — please try again")
+            writeErrorResponse(
+                requestId: requestId,
+                message: String(localized: "Recording session expired — please try again")
+            )
             clearCaptureLiveTranscription(requestId: requestId)
             return
         }
@@ -1317,9 +1346,15 @@ final class PersistentRecorder {
                 // the engine + tap from scratch so the next recording works.
                 log.log("[PersistentRecorder] ❌ Audio tap not delivering samples — restarting listening to recover")
                 if shouldAutoStopListeningAfterCurrentRecording {
-                    finishStoppedSegmentWithError(requestId: requestId, message: "Microphone wasn't receiving audio — please try again")
+                    finishStoppedSegmentWithError(
+                        requestId: requestId,
+                        message: String(localized: "Microphone wasn't receiving audio — please try again")
+                    )
                 } else {
-                    writeErrorResponse(requestId: requestId, message: "Microphone wasn't receiving audio — please try again")
+                    writeErrorResponse(
+                        requestId: requestId,
+                        message: String(localized: "Microphone wasn't receiving audio — please try again")
+                    )
                     clearCaptureLiveTranscription(requestId: requestId)
                     processingRequestId = nil
                     transcribingCompletionMode = nil
@@ -1329,7 +1364,10 @@ final class PersistentRecorder {
                 }
             } else {
                 log.log("[PersistentRecorder] ❌ Could not extract audio — data was overwritten")
-                finishStoppedSegmentWithError(requestId: requestId, message: "Audio buffer overwritten — try a shorter recording")
+                finishStoppedSegmentWithError(
+                    requestId: requestId,
+                    message: String(localized: "Audio buffer overwritten — try a shorter recording")
+                )
             }
             return
         }
@@ -1339,7 +1377,10 @@ final class PersistentRecorder {
 
         guard samples.count > Int(whisperSampleRate * 0.3) else {
             log.log("[PersistentRecorder] ⚠️ Segment too short (<0.3s)")
-            finishStoppedSegmentWithError(requestId: requestId, message: "Recording too short")
+            finishStoppedSegmentWithError(
+                requestId: requestId,
+                message: String(localized: "Recording too short")
+            )
             return
         }
 
@@ -1348,13 +1389,19 @@ final class PersistentRecorder {
         log.log("[PersistentRecorder] Audio maxAmp=\(String(format: "%.4f", maxAmp))")
         if maxAmp < 0.005 {
             log.log("[PersistentRecorder] ⚠️ Audio appears silent")
-            finishStoppedSegmentWithError(requestId: requestId, message: "No speech detected")
+            finishStoppedSegmentWithError(
+                requestId: requestId,
+                message: String(localized: "No speech detected")
+            )
             return
         }
 
         // Write WAV file
         guard let wavURL = writeWAV(samples: samples) else {
-            finishStoppedSegmentWithError(requestId: requestId, message: "Failed to save audio")
+            finishStoppedSegmentWithError(
+                requestId: requestId,
+                message: String(localized: "Failed to save audio")
+            )
             return
         }
 

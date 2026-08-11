@@ -128,7 +128,7 @@ private final class MacCameraController: NSObject, ObservableObject, AVCapturePh
             return
         }
         guard let data = photo.fileDataRepresentation() else {
-            publish(error: "The camera did not return an image.")
+            publish(error: String(localized: "The camera did not return an image."))
             return
         }
         DispatchQueue.main.async { [weak self] in
@@ -173,7 +173,7 @@ private final class MacCameraController: NSObject, ObservableObject, AVCapturePh
         DispatchQueue.main.async { [weak self] in
             self?.isConfiguring = false
             self?.permissionDenied = true
-            self?.errorMessage = "Camera access is required to take a photo."
+            self?.errorMessage = String(localized: "Camera access is required to take a photo.")
         }
     }
 
@@ -192,8 +192,8 @@ private enum MacCameraError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .noCamera: "No camera is available. Connect a camera or enable Continuity Camera."
-        case .configurationFailed: "The selected camera could not be configured."
+        case .noCamera: String(localized: "No camera is available. Connect a camera or enable Continuity Camera.")
+        case .configurationFailed: String(localized: "The selected camera could not be configured.")
         }
     }
 }

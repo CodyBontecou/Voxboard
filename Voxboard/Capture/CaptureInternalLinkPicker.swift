@@ -96,7 +96,9 @@ struct CaptureInternalLinkPicker: View {
                     } else if let errorMessage {
                         Text(errorMessage).foregroundStyle(Geist.error)
                     } else if filteredNotes.isEmpty {
-                        Text(rootURL == nil ? "Choose a destination first." : "No Markdown notes found.")
+                        Text(rootURL == nil
+                             ? String(localized: "Choose a destination first.")
+                             : String(localized: "No Markdown notes found."))
                             .foregroundStyle(Geist.muted)
                     } else {
                         ForEach(filteredNotes) { note in

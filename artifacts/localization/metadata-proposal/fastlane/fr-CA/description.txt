@@ -1,0 +1,7 @@
+Vox.md est une app de capture locale pour Obsidian et Markdown. Envoyez du texte, des liens, des photos, des fichiers, des scans de documents, des croquis et de la voix vers la bonne note.
+
+Les préréglages de capture mémorisent la destination, le modèle, les métadonnées, les pièces jointes et l’emplacement. Utilisez Vox.md depuis l’app, la feuille de partage, le clavier personnalisé, les widgets, Raccourcis ou l’Apple Watch. Les envois en attente restent disponibles pour une nouvelle tentative.
+
+La conversion de la parole en texte s’exécute sur l’appareil avec Apple Speech, Whisper ou Parakeet. L’audio, les transcriptions, le contenu saisi, les chemins de fichiers et les signets ne sont pas envoyés aux serveurs de Vox.md. Vox.md écrit du Markdown standard dans les dossiers et coffres Obsidian choisis ; aucun compte ni aucune base de données de notes propriétaire n’est requis.
+
+Les nouveaux utilisateurs bénéficient de 15 minutes de transcription gratuites et de 10 envois réussis. Un achat unique déverrouille l’utilisation illimitée.

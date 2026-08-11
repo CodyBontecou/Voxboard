@@ -26,6 +26,7 @@ output/
 
 # Agent/local automation state
 .pi/
+.pi-subagents/
 .asc/
 .playwright/
 .playwright-cli/

@@ -73,7 +73,7 @@ final class MacStoreManager {
                 ? "Some purchase options are temporarily unavailable."
                 : nil
         } catch {
-            errorMessage = "Could not load purchases: \(error.localizedDescription)"
+            errorMessage = String(localized: "Could not load purchases: \(error.localizedDescription)")
         }
     }
 
@@ -100,8 +100,8 @@ final class MacStoreManager {
 
         guard usageTracker.purchaseOptions.contains(purchaseProduct) else {
             errorMessage = purchaseProduct == .familyUpgrade
-                ? "The Family upgrade is available to existing Unlimited owners."
-                : "This purchase is not available for your current access level."
+                ? String(localized: "The Family upgrade is available to existing Unlimited owners.")
+                : String(localized: "This purchase is not available for your current access level.")
             OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                 outcome: .failed,
                 context: context,
@@ -113,7 +113,7 @@ final class MacStoreManager {
         }
 
         guard let product = product(for: purchaseProduct) else {
-            errorMessage = "Purchase is not available right now."
+            errorMessage = String(localized: "Purchase is not available right now.")
             OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                 outcome: .failed,
                 context: context,
@@ -153,7 +153,7 @@ final class MacStoreManager {
                         quotaState: usageTracker.onboardingAnalyticsQuotaState
                     )
                 } catch {
-                    errorMessage = "Purchase verification failed."
+                    errorMessage = String(localized: "Purchase verification failed.")
                     OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                         outcome: .failed,
                         context: context,
@@ -163,7 +163,7 @@ final class MacStoreManager {
                     )
                 }
             case .pending:
-                errorMessage = "Purchase pending approval."
+                errorMessage = String(localized: "Purchase pending approval.")
                 OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                     outcome: .pending,
                     context: context,
@@ -179,7 +179,7 @@ final class MacStoreManager {
                     quotaState: usageTracker.onboardingAnalyticsQuotaState
                 )
             @unknown default:
-                errorMessage = "Unknown purchase result."
+                errorMessage = String(localized: "Unknown purchase result.")
                 OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                     outcome: .failed,
                     context: context,
@@ -189,7 +189,7 @@ final class MacStoreManager {
                 )
             }
         } catch {
-            errorMessage = "Purchase failed: \(error.localizedDescription)"
+            errorMessage = String(localized: "Purchase failed: \(error.localizedDescription)")
             OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                 outcome: .failed,
                 context: context,
@@ -223,7 +223,7 @@ final class MacStoreManager {
                 .map(OnboardingAnalyticsProductID.init)
 
             if !restored {
-                errorMessage = "No Vox.md Unlimited purchase was found."
+                errorMessage = String(localized: "No Vox.md Unlimited purchase was found.")
             }
             OnboardingAnalyticsClient.shared.trackRestoreFinished(
                 outcome: restored ? .succeeded : .failed,
@@ -233,7 +233,7 @@ final class MacStoreManager {
                 quotaState: usageTracker.onboardingAnalyticsQuotaState
             )
         } catch {
-            errorMessage = "Restore failed: \(error.localizedDescription)"
+            errorMessage = String(localized: "Restore failed: \(error.localizedDescription)")
             OnboardingAnalyticsClient.shared.trackRestoreFinished(
                 outcome: .failed,
                 context: .restore,
@@ -280,6 +280,6 @@ private enum MacStoreError: LocalizedError {
     case unrecognizedProduct
 
     var errorDescription: String? {
-        "The transaction did not match a Vox.md product"
+        String(localized: "The transaction did not match a Vox.md product")
     }
 }

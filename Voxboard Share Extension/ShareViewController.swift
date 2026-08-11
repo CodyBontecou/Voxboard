@@ -218,7 +218,7 @@ private final class ShareCaptureModel {
             extensionContext?.completeRequest(returningItems: nil)
         } else {
             isSubmitting = false
-            fail("Capture is safely queued in Vox.md. Open Vox.md to finish delivery, then tap Done here.")
+            fail(String(localized: "Capture is safely queued in Vox.md. Open Vox.md to finish delivery, then tap Done here."))
         }
     }
 
@@ -241,7 +241,7 @@ private final class ShareCaptureModel {
             withError: NSError(
                 domain: "VoxboardShare",
                 code: NSUserCancelledError,
-                userInfo: [NSLocalizedDescriptionKey: "Capture cancelled"]
+                userInfo: [NSLocalizedDescriptionKey: String(localized: "Capture cancelled")]
             )
         )
     }
@@ -465,10 +465,14 @@ private struct ShareCaptureView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(model.isQueuedForLater ? "Done" : "Cancel") { model.cancel() }
+                    Button(model.isQueuedForLater ? String(localized: "Done") : String(localized: "Cancel")) {
+                        model.cancel()
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(model.isSubmitting ? "Sending…" : (model.isQueuedForLater ? "Open Vox.md" : "Send")) {
+                    Button(model.isSubmitting
+                           ? String(localized: "Sending…")
+                           : (model.isQueuedForLater ? String(localized: "Open Vox.md") : String(localized: "Send"))) {
                         Task { await model.submit() }
                     }
                     .disabled(model.isLoading || model.isSubmitting || model.selectedDestinationID == nil)
@@ -490,9 +494,9 @@ private enum ShareCaptureError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .destinationRequired: return "Configure a destination for a Capture Preset in Vox.md first."
-        case .emptyShare: return "There is no supported content to capture."
-        case .missingSharedFile: return "The shared file disappeared before Vox.md could copy it."
+        case .destinationRequired: return String(localized: "Configure a destination for a Capture Preset in Vox.md first.")
+        case .emptyShare: return String(localized: "There is no supported content to capture.")
+        case .missingSharedFile: return String(localized: "The shared file disappeared before Vox.md could copy it.")
         }
     }
 }

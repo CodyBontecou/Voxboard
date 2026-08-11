@@ -1,0 +1,1 @@
+Erfasse Text, Links, Dateien, Bilder, Scans, Skizzen und Sprache als Markdown. Die Transkription bleibt auf dem Gerät.

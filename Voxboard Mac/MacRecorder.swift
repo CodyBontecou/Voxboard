@@ -76,12 +76,12 @@ final class MacRecorder {
     ) {
         guard !isRecording, !isTranscribing else { return }
         guard !isExporting else {
-            lastError = "Wait for the current Capture export to finish."
+            lastError = String(localized: "Wait for the current Capture export to finish.")
             return
         }
         guard !usageTracker.isAtLimit else {
             needsUnlock = true
-            lastError = "Free limit reached — unlock Vox.md to keep recording."
+            lastError = String(localized: "Free limit reached — unlock Vox.md to keep recording.")
             return
         }
         guard validateSelectedModel(modelManager) else { return }
@@ -100,7 +100,7 @@ final class MacRecorder {
             startDurationTimer()
             CapturePresetStore.selectFlow(id: flowId)
         } else {
-            lastError = "Could not access the microphone. Check macOS Privacy & Security settings."
+            lastError = String(localized: "Could not access the microphone. Check macOS Privacy & Security settings.")
         }
     }
 
@@ -117,7 +117,7 @@ final class MacRecorder {
             if case .captureDraft = completionMode {
                 Task { await captureDraftEventHandler?(.cancelLiveTranscript) }
             }
-            lastError = "No audio was captured."
+            lastError = String(localized: "No audio was captured.")
             return
         }
 
@@ -138,21 +138,21 @@ final class MacRecorder {
         completionMode requestedCompletionMode: MacRecordingCompletionMode? = nil
     ) {
         guard !isRecording, !isTranscribing else {
-            lastError = "Wait for the current recording to finish."
+            lastError = String(localized: "Wait for the current recording to finish.")
             return
         }
         guard !isExporting else {
-            lastError = "Wait for the current Capture export to finish."
+            lastError = String(localized: "Wait for the current Capture export to finish.")
             return
         }
         guard !usageTracker.isAtLimit else {
             needsUnlock = true
-            lastError = "Free limit reached — unlock Vox.md to import audio."
+            lastError = String(localized: "Free limit reached — unlock Vox.md to import audio.")
             return
         }
         guard validateSelectedModel(modelManager) else { return }
         guard let dir = AppConstants.recordingsDirectoryURL else {
-            lastError = "Could not access the recordings folder."
+            lastError = String(localized: "Could not access the recordings folder.")
             return
         }
 
@@ -207,7 +207,7 @@ final class MacRecorder {
                     }
                 } catch {
                     await MainActor.run {
-                        self.lastError = "Could not import audio: \(error.localizedDescription)"
+                        self.lastError = String(localized: "Could not import audio: \(error.localizedDescription)")
                         self.lastTranscriptionResult = nil
                         self.isTranscribing = false
                         if self.progressRequestID == progressRequestID {
@@ -220,7 +220,7 @@ final class MacRecorder {
                 }
             }
         } catch {
-            lastError = "Could not import audio: \(error.localizedDescription)"
+            lastError = String(localized: "Could not import audio: \(error.localizedDescription)")
         }
     }
 
@@ -233,11 +233,11 @@ final class MacRecorder {
             return true
         }
         guard let model = modelManager.selectedModel else {
-            lastError = "Select or download a transcription model first."
+            lastError = String(localized: "Select or download a transcription model first.")
             return false
         }
         guard model.isDownloaded else {
-            lastError = "Download \(model.name) before recording."
+            lastError = String(localized: "Download \(model.name) before recording.")
             return false
         }
         return true
@@ -359,7 +359,7 @@ final class MacRecorder {
             let copied = pasteboard.setString(text, forType: .string)
             usageTracker.addUsage(seconds: duration)
             lastTranscriptionResult = text
-            lastError = copied ? nil : "The transcript was created but could not be copied to the clipboard."
+            lastError = copied ? nil : String(localized: "The transcript was created but could not be copied to the clipboard.")
             lastRecoveryAudioURL = nil
             try? FileManager.default.removeItem(at: audioURL)
             if let sourceAudioURL, sourceAudioURL != audioURL {
@@ -384,8 +384,8 @@ final class MacRecorder {
                     lastRecoveryAudioURL = audioURL
                 }
                 lastError = attachAudio
-                    ? "The transcript could not be saved. The recording remains attached to the Capture draft."
-                    : "The transcript could not be saved. The recording was preserved so it can be recovered."
+                    ? String(localized: "The transcript could not be saved. The recording remains attached to the Capture draft.")
+                    : String(localized: "The transcript could not be saved. The recording was preserved so it can be recovered.")
                 isTranscribing = false
                 return
             }
@@ -414,7 +414,7 @@ final class MacRecorder {
         let retainedAudioURL = retainAudioIfNeeded(sourceAudioURL ?? audioURL, flow: selectedFlow)
         if audioWasRequested, retainedAudioURL == nil {
             lastRecoveryAudioURL = audioURL
-            lastError = "Your transcript was saved locally, but the requested audio could not be prepared. The recording was preserved for recovery."
+            lastError = String(localized: "Your transcript was saved locally, but the requested audio could not be prepared. The recording was preserved for recovery.")
         }
         let store = transcriptStore
         let savedId = transcript.id
@@ -473,7 +473,7 @@ final class MacRecorder {
                     KeyboardDebugLog.shared.log("[MacRecorder] Precise capture routing failed: \(error)")
                     let shouldExposeRecovery = !canRemoveRetainedAudio
                     await MainActor.run {
-                        recorderForExport.lastError = "Your transcript was saved locally. \(error.localizedDescription)"
+                        recorderForExport.lastError = String(localized: "Your transcript was saved locally. \(error.localizedDescription)")
                         recorderForExport.lastExportURL = nil
                         if shouldExposeRecovery {
                             recorderForExport.lastRecoveryAudioURL = retainedAudioURL ?? audioURL
@@ -541,7 +541,7 @@ final class MacRecorder {
             } catch {
                 KeyboardDebugLog.shared.log("[MacRecorder] File export failed: \(error)")
                 await MainActor.run {
-                    recorderForExport.lastError = "Your transcript was saved locally, but file export failed. \(error.localizedDescription)"
+                    recorderForExport.lastError = String(localized: "Your transcript was saved locally, but file export failed. \(error.localizedDescription)")
                     recorderForExport.lastExportURL = nil
                     recorderForExport.lastRecoveryAudioURL = retainedAudioURL ?? audioURL
                 }
@@ -573,7 +573,7 @@ final class MacRecorder {
                     KeyboardDebugLog.shared.log("[MacRecorder] Audio export failed: \(error)")
                     let shouldExposeRecovery = !canRemoveRetainedAudio
                     await MainActor.run {
-                        recorderForExport.lastError = "The note was saved, but its audio attachment failed. \(error.localizedDescription)"
+                        recorderForExport.lastError = String(localized: "The note was saved, but its audio attachment failed. \(error.localizedDescription)")
                         if shouldExposeRecovery {
                             recorderForExport.lastRecoveryAudioURL = retainedAudioURL
                         }
@@ -587,7 +587,7 @@ final class MacRecorder {
                 if shouldExposeRecovery {
                     recorderForExport.lastRecoveryAudioURL = retainedAudioURL ?? audioURL
                     if recorderForExport.lastError == nil {
-                        recorderForExport.lastError = "The transcript was saved, but the requested audio could not be exported. The recording was preserved for recovery."
+                        recorderForExport.lastError = String(localized: "The transcript was saved, but the requested audio could not be exported. The recording was preserved for recovery.")
                     }
                 }
             }
@@ -607,8 +607,8 @@ final class MacRecorder {
         guard flow.exportSettings.exportEnabled else { return flow }
         guard resolveSecurityScopedURL(from: flow.exportSettings.folderBookmark) == nil else { return flow }
         guard let selection = requestDirectoryAccess(
-            title: "Choose Export Folder",
-            message: "Vox.md needs permission to save notes for the \"\(flow.displayName)\" Capture Preset."
+            title: String(localized: "Choose Export Folder"),
+            message: String(localized: "Vox.md needs permission to save notes for the \"\(flow.displayName)\" Capture Preset.")
         ) else {
             KeyboardDebugLog.shared.log("[MacRecorder] Export folder selection cancelled for flow \(flow.id)")
             return flow
@@ -626,8 +626,8 @@ final class MacRecorder {
               defaults.bool(forKey: AppConstants.fileExportEnabledKey),
               resolveSecurityScopedURL(from: defaults.data(forKey: AppConstants.fileExportBookmarkKey)) == nil,
               let selection = requestDirectoryAccess(
-                title: "Choose Export Folder",
-                message: "Vox.md needs permission to save transcript files."
+                title: String(localized: "Choose Export Folder"),
+                message: String(localized: "Vox.md needs permission to save transcript files.")
               ) else {
             return
         }
@@ -638,7 +638,7 @@ final class MacRecorder {
         let panel = NSOpenPanel()
         panel.title = title
         panel.message = message
-        panel.prompt = "Allow"
+        panel.prompt = String(localized: "Allow")
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
@@ -801,5 +801,5 @@ final class MacRecorder {
 
 private enum MacRecordingHandoffError: LocalizedError {
     case audioStagingFailed
-    var errorDescription: String? { "The recording could not be attached to the Capture draft." }
+    var errorDescription: String? { String(localized: "The recording could not be attached to the Capture draft.") }
 }

@@ -1,1035 +1,2718 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "‹" : {
-
-    },
-    "›" : {
-
-    },
-    "Automatic" : {
-
-    },
-    "Enable Full Access" : {
-
-    },
-    "ENABLE FULL ACCESS" : {
-      "comment" : "Keyboard toolbar status shown when Full Access is not enabled in Settings",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تفعيل الوصول الكامل"
+  "sourceLanguage": "en",
+  "strings": {
+    "%@ complete": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ كامل"
           }
         },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ফুল অ্যাক্সেস চালু করুন"
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ সম্পূর্ণ"
           }
         },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOLLZUGRIFF AKTIVIEREN"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Vollständig"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ENABLE FULL ACCESS"
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ complete"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ACTIVAR ACCESO COMPLETO"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ completo"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ACTIVER L'ACCÈS COMPLET"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ complète"
           }
         },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "फुल एक्सेस सक्षम करें"
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ पूर्ण"
           }
         },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AKTIFKAN AKSES PENUH"
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ lengkap"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ATTIVA ACCESSO COMPLETO"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Completo"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "フルアクセスを有効にする"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 完全"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "전체 액세스 활성화"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 완전"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOLLEDIGE TOEGANG INSCHAKELEN"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ compleet"
           }
         },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "WŁĄCZ PEŁNY DOSTĘP"
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kompletna"
           }
         },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ATIVAR ACESSO TOTAL"
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Completo"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ВКЛЮЧИТЬ ПОЛНЫЙ ДОСТУП"
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Полный"
           }
         },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "முழு அணுகலை இயக்கு"
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ முழுமையாக"
           }
         },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "เปิดใช้การเข้าถึงเต็มรูปแบบ"
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ เต็มรูปแบบ"
           }
         },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TAM ERİŞİMİ ETKİNLEŞTİR"
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Tamamlı"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "УВІМКНУТИ ПОВНИЙ ДОСТУП"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ Повний"
           }
         },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "مکمل رسائی فعال کریں"
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ مکمل"
           }
         },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "BẬT QUYỀN TRUY CẬP ĐẦY ĐỦ"
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ hoàn chỉnh"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启用完全访问"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 完整"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "啟用完整存取"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 完整"
           }
         }
       }
     },
-    "Limit reached — open Vox.md to unlock" : {
-      "comment" : "Error status shown in the keyboard toolbar when the free-tier limit is hit",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تم الوصول إلى الحد — افتح Vox.md لإلغاء القفل"
+    "Automatic": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تلقائيا"
           }
         },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "সীমা পূর্ণ — আনলক করতে Vox.md খুলুন"
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্বয়ংক্রিয়"
           }
         },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limit erreicht — öffne Vox.md zum Entsperren"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limit reached — open Vox.md to unlock"
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Límite alcanzado — abre Vox.md para desbloquear"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "automático"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite atteinte — ouvrez Vox.md pour débloquer"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "automatique"
           }
         },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "सीमा पूरी हो गई — अनलॉक करने के लिए Vox.md खोलें"
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वचालित"
           }
         },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Batas tercapai — buka Vox.md untuk membuka"
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "otomatis"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite raggiunto — apri Vox.md per sbloccare"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "automatico"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上限に達しました — Vox.md を開いて解除してください"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "한도에 도달했습니다 — 잠금을 해제하려면 Vox.md를 여세요"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자동"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limiet bereikt — open Vox.md om te ontgrendelen"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch"
           }
         },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Osiągnięto limit — otwórz Vox.md, aby odblokować"
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "automatycznie"
           }
         },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite atingido — abra o Vox.md para desbloquear"
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "automaticamente"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Лимит достигнут — откройте Vox.md, чтобы разблокировать"
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматический"
           }
         },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "வரம்பு எட்டியது — திறக்க Vox.md ஐத் திறக்கவும்"
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automaticகால"
           }
         },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ถึงขีดจำกัดแล้ว — เปิด Vox.md เพื่อปลดล็อก"
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "อัตโนมัติ"
           }
         },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sınıra ulaşıldı — kilidi açmak için Vox.md'u açın"
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "otomatik"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ліміт досягнуто — відкрийте Vox.md, щоб розблокувати"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматичний"
           }
         },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "حد مکمل ہو گئی — غیر مقفل کرنے کے لیے Vox.md کھولیں"
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آٹو"
           }
         },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đã đạt giới hạn — mở Vox.md để mở khóa"
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự động"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已达上限 — 打开 Vox.md 以解锁"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动化"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已達上限 — 開啟 Vox.md 解鎖"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動化"
           }
         }
       }
     },
-    "No Model" : {
-      "comment" : "Keyboard toolbar label when no AI model is downloaded",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لا يوجد نموذج"
+    "ENABLE FULL ACCESS": {
+      "comment": "Keyboard toolbar status shown when Full Access is not enabled in Settings",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تفعيل الوصول الكامل"
           }
         },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "কোনো মডেল নেই"
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ফুল অ্যাক্সেস চালু করুন"
           }
         },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kein Modell"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOLLZUGRIFF AKTIVIEREN"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No Model"
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ENABLE FULL ACCESS"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sin Modelo"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACTIVAR ACCESO COMPLETO"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun Modèle"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACTIVER L'ACCÈS COMPLET"
           }
         },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "कोई मॉडल नहीं"
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "फुल एक्सेस सक्षम करें"
           }
         },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tidak ada model"
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AKTIFKAN AKSES PENUH"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nessun modello"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ATTIVA ACCESSO COMPLETO"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "モデルなし"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フルアクセスを有効にする"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "모델 없음"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전체 액세스 활성화"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geen model"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOLLEDIGE TOEGANG INSCHAKELEN"
           }
         },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Brak modelu"
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WŁĄCZ PEŁNY DOSTĘP"
           }
         },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sem modelo"
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ATIVAR ACESSO TOTAL"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Нет модели"
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ВКЛЮЧИТЬ ПОЛНЫЙ ДОСТУП"
           }
         },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "மாதிரி இல்லை"
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "முழு அணுகலை இயக்கு"
           }
         },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ไม่มีโมเดล"
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เปิดใช้การเข้าถึงเต็มรูปแบบ"
           }
         },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Model Yok"
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TAM ERİŞİMİ ETKİNLEŞTİR"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Немає моделі"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "УВІМКНУТИ ПОВНИЙ ДОСТУП"
           }
         },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "کوئی ماڈل نہیں"
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مکمل رسائی فعال کریں"
           }
         },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không Có Mô Hình"
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BẬT QUYỀN TRUY CẬP ĐẦY ĐỦ"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无模型"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "启用完全访问"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無模型"
-          }
-        }
-      }
-    },
-    "No speech detected" : {
-      "comment" : "Error message when transcription finds no recognisable speech in the audio",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "لم يتم اكتشاف كلام"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "কোনো বক্তৃতা শনাক্ত হয়নি"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Sprache erkannt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No speech detected"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se detectó voz"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune parole détectée"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "कोई भाषण नहीं मिला"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ucapan tidak terdeteksi"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nessun parlato rilevato"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音声が検出されませんでした"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "음성이 감지되지 않았습니다"
-          }
-        },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geen spraak gedetecteerd"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nie wykryto mowy"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nenhuma fala detectada"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Речь не обнаружена"
-          }
-        },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "பேச்சு கண்டறியப்படவில்லை"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ไม่ตรวจพบคำพูด"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Konuşma algılanmadı"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Мовлення не виявлено"
-          }
-        },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "کوئی آواز شناخت نہیں ہوئی"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Không phát hiện giọng nói"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未检测到语音"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未偵測到語音"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "啟用完整存取"
           }
         }
       }
     },
-    "Open Vox.md" : {
-
-    },
-    "OPEN VOX.MD" : {
-      "comment" : "Keyboard toolbar status prompting the user to open the main Vox.md app",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "افتح VOX.MD"
+    "Enable Full Access": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إمكانية الوصول الكامل"
           }
         },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOX.MD খুলুন"
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "পূর্ণ অ্যাক্সেসের সুযোগ"
           }
         },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOX.MD ÖFFNEN"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollständiger Zugang ermöglicht"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OPEN VOX.MD"
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable Full Access"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ABRIR VOX.MD"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite el acceso completo"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OUVRIR VOX.MD"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permet un accès complet"
           }
         },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOX.MD खोलें"
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "पूर्ण पहुंच की अनुमति"
           }
         },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "BUKA VOX.MD"
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Memungkinkan akses penuh"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "APRI VOX.MD"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consente l’accesso completo"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOX.MD を開く"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完全アクセス可能"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOX.MD 열기"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "완전한 접근을 가능하게"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OPEN VOX.MD"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volledige toegang mogelijk maken"
           }
         },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "OTWÓRZ VOX.MD"
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umożliwia pełny dostęp"
           }
         },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ABRIR VOX.MD"
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite acesso total"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ОТКРЫТЬ VOX.MD"
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к полному"
           }
         },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOX.MD ஐத் திற"
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "முழுமையான அணுகுமுறை"
           }
         },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "เปิด VOX.MD"
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ช่วยให้การเข้าถึงเต็มรูปแบบ"
           }
         },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOX.MD'U AÇ"
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tam erişim sağlar"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ВІДКРИТИ VOX.MD"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ до повного"
           }
         },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VOX.MD کھولیں"
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مکمل رسائی حاصل کرنے کے لئے"
           }
         },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MỞ VOX.MD"
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cho phép truy cập đầy đủ"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开 VOX.MD"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许完全访问"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟 VOX.MD"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允許完全訪問"
           }
         }
       }
     },
-    "Transcribing…" : {
-
-    },
-    "TRANSCRIBING..." : {
-      "comment" : "Keyboard toolbar status shown while audio is being transcribed",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "جارٍ التفريغ..."
+    "Limit reached — open Vox.md to unlock": {
+      "comment": "Error status shown in the keyboard toolbar when the free-tier limit is hit",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم الوصول إلى الحد — افتح Vox.md لإلغاء القفل"
           }
         },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ট্রান্সক্রাইব করা হচ্ছে..."
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "সীমা পূর্ণ — আনলক করতে Vox.md খুলুন"
           }
         },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRANSKRIBIERE..."
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limit erreicht — öffne Vox.md zum Entsperren"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRANSCRIBING..."
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limit reached — open Vox.md to unlock"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRANSCRIBIENDO..."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Límite alcanzado — abre Vox.md para desbloquear"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRANSCRIPTION..."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite atteinte — ouvrez Vox.md pour débloquer"
           }
         },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ट्रांसक्राइब हो रहा है..."
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "सीमा पूरी हो गई — अनलॉक करने के लिए Vox.md खोलें"
           }
         },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "MENTRANSKRIPSI..."
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batas tercapai — buka Vox.md untuk membuka"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRASCRIZIONE..."
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite raggiunto — apri Vox.md per sbloccare"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文字起こし中..."
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上限に達しました — Vox.md を開いて解除してください"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "전사 중..."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "한도에 도달했습니다 — 잠금을 해제하려면 Vox.md를 여세요"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRANSCRIBEREN..."
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limiet bereikt — open Vox.md om te ontgrendelen"
           }
         },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRANSKRYPCJA..."
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Osiągnięto limit — otwórz Vox.md, aby odblokować"
           }
         },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TRANSCREVENDO..."
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite atingido — abra o Vox.md para desbloquear"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "РАСШИФРОВКА..."
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Лимит достигнут — откройте Vox.md, чтобы разблокировать"
           }
         },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "உரையாக்குகிறது..."
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "வரம்பு எட்டியது — திறக்க Vox.md ஐத் திறக்கவும்"
           }
         },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "กำลังถอดเสียง..."
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ถึงขีดจำกัดแล้ว — เปิด Vox.md เพื่อปลดล็อก"
           }
         },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "YAZIYA DÖKÜLÜYOR..."
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sınıra ulaşıldı — kilidi açmak için Vox.md'u açın"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ТРАНСКРИБУЄТЬСЯ..."
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ліміт досягнуто — відкрийте Vox.md, щоб розблокувати"
           }
         },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ٹرانسکرپشن جاری ہے..."
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "حد مکمل ہو گئی — غیر مقفل کرنے کے لیے Vox.md کھولیں"
           }
         },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ĐANG PHIÊN ÂM..."
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã đạt giới hạn — mở Vox.md để mở khóa"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "转录中..."
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已达上限 — 打开 Vox.md 以解锁"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "轉錄中..."
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已達上限 — 開啟 Vox.md 解鎖"
           }
         }
       }
     },
-    "Transcript saved, but the remaining text could not be safely inserted" : {
-
+    "No Model": {
+      "comment": "Keyboard toolbar label when no AI model is downloaded",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يوجد نموذج"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো মডেল নেই"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein Modell"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Model"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin Modelo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun Modèle"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोई मॉडल नहीं"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidak ada model"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun modello"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "モデルなし"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모델 없음"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen model"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brak modelu"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sem modelo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет модели"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "மாதிரி இல்லை"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ไม่มีโมเดล"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model Yok"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Немає моделі"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کوئی ماڈل نہیں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không Có Mô Hình"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无模型"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無模型"
+          }
+        }
+      }
     },
-    "Transcription timed out — try again" : {
-      "comment" : "Error status shown in the keyboard toolbar when transcription takes too long",
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "انتهت مهلة التفريغ — حاول مرة أخرى"
+    "No speech detected": {
+      "comment": "Error message when transcription finds no recognisable speech in the audio",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لم يتم اكتشاف كلام"
           }
         },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ট্রান্সক্রিপশন টাইম আউট — আবার চেষ্টা করুন"
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো বক্তৃতা শনাক্ত হয়নি"
           }
         },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zeitüberschreitung bei der Transkription — versuche es erneut"
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Sprache erkannt"
           }
         },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Transcription timed out — try again"
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No speech detected"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La transcripción expiró — inténtalo de nuevo"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se detectó voz"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Transcription expirée — réessayez"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune parole détectée"
           }
         },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ट्रांसक्रिप्शन का समय समाप्त हुआ — फिर से प्रयास करें"
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोई भाषण नहीं मिला"
           }
         },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Transkripsi habis waktu — coba lagi"
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ucapan tidak terdeteksi"
           }
         },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Timeout della trascrizione — riprova"
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun parlato rilevato"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文字起こしがタイムアウトしました — もう一度お試しください"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "音声が検出されませんでした"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "전사 시간이 초과되었습니다 — 다시 시도하세요"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "음성이 감지되지 않았습니다"
           }
         },
-        "nl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Transcriptie time-out — probeer opnieuw"
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen spraak gedetecteerd"
           }
         },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Upłynął limit czasu transkrypcji — spróbuj ponownie"
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie wykryto mowy"
           }
         },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tempo da transcrição esgotado — tente novamente"
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma fala detectada"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Время расшифровки истекло — попробуйте снова"
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Речь не обнаружена"
           }
         },
-        "ta" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "உரையாக்க நேரம் முடிந்தது — மீண்டும் முயற்சிக்கவும்"
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "பேச்சு கண்டறியப்படவில்லை"
           }
         },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "การถอดเสียงหมดเวลา — ลองอีกครั้ง"
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ไม่ตรวจพบคำพูด"
           }
         },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Yazıya dökme zaman aşımına uğradı — tekrar deneyin"
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konuşma algılanmadı"
           }
         },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Час очікування транскрипції вичерпано — спробуйте ще раз"
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мовлення не виявлено"
           }
         },
-        "ur" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ٹرانسکرپشن کا وقت ختم ہو گیا — دوبارہ کوشش کریں"
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کوئی آواز شناخت نہیں ہوئی"
           }
         },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Phiên âm hết thời gian — thử lại"
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không phát hiện giọng nói"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "转录超时 — 请重试"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未检测到语音"
           }
         },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "轉錄逾時 — 請重試"
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未偵測到語音"
+          }
+        }
+      }
+    },
+    "OPEN VOX.MD": {
+      "comment": "Keyboard toolbar status prompting the user to open the main Vox.md app",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "افتح VOX.MD"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOX.MD খুলুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOX.MD ÖFFNEN"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OPEN VOX.MD"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ABRIR VOX.MD"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OUVRIR VOX.MD"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOX.MD खोलें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "BUKA VOX.MD"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "APRI VOX.MD"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOX.MD を開く"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOX.MD 열기"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OPEN VOX.MD"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OTWÓRZ VOX.MD"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ABRIR VOX.MD"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ОТКРЫТЬ VOX.MD"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOX.MD ஐத் திற"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เปิด VOX.MD"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOX.MD'U AÇ"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ВІДКРИТИ VOX.MD"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VOX.MD کھولیں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MỞ VOX.MD"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 VOX.MD"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟 VOX.MD"
+          }
+        }
+      }
+    },
+    "Open Vox.md": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md مفتوحة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "খোলা Vox.md"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "öffnen Vox.md"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Vox.md"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "abierta Vox.md"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ouvert Vox.md"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "खुले Vox.md"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "terbuka Vox.md"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aperto Vox.md"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オープン Vox.md"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오픈 Vox.md"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Vox.md"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otwarcie Vox.md"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aberta Vox.md"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открытый Vox.md"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "திறந்த Vox.md"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เปิด Vox.md"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Açık Vox.md"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Відкритий Vox.md"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کھولنے Vox.md"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở Vox.md"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开放 Vox.md"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開放 Vox.md"
+          }
+        }
+      }
+    },
+    "Recording failed — try again": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الفيديو لا يحدث - حاول مرة أخرى"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রেকর্ডিং ব্যর্থ হয়েছে - আবার চেষ্টা করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme fehlgeschlagen - versuchen Sie es erneut"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording failed — try again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se logró la grabación - intente de nuevo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrement échoué - essayez à nouveau"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रिकॉर्डिंग विफल - फिर से कोशिश करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rekaman gagal - coba lagi"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registrazione fallita - riprovare"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "録音失敗 - 再度試してみる"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "녹음 실패 - 다시 시도"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opname mislukt - probeer het opnieuw"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nagranie nie powiodło się – spróbuj ponownie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravação falhou - tente novamente"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запись не удалась — попробуйте снова"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "பதிவிறக்கம் - முயற்சி செய்யவில்லை"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การบันทึกไม่สําเร็จ - ลองอีกครั้ง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt başarısız - tekrar deneyin"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запис не вдався — спробуйте ще раз"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ریکارڈنگ ناکام ہوگئی۔ دوبارہ کوشش کریں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã thất bại - thử lại"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "录制失败 - 再次尝试"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "錄製失敗 - 再次嘗試"
+          }
+        }
+      }
+    },
+    "TRANSCRIBING...": {
+      "comment": "Keyboard toolbar status shown while audio is being transcribed",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جارٍ التفريغ..."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রান্সক্রাইব করা হচ্ছে..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRANSKRIBIERE..."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRANSCRIBING..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRANSCRIBIENDO..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRANSCRIPTION..."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ट्रांसक्राइब हो रहा है..."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MENTRANSKRIPSI..."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRASCRIZIONE..."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こし中..."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전사 중..."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRANSCRIBEREN..."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRANSKRYPCJA..."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRANSCREVENDO..."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "РАСШИФРОВКА..."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "உரையாக்குகிறது..."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "กำลังถอดเสียง..."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YAZIYA DÖKÜLÜYOR..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ТРАНСКРИБУЄТЬСЯ..."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ٹرانسکرپشن جاری ہے..."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ĐANG PHIÊN ÂM..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转录中..."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轉錄中..."
+          }
+        }
+      }
+    },
+    "Transcribing %@": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تقييم %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনুবাদ %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transzendieren %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribing %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribiendo %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अनुवाद %@"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcripting %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "trascrizioni %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプション %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "번역하기 %@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcriptie %@"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "transkrypcja %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcrição %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Транскрипция %@"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "transcript எழுதுதல் %@"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การแปล %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribe Yapmak %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Транскрипція %@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ترجمہ کریں %@"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribe %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转载 %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轉載 %@"
+          }
+        }
+      }
+    },
+    "Transcribing…": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الترجمة..."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনুবাদ..."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translations..."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribing…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribir..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription..."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अनुवाद..."
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript..."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trascrizioni..."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻訳..."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "번역..."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribeer..."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribe..."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcrição..."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переписывать..."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "transcribe எழுதுதல்"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การแปล..."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcribe etmek..."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Транскрипція..."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ترجمہ کریں..."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转载..."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轉載..."
+          }
+        }
+      }
+    },
+    "Transcript saved, but the remaining text could not be safely inserted": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تم تخزين الترجمة ، ولكن لا يمكن إدخال النص المتبقي بشكل آمن"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রান্সক্রিপ্ট সংরক্ষিত, কিন্তু বাকি টেক্সট নিরাপদে ইনপুট করা যাবে না"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript gespeichert, aber der verbleibende Text konnte nicht sicher eingefügt werden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript saved, but the remaining text could not be safely inserted"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El transcripto se salvó, pero el texto restante no pudo ser insertado de forma segura"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La transcription a été enregistrée, mais le texte restant n'a pas pu être inséré en toute sécurité"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ट्रांसक्रिप्ट सहेजा गया, लेकिन शेष पाठ सुरक्षित रूप से डालें नहीं जा सकता"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript disimpan, tetapi teks yang tersisa tidak dapat ditambahkan dengan aman"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La trascrizione è stata salvata, ma il testo rimanente non è stato inserito in modo sicuro"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "トランスクリプトは保存されたが、残りのテキストは安全に挿入できない。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "트랜스크립트는 저장되었지만 나머지 텍스트는 안전하게 삽입할 수 없었습니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript opgeslagen, maar de resterende tekst kon niet veilig worden ingevoegd"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript zapisany, ale pozostały tekst nie można bezpiecznie wstawić"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcrição salvo, mas o texto restante não poderia ser inserido com segurança"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Транскрипт сохранен, но остаток текста не удалось безопасно вставить"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript save, but the remaining text could not be inserted பாதுகாப்பாக சேமிக்கப்பட்டது"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การบันทึกการพิมพ์ แต่ข้อความที่เหลือไม่สามารถแทรกได้อย่างปลอดภัย"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcript kaydedildi, ancak kalan metin güvenli bir şekilde yerleştirilemezdi"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Транскрипт зберегся, але залишок тексту не можна було вставити безпечно"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ٹرانسفر محفوظ کیا گیا ہے، لیکن باقی متن محفوظ طریقے سے داخل نہیں کیا جا سکتا"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkript được lưu, nhưng văn bản còn lại không thể được chèn an toàn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转录保存,但无法安全地插入剩余的文本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轉錄保存,但無法安全地插入剩餘的文本"
+          }
+        }
+      }
+    },
+    "Transcription progress": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تطور الترجمة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অনুবাদ অগ্রগতি"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription Fortschritte"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription progress"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcripción de progreso"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription progression"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अनुवाद की प्रगति"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription kemajuan"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progresso della trascrizione"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻訳の進展"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription 진행"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcriptie vooruitgang"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Postęp transkrypcji"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcrição de progresso"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перевод прогресса"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription வேதம்"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การเปลี่ยนแปลงการเขียน"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription gelişimi"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переклад прогресу"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ٹرانسفر کی ترقی"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription tiến bộ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转录进展"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轉錄進展"
+          }
+        }
+      }
+    },
+    "Transcription timed out — try again": {
+      "comment": "Error status shown in the keyboard toolbar when transcription takes too long",
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "انتهت مهلة التفريغ — حاول مرة أخرى"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ট্রান্সক্রিপশন টাইম আউট — আবার চেষ্টা করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zeitüberschreitung bei der Transkription — versuche es erneut"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription timed out — try again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La transcripción expiró — inténtalo de nuevo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcription expirée — réessayez"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ट्रांसक्रिप्शन का समय समाप्त हुआ — फिर से प्रयास करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transkripsi habis waktu — coba lagi"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timeout della trascrizione — riprova"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字起こしがタイムアウトしました — もう一度お試しください"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전사 시간이 초과되었습니다 — 다시 시도하세요"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transcriptie time-out — probeer opnieuw"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upłynął limit czasu transkrypcji — spróbuj ponownie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tempo da transcrição esgotado — tente novamente"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Время расшифровки истекло — попробуйте снова"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "உரையாக்க நேரம் முடிந்தது — மீண்டும் முயற்சிக்கவும்"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การถอดเสียงหมดเวลา — ลองอีกครั้ง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yazıya dökme zaman aşımına uğradı — tekrar deneyin"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Час очікування транскрипції вичерпано — спробуйте ще раз"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ٹرانسکرپشن کا وقت ختم ہو گیا — دوبارہ کوشش کریں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phiên âm hết thời gian — thử lại"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "转录超时 — 请重试"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "轉錄逾時 — 請重試"
+          }
+        }
+      }
+    },
+    "Vox.md did not start recording — reopen Listening Mode and try again": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md لم يبدأ الإصدار - قم بإعادة فتح وضع الاستماع ثم محاولة مرة أخرى"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md রেকর্ডিং শুরু হয়নি – শুনানির মোডটি পুনরায় চালু করুন এবং আবার চেষ্টা করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md die Aufnahme nicht gestartet wurde – öffnen Sie den Listening-Modus erneut und versuchen Sie es erneut"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md did not start recording — reopen Listening Mode and try again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md No se inició la grabación: reabre el modo de escucha y intenta de nuevo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md n'a pas démarré l'enregistrement - ouvrez à nouveau le mode écoute et essayez à nouveau"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md रिकॉर्डिंग शुरू नहीं हुआ - सुनने मोड को फिर से खोलें और फिर से कोशिश करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Tidak memulai rekaman – buka Mode Mendengarkan lagi dan coba lagi"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md non ha iniziato la registrazione: riaprite la modalità ascolto e riprovate"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 録音を開始しなかった - 再度聴くモードを開いて再度試行してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 녹음이 시작되지 않았습니다. - 청취 모드를 다시 열고 다시 시도합니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md niet begonnen met opnemen - open de luistermodus opnieuw en probeer het opnieuw"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md nie rozpoczął nagrywania – ponownie otwórz tryb słuchania i spróbuj ponownie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Não iniciou a gravação – reabre o Modo de escuta e tente novamente"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md не начали запись — перезапустите режим прослушивания и попробуйте снова"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md எழுதவில்லை – மீண்டும் செவியேற்கும் முறை திறக்கவும்"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ไม่เริ่มการบันทึก - เปิดโหมดฟังอีกครั้งและลองอีกครั้ง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Kayıt başlamadı – Dinleme Modunu yeniden açın ve tekrar deneyin"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md не почав записувати — знову відкрити режим прослуховування та спробувати"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md نہیں شروع کیا گیا ہے - دوبارہ سننے کے طریقے کو کھولیں اور دوبارہ کوشش کریں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md không bắt đầu ghi âm – mở lại Chế độ nghe và thử lại"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 未开始录制 - 重新打开听取模式,然后再试一次"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 未開始錄製 - 重新打開聽取模式,然後再試一次"
+          }
+        }
+      }
+    },
+    "‹": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "‹"
+          }
+        }
+      }
+    },
+    "›": {
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "›"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

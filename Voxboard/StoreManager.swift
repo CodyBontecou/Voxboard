@@ -81,7 +81,7 @@ final class StoreManager {
             }
             guard case .verified(let appTransaction) = verification,
                   appTransaction.bundleID == Bundle.main.bundleIdentifier else {
-                errorMessage = "Could not verify your App Store purchase history. Try Restore Purchases."
+                errorMessage = String(localized: "Could not verify your App Store purchase history. Try Restore Purchases.")
                 return
             }
 
@@ -97,7 +97,7 @@ final class StoreManager {
                 // that placeholder, but allow purchase testing to continue.
                 isOriginalPaidAppOwner = false
             } else {
-                errorMessage = "Could not verify your App Store purchase history. Try Restore Purchases."
+                errorMessage = String(localized: "Could not verify your App Store purchase history. Try Restore Purchases.")
                 return
             }
             usageTracker.completeLegacyAccessClassification(
@@ -107,7 +107,7 @@ final class StoreManager {
             hasVerifiedAppTransaction = true
         } catch {
             print("[StoreManager] App transaction verification failed: \(error)")
-            errorMessage = "Could not verify your App Store purchase history. Try Restore Purchases."
+            errorMessage = String(localized: "Could not verify your App Store purchase history. Try Restore Purchases.")
         }
     }
 
@@ -123,13 +123,13 @@ final class StoreManager {
                 productsByID[$0.rawValue] == nil
             }
             if hasMissingOffer {
-                errorMessage = "Some purchase options are temporarily unavailable."
+                errorMessage = String(localized: "Some purchase options are temporarily unavailable.")
             } else if isEntitlementStateReady {
                 errorMessage = nil
             }
         } catch {
             print("[StoreManager] Failed to load products: \(error)")
-            errorMessage = "Purchases are not available right now."
+            errorMessage = String(localized: "Purchases are not available right now.")
         }
     }
 
@@ -158,7 +158,7 @@ final class StoreManager {
         let analyticsProduct = OnboardingAnalyticsProductID(purchaseProduct)
 
         guard isEntitlementStateReady else {
-            errorMessage = "Could not verify purchase eligibility. Try Restore Purchases."
+            errorMessage = String(localized: "Could not verify purchase eligibility. Try Restore Purchases.")
             OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                 outcome: .failed,
                 context: context,
@@ -171,8 +171,8 @@ final class StoreManager {
 
         guard usageTracker.purchaseOptions.contains(purchaseProduct) else {
             errorMessage = purchaseProduct == .familyUpgrade
-                ? "The Family upgrade is available to existing Unlimited owners."
-                : "This purchase is not available for your current access level."
+                ? String(localized: "The Family upgrade is available to existing Unlimited owners.")
+                : String(localized: "This purchase is not available for your current access level.")
             OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                 outcome: .failed,
                 context: context,
@@ -184,7 +184,7 @@ final class StoreManager {
         }
 
         guard let product = product(for: purchaseProduct) else {
-            errorMessage = "Product not available"
+            errorMessage = String(localized: "Product not available")
             OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                 outcome: .failed,
                 context: context,
@@ -224,7 +224,7 @@ final class StoreManager {
                         quotaState: usageTracker.onboardingAnalyticsQuotaState
                     )
                 } catch {
-                    errorMessage = "Purchase verification failed"
+                    errorMessage = String(localized: "Purchase verification failed")
                     OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                         outcome: .failed,
                         context: context,
@@ -242,7 +242,7 @@ final class StoreManager {
                     quotaState: usageTracker.onboardingAnalyticsQuotaState
                 )
             case .pending:
-                errorMessage = "Purchase pending approval"
+                errorMessage = String(localized: "Purchase pending approval")
                 OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                     outcome: .pending,
                     context: context,
@@ -259,7 +259,7 @@ final class StoreManager {
                 )
             }
         } catch {
-            errorMessage = "Purchase failed: \(error.localizedDescription)"
+            errorMessage = String(localized: "Purchase failed: \(error.localizedDescription)")
             OnboardingAnalyticsClient.shared.trackPurchaseFinished(
                 outcome: .failed,
                 context: context,
@@ -300,8 +300,8 @@ final class StoreManager {
                 errorMessage = nil
             } else {
                 errorMessage = usageTracker.isLegacyAccessClassificationPending
-                    ? "Could not verify your previous purchase. Please try again."
-                    : "No Vox.md Unlimited purchase was found."
+                    ? String(localized: "Could not verify your previous purchase. Please try again.")
+                    : String(localized: "No Vox.md Unlimited purchase was found.")
             }
             OnboardingAnalyticsClient.shared.trackRestoreFinished(
                 outcome: restored ? .succeeded : .failed,
@@ -311,7 +311,7 @@ final class StoreManager {
                 quotaState: usageTracker.onboardingAnalyticsQuotaState
             )
         } catch {
-            errorMessage = "Restore failed: \(error.localizedDescription)"
+            errorMessage = String(localized: "Restore failed: \(error.localizedDescription)")
             OnboardingAnalyticsClient.shared.trackRestoreFinished(
                 outcome: .failed,
                 context: context,
@@ -382,9 +382,9 @@ enum StoreError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .failedVerification:
-            "Transaction verification failed"
+            String(localized: "Transaction verification failed")
         case .unrecognizedProduct:
-            "The transaction did not match a Vox.md product"
+            String(localized: "The transaction did not match a Vox.md product")
         }
     }
 }

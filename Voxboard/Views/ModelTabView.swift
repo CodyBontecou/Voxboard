@@ -92,7 +92,8 @@ struct ModelTabView: View {
                 modelManager.modelOperationError = nil
             }
         } message: {
-            Text(modelManager.modelOperationError ?? "The model operation could not be completed.")
+            Text(modelManager.modelOperationError
+                 ?? String(localized: "The model operation could not be completed."))
         }
     }
 
@@ -170,9 +171,9 @@ struct ModelTabView: View {
 
     private var automaticAvailabilityLabel: String {
         switch automaticAvailability {
-        case .ready: return "Apple Speech ready for this language"
-        case .supported: return "Apple Speech available; system asset may need preparation"
-        case .unavailable: return "Apple Speech unavailable; a downloaded fallback is required"
+        case .ready: return String(localized: "Apple Speech ready for this language")
+        case .supported: return String(localized: "Apple Speech available; system asset may need preparation")
+        case .unavailable: return String(localized: "Apple Speech unavailable; a downloaded fallback is required")
         }
     }
 
@@ -236,7 +237,7 @@ struct ModelTabView: View {
                     .font(Geist.mono())
                     .foregroundStyle(Geist.muted)
 
-                if let modelDescription = model.modelDescription {
+                if let modelDescription = model.localizedModelDescription {
                     Text(modelDescription)
                         .font(Geist.caption())
                         .foregroundStyle(Geist.muted)
@@ -340,7 +341,9 @@ struct ModelTabView: View {
                         Text("Voice Pause Detection")
                             .font(Geist.label(.body))
                             .foregroundStyle(Geist.text)
-                        Text(isDownloaded ? "Installed · Runs on device" : "Optional companion model · About 1 MB")
+                        Text(isDownloaded
+                             ? String(localized: "Installed · Runs on device")
+                             : String(localized: "Optional companion model · About 1 MB"))
                             .font(Geist.mono())
                             .foregroundStyle(Geist.muted)
                     }

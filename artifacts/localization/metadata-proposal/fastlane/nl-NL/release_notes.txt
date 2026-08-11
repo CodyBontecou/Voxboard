@@ -1,0 +1,5 @@
+Nieuw: Sprekerlabels op het apparaat voor lange opnamen.
+
+Verbeterd: Betrouwbaardere live-activiteitenbediening en veiligere lange opnamen.
+
+Opgelost: Widgets voor Snel vastleggen en Snel opnemen volgen nu de lichte en donkere weergave.

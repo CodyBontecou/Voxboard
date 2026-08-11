@@ -51,7 +51,9 @@ struct RectangularWidgetView: View {
                 Text("Vox.md")
                     .font(.system(size: 12, weight: .semibold, design: .default))
                     .widgetAccentable()
-                Text(entry.isQuickRecordEnabled ? (entry.isListening ? "Listening" : "Tap to record") : "Disabled")
+                Text(entry.isQuickRecordEnabled
+                     ? (entry.isListening ? String(localized: "Listening") : String(localized: "Tap to record"))
+                     : String(localized: "Disabled"))
                     .font(.system(size: 10, weight: .regular, design: .default))
                     .foregroundStyle(.secondary)
             }
@@ -72,7 +74,9 @@ struct SmallWidgetView: View {
                     Circle()
                         .fill(entry.isQuickRecordEnabled && entry.isListening ? Color.accentColor : Color.secondary)
                         .frame(width: 6, height: 6)
-                    Text(entry.isQuickRecordEnabled ? (entry.isListening ? "Listening" : "Ready") : "Disabled")
+                    Text(entry.isQuickRecordEnabled
+                         ? (entry.isListening ? String(localized: "Listening") : String(localized: "Ready"))
+                         : String(localized: "Disabled"))
                         .font(.system(size: 9, weight: .medium, design: .default))
                         .foregroundStyle(entry.isQuickRecordEnabled && entry.isListening ? .primary : .secondary)
                     Spacer()
@@ -82,7 +86,9 @@ struct SmallWidgetView: View {
                     .font(.system(size: 36, weight: .semibold))
                     .foregroundStyle(.primary)
                 Spacer()
-                Text(entry.isQuickRecordEnabled ? "Tap to Record" : "Enable in Settings")
+                Text(entry.isQuickRecordEnabled
+                     ? String(localized: "Tap to Record")
+                     : String(localized: "Enable in Settings"))
                     .font(.system(size: 9, weight: .medium, design: .default))
                     .foregroundStyle(.secondary)
             }

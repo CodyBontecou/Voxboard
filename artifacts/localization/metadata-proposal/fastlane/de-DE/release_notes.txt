@@ -1,0 +1,5 @@
+Neu: Sprecherkennzeichnungen auf dem Gerät für lange Aufnahmen.
+
+Verbessert: Zuverlässigere Live-Aktivitätssteuerung und sicherere lange Aufnahmen.
+
+Behoben: Widgets für Schnellerfassung und Schnellaufnahme passen nun zum hellen und dunklen Erscheinungsbild.

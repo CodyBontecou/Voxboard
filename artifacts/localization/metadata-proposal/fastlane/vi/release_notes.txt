@@ -1,0 +1,5 @@
+Mới: Nhãn người nói trên thiết bị cho các bản ghi dài.
+
+Cải thiện: Điều khiển Hoạt động trực tiếp đáng tin cậy hơn và bản ghi dài an toàn hơn.
+
+Đã sửa: Tiện ích Ghi nhanh và Ghi âm nhanh giờ phù hợp với giao diện sáng và tối.

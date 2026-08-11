@@ -4,10 +4,12 @@ struct InspirationQuote: Codable, Equatable, Sendable {
     let text: String
     let author: String
 
-    nonisolated static let fallback = InspirationQuote(
-        text: "Do what you can, with what you have, where you are.",
-        author: "Theodore Roosevelt"
-    )
+    nonisolated static var fallback: InspirationQuote {
+        InspirationQuote(
+            text: String(localized: "Do what you can, with what you have, where you are."),
+            author: String(localized: "Theodore Roosevelt")
+        )
+    }
 }
 
 actor InspirationQuoteService {

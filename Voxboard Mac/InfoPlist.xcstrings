@@ -1,0 +1,578 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "The Mac app name shown by the system.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription": {
+      "comment": "Privacy prompt explaining optional camera access on Mac.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md يستخدم الكاميرا فقط عندما تختار إضافة صورة إلى خطة التصوير."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md আপনি একটি ক্যাপচার ড্রাইভে একটি ছবি যোগ করার সিদ্ধান্ত নেওয়ার সময় কেবল ক্যামেরাটি ব্যবহার করুন।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Verwenden Sie die Kamera nur, wenn Sie ein Foto zu einem Aufnahmezweck hinzufügen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md uses the camera only when you choose to add a photo to a Capture draft."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utiliza la cámara sólo cuando elige agregar una foto a un proyecto de captura."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md n’utilise l’appareil photo que lorsque vous choisissez d’ajouter une photo à un projet de capture."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md केवल तब कैमरा का उपयोग करें जब आप एक कैप्चर ड्राफ्ट में एक फोटो जोड़ने का विकल्प चुनते हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md menggunakan kamera hanya ketika Anda memilih untuk menambahkan foto ke sketsa Capture."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utilizza la fotocamera solo quando si sceglie di aggiungere una foto a un progetto di Cattura."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md カメラを使用する場合にのみ、撮影プロジェクトに写真を追加することを選択します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 사진을 캡처 드래프트에 추가하기로 선택한 경우에만 카메라를 사용합니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md de camera alleen gebruikt wanneer u ervoor kiest om een foto toe te voegen aan een opname-ontwerp."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Używaj aparatu tylko wtedy, gdy wybierzesz opcję dodania zdjęcia do projektu Zdjęcia."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Use a câmera apenas quando você optar por adicionar uma foto a um projeto de captura."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md использует фотокамеру только тогда, когда вы выбираете добавление фотографии в проект"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md நீங்கள் ஒரு ஓவியத்தை ஒரு Capture draft-க்கு சேர்க்க விரும்பும் போது மட்டுமே கேமரா பயன்படுத்துகிறீர்கள்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ใช้กล้องเฉพาะเมื่อคุณเลือกเพิ่มภาพลงในวาดภาพ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Fotoğraf çekim dizisine bir fotoğraf eklemeyi seçtiğinizde sadece fotoğraf makinesi kullanır."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md використовує фотокамеру тільки тоді, коли ви вирішите додати фотографію до проекту"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md صرف جب آپ ایک تصویر کو ایک کیپنگ ڈراٹ میں شامل کرنے کا انتخاب کرتے ہیں تو اس کا استعمال کریں."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md chỉ sử dụng máy ảnh khi bạn chọn thêm ảnh vào bản phác thảo chụp."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 仅当您选择将照片添加到 Capture 草案时使用相机。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 僅當您選擇將照片添加到 Capture 草案時使用相機。"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription": {
+      "comment": "Privacy prompt explaining microphone access on Mac.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md يُسجل الصوت من ميكروفون المحلي حتى يمكنها تسجيل الكلام على هذا Mac."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md মাইক্রোফোনটি স্থানীয়ভাবে অডিও রেকর্ড করে যাতে এটি এই ম্যাকের ভাষণটি ট্রান্সকিপ্ট করতে পারে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Das Mikrofon speichert lokal Audio auf, damit es die Sprache auf diesem Mac transkribieren kann."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md records microphone audio locally so it can transcribe speech on this Mac."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md El micrófono graba el audio localmente para que pueda transcribir el habla en este Mac."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Le microphone enregistre l'audio localement afin qu'il puisse transcrire la parole sur ce Mac."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md माइक्रोफोन ऑडियो को स्थानीय रूप से रिकॉर्ड करता है ताकि यह इस मैक पर भाषण का ट्रांसक्रिप्शन कर सके।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md merekam audio mikrofon secara lokal sehingga dapat mencatat suara di Mac ini."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Il microfono registra l'audio localmente in modo che possa trascrivere il discorso su questo Mac."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md マイクのオーディオをローカルに録音し、この Mac でスピーチをトランスクリプトできます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 마이크가 로컬로 오디오를 기록하여 Mac에서 음성을 전송할 수 있습니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Het microfoon registreert lokaal audio zodat het spraak op deze Mac kan transcriberen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md mikrofon nagrywa dźwięk lokalnie, aby móc transkrybować mowę na tym komputerze Mac."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md O microfone grava o áudio localmente para que possa transcrever a fala neste Mac."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md микрофон записывает звук локально, чтобы он мог транскриптировать речь на этом Mac."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md இந்த மார்க் இன் பேச்சுப் பதிவிறக்கத்தை மேம்படுத்தும் மைக்ரோபின் அட்டைகள்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md บันทึกเสียงไมโครโฟนในท้องถิ่นเพื่อให้สามารถถ่ายทอดการพูดบน Mac นี้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Mikrofon sesini yerel olarak kaydeder, böylece bu Mac'te konuşma transkrip edebilir."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Мікрофон записує звук локально, щоб він міг транскрибувати мову на цьому Mac."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md میک فون آڈیو مقامی طور پر ریکارڈ کرتا ہے تاکہ یہ اس میک پر بات کا ٹرانسفر کرسکتا ہے."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Ghi âm thanh microphone tại chỗ để nó có thể ghi lại giọng nói trên máy Mac này."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 麦克风会本地记录音频,以便在 Mac 上转录语音。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 麥克風會本地記錄音頻,以便在 Mac 上轉錄語音。"
+          }
+        }
+      }
+    },
+    "NSSpeechRecognitionUsageDescription": {
+      "comment": "Privacy prompt explaining speech recognition on Mac.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستخدم Vox.md التعرف على الكلمة على الجهاز لتعرف على الفيديو أثناء تسجيل."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md আপনি রেকর্ডিং করার সময় একটি ট্রান্সক্রিপ্ট প্রাক-ভিউ করতে ডিভাইসের ভাষা স্বীকৃতি ব্যবহার করে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md verwendet die Spracherkennung auf dem Gerät, um eine Transkription während der Aufnahme vorzuzeigen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md uses on-device speech recognition to preview a transcript while you record."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utiliza el reconocimiento de voz en el dispositivo para ver un transcripto mientras graba."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Utilisez la reconnaissance vocale sur l’appareil pour prévisualiser une transcription pendant que vous enregistrez."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md आप रिकॉर्डिंग करते समय एक ट्रांसक्रिप्ट को प्रीव्यू करने के लिए डिवाइस पर भाषण पहचान का उपयोग करता है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md menggunakan pengenalan suara pada perangkat untuk menampilkan preview transkrip saat Anda merekam."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md utilizza il riconoscimento vocale sul dispositivo per visualizzare in anteprima una trascrizione mentre si registra."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md デバイス上の音声認識を使用して、録画中にトランスクリプトをプレビューします。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 장치에서 음성 인식을 사용하여 기록하는 동안 번호를 미리 볼 수 있습니다. uses on-device speech recognition to preview a transcript while you record"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Gebruik spraakherkenning op het apparaat om een transcript te previewen terwijl u opneemt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Używa rozpoznawania mowy na urządzeniu, aby wyświetlić transkrypcję podczas nagrywania."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Use o reconhecimento de voz no dispositivo para visualizar uma transcrição enquanto você grava."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md использует распознавание речи на устройстве для просмотра транскрипта во время записи."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md இவ்வாறு எழுதியிருந்தால், ஒரு பதிவை எழுதிக் கொண்டே எழுதலாம்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md ใช้การรับรู้เสียงบนอุปกรณ์เพื่อดูตัวอย่างก่อนการถ่ายภาพในขณะที่คุณบันทึก"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md Kayıt sırasında bir transkripti önizlemek için cihazda konuşma tanıma kullanır."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md використовує розпізнавання мови на пристрої для перегляду транскрипту під час запису."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md آپ کو ایک ٹرانسفر کو پیش نظارہ کرنے کے لئے آلہ پر آواز کی شناخت کا استعمال کرتے ہیں جب آپ ریکارڈ کرتے ہیں."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md sử dụng nhận dạng giọng nói trên thiết bị để xem trước một bản ghi trong khi bạn ghi."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 使用设备上的语音识别来预览录制时的转录。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vox.md 使用設備上的語音識別來預覽錄製時的轉錄。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

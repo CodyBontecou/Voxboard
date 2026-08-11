@@ -235,42 +235,46 @@ struct VoxboardWatchRecordWidgetView: View {
     private var inlineTitle: String {
         switch entry.snapshot.phase {
         case .recording:
-            return "Recording"
+            return String(localized: "Recording")
         case .paused:
-            return "Paused"
+            return String(localized: "Paused")
         case .syncing:
-            return "Syncing"
+            return String(localized: "Syncing")
         case .transcribing:
-            return "Transcribing"
+            return String(localized: "Transcribing")
         case .delivering:
-            return "Saving"
+            return String(localized: "Saving")
         case .pending:
-            return "Synced"
+            return String(localized: "Synced")
         case .error:
-            return "Check Vox.md"
+            return String(localized: "Check Vox.md")
         case .unavailable:
-            return "Open iPhone"
+            return String(localized: "Open iPhone")
         case .idle, .listening:
-            return entry.snapshot.queuedCount > 0 ? entry.snapshot.subtitle : "Record to Vox.md"
+            return entry.snapshot.queuedCount > 0
+                ? entry.snapshot.subtitle
+                : String(localized: "Record to Vox.md")
         }
     }
 
     private var cornerLabel: String {
         switch entry.snapshot.phase {
         case .recording, .paused:
-            return "Stop"
+            return String(localized: "Stop")
         case .syncing:
-            return "Sync"
+            return String(localized: "Sync")
         case .transcribing:
-            return "Text"
+            return String(localized: "Text")
         case .delivering:
-            return "Save"
+            return String(localized: "Save")
         case .pending:
-            return "Sent"
+            return String(localized: "Sent")
         case .error, .unavailable:
-            return "Open"
+            return String(localized: "Open")
         default:
-            return entry.snapshot.queuedCount > 0 ? "Sync" : "Record"
+            return entry.snapshot.queuedCount > 0
+                ? String(localized: "Sync")
+                : String(localized: "Record")
         }
     }
 

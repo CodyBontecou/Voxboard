@@ -72,7 +72,9 @@ struct MacEntryTemplateLibraryView: View {
     private func templateSummary(_ template: CaptureEntryTemplate) -> String {
         let lineCount = (template.entryPrefix + template.entrySuffix)
             .split(separator: "\n", omittingEmptySubsequences: false).count
-        return "\(lineCount) formatting line\(lineCount == 1 ? "" : "s")"
+        return lineCount == 1
+            ? String(localized: "1 formatting line")
+            : String(localized: "\(lineCount) formatting lines")
     }
 
     private func store() throws -> CaptureLibraryStore {
@@ -148,11 +150,15 @@ private struct MacEntryTemplateEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Geist.Spacing.four) {
             HStack {
-                Text(existing == nil ? "Add Entry Template" : "Edit Entry Template")
+                Text(existing == nil
+                     ? String(localized: "Add Entry Template")
+                     : String(localized: "Edit Entry Template"))
                     .font(Geist.heading(.title2))
                 Spacer()
                 Button("Cancel") { dismiss() }
-                Button(isSaving ? "Saving…" : "Save") { Task { await saveTemplate() } }
+                Button(isSaving ? String(localized: "Saving…") : String(localized: "Save")) {
+                    Task { await saveTemplate() }
+                }
                     .buttonStyle(.borderedProminent)
                     .disabled(isSaving)
             }
@@ -177,7 +183,7 @@ private struct MacEntryTemplateEditor: View {
     private func saveTemplate() async {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else {
-            errorMessage = "Enter a template name."
+            errorMessage = String(localized: "Enter a template name.")
             return
         }
         isSaving = true
@@ -198,5 +204,5 @@ private struct MacEntryTemplateEditor: View {
 
 private enum MacEntryTemplateError: LocalizedError {
     case storageUnavailable
-    var errorDescription: String? { "Shared Capture storage is unavailable." }
+    var errorDescription: String? { String(localized: "Shared Capture storage is unavailable.") }
 }

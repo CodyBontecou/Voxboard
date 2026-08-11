@@ -7,7 +7,7 @@ enum VoiceAutoStopCoordinatorError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .audioOverwritten:
-            return "Voice pause detection audio was overwritten."
+            return String(localized: "Voice pause detection audio was overwritten.")
         }
     }
 }

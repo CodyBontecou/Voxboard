@@ -37,7 +37,9 @@ struct VoxboardLiveActivity: Widget {
                             .font(.headline)
                             .foregroundStyle(.white)
                     } else {
-                        Text(context.state.isTranscribing ? "Working" : "Ready")
+                        Text(context.state.isTranscribing
+                             ? String(localized: "Working")
+                             : String(localized: "Ready"))
                             .font(.headline)
                             .foregroundStyle(.white.opacity(0.7))
                     }
@@ -119,7 +121,9 @@ private struct LockScreenBanner: View {
                     ProgressView(value: progress)
                         .tint(.white)
                 } else {
-                    Text(state.isTranscribing ? "Processing audio" : "Tap to record")
+                    Text(state.isTranscribing
+                         ? String(localized: "Processing audio")
+                         : String(localized: "Tap to record"))
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.7))
                 }
@@ -193,8 +197,8 @@ private extension VoxboardLiveActivityState {
     }
 
     var activityTitle: String {
-        if isSegmentActive { return "Recording" }
-        if isTranscribing { return "Processing" }
+        if isSegmentActive { return String(localized: "Recording") }
+        if isTranscribing { return String(localized: "Processing") }
         return "Vox.md"
     }
 

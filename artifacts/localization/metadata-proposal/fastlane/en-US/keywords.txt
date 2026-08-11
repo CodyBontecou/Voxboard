@@ -1,0 +1,1 @@
+obsidian,vault,voice,typing,speech,text,keyboard,transcribe,dictation,offline,files,scanner,photos

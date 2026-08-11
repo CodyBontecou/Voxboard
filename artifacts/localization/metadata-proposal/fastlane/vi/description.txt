@@ -1,0 +1,7 @@
+Vox.md là ứng dụng ghi nhanh hoạt động cục bộ cho Obsidian và Markdown. Gửi văn bản, liên kết, ảnh, tệp, bản quét tài liệu, bản phác thảo và giọng nói đến đúng ghi chú.
+
+Cấu hình ghi nhanh ghi nhớ đích, mẫu, siêu dữ liệu, tệp đính kèm và vị trí. Dùng Vox.md từ ứng dụng, Bảng chia sẻ, bàn phím tùy chỉnh, tiện ích, Phím tắt hoặc Apple Watch. Nội dung đang chờ gửi vẫn có thể được thử lại.
+
+Chuyển giọng nói thành văn bản chạy trên thiết bị bằng Apple Speech, Whisper hoặc Parakeet. Âm thanh, bản chép lời, nội dung đã nhập, đường dẫn tệp và dấu trang không được gửi đến máy chủ Vox.md. Vox.md ghi Markdown chuẩn vào các thư mục và kho Obsidian bạn chọn; không cần tài khoản hoặc cơ sở dữ liệu ghi chú độc quyền.
+
+Người dùng mới có 15 phút chép lời miễn phí và 10 lần gửi thành công. Một lần mua sẽ mở khóa quyền sử dụng không giới hạn.

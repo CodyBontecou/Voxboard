@@ -198,6 +198,9 @@ struct WatchRecorderView: View {
                 .environmentObject(localRecorder)
         }
         .task {
+            #if DEBUG
+            if localRecorder.configureLocalizationScreenshotIfNeeded() { return }
+            #endif
             bridge.activate()
             try? await Task.sleep(nanoseconds: 750_000_000)
             #if DEBUG
@@ -282,7 +285,7 @@ struct WatchRecorderView: View {
                 statusIcon(size: 44, symbolSize: 18)
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(localRecorder.isPaused ? "Paused" : "Recording")
+                    Text(localRecorder.isPaused ? String(localized: "Paused") : String(localized: "Recording"))
                         .font(WatchGeist.label(.caption))
                         .foregroundStyle(WatchGeist.text)
                     Text(formattedDuration(localRecorder.duration))
@@ -306,7 +309,9 @@ struct WatchRecorderView: View {
                     WatchWaveformView(color: WatchGeist.red)
                         .frame(width: 64)
                 }
-                Text(localRecorder.isPaused ? "Resume • Stop • Cancel" : "Pause • Stop • Cancel")
+                Text(localRecorder.isPaused
+                     ? String(localized: "Resume • Stop • Cancel")
+                     : String(localized: "Pause • Stop • Cancel"))
                     .font(WatchGeist.caption())
                     .foregroundStyle(WatchGeist.muted)
                     .lineLimit(1)
@@ -370,8 +375,12 @@ struct WatchRecorderView: View {
             )
         )
         .disabled(isSending || (!localRecorder.isRecording && !canStartRecording))
-        .accessibilityLabel(localRecorder.isRecording ? "Stop Watch recording" : "Start Watch recording")
-        .accessibilityHint(localRecorder.isRecording ? "Stops and safely saves this recording." : "Starts a recording stored locally on this Watch.")
+        .accessibilityLabel(localRecorder.isRecording
+                            ? String(localized: "Stop Watch recording")
+                            : String(localized: "Start Watch recording"))
+        .accessibilityHint(localRecorder.isRecording
+                           ? String(localized: "Stops and safely saves this recording.")
+                           : String(localized: "Starts a recording stored locally on this Watch."))
     }
 
     private var pauseResumeButton: some View {
@@ -380,15 +389,19 @@ struct WatchRecorderView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: localRecorder.isPaused ? "play.fill" : "pause.fill")
-                Text(localRecorder.isPaused ? "Resume" : "Pause")
+                Text(localRecorder.isPaused ? String(localized: "Resume") : String(localized: "Pause"))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             }
         }
         .buttonStyle(WatchGeistButtonStyle(variant: .secondary))
         .disabled(isSending)
-        .accessibilityLabel(localRecorder.isPaused ? "Resume Watch recording" : "Pause Watch recording")
-        .accessibilityHint(localRecorder.isPaused ? "Continues adding audio to this recording." : "Temporarily stops adding audio without ending the recording.")
+        .accessibilityLabel(localRecorder.isPaused
+                            ? String(localized: "Resume Watch recording")
+                            : String(localized: "Pause Watch recording"))
+        .accessibilityHint(localRecorder.isPaused
+                           ? String(localized: "Continues adding audio to this recording.")
+                           : String(localized: "Temporarily stops adding audio without ending the recording."))
     }
 
     private var cancelRecordingButton: some View {
@@ -414,14 +427,18 @@ struct WatchRecorderView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: isSending ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
-                Text(localRecorder.hasUnuploadedRecordings ? "Sync" : "Refresh")
+                Text(localRecorder.hasUnuploadedRecordings
+                     ? String(localized: "Sync")
+                     : String(localized: "Refresh"))
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
             }
         }
         .buttonStyle(WatchGeistButtonStyle(variant: .secondary))
         .disabled(isSending || localRecorder.isRecording)
-        .accessibilityHint(localRecorder.queuedCount > 0 ? "Sends saved Watch recordings to your iPhone." : "Refreshes the connection with your iPhone.")
+        .accessibilityHint(localRecorder.queuedCount > 0
+                           ? String(localized: "Sends saved Watch recordings to your iPhone.")
+                           : String(localized: "Refreshes the connection with your iPhone."))
     }
 
     private var captureContextCard: some View {
@@ -477,13 +494,15 @@ struct WatchRecorderView: View {
         .disabled(localRecorder.isRecording)
         .opacity(localRecorder.isRecording ? 0.55 : 1)
         .accessibilityLabel("Capture Preset \(displayedPresetName). Change preset. \(localRecorder.queuedCount) recordings in the Watch queue.")
-        .accessibilityHint(localRecorder.isRecording ? "Finish recording before changing presets." : "Shows Capture Presets from your iPhone.")
+        .accessibilityHint(localRecorder.isRecording
+                           ? String(localized: "Finish recording before changing presets.")
+                           : String(localized: "Shows Capture Presets from your iPhone."))
     }
 
     private var displayedPresetName: String {
         localRecorder.recordingPresetName
             ?? bridge.snapshot.selectedPresetName
-            ?? "iPhone Default"
+            ?? String(localized: "iPhone Default")
     }
 
     private var selectedPresetSymbolName: String {
@@ -500,27 +519,29 @@ struct WatchRecorderView: View {
 
     private var statusHeadline: String {
         if !localRecorder.isRecording, !canStartRecording {
-            return "Preset needed"
+            return String(localized: "Preset needed")
         }
         switch localRecorder.phase {
         case .recording:
-            return "Recording"
+            return String(localized: "Recording")
         case .paused:
-            return "Paused"
+            return String(localized: "Paused")
         case .transferring:
-            return "Syncing to iPhone"
+            return String(localized: "Syncing to iPhone")
         case .waitingForPhone:
-            return "On iPhone"
+            return String(localized: "On iPhone")
         case .transcribing:
-            return "Transcribing"
+            return String(localized: "Transcribing")
         case .delivering:
-            return "Saving on iPhone"
+            return String(localized: "Saving on iPhone")
         case .transferred:
-            return "Saved on iPhone"
+            return String(localized: "Saved on iPhone")
         case .error:
-            return "Needs attention"
+            return String(localized: "Needs attention")
         case .idle:
-            return localRecorder.queuedCount > 0 ? "Ready" : "Voice Capture"
+            return localRecorder.queuedCount > 0
+                ? String(localized: "Ready")
+                : String(localized: "Voice Capture")
         }
     }
 
@@ -537,36 +558,36 @@ struct WatchRecorderView: View {
 
     private var statusSubtitle: String {
         if !localRecorder.isRecording, !canStartRecording {
-            return "Enable a Capture Preset in Vox.md on iPhone."
+            return String(localized: "Enable a Capture Preset in Vox.md on iPhone.")
         }
         switch localRecorder.phase {
         case .recording:
-            return "Pause for a break, Stop to save, or Cancel to delete."
+            return String(localized: "Pause for a break, Stop to save, or Cancel to delete.")
         case .paused:
             if let message = localRecorder.message, !message.isEmpty {
                 return message
             }
-            return "Resume to continue, Stop to save, or Cancel to delete."
+            return String(localized: "Resume to continue, Stop to save, or Cancel to delete.")
         case .transferring:
-            return "Your recording remains safe while it moves to iPhone."
+            return String(localized: "Your recording remains safe while it moves to iPhone.")
         case .waitingForPhone:
-            return "Safely queued and waiting to process."
+            return String(localized: "Safely queued and waiting to process.")
         case .transcribing:
-            return "Your iPhone is transcribing on device."
+            return String(localized: "Your iPhone is transcribing on device.")
         case .delivering:
-            return "Saving through your selected Capture Preset."
+            return String(localized: "Saving through your selected Capture Preset.")
         case .transferred:
-            return "Delivered successfully. You can record another."
+            return String(localized: "Delivered successfully. You can record another.")
         case .error(let message):
             return message
         case .idle:
             if localRecorder.queuedCount == 1 {
-                return "1 recording safe on Watch."
+                return String(localized: "1 recording safe on Watch.")
             }
             if localRecorder.queuedCount > 1 {
-                return "\(localRecorder.queuedCount) recordings safe on Watch."
+                return String(localized: "\(localRecorder.queuedCount) recordings safe on Watch.")
             }
-            return "Capture on Watch. Syncs to iPhone."
+            return String(localized: "Capture on Watch. Syncs to iPhone.")
         }
     }
 
@@ -580,23 +601,25 @@ struct WatchRecorderView: View {
     private var phaseBadgeLabel: String {
         switch localRecorder.phase {
         case .recording:
-            return "Live"
+            return String(localized: "Live")
         case .paused:
-            return "Paused"
+            return String(localized: "Paused")
         case .transferring:
-            return "Sync"
+            return String(localized: "Sync")
         case .waitingForPhone:
-            return "Queued"
+            return String(localized: "Queued")
         case .transcribing:
-            return "Text"
+            return String(localized: "Text")
         case .delivering:
-            return "Save"
+            return String(localized: "Save")
         case .transferred:
-            return "Sent"
+            return String(localized: "Sent")
         case .error:
-            return "Alert"
+            return String(localized: "Alert")
         case .idle:
-            return localRecorder.queuedCount > 0 ? "Queue" : "Ready"
+            return localRecorder.queuedCount > 0
+                ? String(localized: "Queue")
+                : String(localized: "Ready")
         }
     }
 
@@ -636,10 +659,12 @@ struct WatchRecorderView: View {
 
     private var accessibilityStatusLabel: String {
         if localRecorder.isRecording {
-            let state = localRecorder.isPaused ? "paused" : "recording"
-            return "Vox.md \(state) at \(formattedDuration(localRecorder.duration)). \(statusSubtitle)"
+            let state = localRecorder.isPaused
+                ? String(localized: "paused")
+                : String(localized: "recording")
+            return String(localized: "Vox.md \(state) at \(formattedDuration(localRecorder.duration)). \(statusSubtitle)")
         }
-        return "Vox.md Watch status: \(phaseBadgeLabel). \(statusSubtitle)"
+        return String(localized: "Vox.md Watch status: \(phaseBadgeLabel). \(statusSubtitle)")
     }
 
     private func formattedDuration(_ duration: TimeInterval) -> String {
@@ -809,8 +834,12 @@ private struct WatchCapturePresetPickerView: View {
         .buttonStyle(.plain)
         .disabled(localRecorder.isRecording)
         .opacity(localRecorder.isRecording ? 0.55 : 1)
-        .accessibilityLabel("\(preset.displayName) Capture Preset\(isSelected ? ", selected" : "")")
-        .accessibilityHint(isSelected ? "Closes the picker." : "Uses this preset for future Watch recordings.")
+        .accessibilityLabel(isSelected
+                            ? String(localized: "\(preset.displayName) Capture Preset, selected")
+                            : String(localized: "\(preset.displayName) Capture Preset"))
+        .accessibilityHint(isSelected
+                           ? String(localized: "Closes the picker.")
+                           : String(localized: "Uses this preset for future Watch recordings."))
     }
 
     @ViewBuilder
@@ -879,9 +908,9 @@ private struct WatchCapturePresetPickerView: View {
     private var emptyStateMessage: String {
         if bridge.snapshot.hasPresetSelectionAvailabilityPayload,
            !bridge.snapshot.presetSelectionIsAvailable {
-            return "Enable a Capture Preset in Vox.md on iPhone."
+            return String(localized: "Enable a Capture Preset in Vox.md on iPhone.")
         }
-        return "Open Vox.md on iPhone to sync your Capture Presets."
+        return String(localized: "Open Vox.md on iPhone to sync your Capture Presets.")
     }
 
     @MainActor

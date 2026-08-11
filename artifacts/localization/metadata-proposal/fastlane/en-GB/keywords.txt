@@ -1,0 +1,1 @@
+voice input,speech transcription,audio-to-text,whisper,offline typing,private dictation,mic,notes,ai

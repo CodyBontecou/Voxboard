@@ -1,0 +1,7 @@
+Vox.md adalah aplikasi tangkapan lokal untuk Obsidian dan Markdown. Kirim teks, tautan, foto, file, pindaian dokumen, sketsa, dan suara ke catatan yang tepat.
+
+Preset Tangkapan mengingat tujuan, templat, metadata, lampiran, dan penempatan. Gunakan Vox.md dari aplikasi, lembar berbagi, papan ketik khusus, widget, Pintasan, atau Apple Watch. Pengiriman tertunda tetap tersedia untuk dicoba lagi.
+
+Ucapan-ke-teks berjalan di perangkat dengan Apple Speech, Whisper, atau Parakeet. Audio, transkrip, konten ketikan, jalur file, dan penanda tidak dikirim ke server Vox.md. Vox.md menulis Markdown standar ke folder dan vault Obsidian yang Anda pilih; akun atau basis data catatan milik vendor tidak diperlukan.
+
+Pengguna baru memperoleh 15 menit transkripsi gratis dan 10 pengiriman berhasil. Satu pembelian membuka penggunaan tanpa batas.

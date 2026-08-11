@@ -8,7 +8,7 @@ private enum LiveSegmentCoordinatorError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .audioOverwritten:
-            return "Live transcription audio was overwritten."
+            return String(localized: "Live transcription audio was overwritten.")
         case .feedFailed(let message):
             return message
         }
@@ -71,7 +71,7 @@ actor LiveSegmentTranscriptionCoordinator {
 
     func finish(through endIndex: Int64) async throws -> SystemTranscriptionOutput {
         guard !isFinished else {
-            throw LiveSegmentCoordinatorError.feedFailed("Live transcription already ended.")
+            throw LiveSegmentCoordinatorError.feedFailed(String(localized: "Live transcription already ended."))
         }
         isFinished = true
         feederTask?.cancel()

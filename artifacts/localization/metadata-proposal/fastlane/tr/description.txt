@@ -1,0 +1,7 @@
+Vox.md, Obsidian ve Markdown için yerel çalışan bir yakalama uygulamasıdır. Metin, bağlantı, fotoğraf, dosya, belge taraması, çizim ve sesi doğru nota gönderin.
+
+Yakalama Ön Ayarları hedefi, şablonu, meta verileri, ekleri ve yerleşimi hatırlar. Vox.md’yi uygulamadan, Paylaşım Sayfasından, özel klavyeden, araç takımlarından, Kestirmelerden veya Apple Watch’tan kullanın. Bekleyen teslimler yeniden denenebilir.
+
+Konuşmayı metne dönüştürme Apple Speech, Whisper veya Parakeet ile aygıtta çalışır. Ses, transkriptler, yazılan içerik, dosya yolları ve yer imleri Vox.md sunucularına gönderilmez. Vox.md, seçtiğiniz klasörlere ve Obsidian kasalarına standart Markdown yazar; hesap veya özel bir not veritabanı gerekmez.
+
+Yeni kullanıcılar 15 ücretsiz transkripsiyon dakikası ve 10 başarılı teslim alır. Tek seferlik satın alma sınırsız kullanımı açar.

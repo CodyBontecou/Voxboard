@@ -91,7 +91,7 @@ struct MacCaptureDestinationEditor: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(fixedName == nil ? "Identity" : "Preset Destination") {
+                Section(fixedName == nil ? String(localized: "Identity") : String(localized: "Preset Destination")) {
                     if let fixedName {
                         LabeledContent("Preset", value: fixedName)
                     } else {
@@ -105,7 +105,9 @@ struct MacCaptureDestinationEditor: View {
                     Picker("Target", selection: $targetKind) {
                         ForEach(TargetKind.allCases) { Text($0.title).tag($0) }
                     }
-                    TextField(targetKind == .existingNote ? "Relative Note Path" : "Path Template", text: $path)
+                    TextField(targetKind == .existingNote
+                              ? String(localized: "Relative Note Path")
+                              : String(localized: "Path Template"), text: $path)
                     if targetKind == .existingNote {
                         Button("Choose Existing Note…") { chooseExistingNote() }
                             .disabled(rootBookmark.isEmpty)
@@ -170,11 +172,15 @@ struct MacCaptureDestinationEditor: View {
                 if let errorMessage { Text(errorMessage).foregroundStyle(.red) }
             }
             .formStyle(.grouped)
-            .navigationTitle(existing == nil ? "Set Up Destination" : "Edit Destination")
+            .navigationTitle(existing == nil
+                             ? String(localized: "Set Up Destination")
+                             : String(localized: "Edit Destination"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(isSaving ? "Saving…" : "Save") { Task { await save() } }.disabled(isSaving)
+                    Button(isSaving ? String(localized: "Saving…") : String(localized: "Save")) {
+                        Task { await save() }
+                    }.disabled(isSaving)
                 }
             }
         }
@@ -192,7 +198,7 @@ struct MacCaptureDestinationEditor: View {
             panel.allowsMultipleSelection = false
             panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText, .plainText]
             panel.directoryURL = rootURL
-            panel.prompt = "Choose Note"
+            panel.prompt = String(localized: "Choose Note")
             guard panel.runModal() == .OK, let selectedURL = panel.url?.standardizedFileURL else { return }
             let rootAccess = rootURL.startAccessingSecurityScopedResource()
             let selectedAccess = selectedURL.startAccessingSecurityScopedResource()
@@ -221,7 +227,7 @@ struct MacCaptureDestinationEditor: View {
         panel.canChooseDirectories = true
         panel.canChooseFiles = false
         panel.allowsMultipleSelection = false
-        panel.prompt = "Choose"
+        panel.prompt = String(localized: "Choose")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         let didAccess = url.startAccessingSecurityScopedResource()
         defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
@@ -252,7 +258,7 @@ struct MacCaptureDestinationEditor: View {
             panel.allowsMultipleSelection = false
             panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText]
             panel.directoryURL = rootURL
-            panel.prompt = "Choose Template"
+            panel.prompt = String(localized: "Choose Template")
             guard panel.runModal() == .OK, let selectedURL = panel.url?.standardizedFileURL else { return }
             guard selectedURL.pathExtension.lowercased() == "md" else {
                 throw MacCaptureRouteError.markdownTemplateRequired
@@ -319,7 +325,7 @@ struct MacCaptureDestinationEditor: View {
         _ = try MarkdownDocumentEditor().applying(
             MarkdownCaptureMutation(
                 requestID: UUID(),
-                entry: "Vox.md route preflight",
+                entry: String(localized: "Vox.md route preflight"),
                 placement: placement
             ),
             to: markdown
@@ -393,14 +399,14 @@ private enum MacCaptureRouteError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .storageUnavailable: "Shared capture storage is unavailable."
-        case .folderRequired: "Choose a vault or folder."
-        case .headingRequired: "Enter a heading title."
-        case .folderPermissionExpired: "The selected vault or folder permission expired. Choose it again."
-        case .noteOutsideRoot: "Choose a Markdown note inside the selected vault or folder."
-        case .templateOutsideRoot: "Choose a Markdown template inside the selected vault or folder."
-        case .markdownTemplateRequired: "Choose a Markdown (.md) template file."
-        case .existingNoteMissing(let path): "The existing note ‘\(path)’ was not found in the selected vault or folder."
+        case .storageUnavailable: String(localized: "Shared capture storage is unavailable.")
+        case .folderRequired: String(localized: "Choose a vault or folder.")
+        case .headingRequired: String(localized: "Enter a heading title.")
+        case .folderPermissionExpired: String(localized: "The selected vault or folder permission expired. Choose it again.")
+        case .noteOutsideRoot: String(localized: "Choose a Markdown note inside the selected vault or folder.")
+        case .templateOutsideRoot: String(localized: "Choose a Markdown template inside the selected vault or folder.")
+        case .markdownTemplateRequired: String(localized: "Choose a Markdown (.md) template file.")
+        case .existingNoteMissing(let path): String(localized: "The existing note ‘\(path)’ was not found in the selected vault or folder.")
         }
     }
 }

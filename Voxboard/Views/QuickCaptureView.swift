@@ -136,6 +136,13 @@ struct QuickCaptureView: View {
         _pendingWidgetRecord = pendingWidgetRecord
         self.captureToolbarPreferences = captureToolbarPreferences
         self.openSettings = openSettings
+        #if DEBUG
+        let screenshotStory = RootDestination.localizationScreenshotStory
+        _showsVoiceCaptureDetails = State(
+            initialValue: screenshotStory == "02-live-recording"
+                || screenshotStory == "05-live-recording"
+        )
+        #endif
     }
 
     var body: some View {
@@ -164,7 +171,7 @@ struct QuickCaptureView: View {
                     GeistDivider()
                 }
 
-                if viewModel.selectedDestination == nil {
+                if viewModel.selectedDestination == nil && !isLocalizationScreenshot {
                     emptyDestinationBanner
                     GeistDivider()
                 }
@@ -552,7 +559,7 @@ struct QuickCaptureView: View {
                 Text("Live transcript · sending immediately")
                     .font(Geist.caption(.caption2))
                     .foregroundStyle(Geist.Palette.blue700)
-                Text(visibleTranscript.isEmpty ? "Listening for speech…" : visibleTranscript)
+                Text(visibleTranscript.isEmpty ? String(localized: "Listening for speech…") : visibleTranscript)
                     .font(Geist.body())
                     .foregroundStyle(visibleTranscript.isEmpty ? Geist.muted : Geist.text)
                     .lineLimit(4)
@@ -733,7 +740,9 @@ struct QuickCaptureView: View {
                     }
                     .buttonStyle(.plain)
                     .disabled(recordingOptionsAreLocked)
-                    .accessibilityLabel(persistentRecorder.isListening ? "Stop keyboard listening" : "Start keyboard listening")
+                    .accessibilityLabel(persistentRecorder.isListening
+                                        ? String(localized: "Stop keyboard listening")
+                                        : String(localized: "Start keyboard listening"))
                     .accessibilityIdentifier("capture_keyboard_listening")
                 }
 
@@ -748,7 +757,9 @@ struct QuickCaptureView: View {
                 if let result = persistentRecorder.lastTranscriptionResult {
                     HStack(spacing: Geist.Spacing.two) {
                         Image(systemName: lastStartedRecordingMode == .draft ? "text.badge.plus" : "checkmark.circle.fill")
-                        Text(lastStartedRecordingMode == .draft ? "Transcript added to Capture" : "Sent with Preset")
+                        Text(lastStartedRecordingMode == .draft
+                             ? String(localized: "Transcript added to Capture")
+                             : String(localized: "Sent with Preset"))
                             .font(Geist.caption())
                         Spacer()
                         Button("Copy") { UIPasteboard.general.string = result }
@@ -796,7 +807,7 @@ struct QuickCaptureView: View {
         } else {
             Button(action: startInlineRecording) {
                 Label(
-                    usageTracker.isAtLimit ? "Unlock" : "Record",
+                    usageTracker.isAtLimit ? String(localized: "Unlock") : String(localized: "Record"),
                     systemImage: usageTracker.isAtLimit ? "lock.fill" : "mic.fill"
                 )
             }
@@ -1070,7 +1081,7 @@ struct QuickCaptureView: View {
     }
 
     private var activeCapturePrompt: String? {
-        let trimmed = selectedFlow.capturePrompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = selectedFlow.displayCapturePrompt
         return trimmed.isEmpty ? nil : trimmed
     }
 
@@ -1228,7 +1239,7 @@ struct QuickCaptureView: View {
     private var captureActionBar: some View {
         HStack(spacing: 8) {
             routeStatusButton(
-                "Recent captures",
+                String(localized: "Recent captures"),
                 icon: "clock.arrow.circlepath"
             ) {
                 dismissComposer()
@@ -1262,8 +1273,10 @@ struct QuickCaptureView: View {
 
             routeStatusButton(
                 viewModel.isSubmitting
-                    ? "Sending capture"
-                    : (captureSubmissionRequiresUnlock ? "Unlock unlimited captures" : "Send capture"),
+                    ? String(localized: "Sending capture")
+                    : (captureSubmissionRequiresUnlock
+                       ? String(localized: "Unlock unlimited captures")
+                       : String(localized: "Send capture")),
                 icon: captureSubmissionRequiresUnlock ? "lock.fill" : "arrow.up"
             ) {
                 if captureSubmissionRequiresUnlock {
@@ -1279,7 +1292,9 @@ struct QuickCaptureView: View {
             voiceCaptureButton
 
             routeStatusButton(
-                composerIsFocused ? "Dismiss keyboard" : "Show keyboard",
+                composerIsFocused
+                    ? String(localized: "Dismiss keyboard")
+                    : String(localized: "Show keyboard"),
                 icon: composerIsFocused ? "keyboard.chevron.compact.down" : "keyboard"
             ) {
                 toggleKeyboard()
@@ -1323,7 +1338,16 @@ struct QuickCaptureView: View {
     }
 
     private var captureErrorMessage: String? {
-        viewModel.errorMessage ?? persistentRecorder.lastError
+        if isLocalizationScreenshot { return nil }
+        return viewModel.errorMessage ?? persistentRecorder.lastError
+    }
+
+    private var isLocalizationScreenshot: Bool {
+        #if DEBUG
+        return RootDestination.localizationScreenshotStory != nil
+        #else
+        return false
+        #endif
     }
 
     private func dismissCaptureError() {
@@ -1632,7 +1656,10 @@ struct QuickCaptureView: View {
 
     private func presentSentToast() async {
         withAnimation(.easeOut(duration: 0.18)) { showsSentToast = true }
-        UIAccessibility.post(notification: .announcement, argument: "Capture sent")
+        UIAccessibility.post(
+            notification: .announcement,
+            argument: String(localized: "Capture sent")
+        )
         try? await Task.sleep(for: .seconds(2))
         withAnimation(.easeIn(duration: 0.18)) { showsSentToast = false }
         focusComposer()
@@ -1894,6 +1921,7 @@ struct QuickCaptureView: View {
     }
 
     private func requestMicrophonePermissionIfNeeded() async {
+        if isLocalizationScreenshot { return }
         let granted = await AudioRecorder.requestMicrophonePermission()
         micPermissionGranted = granted
         OnboardingAnalyticsClient.shared.trackMicrophonePermissionCompleted(

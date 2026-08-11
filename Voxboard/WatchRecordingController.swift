@@ -122,7 +122,7 @@ final class WatchRecordingController: NSObject {
 
     private func startRecordingFromWatch() {
         guard AppConstants.lockScreenQuickRecordEnabled else {
-            recorder?.lastError = "Quick Record is disabled in Vox.md Settings"
+            recorder?.lastError = String(localized: "Quick Record is disabled in Vox.md Settings")
             return
         }
         guard let recorder else {
@@ -137,7 +137,7 @@ final class WatchRecordingController: NSObject {
         // iPhone microphone from an arbitrary background Watch command. If the
         // persistent listener is already active, starting a segment is safe.
         guard recorder.isListening || UIApplication.shared.applicationState == .active else {
-            recorder.lastError = "iOS blocks background mic start. Open Vox.md or leave Keyboard mic on."
+            recorder.lastError = String(localized: "iOS blocks background mic start. Open Vox.md or leave Keyboard mic on.")
             watchLog.warning("Watch start rejected because iPhone app is not active and recorder is not already listening")
             return
         }
@@ -183,10 +183,10 @@ final class WatchRecordingController: NSObject {
         ) != .recordingOnly
         let message: String?
         if !AppConstants.lockScreenQuickRecordEnabled {
-            message = "Quick Record is disabled in Vox.md Settings."
+            message = String(localized: "Quick Record is disabled in Vox.md Settings.")
         } else if usageAppliesToCurrentWork
                     && (usageTracker?.isAtLimit == true || recorder?.needsUnlock == true) {
-            message = "Free transcription time used. Get Vox.md Unlimited on iPhone."
+            message = String(localized: "Free transcription time used. Get Vox.md Unlimited on iPhone.")
         } else if let activeJob {
             message = activeJob.statusMessage
         } else {
@@ -305,7 +305,7 @@ final class WatchRecordingController: NSObject {
                 epoch: epoch,
                 sequence: sequence,
                 outcome: .stale,
-                errorMessage: "A newer Capture Preset selection was already applied."
+                errorMessage: String(localized: "A newer Capture Preset selection was already applied.")
             )
         }
 
@@ -321,7 +321,7 @@ final class WatchRecordingController: NSObject {
                 epoch: epoch,
                 sequence: sequence,
                 outcome: .stale,
-                errorMessage: "This Capture Preset request was superseded."
+                errorMessage: String(localized: "This Capture Preset request was superseded.")
             )
         }
 
@@ -337,7 +337,7 @@ final class WatchRecordingController: NSObject {
             outcome: didSelect ? .accepted : .rejected,
             errorMessage: didSelect
                 ? nil
-                : "This Capture Preset is disabled or no longer exists on iPhone."
+                : String(localized: "This Capture Preset is disabled or no longer exists on iPhone.")
         )
         persistPresetSelectionAcknowledgement(response)
         return response
@@ -401,7 +401,7 @@ final class WatchRecordingController: NSObject {
                 WatchRecordingPayloadKey.selectedPresetName: watchSafeText(
                     preset.displayName,
                     maximumCharacters: 64,
-                    fallback: "Untitled Preset"
+                    fallback: String(localized: "Untitled Preset")
                 ),
                 WatchRecordingPayloadKey.presetSymbolName: watchSafeSymbolName(preset.symbolName),
             ] as [String: Any]
@@ -526,10 +526,12 @@ final class WatchRecordingController: NSObject {
             }
 
             let content = UNMutableNotificationContent()
-            content.title = count == 1 ? "Watch recording ready" : "Watch recordings ready"
+            content.title = count == 1
+                ? String(localized: "Watch recording ready")
+                : String(localized: "Watch recordings ready")
             content.body = count == 1
-                ? "Open Vox.md to transcribe your Apple Watch recording."
-                : "Open Vox.md to transcribe \(count) Apple Watch recordings."
+                ? String(localized: "Open Vox.md to transcribe your Apple Watch recording.")
+                : String(localized: "Open Vox.md to transcribe \(count) Apple Watch recordings.")
             content.sound = .default
 
             let request = UNNotificationRequest(
@@ -636,14 +638,14 @@ extension WatchRecordingController: WCSessionDelegate {
             backgroundLease.end(.enqueueFailed)
             logger.error("Failed to queue watch recording: \(String(describing: error))")
             Task { @MainActor in
-                let message = "iPhone could not save this transfer. Tap Sync on Watch to retry."
+                let message = String(localized: "iPhone could not save this transfer. Tap Sync on Watch to retry.")
                 if let recordingID {
                     WatchRecordingController.shared.setTransportFailure(
                         recordingID: recordingID,
                         message: message
                     )
                 }
-                WatchRecordingController.shared.recorder?.lastError = "Could not save Watch recording: \(error.localizedDescription)"
+                WatchRecordingController.shared.recorder?.lastError = String(localized: "Could not save Watch recording: \(error.localizedDescription)")
                 WatchRecordingController.shared.publishState()
             }
         }

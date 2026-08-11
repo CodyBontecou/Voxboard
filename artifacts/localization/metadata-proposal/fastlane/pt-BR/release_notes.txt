@@ -1,0 +1,5 @@
+Novo: Rótulos de falantes no dispositivo para gravações longas.
+
+Melhorado: Controles de Atividades ao Vivo mais confiáveis e gravações longas mais seguras.
+
+Corrigido: Os widgets Captura Rápida e Gravação Rápida agora acompanham a aparência clara e escura.

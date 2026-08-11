@@ -1,0 +1,1702 @@
+{
+  "catalogs": {
+    "Voxboard Keyboard/InfoPlist.xcstrings": {
+      "ar": 2,
+      "bn": 2,
+      "de": 2,
+      "en": 2,
+      "es": 2,
+      "fr": 2,
+      "hi": 2,
+      "id": 2,
+      "it": 2,
+      "ja": 2,
+      "ko": 2,
+      "nl": 2,
+      "pl": 2,
+      "pt-BR": 2,
+      "ru": 2,
+      "ta": 2,
+      "th": 2,
+      "tr": 2,
+      "translatable": 2,
+      "uk": 2,
+      "ur": 2,
+      "vi": 2,
+      "zh-Hans": 2,
+      "zh-Hant": 2
+    },
+    "Voxboard Keyboard/Localizable.xcstrings": {
+      "ar": 19,
+      "bn": 19,
+      "de": 19,
+      "en": 19,
+      "es": 19,
+      "fr": 19,
+      "hi": 19,
+      "id": 19,
+      "it": 19,
+      "ja": 19,
+      "ko": 19,
+      "nl": 19,
+      "pl": 19,
+      "pt-BR": 19,
+      "ru": 19,
+      "ta": 19,
+      "th": 19,
+      "tr": 19,
+      "translatable": 19,
+      "uk": 19,
+      "ur": 19,
+      "vi": 19,
+      "zh-Hans": 19,
+      "zh-Hant": 19
+    },
+    "Voxboard Mac/InfoPlist.xcstrings": {
+      "ar": 4,
+      "bn": 4,
+      "de": 4,
+      "en": 4,
+      "es": 4,
+      "fr": 4,
+      "hi": 4,
+      "id": 4,
+      "it": 4,
+      "ja": 4,
+      "ko": 4,
+      "nl": 4,
+      "pl": 4,
+      "pt-BR": 4,
+      "ru": 4,
+      "ta": 4,
+      "th": 4,
+      "tr": 4,
+      "translatable": 4,
+      "uk": 4,
+      "ur": 4,
+      "vi": 4,
+      "zh-Hans": 4,
+      "zh-Hant": 4
+    },
+    "Voxboard Share Extension/InfoPlist.xcstrings": {
+      "ar": 1,
+      "bn": 1,
+      "de": 1,
+      "en": 1,
+      "es": 1,
+      "fr": 1,
+      "hi": 1,
+      "id": 1,
+      "it": 1,
+      "ja": 1,
+      "ko": 1,
+      "nl": 1,
+      "pl": 1,
+      "pt-BR": 1,
+      "ru": 1,
+      "ta": 1,
+      "th": 1,
+      "tr": 1,
+      "translatable": 1,
+      "uk": 1,
+      "ur": 1,
+      "vi": 1,
+      "zh-Hans": 1,
+      "zh-Hant": 1
+    },
+    "Voxboard Watch Widget/InfoPlist.xcstrings": {
+      "ar": 1,
+      "bn": 1,
+      "de": 1,
+      "en": 1,
+      "es": 1,
+      "fr": 1,
+      "hi": 1,
+      "id": 1,
+      "it": 1,
+      "ja": 1,
+      "ko": 1,
+      "nl": 1,
+      "pl": 1,
+      "pt-BR": 1,
+      "ru": 1,
+      "ta": 1,
+      "th": 1,
+      "tr": 1,
+      "translatable": 1,
+      "uk": 1,
+      "ur": 1,
+      "vi": 1,
+      "zh-Hans": 1,
+      "zh-Hant": 1
+    },
+    "Voxboard Watch/InfoPlist.xcstrings": {
+      "ar": 2,
+      "bn": 2,
+      "de": 2,
+      "en": 2,
+      "es": 2,
+      "fr": 2,
+      "hi": 2,
+      "id": 2,
+      "it": 2,
+      "ja": 2,
+      "ko": 2,
+      "nl": 2,
+      "pl": 2,
+      "pt-BR": 2,
+      "ru": 2,
+      "ta": 2,
+      "th": 2,
+      "tr": 2,
+      "translatable": 2,
+      "uk": 2,
+      "ur": 2,
+      "vi": 2,
+      "zh-Hans": 2,
+      "zh-Hant": 2
+    },
+    "Voxboard Widget/InfoPlist.xcstrings": {
+      "ar": 1,
+      "bn": 1,
+      "de": 1,
+      "en": 1,
+      "es": 1,
+      "fr": 1,
+      "hi": 1,
+      "id": 1,
+      "it": 1,
+      "ja": 1,
+      "ko": 1,
+      "nl": 1,
+      "pl": 1,
+      "pt-BR": 1,
+      "ru": 1,
+      "ta": 1,
+      "th": 1,
+      "tr": 1,
+      "translatable": 1,
+      "uk": 1,
+      "ur": 1,
+      "vi": 1,
+      "zh-Hans": 1,
+      "zh-Hant": 1
+    },
+    "Voxboard/InfoPlist.xcstrings": {
+      "ar": 6,
+      "bn": 6,
+      "de": 6,
+      "en": 6,
+      "es": 6,
+      "fr": 6,
+      "hi": 6,
+      "id": 6,
+      "it": 6,
+      "ja": 6,
+      "ko": 6,
+      "nl": 6,
+      "pl": 6,
+      "pt-BR": 6,
+      "ru": 6,
+      "ta": 6,
+      "th": 6,
+      "tr": 6,
+      "translatable": 6,
+      "uk": 6,
+      "ur": 6,
+      "vi": 6,
+      "zh-Hans": 6,
+      "zh-Hant": 6
+    },
+    "Voxboard/Localizable.xcstrings": {
+      "ar": 1389,
+      "bn": 1389,
+      "de": 1389,
+      "en": 1389,
+      "es": 1389,
+      "fr": 1389,
+      "hi": 1389,
+      "id": 1389,
+      "it": 1389,
+      "ja": 1389,
+      "ko": 1389,
+      "nl": 1389,
+      "pl": 1389,
+      "pt-BR": 1389,
+      "ru": 1389,
+      "ta": 1389,
+      "th": 1389,
+      "tr": 1389,
+      "translatable": 1389,
+      "uk": 1389,
+      "ur": 1389,
+      "vi": 1389,
+      "zh-Hans": 1389,
+      "zh-Hant": 1389
+    }
+  },
+  "errors": [],
+  "repeated_translation_review": {},
+  "source_identical_review": {
+    "ar": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "0 sec"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "App"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Hashtag"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Prefix"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sync"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Top"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "bn": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Hashtag"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "de": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Audio"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Bottom"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Check Vox.md"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Custom"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Debug Log"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Delete"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Destination"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Export"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Feedback"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Format"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Format Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Get Unlimited"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Hashtag"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Link"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Live"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mac"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Markdown Link"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Name"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Paste"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Pause"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Prefix"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Reload"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Rolling Note"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Scan"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Screenshot"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Set"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Set Up"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Show Capture"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sketch"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Status"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Stop + Transcribe"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Text"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Theodore Roosevelt"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Timestamp"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Top"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Unlimited Unlocked"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Unlock"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Vault / Folder"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Widget"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      },
+      {
+        "catalog": "Voxboard Widget/InfoPlist.xcstrings",
+        "key": "CFBundleDisplayName"
+      }
+    ],
+    "es": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "App"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Audio"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Checklist"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Delete"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Dock + Menu Bar"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Transcript"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Error"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Hashtag"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mac"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Obsidian Bases"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Reload"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Rolling Note"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Top"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Widget"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "iPhone Default"
+      },
+      {
+        "catalog": "Voxboard Widget/InfoPlist.xcstrings",
+        "key": "CFBundleDisplayName"
+      }
+    ],
+    "fr": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "0 sec"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Audio"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Bottom"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Capture"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Checklist"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Date"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Destination"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Destination"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Format"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Hashtag"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mac"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mode"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Note"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Obsidian Bases"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Pause"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Placement"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Queue"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Scope"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sketch"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sync"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Top"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Transcription"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Widget"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      },
+      {
+        "catalog": "Voxboard Widget/InfoPlist.xcstrings",
+        "key": "CFBundleDisplayName"
+      }
+    ],
+    "hi": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "id": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Copy Raw"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Custom"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Debug"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Debug Log"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Delete"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Done"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Format"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Lowercase"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Metadata"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mode"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Override"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Paste"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Preset"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Reload"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Scan"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Set"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sketch"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Stop + Transcribe"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sync"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Timestamp"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Top"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "it": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "0 sec"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Camera"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Checklist"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Debug"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Dock + Menu Bar"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Due date"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Feedback"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Hashtag"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mac"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Markdown Template"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Privacy"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Screenshot"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Set"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Target"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Template"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Timestamp"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Top"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Unlock"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Widget"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "iPhone Default"
+      },
+      {
+        "catalog": "Voxboard Widget/InfoPlist.xcstrings",
+        "key": "CFBundleDisplayName"
+      }
+    ],
+    "ja": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "App"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mac"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "ko": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Custom"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Dock Only"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sync"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "nl": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "0 sec"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Alert"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "App"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Audio"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Camera"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Capture route %@, %@"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Checklist"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Custom"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Delete"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Delete %@ model"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Dock + Menu Bar"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Feedback"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Hashtag"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Link"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Live"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Lowercase"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mac"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Markdown Link"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Metadata"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Open"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Open Vox.md"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Open iPhone"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Paste"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Prefix"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Queue"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Reload"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Rolling Note"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Scope"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Screenshot"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Set"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Show Capture"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sketch"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Status"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Stop + Transcribe"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Theodore Roosevelt"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Top"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Vault / Folder"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Vox.md Record"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Widget"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "iPhone Default"
+      },
+      {
+        "catalog": "Voxboard Keyboard/Localizable.xcstrings",
+        "key": "OPEN VOX.MD"
+      },
+      {
+        "catalog": "Voxboard Keyboard/Localizable.xcstrings",
+        "key": "Open Vox.md"
+      },
+      {
+        "catalog": "Voxboard Widget/InfoPlist.xcstrings",
+        "key": "CFBundleDisplayName"
+      }
+    ],
+    "pl": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "%.1f / 15 min"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "App"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Audio"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Custom"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Delete"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Dock + Menu Bar"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Format"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Hashtag"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mac"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Paste"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Queue"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Reload"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Retry"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Rolling Note"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Screenshot"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Set"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sketch"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Status"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Stop + Transcribe"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Timestamp"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Top"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "pt-BR": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "0 sec"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Apple Watch Output"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Checklist"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Debug Log"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Delete"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Dock + Menu Bar"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Template"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Feedback"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Hashtag"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mac"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mac Companion"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Output"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Paste"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Set"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Status"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Timestamp"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Widget"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      },
+      {
+        "catalog": "Voxboard Widget/InfoPlist.xcstrings",
+        "key": "CFBundleDisplayName"
+      }
+    ],
+    "ru": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "App"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "ta": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "0 sec"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Category"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Check Vox.md"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Debug"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Set"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sketch"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sync"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Voice"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "th": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "0 sec"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "App"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "tr": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Checklist"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Delete"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Reload"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Set"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sketch"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sync"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Top"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "uk": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "App"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Custom"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "ur": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "vi": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "App"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Audio"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Camera"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Category"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Checklist"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Copy"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Copy Raw"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Custom"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Debug"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Debug Log"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Delete"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Done"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Edit Markdown"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "File"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Get Unlimited"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Hashtag"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Link"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Mac"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Markdown Link"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Markdown link"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Note"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Override"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Paste"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Prefix"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Recordings"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Refresh"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Rolling Note"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Scan"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Screenshot"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Set"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Show Capture"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sketch"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Status"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Sync"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Text"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Theodore Roosevelt"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Top"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Transcribe"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Vault / Folder"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Visibility"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Vox.md Unlimited"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Widget"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      },
+      {
+        "catalog": "Voxboard Widget/InfoPlist.xcstrings",
+        "key": "CFBundleDisplayName"
+      }
+    ],
+    "zh-Hans": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ],
+    "zh-Hant": [
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "Slugify"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "URL"
+      },
+      {
+        "catalog": "Voxboard/Localizable.xcstrings",
+        "key": "ZenQuotes ↗"
+      }
+    ]
+  }
+}

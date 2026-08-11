@@ -28,7 +28,7 @@ struct CapturePresetSettingsView: View {
                                 Text(flow.displayName)
                                 Text(
                                     flow.watchOutputMode == .recordingOnly
-                                        ? "Recording Only (Watch)"
+                                        ? String(localized: "Recording Only (Watch)")
                                         : flow.postProcessingMode.displayName
                                 )
                                     .font(.caption)
@@ -615,15 +615,15 @@ private struct CapturePresetEditorView: View {
     private var audioExportFooterText: String {
         switch flow.audioSaveMode {
         case .off:
-            return "Turn this on to save a copy of the recorded audio when a note is exported."
+            return String(localized: "Turn this on to save a copy of the recorded audio when a note is exported.")
         case .alongsideTranscript:
             return flow.captureDestinationID == nil
-                ? "Saved audio uses the same legacy export directory and base filename as the note."
-                : "Saved audio is placed alongside the unified Markdown note."
+                ? String(localized: "Saved audio uses the same legacy export directory and base filename as the note.")
+                : String(localized: "Saved audio is placed alongside the unified Markdown note.")
         case .attachmentsFolder:
             return flow.captureDestinationID == nil
-                ? "When no audio export directory is set, saved audio uses this preset’s legacy note export folder."
-                : "Saved audio uses a subfolder inside the unified Markdown destination, and that route survives deferred retries."
+                ? String(localized: "When no audio export directory is set, saved audio uses this preset’s legacy note export folder.")
+                : String(localized: "Saved audio uses a subfolder inside the unified Markdown destination, and that route survives deferred retries.")
         }
     }
 
@@ -637,12 +637,12 @@ private struct CapturePresetEditorView: View {
 
     private var markdownAudioEmbedHelpText: String {
         if flow.captureDestinationID != nil {
-            return "Adds an Obsidian-style audio link to the unified Markdown note at the selected position."
+            return String(localized: "Adds an Obsidian-style audio link to the unified Markdown note at the selected position.")
         }
         guard markdownAudioEmbedAvailable else {
-            return "Audio embeds require a Markdown note export. Switch this preset to MD, a Markdown template, or YAML with the .md extension."
+            return String(localized: "Audio embeds require a Markdown note export. Switch this preset to MD, a Markdown template, or YAML with the .md extension.")
         }
-        return "Adds an Obsidian-style `![[recording.m4a]]` link to the note so you can replay the recording while reviewing the transcript."
+        return String(localized: "Adds an Obsidian-style `![[recording.m4a]]` link to the note so you can replay the recording while reviewing the transcript.")
     }
 
     private var yamlPropertiesPicker: some View {
@@ -1035,7 +1035,10 @@ private struct FlowIconPickerView: View {
 
     static func title(for symbolName: String) -> String {
         let iconName = iconName(for: symbolName)
-        return allOptions.first(where: { $0.symbolName == iconName })?.title ?? iconName
+        let title = allOptions.first(where: { $0.symbolName == iconName })?.title ?? iconName
+        return title == "Waveform"
+            ? String(localized: "Waveform", bundle: .main)
+            : title
     }
 
     private static func filteredCategories(matching query: String) -> [FlowIconCategory] {
@@ -1134,30 +1137,30 @@ private extension CapturePresetProcessingMode {
     var helpTitle: String {
         switch self {
         case .none:
-            return "Preserves captured text"
+            return String(localized: "Preserves captured text")
         case .clean:
-            return "Cleans prose without changing intent"
+            return String(localized: "Cleans prose without changing intent")
         case .todoList:
-            return "Creates a Markdown checklist"
+            return String(localized: "Creates a Markdown checklist")
         case .meetingNotes:
-            return "Formats notes and action items"
+            return String(localized: "Formats notes and action items")
         case .custom:
-            return "Uses your custom instruction"
+            return String(localized: "Uses your custom instruction")
         }
     }
 
     var helpText: String {
         switch self {
         case .none:
-            return "Keeps typed Markdown, OCR, and voice text exactly as captured. Static frontmatter and route settings still apply."
+            return String(localized: "Keeps typed Markdown, OCR, and voice text exactly as captured. Static frontmatter and route settings still apply.")
         case .clean:
-            return "Fixes casing and punctuation while preserving meaning and Markdown structure. Without on-device enrichment, the original text is retained."
+            return String(localized: "Fixes casing and punctuation while preserving meaning and Markdown structure. Without on-device enrichment, the original text is retained.")
         case .todoList:
-            return "Turns captured tasks into `- [ ]` Markdown items without inventing new work. A deterministic local fallback is always available."
+            return String(localized: "Turns captured tasks into `- [ ]` Markdown items without inventing new work. A deterministic local fallback is always available.")
         case .meetingNotes:
-            return "Builds Markdown meeting notes with useful sections and grounded action items from typed text, OCR, or voice."
+            return String(localized: "Builds Markdown meeting notes with useful sections and grounded action items from typed text, OCR, or voice.")
         case .custom:
-            return "When on-device AI is available, Vox.md follows your instruction for captured text. Use it for standups, journal prompts, summaries, or call follow-ups."
+            return String(localized: "When on-device AI is available, Vox.md follows your instruction for captured text. Use it for standups, journal prompts, summaries, or call follow-ups.")
         }
     }
 }

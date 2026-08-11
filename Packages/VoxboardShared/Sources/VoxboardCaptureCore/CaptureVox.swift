@@ -160,11 +160,11 @@ public enum CapturePresetProcessingMode: String, Codable, CaseIterable, Sendable
 
     public var displayName: String {
         switch self {
-        case .none: return "Keep Original"
-        case .clean: return "Clean Prose"
-        case .todoList: return "Todo Checklist"
-        case .meetingNotes: return "Meeting Notes"
-        case .custom: return "Custom Instruction"
+        case .none: return String(localized: "Keep Original", bundle: .main)
+        case .clean: return String(localized: "Clean Prose", bundle: .main)
+        case .todoList: return String(localized: "Todo Checklist", bundle: .main)
+        case .meetingNotes: return String(localized: "Meeting Notes", bundle: .main)
+        case .custom: return String(localized: "Custom Instruction", bundle: .main)
         }
     }
 }

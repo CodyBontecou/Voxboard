@@ -67,6 +67,6 @@ private enum MacDocumentScanError: Error, LocalizedError {
     case noReadablePages
 
     var errorDescription: String? {
-        "The selected scan images could not be read."
+        String(localized: "The selected scan images could not be read.")
     }
 }

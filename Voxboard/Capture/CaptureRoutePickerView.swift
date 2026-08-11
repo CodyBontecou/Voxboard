@@ -55,7 +55,7 @@ struct CaptureRoutePickerView: View {
                             showsNotePicker = true
                         } label: {
                             Label(
-                                viewModel.draft.relativeNotePathOverride ?? "Choose another note in this vault",
+                                viewModel.draft.relativeNotePathOverride ?? String(localized: "Choose another note in this vault"),
                                 systemImage: "doc.text.magnifyingglass"
                             )
                         }

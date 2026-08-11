@@ -26,24 +26,38 @@ struct MetaSettingsView: View {
         ZStack {
             Geist.Palette.background200.ignoresSafeArea()
 
-            ScrollView {
-                VStack(spacing: 0) {
-                    upgradeSection
-                    GeistDivider()
-                    activitySection
-                    GeistDivider()
-                    customizationSection
-                    GeistDivider()
-                    keyboardSection
-                    GeistDivider()
-                    lockScreenSection
-                    GeistDivider()
-                    aboutSection
-                    GeistDivider()
-                    feedbackSection
-                    GeistDivider()
-                    debugSection
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        upgradeSection
+                        GeistDivider()
+                        activitySection
+                        GeistDivider()
+                        customizationSection
+                        GeistDivider()
+                        keyboardSection
+                            .id("settings-keyboard")
+                        GeistDivider()
+                        lockScreenSection
+                        GeistDivider()
+                        aboutSection
+                            .id("settings-about")
+                        GeistDivider()
+                        feedbackSection
+                        GeistDivider()
+                        debugSection
+                    }
                 }
+                #if DEBUG
+                .task {
+                    await Task.yield()
+                    switch RootDestination.localizationScreenshotStory {
+                    case "06-privacy-local": proxy.scrollTo("settings-about", anchor: .center)
+                    case "07-keyboard": proxy.scrollTo("settings-keyboard", anchor: .center)
+                    default: break
+                    }
+                }
+                #endif
             }
         }
         .navigationTitle("")
@@ -111,7 +125,9 @@ struct MetaSettingsView: View {
                             Rectangle()
                                 .fill(Geist.text)
                                 .frame(width: 6, height: 6)
-                            Text(usageTracker.hasFamilyAccess ? "Family" : "Purchased")
+                            Text(usageTracker.hasFamilyAccess
+                                 ? String(localized: "Family")
+                                 : String(localized: "Purchased"))
                                 .font(Geist.caption())
                                 .foregroundColor(Geist.text)
                         }
@@ -376,19 +392,19 @@ struct MetaSettingsView: View {
             GeistDivider()
 
             var rows: [(String, String)] = [
-                ("Default transcription", "Apple Speech when available"),
-                ("Optional Whisper engine", "whisper.cpp"),
-                ("Optional Parakeet engine", "FluidAudio (CoreML)"),
-                ("Processing", "On-device"),
-                ("Privacy", "Voice/text stay local"),
-                ("Version", appVersionString),
+                (String(localized: "Default transcription"), String(localized: "Apple Speech when available")),
+                (String(localized: "Optional Whisper engine"), "whisper.cpp"),
+                (String(localized: "Optional Parakeet engine"), "FluidAudio (CoreML)"),
+                (String(localized: "Processing"), String(localized: "On-device")),
+                (String(localized: "Privacy"), String(localized: "Voice/text stay local")),
+                (String(localized: "Version"), appVersionString),
             ]
             let _ = { // build Apple Intelligence row lazily, gated by availability
                 if #available(iOS 26, *) {
                     let status = FoundationModelsBackend.isAvailable
-                        ? "Available"
-                        : "Unavailable"
-                    rows.append(("Apple Intelligence", status))
+                        ? String(localized: "Available")
+                        : String(localized: "Unavailable")
+                    rows.append((String(localized: "Apple Intelligence"), status))
                 }
             }()
 

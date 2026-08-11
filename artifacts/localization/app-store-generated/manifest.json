@@ -1,0 +1,3927 @@
+{
+  "generatedAt": "2026-08-11T14:02:58.851Z",
+  "reference": "Live en-US App Store screenshots downloaded read-only to artifacts/localization/app-store-english-reference",
+  "strategy": "Deterministic raster compositing: English visual template, localized capture, reviewed localized overlay copy, and targeted source-quality recovery for faded captures",
+  "locales": [
+    "ar-SA",
+    "de-DE",
+    "es-ES",
+    "es-MX",
+    "fr-FR",
+    "fr-CA",
+    "hi",
+    "id",
+    "it",
+    "ja",
+    "ko",
+    "nl-NL",
+    "pl",
+    "pt-BR",
+    "ru",
+    "th",
+    "tr",
+    "uk",
+    "vi",
+    "zh-Hans",
+    "zh-Hant"
+  ],
+  "sizes": {
+    "APP_IPHONE_67": [
+      1320,
+      2868
+    ],
+    "APP_IPAD_PRO_3GEN_129": [
+      2048,
+      2732
+    ],
+    "APP_WATCH_SERIES_10": [
+      416,
+      496
+    ],
+    "APP_DESKTOP": [
+      1440,
+      900
+    ]
+  },
+  "images": [
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPHONE_67",
+      "file": "ar-SA/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "التقط أي شيء إلى Markdown",
+      "subheadline": "التقط فكرة أو مهمة أو رابطًا أو ملفًا أو مسحًا ضوئيًا أو تسجيلًا."
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPHONE_67",
+      "file": "ar-SA/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "إعدادات الالتقاط المسبقة",
+      "subheadline": "إعداد الالتقاط المسبق هو سير عمل كامل قابل لإعادة الاستخدام يحدد ما يحدث للمحتوى وأين يتم تسليمه بالضبط."
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPHONE_67",
+      "file": "ar-SA/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "الوجهة",
+      "subheadline": "المعالجة والتنسيق والبيانات الوصفية والوجهات"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPHONE_67",
+      "file": "ar-SA/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "تحدث في أي تطبيق.",
+      "subheadline": "لوحة المفاتيح"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPHONE_67",
+      "file": "ar-SA/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "خصوصي",
+      "subheadline": "يبقى كل شيء على هذا الجهاز."
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPHONE_67",
+      "file": "ar-SA/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "تسجيل",
+      "subheadline": "يظل محرر النص متاحًا أثناء التسجيل"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPHONE_67",
+      "file": "ar-SA/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "شريط الالتقاط",
+      "subheadline": "اختر الإجراءات السريعة وأعد ترتيبها أو أخفها"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ar-SA/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "من الصوت إلى نص",
+      "subheadline": "يبقى كل شيء على هذا الجهاز."
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ar-SA/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "السجل",
+      "subheadline": "التسجيلات ومدة التسجيل ونشاط الالتقاط"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ar-SA/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "النماذج على الجهاز",
+      "subheadline": "نماذج محلية اختيارية يمكنك تنزيلها وتحديدها."
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ar-SA/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "الإعدادات",
+      "subheadline": "محركات النسخ الصوتي وتنزيل النماذج واللغة"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ar-SA/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "تسجيل",
+      "subheadline": "نسخ مباشر · إرسال فوري"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ar-SA/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ar-SA/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ar-SA/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_DESKTOP",
+      "file": "ar-SA/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "السجل",
+      "subheadline": "التسجيلات ومدة التسجيل ونشاط الالتقاط",
+      "label": "05 — السجل",
+      "tagline": "خصوصي  •  آمن  •  دون اتصال"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_DESKTOP",
+      "file": "ar-SA/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "إعدادات الالتقاط المسبقة",
+      "subheadline": "إعداد الالتقاط المسبق هو سير عمل كامل قابل لإعادة الاستخدام يحدد ما يحدث للمحتوى وأين يتم تسليمه بالضبط.",
+      "label": "04 — سير العمل",
+      "tagline": "خصوصي  •  آمن  •  دون اتصال"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_DESKTOP",
+      "file": "ar-SA/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "النماذج على الجهاز",
+      "subheadline": "نماذج محلية اختيارية يمكنك تنزيلها وتحديدها.",
+      "label": "03 — النماذج",
+      "tagline": "خصوصي  •  آمن  •  دون اتصال"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_DESKTOP",
+      "file": "ar-SA/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "تسجيل",
+      "subheadline": "نسخ مباشر · إرسال فوري",
+      "label": "02 — تسجيل",
+      "tagline": "خصوصي  •  آمن  •  دون اتصال"
+    },
+    {
+      "locale": "ar-SA",
+      "displayType": "APP_DESKTOP",
+      "file": "ar-SA/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/ar-SA/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "التقط أي شيء إلى Markdown",
+      "subheadline": "يبقى كل شيء على هذا الجهاز.",
+      "label": "01 — التقاط",
+      "tagline": "خصوصي  •  آمن  •  دون اتصال"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPHONE_67",
+      "file": "de-DE/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Alles in Markdown erfassen",
+      "subheadline": "Erfasse eine Idee, Aufgabe, einen Link, eine Datei, einen Scan oder eine Aufnahme."
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPHONE_67",
+      "file": "de-DE/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Aufnahmevoreinstellungen",
+      "subheadline": "Ein Aufnahme-Preset ist ein vollständig wiederverwendbarer Ablauf: was mit einer Aufnahme geschieht und wohin sie gesendet wird."
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPHONE_67",
+      "file": "de-DE/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Ziel",
+      "subheadline": "Verarbeitung, Formatierung, Metadaten und Ziele"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPHONE_67",
+      "file": "de-DE/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "In jeder App diktieren.",
+      "subheadline": "Tastatur"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPHONE_67",
+      "file": "de-DE/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Privat",
+      "subheadline": "Alles bleibt auf diesem Gerät."
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPHONE_67",
+      "file": "de-DE/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Aufnehmen",
+      "subheadline": "Der Editor bleibt während der Aufnahme verfügbar"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPHONE_67",
+      "file": "de-DE/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Erfassungsleiste",
+      "subheadline": "Schnellaktionen auswählen, neu anordnen und ausblenden"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "de-DE/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Sprache zu Text",
+      "subheadline": "Alles bleibt auf diesem Gerät."
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "de-DE/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Verlauf",
+      "subheadline": "Aufnahmen, Aufnahmezeit und Erfassungsaktivität"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "de-DE/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modelle auf dem Gerät",
+      "subheadline": "Optionale lokale Modelle zum Herunterladen und Auswählen."
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "de-DE/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Einstellungen",
+      "subheadline": "Transkriptionssysteme, Modelldownloads und Sprache"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "de-DE/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Aufnehmen",
+      "subheadline": "Live-Transkript · wird sofort gesendet"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "de-DE/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "de-DE/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "de-DE/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_DESKTOP",
+      "file": "de-DE/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Verlauf",
+      "subheadline": "Aufnahmen, Aufnahmezeit und Erfassungsaktivität",
+      "label": "05 — VERLAUF",
+      "tagline": "PRIVAT  •  SICHER  •  OFFLINE"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_DESKTOP",
+      "file": "de-DE/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Aufnahmevoreinstellungen",
+      "subheadline": "Ein Aufnahme-Preset ist ein vollständig wiederverwendbarer Ablauf: was mit einer Aufnahme geschieht und wohin sie gesendet wird.",
+      "label": "04 — ARBEITSABLAUF",
+      "tagline": "PRIVAT  •  SICHER  •  OFFLINE"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_DESKTOP",
+      "file": "de-DE/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modelle auf dem Gerät",
+      "subheadline": "Optionale lokale Modelle zum Herunterladen und Auswählen.",
+      "label": "03 — MODELLE",
+      "tagline": "PRIVAT  •  SICHER  •  OFFLINE"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_DESKTOP",
+      "file": "de-DE/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Aufnehmen",
+      "subheadline": "Live-Transkript · wird sofort gesendet",
+      "label": "02 — AUFNEHMEN",
+      "tagline": "PRIVAT  •  SICHER  •  OFFLINE"
+    },
+    {
+      "locale": "de-DE",
+      "displayType": "APP_DESKTOP",
+      "file": "de-DE/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/de-DE/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Alles in Markdown erfassen",
+      "subheadline": "Alles bleibt auf diesem Gerät.",
+      "label": "01 — ERFASSEN",
+      "tagline": "PRIVAT  •  SICHER  •  OFFLINE"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-ES/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Captura todo en Markdown",
+      "subheadline": "Captura una idea, tarea, enlace, archivo, escaneo o grabación."
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-ES/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Preajustes de captura",
+      "subheadline": "Un preajuste de captura es un flujo reutilizable completo: define qué ocurre con una captura y dónde se entrega."
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-ES/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Destino",
+      "subheadline": "Procesamiento, formato, metadatos y destinos"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-ES/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Habla en cualquier app.",
+      "subheadline": "Teclado"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-ES/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Privado",
+      "subheadline": "Todo permanece en este dispositivo."
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-ES/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Grabar",
+      "subheadline": "El editor sigue disponible mientras grabas"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-ES/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Barra de captura",
+      "subheadline": "Elige, reordena y oculta acciones rápidas"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "es-ES/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Voz a texto",
+      "subheadline": "Todo permanece en este dispositivo."
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "es-ES/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Historial",
+      "subheadline": "Grabaciones, tiempo de grabación y actividad de captura"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "es-ES/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modelos en el dispositivo",
+      "subheadline": "Modelos locales opcionales que puedes descargar y seleccionar."
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "es-ES/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Ajustes",
+      "subheadline": "Motores de transcripción, descargas de modelos e idioma"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "es-ES/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Grabar",
+      "subheadline": "Transcripción en directo · envío inmediato"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "es-ES/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "es-ES/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "es-ES/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_DESKTOP",
+      "file": "es-ES/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Historial",
+      "subheadline": "Grabaciones, tiempo de grabación y actividad de captura",
+      "label": "05 — HISTORIAL",
+      "tagline": "PRIVADO  •  SEGURO  •  SIN CONEXIÓN"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_DESKTOP",
+      "file": "es-ES/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Preajustes de captura",
+      "subheadline": "Un preajuste de captura es un flujo reutilizable completo: define qué ocurre con una captura y dónde se entrega.",
+      "label": "04 — FLUJO DE TRABAJO",
+      "tagline": "PRIVADO  •  SEGURO  •  SIN CONEXIÓN"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_DESKTOP",
+      "file": "es-ES/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modelos en el dispositivo",
+      "subheadline": "Modelos locales opcionales que puedes descargar y seleccionar.",
+      "label": "03 — MODELOS",
+      "tagline": "PRIVADO  •  SEGURO  •  SIN CONEXIÓN"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_DESKTOP",
+      "file": "es-ES/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Grabar",
+      "subheadline": "Transcripción en directo · envío inmediato",
+      "label": "02 — GRABAR",
+      "tagline": "PRIVADO  •  SEGURO  •  SIN CONEXIÓN"
+    },
+    {
+      "locale": "es-ES",
+      "displayType": "APP_DESKTOP",
+      "file": "es-ES/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/es-ES/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Captura todo en Markdown",
+      "subheadline": "Todo permanece en este dispositivo.",
+      "label": "01 — CAPTURA",
+      "tagline": "PRIVADO  •  SEGURO  •  SIN CONEXIÓN"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-MX/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Captura todo en Markdown",
+      "subheadline": "Captura una idea, tarea, enlace, archivo, escaneo o grabación."
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-MX/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Preajustes de captura",
+      "subheadline": "Un preajuste de captura es un flujo reutilizable completo: define qué ocurre con una captura y dónde se entrega."
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-MX/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Destino",
+      "subheadline": "Procesamiento, formato, metadatos y destinos"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-MX/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Habla en cualquier app.",
+      "subheadline": "Teclado"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-MX/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Privado",
+      "subheadline": "Todo permanece en este dispositivo."
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-MX/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Grabar",
+      "subheadline": "El editor sigue disponible mientras grabas"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPHONE_67",
+      "file": "es-MX/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Barra de captura",
+      "subheadline": "Elige, reordena y oculta acciones rápidas"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "es-MX/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Voz a texto",
+      "subheadline": "Todo permanece en este dispositivo."
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "es-MX/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Historial",
+      "subheadline": "Grabaciones, tiempo de grabación y actividad de captura"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "es-MX/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modelos en el dispositivo",
+      "subheadline": "Modelos locales opcionales que puedes descargar y seleccionar."
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "es-MX/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Ajustes",
+      "subheadline": "Motores de transcripción, descargas de modelos e idioma"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "es-MX/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Grabar",
+      "subheadline": "Transcripción en directo · envío inmediato"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "es-MX/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "es-MX/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "es-MX/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_DESKTOP",
+      "file": "es-MX/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Historial",
+      "subheadline": "Grabaciones, tiempo de grabación y actividad de captura",
+      "label": "05 — HISTORIAL",
+      "tagline": "PRIVADO  •  SEGURO  •  SIN CONEXIÓN"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_DESKTOP",
+      "file": "es-MX/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Preajustes de captura",
+      "subheadline": "Un preajuste de captura es un flujo reutilizable completo: define qué ocurre con una captura y dónde se entrega.",
+      "label": "04 — FLUJO DE TRABAJO",
+      "tagline": "PRIVADO  •  SEGURO  •  SIN CONEXIÓN"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_DESKTOP",
+      "file": "es-MX/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modelos en el dispositivo",
+      "subheadline": "Modelos locales opcionales que puedes descargar y seleccionar.",
+      "label": "03 — MODELOS",
+      "tagline": "PRIVADO  •  SEGURO  •  SIN CONEXIÓN"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_DESKTOP",
+      "file": "es-MX/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Grabar",
+      "subheadline": "Transcripción en directo · envío inmediato",
+      "label": "02 — GRABAR",
+      "tagline": "PRIVADO  •  SEGURO  •  SIN CONEXIÓN"
+    },
+    {
+      "locale": "es-MX",
+      "displayType": "APP_DESKTOP",
+      "file": "es-MX/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/es-MX/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Captura todo en Markdown",
+      "subheadline": "Todo permanece en este dispositivo.",
+      "label": "01 — CAPTURA",
+      "tagline": "PRIVADO  •  SEGURO  •  SIN CONEXIÓN"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-FR/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Tout capturer en Markdown",
+      "subheadline": "Capturez une idée, une tâche, un lien, un fichier, un scan ou un enregistrement."
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-FR/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "sourceTreatment": {
+        "highlightContrast": 10
+      },
+      "headline": "Préréglages de capture",
+      "subheadline": "Un préréglage de capture est un flux réutilisable complet : il définit le traitement d’une capture et sa destination."
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-FR/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "sourceTreatment": {
+        "highlightContrast": 10
+      },
+      "headline": "Destination",
+      "subheadline": "Traitement, mise en forme, métadonnées et destinations"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-FR/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Dictez dans n’importe quelle app.",
+      "subheadline": "Clavier"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-FR/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Privé",
+      "subheadline": "Tout reste sur cet appareil."
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-FR/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Enregistrer",
+      "subheadline": "L’éditeur reste disponible pendant l’enregistrement"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-FR/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Barre de capture",
+      "subheadline": "Choisissez, réorganisez et masquez les actions rapides"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "fr-FR/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "De la voix au texte",
+      "subheadline": "Tout reste sur cet appareil."
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "fr-FR/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Historique",
+      "subheadline": "Enregistrements, durée et activité de capture"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "fr-FR/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modèles sur l’appareil",
+      "subheadline": "Modèles locaux facultatifs à télécharger et sélectionner."
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "fr-FR/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Réglages",
+      "subheadline": "Moteurs de transcription, téléchargements de modèles et langue"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "fr-FR/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Enregistrer",
+      "subheadline": "Transcription en direct · envoi immédiat"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "fr-FR/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "fr-FR/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "fr-FR/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_DESKTOP",
+      "file": "fr-FR/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Historique",
+      "subheadline": "Enregistrements, durée et activité de capture",
+      "label": "05 — HISTORIQUE",
+      "tagline": "PRIVÉ  •  SÉCURISÉ  •  HORS LIGNE"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_DESKTOP",
+      "file": "fr-FR/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Préréglages de capture",
+      "subheadline": "Un préréglage de capture est un flux réutilisable complet : il définit le traitement d’une capture et sa destination.",
+      "label": "04 — FLUX DE TRAVAIL",
+      "tagline": "PRIVÉ  •  SÉCURISÉ  •  HORS LIGNE"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_DESKTOP",
+      "file": "fr-FR/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modèles sur l’appareil",
+      "subheadline": "Modèles locaux facultatifs à télécharger et sélectionner.",
+      "label": "03 — MODÈLES",
+      "tagline": "PRIVÉ  •  SÉCURISÉ  •  HORS LIGNE"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_DESKTOP",
+      "file": "fr-FR/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Enregistrer",
+      "subheadline": "Transcription en direct · envoi immédiat",
+      "label": "02 — ENREGISTRER",
+      "tagline": "PRIVÉ  •  SÉCURISÉ  •  HORS LIGNE"
+    },
+    {
+      "locale": "fr-FR",
+      "displayType": "APP_DESKTOP",
+      "file": "fr-FR/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/fr-FR/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Tout capturer en Markdown",
+      "subheadline": "Tout reste sur cet appareil.",
+      "label": "01 — CAPTURE",
+      "tagline": "PRIVÉ  •  SÉCURISÉ  •  HORS LIGNE"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-CA/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Tout capturer en Markdown",
+      "subheadline": "Capturez une idée, une tâche, un lien, un fichier, un scan ou un enregistrement."
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-CA/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Préréglages de capture",
+      "subheadline": "Un préréglage de capture est un flux réutilisable complet : il définit le traitement d’une capture et sa destination."
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-CA/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Destination",
+      "subheadline": "Traitement, mise en forme, métadonnées et destinations"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-CA/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Dictez dans n’importe quelle app.",
+      "subheadline": "Clavier"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-CA/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Privé",
+      "subheadline": "Tout reste sur cet appareil."
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-CA/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Enregistrer",
+      "subheadline": "L’éditeur reste disponible pendant l’enregistrement"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPHONE_67",
+      "file": "fr-CA/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Barre de capture",
+      "subheadline": "Choisissez, réorganisez et masquez les actions rapides"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "fr-CA/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "sourceTreatment": {
+        "highlightContrast": 5
+      },
+      "headline": "De la voix au texte",
+      "subheadline": "Tout reste sur cet appareil."
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "fr-CA/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Historique",
+      "subheadline": "Enregistrements, durée et activité de capture"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "fr-CA/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modèles sur l’appareil",
+      "subheadline": "Modèles locaux facultatifs à télécharger et sélectionner."
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "fr-CA/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Réglages",
+      "subheadline": "Moteurs de transcription, téléchargements de modèles et langue"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "fr-CA/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Enregistrer",
+      "subheadline": "Transcription en direct · envoi immédiat"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "fr-CA/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "fr-CA/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "fr-CA/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_DESKTOP",
+      "file": "fr-CA/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Historique",
+      "subheadline": "Enregistrements, durée et activité de capture",
+      "label": "05 — HISTORIQUE",
+      "tagline": "PRIVÉ  •  SÉCURISÉ  •  HORS LIGNE"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_DESKTOP",
+      "file": "fr-CA/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Préréglages de capture",
+      "subheadline": "Un préréglage de capture est un flux réutilisable complet : il définit le traitement d’une capture et sa destination.",
+      "label": "04 — FLUX DE TRAVAIL",
+      "tagline": "PRIVÉ  •  SÉCURISÉ  •  HORS LIGNE"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_DESKTOP",
+      "file": "fr-CA/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modèles sur l’appareil",
+      "subheadline": "Modèles locaux facultatifs à télécharger et sélectionner.",
+      "label": "03 — MODÈLES",
+      "tagline": "PRIVÉ  •  SÉCURISÉ  •  HORS LIGNE"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_DESKTOP",
+      "file": "fr-CA/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Enregistrer",
+      "subheadline": "Transcription en direct · envoi immédiat",
+      "label": "02 — ENREGISTRER",
+      "tagline": "PRIVÉ  •  SÉCURISÉ  •  HORS LIGNE"
+    },
+    {
+      "locale": "fr-CA",
+      "displayType": "APP_DESKTOP",
+      "file": "fr-CA/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/fr-CA/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Tout capturer en Markdown",
+      "subheadline": "Tout reste sur cet appareil.",
+      "label": "01 — CAPTURE",
+      "tagline": "PRIVÉ  •  SÉCURISÉ  •  HORS LIGNE"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPHONE_67",
+      "file": "hi/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/hi/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Markdown में सब कैप्चर करें",
+      "subheadline": "कोई विचार, कार्य, लिंक, फ़ाइल, स्कैन या रिकॉर्डिंग कैप्चर करें।"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPHONE_67",
+      "file": "hi/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/hi/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "कैप्चर प्रीसेट",
+      "subheadline": "कैप्चर प्रीसेट एक पूरी तरह पुनः उपयोग योग्य वर्कफ़्लो है: कैप्चर के साथ क्या होता है और उसे कहाँ भेजा जाता है।"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPHONE_67",
+      "file": "hi/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/hi/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "गंतव्य",
+      "subheadline": "प्रोसेसिंग, फ़ॉर्मैटिंग, मेटाडेटा और डेस्टिनेशन"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPHONE_67",
+      "file": "hi/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/hi/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "किसी भी ऐप में बोलें।",
+      "subheadline": "कीबोर्ड"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPHONE_67",
+      "file": "hi/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/hi/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "निजी",
+      "subheadline": "सब कुछ इसी डिवाइस पर रहता है।"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPHONE_67",
+      "file": "hi/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/hi/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "रिकॉर्ड करें",
+      "subheadline": "रिकॉर्डिंग के दौरान भी एडिटर उपलब्ध रहता है"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPHONE_67",
+      "file": "hi/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/hi/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "कैप्चर बार",
+      "subheadline": "त्वरित कार्रवाइयाँ चुनें, क्रम बदलें और छिपाएँ"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "hi/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/hi/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "आवाज़ से टेक्स्ट",
+      "subheadline": "सब कुछ इसी डिवाइस पर रहता है।"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "hi/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/hi/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "इतिहास",
+      "subheadline": "रिकॉर्डिंग, रिकॉर्डिंग समय और कैप्चर गतिविधि"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "hi/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/hi/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "डिवाइस पर मॉडल",
+      "subheadline": "वैकल्पिक लोकल मॉडल जिन्हें डाउनलोड करके चुना जा सकता है।"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "hi/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/hi/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "सेटिंग्स",
+      "subheadline": "ट्रांसक्रिप्शन इंजन, मॉडल डाउनलोड और भाषा"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "hi/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/hi/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "रिकॉर्ड करें",
+      "subheadline": "लाइव ट्रांसक्रिप्ट · तुरंत भेजा जा रहा है"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "hi/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/hi/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "hi/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/hi/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "hi/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/hi/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_DESKTOP",
+      "file": "hi/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/hi/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "इतिहास",
+      "subheadline": "रिकॉर्डिंग, रिकॉर्डिंग समय और कैप्चर गतिविधि",
+      "label": "05 — इतिहास",
+      "tagline": "निजी  •  सुरक्षित  •  ऑफ़लाइन"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_DESKTOP",
+      "file": "hi/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/hi/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "कैप्चर प्रीसेट",
+      "subheadline": "कैप्चर प्रीसेट एक पूरी तरह पुनः उपयोग योग्य वर्कफ़्लो है: कैप्चर के साथ क्या होता है और उसे कहाँ भेजा जाता है।",
+      "label": "04 — वर्कफ़्लो",
+      "tagline": "निजी  •  सुरक्षित  •  ऑफ़लाइन"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_DESKTOP",
+      "file": "hi/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/hi/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "डिवाइस पर मॉडल",
+      "subheadline": "वैकल्पिक लोकल मॉडल जिन्हें डाउनलोड करके चुना जा सकता है।",
+      "label": "03 — मॉडल",
+      "tagline": "निजी  •  सुरक्षित  •  ऑफ़लाइन"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_DESKTOP",
+      "file": "hi/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/hi/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "रिकॉर्ड करें",
+      "subheadline": "लाइव ट्रांसक्रिप्ट · तुरंत भेजा जा रहा है",
+      "label": "02 — रिकॉर्डिंग",
+      "tagline": "निजी  •  सुरक्षित  •  ऑफ़लाइन"
+    },
+    {
+      "locale": "hi",
+      "displayType": "APP_DESKTOP",
+      "file": "hi/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/hi/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Markdown में सब कैप्चर करें",
+      "subheadline": "सब कुछ इसी डिवाइस पर रहता है।",
+      "label": "01 — कैप्चर",
+      "tagline": "निजी  •  सुरक्षित  •  ऑफ़लाइन"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPHONE_67",
+      "file": "id/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/id/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Tangkap apa pun ke Markdown",
+      "subheadline": "Tangkap ide, tugas, tautan, file, pindaian, atau rekaman."
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPHONE_67",
+      "file": "id/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/id/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Preset Tangkapan",
+      "subheadline": "Preset Capture adalah alur kerja lengkap yang dapat digunakan kembali: menentukan apa yang terjadi pada tangkapan dan ke mana hasilnya dikirim."
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPHONE_67",
+      "file": "id/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/id/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Tujuan",
+      "subheadline": "Pemrosesan, pemformatan, metadata, dan tujuan"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPHONE_67",
+      "file": "id/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/id/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Bicara di aplikasi apa pun.",
+      "subheadline": "Papan Ketik"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPHONE_67",
+      "file": "id/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/id/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Privat",
+      "subheadline": "Semuanya tetap di perangkat ini."
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPHONE_67",
+      "file": "id/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/id/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Rekam",
+      "subheadline": "Editor tetap tersedia saat Anda merekam"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPHONE_67",
+      "file": "id/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/id/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Bilah Tangkapan",
+      "subheadline": "Pilih, urutkan ulang, dan sembunyikan tindakan cepat"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "id/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/id/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Suara ke Teks",
+      "subheadline": "Semuanya tetap di perangkat ini."
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "id/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/id/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Riwayat",
+      "subheadline": "Rekaman, durasi rekaman, dan aktivitas tangkapan"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "id/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/id/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Model di Perangkat",
+      "subheadline": "Model lokal opsional yang dapat diunduh dan dipilih."
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "id/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/id/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Pengaturan",
+      "subheadline": "Mesin transkripsi, unduhan model, dan bahasa"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "id/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/id/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Rekam",
+      "subheadline": "Transkrip langsung · langsung dikirim"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "id/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/id/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "id/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/id/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "id/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/id/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_DESKTOP",
+      "file": "id/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/id/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Riwayat",
+      "subheadline": "Rekaman, durasi rekaman, dan aktivitas tangkapan",
+      "label": "05 — RIWAYAT",
+      "tagline": "PRIVAT  •  AMAN  •  OFFLINE"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_DESKTOP",
+      "file": "id/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/id/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Preset Tangkapan",
+      "subheadline": "Preset Capture adalah alur kerja lengkap yang dapat digunakan kembali: menentukan apa yang terjadi pada tangkapan dan ke mana hasilnya dikirim.",
+      "label": "04 — ALUR KERJA",
+      "tagline": "PRIVAT  •  AMAN  •  OFFLINE"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_DESKTOP",
+      "file": "id/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/id/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Model di Perangkat",
+      "subheadline": "Model lokal opsional yang dapat diunduh dan dipilih.",
+      "label": "03 — MODEL",
+      "tagline": "PRIVAT  •  AMAN  •  OFFLINE"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_DESKTOP",
+      "file": "id/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/id/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Rekam",
+      "subheadline": "Transkrip langsung · langsung dikirim",
+      "label": "02 — REKAM",
+      "tagline": "PRIVAT  •  AMAN  •  OFFLINE"
+    },
+    {
+      "locale": "id",
+      "displayType": "APP_DESKTOP",
+      "file": "id/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/id/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Tangkap apa pun ke Markdown",
+      "subheadline": "Semuanya tetap di perangkat ini.",
+      "label": "01 — TANGKAPAN",
+      "tagline": "PRIVAT  •  AMAN  •  OFFLINE"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPHONE_67",
+      "file": "it/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/it/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Cattura tutto in Markdown",
+      "subheadline": "Acquisisci un’idea, un’attività, un link, un file, una scansione o una registrazione."
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPHONE_67",
+      "file": "it/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/it/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Preimpostazioni di acquisizione",
+      "subheadline": "Un preset di acquisizione è un flusso completo e riutilizzabile: stabilisce cosa accade a un’acquisizione e dove viene inviata."
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPHONE_67",
+      "file": "it/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/it/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Destinazione",
+      "subheadline": "Elaborazione, formattazione, metadati e destinazioni"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPHONE_67",
+      "file": "it/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/it/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Parla in qualsiasi app.",
+      "subheadline": "Tastiera"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPHONE_67",
+      "file": "it/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/it/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Privato",
+      "subheadline": "Tutto rimane su questo dispositivo."
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPHONE_67",
+      "file": "it/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/it/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Registra",
+      "subheadline": "L’editor resta disponibile durante la registrazione"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPHONE_67",
+      "file": "it/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/it/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Barra di acquisizione",
+      "subheadline": "Scegli, riordina e nascondi le azioni rapide"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "it/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/it/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Da voce a testo",
+      "subheadline": "Tutto rimane su questo dispositivo."
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "it/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/it/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Cronologia",
+      "subheadline": "Registrazioni, durata e attività di acquisizione"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "it/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/it/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modelli sul dispositivo",
+      "subheadline": "Modelli locali facoltativi da scaricare e selezionare."
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "it/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/it/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Impostazioni",
+      "subheadline": "Motori di trascrizione, download dei modelli e lingua"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "it/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/it/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Registra",
+      "subheadline": "Trascrizione in diretta · invio immediato"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "it/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/it/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "it/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/it/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "it/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/it/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_DESKTOP",
+      "file": "it/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/it/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Cronologia",
+      "subheadline": "Registrazioni, durata e attività di acquisizione",
+      "label": "05 — CRONOLOGIA",
+      "tagline": "PRIVATO  •  SICURO  •  OFFLINE"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_DESKTOP",
+      "file": "it/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/it/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Preimpostazioni di acquisizione",
+      "subheadline": "Un preset di acquisizione è un flusso completo e riutilizzabile: stabilisce cosa accade a un’acquisizione e dove viene inviata.",
+      "label": "04 — FLUSSO DI LAVORO",
+      "tagline": "PRIVATO  •  SICURO  •  OFFLINE"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_DESKTOP",
+      "file": "it/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/it/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modelli sul dispositivo",
+      "subheadline": "Modelli locali facoltativi da scaricare e selezionare.",
+      "label": "03 — MODELLI",
+      "tagline": "PRIVATO  •  SICURO  •  OFFLINE"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_DESKTOP",
+      "file": "it/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/it/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Registra",
+      "subheadline": "Trascrizione in diretta · invio immediato",
+      "label": "02 — REGISTRA",
+      "tagline": "PRIVATO  •  SICURO  •  OFFLINE"
+    },
+    {
+      "locale": "it",
+      "displayType": "APP_DESKTOP",
+      "file": "it/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/it/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Cattura tutto in Markdown",
+      "subheadline": "Tutto rimane su questo dispositivo.",
+      "label": "01 — ACQUISIZIONE",
+      "tagline": "PRIVATO  •  SICURO  •  OFFLINE"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPHONE_67",
+      "file": "ja/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/ja/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "何でもMarkdownにキャプチャ",
+      "subheadline": "アイデア、タスク、リンク、ファイル、スキャン、録音をキャプチャ。"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPHONE_67",
+      "file": "ja/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/ja/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "キャプチャプリセット",
+      "subheadline": "キャプチャプリセットは、キャプチャの処理内容と配信先を定める、再利用可能な一連の設定です。"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPHONE_67",
+      "file": "ja/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/ja/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "保存先",
+      "subheadline": "処理、フォーマット、メタデータ、保存先"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPHONE_67",
+      "file": "ja/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/ja/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "どのアプリでも音声入力。",
+      "subheadline": "キーボード"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPHONE_67",
+      "file": "ja/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/ja/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "プライベート",
+      "subheadline": "すべてこのデバイス内に保存されます。"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPHONE_67",
+      "file": "ja/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/ja/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "録音",
+      "subheadline": "録音中もエディタを使用できます"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPHONE_67",
+      "file": "ja/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/ja/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "キャプチャバー",
+      "subheadline": "クイックアクションの選択、並べ替え、非表示"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ja/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/ja/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "音声をテキストに",
+      "subheadline": "すべてこのデバイス内に保存されます。"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ja/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/ja/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "履歴",
+      "subheadline": "録音、録音時間、キャプチャ履歴"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ja/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/ja/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "オンデバイスモデル",
+      "subheadline": "ダウンロードして選択できる任意のローカルモデルです。"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ja/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/ja/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "設定",
+      "subheadline": "文字起こしエンジン、モデルのダウンロード、言語"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ja/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/ja/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "録音",
+      "subheadline": "リアルタイム文字起こし · すぐに送信"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ja/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/ja/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ja/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/ja/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ja/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/ja/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_DESKTOP",
+      "file": "ja/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/ja/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "履歴",
+      "subheadline": "録音、録音時間、キャプチャ履歴",
+      "label": "05 — 履歴",
+      "tagline": "プライベート  •  安全  •  オフライン"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_DESKTOP",
+      "file": "ja/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/ja/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "キャプチャプリセット",
+      "subheadline": "キャプチャプリセットは、キャプチャの処理内容と配信先を定める、再利用可能な一連の設定です。",
+      "label": "04 — ワークフロー",
+      "tagline": "プライベート  •  安全  •  オフライン"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_DESKTOP",
+      "file": "ja/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/ja/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "オンデバイスモデル",
+      "subheadline": "ダウンロードして選択できる任意のローカルモデルです。",
+      "label": "03 — モデル",
+      "tagline": "プライベート  •  安全  •  オフライン"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_DESKTOP",
+      "file": "ja/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/ja/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "録音",
+      "subheadline": "リアルタイム文字起こし · すぐに送信",
+      "label": "02 — 録音",
+      "tagline": "プライベート  •  安全  •  オフライン"
+    },
+    {
+      "locale": "ja",
+      "displayType": "APP_DESKTOP",
+      "file": "ja/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/ja/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "何でもMarkdownにキャプチャ",
+      "subheadline": "すべてこのデバイス内に保存されます。",
+      "label": "01 — キャプチャ",
+      "tagline": "プライベート  •  安全  •  オフライン"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPHONE_67",
+      "file": "ko/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/ko/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "무엇이든 Markdown으로 캡처",
+      "subheadline": "아이디어, 작업, 링크, 파일, 스캔 또는 녹음을 캡처하세요."
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPHONE_67",
+      "file": "ko/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/ko/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "캡처 프리셋",
+      "subheadline": "캡처 프리셋은 캡처 처리 방식과 전달 위치를 정하는 완전한 재사용 워크플로입니다."
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPHONE_67",
+      "file": "ko/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/ko/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "대상",
+      "subheadline": "처리, 서식, 메타데이터 및 대상"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPHONE_67",
+      "file": "ko/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/ko/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "어떤 앱에서든 음성 입력.",
+      "subheadline": "키보드"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPHONE_67",
+      "file": "ko/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/ko/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "비공개",
+      "subheadline": "모든 내용은 이 기기에만 저장됩니다."
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPHONE_67",
+      "file": "ko/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/ko/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "녹음",
+      "subheadline": "녹음 중에도 편집기를 사용할 수 있습니다"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPHONE_67",
+      "file": "ko/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/ko/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "캡처 바",
+      "subheadline": "빠른 동작 선택, 순서 변경 및 숨기기"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ko/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/ko/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "음성을 텍스트로",
+      "subheadline": "모든 내용은 이 기기에만 저장됩니다."
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ko/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/ko/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "기록",
+      "subheadline": "녹음, 녹음 시간 및 캡처 활동"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ko/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/ko/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "온디바이스 모델",
+      "subheadline": "다운로드하여 선택할 수 있는 로컬 모델입니다."
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ko/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/ko/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "설정",
+      "subheadline": "전사 엔진, 모델 다운로드 및 언어"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ko/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/ko/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "녹음",
+      "subheadline": "실시간 전사 · 즉시 전송"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ko/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/ko/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ko/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/ko/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ko/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/ko/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_DESKTOP",
+      "file": "ko/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/ko/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "기록",
+      "subheadline": "녹음, 녹음 시간 및 캡처 활동",
+      "label": "05 — 기록",
+      "tagline": "비공개  •  안전  •  오프라인"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_DESKTOP",
+      "file": "ko/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/ko/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "캡처 프리셋",
+      "subheadline": "캡처 프리셋은 캡처 처리 방식과 전달 위치를 정하는 완전한 재사용 워크플로입니다.",
+      "label": "04 — 워크플로",
+      "tagline": "비공개  •  안전  •  오프라인"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_DESKTOP",
+      "file": "ko/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/ko/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "온디바이스 모델",
+      "subheadline": "다운로드하여 선택할 수 있는 로컬 모델입니다.",
+      "label": "03 — 모델",
+      "tagline": "비공개  •  안전  •  오프라인"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_DESKTOP",
+      "file": "ko/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/ko/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "녹음",
+      "subheadline": "실시간 전사 · 즉시 전송",
+      "label": "02 — 녹음",
+      "tagline": "비공개  •  안전  •  오프라인"
+    },
+    {
+      "locale": "ko",
+      "displayType": "APP_DESKTOP",
+      "file": "ko/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/ko/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "무엇이든 Markdown으로 캡처",
+      "subheadline": "모든 내용은 이 기기에만 저장됩니다.",
+      "label": "01 — 캡처",
+      "tagline": "비공개  •  안전  •  오프라인"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPHONE_67",
+      "file": "nl-NL/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Leg alles vast in Markdown",
+      "subheadline": "Leg een idee, taak, link, bestand, scan of opname vast."
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPHONE_67",
+      "file": "nl-NL/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Vastlegvoorinstellingen",
+      "subheadline": "Een opnamevoorinstelling is een volledig herbruikbare workflow: wat er met een opname gebeurt en waar die wordt afgeleverd."
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPHONE_67",
+      "file": "nl-NL/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Bestemming",
+      "subheadline": "Verwerking, opmaak, metadata en bestemmingen"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPHONE_67",
+      "file": "nl-NL/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Spreek in elke app.",
+      "subheadline": "Toetsenbord"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPHONE_67",
+      "file": "nl-NL/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Privé",
+      "subheadline": "Alles blijft op dit apparaat."
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPHONE_67",
+      "file": "nl-NL/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Opnemen",
+      "subheadline": "De editor blijft beschikbaar tijdens de opname"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPHONE_67",
+      "file": "nl-NL/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Vastlegbalk",
+      "subheadline": "Kies, rangschik en verberg snelle acties"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "nl-NL/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Spraak naar tekst",
+      "subheadline": "Alles blijft op dit apparaat."
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "nl-NL/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Geschiedenis",
+      "subheadline": "Opnamen, opnameduur en vastlegactiviteit"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "nl-NL/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modellen op het apparaat",
+      "subheadline": "Optionele lokale modellen die je kunt downloaden en kiezen."
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "nl-NL/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Instellingen",
+      "subheadline": "Transcriptie-engines, modeldownloads en taal"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "nl-NL/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Opnemen",
+      "subheadline": "Live-transcript · direct verzenden"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "nl-NL/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "nl-NL/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "nl-NL/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_DESKTOP",
+      "file": "nl-NL/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Geschiedenis",
+      "subheadline": "Opnamen, opnameduur en vastlegactiviteit",
+      "label": "05 — GESCHIEDENIS",
+      "tagline": "PRIVÉ  •  VEILIG  •  OFFLINE"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_DESKTOP",
+      "file": "nl-NL/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Vastlegvoorinstellingen",
+      "subheadline": "Een opnamevoorinstelling is een volledig herbruikbare workflow: wat er met een opname gebeurt en waar die wordt afgeleverd.",
+      "label": "04 — WORKFLOW",
+      "tagline": "PRIVÉ  •  VEILIG  •  OFFLINE"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_DESKTOP",
+      "file": "nl-NL/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modellen op het apparaat",
+      "subheadline": "Optionele lokale modellen die je kunt downloaden en kiezen.",
+      "label": "03 — MODELLEN",
+      "tagline": "PRIVÉ  •  VEILIG  •  OFFLINE"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_DESKTOP",
+      "file": "nl-NL/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Opnemen",
+      "subheadline": "Live-transcript · direct verzenden",
+      "label": "02 — OPNEMEN",
+      "tagline": "PRIVÉ  •  VEILIG  •  OFFLINE"
+    },
+    {
+      "locale": "nl-NL",
+      "displayType": "APP_DESKTOP",
+      "file": "nl-NL/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/nl-NL/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Leg alles vast in Markdown",
+      "subheadline": "Alles blijft op dit apparaat.",
+      "label": "01 — VASTLEGGEN",
+      "tagline": "PRIVÉ  •  VEILIG  •  OFFLINE"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPHONE_67",
+      "file": "pl/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/pl/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Zapisuj wszystko w Markdown",
+      "subheadline": "Zapisz pomysł, zadanie, link, plik, skan lub nagranie."
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPHONE_67",
+      "file": "pl/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/pl/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Ustawienia przechwytywania",
+      "subheadline": "Ustawienie przechwytywania to kompletny, wielokrotnego użytku przepływ: określa, co dzieje się z przechwyconą treścią i dokąd trafia."
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPHONE_67",
+      "file": "pl/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/pl/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Miejsce docelowe",
+      "subheadline": "Przetwarzanie, formatowanie, metadane i miejsca docelowe"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPHONE_67",
+      "file": "pl/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/pl/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Mów w dowolnej aplikacji.",
+      "subheadline": "Klawiatura"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPHONE_67",
+      "file": "pl/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/pl/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Prywatne",
+      "subheadline": "Wszystko pozostaje na tym urządzeniu."
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPHONE_67",
+      "file": "pl/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/pl/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Nagraj",
+      "subheadline": "Edytor pozostaje dostępny podczas nagrywania"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPHONE_67",
+      "file": "pl/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/pl/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Pasek przechwytywania",
+      "subheadline": "Wybieraj, zmieniaj kolejność i ukrywaj szybkie czynności"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "pl/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/pl/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Mowa na tekst",
+      "subheadline": "Wszystko pozostaje na tym urządzeniu."
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "pl/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/pl/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Historia",
+      "subheadline": "Nagrania, czas nagrywania i aktywność"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "pl/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/pl/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modele na urządzeniu",
+      "subheadline": "Opcjonalne modele lokalne do pobrania i wybrania."
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "pl/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/pl/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Ustawienia",
+      "subheadline": "Systemy transkrypcji, pobieranie modeli i język"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "pl/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/pl/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Nagraj",
+      "subheadline": "Transkrypcja na żywo · wysyłanie natychmiast"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "pl/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/pl/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "pl/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/pl/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "pl/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/pl/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_DESKTOP",
+      "file": "pl/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/pl/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Historia",
+      "subheadline": "Nagrania, czas nagrywania i aktywność",
+      "label": "05 — HISTORIA",
+      "tagline": "PRYWATNE  •  BEZPIECZNE  •  OFFLINE"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_DESKTOP",
+      "file": "pl/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/pl/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Ustawienia przechwytywania",
+      "subheadline": "Ustawienie przechwytywania to kompletny, wielokrotnego użytku przepływ: określa, co dzieje się z przechwyconą treścią i dokąd trafia.",
+      "label": "04 — PRZEPŁYW PRACY",
+      "tagline": "PRYWATNE  •  BEZPIECZNE  •  OFFLINE"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_DESKTOP",
+      "file": "pl/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/pl/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modele na urządzeniu",
+      "subheadline": "Opcjonalne modele lokalne do pobrania i wybrania.",
+      "label": "03 — MODELE",
+      "tagline": "PRYWATNE  •  BEZPIECZNE  •  OFFLINE"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_DESKTOP",
+      "file": "pl/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/pl/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Nagraj",
+      "subheadline": "Transkrypcja na żywo · wysyłanie natychmiast",
+      "label": "02 — NAGRYWANIE",
+      "tagline": "PRYWATNE  •  BEZPIECZNE  •  OFFLINE"
+    },
+    {
+      "locale": "pl",
+      "displayType": "APP_DESKTOP",
+      "file": "pl/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/pl/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Zapisuj wszystko w Markdown",
+      "subheadline": "Wszystko pozostaje na tym urządzeniu.",
+      "label": "01 — PRZECHWYTYWANIE",
+      "tagline": "PRYWATNE  •  BEZPIECZNE  •  OFFLINE"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPHONE_67",
+      "file": "pt-BR/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Capture tudo em Markdown",
+      "subheadline": "Capture uma ideia, tarefa, link, arquivo, digitalização ou gravação."
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPHONE_67",
+      "file": "pt-BR/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Predefinições de captura",
+      "subheadline": "Uma predefinição de captura é um fluxo completo e reutilizável: define o que acontece com uma captura e onde ela é entregue."
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPHONE_67",
+      "file": "pt-BR/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Destino",
+      "subheadline": "Processamento, formatação, metadados e destinos"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPHONE_67",
+      "file": "pt-BR/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Fale em qualquer app.",
+      "subheadline": "Teclado"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPHONE_67",
+      "file": "pt-BR/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Privado",
+      "subheadline": "Tudo permanece neste dispositivo."
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPHONE_67",
+      "file": "pt-BR/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Gravar",
+      "subheadline": "O editor continua disponível durante a gravação"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPHONE_67",
+      "file": "pt-BR/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Barra de captura",
+      "subheadline": "Escolha, reordene e oculte ações rápidas"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "pt-BR/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Voz em texto",
+      "subheadline": "Tudo permanece neste dispositivo."
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "pt-BR/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Histórico",
+      "subheadline": "Gravações, duração e atividade de captura"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "pt-BR/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modelos no dispositivo",
+      "subheadline": "Modelos locais opcionais que você pode baixar e selecionar."
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "pt-BR/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Ajustes",
+      "subheadline": "Mecanismos de transcrição, downloads de modelos e idioma"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "pt-BR/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Gravar",
+      "subheadline": "Transcrição ao vivo · envio imediato"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "pt-BR/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "pt-BR/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "pt-BR/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_DESKTOP",
+      "file": "pt-BR/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Histórico",
+      "subheadline": "Gravações, duração e atividade de captura",
+      "label": "05 — HISTÓRICO",
+      "tagline": "PRIVADO  •  SEGURO  •  OFFLINE"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_DESKTOP",
+      "file": "pt-BR/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Predefinições de captura",
+      "subheadline": "Uma predefinição de captura é um fluxo completo e reutilizável: define o que acontece com uma captura e onde ela é entregue.",
+      "label": "04 — FLUXO DE TRABALHO",
+      "tagline": "PRIVADO  •  SEGURO  •  OFFLINE"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_DESKTOP",
+      "file": "pt-BR/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Modelos no dispositivo",
+      "subheadline": "Modelos locais opcionais que você pode baixar e selecionar.",
+      "label": "03 — MODELOS",
+      "tagline": "PRIVADO  •  SEGURO  •  OFFLINE"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_DESKTOP",
+      "file": "pt-BR/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Gravar",
+      "subheadline": "Transcrição ao vivo · envio imediato",
+      "label": "02 — GRAVAR",
+      "tagline": "PRIVADO  •  SEGURO  •  OFFLINE"
+    },
+    {
+      "locale": "pt-BR",
+      "displayType": "APP_DESKTOP",
+      "file": "pt-BR/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/pt-BR/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Capture tudo em Markdown",
+      "subheadline": "Tudo permanece neste dispositivo.",
+      "label": "01 — CAPTURA",
+      "tagline": "PRIVADO  •  SEGURO  •  OFFLINE"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPHONE_67",
+      "file": "ru/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/ru/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Сохраняйте всё в Markdown",
+      "subheadline": "Зафиксируйте идею, задачу, ссылку, файл, скан или запись."
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPHONE_67",
+      "file": "ru/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/ru/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Предустановки захвата",
+      "subheadline": "Набор параметров захвата — это готовый повторно используемый процесс: он определяет обработку материала и место доставки."
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPHONE_67",
+      "file": "ru/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/ru/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Место назначения",
+      "subheadline": "Обработка, форматирование, метаданные и места назначения"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPHONE_67",
+      "file": "ru/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/ru/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Диктуйте в любом приложении.",
+      "subheadline": "Клавиатура"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPHONE_67",
+      "file": "ru/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/ru/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Конфиденциально",
+      "subheadline": "Всё остаётся на этом устройстве."
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPHONE_67",
+      "file": "ru/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/ru/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Записать",
+      "subheadline": "Редактор остаётся доступным во время записи"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPHONE_67",
+      "file": "ru/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/ru/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Панель захвата",
+      "subheadline": "Выбирайте, меняйте порядок и скрывайте быстрые действия"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ru/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/ru/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Речь в текст",
+      "subheadline": "Всё остаётся на этом устройстве."
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ru/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/ru/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "История",
+      "subheadline": "Записи, длительность и активность захвата"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ru/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/ru/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Модели на устройстве",
+      "subheadline": "Необязательные локальные модели, которые можно скачать и выбрать."
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ru/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/ru/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Настройки",
+      "subheadline": "Системы транскрипции, загрузки моделей и язык"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "ru/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/ru/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Записать",
+      "subheadline": "Транскрипция в реальном времени · немедленная отправка"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ru/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/ru/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ru/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/ru/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "ru/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/ru/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_DESKTOP",
+      "file": "ru/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/ru/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "История",
+      "subheadline": "Записи, длительность и активность захвата",
+      "label": "05 — ИСТОРИЯ",
+      "tagline": "КОНФИДЕНЦИАЛЬНО  •  БЕЗОПАСНО  •  ОФЛАЙН"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_DESKTOP",
+      "file": "ru/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/ru/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Предустановки захвата",
+      "subheadline": "Набор параметров захвата — это готовый повторно используемый процесс: он определяет обработку материала и место доставки.",
+      "label": "04 — РАБОЧИЙ ПРОЦЕСС",
+      "tagline": "КОНФИДЕНЦИАЛЬНО  •  БЕЗОПАСНО  •  ОФЛАЙН"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_DESKTOP",
+      "file": "ru/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/ru/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Модели на устройстве",
+      "subheadline": "Необязательные локальные модели, которые можно скачать и выбрать.",
+      "label": "03 — МОДЕЛИ",
+      "tagline": "КОНФИДЕНЦИАЛЬНО  •  БЕЗОПАСНО  •  ОФЛАЙН"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_DESKTOP",
+      "file": "ru/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/ru/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Записать",
+      "subheadline": "Транскрипция в реальном времени · немедленная отправка",
+      "label": "02 — ЗАПИСЬ",
+      "tagline": "КОНФИДЕНЦИАЛЬНО  •  БЕЗОПАСНО  •  ОФЛАЙН"
+    },
+    {
+      "locale": "ru",
+      "displayType": "APP_DESKTOP",
+      "file": "ru/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/ru/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Сохраняйте всё в Markdown",
+      "subheadline": "Всё остаётся на этом устройстве.",
+      "label": "01 — ЗАХВАТ",
+      "tagline": "КОНФИДЕНЦИАЛЬНО  •  БЕЗОПАСНО  •  ОФЛАЙН"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPHONE_67",
+      "file": "th/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/th/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "บันทึกทุกอย่างเป็น Markdown",
+      "subheadline": "จับไอเดีย งาน ลิงก์ ไฟล์ สแกน หรือการบันทึก"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPHONE_67",
+      "file": "th/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/th/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "ค่าจับภาพที่ตั้งไว้",
+      "subheadline": "ค่าที่ตั้งไว้สำหรับการจับข้อมูลคือเวิร์กโฟลว์ที่นำกลับมาใช้ได้ครบถ้วน ซึ่งกำหนดการประมวลผลและปลายทางของข้อมูล"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPHONE_67",
+      "file": "th/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/th/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "ปลายทาง",
+      "subheadline": "การประมวลผล การจัดรูปแบบ เมทาดาทา และปลายทาง"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPHONE_67",
+      "file": "th/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/th/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "พูดในทุกแอป",
+      "subheadline": "แป้นพิมพ์"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPHONE_67",
+      "file": "th/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/th/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "เป็นส่วนตัว",
+      "subheadline": "ทุกอย่างอยู่บนอุปกรณ์นี้"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPHONE_67",
+      "file": "th/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/th/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "บันทึก",
+      "subheadline": "คุณยังใช้ตัวแก้ไขได้ขณะบันทึก"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPHONE_67",
+      "file": "th/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/th/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "แถบจับภาพ",
+      "subheadline": "เลือก จัดลำดับใหม่ และซ่อนการทำงานด่วน"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "th/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/th/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "เสียงเป็นข้อความ",
+      "subheadline": "ทุกอย่างอยู่บนอุปกรณ์นี้"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "th/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/th/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "ประวัติ",
+      "subheadline": "รายการบันทึก ระยะเวลา และกิจกรรมจับภาพ"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "th/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/th/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "โมเดลบนอุปกรณ์",
+      "subheadline": "โมเดลภายในเครื่องที่เลือกดาวน์โหลดและใช้งานได้"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "th/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/th/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "การตั้งค่า",
+      "subheadline": "เครื่องมือถอดเสียง การดาวน์โหลดโมเดล และภาษา"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "th/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/th/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "บันทึก",
+      "subheadline": "ถอดเสียงสด · ส่งทันที"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "th/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/th/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "th/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/th/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "th/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/th/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_DESKTOP",
+      "file": "th/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/th/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "ประวัติ",
+      "subheadline": "รายการบันทึก ระยะเวลา และกิจกรรมจับภาพ",
+      "label": "05 — ประวัติ",
+      "tagline": "เป็นส่วนตัว  •  ปลอดภัย  •  ออฟไลน์"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_DESKTOP",
+      "file": "th/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/th/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "ค่าจับภาพที่ตั้งไว้",
+      "subheadline": "ค่าที่ตั้งไว้สำหรับการจับข้อมูลคือเวิร์กโฟลว์ที่นำกลับมาใช้ได้ครบถ้วน ซึ่งกำหนดการประมวลผลและปลายทางของข้อมูล",
+      "label": "04 — เวิร์กโฟลว์",
+      "tagline": "เป็นส่วนตัว  •  ปลอดภัย  •  ออฟไลน์"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_DESKTOP",
+      "file": "th/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/th/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "โมเดลบนอุปกรณ์",
+      "subheadline": "โมเดลภายในเครื่องที่เลือกดาวน์โหลดและใช้งานได้",
+      "label": "03 — โมเดล",
+      "tagline": "เป็นส่วนตัว  •  ปลอดภัย  •  ออฟไลน์"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_DESKTOP",
+      "file": "th/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/th/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "บันทึก",
+      "subheadline": "ถอดเสียงสด · ส่งทันที",
+      "label": "02 — บันทึก",
+      "tagline": "เป็นส่วนตัว  •  ปลอดภัย  •  ออฟไลน์"
+    },
+    {
+      "locale": "th",
+      "displayType": "APP_DESKTOP",
+      "file": "th/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/th/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "บันทึกทุกอย่างเป็น Markdown",
+      "subheadline": "ทุกอย่างอยู่บนอุปกรณ์นี้",
+      "label": "01 — การบันทึก",
+      "tagline": "เป็นส่วนตัว  •  ปลอดภัย  •  ออฟไลน์"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPHONE_67",
+      "file": "tr/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/tr/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Her şeyi Markdown'a kaydet",
+      "subheadline": "Bir fikir, görev, bağlantı, dosya, tarama veya kayıt yakalayın."
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPHONE_67",
+      "file": "tr/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/tr/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Yakalama Ön Ayarları",
+      "subheadline": "Yakalama Ön Ayarı, bir yakalamaya ne olacağını ve tam olarak nereye gönderileceğini belirleyen yeniden kullanılabilir bir iş akışıdır."
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPHONE_67",
+      "file": "tr/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/tr/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Hedef",
+      "subheadline": "İşleme, biçimlendirme, meta veriler ve hedefler"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPHONE_67",
+      "file": "tr/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/tr/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Her uygulamada konuşun.",
+      "subheadline": "Klavye"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPHONE_67",
+      "file": "tr/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/tr/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Özel",
+      "subheadline": "Her şey bu aygıtta kalır."
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPHONE_67",
+      "file": "tr/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/tr/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Kaydet",
+      "subheadline": "Kayıt sırasında düzenleyiciyi kullanmaya devam edebilirsiniz"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPHONE_67",
+      "file": "tr/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/tr/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Yakalama Çubuğu",
+      "subheadline": "Hızlı eylemleri seçin, yeniden sıralayın ve gizleyin"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "tr/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/tr/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Sesten metne",
+      "subheadline": "Her şey bu aygıtta kalır."
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "tr/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/tr/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Geçmiş",
+      "subheadline": "Kayıtlar, kayıt süresi ve yakalama etkinliği"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "tr/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/tr/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Aygıttaki Modeller",
+      "subheadline": "İndirip seçebileceğiniz isteğe bağlı yerel modeller."
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "tr/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/tr/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Ayarlar",
+      "subheadline": "Transkripsiyon motorları, model indirmeleri ve dil"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "tr/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/tr/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Kaydet",
+      "subheadline": "Canlı transkripsiyon · hemen gönderiliyor"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "tr/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/tr/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "tr/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/tr/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "tr/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/tr/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_DESKTOP",
+      "file": "tr/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/tr/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Geçmiş",
+      "subheadline": "Kayıtlar, kayıt süresi ve yakalama etkinliği",
+      "label": "05 — GEÇMİŞ",
+      "tagline": "ÖZEL  •  GÜVENLİ  •  ÇEVRİMDIŞI"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_DESKTOP",
+      "file": "tr/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/tr/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Yakalama Ön Ayarları",
+      "subheadline": "Yakalama Ön Ayarı, bir yakalamaya ne olacağını ve tam olarak nereye gönderileceğini belirleyen yeniden kullanılabilir bir iş akışıdır.",
+      "label": "04 — İŞ AKIŞI",
+      "tagline": "ÖZEL  •  GÜVENLİ  •  ÇEVRİMDIŞI"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_DESKTOP",
+      "file": "tr/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/tr/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Aygıttaki Modeller",
+      "subheadline": "İndirip seçebileceğiniz isteğe bağlı yerel modeller.",
+      "label": "03 — MODELLER",
+      "tagline": "ÖZEL  •  GÜVENLİ  •  ÇEVRİMDIŞI"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_DESKTOP",
+      "file": "tr/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/tr/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Kaydet",
+      "subheadline": "Canlı transkripsiyon · hemen gönderiliyor",
+      "label": "02 — KAYIT",
+      "tagline": "ÖZEL  •  GÜVENLİ  •  ÇEVRİMDIŞI"
+    },
+    {
+      "locale": "tr",
+      "displayType": "APP_DESKTOP",
+      "file": "tr/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/tr/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Her şeyi Markdown'a kaydet",
+      "subheadline": "Her şey bu aygıtta kalır.",
+      "label": "01 — YAKALAMA",
+      "tagline": "ÖZEL  •  GÜVENLİ  •  ÇEVRİMDIŞI"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPHONE_67",
+      "file": "uk/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/uk/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Зберігайте все в Markdown",
+      "subheadline": "Зафіксуйте ідею, завдання, посилання, файл, скан або запис."
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPHONE_67",
+      "file": "uk/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/uk/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Передустановки захоплення",
+      "subheadline": "Налаштування захоплення — це готовий повторно використовуваний процес, що визначає обробку матеріалу та місце доставки."
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPHONE_67",
+      "file": "uk/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/uk/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Місце призначення",
+      "subheadline": "Обробка, форматування, метадані та місця призначення"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPHONE_67",
+      "file": "uk/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/uk/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Диктуйте в будь-якій програмі.",
+      "subheadline": "Клавіатура"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPHONE_67",
+      "file": "uk/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/uk/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Приватно",
+      "subheadline": "Усе залишається на цьому пристрої."
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPHONE_67",
+      "file": "uk/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/uk/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Записати",
+      "subheadline": "Редактор залишається доступним під час запису"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPHONE_67",
+      "file": "uk/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/uk/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Панель захоплення",
+      "subheadline": "Вибирайте, змінюйте порядок і приховуйте швидкі дії"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "uk/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/uk/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Мовлення в текст",
+      "subheadline": "Усе залишається на цьому пристрої."
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "uk/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/uk/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Історія",
+      "subheadline": "Записи, тривалість і активність захоплення"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "uk/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/uk/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Моделі на пристрої",
+      "subheadline": "Необов’язкові локальні моделі, які можна завантажити й вибрати."
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "uk/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/uk/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Налаштування",
+      "subheadline": "Системи транскрипції, завантаження моделей і мова"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "uk/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/uk/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Записати",
+      "subheadline": "Транскрипція наживо · негайне надсилання"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "uk/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/uk/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "uk/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/uk/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "uk/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/uk/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_DESKTOP",
+      "file": "uk/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/uk/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Історія",
+      "subheadline": "Записи, тривалість і активність захоплення",
+      "label": "05 — ІСТОРІЯ",
+      "tagline": "ПРИВАТНО  •  БЕЗПЕЧНО  •  ОФЛАЙН"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_DESKTOP",
+      "file": "uk/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/uk/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Передустановки захоплення",
+      "subheadline": "Налаштування захоплення — це готовий повторно використовуваний процес, що визначає обробку матеріалу та місце доставки.",
+      "label": "04 — РОБОЧИЙ ПРОЦЕС",
+      "tagline": "ПРИВАТНО  •  БЕЗПЕЧНО  •  ОФЛАЙН"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_DESKTOP",
+      "file": "uk/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/uk/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Моделі на пристрої",
+      "subheadline": "Необов’язкові локальні моделі, які можна завантажити й вибрати.",
+      "label": "03 — МОДЕЛІ",
+      "tagline": "ПРИВАТНО  •  БЕЗПЕЧНО  •  ОФЛАЙН"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_DESKTOP",
+      "file": "uk/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/uk/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Записати",
+      "subheadline": "Транскрипція наживо · негайне надсилання",
+      "label": "02 — ЗАПИС",
+      "tagline": "ПРИВАТНО  •  БЕЗПЕЧНО  •  ОФЛАЙН"
+    },
+    {
+      "locale": "uk",
+      "displayType": "APP_DESKTOP",
+      "file": "uk/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/uk/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Зберігайте все в Markdown",
+      "subheadline": "Усе залишається на цьому пристрої.",
+      "label": "01 — ЗАХОПЛЕННЯ",
+      "tagline": "ПРИВАТНО  •  БЕЗПЕЧНО  •  ОФЛАЙН"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPHONE_67",
+      "file": "vi/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/vi/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Ghi mọi thứ vào Markdown",
+      "subheadline": "Ghi lại ý tưởng, tác vụ, liên kết, tệp, bản quét hoặc bản ghi âm."
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPHONE_67",
+      "file": "vi/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/vi/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Cấu hình ghi nhanh",
+      "subheadline": "Cấu hình ghi nhanh là quy trình hoàn chỉnh có thể tái sử dụng, quy định cách xử lý nội dung và nơi nội dung được gửi đến."
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPHONE_67",
+      "file": "vi/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/vi/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "Đích",
+      "subheadline": "Xử lý, định dạng, siêu dữ liệu và đích"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPHONE_67",
+      "file": "vi/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/vi/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "Nói trong mọi ứng dụng.",
+      "subheadline": "Bàn phím"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPHONE_67",
+      "file": "vi/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/vi/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "Riêng tư",
+      "subheadline": "Mọi nội dung đều được lưu trên thiết bị này."
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPHONE_67",
+      "file": "vi/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/vi/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "Ghi âm",
+      "subheadline": "Trình soạn thảo vẫn dùng được khi bạn đang ghi âm"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPHONE_67",
+      "file": "vi/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/vi/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Thanh ghi nhanh",
+      "subheadline": "Chọn, sắp xếp lại và ẩn thao tác nhanh"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "vi/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/vi/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "Giọng nói thành văn bản",
+      "subheadline": "Mọi nội dung đều được lưu trên thiết bị này."
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "vi/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/vi/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Lịch sử",
+      "subheadline": "Bản ghi, thời lượng và hoạt động ghi nhanh"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "vi/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/vi/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Mô hình trên thiết bị",
+      "subheadline": "Mô hình cục bộ tùy chọn để tải xuống và lựa chọn."
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "vi/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/vi/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "Cài đặt",
+      "subheadline": "Công cụ chép lời, tải mô hình và ngôn ngữ"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "vi/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/vi/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "Ghi âm",
+      "subheadline": "Chép lời trực tiếp · gửi ngay"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "vi/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/vi/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "vi/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/vi/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "vi/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/vi/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_DESKTOP",
+      "file": "vi/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/vi/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "Lịch sử",
+      "subheadline": "Bản ghi, thời lượng và hoạt động ghi nhanh",
+      "label": "05 — LỊCH SỬ",
+      "tagline": "RIÊNG TƯ  •  AN TOÀN  •  NGOẠI TUYẾN"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_DESKTOP",
+      "file": "vi/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/vi/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "Cấu hình ghi nhanh",
+      "subheadline": "Cấu hình ghi nhanh là quy trình hoàn chỉnh có thể tái sử dụng, quy định cách xử lý nội dung và nơi nội dung được gửi đến.",
+      "label": "04 — QUY TRÌNH",
+      "tagline": "RIÊNG TƯ  •  AN TOÀN  •  NGOẠI TUYẾN"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_DESKTOP",
+      "file": "vi/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/vi/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "Mô hình trên thiết bị",
+      "subheadline": "Mô hình cục bộ tùy chọn để tải xuống và lựa chọn.",
+      "label": "03 — MÔ HÌNH",
+      "tagline": "RIÊNG TƯ  •  AN TOÀN  •  NGOẠI TUYẾN"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_DESKTOP",
+      "file": "vi/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/vi/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Ghi âm",
+      "subheadline": "Chép lời trực tiếp · gửi ngay",
+      "label": "02 — GHI ÂM",
+      "tagline": "RIÊNG TƯ  •  AN TOÀN  •  NGOẠI TUYẾN"
+    },
+    {
+      "locale": "vi",
+      "displayType": "APP_DESKTOP",
+      "file": "vi/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/vi/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "Ghi mọi thứ vào Markdown",
+      "subheadline": "Mọi nội dung đều được lưu trên thiết bị này.",
+      "label": "01 — GHI NHANH",
+      "tagline": "RIÊNG TƯ  •  AN TOÀN  •  NGOẠI TUYẾN"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hans/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "将一切采集到 Markdown",
+      "subheadline": "采集想法、任务、链接、文件、扫描件或录音。"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hans/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "采集预设",
+      "subheadline": "采集预设是一套可重复使用的完整工作流，用于决定如何处理采集内容以及将其发送到哪里。"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hans/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "目标位置",
+      "subheadline": "处理、格式、元数据和目标位置"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hans/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "sourceTreatment": {
+        "highlightContrast": 4
+      },
+      "headline": "在任意 App 中语音输入。",
+      "subheadline": "键盘"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hans/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "私密",
+      "subheadline": "所有内容都保留在此设备上。"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hans/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "录音",
+      "subheadline": "录音时仍可使用编辑器"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hans/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "sourceTreatment": {
+        "highlightContrast": 4
+      },
+      "headline": "采集栏",
+      "subheadline": "选择、重新排序和隐藏快速操作"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "zh-Hans/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "语音转文字",
+      "subheadline": "所有内容都保留在此设备上。"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "zh-Hans/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "历史记录",
+      "subheadline": "录音、录音时长和采集活动"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "zh-Hans/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "设备端模型",
+      "subheadline": "可下载并选择的本地模型。"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "zh-Hans/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "设置",
+      "subheadline": "转录引擎、模型下载和语言"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "zh-Hans/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "录音",
+      "subheadline": "实时转录 · 立即发送"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "zh-Hans/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "zh-Hans/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "zh-Hans/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_DESKTOP",
+      "file": "zh-Hans/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "历史记录",
+      "subheadline": "录音、录音时长和采集活动",
+      "label": "05 — 历史记录",
+      "tagline": "私密  •  安全  •  离线"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_DESKTOP",
+      "file": "zh-Hans/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "采集预设",
+      "subheadline": "采集预设是一套可重复使用的完整工作流，用于决定如何处理采集内容以及将其发送到哪里。",
+      "label": "04 — 工作流程",
+      "tagline": "私密  •  安全  •  离线"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_DESKTOP",
+      "file": "zh-Hans/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "设备端模型",
+      "subheadline": "可下载并选择的本地模型。",
+      "label": "03 — 模型",
+      "tagline": "私密  •  安全  •  离线"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_DESKTOP",
+      "file": "zh-Hans/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "录音",
+      "subheadline": "实时转录 · 立即发送",
+      "label": "02 — 录音",
+      "tagline": "私密  •  安全  •  离线"
+    },
+    {
+      "locale": "zh-Hans",
+      "displayType": "APP_DESKTOP",
+      "file": "zh-Hans/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hans/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "将一切采集到 Markdown",
+      "subheadline": "所有内容都保留在此设备上。",
+      "label": "01 — 采集",
+      "tagline": "私密  •  安全  •  离线"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hant/APP_IPHONE_67/01-capture-anything.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/iphone/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "將一切擷取至 Markdown",
+      "subheadline": "擷取想法、任務、連結、檔案、掃描或錄音。"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hant/APP_IPHONE_67/02-capture-workflows.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "擷取預設",
+      "subheadline": "擷取預設是一套可重複使用的完整工作流程，用來決定如何處理擷取內容，以及將內容傳送到哪裡。"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hant/APP_IPHONE_67/03-send-every-capture.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/iphone/05-capture-presets.png",
+      "sourceStory": "05-capture-presets",
+      "headline": "目的地",
+      "subheadline": "處理、格式、中繼資料和目的地"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hant/APP_IPHONE_67/04-speak-into-any-app.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/iphone/07-keyboard.png",
+      "sourceStory": "07-keyboard",
+      "headline": "在任何 App 中語音輸入。",
+      "subheadline": "鍵盤"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hant/APP_IPHONE_67/05-private-by-design.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/iphone/06-privacy-local.png",
+      "sourceStory": "06-privacy-local",
+      "headline": "私密",
+      "subheadline": "所有內容都保留在此裝置上。"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hant/APP_IPHONE_67/06-record-without-breaking-flow.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/iphone/02-live-recording.png",
+      "sourceStory": "02-live-recording",
+      "headline": "錄音",
+      "subheadline": "錄音時仍可使用編輯器"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPHONE_67",
+      "file": "zh-Hant/APP_IPHONE_67/07-customize-capture-bar.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/iphone/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "擷取列",
+      "subheadline": "選擇、重新排序和隱藏快速動作"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "zh-Hant/APP_IPAD_PRO_3GEN_129/01-voice-to-text.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/ipad/01-quick-capture.png",
+      "sourceStory": "01-quick-capture",
+      "headline": "語音轉文字",
+      "subheadline": "所有內容都保留在此裝置上。"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "zh-Hant/APP_IPAD_PRO_3GEN_129/02-history.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/ipad/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "歷史記錄",
+      "subheadline": "錄音、錄音時間和擷取活動"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "zh-Hant/APP_IPAD_PRO_3GEN_129/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/ipad/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "裝置端模型",
+      "subheadline": "可下載並選用的本機模型。"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "zh-Hant/APP_IPAD_PRO_3GEN_129/04-settings.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/ipad/03-settings.png",
+      "sourceStory": "03-settings",
+      "headline": "設定",
+      "subheadline": "轉錄引擎、模型下載和語言"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_IPAD_PRO_3GEN_129",
+      "file": "zh-Hant/APP_IPAD_PRO_3GEN_129/05-live-recording.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/ipad/05-live-recording.png",
+      "sourceStory": "05-live-recording",
+      "headline": "錄音",
+      "subheadline": "即時轉錄 · 立即傳送"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "zh-Hant/APP_WATCH_SERIES_10/01-ready.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/watch/01-ready.png",
+      "sourceStory": "01-ready"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "zh-Hant/APP_WATCH_SERIES_10/02-recording.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/watch/02-recording.png",
+      "sourceStory": "02-recording"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_WATCH_SERIES_10",
+      "file": "zh-Hant/APP_WATCH_SERIES_10/03-synced.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/watch/03-synced.png",
+      "sourceStory": "03-synced"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_DESKTOP",
+      "file": "zh-Hant/APP_DESKTOP/01-history.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/mac/02-history.png",
+      "sourceStory": "02-history",
+      "headline": "歷史記錄",
+      "subheadline": "錄音、錄音時間和擷取活動",
+      "label": "05 — 歷史記錄",
+      "tagline": "私密  •  安全  •  離線"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_DESKTOP",
+      "file": "zh-Hant/APP_DESKTOP/02-workflow.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/mac/05-presets.png",
+      "sourceStory": "05-presets",
+      "headline": "擷取預設",
+      "subheadline": "擷取預設是一套可重複使用的完整工作流程，用來決定如何處理擷取內容，以及將內容傳送到哪裡。",
+      "label": "04 — 工作流程",
+      "tagline": "私密  •  安全  •  離線"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_DESKTOP",
+      "file": "zh-Hant/APP_DESKTOP/03-models.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/mac/04-models.png",
+      "sourceStory": "04-models",
+      "headline": "裝置端模型",
+      "subheadline": "可下載並選用的本機模型。",
+      "label": "03 — 模型",
+      "tagline": "私密  •  安全  •  離線"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_DESKTOP",
+      "file": "zh-Hant/APP_DESKTOP/04-record.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "錄音",
+      "subheadline": "即時轉錄 · 立即傳送",
+      "label": "02 — 錄音",
+      "tagline": "私密  •  安全  •  離線"
+    },
+    {
+      "locale": "zh-Hant",
+      "displayType": "APP_DESKTOP",
+      "file": "zh-Hant/APP_DESKTOP/05-capture.png",
+      "source": "artifacts/localization/screenshots/raw/zh-Hant/mac/01-capture.png",
+      "sourceStory": "01-capture",
+      "headline": "將一切擷取至 Markdown",
+      "subheadline": "所有內容都保留在此裝置上。",
+      "label": "01 — 擷取",
+      "tagline": "私密  •  安全  •  離線"
+    }
+  ]
+}

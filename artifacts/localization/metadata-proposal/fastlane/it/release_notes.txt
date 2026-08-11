@@ -1,0 +1,5 @@
+Novità: Etichette dei parlanti sul dispositivo per le registrazioni lunghe.
+
+Migliorato: Controlli delle attività in tempo reale più affidabili e registrazioni lunghe più sicure.
+
+Risolto: I widget Acquisizione rapida e Registrazione rapida ora rispettano l’aspetto chiaro e scuro.

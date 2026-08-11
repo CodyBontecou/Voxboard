@@ -59,7 +59,7 @@ struct MacCaptureWorkspaceView: View {
                 captureHeader
                 GeistDivider()
 
-                if viewModel.selectedDestination == nil {
+                if viewModel.selectedDestination == nil && !isLocalizationScreenshot {
                     destinationSetupBanner
                     GeistDivider()
                 }
@@ -243,7 +243,8 @@ struct MacCaptureWorkspaceView: View {
                         Text(routeLabel)
                             .font(Geist.label())
                             .lineLimit(1)
-                        Text(viewModel.resolvedDestinationPreview ?? "Choose where this Capture writes Markdown")
+                        Text(viewModel.resolvedDestinationPreview
+                             ?? String(localized: "Choose where this Capture writes Markdown"))
                             .font(Geist.caption(.caption2))
                             .foregroundStyle(Geist.muted)
                             .lineLimit(1)
@@ -334,7 +335,7 @@ struct MacCaptureWorkspaceView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(isDropTargeted ? Geist.Palette.blue100 : Geist.Palette.background100)
         .overlay(alignment: .center) {
-            if viewModel.draft.text.isEmpty && viewModel.draft.additionalPayloads.isEmpty {
+            if !viewModel.draft.hasCaptureContent {
                 emptyComposerPrompt
                     .allowsHitTesting(false)
             }
@@ -356,10 +357,10 @@ struct MacCaptureWorkspaceView: View {
 
     private var emptyComposerPrompt: some View {
         VStack(spacing: Geist.Spacing.three) {
-            if !selectedFlow.capturePrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if !selectedFlow.displayCapturePrompt.isEmpty {
                 Image(systemName: safeSymbol(selectedFlow.symbolName))
                     .font(.system(size: 26, weight: .medium))
-                Text(selectedFlow.capturePrompt)
+                Text(selectedFlow.displayCapturePrompt)
                     .font(Geist.body(.title3))
                 Text(selectedFlow.displayName)
                     .font(Geist.caption())
@@ -508,7 +509,7 @@ struct MacCaptureWorkspaceView: View {
                 }
             } label: {
                 Label(
-                    recorder.isRecording ? "Stop" : "Record",
+                    recorder.isRecording ? String(localized: "Stop") : String(localized: "Record"),
                     systemImage: recorder.isRecording ? "stop.fill" : "mic"
                 )
             }
@@ -524,7 +525,9 @@ struct MacCaptureWorkspaceView: View {
                 sendCapture()
             } label: {
                 Label(
-                    captureAllowanceBlocked ? "Unlock" : (viewModel.isSubmitting ? "Sending…" : "Send Capture"),
+                    captureAllowanceBlocked
+                        ? String(localized: "Unlock")
+                        : (viewModel.isSubmitting ? String(localized: "Sending…") : String(localized: "Send Capture")),
                     systemImage: captureAllowanceBlocked ? "lock.fill" : "arrow.up"
                 )
             }
@@ -620,7 +623,7 @@ struct MacCaptureWorkspaceView: View {
     }
 
     private func toolbarButton(
-        _ label: String,
+        _ label: LocalizedStringResource,
         icon: String? = nil,
         text: String? = nil,
         action: @escaping () -> Void
@@ -631,7 +634,7 @@ struct MacCaptureWorkspaceView: View {
         .buttonStyle(.plain)
     }
 
-    private func toolbarLabel(_ label: String, icon: String? = nil, text: String? = nil) -> some View {
+    private func toolbarLabel(_ label: LocalizedStringResource, icon: String? = nil, text: String? = nil) -> some View {
         Group {
             if let icon {
                 Image(systemName: icon)
@@ -644,8 +647,8 @@ struct MacCaptureWorkspaceView: View {
         .foregroundStyle(Geist.text)
         .frame(width: 38, height: 38)
         .contentShape(Rectangle())
-        .help(label)
-        .accessibilityLabel(label)
+        .help(String(localized: label))
+        .accessibilityLabel(Text(label))
     }
 
     private func errorBanner(_ message: String) -> some View {
@@ -705,7 +708,7 @@ struct MacCaptureWorkspaceView: View {
                 data: imageData,
                 filename: "camera-photo.jpg",
                 contentTypeIdentifier: UTType.jpeg.identifier,
-                altText: "Camera photo"
+                altText: String(localized: "Camera photo")
             )
             isProcessingAttachments = false
             composerController.focus()
@@ -718,7 +721,7 @@ struct MacCaptureWorkspaceView: View {
             await viewModel.stageSketch(
                 drawingData: drawingData,
                 previewData: previewData,
-                altText: "Sketch created on Mac",
+                altText: String(localized: "Sketch created on Mac"),
                 drawingFilename: "sketch.voxsketch",
                 drawingContentTypeIdentifier: "application/vnd.voxmd.sketch+json"
             )
@@ -733,8 +736,17 @@ struct MacCaptureWorkspaceView: View {
     }
 
     private var displayedError: String? {
+        if isLocalizationScreenshot { return nil }
         if let message = viewModel.errorMessage { return message }
         return recorder.lastError
+    }
+
+    private var isLocalizationScreenshot: Bool {
+        #if DEBUG
+        return ProcessInfo.processInfo.arguments.contains("--localization-screenshot")
+        #else
+        return false
+        #endif
     }
 
     private var enabledFlows: [CapturePreset] {
@@ -755,7 +767,7 @@ struct MacCaptureWorkspaceView: View {
         if let override = viewModel.draft.relativeNotePathOverride {
             return URL(fileURLWithPath: override).deletingPathExtension().lastPathComponent
         }
-        return viewModel.selectedDestination?.rootName ?? "Set up destination"
+        return viewModel.selectedDestination?.rootName ?? String(localized: "Set up destination")
     }
 
     private var insertionFormatter: CaptureInsertionFormatter {
@@ -808,7 +820,7 @@ struct MacCaptureWorkspaceView: View {
         Task { @MainActor in
             let granted = await AudioRecorder.requestMicrophonePermission()
             guard granted else {
-                recorder.lastError = "Enable microphone access in System Settings to record audio."
+                recorder.lastError = String(localized: "Enable microphone access in System Settings to record audio.")
                 return
             }
             recorder.startRecording(
@@ -847,7 +859,7 @@ struct MacCaptureWorkspaceView: View {
 
     private func chooseImages() {
         chooseURLs(
-            title: "Add Images to Capture",
+            title: String(localized: "Add Images to Capture"),
             contentTypes: [.image],
             allowsMultipleSelection: true
         )
@@ -855,8 +867,8 @@ struct MacCaptureWorkspaceView: View {
 
     private func chooseScan() {
         let panel = NSOpenPanel()
-        panel.title = "Import Scan or PDF"
-        panel.prompt = "Add Scan"
+        panel.title = String(localized: "Import Scan or PDF")
+        panel.prompt = String(localized: "Add Scan")
         panel.allowedContentTypes = [.image, .pdf]
         panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
@@ -903,7 +915,7 @@ struct MacCaptureWorkspaceView: View {
 
     private func chooseFiles() {
         chooseURLs(
-            title: "Add Files to Capture",
+            title: String(localized: "Add Files to Capture"),
             contentTypes: [.data],
             allowsMultipleSelection: true
         )
@@ -911,7 +923,7 @@ struct MacCaptureWorkspaceView: View {
 
     private func chooseAudio() {
         chooseURLs(
-            title: "Add Audio to Capture",
+            title: String(localized: "Add Audio to Capture"),
             contentTypes: [.audio],
             allowsMultipleSelection: true
         )
@@ -923,8 +935,8 @@ struct MacCaptureWorkspaceView: View {
             return
         }
         let panel = NSOpenPanel()
-        panel.title = "Transcribe Audio or Video"
-        panel.prompt = "Transcribe"
+        panel.title = String(localized: "Transcribe Audio or Video")
+        panel.prompt = String(localized: "Transcribe")
         panel.allowedContentTypes = [.audio, .movie]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
@@ -945,7 +957,7 @@ struct MacCaptureWorkspaceView: View {
     ) {
         let panel = NSOpenPanel()
         panel.title = title
-        panel.prompt = "Add"
+        panel.prompt = String(localized: "Add")
         panel.allowedContentTypes = contentTypes
         panel.allowsMultipleSelection = allowsMultipleSelection
         panel.canChooseDirectories = false
@@ -995,7 +1007,7 @@ struct MacCaptureWorkspaceView: View {
                     data: data,
                     filename: "pasted-image-\(UUID().uuidString.lowercased()).png",
                     contentTypeIdentifier: UTType.png.identifier,
-                    altText: "Pasted image"
+                    altText: String(localized: "Pasted image")
                 )
                 isProcessingAttachments = false
             }
@@ -1011,7 +1023,7 @@ struct MacCaptureWorkspaceView: View {
                     data: png,
                     filename: "pasted-image-\(UUID().uuidString.lowercased()).png",
                     contentTypeIdentifier: UTType.png.identifier,
-                    altText: "Pasted image"
+                    altText: String(localized: "Pasted image")
                 )
                 isProcessingAttachments = false
             }
@@ -1036,7 +1048,7 @@ struct MacCaptureWorkspaceView: View {
         let value = linkText.trimmingCharacters(in: .whitespacesAndNewlines)
         linkText = ""
         guard let url = URL(string: value), ["http", "https"].contains(url.scheme?.lowercased() ?? "") else {
-            viewModel.errorMessage = "Enter a complete http:// or https:// link."
+            viewModel.errorMessage = String(localized: "Enter a complete http:// or https:// link.")
             return
         }
         Task { await viewModel.addURL(url) }
@@ -1153,7 +1165,7 @@ private struct MacCaptureRouteInspector: View {
                             chooseOneOffNote()
                         } label: {
                             Label(
-                                viewModel.draft.relativeNotePathOverride ?? "Choose another Markdown note",
+                                viewModel.draft.relativeNotePathOverride ?? String(localized: "Choose another Markdown note"),
                                 systemImage: "doc.text.magnifyingglass"
                             )
                         }
@@ -1219,8 +1231,8 @@ private struct MacCaptureRouteInspector: View {
 
     private func chooseOneOffNote() {
         let panel = NSOpenPanel()
-        panel.title = "Choose Markdown Note"
-        panel.prompt = "Use Note"
+        panel.title = String(localized: "Choose Markdown Note")
+        panel.prompt = String(localized: "Use Note")
         panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText]
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false

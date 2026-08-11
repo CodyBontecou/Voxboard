@@ -1,0 +1,1 @@
+Capture texto, links, arquivos, imagens, digitalizações, esboços e voz em Markdown. A transcrição fica no dispositivo.

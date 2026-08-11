@@ -243,13 +243,13 @@ final class WatchRecordingPipeline {
                 updated.flowSnapshotPayload = try? JSONEncoder().encode(snapshot)
                 updated.phase = .queued
                 updated.failureStage = nil
-                updated.statusMessage = "Queued to retry Files delivery"
+                updated.statusMessage = String(localized: "Queued to retry Files delivery")
             }
         } else {
             _ = inbox.transition(
                 id: item.id,
                 to: .queued,
-                message: "Queued to retry on iPhone"
+                message: String(localized: "Queued to retry on iPhone")
             )
         }
         refresh()
@@ -268,7 +268,7 @@ final class WatchRecordingPipeline {
             updated.capturesRecordingWithoutTranscript = true
             updated.phase = .queued
             updated.failureStage = nil
-            updated.statusMessage = "Queued to capture the recording without a transcript"
+            updated.statusMessage = String(localized: "Queued to capture the recording without a transcript")
         }
         refresh()
         resume()
@@ -291,7 +291,7 @@ final class WatchRecordingPipeline {
             updated.reservedOutputFolderBookmark = nil
             updated.phase = .queued
             updated.failureStage = nil
-            updated.statusMessage = "Recovered with \(preset.displayName); queued to retry"
+            updated.statusMessage = String(localized: "Recovered with \(preset.displayName); queued to retry")
         }
         refresh()
         resume()
@@ -318,15 +318,15 @@ final class WatchRecordingPipeline {
                         id: latest.id,
                         to: latest.phase,
                         failureStage: latest.failureStage,
-                        message: "Could not verify Capture delivery. Try discarding again."
+                        message: String(localized: "Could not verify Capture delivery. Try discarding again.")
                     )
                     self.refresh()
                     return
                 }
                 if state == .completed {
                     let message = latest.capturesRecordingWithoutTranscript
-                        ? "Recording captured without a transcript"
-                        : "Saved to Capture"
+                        ? String(localized: "Recording captured without a transcript")
+                        : String(localized: "Saved to Capture")
                     _ = self.inbox.markDelivered(id: latest.id, message: message)
                     self.refresh()
                     WatchRecordingController.shared.publishState()
@@ -337,7 +337,7 @@ final class WatchRecordingPipeline {
                         id: latest.id,
                         to: latest.phase,
                         failureStage: latest.failureStage,
-                        message: "Capture delivery is active. Wait a moment before discarding."
+                        message: String(localized: "Capture delivery is active. Wait a moment before discarding.")
                     )
                     self.refresh()
                     WatchRecordingController.shared.publishState()
@@ -436,10 +436,10 @@ final class WatchRecordingPipeline {
             throw WatchRecordingPipelineError(
                 stage: .storage,
                 message: item.requiresPresetSelection
-                    ? "Choose a Capture Preset for this recovered recording."
+                    ? String(localized: "Choose a Capture Preset for this recovered recording.")
                     : item.flowSnapshotPayload == nil
-                        ? "Choose a Capture Preset on iPhone, then retry."
-                        : "Update Vox.md on iPhone to use this recording's Capture Preset."
+                        ? String(localized: "Choose a Capture Preset on iPhone, then retry.")
+                        : String(localized: "Update Vox.md on iPhone to use this recording's Capture Preset.")
             )
         }
         if flow.watchOutputMode == .recordingOnly {
@@ -454,7 +454,7 @@ final class WatchRecordingPipeline {
         guard item.hasAudio || transcriptStore.transcripts.contains(where: { $0.id == item.requestID }) else {
             throw WatchRecordingPipelineError(
                 stage: .storage,
-                message: "The Watch audio is missing. Record again on Apple Watch."
+                message: String(localized: "The Watch audio is missing. Record again on Apple Watch.")
             )
         }
 
@@ -465,7 +465,7 @@ final class WatchRecordingPipeline {
             _ = inbox.transition(
                 id: item.id,
                 to: .transcribing,
-                message: "Transcribing on iPhone"
+                message: String(localized: "Transcribing on iPhone")
             )
             refresh()
             WatchRecordingController.shared.publishState()
@@ -475,7 +475,7 @@ final class WatchRecordingPipeline {
             guard !output.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 throw WatchRecordingPipelineError(
                     stage: .transcription,
-                    message: "No recognizable speech was found. The recording is kept for retry."
+                    message: String(localized: "No recognizable speech was found. The recording is kept for retry.")
                 )
             }
 
@@ -518,7 +518,7 @@ final class WatchRecordingPipeline {
         guard let captureRootURL = AppConstants.captureDirectoryURL else {
             throw WatchRecordingPipelineError(
                 stage: .storage,
-                message: "Shared Capture storage is unavailable."
+                message: String(localized: "Shared Capture storage is unavailable.")
             )
         }
         let captureInbox = CaptureInbox(rootDirectoryURL: captureRootURL)
@@ -534,7 +534,7 @@ final class WatchRecordingPipeline {
         if existingState == .processing {
             throw WatchRecordingPipelineError(
                 stage: .delivery,
-                message: "Capture delivery is still in progress. Try again shortly."
+                message: String(localized: "Capture delivery is still in progress. Try again shortly.")
             )
         }
 
@@ -542,7 +542,7 @@ final class WatchRecordingPipeline {
             .resolvedDestinationID(flow: flow) else {
             throw WatchRecordingPipelineError(
                 stage: .delivery,
-                message: "Set a destination for \(flow.displayName) on iPhone, then retry."
+                message: String(localized: "Set a destination for \(flow.displayName) on iPhone, then retry.")
             )
         }
 
@@ -563,7 +563,7 @@ final class WatchRecordingPipeline {
         } catch {
             throw WatchRecordingPipelineError(
                 stage: .delivery,
-                message: "Capture could not be delivered. The transcript and audio are saved for retry."
+                message: String(localized: "Capture could not be delivered. The transcript and audio are saved for retry.")
             )
         }
     }
@@ -575,14 +575,14 @@ final class WatchRecordingPipeline {
         guard item.hasAudio else {
             throw WatchRecordingPipelineError(
                 stage: .storage,
-                message: "The retained Apple Watch recording is missing."
+                message: String(localized: "The retained Apple Watch recording is missing.")
             )
         }
 
         _ = inbox.transition(
             id: item.id,
             to: .delivering,
-            message: "Capturing the recording without a transcript"
+            message: String(localized: "Capturing the recording without a transcript")
         )
         refresh()
         WatchRecordingController.shared.publishState()
@@ -591,7 +591,7 @@ final class WatchRecordingPipeline {
         guard let captureRootURL = AppConstants.captureDirectoryURL else {
             throw WatchRecordingPipelineError(
                 stage: .storage,
-                message: "Shared Capture storage is unavailable."
+                message: String(localized: "Shared Capture storage is unavailable.")
             )
         }
         let captureInbox = CaptureInbox(rootDirectoryURL: captureRootURL)
@@ -599,7 +599,7 @@ final class WatchRecordingPipeline {
         let existingState = try await captureInbox.state(of: item.requestID)
         if existingState == .completed {
             recordCompletedRecording(item)
-            complete(item, message: "Recording captured without a transcript")
+            complete(item, message: String(localized: "Recording captured without a transcript"))
             return
         }
         if existingState == .failed {
@@ -608,7 +608,7 @@ final class WatchRecordingPipeline {
         if existingState == .processing {
             throw WatchRecordingPipelineError(
                 stage: .delivery,
-                message: "Capture delivery is still in progress. Try again shortly."
+                message: String(localized: "Capture delivery is still in progress. Try again shortly.")
             )
         }
 
@@ -616,7 +616,7 @@ final class WatchRecordingPipeline {
             .resolvedDestinationID(flow: flow) else {
             throw WatchRecordingPipelineError(
                 stage: .delivery,
-                message: "Set a destination for \(flow.displayName) on iPhone, then retry."
+                message: String(localized: "Set a destination for \(flow.displayName) on iPhone, then retry.")
             )
         }
 
@@ -634,7 +634,7 @@ final class WatchRecordingPipeline {
             try ensureProcessingIsActive(for: item.id)
             recordCompletedRecording(item)
             lastDeliveredRecordingID = item.id
-            complete(item, message: "Recording captured without a transcript")
+            complete(item, message: String(localized: "Recording captured without a transcript"))
         } catch is CancellationError {
             throw CancellationError()
         } catch {
@@ -652,14 +652,14 @@ final class WatchRecordingPipeline {
         guard item.hasAudio else {
             throw WatchRecordingPipelineError(
                 stage: .storage,
-                message: "The retained Apple Watch recording is missing."
+                message: String(localized: "The retained Apple Watch recording is missing.")
             )
         }
 
         _ = inbox.transition(
             id: item.id,
             to: .delivering,
-            message: "Saving recording to Files"
+            message: String(localized: "Saving recording to Files")
         )
         refresh()
         WatchRecordingController.shared.publishState()
@@ -680,7 +680,7 @@ final class WatchRecordingPipeline {
            reservationFolderBookmark != settings.folderBookmark {
             throw WatchRecordingPipelineError(
                 stage: .storage,
-                message: "The reserved filename belongs to another Files folder. Choose a recording-only preset to retarget it explicitly."
+                message: String(localized: "The reserved filename belongs to another Files folder. Choose a recording-only preset to retarget it explicitly.")
             )
         }
 
@@ -712,11 +712,11 @@ final class WatchRecordingPipeline {
                 guard inbox.update(id: item.id, { updated in
                     updated.reservedOutputFilename = reservedFilename
                     updated.reservedOutputFolderBookmark = settings.folderBookmark
-                    updated.statusMessage = "Saving \(reservedFilename) to Files"
+                    updated.statusMessage = String(localized: "Saving \(reservedFilename) to Files")
                 }) != nil else {
                     throw WatchRecordingPipelineError(
                         stage: .storage,
-                        message: "The recording filename could not be saved for retry."
+                        message: String(localized: "The recording filename could not be saved for retry.")
                     )
                 }
                 reservation = reservedFilename
@@ -742,11 +742,11 @@ final class WatchRecordingPipeline {
                 try ensureProcessingIsActive(for: item.id)
                 guard inbox.markDelivered(
                     id: item.id,
-                    message: "Saved \(receipt.filename) to Files"
+                    message: String(localized: "Saved \(receipt.filename) to Files")
                 ) != nil else {
                     throw WatchRecordingPipelineError(
                         stage: .storage,
-                        message: "The Files copy succeeded, but delivery state could not be saved. Retry is safe."
+                        message: String(localized: "The Files copy succeeded, but delivery state could not be saved. Retry is safe.")
                     )
                 }
                 recordCompletedRecording(item)
@@ -760,11 +760,11 @@ final class WatchRecordingPipeline {
                 guard inbox.update(id: item.id, { updated in
                     updated.reservedOutputFilename = nil
                     updated.reservedOutputFolderBookmark = nil
-                    updated.statusMessage = "Choosing another Files filename"
+                    updated.statusMessage = String(localized: "Choosing another Files filename")
                 }) != nil else {
                     throw WatchRecordingPipelineError(
                         stage: .storage,
-                        message: "The recording filename conflict could not be saved for retry."
+                        message: String(localized: "The recording filename conflict could not be saved for retry.")
                     )
                 }
                 reservation = nil
@@ -903,7 +903,7 @@ final class WatchRecordingPipeline {
 
     private func complete(
         _ item: WatchRecordingInboxItem,
-        message: String = "Saved to Capture"
+        message: String = String(localized: "Saved to Capture")
     ) {
         _ = inbox.markDelivered(id: item.id, message: message)
         refresh()
@@ -922,13 +922,13 @@ final class WatchRecordingPipeline {
         for item in interruptedItems {
             let message: String
             if isRecordingOnly(item) {
-                message = "Resuming Files delivery"
+                message = String(localized: "Resuming Files delivery")
             } else if item.capturesRecordingWithoutTranscript {
-                message = "Resuming recording capture"
+                message = String(localized: "Resuming recording capture")
             } else if transcriptStore.transcripts.contains(where: { $0.id == item.requestID }) {
-                message = "Resuming Capture delivery"
+                message = String(localized: "Resuming Capture delivery")
             } else {
-                message = "Resuming Watch transcription"
+                message = String(localized: "Resuming Watch transcription")
             }
             _ = inbox.transition(id: item.id, to: .queued, message: message)
         }
@@ -947,8 +947,8 @@ final class WatchRecordingPipeline {
             for item in candidates {
                 if (try? await captureInbox.state(of: item.requestID)) == .completed {
                     let message = item.capturesRecordingWithoutTranscript
-                        ? "Recording captured without a transcript"
-                        : "Saved to Capture"
+                        ? String(localized: "Recording captured without a transcript")
+                        : String(localized: "Saved to Capture")
                     self.complete(item, message: message)
                 }
             }
@@ -1017,19 +1017,21 @@ final class WatchRecordingPipeline {
 }
 
 enum WatchRecordingTranscriptionFailureMessage {
-    private static let retainedRecording = "The Watch recording is saved for retry."
+    private static var retainedRecording: String {
+        String(localized: "The Watch recording is saved for retry.")
+    }
 
     static func audioPreparation(for error: Error) -> String {
         let reason: String
         switch error as? AudioFileConverter.ConversionError {
         case .couldNotOpenInput:
-            reason = "Transcription failed because the Watch audio file could not be opened."
+            reason = String(localized: "Transcription failed because the Watch audio file could not be opened.")
         case .noAudioSamples:
-            reason = "Transcription failed because the Watch recording contains no readable audio."
+            reason = String(localized: "Transcription failed because the Watch recording contains no readable audio.")
         case .couldNotCreateFormat, .couldNotCreateConverter, .couldNotCreateBuffer:
-            reason = "Transcription failed because the Watch audio could not be converted to the required format."
+            reason = String(localized: "Transcription failed because the Watch audio could not be converted to the required format.")
         case nil:
-            reason = "Transcription failed because the Watch audio could not be prepared for speech recognition."
+            reason = String(localized: "Transcription failed because the Watch audio could not be prepared for speech recognition.")
         }
         return "\(reason) \(retainedRecording)"
     }
@@ -1037,14 +1039,14 @@ enum WatchRecordingTranscriptionFailureMessage {
     static func recognition(for error: Error) -> String {
         if let transcriptionError = error as? OnDeviceTranscriptionError,
            transcriptionError == .noSpeechDetected {
-            return "No recognizable speech was found. \(retainedRecording)"
+            return String(localized: "No recognizable speech was found. \(retainedRecording)")
         }
 
         let rawReason = error.localizedDescription.trimmingCharacters(in: .whitespacesAndNewlines)
         let reason = rawReason.isEmpty
-            ? "The transcription service did not provide a reason."
+            ? String(localized: "The transcription service did not provide a reason.")
             : sentence(from: rawReason)
-        return "Transcription failed: \(reason) \(retainedRecording)"
+        return String(localized: "Transcription failed: \(reason) \(retainedRecording)")
     }
 
     private static func sentence(from text: String) -> String {

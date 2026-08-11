@@ -1,0 +1,5 @@
+Nuevo: Etiquetas de hablantes en el dispositivo para grabaciones largas.
+
+Mejorado: Controles de Actividades en directo más fiables y grabaciones largas más seguras.
+
+Corregido: Los widgets de Captura rápida y Grabación rápida ahora se adaptan a la apariencia clara y oscura.

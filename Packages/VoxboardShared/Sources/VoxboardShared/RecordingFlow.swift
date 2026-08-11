@@ -88,7 +88,25 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
 
     public var displayName: String {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? "Untitled Preset" : trimmed
+        if isBuiltIn, id == CapturePresetStore.generalId, trimmed == "Default" {
+            return String(localized: "Default", bundle: .main)
+        }
+        return trimmed.isEmpty
+            ? String(localized: "Untitled Preset", bundle: .main)
+            : trimmed
+    }
+
+    public var displayCapturePrompt: String {
+        let trimmed = capturePrompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        if isBuiltIn,
+           id == CapturePresetStore.generalId,
+           trimmed == "Capture an idea, task, link, file, scan, or recording." {
+            return String(
+                localized: "Capture an idea, task, link, file, scan, or recording.",
+                bundle: .main
+            )
+        }
+        return trimmed
     }
 
     public var shortLabel: String {

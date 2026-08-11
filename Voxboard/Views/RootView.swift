@@ -5,7 +5,29 @@ import VoxboardShared
 
 enum RootDestination: Hashable {
     case capture
+    case history
     case settings
+    case models
+    case capturePresets
+
+    #if DEBUG
+    static var localizationScreenshotStory: String? {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "--localization-screenshot"),
+              arguments.indices.contains(index + 1) else { return nil }
+        return arguments[index + 1]
+    }
+
+    static var localizationScreenshotDestination: RootDestination? {
+        switch localizationScreenshotStory {
+        case "02-history": .history
+        case "03-settings", "06-privacy-local", "07-keyboard": .settings
+        case "04-models": .models
+        case "05-capture-presets": .capturePresets
+        default: nil
+        }
+    }
+    #endif
 }
 
 // MARK: - RootView
@@ -42,19 +64,35 @@ struct RootView: View {
                 captureToolbarPreferences: captureToolbarPreferences,
                 openSettings: { rootDestination = .settings }
             )
-            .navigationDestination(isPresented: settingsIsPresented) {
-                MetaSettingsView(
-                    persistentRecorder: persistentRecorder,
-                    captureToolbarPreferences: captureToolbarPreferences
-                )
+            .navigationDestination(isPresented: secondaryDestinationIsPresented) {
+                secondaryDestination
             }
         }
     }
 
-    private var settingsIsPresented: Binding<Bool> {
+    @ViewBuilder
+    private var secondaryDestination: some View {
+        switch rootDestination {
+        case .capture:
+            EmptyView()
+        case .history:
+            HistoryView(viewModel: quickCaptureViewModel)
+        case .settings:
+            MetaSettingsView(
+                persistentRecorder: persistentRecorder,
+                captureToolbarPreferences: captureToolbarPreferences
+            )
+        case .models:
+            ModelTabView()
+        case .capturePresets:
+            CapturePresetSettingsView()
+        }
+    }
+
+    private var secondaryDestinationIsPresented: Binding<Bool> {
         Binding(
-            get: { rootDestination == .settings },
-            set: { rootDestination = $0 ? .settings : .capture }
+            get: { rootDestination != .capture },
+            set: { if !$0 { rootDestination = .capture } }
         )
     }
 }

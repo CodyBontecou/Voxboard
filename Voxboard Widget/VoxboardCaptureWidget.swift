@@ -108,7 +108,7 @@ private struct VoxboardCaptureWidgetView: View {
         }
     }
 
-    private func action(_ title: String, icon: String, url: URL) -> some View {
+    private func action(_ title: LocalizedStringResource, icon: String, url: URL) -> some View {
         Link(destination: url) {
             VStack(spacing: 7) {
                 Image(systemName: icon)
@@ -121,7 +121,7 @@ private struct VoxboardCaptureWidgetView: View {
             .frame(maxWidth: .infinity, minHeight: 54)
             .background(.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
         }
-        .accessibilityLabel(title + " capture")
+        .accessibilityLabel(Text(title))
     }
 
     private func captureURL(action: String? = nil) -> URL {

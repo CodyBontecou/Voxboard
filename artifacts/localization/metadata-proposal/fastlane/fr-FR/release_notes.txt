@@ -1,0 +1,5 @@
+Nouveau : étiquettes de locuteurs sur l’appareil pour les longs enregistrements.
+
+Amélioration : commandes d’Activités en direct plus fiables et longs enregistrements mieux protégés.
+
+Correction : les widgets Capture rapide et Enregistrement rapide suivent désormais l’apparence claire ou sombre.

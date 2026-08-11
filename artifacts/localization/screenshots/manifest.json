@@ -1,0 +1,4544 @@
+{
+  "locales": [
+    "ar-SA",
+    "de-DE",
+    "en-US",
+    "en-AU",
+    "en-CA",
+    "en-GB",
+    "es-ES",
+    "es-MX",
+    "fr-FR",
+    "fr-CA",
+    "hi",
+    "id",
+    "it",
+    "ja",
+    "ko",
+    "nl-NL",
+    "pl",
+    "pt-BR",
+    "ru",
+    "th",
+    "tr",
+    "uk",
+    "vi",
+    "zh-Hans",
+    "zh-Hant"
+  ],
+  "counts": {
+    "iphone": 7,
+    "ipad": 5,
+    "watch": 3,
+    "mac": 5
+  },
+  "expectedTotal": 500,
+  "forcedLanguageArguments": [
+    "-AppleLanguages",
+    "(<language>)",
+    "-AppleLocale",
+    "<locale>"
+  ],
+  "entries": [
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/iphone/01-quick-capture.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/iphone/02-live-recording.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/iphone/03-settings.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/iphone/04-models.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/iphone/05-capture-presets.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/iphone/06-privacy-local.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/iphone/07-keyboard.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/ipad/01-quick-capture.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/ipad/02-history.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/ipad/03-settings.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/ipad/04-models.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/ipad/05-live-recording.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/watch/01-ready.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/watch/02-recording.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/watch/03-synced.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/mac/01-capture.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/mac/02-history.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/mac/03-settings.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/mac/04-models.png",
+      "rtl": true
+    },
+    {
+      "locale": "ar-SA",
+      "language": "ar",
+      "appleLocale": "ar_SA",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ar-SA/mac/05-presets.png",
+      "rtl": true
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "de-DE",
+      "language": "de",
+      "appleLocale": "de_DE",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/de-DE/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-US",
+      "language": "en",
+      "appleLocale": "en_US",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-US/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-AU",
+      "language": "en",
+      "appleLocale": "en_AU",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-AU/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-CA",
+      "language": "en",
+      "appleLocale": "en_CA",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-CA/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "en-GB",
+      "language": "en",
+      "appleLocale": "en_GB",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/en-GB/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-ES",
+      "language": "es",
+      "appleLocale": "es_ES",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-ES/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "es-MX",
+      "language": "es",
+      "appleLocale": "es_MX",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/es-MX/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-FR",
+      "language": "fr",
+      "appleLocale": "fr_FR",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-FR/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "fr-CA",
+      "language": "fr",
+      "appleLocale": "fr_CA",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/fr-CA/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "hi",
+      "language": "hi",
+      "appleLocale": "hi",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/hi/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "id",
+      "language": "id",
+      "appleLocale": "id",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/id/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "it",
+      "language": "it",
+      "appleLocale": "it",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/it/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "ja",
+      "language": "ja",
+      "appleLocale": "ja",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ja/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "ko",
+      "language": "ko",
+      "appleLocale": "ko",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ko/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "nl-NL",
+      "language": "nl",
+      "appleLocale": "nl_NL",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/nl-NL/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "pl",
+      "language": "pl",
+      "appleLocale": "pl",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pl/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "pt-BR",
+      "language": "pt-BR",
+      "appleLocale": "pt_BR",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/pt-BR/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "ru",
+      "language": "ru",
+      "appleLocale": "ru",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/ru/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "th",
+      "language": "th",
+      "appleLocale": "th",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/th/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "tr",
+      "language": "tr",
+      "appleLocale": "tr",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/tr/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "uk",
+      "language": "uk",
+      "appleLocale": "uk",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/uk/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "vi",
+      "language": "vi",
+      "appleLocale": "vi",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/vi/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hans",
+      "language": "zh-Hans",
+      "appleLocale": "zh_Hans",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hans/mac/05-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "iphone",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/iphone/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "iphone",
+      "story": "02-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/iphone/02-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "iphone",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/iphone/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "iphone",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/iphone/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "iphone",
+      "story": "05-capture-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/iphone/05-capture-presets.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "iphone",
+      "story": "06-privacy-local",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/iphone/06-privacy-local.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "iphone",
+      "story": "07-keyboard",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/iphone/07-keyboard.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "ipad",
+      "story": "01-quick-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/ipad/01-quick-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "ipad",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/ipad/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "ipad",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/ipad/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "ipad",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/ipad/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "ipad",
+      "story": "05-live-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/ipad/05-live-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "watch",
+      "story": "01-ready",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/watch/01-ready.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "watch",
+      "story": "02-recording",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/watch/02-recording.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "watch",
+      "story": "03-synced",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/watch/03-synced.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "mac",
+      "story": "01-capture",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/mac/01-capture.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "mac",
+      "story": "02-history",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/mac/02-history.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "mac",
+      "story": "03-settings",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/mac/03-settings.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "mac",
+      "story": "04-models",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/mac/04-models.png",
+      "rtl": false
+    },
+    {
+      "locale": "zh-Hant",
+      "language": "zh-Hant",
+      "appleLocale": "zh_Hant",
+      "platform": "mac",
+      "story": "05-presets",
+      "path": "/Users/codybontecou/dev/vox.md/artifacts/localization/screenshots/raw/zh-Hant/mac/05-presets.png",
+      "rtl": false
+    }
+  ]
+}

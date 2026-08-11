@@ -305,20 +305,20 @@ private enum AppleSpeechSetupError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .permissionDenied:
-            return "Speech Recognition access is off. Enable it for Vox.md in Settings, then try again."
+            return String(localized: "Speech Recognition access is off. Enable it for Vox.md in Settings, then try again.")
         case .permissionRestricted:
-            return "Speech Recognition is restricted on this iPhone. Check Screen Time or device-management settings."
+            return String(localized: "Speech Recognition is restricted on this iPhone. Check Screen Time or device-management settings.")
         case .transcriberUnavailable:
-            return "The on-device Apple Speech transcriber is unavailable on this iPhone."
+            return String(localized: "The on-device Apple Speech transcriber is unavailable on this iPhone.")
         case .localeUnsupported(let language):
             let displayLanguage = language == "auto" ? Locale.current.identifier : language
-            return "Apple Speech does not support the current transcription language (\(displayLanguage))."
+            return String(localized: "Apple Speech does not support the current transcription language (\(displayLanguage)).")
         case .assetUnsupported(let locale):
-            return "Apple Speech cannot install its \(locale) language model on this iPhone."
+            return String(localized: "Apple Speech cannot install its \(locale) language model on this iPhone.")
         case .assetStateUnexpected(let locale):
-            return "Apple Speech reported an unexpected asset state for \(locale)."
+            return String(localized: "Apple Speech reported an unexpected asset state for \(locale).")
         case .audioFormatUnavailable:
-            return "Apple Speech could not select a compatible live audio format."
+            return String(localized: "Apple Speech could not select a compatible live audio format.")
         }
     }
 }
@@ -330,7 +330,7 @@ private enum AppleSpeechAssetPreparationError: Error, LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .installationPending(let locale):
-            return "Apple Speech is still preparing the \(locale) language model. Keep Vox.md open and try again shortly."
+            return String(localized: "Apple Speech is still preparing the \(locale) language model. Keep Vox.md open and try again shortly.")
         }
     }
 }
@@ -345,11 +345,11 @@ private enum AppleSpeechLiveTranscriptionError: Error, LocalizedError, Sendable 
     var errorDescription: String? {
         switch self {
         case .invalidAudioFormat:
-            return "Apple Speech could not prepare the live audio format."
+            return String(localized: "Apple Speech could not prepare the live audio format.")
         case .inputBackpressure:
-            return "Apple Speech could not keep up with the live recording."
+            return String(localized: "Apple Speech could not keep up with the live recording.")
         case .inputTerminated:
-            return "The Apple Speech live session ended unexpectedly."
+            return String(localized: "The Apple Speech live session ended unexpectedly.")
         case .analysisFailed(let message):
             return message
         }
@@ -492,7 +492,7 @@ private actor AppleSpeechLiveTranscriptionSession: SystemLiveTranscriptionSessio
 
         guard consumedAllFinalResults else {
             throw AppleSpeechLiveTranscriptionError.analysisFailed(
-                "Apple Speech final results did not finish in time."
+                String(localized: "Apple Speech final results did not finish in time.")
             )
         }
         if let terminalFailure { throw terminalFailure }
@@ -584,7 +584,7 @@ private actor AppleSpeechLiveTranscriptionSession: SystemLiveTranscriptionSessio
         }
         guard status != .error else {
             throw AppleSpeechLiveTranscriptionError.analysisFailed(
-                conversionError?.localizedDescription ?? "Live audio conversion failed."
+                conversionError?.localizedDescription ?? String(localized: "Live audio conversion failed.")
             )
         }
         return output

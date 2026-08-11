@@ -62,6 +62,15 @@ struct VoxboardApp: App {
         let captureViewModel = QuickCaptureViewModel(requestProcessor: captureRequestProcessor)
         _quickCaptureViewModel = State(initialValue: captureViewModel)
 
+        #if DEBUG
+        if let destination = RootDestination.localizationScreenshotDestination {
+            _rootDestination = State(initialValue: destination)
+        }
+        if RootDestination.localizationScreenshotStory != nil {
+            _defersCaptureInputFocusForReleaseNotes = State(initialValue: true)
+        }
+        #endif
+
         let recorder = PersistentRecorder(
             transcriptStore: store,
             usageTracker: usage,
@@ -87,6 +96,12 @@ struct VoxboardApp: App {
             transcriptEnricher: enricher
         )
         _persistentRecorder = State(initialValue: recorder)
+
+        #if DEBUG
+        recorder.configureLocalizationScreenshot(
+            story: RootDestination.localizationScreenshotStory
+        )
+        #endif
 
         let watchPipeline = WatchRecordingPipeline(
             transcriptStore: store,

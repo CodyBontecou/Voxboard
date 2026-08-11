@@ -14,11 +14,15 @@ struct VoxboardMacApp: App {
     @State private var recorder: MacRecorder
     @State private var quickCaptureViewModel: QuickCaptureViewModel
     @State private var windowCoordinator: MacWindowCoordinator
+    #if DEBUG
+    private static var localizationScreenshotWindow: NSWindow?
+    #endif
     @AppStorage(MacAppVisibilityMode.storageKey, store: AppConstants.sharedDefaults)
     private var visibilityModeRaw = MacAppVisibilityMode.dockAndMenuBar.rawValue
 
     init() {
         Geist.registerBundledFonts()
+        let modelManager = ModelManager()
         let store = TranscriptStore()
         let usage = UsageTracker()
         let storeManager = MacStoreManager(usageTracker: usage)
@@ -71,12 +75,40 @@ struct VoxboardMacApp: App {
             }
         )
 
+        _modelManager = State(initialValue: modelManager)
         _transcriptStore = State(initialValue: store)
         _usageTracker = State(initialValue: usage)
         _storeManager = State(initialValue: storeManager)
         _recorder = State(initialValue: recorder)
         _quickCaptureViewModel = State(initialValue: quickCaptureViewModel)
         _windowCoordinator = State(initialValue: windowCoordinator)
+
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--localization-screenshot") {
+            DispatchQueue.main.async {
+                let root = MacLocalizationScreenshotRoot(
+                    recorder: recorder,
+                    quickCaptureViewModel: quickCaptureViewModel,
+                    windowCoordinator: windowCoordinator
+                )
+                .environment(modelManager)
+                .environment(store)
+                .environment(usage)
+                .environment(storeManager)
+                .preferredColorScheme(.light)
+
+                let controller = NSHostingController(rootView: root)
+                let window = NSWindow(contentViewController: controller)
+                window.title = "Vox.md"
+                window.setContentSize(NSSize(width: 1180, height: 760))
+                window.center()
+                window.isReleasedWhenClosed = false
+                window.makeKeyAndOrderFront(nil)
+                NSApp.activate(ignoringOtherApps: true)
+                Self.localizationScreenshotWindow = window
+            }
+        }
+        #endif
     }
 
     private var visibilityMode: MacAppVisibilityMode {
@@ -117,7 +149,7 @@ struct VoxboardMacApp: App {
                             if recorder?.isRecording == true
                                 || recorder?.isTranscribing == true
                                 || recorder?.isExporting == true {
-                                recorder?.lastError = "Wait for the current recording or Capture export to finish before quitting."
+                                recorder?.lastError = String(localized: "Wait for the current recording or Capture export to finish before quitting.")
                                 windowCoordinator?.showMain(.showCapture)
                                 return false
                             }
@@ -164,7 +196,9 @@ struct VoxboardMacApp: App {
 
                 Divider()
 
-                Button(recorder.isRecording ? "Stop + Transcribe" : "Start Recording") {
+                Button(recorder.isRecording
+                       ? String(localized: "Stop + Transcribe")
+                       : String(localized: "Start Recording")) {
                     Self.handleGlobalHotKey(
                         recorder: recorder,
                         modelManager: modelManager,
@@ -255,9 +289,9 @@ struct VoxboardMacApp: App {
     }
 
     private var menuBarStatusText: String {
-        if recorder.isRecording { return "Vox.md is recording" }
-        if recorder.isTranscribing { return "Vox.md is transcribing" }
-        if recorder.isExporting { return "Vox.md is finishing the Capture export" }
+        if recorder.isRecording { return String(localized: "Vox.md is recording") }
+        if recorder.isTranscribing { return String(localized: "Vox.md is transcribing") }
+        if recorder.isExporting { return String(localized: "Vox.md is finishing the Capture export") }
         return "Vox.md"
     }
 
@@ -375,7 +409,7 @@ struct VoxboardMacApp: App {
         Task { @MainActor in
             let granted = await AudioRecorder.requestMicrophonePermission()
             guard granted else {
-                recorder.lastError = "Could not access the microphone. Check macOS Privacy & Security settings."
+                recorder.lastError = String(localized: "Could not access the microphone. Check macOS Privacy & Security settings.")
                 windowCoordinator.showMain(.showCapture)
                 return
             }
@@ -594,19 +628,19 @@ enum MacAppVisibilityMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .dockAndMenuBar: return "Dock + Menu Bar"
-        case .menuBarOnly: return "Menu Bar Only"
-        case .dockOnly: return "Dock Only"
-        case .hidden: return "Hidden"
+        case .dockAndMenuBar: return String(localized: "Dock + Menu Bar")
+        case .menuBarOnly: return String(localized: "Menu Bar Only")
+        case .dockOnly: return String(localized: "Dock Only")
+        case .hidden: return String(localized: "Hidden")
         }
     }
 
     var summary: String {
         switch self {
-        case .dockAndMenuBar: return "Dock icon, Cmd-Tab, and menu bar"
-        case .menuBarOnly: return "Menu bar only — hidden from Dock and Cmd-Tab"
-        case .dockOnly: return "Dock icon and Cmd-Tab — no menu bar"
-        case .hidden: return "Invisible — reopen from Spotlight or Finder"
+        case .dockAndMenuBar: return String(localized: "Dock icon, Cmd-Tab, and menu bar")
+        case .menuBarOnly: return String(localized: "Menu bar only — hidden from Dock and Cmd-Tab")
+        case .dockOnly: return String(localized: "Dock icon and Cmd-Tab — no menu bar")
+        case .hidden: return String(localized: "Invisible — reopen from Spotlight or Finder")
         }
     }
 
@@ -682,9 +716,44 @@ final class VoxboardMacAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--localization-screenshot") {
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+            scheduleLocalizationScreenshotIfRequested()
+            return
+        }
+        #endif
         MacAppVisibilityMode.current.applyImmediately()
         MacKeyboardHintCenter.shared.start()
     }
+
+    #if DEBUG
+    private func scheduleLocalizationScreenshotIfRequested() {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let index = arguments.firstIndex(of: "--localization-screenshot-output"),
+              arguments.indices.contains(index + 1) else { return }
+        let destination = URL(fileURLWithPath: arguments[index + 1])
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            let candidates = NSApp.windows.filter { $0.contentView != nil }
+            guard let window = candidates.max(by: {
+                $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height
+            }),
+                  let view = window.contentView else { return }
+
+            if window.isMiniaturized { window.deminiaturize(nil) }
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            view.layoutSubtreeIfNeeded()
+
+            guard let image = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
+            view.cacheDisplay(in: view.bounds, to: image)
+            guard let data = image.representation(using: .png, properties: [:]) else { return }
+            try? data.write(to: destination, options: .atomic)
+        }
+    }
+    #endif
 
     func applicationWillTerminate(_ notification: Notification) {
         MacKeyboardHintCenter.shared.stop()
@@ -1021,7 +1090,7 @@ final class MacGlobalHotKeyCenter {
                     "[MacHotKey] Registered \(binding.target.id): \(binding.shortcut.displayString)"
                 )
             } else {
-                errors.append("Could not register \(binding.shortcut.displayString). Try a different shortcut. (OSStatus \(status))")
+                errors.append(String(localized: "Could not register \(binding.shortcut.displayString). Try a different shortcut. (OSStatus \(status))"))
                 KeyboardDebugLog.shared.log(
                     "[MacHotKey] ❌ RegisterEventHotKey failed for \(binding.target.id): \(status)"
                 )
@@ -1052,7 +1121,7 @@ final class MacGlobalHotKeyCenter {
             &eventHandlerRef
         )
         if status != noErr {
-            lastRegistrationError = "Could not install Vox.md hotkey listener. (OSStatus \(status))"
+            lastRegistrationError = String(localized: "Could not install Vox.md hotkey listener. (OSStatus \(status))")
             KeyboardDebugLog.shared.log("[MacHotKey] ❌ InstallEventHandler failed: \(status)")
         }
     }
@@ -1178,17 +1247,17 @@ private struct MacMenuBarMenu: View {
     }
 
     private var statusTitle: String {
-        if recorder.isRecording { return "Vox.md — Recording" }
-        if recorder.isTranscribing { return "Vox.md — Transcribing" }
-        if recorder.isExporting { return "Vox.md — Finishing Export" }
-        return "Vox.md — Ready"
+        if recorder.isRecording { return String(localized: "Vox.md — Recording") }
+        if recorder.isTranscribing { return String(localized: "Vox.md — Transcribing") }
+        if recorder.isExporting { return String(localized: "Vox.md — Finishing Export") }
+        return String(localized: "Vox.md — Ready")
     }
 
     private var recordButtonTitle: String {
-        if usageTracker.isAtLimit { return "Unlock to Record" }
-        if recorder.isTranscribing { return "Transcribing…" }
-        if recorder.isExporting { return "Finishing Export…" }
-        return "Start Recording"
+        if usageTracker.isAtLimit { return String(localized: "Unlock to Record") }
+        if recorder.isTranscribing { return String(localized: "Transcribing…") }
+        if recorder.isExporting { return String(localized: "Finishing Export…") }
+        return String(localized: "Start Recording")
     }
 
     private func beginRecording() {
@@ -1201,7 +1270,7 @@ private struct MacMenuBarMenu: View {
         Task { @MainActor in
             let granted = await AudioRecorder.requestMicrophonePermission()
             guard granted else {
-                recorder.lastError = "Could not access the microphone. Check macOS Privacy & Security settings."
+                recorder.lastError = String(localized: "Could not access the microphone. Check macOS Privacy & Security settings.")
                 windowCoordinator.showMain(.showCapture)
                 return
             }

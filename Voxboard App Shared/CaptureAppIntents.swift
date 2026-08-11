@@ -443,13 +443,13 @@ enum CaptureIntentError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .storageUnavailable:
-            return "Vox.md shared capture storage is unavailable."
+            return String(localized: "Vox.md shared capture storage is unavailable.")
         case .destinationRequired:
-            return "Configure a destination for a Capture Preset in Vox.md before running this shortcut."
+            return String(localized: "Configure a destination for a Capture Preset in Vox.md before running this shortcut.")
         case .invalidURL:
-            return "Only HTTP and HTTPS links can be captured."
+            return String(localized: "Only HTTP and HTTPS links can be captured.")
         case .textTooLarge:
-            return "Capture text is above the 100,000-character safety limit."
+            return String(localized: "Capture text is above the 100,000-character safety limit.")
         }
     }
 }

@@ -1,0 +1,7 @@
+Vox.md is een lokale vastlegapp voor Obsidian en Markdown. Stuur tekst, links, foto’s, bestanden, documentscans, schetsen en spraak naar de juiste notitie.
+
+Vastlegvoorinstellingen onthouden bestemming, sjabloon, metadata, bijlagen en plaatsing. Gebruik Vox.md vanuit de app, het deelmenu, het aangepaste toetsenbord, widgets, Opdrachten of Apple Watch. Wachtende leveringen blijven beschikbaar om opnieuw te proberen.
+
+Spraak-naar-tekst draait op het apparaat met Apple Speech, Whisper of Parakeet. Audio, transcripties, getypte inhoud, bestandspaden en bladwijzers worden niet naar Vox.md-servers gestuurd. Vox.md schrijft standaard-Markdown naar gekozen mappen en Obsidian-kluizen; een account of bedrijfseigen notitiedatabase is niet nodig.
+
+Nieuwe gebruikers krijgen 15 gratis transcriptieminuten en 10 geslaagde leveringen. Een eenmalige aankoop ontgrendelt onbeperkt gebruik.

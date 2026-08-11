@@ -184,21 +184,21 @@ extension WatchRecordingInboxItem {
     var watchStatusTitle: String {
         switch phase {
         case .queued:
-            return "Received from Apple Watch"
+            return String(localized: "Received from Apple Watch")
         case .transcribing:
-            return "Transcribing Watch recording"
+            return String(localized: "Transcribing Watch recording")
         case .delivering:
             return isRecordingOnlyWatchOutput
-                ? "Saving recording to Files"
-                : "Saving to Capture"
+                ? String(localized: "Saving recording to Files")
+                : String(localized: "Saving to Capture")
         case .delivered:
             return isRecordingOnlyWatchOutput
-                ? "Watch recording saved to Files"
-                : "Watch recording saved"
+                ? String(localized: "Watch recording saved to Files")
+                : String(localized: "Watch recording saved")
         case .failed:
-            return "Watch recording needs attention"
+            return String(localized: "Watch recording needs attention")
         case .discarded:
-            return "Watch recording discarded"
+            return String(localized: "Watch recording discarded")
         }
     }
 
@@ -208,23 +208,23 @@ extension WatchRecordingInboxItem {
         }
         switch phase {
         case .queued:
-            return "Queued on iPhone with \(displayPresetName)"
+            return String(localized: "Queued on iPhone with \(displayPresetName)")
         case .transcribing:
-            return "On-device transcription is running"
+            return String(localized: "On-device transcription is running")
         case .delivering:
             return isRecordingOnlyWatchOutput
-                ? "Copying the retained M4A to the selected Files folder"
-                : "Writing through the Capture pipeline"
+                ? String(localized: "Copying the retained M4A to the selected Files folder")
+                : String(localized: "Writing through the Capture pipeline")
         case .delivered:
             return isRecordingOnlyWatchOutput
-                ? "Saved as a user-visible M4A file"
-                : "Delivered with \(displayPresetName)"
+                ? String(localized: "Saved as a user-visible M4A file")
+                : String(localized: "Delivered with \(displayPresetName)")
         case .failed:
             return isRecordingOnlyWatchOutput
-                ? "The M4A is retained safely for Files retry"
-                : "The audio and transcript are retained for retry"
+                ? String(localized: "The M4A is retained safely for Files retry")
+                : String(localized: "The audio and transcript are retained for retry")
         case .discarded:
-            return "Removed"
+            return String(localized: "Removed")
         }
     }
 

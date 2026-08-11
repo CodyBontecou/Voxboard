@@ -92,7 +92,7 @@ struct HistoryView: View {
                     store.clearPersistenceError()
                 }
             } message: {
-                Text(exportError ?? store.lastPersistenceError?.localizedDescription ?? "Unknown error")
+                Text(exportError ?? store.lastPersistenceError?.localizedDescription ?? String(localized: "Unknown error"))
             }
             .sheet(item: $editingTranscript) { transcript in
                 TranscriptEditView(transcript: transcript) { edited in
@@ -207,7 +207,9 @@ struct HistoryView: View {
                         .lineLimit(1)
                     if let delivery {
                         Label(
-                            delivery.outcome == .delivered ? "Delivered" : "Delivery failed",
+                            delivery.outcome == .delivered
+                                ? String(localized: "Delivered")
+                                : String(localized: "Delivery failed"),
                             systemImage: delivery.outcome == .delivered ? "checkmark.circle" : "exclamationmark.triangle"
                         )
                         .font(Geist.caption(.caption2))

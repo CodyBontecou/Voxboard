@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import VoxboardShared
 
 struct QuickCaptureVoiceView: View {
     @Bindable var session: QuickCaptureVoiceSession
@@ -69,7 +70,9 @@ struct QuickCaptureVoiceView: View {
     private var recordingView: some View {
         VStack(spacing: 28) {
             Spacer()
-            Text(session.phase == .recording ? "Start talking…" : "Preparing microphone…")
+            Text(session.phase == .recording
+                 ? String(localized: "Start talking…")
+                 : String(localized: "Preparing microphone…"))
                 .font(Geist.heading(.title2))
 
             HStack(alignment: .center, spacing: 5) {
@@ -83,7 +86,9 @@ struct QuickCaptureVoiceView: View {
             .frame(height: 72)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Microphone level")
-            .accessibilityValue(session.level > 0.15 ? "Speech detected" : "Quiet")
+            .accessibilityValue(session.level > 0.15
+                                ? String(localized: "Speech detected")
+                                : String(localized: "Quiet"))
 
             Text(durationLabel(session.elapsed))
                 .font(.system(size: 42, weight: .light, design: .monospaced))
@@ -188,7 +193,7 @@ struct QuickCaptureVoiceView: View {
                     Image(systemName: session.isPlaying ? "pause.fill" : "play.fill")
                     Text(durationLabel(session.duration)).monospacedDigit()
                     Spacer()
-                    Text(session.isPlaying ? "Pause" : "Play")
+                    Text(session.isPlaying ? String(localized: "Pause") : String(localized: "Play"))
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -206,7 +211,10 @@ struct QuickCaptureVoiceView: View {
                 if let transcript = session.transcript {
                     Button {
                         UIPasteboard.general.string = transcript
-                        UIAccessibility.post(notification: .announcement, argument: "Transcript copied")
+                        UIAccessibility.post(
+                            notification: .announcement,
+                            argument: String(localized: "Transcript copied")
+                        )
                     } label: {
                         Label("Copy", systemImage: "doc.on.doc")
                             .frame(maxWidth: .infinity)
