@@ -284,8 +284,8 @@ struct ModelTabView: View {
                 .frame(width: Geist.ControlHeight.small)
                 .accessibilityLabel("Delete \(model.name) model")
             }
-        } else if modelManager.isDownloading[model.id] == true {
-            downloadingView(for: model)
+        } else if let state = modelManager.downloadState(for: model.id) {
+            downloadingView(for: model, state: state)
         } else {
             Button("Download Model") {
                 modelManager.startDownload(model)
@@ -295,17 +295,21 @@ struct ModelTabView: View {
         }
     }
 
-    private func downloadingView(for model: WhisperModelInfo) -> some View {
-        let progress = modelManager.downloadProgress[model.id] ?? 0
-        return HStack(spacing: Geist.Spacing.two) {
+    private func downloadingView(
+        for model: WhisperModelInfo,
+        state: ModelDownloadState
+    ) -> some View {
+        HStack(spacing: Geist.Spacing.two) {
             VStack(alignment: .trailing, spacing: Geist.Spacing.one) {
-                ProgressView(value: progress)
-                    .progressViewStyle(.linear)
-                    .tint(Geist.Palette.blue700)
-                    .frame(width: 88)
-                Text("\(Int(progress * 100))%")
+                downloadProgressView(state)
+                    .frame(width: 104)
+                Text(downloadStatusText(state))
                     .font(Geist.mono())
                     .foregroundStyle(Geist.muted)
+                    .lineLimit(1)
+                Text("Keep Vox.md open")
+                    .font(Geist.caption(.caption))
+                    .foregroundStyle(Geist.faint)
             }
             Button {
                 modelManager.cancelDownload(model)
@@ -314,15 +318,49 @@ struct ModelTabView: View {
             }
             .buttonStyle(GeistButtonStyle(variant: .tertiary, size: .small))
             .frame(width: Geist.ControlHeight.small)
+            .disabled(state.isCancelling)
             .accessibilityLabel("Cancel \(model.name) download")
+        }
+    }
+
+    @ViewBuilder
+    private func downloadProgressView(_ state: ModelDownloadState) -> some View {
+        if let progress = state.fractionCompleted {
+            ProgressView(value: progress)
+                .progressViewStyle(.linear)
+                .tint(Geist.Palette.blue700)
+        } else {
+            ProgressView()
+                .controlSize(.small)
+                .tint(Geist.Palette.blue700)
+        }
+    }
+
+    private func downloadStatusText(_ state: ModelDownloadState) -> String {
+        switch state.phase {
+        case .preparing:
+            return String(localized: "Preparing…")
+        case .listingFiles:
+            return String(localized: "Finding files…")
+        case .verifying:
+            return String(localized: "Verifying…")
+        case .cancelling:
+            return String(localized: "Cancelling…")
+        case .transferring:
+            if let fileProgressDescription = state.fileProgressDescription {
+                return fileProgressDescription
+            }
+            if let progress = state.fractionCompleted {
+                return progress.formatted(.percent.precision(.fractionLength(0)))
+            }
+            return String(localized: "Downloading…")
         }
     }
 
     private var voiceAutoStopSection: some View {
         let modelID = VoiceActivityModelAsset.id
         let isDownloaded = modelManager.isVoiceActivityModelDownloaded
-        let isDownloading = modelManager.isDownloading[modelID] == true
-        let progress = modelManager.downloadProgress[modelID] ?? 0
+        let downloadState = modelManager.downloadState(for: modelID)
 
         return VStack(alignment: .leading, spacing: Geist.Spacing.three) {
             VStack(alignment: .leading, spacing: Geist.Spacing.one) {
@@ -362,13 +400,11 @@ struct ModelTabView: View {
                         .buttonStyle(GeistButtonStyle(variant: .tertiary, size: .small))
                         .frame(width: Geist.ControlHeight.small)
                         .accessibilityLabel("Delete voice pause detection model")
-                    } else if isDownloading {
+                    } else if let downloadState {
                         VStack(alignment: .trailing, spacing: Geist.Spacing.one) {
-                            ProgressView(value: progress)
-                                .progressViewStyle(.linear)
-                                .tint(Geist.Palette.blue700)
+                            downloadProgressView(downloadState)
                                 .frame(width: 88)
-                            Text("\(Int(progress * 100))%")
+                            Text(downloadStatusText(downloadState))
                                 .font(Geist.mono())
                                 .foregroundStyle(Geist.muted)
                         }
@@ -379,6 +415,7 @@ struct ModelTabView: View {
                         }
                         .buttonStyle(GeistButtonStyle(variant: .tertiary, size: .small))
                         .frame(width: Geist.ControlHeight.small)
+                        .disabled(downloadState.isCancelling)
                         .accessibilityLabel("Cancel voice pause detection download")
                     } else {
                         Button("Download Auto-Stop") {

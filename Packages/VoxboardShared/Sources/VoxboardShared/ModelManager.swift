@@ -5,19 +5,36 @@ import FluidAudio
 
 /// Manages Automatic/local selection, opt-in model downloads, and language preference.
 /// Stores models in the App Group container so both the app and keyboard extension can access them.
+@MainActor
 @Observable
 public final class ModelManager {
-    public var downloadProgress: [String: Double] = [:]
-    public var isDownloading: [String: Bool] = [:]
+    public private(set) var downloadStates: [String: ModelDownloadState] = [:]
+
+    /// Compatibility projections used by app-lifecycle and companion-model UI.
+    /// A missing fraction is intentionally omitted rather than represented as 0%.
+    public var downloadProgress: [String: Double] {
+        downloadStates.compactMapValues(\.fractionCompleted)
+    }
+
+    public var isDownloading: [String: Bool] {
+        downloadStates.mapValues { _ in true }
+    }
     /// Incremented whenever installed model files change so filesystem-backed
     /// download state refreshes immediately in SwiftUI.
     public private(set) var installedModelsRevision = 0
     public var modelOperationError: String?
 
-    /// Active download tasks keyed by model ID.
-    /// Not @Observable-tracked — only accessed from the main thread via SwiftUI.
+    private struct ActiveDownload {
+        let id: UUID
+        let task: Task<Void, Never>
+    }
+
+    /// Active download tasks keyed by model ID. The operation ID prevents stale
+    /// progress or completion from an older cancelled task mutating a retry.
     @ObservationIgnored
-    private var downloadTasks: [String: Task<Void, Never>] = [:]
+    private var activeDownloads: [String: ActiveDownload] = [:]
+    @ObservationIgnored
+    private var operationRegistry = ModelDownloadOperationRegistry()
 
     // MARK: - Settings
     // Stored properties so @Observable tracks mutations and SwiftUI re-renders.
@@ -73,6 +90,10 @@ public final class ModelManager {
     public func isModelDownloaded(_ model: WhisperModelInfo) -> Bool {
         _ = installedModelsRevision
         return model.isDownloaded
+    }
+
+    public func downloadState(for modelID: String) -> ModelDownloadState? {
+        downloadStates[modelID]
     }
 
     public var isVoiceActivityModelDownloaded: Bool {
@@ -131,38 +152,39 @@ public final class ModelManager {
 
     // MARK: - Download
 
-    /// Start downloading a model. No-op if the model is already downloading.
+    /// Start downloading a model. No-op while an earlier operation for this
+    /// model is still transferring or unwinding cancellation.
     public func startDownload(_ model: WhisperModelInfo) {
-        guard downloadTasks[model.id] == nil else { return }
+        guard activeDownloads[model.id] == nil else { return }
+        guard preflightStorage(for: model) else { return }
+        guard let operationID = operationRegistry.reserve(modelID: model.id) else { return }
 
         modelOperationError = nil
-        isDownloading[model.id] = true
-        downloadProgress[model.id] = 0
+        downloadStates[model.id] = ModelDownloadState(phase: .preparing)
 
         let task = Task { [weak self] in
+            guard let self else { return }
             if model.engine.isParakeet {
-                await self?.downloadParakeetModel(model)
+                await self.downloadParakeetModel(model, operationID: operationID)
             } else {
-                await self?.downloadWhisperModel(model)
-            }
-            // Clean up task handle when done (whether success, failure, or cancellation)
-            await MainActor.run { [weak self] in
-                self?.downloadTasks[model.id] = nil
+                await self.downloadWhisperModel(model, operationID: operationID)
             }
         }
-        downloadTasks[model.id] = task
+        activeDownloads[model.id] = ActiveDownload(id: operationID, task: task)
     }
 
-    /// Cancel an in-progress download and clean up any partial files.
+    /// Cancel the transport but preserve completed Parakeet files. Retry stays
+    /// unavailable until the old task has fully unwound, preventing two tasks
+    /// from mutating the same repository directory.
     public func cancelDownload(_ model: WhisperModelInfo) {
-        downloadTasks[model.id]?.cancel()
-        downloadTasks[model.id] = nil
-        isDownloading[model.id] = false
-        downloadProgress[model.id] = 0
-
-        // Remove any partially-downloaded files so a future download starts clean.
-        cleanupPartialDownload(for: model)
-        print("[ModelManager] Cancelled download for \(model.name)")
+        guard let active = activeDownloads[model.id] else { return }
+        updateDownloadState(
+            modelID: model.id,
+            operationID: active.id,
+            state: ModelDownloadState(phase: .cancelling)
+        )
+        active.task.cancel()
+        print("[ModelManager] Cancelling download for \(model.name)")
     }
 
     /// Explicitly downloads the small Silero companion used for Parakeet
@@ -170,80 +192,113 @@ public final class ModelManager {
     public func startVoiceActivityDownload() {
         #if os(iOS) || os(macOS)
         let modelID = VoiceActivityModelAsset.id
-        guard downloadTasks[modelID] == nil else { return }
+        guard activeDownloads[modelID] == nil else { return }
+        guard let operationID = operationRegistry.reserve(modelID: modelID) else { return }
 
         modelOperationError = nil
-        isDownloading[modelID] = true
-        downloadProgress[modelID] = 0
-
+        downloadStates[modelID] = ModelDownloadState(phase: .preparing)
         let task = Task { [weak self] in
-            await self?.downloadVoiceActivityModel()
-            await MainActor.run { [weak self] in
-                self?.downloadTasks[modelID] = nil
-            }
+            guard let self else { return }
+            await self.downloadVoiceActivityModel(operationID: operationID)
         }
-        downloadTasks[modelID] = task
+        activeDownloads[modelID] = ActiveDownload(id: operationID, task: task)
         #endif
     }
 
     public func cancelVoiceActivityDownload() {
         #if os(iOS) || os(macOS)
         let modelID = VoiceActivityModelAsset.id
-        guard let task = downloadTasks[modelID] else { return }
-        task.cancel()
-        // Keep the task registered until it unwinds so a retry cannot race the
-        // canceled download while both mutate the same repository directory.
-        downloadProgress[modelID] = 0
+        guard let active = activeDownloads[modelID] else { return }
+        updateDownloadState(
+            modelID: modelID,
+            operationID: active.id,
+            state: ModelDownloadState(phase: .cancelling)
+        )
+        active.task.cancel()
         #endif
     }
 
     // MARK: - Whisper Download
 
-    private func downloadWhisperModel(_ model: WhisperModelInfo) async {
-        guard let modelsDir = AppConstants.modelsDirectoryURL else {
-            await finishDownload(
-                modelId: model.id,
+    private func downloadWhisperModel(
+        _ model: WhisperModelInfo,
+        operationID: UUID
+    ) async {
+        guard let modelsDirectory = AppConstants.modelsDirectoryURL,
+              let expectedByteCount = model.downloadSizeBytes else {
+            finishDownload(
+                modelID: model.id,
+                operationID: operationID,
                 success: false,
-                errorMessage: "Could not download \(model.name) because the model storage location is unavailable."
+                errorMessage: "Could not download \(model.name) because its storage metadata is unavailable."
             )
             return
         }
-        let destURL = modelsDir.appendingPathComponent(model.fileName)
+
+        let destinationURL = modelsDirectory.appendingPathComponent(model.fileName)
+        let stagingURL = modelsDirectory
+            .appendingPathComponent(".downloads", isDirectory: true)
+            .appendingPathComponent("\(model.id)-\(operationID.uuidString).partial")
+        defer { try? FileManager.default.removeItem(at: stagingURL) }
 
         do {
-            let delegate = DownloadProgressDelegate { [weak self] progress in
+            updateDownloadState(
+                modelID: model.id,
+                operationID: operationID,
+                state: ModelDownloadState(phase: .transferring)
+            )
+
+            var request = URLRequest(url: model.downloadURL, timeoutInterval: 1_800)
+            request.cachePolicy = .reloadIgnoringLocalCacheData
+            let result = try await WhisperModelDownloadTransport.download(
+                request: request,
+                stagingURL: stagingURL
+            ) { [weak self] received, expected in
+                let fraction = expected > 0 ? Double(received) / Double(expected) : nil
                 Task { @MainActor [weak self] in
-                    self?.downloadProgress[model.id] = progress
+                    self?.updateDownloadState(
+                        modelID: model.id,
+                        operationID: operationID,
+                        state: ModelDownloadState(
+                            phase: .transferring,
+                            fractionCompleted: fraction
+                        )
+                    )
                 }
             }
 
-            let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
-
-            // Cancel the URLSession when the enclosing Swift Task is cancelled.
-            let (tempURL, _) = try await withTaskCancellationHandler {
-                try await session.download(from: model.downloadURL)
-            } onCancel: {
-                session.invalidateAndCancel()
-            }
-
-            // Check for cancellation before moving the file
             try Task.checkCancellation()
+            updateDownloadState(
+                modelID: model.id,
+                operationID: operationID,
+                state: ModelDownloadState(phase: .verifying, fractionCompleted: 1)
+            )
+            try Task.checkCancellation()
+            try WhisperModelInstaller.validateAndInstall(
+                response: result.response,
+                stagingURL: result.fileURL,
+                destinationURL: destinationURL,
+                expectedByteCount: expectedByteCount
+            )
 
-            if FileManager.default.fileExists(atPath: destURL.path) {
-                try FileManager.default.removeItem(at: destURL)
-            }
-            try FileManager.default.moveItem(at: tempURL, to: destURL)
-
-            session.invalidateAndCancel()
             print("[ModelManager] Downloaded \(model.name) successfully")
-            await finishDownload(modelId: model.id, success: true)
+            finishDownload(
+                modelID: model.id,
+                operationID: operationID,
+                success: true
+            )
         } catch is CancellationError {
             print("[ModelManager] Download cancelled for \(model.name)")
-            await finishDownload(modelId: model.id, success: false)
+            finishDownload(
+                modelID: model.id,
+                operationID: operationID,
+                success: false
+            )
         } catch {
             print("[ModelManager] Download failed for \(model.name): \(error)")
-            await finishDownload(
-                modelId: model.id,
+            finishDownload(
+                modelID: model.id,
+                operationID: operationID,
                 success: false,
                 errorMessage: Task.isCancelled
                     ? nil
@@ -254,11 +309,15 @@ public final class ModelManager {
 
     // MARK: - Parakeet Download
 
-    private func downloadParakeetModel(_ model: WhisperModelInfo) async {
+    private func downloadParakeetModel(
+        _ model: WhisperModelInfo,
+        operationID: UUID
+    ) async {
         #if os(iOS) || os(macOS)
-        guard let modelsDir = AppConstants.modelsDirectoryURL else {
-            await finishDownload(
-                modelId: model.id,
+        guard let modelsDirectory = AppConstants.modelsDirectoryURL else {
+            finishDownload(
+                modelID: model.id,
+                operationID: operationID,
                 success: false,
                 errorMessage: "Could not download \(model.name) because the model storage location is unavailable."
             )
@@ -268,34 +327,48 @@ public final class ModelManager {
         let repo: Repo = (model.engine == .parakeetV2) ? .parakeetV2 : .parakeet
 
         do {
-            try await DownloadUtils.downloadRepo(repo, to: modelsDir) { [weak self] progress in
-                guard let self else { return }
-
-                // The weight.bin files in the Parakeet repos return `size: N/A` from the
-                // HuggingFace tree API, so `totalBytes` inside DownloadUtils is effectively
-                // zero — byte-fraction progress is unreliable and stays stuck at ~1%.
-                // Use file count instead, which is always accurate.
-                let fraction: Double
+            // FluidAudio 0.13.4 skips paths based on existence alone. Remove
+            // known-size mismatches first so a retry can actually repair them.
+            try model.removeInvalidExistingParakeetArtifacts(in: modelsDirectory)
+            try await DownloadUtils.downloadRepo(repo, to: modelsDirectory) { [weak self] progress in
+                let state: ModelDownloadState
                 switch progress.phase {
                 case .listing:
-                    fraction = 0.01   // small nonzero so the bar visibly starts
+                    state = ModelDownloadState(phase: .listingFiles)
                 case .downloading(let completed, let total):
-                    fraction = total > 0 ? Double(completed) / Double(total) : 0.01
+                    // FluidAudio 0.13.4 cannot deliver live byte callbacks from
+                    // its async convenience download. File count is useful context
+                    // but must never be presented as a byte percentage.
+                    state = ModelDownloadState(
+                        phase: .transferring,
+                        completedFiles: completed,
+                        totalFiles: total
+                    )
                 case .compiling:
-                    fraction = 0.98
+                    state = ModelDownloadState(phase: .verifying)
                 }
 
                 Task { @MainActor [weak self] in
-                    self?.downloadProgress[model.id] = fraction
+                    self?.updateDownloadState(
+                        modelID: model.id,
+                        operationID: operationID,
+                        state: state
+                    )
                 }
             }
 
             try Task.checkCancellation()
+            updateDownloadState(
+                modelID: model.id,
+                operationID: operationID,
+                state: ModelDownloadState(phase: .verifying)
+            )
 
-            guard model.isDownloaded else {
+            guard model.isDownloaded(in: modelsDirectory) else {
                 print("[ModelManager] Parakeet download finished but required files are missing for \(model.name)")
-                await finishDownload(
-                    modelId: model.id,
+                finishDownload(
+                    modelID: model.id,
+                    operationID: operationID,
                     success: false,
                     errorMessage: "The \(model.name) download finished, but required model files were missing. Please try again."
                 )
@@ -303,14 +376,23 @@ public final class ModelManager {
             }
 
             print("[ModelManager] Downloaded Parakeet \(model.name) successfully")
-            await finishDownload(modelId: model.id, success: true)
+            finishDownload(
+                modelID: model.id,
+                operationID: operationID,
+                success: true
+            )
         } catch is CancellationError {
             print("[ModelManager] Parakeet download cancelled for \(model.name)")
-            await finishDownload(modelId: model.id, success: false)
+            finishDownload(
+                modelID: model.id,
+                operationID: operationID,
+                success: false
+            )
         } catch {
             print("[ModelManager] Parakeet download failed for \(model.name): \(error)")
-            await finishDownload(
-                modelId: model.id,
+            finishDownload(
+                modelID: model.id,
+                operationID: operationID,
                 success: false,
                 errorMessage: Task.isCancelled
                     ? nil
@@ -319,8 +401,9 @@ public final class ModelManager {
         }
         #else
         print("[ModelManager] Parakeet downloads are not available on this platform")
-        await finishDownload(
-            modelId: model.id,
+        finishDownload(
+            modelID: model.id,
+            operationID: operationID,
             success: false,
             errorMessage: "Parakeet downloads are not available on this platform."
         )
@@ -329,12 +412,13 @@ public final class ModelManager {
 
     // MARK: - Voice Activity Download
 
-    private func downloadVoiceActivityModel() async {
+    private func downloadVoiceActivityModel(operationID: UUID) async {
         #if os(iOS) || os(macOS)
         let modelID = VoiceActivityModelAsset.id
         guard let modelsDirectory = AppConstants.modelsDirectoryURL else {
-            await finishDownload(
-                modelId: modelID,
+            finishDownload(
+                modelID: modelID,
+                operationID: operationID,
                 success: false,
                 errorMessage: "Could not download voice pause detection because the model storage location is unavailable."
             )
@@ -343,15 +427,33 @@ public final class ModelManager {
 
         do {
             try await DownloadUtils.downloadRepo(.vad, to: modelsDirectory) { [weak self] progress in
+                let state: ModelDownloadState
+                switch progress.phase {
+                case .listing:
+                    state = ModelDownloadState(phase: .listingFiles)
+                case .downloading(let completed, let total):
+                    state = ModelDownloadState(
+                        phase: .transferring,
+                        completedFiles: completed,
+                        totalFiles: total
+                    )
+                case .compiling:
+                    state = ModelDownloadState(phase: .verifying)
+                }
                 Task { @MainActor [weak self] in
-                    self?.downloadProgress[modelID] = progress.fractionCompleted
+                    self?.updateDownloadState(
+                        modelID: modelID,
+                        operationID: operationID,
+                        state: state
+                    )
                 }
             }
             try Task.checkCancellation()
 
             guard VoiceActivityModelAsset.isInstalled(in: modelsDirectory) else {
-                await finishDownload(
-                    modelId: modelID,
+                finishDownload(
+                    modelID: modelID,
+                    operationID: operationID,
                     success: false,
                     errorMessage: "The voice pause detection download finished, but required model files were missing. Please try again."
                 )
@@ -359,18 +461,23 @@ public final class ModelManager {
             }
 
             print("[ModelManager] Downloaded voice pause detection successfully")
-            await finishDownload(modelId: modelID, success: true)
+            finishDownload(
+                modelID: modelID,
+                operationID: operationID,
+                success: true
+            )
         } catch is CancellationError {
             print("[ModelManager] Voice pause detection download cancelled")
-            cleanupVoiceActivityDownload()
-            await finishDownload(modelId: modelID, success: false)
+            finishDownload(
+                modelID: modelID,
+                operationID: operationID,
+                success: false
+            )
         } catch {
             print("[ModelManager] Voice pause detection download failed: \(error)")
-            if Task.isCancelled {
-                cleanupVoiceActivityDownload()
-            }
-            await finishDownload(
-                modelId: modelID,
+            finishDownload(
+                modelID: modelID,
+                operationID: operationID,
                 success: false,
                 errorMessage: Task.isCancelled
                     ? nil
@@ -382,49 +489,58 @@ public final class ModelManager {
 
     // MARK: - Helpers
 
-    @MainActor
+    private func updateDownloadState(
+        modelID: String,
+        operationID: UUID,
+        state: ModelDownloadState
+    ) {
+        guard operationRegistry.owns(modelID: modelID, operationID: operationID) else { return }
+        downloadStates[modelID] = downloadStates[modelID]?.accepting(state) ?? state
+    }
+
     private func finishDownload(
-        modelId: String,
+        modelID: String,
+        operationID: UUID,
         success: Bool,
         errorMessage: String? = nil
     ) {
-        isDownloading[modelId] = false
-        if !success {
-            downloadProgress[modelId] = 0
-            if let errorMessage {
-                modelOperationError = errorMessage
-            }
-        } else {
-            downloadProgress[modelId] = 1.0
+        guard operationRegistry.release(modelID: modelID, operationID: operationID) else { return }
+        activeDownloads[modelID] = nil
+        downloadStates[modelID] = nil
+
+        if success {
             installedModelsRevision &+= 1
+        } else if let errorMessage {
+            modelOperationError = errorMessage
         }
     }
 
-    private func cleanupVoiceActivityDownload() {
-        #if os(iOS) || os(macOS)
-        guard let modelsDirectory = AppConstants.modelsDirectoryURL else { return }
-        try? FileManager.default.removeItem(
-            at: VoiceActivityModelAsset.repositoryURL(in: modelsDirectory)
+    private func preflightStorage(for model: WhisperModelInfo) -> Bool {
+        guard let modelsDirectory = AppConstants.modelsDirectoryURL else {
+            modelOperationError = "Could not download \(model.name) because the model storage location is unavailable."
+            return false
+        }
+        guard let downloadSize = model.downloadSizeBytes,
+              let availableCapacity = ModelDownloadStorage.availableCapacity(at: modelsDirectory) else {
+            return true
+        }
+
+        let requiredCapacity = ModelDownloadStorage.requiredCapacity(
+            forDownloadSize: downloadSize
         )
-        #endif
-    }
-
-    private func cleanupPartialDownload(for model: WhisperModelInfo) {
-        guard let modelsDir = AppConstants.modelsDirectoryURL else { return }
-        if model.engine.isParakeet {
-            // Remove the partial repo directory so the next download starts fresh.
-            guard let folder = model.engine.parakeetRepoFolderName else { return }
-            let repoDir = modelsDir.appendingPathComponent(folder)
-            try? FileManager.default.removeItem(at: repoDir)
-
-            // Clean up the legacy pre-FluidAudio-folder-name directory if present.
-            let legacyRepoDir = modelsDir.appendingPathComponent("\(folder)-coreml")
-            try? FileManager.default.removeItem(at: legacyRepoDir)
-        } else {
-            // Remove any partial .bin file.
-            let dest = modelsDir.appendingPathComponent(model.fileName)
-            try? FileManager.default.removeItem(at: dest)
+        guard availableCapacity >= requiredCapacity else {
+            let requiredText = ByteCountFormatter.string(
+                fromByteCount: requiredCapacity,
+                countStyle: .file
+            )
+            let availableText = ByteCountFormatter.string(
+                fromByteCount: availableCapacity,
+                countStyle: .file
+            )
+            modelOperationError = "\(model.name) needs about \(requiredText) of free space. This device currently has \(availableText) available."
+            return false
         }
+        return true
     }
 
     // MARK: - Delete
@@ -578,35 +694,5 @@ public final class ModelManager {
             selectedLanguage = allowed.first(where: { $0.code == "auto" })?.code ?? allowed[0].code
             return
         }
-    }
-}
-
-// MARK: - Whisper Download Delegate
-
-private final class DownloadProgressDelegate: NSObject, URLSessionDownloadDelegate, Sendable {
-    let progressHandler: @Sendable (Double) -> Void
-
-    init(progressHandler: @escaping @Sendable (Double) -> Void) {
-        self.progressHandler = progressHandler
-    }
-
-    func urlSession(
-        _ session: URLSession,
-        downloadTask: URLSessionDownloadTask,
-        didWriteData bytesWritten: Int64,
-        totalBytesWritten: Int64,
-        totalBytesExpectedToWrite: Int64
-    ) {
-        guard totalBytesExpectedToWrite > 0 else { return }
-        let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
-        progressHandler(progress)
-    }
-
-    func urlSession(
-        _ session: URLSession,
-        downloadTask: URLSessionDownloadTask,
-        didFinishDownloadingTo location: URL
-    ) {
-        // Handled by the async/await download call
     }
 }

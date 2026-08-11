@@ -329,18 +329,32 @@ private struct MacModelView: View {
                     .foregroundColor(Geist.error)
                     .buttonStyle(.plain)
             }
-        } else if modelManager.isDownloading[model.id] == true {
+        } else if let state = modelManager.downloadState(for: model.id) {
             HStack(spacing: 8) {
-                ProgressView(value: modelManager.downloadProgress[model.id] ?? 0)
+                VStack(alignment: .trailing, spacing: 4) {
+                    Group {
+                        if let progress = state.fractionCompleted {
+                            ProgressView(value: progress)
+                        } else {
+                            ProgressView()
+                                .controlSize(.small)
+                        }
+                    }
                     .frame(width: 110)
                     .tint(Geist.text)
-                Text("\(Int((modelManager.downloadProgress[model.id] ?? 0) * 100))%")
-                    .font(Geist.caption())
-                    .foregroundColor(Geist.muted)
+
+                    Text(downloadStatusText(state))
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
+                    Text("Keep Vox.md open")
+                        .font(Geist.caption(.caption))
+                        .foregroundColor(Geist.faint)
+                }
                 Button("Cancel") { modelManager.cancelDownload(model) }
                     .font(Geist.caption())
                     .foregroundColor(Geist.error)
                     .buttonStyle(.plain)
+                    .disabled(state.isCancelling)
             }
         } else {
             Button {
@@ -355,6 +369,27 @@ private struct MacModelView: View {
                     .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
             }
             .buttonStyle(.plain)
+        }
+    }
+
+    private func downloadStatusText(_ state: ModelDownloadState) -> String {
+        switch state.phase {
+        case .preparing:
+            return String(localized: "Preparing…")
+        case .listingFiles:
+            return String(localized: "Finding files…")
+        case .verifying:
+            return String(localized: "Verifying…")
+        case .cancelling:
+            return String(localized: "Cancelling…")
+        case .transferring:
+            if let fileProgressDescription = state.fileProgressDescription {
+                return fileProgressDescription
+            }
+            if let progress = state.fractionCompleted {
+                return progress.formatted(.percent.precision(.fractionLength(0)))
+            }
+            return String(localized: "Downloading…")
         }
     }
 }
