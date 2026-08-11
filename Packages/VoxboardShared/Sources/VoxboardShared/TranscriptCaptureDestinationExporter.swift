@@ -2,23 +2,21 @@ import Foundation
 import VoxboardCaptureCore
 
 public enum TranscriptCaptureAdapter {
+    /// Unified Capture destinations receive the processed transcript body, just
+    /// like typed Capture text. Standalone transcript-file exports own any
+    /// document-level wrappers such as dated headings or body hashtags.
     public static func payloads(
         transcript: Transcript,
         flow: CapturePreset,
         audioAsset: CaptureAssetReference?
-    ) throws -> [CapturePayload] {
-        let configuration = TranscriptExportConfiguration(
-            format: .md,
-            mode: .append,
-            mdObsidianEnabled: true,
-            enrichmentOptions: .default,
-            staticFrontmatter: [:]
-        )
-        let markdown = try TranscriptFileExporter.exportKitRenderedContent(
-            transcript,
-            configuration: configuration
-        )
-        var payloads: [CapturePayload] = [.text(removingLeadingFrontmatter(from: markdown))]
+    ) -> [CapturePayload] {
+        let body: String
+        if let cleanedText = transcript.cleanedText, !cleanedText.isEmpty {
+            body = cleanedText
+        } else {
+            body = transcript.text
+        }
+        var payloads: [CapturePayload] = [.text(body)]
         if let audioAsset, flow.audioSaveMode != .off {
             let embedPlacement: CaptureAudioEmbedPlacement
             if !flow.exportSettings.embedAudioInMarkdown {
@@ -50,19 +48,6 @@ public enum TranscriptCaptureAdapter {
             metadata["category"] = category
         }
         return metadata
-    }
-
-    private static func removingLeadingFrontmatter(from markdown: String) -> String {
-        let normalized = markdown.replacingOccurrences(of: "\r\n", with: "\n")
-        let lines = normalized.components(separatedBy: "\n")
-        guard lines.first == "---",
-              let closing = lines.indices.dropFirst().first(where: { lines[$0] == "---" }) else {
-            return markdown
-        }
-        guard closing + 1 < lines.count else { return "" }
-        return lines[(closing + 1)...]
-            .joined(separator: "\n")
-            .trimmingCharacters(in: .newlines)
     }
 }
 
@@ -106,7 +91,7 @@ public struct TranscriptCaptureDestinationExporter {
             source: source,
             deliveryKind: .meteredVoiceTranscript,
             destinationID: routedDestination.id,
-            payloads: try TranscriptCaptureAdapter.payloads(
+            payloads: TranscriptCaptureAdapter.payloads(
                 transcript: transcript,
                 flow: flow,
                 audioAsset: audioAsset
@@ -164,7 +149,6 @@ public enum ConfiguredTranscriptCaptureError: Error, LocalizedError, Sendable {
     case destinationMissing(UUID)
     case staleDestination(String)
     case audioPreparationFailed
-    case requestPreparationFailed
     case queuedForRetry(String)
 
     public var errorDescription: String? {
@@ -177,8 +161,6 @@ public enum ConfiguredTranscriptCaptureError: Error, LocalizedError, Sendable {
             return "The Files permission for ‘\(name)’ expired. Edit the capture destination and choose its folder again."
         case .audioPreparationFailed:
             return "The retained audio could not be prepared for capture. The original recording was kept for retry."
-        case .requestPreparationFailed:
-            return "The voice note could not be prepared for capture. The local transcript and recording were kept for retry."
         case .queuedForRetry(let message):
             return "The voice note is queued for retry because its destination could not be written: \(message)"
         }
@@ -265,17 +247,11 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
             }
         }
 
-        let payloads: [CapturePayload]
-        do {
-            payloads = try TranscriptCaptureAdapter.payloads(
-                transcript: transcript,
-                flow: flow,
-                audioAsset: audioAsset
-            )
-        } catch {
-            try? fileManager.removeItem(at: stagingDirectoryURL)
-            throw ConfiguredTranscriptCaptureError.requestPreparationFailed
-        }
+        let payloads = TranscriptCaptureAdapter.payloads(
+            transcript: transcript,
+            flow: flow,
+            audioAsset: audioAsset
+        )
         let request = CaptureRequest(
             id: requestID,
             createdAt: transcript.date,

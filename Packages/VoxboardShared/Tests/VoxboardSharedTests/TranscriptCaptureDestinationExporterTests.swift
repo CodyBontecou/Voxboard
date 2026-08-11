@@ -2,7 +2,7 @@ import XCTest
 @testable import VoxboardShared
 
 final class TranscriptCaptureDestinationExporterTests: XCTestCase {
-    func test_adapterRendersEnrichedTranscriptBodyWithoutDuplicatingStructuredVoxFrontmatter() throws {
+    func test_adapterEmitsPlainEnrichedBodyWithoutLegacyTranscriptDocumentFormatting() throws {
         var flow = CapturePresetStore.makeCustomFlow()
         flow.staticFrontmatter = ["type": "meeting", "project": "vox"]
         let transcript = Transcript(
@@ -17,20 +17,18 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             cleanedText: "Clean meeting notes"
         )
 
-        let payloads = try TranscriptCaptureAdapter.payloads(
+        let payloads = TranscriptCaptureAdapter.payloads(
             transcript: transcript,
             flow: flow,
             audioAsset: nil
         )
-        guard case .text(let markdown) = try XCTUnwrap(payloads.first) else {
-            return XCTFail("Expected Markdown text payload")
+        guard case .text(let body) = try XCTUnwrap(payloads.first) else {
+            return XCTFail("Expected plain Capture text payload")
         }
 
-        XCTAssertFalse(markdown.hasPrefix("---\n"))
-        XCTAssertFalse(markdown.contains("type: \"meeting\""))
-        XCTAssertFalse(markdown.contains("project: \"vox\""))
-        XCTAssertTrue(markdown.contains("Clean meeting notes"))
-        XCTAssertFalse(markdown.contains("raw words"))
+        XCTAssertEqual(body, "Clean meeting notes")
+        XCTAssertFalse(body.contains("## Transcript -"))
+        XCTAssertFalse(body.contains("#meeting"))
         XCTAssertEqual(
             TranscriptCaptureAdapter.frontmatter(transcript: transcript, flow: flow),
             [
@@ -40,6 +38,34 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
                 "tags": "[meeting, vox]",
             ]
         )
+    }
+
+    func test_adapterFallsBackToRawBodyWhenCleanedTextIsUnavailable() throws {
+        let flow = CapturePresetStore.makeCustomFlow()
+        let raw = Transcript(
+            text: "Keep the original words",
+            duration: 2,
+            modelUsed: "base",
+            language: "en"
+        )
+        let emptyCleaned = raw.withEnrichment(
+            title: nil,
+            tags: nil,
+            category: nil,
+            cleanedText: ""
+        )
+
+        for transcript in [raw, emptyCleaned] {
+            let payloads = TranscriptCaptureAdapter.payloads(
+                transcript: transcript,
+                flow: flow,
+                audioAsset: nil
+            )
+            guard case .text(let body) = try XCTUnwrap(payloads.first) else {
+                return XCTFail("Expected plain Capture text payload")
+            }
+            XCTAssertEqual(body, "Keep the original words")
+        }
     }
 
     func test_exportUsesDestinationPlacementAndCopiesRetainedAudio() async throws {
@@ -88,6 +114,45 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         XCTAssertTrue(markdown.contains("![[voice-media/recording.wav]]"))
         XCTAssertEqual(receipt.attachmentURLs.map(\.lastPathComponent), ["recording.wav"])
         XCTAssertEqual(try Data(contentsOf: root.appendingPathComponent("voice-media/recording.wav")), Data("audio".utf8))
+    }
+
+    func test_watchTodoUsesSharedCapturePlacementWithoutLegacyTranscriptHeading() async throws {
+        let root = try temporaryFolder(named: "watch-todo-destination")
+        let staging = try temporaryFolder(named: "watch-todo-staging")
+        defer {
+            try? FileManager.default.removeItem(at: root)
+            try? FileManager.default.removeItem(at: staging)
+        }
+        let noteURL = root.appendingPathComponent("Scratchpad.md")
+        try "# Scratchpad\n\nOlder task".write(to: noteURL, atomically: true, encoding: .utf8)
+        let destination = CaptureDestination(
+            name: "Scratchpad",
+            rootBookmark: Data(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Scratchpad.md"),
+            placement: .prepend
+        )
+        var flow = CapturePresetStore.makeCustomFlow()
+        flow.postProcessingMode = .todoList
+        let formatted = TranscriptFlowFormatter.apply(
+            flow: flow,
+            to: Transcript(text: "buy milk", duration: 1, modelUsed: "base", language: "en")
+        )
+
+        _ = try await TranscriptCaptureDestinationExporter().export(
+            transcript: formatted,
+            flow: flow,
+            destination: destination,
+            destinationRootURL: root,
+            stagingDirectoryURL: staging.appendingPathComponent("request"),
+            audioSourceURL: nil,
+            source: .watch
+        )
+
+        let markdown = try String(contentsOf: noteURL, encoding: .utf8)
+        XCTAssertTrue(markdown.hasPrefix("- [ ] Buy milk"))
+        XCTAssertLessThan(try index(of: "- [ ] Buy milk", in: markdown), try index(of: "Older task", in: markdown))
+        XCTAssertFalse(markdown.contains("## Transcript -"))
     }
 
     func test_alongsideAudioCanBeRetainedWithoutEmbedding() async throws {
@@ -410,6 +475,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
                 flow: CapturePresetStore.makeCustomFlow(),
                 destinationID: missingID,
                 audioSourceURL: nil,
+                source: .watch,
                 captureRootURL: captureRoot
             )
             XCTFail("Expected queued route")
@@ -423,11 +489,14 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         )
         let queued = try await inbox.claimNext()
         XCTAssertEqual(queued?.destinationID, missingID)
+        XCTAssertEqual(queued?.source, .watch)
         XCTAssertEqual(queued?.deliveryKind, .meteredVoiceTranscript)
-        guard case .text(let markdown)? = queued?.payloads.first else {
+        XCTAssertEqual(queued?.voxProcessingState, .applied)
+        guard case .text(let body)? = queued?.payloads.first else {
             return XCTFail("Expected queued transcript payload")
         }
-        XCTAssertTrue(markdown.contains("Recover this voice note"))
+        XCTAssertEqual(body, "Recover this voice note")
+        XCTAssertFalse(body.contains("## Transcript -"))
     }
 
     func test_audioStagingFailureDoesNotQueueTranscriptOnlyRequest() async throws {
