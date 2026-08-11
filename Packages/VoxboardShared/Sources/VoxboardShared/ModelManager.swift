@@ -8,7 +8,13 @@ import FluidAudio
 @MainActor
 @Observable
 public final class ModelManager {
-    public private(set) var downloadStates: [String: ModelDownloadState] = [:]
+    public private(set) var downloadStates: [String: ModelDownloadState] = [:] {
+        didSet {
+            #if os(macOS)
+            updateDownloadSleepPrevention()
+            #endif
+        }
+    }
 
     /// Compatibility projections used by app-lifecycle and companion-model UI.
     /// A missing fraction is intentionally omitted rather than represented as 0%.
@@ -19,6 +25,12 @@ public final class ModelManager {
     public var isDownloading: [String: Bool] {
         downloadStates.mapValues { _ in true }
     }
+
+    /// True while any transcription or companion model is being downloaded.
+    public var hasActiveDownloads: Bool {
+        !downloadStates.isEmpty
+    }
+
     /// Incremented whenever installed model files change so filesystem-backed
     /// download state refreshes immediately in SwiftUI.
     public private(set) var installedModelsRevision = 0
@@ -35,6 +47,14 @@ public final class ModelManager {
     private var activeDownloads: [String: ActiveDownload] = [:]
     @ObservationIgnored
     private var operationRegistry = ModelDownloadOperationRegistry()
+
+    #if os(macOS)
+    /// Prevents macOS from idling the display or system while a large model is
+    /// downloading. Keeping this token with the manager makes the protection
+    /// independent of which app window started the download.
+    @ObservationIgnored
+    private var downloadSleepActivity: NSObjectProtocol?
+    #endif
 
     // MARK: - Settings
     // Stored properties so @Observable tracks mutations and SwiftUI re-renders.
@@ -148,6 +168,14 @@ public final class ModelManager {
 
         ensureSelectedLanguageIsSupported()
         ensureModelsDirectory()
+    }
+
+    deinit {
+        #if os(macOS)
+        if let downloadSleepActivity {
+            ProcessInfo.processInfo.endActivity(downloadSleepActivity)
+        }
+        #endif
     }
 
     // MARK: - Download
@@ -488,6 +516,21 @@ public final class ModelManager {
     }
 
     // MARK: - Helpers
+
+    #if os(macOS)
+    private func updateDownloadSleepPrevention() {
+        if hasActiveDownloads {
+            guard downloadSleepActivity == nil else { return }
+            downloadSleepActivity = ProcessInfo.processInfo.beginActivity(
+                options: [.userInitiated, .idleSystemSleepDisabled, .idleDisplaySleepDisabled],
+                reason: "Downloading an on-device transcription model"
+            )
+        } else if let downloadSleepActivity {
+            ProcessInfo.processInfo.endActivity(downloadSleepActivity)
+            self.downloadSleepActivity = nil
+        }
+    }
+    #endif
 
     private func updateDownloadState(
         modelID: String,

@@ -182,7 +182,7 @@ struct VoxboardApp: App {
                 watchRecordingPipeline.resume()
                 Task { await quickCaptureViewModel.processPendingInbox() }
             }
-            .onChange(of: modelManager.isDownloading.values.contains(true)) { _, _ in
+            .onChange(of: modelManager.hasActiveDownloads) { _, _ in
                 updateIdleTimer()
             }
             .task(id: "\(modelManager.selectedModelId)|\(modelManager.selectedLanguage)") {
@@ -240,7 +240,7 @@ struct VoxboardApp: App {
 
     @MainActor
     private func updateIdleTimer(for phase: ScenePhase? = nil) {
-        let isDownloadingModel = modelManager.isDownloading.values.contains(true)
+        let isDownloadingModel = modelManager.hasActiveDownloads
         UIApplication.shared.isIdleTimerDisabled = (phase ?? scenePhase) == .active && isDownloadingModel
     }
 
