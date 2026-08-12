@@ -1,6 +1,13 @@
-Nagrywaj notatki głosowe na Apple Watch, a Vox.md zsynchronizuje je z iPhonem po ponownym połączeniu.
+Nagrania są teraz zachowywane w trwałej kolejce mimo przerw i ponownego uruchomienia aplikacji, więc nieudane transkrypcje lub dostarczenia można ponowić zamiast je utracić.
 
-Nowości w tej aktualizacji:
-• Nagrywanie na Apple Watch — rozpoczynaj i kończ lokalne notatki głosowe na zegarku bez sięgania po iPhone’a.
-• Kolejka Watch — nagrania pozostają zapisane na Apple Watch i trafiają do kolejki iPhone’a, gdy urządzenia połączą się ponownie.
-• Czytelniejszy status — odświeżone stany Gotowe, Nagrywanie, Synchronizacja, W kolejce i Wysłano ułatwiają sprawdzenie, co się dzieje.
+Nowości
+• Wybierz natychmiastowe przetwarzanie, przetwarzanie podczas bezczynności lub przetwarzanie ręczne kolejki; ponawiaj lub przetwarzaj zapisane nagrania, kopiuj ukończony tekst oraz udostępniaj, pokazuj lub usuwaj zachowany dźwięk.
+• Opcjonalnie dodaj do każdego Capture Preset dokładną lokalizację lub lokalizację na poziomie miasta, w polach strukturalnych albo YAML, bez śledzenia w tle.
+
+Ulepszenia
+• Wyświetlaj wiarygodny procent transkrypcji i etapowy postęp pobierania modeli, z bezpieczniejszą instalacją, kontrolą pamięci i blokadą uśpienia podczas pobierania.
+• Korzystaj z Vox.md w 23 zlokalizowanych obszarach aplikacji, w tym ustawieniach, uprawnieniach, ekranach płatności, błędach, etykietach dostępności, widżetach, Watch, klawiaturze, Share Extension i Mac.
+• Szablony przechwytywania używają teraz czasu rozpoczęcia istotnej treści i obsługują tokeny {hour}, {minute} i {second}.
+
+Poprawki
+• Widżety niezawodnie używają skonfigurowanego Capture Preset, a zadania głosowe Watch nie dodają już zduplikowanych nagłówków ani obudów transkrypcji.

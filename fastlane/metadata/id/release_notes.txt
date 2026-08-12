@@ -1,6 +1,13 @@
-Rekam catatan suara dari Apple Watch, lalu biarkan Vox.md menyinkronkannya ke iPhone saat perangkat terhubung kembali.
+Rekaman Anda kini tetap aman dalam antrean tahan lama meski terjadi gangguan atau aplikasi dibuka kembali, sehingga transkripsi atau pengiriman yang gagal tetap tersedia untuk dicoba lagi dan tidak hilang.
 
-Baru dalam pembaruan ini:
-• Perekaman Apple Watch — mulai dan hentikan catatan suara lokal di Watch tanpa mengambil iPhone.
-• Antrean Watch — rekaman tetap tersimpan di Apple Watch dan muncul di antrean iPhone saat perangkat terhubung kembali.
-• Status lebih jelas — status Siap, Merekam, Menyinkronkan, Antrean, dan Terkirim didesain ulang agar lebih mudah dipahami.
+Baru
+• Pilih pemrosesan antrean langsung, saat perangkat tidak aktif, atau manual; coba lagi atau proses rekaman tersimpan, salin teks yang selesai, serta bagikan, tampilkan, atau hapus audio yang disimpan.
+• Tambahkan lokasi secara opsional ke setiap Capture Preset dengan presisi tepat atau tingkat kota, kolom terstruktur atau YAML, tanpa pelacakan di latar belakang.
+
+Peningkatan
+• Lihat persentase transkripsi yang akurat dan progres unduhan model bertahap, dengan pemasangan lebih aman, pemeriksaan penyimpanan, dan pencegahan tidur selama pengunduhan.
+• Gunakan Vox.md dalam 23 pengalaman aplikasi yang dilokalkan, termasuk pengaturan, izin, paywall, kesalahan, label aksesibilitas, widget, Watch, papan ketik, Share Extension, dan Mac.
+• Templat tangkapan kini menggunakan waktu saat konten substantif dimulai dan mendukung token {hour}, {minute}, dan {second}.
+
+Perbaikan
+• Widget menggunakan Capture Preset yang dikonfigurasi dengan andal, dan tugas suara Watch tidak lagi menambahkan judul atau pembungkus transkrip duplikat.

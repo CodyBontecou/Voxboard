@@ -1,6 +1,13 @@
-Snimajte glasovne bilješke na Apple Watchu, a Vox.md će ih sinkronizirati s iPhoneom kad se uređaji ponovno povežu.
+Vaše snimke sada preživljavaju prekide i ponovno pokretanje u trajnom redu čekanja, pa neuspjele transkripcije ili isporuke ostaju dostupne za ponovni pokušaj umjesto da nestanu.
 
-Novo u ovom ažuriranju:
-• Snimanje na Apple Watchu — pokrenite i zaustavite lokalne glasovne bilješke na satu bez iPhonea.
-• Red čekanja Watcha — snimke ostaju spremljene na Apple Watchu i pojavljuju se u redu čekanja iPhonea kad se uređaji ponovno povežu.
-• Jasniji status — stanja Spremno, Snimanje, Sinkronizacija, U redu i Poslano redizajnirana su radi lakšeg praćenja.
+Novo
+• Odaberite trenutačnu, neaktivnu ili ručnu obradu reda; ponovno pokušajte ili obradite spremljene snimke, kopirajte dovršeni tekst te podijelite, prikažite ili izbrišite sačuvani zvuk.
+• Svakom Capture Preset po želji dodajte lokaciju s preciznošću točne lokacije ili razine grada, u obliku strukturiranih polja ili YAML-a, bez praćenja u pozadini.
+
+Poboljšano
+• Pogledajte vjerodostojne postotke transkripcije i fazni napredak preuzimanja modela, uz sigurniju instalaciju, provjeru pohrane i sprječavanje mirovanja tijekom preuzimanja.
+• Koristite Vox.md u 23 lokalizirana iskustva aplikacije, uključujući postavke, dopuštenja, zaslone za plaćanje, pogreške, oznake pristupačnosti, widgete, Watch, tipkovnicu, Share Extension i Mac.
+• Predlošci snimanja sada koriste vrijeme početka sadržajnog dijela i podržavaju tokene {hour}, {minute} i {second}.
+
+Ispravljeno
+• Widgeti pouzdano koriste konfigurirani Capture Preset, a glasovni zadaci s Watch više ne dodaju dvostruka zaglavlja ili omote transkripta.

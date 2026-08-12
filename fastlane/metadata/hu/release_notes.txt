@@ -1,6 +1,13 @@
-Rögzítsen hangjegyzeteket Apple Watchon, és a Vox.md újracsatlakozáskor szinkronizálja őket az iPhone-ra.
+Felvételei mostantól megszakítások és újraindítások után is megmaradnak egy tartós várólistán, így a sikertelen átírások vagy kézbesítések nem tűnnek el, hanem újrapróbálhatók.
 
-Újdonságok ebben a frissítésben:
-• Apple Watch-felvétel — indítson és állítson le helyi hangjegyzeteket az órán, iPhone nélkül.
-• Watch-sor — a felvételek az Apple Watchon maradnak, majd az iPhone sorában jelennek meg, amikor az eszközök újra kapcsolódnak.
-• Egyértelműbb állapot — a Kész, Felvétel, Szinkronizálás, Sorban és Elküldve állapotok áttekinthetőbbek lettek.
+Újdonságok
+• Válasszon azonnali, üresjárati vagy kézi várólista-feldolgozást; próbálja újra vagy dolgozza fel a mentett felvételeket, másolja a kész szöveget, és ossza meg, jelenítse meg vagy törölje a megtartott hangot.
+• Opcionálisan adjon minden Capture Preset elemhez pontos vagy városszintű helyet, strukturált mezőkben vagy YAML-formátumban, háttérbeli követés nélkül.
+
+Továbbfejlesztések
+• Valós átírási százalékok és szakaszos modellletöltési állapot látható, biztonságosabb telepítéssel, tárhely-ellenőrzéssel és a letöltés alatti alvás megakadályozásával.
+• Használja a Vox.md 23 lokalizált alkalmazásélményét, beleértve a beállításokat, engedélyeket, fizetőfalakat, hibákat, akadálymentességi címkéket, widgeteket, Watch, billentyűzetet, Share Extension és Mac felületeket.
+• A rögzítési sablonok most a lényegi tartalom kezdetének idejét használják, és támogatják a {hour}, {minute} és {second} tokeneket.
+
+Javítások
+• A widgetek megbízhatóan a beállított Capture Preset elemet használják, a Watch hangfeladatai pedig már nem adnak hozzá ismétlődő átírási fejléceket vagy burkolóelemeket.

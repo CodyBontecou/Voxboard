@@ -1,6 +1,13 @@
-Neem spraaknotities op vanaf uw Apple Watch en laat Vox.md ze met uw iPhone synchroniseren zodra u weer verbonden bent.
+Uw opnamen blijven nu bij onderbrekingen en herstarts bewaard in een duurzame wachtrij. Mislukte transcripties of leveringen blijven daardoor beschikbaar om opnieuw te proberen, in plaats van te verdwijnen.
 
-Nieuw in deze update:
-• Apple Watch-opname — start en stop lokale spraaknotities op de Watch zonder uw iPhone te pakken.
-• Watch-wachtrij — opnames blijven op de Apple Watch bewaard en verschijnen in de iPhone-wachtrij wanneer de apparaten opnieuw verbinden.
-• Duidelijkere status — Vernieuwd voor Gereed, Opnemen, Synchroniseren, In wachtrij en Verzonden, zodat u beter ziet wat er gebeurt.
+Nieuw
+• Kies directe verwerking, verwerking bij inactiviteit of handmatige verwerking van de wachtrij; probeer opgeslagen opnamen opnieuw of verwerk ze, kopieer voltooide tekst en deel, toon of verwijder bewaarde audio.
+• Voeg optioneel een exacte locatie of locatie op stadsniveau toe aan elke Capture Preset, als gestructureerde velden of YAML en zonder locatiebepaling op de achtergrond.
+
+Verbeterd
+• Bekijk betrouwbare transcriptiepercentages en gefaseerde voortgang van modeldownloads, met veiligere installatie, opslagcontroles en voorkoming van sluimerstand tijdens downloads.
+• Gebruik Vox.md in 23 gelokaliseerde app-ervaringen, waaronder instellingen, machtigingen, betaalmuren, fouten, toegankelijkheidslabels, widgets, Watch, toetsenbord, Share Extension en Mac.
+• Vastlegsjablonen gebruiken nu het tijdstip waarop de inhoud daadwerkelijk begon en ondersteunen de tokens {hour}, {minute} en {second}.
+
+Opgelost
+• Widgets gebruiken betrouwbaar de ingestelde Capture Preset en spraaktaken van Watch voegen geen dubbele transcriptiekoppen of omhulsels meer toe.

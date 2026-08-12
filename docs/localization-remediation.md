@@ -1,9 +1,10 @@
 # Vox.md localization remediation checkpoint
 
 Status: source/runtime remediation is implemented and builds. The complete
-local screenshot matrix has been captured and technically audited. App Store
-Connect has not been mutated. Native linguistic review remains the release and
-upload blocker.
+local screenshot matrix has been captured and technically audited. At this
+checkpoint, App Store Connect had not been mutated. Translation readiness is
+determined through source fidelity, terminology, locale conventions, token and
+limit checks, structured review, and user approval.
 
 ## Locale reconciliation
 
@@ -81,8 +82,9 @@ Safe-default exclusions retained unchanged: `ca`, `cs`, `da`, `el`, `fi`,
   characters, or repeated-output degeneration groups.
 - 354 source-identical values remain in the review report. They are primarily
   protected names, file/format tokens, placeholders, proper names, and accepted
-  technical loanwords. Native reviewers must confirm locale-specific loanword
-  choices before release.
+  technical loanwords. Review locale-specific loanword choices when findings
+  indicate a semantic problem; source-identical technical terms alone are not a
+  release blocker.
 
 Audit artifact: `artifacts/localization/runtime-audit.json`.
 
@@ -118,9 +120,9 @@ Proposal root: `artifacts/localization/metadata-proposal/`.
   - Upgrade: `Vox.md Family Upgrade` — `Add Family Sharing to Unlimited`.
 - Non-English descriptions, promotional text, release notes, and all three IAP
   products now use the reviewed remediation copy instead of the defective raw
-  machine translations. Other proposal fields remain draft material, and none
-  of the marketing copy is native-reviewed or upload-ready until a fluent
-  reviewer signs off each locale.
+  machine translations. Other proposal fields remain draft material. Upload
+  readiness depends on field validation, structured translation review, and
+  user approval.
 
 Apple currently limits name/subtitle to 30 characters, promotional text to
 170, description to 4,000, keywords to 100 UTF-8 bytes, IAP display name to 30,
@@ -150,8 +152,8 @@ Hindi and Japanese iPhone. The review exposed and then verified fixes for mixed
 English built-in preset values, semantically wrong Watch states and preset
 explanations, model/settings helper text, and a Mac whitespace-only empty-state
 defect. The final sampled frames contain no launch-white screens, private data,
-or obvious clipping. A fluent reviewer must still approve every non-English
-locale before any screenshot, metadata, or IAP localization is uploaded.
+or obvious clipping. Resolve concrete semantic or layout findings before
+uploading an affected locale.
 
 ### Localized App Store compositions
 
@@ -178,13 +180,14 @@ same localized screen where possible; three remaining sources receive a
 documented highlight-contrast recovery, and framed UI gets a mild post-resize
 sharpening pass. All 84
 locale/device directories pass `asc screenshots validate` with no errors or
-warnings. The generated images still require fluent visual review before any
-App Store Connect upload.
+warnings. The generated images still require technical visual validation and
+user approval before any App Store Connect upload.
 
 ## Exact mutation plan (not executed)
 
-Do not run this section until screenshots are complete, native review is signed
-off, editable version IDs are confirmed, and the user approves this exact plan.
+Do not run this section until screenshots are complete, validation findings are
+resolved, editable version IDs are confirmed, and the user approves this exact
+plan.
 The current live versions are `READY_FOR_SALE`; if Apple rejects adding version
 localizations, stop and request user-provided next iOS/Mac version numbers.
 
@@ -250,7 +253,7 @@ versions/localizations, and subscriptions. Do not submit or release.
 
 ## Risk and rollback
 
-- Highest risk: non-native machine translation and screenshot layout/RTL.
+- Highest risk: translation fidelity and screenshot layout/RTL.
 - Current live versions may not accept new version localizations; no new version
   number has been invented.
 - The legacy Fastlane uploader contains stale assumptions and must not be used

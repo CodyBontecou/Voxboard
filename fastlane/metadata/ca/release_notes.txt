@@ -1,6 +1,13 @@
-Enregistreu notes de veu des de l’Apple Watch i deixeu que Vox.md les sincronitzi amb l’iPhone quan es torni a connectar.
+Les gravacions ara sobreviuen a les interrupcions i als reinicis en una cua duradora, de manera que les transcripcions o els lliuraments fallits continuen disponibles per tornar-ho a provar en lloc de desaparèixer.
 
-Novetats d’aquesta actualització:
-• Enregistrament a l’Apple Watch — inicieu i atureu notes de veu locals al rellotge sense agafar l’iPhone.
-• Cua del Watch — els enregistraments queden desats a l’Apple Watch i apareixen a la cua de l’iPhone quan els dispositius es reconnecten.
-• Estat més clar — els estats A punt, Enregistrant, Sincronitzant, En cua i Enviat s’han redissenyat perquè sigui més fàcil saber què passa.
+Novetats
+• Trieu el processament immediat, en inactivitat o manual de la cua; torneu a provar o processeu gravacions desades, copieu el text completat i compartiu, mostreu o suprimiu l’àudio conservat.
+• Afegiu la ubicació de manera opcional a cada Capture Preset, amb precisió exacta o de ciutat, camps estructurats o YAML i sense seguiment en segon pla.
+
+Millores
+• Consulteu percentatges de transcripció fiables i el progrés per fases de la baixada de models, amb una instal·lació més segura, comprovacions d’emmagatzematge i prevenció del repòs durant les baixades.
+• Utilitzeu Vox.md en 23 experiències localitzades de l’app, com ara configuració, permisos, murs de pagament, errors, etiquetes d’accessibilitat, widgets, Watch, teclat, Share Extension i Mac.
+• Les plantilles de captura ara fan servir l’hora en què ha començat el contingut substancial i admeten els tokens {hour}, {minute} i {second}.
+
+Correccions
+• Els widgets utilitzen de manera fiable el Capture Preset configurat i les tasques de veu del Watch ja no afegeixen capçaleres ni contenidors de transcripció duplicats.

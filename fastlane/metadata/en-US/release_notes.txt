@@ -1,12 +1,13 @@
-Meeting recordings can now separate the conversation into anonymous speaker labels, entirely on device. Enable Speaker Diarization in a Capture Preset to make long transcripts easier to follow.
+Your recordings now survive interruptions and relaunches in a durable queue, so failed transcriptions or deliveries stay available to retry instead of disappearing.
 
 New
-• Add best-effort Speaker 1, Speaker 2, and other anonymous labels to iPhone recordings, imported audio, and Apple Watch transcripts.
-• See the detected speaker count in History after transcription finishes.
+• Choose immediate, idle, or manual queue processing; retry or process saved recordings, copy completed text, and share, reveal, or delete retained audio.
+• Add opt-in location to each Capture Preset with exact or city-level precision, structured fields or YAML, and no background tracking.
 
 Improved
-• Live Activity controls now stop the recording you intended, while stale recording activities are cleaned up automatically.
-• Long recordings stop safely before their rolling audio buffer can overwrite the beginning.
+• See truthful transcription percentages and phased model-download progress, with safer installation, storage checks, and sleep prevention during downloads.
+• Use Vox.md across 23 localized app experiences, including settings, permissions, paywalls, errors, accessibility labels, widgets, Watch, keyboard, Share Extension, and Mac.
+• Capture templates now use when substantive content began and support {hour}, {minute}, and {second} tokens.
 
 Fixed
-• Quick Capture and Quick Record widgets now match light and dark appearance, keeping text and controls readable.
+• Widgets reliably use their configured Capture Preset, and Watch voice tasks no longer add duplicate transcript headings or wrappers.

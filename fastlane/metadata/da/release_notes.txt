@@ -1,6 +1,13 @@
-Optag stemmenoter fra Apple Watch, og lad Vox.md synkronisere dem til din iPhone, når enhederne forbindes igen.
+Dine optagelser overlever nu afbrydelser og genstarter i en robust kø, så mislykkede transskriptioner eller leveringer kan prøves igen i stedet for at forsvinde.
 
-Nyt i denne opdatering:
-• Apple Watch-optagelse — start og stop lokale stemmenoter på uret uden at tage din iPhone frem.
-• Watch-kø — optagelser gemmes på Apple Watch og vises i iPhone-køen, når enhederne forbindes igen.
-• Tydeligere status — Klar, Optager, Synkroniserer, I kø og Sendt er redesignet, så du nemmere kan se, hvad der sker.
+Nyt
+• Vælg øjeblikkelig eller manuel behandling af køen eller behandling, når systemet er inaktivt; prøv igen eller behandl gemte optagelser, kopiér færdig tekst, og del, vis eller slet bevaret lyd.
+• Føj valgfri lokalitet til hver Capture Preset med præcis placering eller placering på byniveau, strukturerede felter eller YAML og uden sporing i baggrunden.
+
+Forbedret
+• Se retvisende transskriptionsprocenter og faseopdelt status for modeldownloads med sikrere installation, lagerkontrol og forhindring af vågeblus under downloads.
+• Brug Vox.md i 23 lokaliserede appoplevelser, herunder indstillinger, tilladelser, betalingsvægge, fejl, tilgængelighedsmærkater, widgets, Watch, tastatur, Share Extension og Mac.
+• Skabeloner bruger nu tidspunktet, hvor det egentlige indhold begyndte, og understøtter tokens {hour}, {minute} og {second}.
+
+Rettet
+• Widgets bruger pålideligt deres konfigurerede Capture Preset, og stemmeopgaver fra Watch tilføjer ikke længere dobbelte transskriptionsoverskrifter eller omslag.

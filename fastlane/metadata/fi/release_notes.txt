@@ -1,6 +1,13 @@
-Tallenna äänimuistiinpanoja Apple Watchilla ja anna Vox.mdin synkronoida ne iPhoneen, kun laitteet yhdistyvät uudelleen.
+Tallenteesi säilyvät nyt keskeytysten ja uudelleenkäynnistysten yli kestävässä jonossa, joten epäonnistuneet litteroinnit tai toimitukset voi yrittää uudelleen niiden katoamisen sijaan.
 
-Uutta tässä päivityksessä:
-• Apple Watch -tallennus — aloita ja lopeta paikalliset äänimuistiinpanot kellosta ilman iPhonea.
-• Watch-jono — tallenteet pysyvät Apple Watchissa ja ilmestyvät iPhonen jonoon, kun laitteet yhdistyvät uudelleen.
-• Selkeämpi tila — Valmis-, Tallennus-, Synkronointi-, Jonossa- ja Lähetetty-tilat on uudistettu ymmärrettävämmiksi.
+Uutta
+• Valitse jonon välitön, joutoajan tai manuaalinen käsittely; yritä tallennettuja äänitteitä uudelleen tai käsittele ne, kopioi valmis teksti ja jaa, näytä tai poista säilytetty ääni.
+• Lisää jokaiseen Capture Preset -asetukseen valinnainen tarkka tai kaupunkitasoinen sijainti, rakenteisina kenttinä tai YAML-muodossa, ilman taustaseurantaa.
+
+Parannettu
+• Näe totuudenmukaiset litterointiprosentit ja mallilatausten vaiheittainen edistyminen sekä turvallisempi asennus, tallennustilan tarkistukset ja lepotilan esto latausten aikana.
+• Käytä Vox.md:tä 23 lokalisoidussa sovelluskokemuksessa, joihin kuuluvat asetukset, käyttöoikeudet, maksumuurit, virheet, saavutettavuustunnisteet, widgetit, Watch, näppäimistö, Share Extension ja Mac.
+• Tallennuspohjat käyttävät nyt varsinaisen sisällön alkamisaikaa ja tukevat tunnisteita {hour}, {minute} ja {second}.
+
+Korjattu
+• Widgetit käyttävät luotettavasti määritettyä Capture Preset -asetusta, eivätkä Watch-äänitehtävät enää lisää päällekkäisiä litteroinnin otsikoita tai kehyksiä.

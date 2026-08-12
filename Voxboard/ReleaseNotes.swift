@@ -18,6 +18,41 @@ enum VoxboardReleaseNotes {
 
     private static let versionNotes: [VersionNotes] = [
         .init(
+            version: "2.1",
+            items: [
+                .list(
+                    title: "What’s new in Vox.md",
+                    rows: [
+                        .init(
+                            symbolSystemName: "tray.full.fill",
+                            title: "Your recordings, preserved",
+                            description: "Recordings now enter a durable queue before transcription and delivery. Interrupted, failed, or undelivered audio stays available to retry, process, share, or delete, with completed text ready to copy."
+                        ),
+                        .init(
+                            symbolSystemName: "location.fill",
+                            title: "Add location when you choose",
+                            description: "Each Capture Preset can optionally add exact or city-level location metadata to your Markdown. Vox.md never tracks your location in the background."
+                        ),
+                        .init(
+                            symbolSystemName: "percent",
+                            title: "Progress you can trust",
+                            description: "Supported transcriptions now show truthful percentages, while model downloads report real phases and byte or file progress, with storage checks and safer installation."
+                        ),
+                        .init(
+                            symbolSystemName: "globe",
+                            title: "Use more of Vox.md in your language",
+                            description: "Core screens, settings, statuses, errors, paywalls, accessibility labels, and built-in Preset and model descriptions now have broader coverage across 23 locales."
+                        ),
+                        .init(
+                            symbolSystemName: "checkmark.circle.fill",
+                            title: "Sharper capture details",
+                            description: "Capture templates use when substantive content began, widgets keep the Preset you chose, and Watch tasks arrive without duplicate transcript wrappers."
+                        )
+                    ]
+                )
+            ]
+        ),
+        .init(
             version: "2.0.6",
             items: [
                 .list(

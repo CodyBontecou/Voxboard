@@ -1,6 +1,13 @@
-Nehmen Sie Sprachnotizen auf der Apple Watch auf und lassen Sie Vox.md sie beim erneuten Verbinden zurück auf Ihr iPhone synchronisieren.
+Ihre Aufnahmen überstehen jetzt Unterbrechungen und Neustarts in einer dauerhaften Warteschlange. Fehlgeschlagene Transkriptionen oder Zustellungen bleiben so für einen erneuten Versuch verfügbar, statt zu verschwinden.
 
-Neu in diesem Update:
-• Apple Watch-Aufnahme — starten und stoppen Sie lokale Sprachnotizen auf der Watch, ohne zum iPhone zu greifen.
-• Watch-Warteschlange — Aufnahmen bleiben auf der Apple Watch gespeichert und erscheinen auf Ihrem iPhone, sobald sich die Geräte wieder verbinden.
-• Klarerer Status — überarbeitete Zustände für Bereit, Aufnahme, Synchronisieren, Warteschlange und Gesendet zeigen zuverlässiger, was gerade passiert.
+Neu
+• Wählen Sie die sofortige, automatische Verarbeitung bei Inaktivität oder die manuelle Verarbeitung der Warteschlange; versuchen Sie gespeicherte Aufnahmen erneut oder verarbeiten Sie sie, kopieren Sie fertigen Text und teilen Sie aufbewahrte Audiodateien, zeigen Sie sie in „Dateien“ an oder löschen Sie sie.
+• Ergänzen Sie jedes Capture Preset optional um einen Standort mit exakter oder auf Stadtebene begrenzter Genauigkeit, in strukturierten Feldern oder YAML und ohne Standortverfolgung im Hintergrund.
+
+Verbessert
+• Sehen Sie verlässliche Transkriptionsprozente und phasenweisen Modell-Downloadfortschritt – mit sichererer Installation, Speicherprüfung und Ruhezustandssperre während Downloads.
+• Nutzen Sie Vox.md in 23 lokalisierten App-Bereichen, darunter Einstellungen, Berechtigungen, Bezahlschranken, Fehler, Bedienungshilfen-Beschriftungen, Widgets, Watch, Tastatur, Share Extension und Mac.
+• Capture-Vorlagen verwenden jetzt den Zeitpunkt, an dem der wesentliche Inhalt begann, und unterstützen die Token {hour}, {minute} und {second}.
+
+Behoben
+• Widgets verwenden zuverlässig den konfigurierten Capture Preset, und Watch-Sprachaufgaben fügen keine doppelten Transkriptüberschriften oder -rahmen mehr hinzu.

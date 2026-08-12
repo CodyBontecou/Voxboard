@@ -1,6 +1,13 @@
-Ghi chú thoại từ Apple Watch và để Vox.md đồng bộ về iPhone khi thiết bị kết nối lại.
+Bản ghi của bạn giờ được giữ trong hàng đợi bền vững qua các lần gián đoạn và mở lại ứng dụng, nên bản chép lời hoặc lần chuyển giao thất bại vẫn có thể thử lại thay vì biến mất.
 
-Mới trong bản cập nhật này:
-• Ghi âm trên Apple Watch — bắt đầu và dừng ghi chú thoại cục bộ trên Watch mà không cần cầm iPhone.
-• Hàng đợi Watch — bản ghi vẫn được lưu trên Apple Watch và xuất hiện trong hàng đợi iPhone khi thiết bị kết nối lại.
-• Trạng thái rõ hơn — Sẵn sàng, Đang ghi, Đang đồng bộ, Đang chờ và Đã gửi được thiết kế lại để dễ hiểu hơn.
+Mới
+• Chọn xử lý hàng đợi ngay lập tức, khi thiết bị rảnh hoặc thủ công; thử lại hay xử lý bản ghi đã lưu, sao chép văn bản hoàn tất và chia sẻ, hiển thị hoặc xóa âm thanh được giữ lại.
+• Tùy chọn thêm vị trí chính xác hoặc cấp thành phố vào từng Capture Preset, dưới dạng trường có cấu trúc hoặc YAML, không theo dõi vị trí trong nền.
+
+Cải tiến
+• Xem phần trăm chép lời chính xác và tiến trình tải mô hình theo từng giai đoạn, với quá trình cài đặt an toàn hơn, kiểm tra dung lượng và ngăn chế độ ngủ khi tải xuống.
+• Dùng Vox.md trong 23 trải nghiệm ứng dụng đã bản địa hóa, gồm cài đặt, quyền, màn hình thanh toán, lỗi, nhãn trợ năng, tiện ích, Watch, bàn phím, Share Extension và Mac.
+• Các mẫu ghi nhận giờ đây sử dụng thời điểm nội dung thực chất bắt đầu và hỗ trợ các token {hour}, {minute} và {second}.
+
+Đã sửa
+• Tiện ích dùng đúng Capture Preset đã cấu hình, và tác vụ giọng nói từ Watch không còn thêm tiêu đề hay lớp bọc bản chép lời trùng lặp.

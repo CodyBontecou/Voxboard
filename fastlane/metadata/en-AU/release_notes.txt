@@ -1,6 +1,13 @@
-Record voice notes from your Apple Watch, then let Vox.md sync them back to your iPhone when you reconnect.
+Your recordings now survive interruptions and relaunches in a durable queue, so failed transcriptions or deliveries stay available to retry instead of disappearing.
 
-New in this update:
-• Apple Watch recording — start and stop local Watch voice notes without reaching for your phone.
-• Watch queue sync — recordings stay saved on Apple Watch and appear in your iPhone queue when the devices reconnect.
-• Clearer status — redesigned Ready, Recording, Syncing, Queued, and Sent states make it easier to trust what is happening.
+New
+• Choose immediate, idle, or manual queue processing; retry or process saved recordings, copy completed text, and share, reveal, or delete retained audio.
+• Add opt-in location to each Capture Preset with exact or city-level precision, structured fields or YAML, and no background tracking.
+
+Improved
+• See truthful transcription percentages and phased model-download progress, with safer installation, storage checks, and sleep prevention during downloads.
+• Use Vox.md across 23 localised app experiences, including settings, permissions, paywalls, errors, accessibility labels, widgets, Watch, keyboard, Share Extension, and Mac.
+• Capture templates now use when substantive content began and support {hour}, {minute}, and {second} tokens.
+
+Fixed
+• Widgets reliably use their configured Capture Preset, and Watch voice tasks no longer add duplicate transcript headings or wrappers.

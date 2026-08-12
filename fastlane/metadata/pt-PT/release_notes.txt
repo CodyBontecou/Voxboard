@@ -1,6 +1,13 @@
-Grave notas de voz no Apple Watch e deixe o Vox.md sincronizá-las com o iPhone quando os dispositivos se voltarem a ligar.
+Agora as suas gravações sobrevivem a interrupções e reinícios numa fila persistente, para que transcrições ou entregas falhadas continuem disponíveis para nova tentativa em vez de desaparecerem.
 
-Novidades nesta atualização:
-• Gravação no Apple Watch — inicie e pare notas de voz locais no Watch sem pegar no iPhone.
-• Fila do Watch — as gravações ficam guardadas no Apple Watch e aparecem na fila do iPhone quando os dispositivos se voltam a ligar.
-• Estado mais claro — os estados Pronto, A gravar, A sincronizar, Em fila e Enviado foram redesenhados para mostrar melhor o que está a acontecer.
+Novidades
+• Escolha o processamento imediato, em inatividade ou manual da fila; tente novamente ou processe gravações guardadas, copie o texto concluído e partilhe, revele ou elimine o áudio mantido.
+• Adicione localização opcional a cada Capture Preset, com precisão exata ou ao nível da cidade, campos estruturados ou YAML e sem seguimento em segundo plano.
+
+Melhorias
+• Veja percentagens de transcrição fiáveis e o progresso faseado da descarga de modelos, com instalação mais segura, verificações de armazenamento e prevenção do repouso durante as descargas.
+• Use o Vox.md em 23 experiências localizadas da app, incluindo definições, permissões, ecrãs de pagamento, erros, etiquetas de acessibilidade, widgets, Watch, teclado, Share Extension e Mac.
+• Os modelos de captura agora usam a hora em que o conteúdo relevante começou e suportam os tokens {hour}, {minute} e {second}.
+
+Correções
+• Os widgets usam de forma fiável o Capture Preset configurado e as tarefas de voz do Watch já não adicionam cabeçalhos ou invólucros duplicados à transcrição.

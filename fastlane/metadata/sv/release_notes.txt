@@ -1,6 +1,13 @@
-Spela in röstanteckningar från Apple Watch och låt Vox.md synka dem till din iPhone när enheterna ansluts igen.
+Dina inspelningar överlever nu avbrott och omstarter i en beständig kö, så misslyckade transkriberingar eller leveranser kan provas igen i stället för att försvinna.
 
-Nytt i den här uppdateringen:
-• Apple Watch-inspelning — starta och stoppa lokala röstanteckningar på klockan utan att ta fram iPhone.
-• Watch-kö — inspelningar sparas på Apple Watch och visas i iPhone-kön när enheterna ansluts igen.
-• Tydligare status — statuslägena Redo, Spelar in, Synkar, I kö och Skickat har fått en tydligare design.
+Nytt
+• Välj omedelbar eller manuell köbearbetning eller bearbetning när systemet är inaktivt; försök igen eller bearbeta sparade inspelningar, kopiera färdig text och dela, visa eller radera bevarat ljud.
+• Lägg valfritt till exakt plats eller plats på stadsnivå i varje Capture Preset, som strukturerade fält eller YAML, utan platsspårning i bakgrunden.
+
+Förbättrat
+• Se tillförlitliga transkriberingsprocent och fasindelade förlopp för modellhämtningar, med säkrare installation, lagringskontroller och förhindrat viloläge under hämtning.
+• Använd Vox.md i 23 lokaliserade appupplevelser, inklusive inställningar, behörigheter, betalväggar, fel, hjälpmedelsetiketter, widgetar, Watch, tangentbord, Share Extension och Mac.
+• Insamlingsmallar använder nu tiden då det väsentliga innehållet började och stöder token {hour}, {minute} och {second}.
+
+Åtgärdat
+• Widgetar använder pålitligt konfigurerad Capture Preset och röstuppgifter från Watch lägger inte längre till dubbla transkriptionsrubriker eller omslag.

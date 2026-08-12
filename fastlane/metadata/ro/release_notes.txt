@@ -1,6 +1,13 @@
-Înregistrați note vocale de pe Apple Watch, iar Vox.md le sincronizează pe iPhone când dispozitivele se reconectează.
+Înregistrările dvs. supraviețuiesc acum întreruperilor și relansărilor într-o coadă persistentă, astfel încât transcrierile sau livrările eșuate rămân disponibile pentru reîncercare în loc să dispară.
 
-Noutăți în această actualizare:
-• Înregistrare pe Apple Watch — porniți și opriți note vocale locale pe ceas fără să luați iPhone-ul.
-• Coadă Watch — înregistrările rămân salvate pe Apple Watch și apar în coada iPhone-ului când dispozitivele se reconectează.
-• Stare mai clară — stările Gata, Înregistrare, Sincronizare, În coadă și Trimis au fost reproiectate pentru claritate.
+Noutăți
+• Alegeți procesarea imediată, în repaus sau manuală a cozii; reîncercați ori procesați înregistrările salvate, copiați textul finalizat și partajați, afișați sau ștergeți sunetul păstrat.
+• Adăugați opțional locația la fiecare Capture Preset, cu precizie exactă sau la nivel de oraș, câmpuri structurate ori YAML, fără urmărire în fundal.
+
+Îmbunătățiri
+• Vedeți procente reale pentru transcriere și progresul etapizat al descărcării modelelor, cu instalare mai sigură, verificări de stocare și prevenirea repausului în timpul descărcării.
+• Folosiți Vox.md în 23 de experiențe localizate ale aplicației, inclusiv configurări, permisiuni, ecrane de plată, erori, etichete de accesibilitate, widgeturi, Watch, tastatură, Share Extension și Mac.
+• Șabloanele de captură folosesc acum ora la care a început conținutul substanțial și acceptă tokenurile {hour}, {minute} și {second}.
+
+Remedieri
+• Widgeturile folosesc corect Capture Preset configurat, iar activitățile vocale Watch nu mai adaugă antete sau învelișuri duplicate transcrierii.

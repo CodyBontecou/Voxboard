@@ -20,5 +20,6 @@ Protected names include `Vox.md`, `Apple Intelligence`, `Apple Speech`,
 `macOS`, `M4A`, `WAV`, `TXT`, `JSON`, `YAML`, `SF Symbols`, and `ZenQuotes`.
 
 The runtime draft uses Meta M2M100 1.2B (`facebook/m2m100_1.2B`) under the
-MIT license. Machine translation is a completeness baseline, not evidence of
-native linguistic review.
+MIT license. Machine translation is a completeness baseline. Evaluate it for
+source fidelity, terminology, locale conventions, token preservation, and UI
+fit.

@@ -1,6 +1,13 @@
-Apple Watch’ta sesli notlar kaydedin; Vox.md yeniden bağlandığınızda bunları iPhone’unuza eşitlesin.
+Kayıtlarınız artık kesintilerden ve yeniden başlatmalardan sonra kalıcı bir kuyrukta korunuyor; böylece başarısız dökümler veya teslimatlar kaybolmak yerine yeniden denenebiliyor.
 
-Bu güncellemedeki yenilikler:
-• Apple Watch kaydı — iPhone’u elinize almadan Watch’ta yerel sesli notları başlatın ve durdurun.
-• Watch kuyruğu — kayıtlar Apple Watch’ta saklanır ve cihazlar yeniden bağlandığında iPhone kuyruğunda görünür.
-• Daha net durum — Hazır, Kaydediyor, Eşitliyor, Kuyrukta ve Gönderildi durumları daha anlaşılır olacak şekilde yenilendi.
+Yenilikler
+• Anında, aygıt boşta olduğunda veya elle kuyruk işlemeyi seçin; kaydedilmiş kayıtları yeniden deneyin veya işleyin, tamamlanan metni kopyalayın ve korunan sesi paylaşın, gösterin ya da silin.
+• Her Capture Preset için isteğe bağlı olarak tam veya şehir düzeyinde konum, yapılandırılmış alanlar ya da YAML ekleyin; arka planda konum takibi yapılmaz.
+
+İyileştirmeler
+• Doğru döküm yüzdelerini ve aşamalı model indirme ilerlemesini görün; daha güvenli kurulum, depolama denetimleri ve indirme sırasında uyku engelleme özelliklerinden yararlanın.
+• Ayarlar, izinler, ödeme ekranları, hatalar, erişilebilirlik etiketleri, araç takımları, Watch, klavye, Share Extension ve Mac dahil 23 yerelleştirilmiş Vox.md uygulama deneyimini kullanın.
+• Yakalama şablonları artık anlamlı içeriğin başladığı zamanı kullanıyor ve {hour}, {minute} ve {second} belirteçlerini destekliyor.
+
+Düzeltmeler
+• Araç takımları yapılandırılmış Capture Preset seçeneğini güvenilir şekilde kullanıyor ve Watch ses görevleri artık yinelenen döküm başlıkları veya sarmalayıcıları eklemiyor.

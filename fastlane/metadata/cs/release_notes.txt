@@ -1,6 +1,13 @@
-Nahrávejte hlasové poznámky na Apple Watch a nechte Vox.md synchronizovat je do iPhonu po opětovném připojení.
+Vaše nahrávky nyní přežijí přerušení i opětovné spuštění v odolné frontě, takže neúspěšné přepisy či doručení zůstanou dostupné k opakování a nezmizí.
 
-Novinky v této aktualizaci:
-• Nahrávání na Apple Watch — spusťte a zastavte místní hlasové poznámky na hodinkách bez iPhonu.
-• Fronta Watch — nahrávky zůstávají uložené na Apple Watch a objeví se ve frontě iPhonu, jakmile se zařízení znovu spojí.
-• Jasnější stav — přepracované stavy Připraveno, Nahrávání, Synchronizace, Ve frontě a Odesláno lépe ukazují, co se děje.
+Novinky
+• Zvolte okamžité, nečinné nebo ruční zpracování fronty; uložené nahrávky opakujte či zpracujte, hotový text zkopírujte a zachovaný zvuk sdílejte, zobrazte nebo odstraňte.
+• Volitelně přidejte ke každému Capture Preset polohu s přesností na konkrétní místo nebo město, ve strukturovaných polích či YAML a bez sledování na pozadí.
+
+Vylepšení
+• Sledujte pravdivá procenta přepisu a průběh stahování modelů po fázích, s bezpečnější instalací, kontrolou úložiště a zabráněním uspání během stahování.
+• Používejte Vox.md ve 23 lokalizovaných prostředích aplikace včetně nastavení, oprávnění, platebních obrazovek, chyb, popisků zpřístupnění, widgetů, Watch, klávesnice, Share Extension a Mac.
+• Šablony zachycení nyní používají čas začátku podstatného obsahu a podporují tokeny {hour}, {minute} a {second}.
+
+Opravy
+• Widgety spolehlivě používají nastavený Capture Preset a hlasové úlohy z Watch již nepřidávají duplicitní nadpisy ani obaly přepisu.
