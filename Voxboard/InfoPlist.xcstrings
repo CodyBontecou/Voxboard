@@ -293,139 +293,139 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md تستخدم موقعك فقط عندما تختار إدخال روابط خرائط في موقع محلي. Markdown مشروع"
+            "value": "يحصل Vox.md على موقعك مرة واحدة فقط عند إدراج رابط خريطة، أو عند الإرسال أو إيقاف التسجيل باستخدام إعداد مسبق للالتقاط مفعّل للموقع."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md আপনার অবস্থানটি কেবলমাত্র ব্যবহার করে যখন আপনি একটি স্থানীয় লিংক মধ্যে একটি মানচিত্র লিঙ্ক ইনপুট করতে চান Markdown নকশা"
+            "value": "আপনি মানচিত্রের লিঙ্ক ঢোকালে অথবা অবস্থান-সক্রিয় ক্যাপচার প্রিসেট দিয়ে পাঠালে বা রেকর্ডিং থামালে Vox.md একবারই আপনার অবস্থান নেয়।"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md verwendet Ihren Standort nur, wenn Sie einen Kartenlink in eine lokale Markdown Entwurf zu."
+            "value": "Vox.md ermittelt deinen Standort einmalig, wenn du einen Kartenlink einfügst oder mit einer standortfähigen Aufnahmevoreinstellung sendest bzw. eine Aufnahme stoppst."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md uses your location only when you choose to insert a map link into a local Markdown draft."
+            "value": "Vox.md gets your location once when you insert a map link, or when you send or stop recording with a location-enabled Capture Preset."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md utiliza su ubicación sólo cuando elija insertar un enlace de mapa en un Markdown El proyecto."
+            "value": "Vox.md obtiene tu ubicación una sola vez al insertar un enlace de mapa, o al enviar o detener una grabación con un preajuste de captura que tenga activada la ubicación."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md utilisez votre emplacement uniquement lorsque vous choisissez d'insérer un lien de carte dans un Markdown Le projet."
+            "value": "Vox.md obtient votre position une seule fois lorsque vous insérez un lien cartographique, ou lorsque vous envoyez ou arrêtez un enregistrement avec un préréglage de capture utilisant la localisation."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md केवल अपने स्थान का उपयोग करें जब आप एक स्थानीय में नक्शे लिंक डालने का विकल्प चुनते हैं Markdown परियोजना"
+            "value": "जब आप मानचित्र लिंक डालते हैं, या स्थान-सक्षम कैप्चर प्रीसेट से भेजते हैं अथवा रिकॉर्डिंग रोकते हैं, तब Vox.md केवल एक बार आपका स्थान प्राप्त करता है।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md menggunakan lokasi Anda hanya ketika Anda memilih untuk memasukkan tautan peta ke dalam Markdown Rencana tersebut"
+            "value": "Vox.md mengambil lokasi Anda satu kali saat Anda menyisipkan tautan peta, atau saat mengirim atau menghentikan rekaman dengan Prasetel Tangkapan yang mengaktifkan lokasi."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md utilizza la posizione solo quando si sceglie di inserire un collegamento mappatore in un Markdown Il progetto."
+            "value": "Vox.md rileva la tua posizione una sola volta quando inserisci un link a una mappa oppure quando invii o interrompi una registrazione con un preset di acquisizione abilitato alla posizione."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md 場所を指定する場合にのみ、地図リンクをローカルに挿入することを選択します。 Markdown 草案"
+            "value": "Vox.md は、地図リンクを挿入するとき、または位置情報を有効にしたキャプチャプリセットで送信もしくは録音を停止するときに、位置情報を一度だけ取得します。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md 위치를 사용하면 로컬에 지도 링크를 삽입하기로 선택할 때만 Markdown 프로젝트"
+            "value": "Vox.md는 지도 링크를 삽입하거나 위치가 활성화된 캡처 프리셋으로 전송 또는 녹음을 중지할 때 위치를 한 번만 가져옵니다."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md uw locatie alleen gebruikt wanneer u kiest voor het invoegen van een kaartverbinding in een Markdown Het ontwerp."
+            "value": "Vox.md bepaalt je locatie één keer wanneer je een kaartlink invoegt of wanneer je verzendt of een opname stopt met een opnamevoorinstelling waarvoor locatie is ingeschakeld."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md używa lokalizacji tylko wtedy, gdy zdecydujesz się wstawić łącze map do lokalu Markdown Projekty"
+            "value": "Vox.md pobiera Twoją lokalizację jeden raz, gdy wstawiasz łącze do mapy albo wysyłasz lub zatrzymujesz nagrywanie przy użyciu ustawienia przechwytywania z włączoną lokalizacją."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md utiliza a sua localização somente quando optar por inserir um link de mapa em uma Markdown Projeto de ."
+            "value": "O Vox.md obtém sua localização uma única vez quando você insere um link de mapa ou quando envia ou interrompe uma gravação com uma Predefinição de Captura que usa localização."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md использует ваше местоположение только тогда, когда вы решите вставить ссылку на карту в локальный Markdown Проект ¦"
+            "value": "Vox.md однократно получает вашу геопозицию, когда вы вставляете ссылку на карту либо отправляете данные или останавливаете запись с помощью шаблона захвата, в котором включена геопозиция."
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md உங்கள் இடத்தை பயன்படுத்தி, நீங்கள் ஒரு இடத்தில் ஒரு மாடல்களை இணைக்க தேர்வு செய்தால் மட்டுமே Markdown திட்டம்"
+            "value": "நீங்கள் வரைபட இணைப்பைச் சேர்க்கும்போது அல்லது இருப்பிடம் இயக்கப்பட்ட கேப்சர் முன்னமைவுடன் அனுப்பும்போது அல்லது பதிவை நிறுத்தும்போது Vox.md உங்கள் இருப்பிடத்தை ஒருமுறை மட்டும் பெறுகிறது."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md ใช้ตําแหน่งของคุณเท่านั้นเมื่อคุณเลือกที่จะใส่ลิงก์แผนที่ลงในสถานี Markdown โครงการ"
+            "value": "Vox.md จะรับตำแหน่งของคุณเพียงครั้งเดียวเมื่อคุณแทรกลิงก์แผนที่ หรือเมื่อส่งหรือหยุดการบันทึกด้วยพรีเซ็ตการจับภาพที่เปิดใช้ตำแหน่ง"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md konumunu yalnızca bir yerel bağlantıya bir harita bağlantısı eklemeyi seçtiğinizde kullanır. Markdown Tasarımı yapın"
+            "value": "Vox.md, harita bağlantısı eklediğinizde veya konumun etkin olduğu bir Yakalama Ön Ayarıyla gönderim yaptığınızda ya da kaydı durdurduğunuzda konumunuzu yalnızca bir kez alır."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md використовує місцезнаходження тільки тоді, коли ви вирішите вставити посилання на карту в локальний Markdown Проекти ."
+            "value": "Vox.md одноразово отримує вашу геопозицію, коли ви вставляєте посилання на карту або надсилаєте дані чи зупиняєте запис за допомогою шаблону захоплення з увімкненою геопозицією."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md آپ کی جگہ صرف جب آپ ایک مقامی میں نقشہ لنک شامل کرنے کا انتخاب کرتے ہیں Markdown منصوبہ بندی"
+            "value": "جب آپ نقشے کا لنک شامل کرتے ہیں، یا مقام فعال کیپچر پری سیٹ کے ساتھ بھیجتے یا ریکارڈنگ روکتے ہیں تو Vox.md صرف ایک بار آپ کا مقام حاصل کرتا ہے۔"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md chỉ sử dụng vị trí của bạn khi bạn chọn chèn một liên kết bản đồ vào một địa điểm Markdown Dự thảo"
+            "value": "Vox.md chỉ lấy vị trí của bạn một lần khi bạn chèn liên kết bản đồ, hoặc khi gửi hay dừng ghi âm bằng Cài đặt sẵn Chụp có bật vị trí."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md 仅当您选择将地图链接插入本地位置时使用您的位置 Markdown 草案。"
+            "value": "当你插入地图链接，或使用已启用位置的采集预设发送内容或停止录音时，Vox.md 仅获取一次你的位置。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md 僅當您選擇將地圖鏈接插入本地位置時使用您的位置 Markdown 草案。"
+            "value": "當你插入地圖連結，或使用已啟用位置的擷取預設傳送內容或停止錄音時，Vox.md 僅取得一次你的位置。"
           }
         }
       }

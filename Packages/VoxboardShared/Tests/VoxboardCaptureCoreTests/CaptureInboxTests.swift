@@ -424,6 +424,24 @@ final class CaptureInboxTests: XCTestCase {
             .text("TOP SECRET NOTE BODY"),
             .url(URL(string: "https://private.example/client")!, title: "Private client"),
         ]
+        request.voxProfile = CapturePresetProfile(
+            id: "private-location",
+            name: "Private Location",
+            symbolName: "location",
+            locationPolicy: CapturePresetLocationPolicy(
+                isEnabled: true,
+                outputMode: .advancedTemplate,
+                advancedTemplate: "secret_place: {{place}}"
+            )
+        )
+        request.locationOutcome = .available(CaptureLocationSnapshot(
+            latitude: 45.501234,
+            longitude: -73.567890,
+            timestamp: Date(timeIntervalSince1970: 1_700_000_000),
+            source: .app,
+            precision: .exact,
+            label: CaptureLocationLabel(place: "SECRET HOME")
+        ))
         try await inbox.enqueue(request)
         _ = try await inbox.claim(requestID: request.id)
 
@@ -436,6 +454,10 @@ final class CaptureInboxTests: XCTestCase {
         XCTAssertFalse(encoded.contains("TOP SECRET"))
         XCTAssertFalse(encoded.contains("private.example"))
         XCTAssertFalse(encoded.contains("Private client"))
+        XCTAssertFalse(encoded.contains("45.501234"))
+        XCTAssertFalse(encoded.contains("-73.56789"))
+        XCTAssertFalse(encoded.contains("SECRET HOME"))
+        XCTAssertFalse(encoded.contains("secret_place"))
         XCTAssertFalse(encoded.lowercased().contains(request.destinationID.uuidString.lowercased()))
         XCTAssertThrowsError(try JSONDecoder().decode(CaptureRequest.self, from: data))
         let completedIDs = try await inbox.requestIDs(in: .completed)
@@ -505,6 +527,52 @@ final class CaptureInboxTests: XCTestCase {
 
         let retried = try await inbox.claim(requestID: request.id)
         XCTAssertEqual(retried, request)
+    }
+
+    func test_sendWithoutLocationUpdatesExactPendingRequestWithoutChangingPresetPolicyOrOutcome() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let inbox = CaptureInbox(rootDirectoryURL: root, coordinator: ProcessLocalCaptureFileCoordinator.shared)
+        let attemptedAt = Date(timeIntervalSince1970: 1_700_000_000)
+        let profile = CapturePresetProfile(
+            id: "ask",
+            name: "Ask",
+            symbolName: "location",
+            locationPolicy: CapturePresetLocationPolicy(isEnabled: true, unavailableBehavior: .ask)
+        )
+        let request = CaptureRequest(
+            source: .shortcut,
+            destinationID: UUID(),
+            payloads: [.text("Keep exact")],
+            voxProfile: profile,
+            locationOutcome: .unavailable(.notDetermined, attemptedAt: attemptedAt)
+        )
+        try await inbox.enqueue(request)
+
+        let didResolve = try await inbox.sendWithoutLocation(requestID: request.id)
+        XCTAssertTrue(didResolve)
+        let updated = try await inbox.request(requestID: request.id, states: [.pending])
+        XCTAssertEqual(updated?.locationDecisionOverride, .sendWithoutLocation)
+        XCTAssertEqual(updated?.locationOutcome, request.locationOutcome)
+        XCTAssertEqual(updated?.voxProfile?.locationPolicy.unavailableBehavior, .ask)
+        XCTAssertEqual(updated?.payloads, request.payloads)
+    }
+
+    func test_discardLocationDecisionRemovesExactRequestAndItsStaging() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let inbox = CaptureInbox(rootDirectoryURL: root, coordinator: ProcessLocalCaptureFileCoordinator.shared)
+        let request = CaptureRequest(source: .voice, destinationID: UUID(), payloads: [.text("Discard")])
+        let staging = root.appendingPathComponent("inbox-staging/\(request.id.uuidString.lowercased())")
+        try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: true)
+        try Data("audio".utf8).write(to: staging.appendingPathComponent("audio.m4a"))
+        try await inbox.enqueue(request)
+
+        let didDiscard = try await inbox.discard(requestID: request.id)
+        let state = try await inbox.state(of: request.id)
+        XCTAssertTrue(didDiscard)
+        XCTAssertNil(state)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: staging.path))
     }
 
     private func makeRequest() -> CaptureRequest {

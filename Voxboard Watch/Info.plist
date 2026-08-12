@@ -8,6 +8,8 @@
     <false/>
     <key>NSMicrophoneUsageDescription</key>
     <string>Vox.md records voice notes on Apple Watch and syncs them to your iPhone for transcription.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>When location is enabled for a Capture Preset, Vox.md gets one location from this Apple Watch when recording stops.</string>
     <key>UIBackgroundModes</key>
     <array>
         <string>audio</string>

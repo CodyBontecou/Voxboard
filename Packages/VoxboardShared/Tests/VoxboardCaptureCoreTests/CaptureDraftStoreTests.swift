@@ -92,6 +92,168 @@ final class CaptureDraftStoreTests: XCTestCase {
         XCTAssertEqual(rebased.captureSource, .widget)
     }
 
+    func test_locationOutcomeIsJournaledWithoutOverwritingConcurrentDraftEdits() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        var draft = CaptureDraft(text: "Before", destinationID: UUID())
+        try await store.save(draft)
+        draft.text = "Edited while resolving"
+        try await store.save(draft)
+        let outcome = CaptureLocationOutcome.unavailable(
+            .timeout,
+            attemptedAt: Date(timeIntervalSince1970: 1_700_000_000)
+        )
+        let originProfile = CapturePresetProfile(
+            id: "import-profile",
+            name: "Import",
+            symbolName: "waveform",
+            locationPolicy: CapturePresetLocationPolicy(isEnabled: true, precision: .city)
+        )
+
+        let journaled = try await store.journalLocation(
+            draftID: draft.id,
+            requestID: draft.requestID,
+            outcome: outcome,
+            decisionOverride: .sendWithoutLocation,
+            profileSnapshot: originProfile,
+            captureSource: .fileImport
+        )
+        let laterEditedProfile = CapturePresetProfile(
+            id: originProfile.id,
+            name: "Edited later",
+            symbolName: "pencil",
+            locationPolicy: CapturePresetLocationPolicy(isEnabled: true, precision: .exact)
+        )
+        let request = try journaled.makeRequest(source: .app, voxProfile: laterEditedProfile)
+
+        XCTAssertEqual(journaled.text, "Edited while resolving")
+        XCTAssertEqual(request.locationOutcome, outcome)
+        XCTAssertEqual(request.locationDecisionOverride, .sendWithoutLocation)
+        XCTAssertEqual(request.source, .fileImport)
+        XCTAssertEqual(request.voxProfile, originProfile)
+    }
+
+    func test_abandonedImportClearsOriginJournalWithoutOverwritingDraftEdits() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        var draft = CaptureDraft(text: "Before import", destinationID: UUID())
+        try await store.save(draft)
+        _ = try await store.journalLocation(
+            draftID: draft.id,
+            requestID: draft.requestID,
+            outcome: .unavailable(.timeout, attemptedAt: Date(timeIntervalSince1970: 1_700_000_000)),
+            decisionOverride: nil,
+            profileSnapshot: CapturePresetProfile(
+                id: "import",
+                name: "Import",
+                symbolName: "waveform"
+            ),
+            captureSource: .fileImport
+        )
+        let loaded = try await store.load(id: draft.id)
+        draft = try XCTUnwrap(loaded)
+        draft.text = "Edited while import failed"
+        try await store.save(draft)
+
+        let cleared = try await store.clearLocationJournal(
+            draftID: draft.id,
+            requestID: draft.requestID,
+            captureSource: .fileImport
+        )
+
+        XCTAssertEqual(cleared.text, "Edited while import failed")
+        XCTAssertNil(cleared.captureSource)
+        XCTAssertNil(cleared.locationOutcome)
+        XCTAssertNil(cleared.locationDecisionOverride)
+        XCTAssertNil(cleared.voxProfileSnapshot)
+    }
+
+    func test_staleImportCallbacksCannotRestoreOrClearANewerPresetJournal() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = CaptureDraftStore(
+            rootDirectoryURL: root,
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        )
+        let draft = CaptureDraft(text: "Concurrent", voxID: "new-preset", destinationID: UUID())
+        try await store.save(draft)
+        let oldProfile = CapturePresetProfile(
+            id: "old-preset",
+            name: "Old",
+            symbolName: "location"
+        )
+
+        do {
+            _ = try await store.journalLocation(
+                draftID: draft.id,
+                requestID: draft.requestID,
+                outcome: .unavailable(.timeout, attemptedAt: Date()),
+                decisionOverride: nil,
+                profileSnapshot: oldProfile,
+                captureSource: .fileImport,
+                expectedVoxID: oldProfile.id
+            )
+            XCTFail("Expected stale import journal to be rejected")
+        } catch {
+            // Expected: the draft now belongs to a different Preset.
+        }
+
+        let newProfile = CapturePresetProfile(
+            id: "new-preset",
+            name: "New",
+            symbolName: "mappin"
+        )
+        _ = try await store.journalLocation(
+            draftID: draft.id,
+            requestID: draft.requestID,
+            outcome: .unavailable(.permissionDenied, attemptedAt: Date()),
+            decisionOverride: nil,
+            profileSnapshot: newProfile,
+            captureSource: .app,
+            expectedVoxID: newProfile.id
+        )
+        let afterStaleClear = try await store.clearLocationJournal(
+            draftID: draft.id,
+            requestID: draft.requestID,
+            captureSource: .fileImport,
+            expectedProfileID: oldProfile.id
+        )
+
+        XCTAssertEqual(afterStaleClear.voxProfileSnapshot, newProfile)
+        XCTAssertNotNil(afterStaleClear.locationOutcome)
+        XCTAssertEqual(afterStaleClear.captureSource, .app)
+    }
+
+    func test_changingPresetClearsJournaledLocationAttempt() {
+        var draft = CaptureDraft(
+            text: "Retry",
+            voxProfileSnapshot: CapturePresetProfile(
+                id: "old-preset",
+                name: "Old",
+                symbolName: "location"
+            ),
+            locationOutcome: .unavailable(
+                .permissionDenied,
+                attemptedAt: Date(timeIntervalSince1970: 1_700_000_000)
+            ),
+            locationDecisionOverride: .sendWithoutLocation
+        )
+
+        draft.selectVox("another-preset")
+
+        XCTAssertNil(draft.locationOutcome)
+        XCTAssertNil(draft.locationDecisionOverride)
+        XCTAssertNil(draft.voxProfileSnapshot)
+    }
+
     func test_changingDraftDestinationClearsDestinationScopedNoteOverride() {
         let first = UUID()
         let second = UUID()
@@ -546,7 +708,7 @@ final class CaptureDraftStoreTests: XCTestCase {
         XCTAssertEqual(Set(drafts.map(\.id)), Set([first.id, second.id]))
     }
 
-    func test_preparedRequestPersistsSeparatelyAndIsRemovedWithCompletedDraft() async throws {
+    func test_preparedRequestReusesExactOriginLocationAndIsRemovedWithCompletedDraft() async throws {
         let root = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: root) }
         let store = CaptureDraftStore(
@@ -560,6 +722,15 @@ final class CaptureDraftStoreTests: XCTestCase {
             destinationID: draft.destinationID!,
             payloads: [.text("Processed once")],
             voxProcessingState: .applied,
+            locationOutcome: .available(CaptureLocationSnapshot(
+                latitude: 12.345678,
+                longitude: -87.654321,
+                horizontalAccuracy: 7.5,
+                timestamp: Date(timeIntervalSince1970: 1_700_000_000),
+                source: .app,
+                precision: .exact,
+                label: CaptureLocationLabel(place: "Origin")
+            )),
             originDraftUpdatedAt: draft.updatedAt
         )
         try await store.save(draft)
@@ -571,6 +742,44 @@ final class CaptureDraftStoreTests: XCTestCase {
         try await store.complete(draftID: draft.id)
         let removedPrepared = try await store.loadPreparedRequest(draftID: draft.id)
         XCTAssertNil(removedPrepared)
+    }
+
+    func test_preparedReuseIgnoresLaterLiveEditsToSamePresetIdentity() throws {
+        let destinationID = UUID()
+        let draft = CaptureDraft(text: "Origin", destinationID: destinationID)
+        let originalProfile = CapturePresetProfile(
+            id: "journal",
+            name: "Original",
+            symbolName: "book",
+            locationPolicy: CapturePresetLocationPolicy(isEnabled: true)
+        )
+        var prepared = try draft.makeRequest(
+            source: .app,
+            resolvedDestinationID: destinationID,
+            voxProfile: originalProfile
+        )
+        prepared.voxProcessingState = .applied
+        prepared.locationOutcome = .unavailable(.timeout, attemptedAt: Date(timeIntervalSince1970: 1_700_000_000))
+        let editedProfile = CapturePresetProfile(
+            id: "journal",
+            name: "Edited Later",
+            symbolName: "pencil",
+            locationPolicy: CapturePresetLocationPolicy(isEnabled: true, precision: .city)
+        )
+
+        XCTAssertTrue(CapturePreparedRequestReuse.matches(
+            prepared,
+            draft: draft,
+            destinationID: destinationID,
+            presetID: editedProfile.id
+        ))
+        XCTAssertEqual(prepared.voxProfile, originalProfile)
+        XCTAssertFalse(CapturePreparedRequestReuse.matches(
+            prepared,
+            draft: draft,
+            destinationID: destinationID,
+            presetID: "different-preset"
+        ))
     }
 
     private func legacyEncodedDraftData(_ draft: CaptureDraft) throws -> Data {

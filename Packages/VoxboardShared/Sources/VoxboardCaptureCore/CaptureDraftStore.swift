@@ -34,6 +34,10 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
     public var text: String
     /// The reusable capture workflow selected for this durable draft.
     public var voxID: String?
+    /// Immutable Preset policy paired with an origin-time location outcome.
+    /// Once a Send/import attempt resolves location, retries must not combine
+    /// that older outcome with later edits to the same Preset ID.
+    public var voxProfileSnapshot: CapturePresetProfile?
     /// `destinationID` is authoritative only for explicit selection. Inherited
     /// drafts resolve the selected Capture Preset at display and submission time.
     public var destinationSelectionMode: CaptureDestinationSelectionMode
@@ -41,6 +45,11 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
     /// Entry-point provenance retained with the durable draft so history stays
     /// accurate even when the app is suspended before the user submits.
     public var captureSource: CaptureSource?
+    /// Origin-time result journaled as soon as a Send attempt resolves it. This
+    /// closes the suspension/crash window before preset processing and delivery.
+    public var locationOutcome: CaptureLocationOutcome?
+    /// Request-scoped choice made for a durable unavailable outcome.
+    public var locationDecisionOverride: CaptureLocationDecisionOverride?
     /// Set only after a successful transcription has already consumed the
     /// independent minute allowance for this draft.
     public var deliveryKind: CaptureDeliveryKind
@@ -59,9 +68,12 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         captureStartedAt: Date? = nil,
         text: String = "",
         voxID: String? = nil,
+        voxProfileSnapshot: CapturePresetProfile? = nil,
         destinationSelectionMode: CaptureDestinationSelectionMode? = nil,
         destinationID: UUID? = nil,
         captureSource: CaptureSource? = nil,
+        locationOutcome: CaptureLocationOutcome? = nil,
+        locationDecisionOverride: CaptureLocationDecisionOverride? = nil,
         deliveryKind: CaptureDeliveryKind = .standard,
         placementOverride: CapturePlacement? = nil,
         relativeNotePathOverride: String? = nil,
@@ -80,10 +92,13 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
             self.captureStartedAt = createdAt
         }
         self.voxID = voxID
+        self.voxProfileSnapshot = voxProfileSnapshot
         self.destinationSelectionMode = destinationSelectionMode
             ?? (destinationID == nil ? .inherited : .explicit)
         self.destinationID = destinationID
         self.captureSource = captureSource
+        self.locationOutcome = locationOutcome
+        self.locationDecisionOverride = locationDecisionOverride
         self.deliveryKind = deliveryKind
         self.placementOverride = placementOverride
         self.relativeNotePathOverride = relativeNotePathOverride
@@ -135,6 +150,11 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         useInheritedDestination()
         placementOverride = nil
         entryTemplateID = nil
+        // A location snapshot belongs to the preset and Send attempt that
+        // created it; changing presets must not carry it into a different policy.
+        locationOutcome = nil
+        locationDecisionOverride = nil
+        voxProfileSnapshot = nil
     }
 
     public mutating func useInheritedDestination() {
@@ -205,6 +225,7 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         guard let destinationID = resolvedDestinationID ?? destinationID else {
             throw CaptureDraftError.destinationRequired
         }
+        let resolvedVoxProfile = voxProfileSnapshot ?? voxProfile
         var payloads: [CapturePayload] = []
         let boundaryTrimmedText = text.trimmingCharacters(in: .newlines)
         if !boundaryTrimmedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -212,10 +233,10 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         }
         payloads.append(contentsOf: additionalPayloads)
         let processingState: CapturePresetProcessingState
-        if let voxProfile {
-            processingState = voxProfile.captureProcessingEnabled
-                && voxProfile.postProcessingMode != .none
-                && voxProfile.resolvedPostProcessingInstruction != nil
+        if let resolvedVoxProfile {
+            processingState = resolvedVoxProfile.captureProcessingEnabled
+                && resolvedVoxProfile.postProcessingMode != .none
+                && resolvedVoxProfile.resolvedPostProcessingInstruction != nil
                 ? .pending
                 : .applied
         } else {
@@ -228,9 +249,11 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
             deliveryKind: deliveryKind,
             destinationID: destinationID,
             payloads: payloads,
-            frontmatter: voxProfile?.staticFrontmatter ?? [:],
-            voxProfile: voxProfile,
+            frontmatter: resolvedVoxProfile?.staticFrontmatter ?? [:],
+            voxProfile: resolvedVoxProfile,
             voxProcessingState: processingState,
+            locationOutcome: locationOutcome,
+            locationDecisionOverride: locationDecisionOverride,
             originDraftUpdatedAt: updatedAt,
             relativeNotePathOverride: relativeNotePathOverride,
             placementOverride: placementOverride,
@@ -246,9 +269,12 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         case captureStartedAt
         case text
         case voxID
+        case voxProfileSnapshot
         case destinationSelectionMode
         case destinationID
         case captureSource
+        case locationOutcome
+        case locationDecisionOverride
         case deliveryKind
         case placementOverride
         case relativeNotePathOverride
@@ -267,18 +293,44 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
             captureStartedAt: try container.decodeIfPresent(Date.self, forKey: .captureStartedAt),
             text: try container.decodeIfPresent(String.self, forKey: .text) ?? "",
             voxID: try container.decodeIfPresent(String.self, forKey: .voxID),
+            voxProfileSnapshot: try container.decodeIfPresent(
+                CapturePresetProfile.self,
+                forKey: .voxProfileSnapshot
+            ),
             destinationSelectionMode: try container.decodeIfPresent(
                 CaptureDestinationSelectionMode.self,
                 forKey: .destinationSelectionMode
             ) ?? (decodedDestinationID == nil ? .inherited : .explicit),
             destinationID: decodedDestinationID,
             captureSource: try container.decodeIfPresent(CaptureSource.self, forKey: .captureSource),
+            locationOutcome: try container.decodeIfPresent(CaptureLocationOutcome.self, forKey: .locationOutcome),
+            locationDecisionOverride: try container.decodeIfPresent(
+                CaptureLocationDecisionOverride.self,
+                forKey: .locationDecisionOverride
+            ),
             deliveryKind: try container.decodeIfPresent(CaptureDeliveryKind.self, forKey: .deliveryKind) ?? .standard,
             placementOverride: try container.decodeIfPresent(CapturePlacement.self, forKey: .placementOverride),
             relativeNotePathOverride: try container.decodeIfPresent(String.self, forKey: .relativeNotePathOverride),
             entryTemplateID: try container.decodeIfPresent(UUID.self, forKey: .entryTemplateID),
             additionalPayloads: try container.decodeIfPresent([CapturePayload].self, forKey: .additionalPayloads) ?? []
         )
+    }
+}
+
+public enum CapturePreparedRequestReuse {
+    /// A prepared request owns its immutable preset snapshot. Live edits to the
+    /// same preset ID must not invalidate it and trigger origin reacquisition.
+    public static func matches(
+        _ request: CaptureRequest,
+        draft: CaptureDraft,
+        destinationID: UUID,
+        presetID: String?
+    ) -> Bool {
+        request.id == draft.requestID
+            && request.originDraftUpdatedAt == draft.updatedAt
+            && request.destinationID == destinationID
+            && request.voxProfile?.id == presetID
+            && request.voxProcessingState != .pending
     }
 }
 
@@ -348,6 +400,58 @@ public actor CaptureDraftStore {
             guard fileManager.fileExists(atPath: coordinatedURL.path) else { return nil }
             return try decoder.decode(CaptureDraft.self, from: Data(contentsOf: coordinatedURL))
         }
+    }
+
+    /// Atomically adds the origin-time decision to the latest copy of a draft
+    /// without overwriting text or attachments edited while location resolved.
+    @discardableResult
+    public func journalLocation(
+        draftID: UUID,
+        requestID: UUID,
+        outcome: CaptureLocationOutcome?,
+        decisionOverride: CaptureLocationDecisionOverride?,
+        profileSnapshot: CapturePresetProfile? = nil,
+        captureSource: CaptureSource? = nil,
+        expectedVoxID: String? = nil
+    ) throws -> CaptureDraft {
+        guard var draft = try load(id: draftID),
+              draft.requestID == requestID,
+              expectedVoxID == nil || draft.voxID == expectedVoxID else {
+            throw CaptureDraftError.draftNotFound(draftID)
+        }
+        draft.locationOutcome = outcome
+        draft.locationDecisionOverride = decisionOverride
+        if let profileSnapshot { draft.voxProfileSnapshot = profileSnapshot }
+        if let captureSource { draft.captureSource = captureSource }
+        try save(draft)
+        return draft
+    }
+
+    /// Removes an abandoned import's origin journal without overwriting any
+    /// text or attachments added concurrently to the draft.
+    @discardableResult
+    public func clearLocationJournal(
+        draftID: UUID,
+        requestID: UUID,
+        captureSource: CaptureSource? = nil,
+        expectedProfileID: String? = nil
+    ) throws -> CaptureDraft {
+        guard var draft = try load(id: draftID), draft.requestID == requestID else {
+            throw CaptureDraftError.draftNotFound(draftID)
+        }
+        if let expectedProfileID,
+           (draft.voxID != expectedProfileID || draft.voxProfileSnapshot?.id != expectedProfileID) {
+            // A stale async import must not erase a newer Preset/location pair.
+            return draft
+        }
+        draft.locationOutcome = nil
+        draft.locationDecisionOverride = nil
+        draft.voxProfileSnapshot = nil
+        if let captureSource, draft.captureSource == captureSource {
+            draft.captureSource = nil
+        }
+        try save(draft)
+        return draft
     }
 
     public func loadAll() throws -> [CaptureDraft] {

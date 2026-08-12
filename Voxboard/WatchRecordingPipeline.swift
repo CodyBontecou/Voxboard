@@ -37,6 +37,7 @@ final class WatchRecordingPipeline {
     private var pendingBackgroundLease: WatchRecordingBackgroundLease?
     private var isStoppingAfterExpiration = false
     private var inboxObserver: NSObjectProtocol?
+    private var locationDecisionObserver: NSObjectProtocol?
 
     init(
         inbox: WatchRecordingInbox = .shared,
@@ -69,6 +70,17 @@ final class WatchRecordingPipeline {
                 self?.refresh()
             }
         }
+        locationDecisionObserver = NotificationCenter.default.addObserver(
+            forName: .captureInboxDecisionResolved,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let requestID = notification.object as? UUID else { return }
+            let wasDiscarded = notification.userInfo?["discarded"] as? Bool == true
+            Task { @MainActor [weak self] in
+                self?.locationDecisionDidResolve(requestID: requestID, wasDiscarded: wasDiscarded)
+            }
+        }
     }
 
     var activeItems: [WatchRecordingInboxItem] {
@@ -96,6 +108,20 @@ final class WatchRecordingPipeline {
 
     func configure(recorder: PersistentRecorder) {
         self.recorder = recorder
+    }
+
+    private func locationDecisionDidResolve(requestID: UUID, wasDiscarded: Bool) {
+        guard let item = inbox.load().first(where: { $0.requestID == requestID }) else { return }
+        if wasDiscarded {
+            _ = inbox.discard(
+                id: item.id,
+                message: String(localized: "Canceled on iPhone after location was unavailable")
+            )
+            refresh()
+            WatchRecordingController.shared.publishState()
+            return
+        }
+        reconcileDeliveredCaptureRequests()
     }
 
     func recordingDidArrive(
@@ -442,8 +468,19 @@ final class WatchRecordingPipeline {
                         : String(localized: "Update Vox.md on iPhone to use this recording's Capture Preset.")
             )
         }
+        // Recording Only is a privacy-minimizing raw audio export, not Capture
+        // Markdown delivery. It intentionally has no preset metadata surface.
         if flow.watchOutputMode == .recordingOnly {
             try await deliverRecordingOnly(item, flow: flow)
+            return
+        }
+        if item.shouldCancelForUnavailableLocation {
+            _ = inbox.discard(
+                id: item.id,
+                message: String(localized: "Canceled because the preset requires an origin-time location")
+            )
+            refresh()
+            WatchRecordingController.shared.publishState()
             return
         }
         if item.capturesRecordingWithoutTranscript {
@@ -553,6 +590,7 @@ final class WatchRecordingPipeline {
                 flow: flow,
                 destinationID: destinationID,
                 audioSourceURL: flow.audioSaveMode == .off ? nil : item.fileURL,
+                locationOutcome: item.locationOutcome,
                 source: .watch
             )
             try ensureProcessingIsActive(for: item.id)
@@ -629,6 +667,7 @@ final class WatchRecordingPipeline {
                 destinationID: destinationID,
                 audioSourceURL: item.fileURL,
                 preferredFilename: item.originalFilename ?? item.filename,
+                locationOutcome: item.locationOutcome,
                 source: .watch
             )
             try ensureProcessingIsActive(for: item.id)

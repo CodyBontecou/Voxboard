@@ -106,7 +106,8 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             destination: destination,
             destinationRootURL: root,
             stagingDirectoryURL: staging.appendingPathComponent("request"),
-            audioSourceURL: audioURL
+            audioSourceURL: audioURL,
+            locationOutcome: nil
         )
 
         let markdown = try String(contentsOf: noteURL, encoding: .utf8)
@@ -157,6 +158,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             destinationRootURL: root,
             stagingDirectoryURL: staging.appendingPathComponent("request"),
             audioSourceURL: nil,
+            locationOutcome: nil,
             source: source
         )
 
@@ -192,7 +194,8 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             destination: destination,
             destinationRootURL: root,
             stagingDirectoryURL: staging.appendingPathComponent("request"),
-            audioSourceURL: audioURL
+            audioSourceURL: audioURL,
+            locationOutcome: nil
         )
 
         let markdown = try String(contentsOf: root.appendingPathComponent("Inbox.md"), encoding: .utf8)
@@ -229,7 +232,8 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             destination: destination,
             destinationRootURL: root,
             stagingDirectoryURL: staging.appendingPathComponent("request"),
-            audioSourceURL: audioURL
+            audioSourceURL: audioURL,
+            locationOutcome: nil
         )
 
         let markdown = try String(contentsOf: root.appendingPathComponent("Inbox.md"), encoding: .utf8)
@@ -380,12 +384,23 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             language: "en"
         )
         let writer = InboxStateObservingWriter(captureRootURL: captureRoot)
+        var flow = CapturePresetStore.makeCustomFlow()
+        flow.locationPolicy = CapturePresetLocationPolicy(isEnabled: true, unavailableBehavior: .sendWithoutLocation)
+        let snapshot = CaptureLocationOutcome.available(CaptureLocationSnapshot(
+            latitude: 12.345678,
+            longitude: -98.765432,
+            horizontalAccuracy: 8,
+            timestamp: recordedAt,
+            source: .voice,
+            precision: .exact
+        ))
 
         let receipt = try await ConfiguredTranscriptCaptureDestinationExporter.export(
             transcript: transcript,
-            flow: CapturePresetStore.makeCustomFlow(),
+            flow: flow,
             destinationID: destination.id,
             audioSourceURL: nil,
+            locationOutcome: snapshot,
             source: .mac,
             captureRootURL: captureRoot,
             pipeline: CapturePipeline(writer: writer)
@@ -399,6 +414,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         XCTAssertEqual(observedRequest?.id, transcript.id)
         XCTAssertEqual(observedRequest?.createdAt, recordedAt)
         XCTAssertEqual(observedRequest?.source, .mac)
+        XCTAssertEqual(observedRequest?.locationOutcome, snapshot)
         XCTAssertEqual(finalState, .completed)
         let deliveredHistory = try await CaptureHistoryStore(
             fileURL: captureRoot.appendingPathComponent(AppConstants.captureHistoryFilename),
@@ -407,6 +423,144 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
         XCTAssertEqual(deliveredHistory.map(\.requestID), [transcript.id])
         XCTAssertEqual(deliveredHistory.first?.outcome, .delivered)
         XCTAssertEqual(deliveredHistory.first?.source, .mac)
+    }
+
+    func test_unattendedAskLocationStaysPendingWithoutGenericFailureHistory() async throws {
+        let captureRoot = try temporaryFolder(named: "ask-location-root")
+        let destinationRoot = try temporaryFolder(named: "ask-location-destination")
+        defer {
+            try? FileManager.default.removeItem(at: captureRoot)
+            try? FileManager.default.removeItem(at: destinationRoot)
+        }
+        let destination = CaptureDestination(
+            name: "Inbox",
+            rootBookmark: try destinationRoot.bookmarkData(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md")
+        )
+        try await CaptureLibraryStore(
+            fileURL: captureRoot.appendingPathComponent(CaptureLibraryStore.defaultFilename),
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        ).save(CaptureLibraryEnvelope(destinations: [destination], defaultDestinationID: destination.id))
+        let transcript = Transcript(text: "Needs decision", duration: 1, modelUsed: "base", language: "en")
+        var flow = CapturePresetStore.makeCustomFlow()
+        flow.locationPolicy = CapturePresetLocationPolicy(isEnabled: true, unavailableBehavior: .ask)
+        let outcome = CaptureLocationOutcome.unavailable(
+            .notDetermined,
+            attemptedAt: Date(timeIntervalSince1970: 1_700_000_000)
+        )
+
+        do {
+            _ = try await ConfiguredTranscriptCaptureDestinationExporter.export(
+                transcript: transcript,
+                flow: flow,
+                destinationID: destination.id,
+                audioSourceURL: nil,
+                locationOutcome: outcome,
+                captureRootURL: captureRoot
+            )
+            XCTFail("Expected a durable decision")
+        } catch ConfiguredTranscriptCaptureError.queuedForRetry {
+            // Decision-required is intentionally represented as pending.
+        }
+
+        let inbox = CaptureInbox(rootDirectoryURL: captureRoot, coordinator: ProcessLocalCaptureFileCoordinator.shared)
+        let state = try await inbox.state(of: transcript.id)
+        XCTAssertEqual(state, .pending)
+        let queued = try await inbox.request(requestID: transcript.id, states: [.pending])
+        XCTAssertEqual(queued?.locationOutcome, outcome)
+        XCTAssertNil(queued?.locationDecisionOverride)
+        let history = try await CaptureHistoryStore(
+            fileURL: captureRoot.appendingPathComponent(AppConstants.captureHistoryFilename),
+            coordinator: ProcessLocalCaptureFileCoordinator.shared
+        ).list()
+        XCTAssertTrue(history.isEmpty)
+
+        flow.locationPolicy.unavailableBehavior = .cancel
+        let cancelled = Transcript(text: "Cancel me", duration: 1, modelUsed: "base", language: "en")
+        do {
+            _ = try await ConfiguredTranscriptCaptureDestinationExporter.export(
+                transcript: cancelled,
+                flow: flow,
+                destinationID: destination.id,
+                audioSourceURL: nil,
+                locationOutcome: outcome,
+                captureRootURL: captureRoot
+            )
+            XCTFail("Expected cancel")
+        } catch ConfiguredTranscriptCaptureError.locationUnavailableCancelled {
+            // Expected; no durable request should be created.
+        }
+        let cancelledState = try await inbox.state(of: cancelled.id)
+        XCTAssertNil(cancelledState)
+    }
+
+    func test_allLowLevelCaptureExportersHonorUnavailableCancelBeforeStaging() async throws {
+        let root = try temporaryFolder(named: "cancel-exporters")
+        defer { try? FileManager.default.removeItem(at: root) }
+        var flow = CapturePresetStore.makeCustomFlow()
+        flow.locationPolicy = CapturePresetLocationPolicy(
+            isEnabled: true,
+            unavailableBehavior: .cancel
+        )
+        let outcome = CaptureLocationOutcome.unavailable(
+            .reducedAccuracy,
+            attemptedAt: Date(timeIntervalSince1970: 1_700_000_000)
+        )
+        let transcript = Transcript(text: "Cancel", duration: 1, modelUsed: "base", language: "en")
+        let destination = CaptureDestination(
+            name: "Cancel",
+            rootBookmark: Data(),
+            rootName: "Vault",
+            noteTarget: .existingNote(relativePath: "Inbox.md")
+        )
+
+        do {
+            _ = try await TranscriptCaptureDestinationExporter().export(
+                transcript: transcript,
+                flow: flow,
+                destination: destination,
+                destinationRootURL: root,
+                stagingDirectoryURL: root.appendingPathComponent("instance-stage"),
+                audioSourceURL: nil,
+                locationOutcome: outcome,
+                source: .mac
+            )
+            XCTFail("Expected instance exporter cancellation")
+        } catch ConfiguredTranscriptCaptureError.locationUnavailableCancelled {
+            // Expected.
+        }
+
+        do {
+            _ = try await ConfiguredTranscriptCaptureDestinationExporter.exportRecording(
+                requestID: UUID(),
+                createdAt: Date(),
+                flow: flow,
+                destinationID: destination.id,
+                audioSourceURL: root.appendingPathComponent("missing.m4a"),
+                locationOutcome: outcome,
+                source: .watch,
+                captureRootURL: root
+            )
+            XCTFail("Expected recording exporter cancellation")
+        } catch ConfiguredTranscriptCaptureError.locationUnavailableCancelled {
+            // Expected.
+        }
+        do {
+            _ = try await ConfiguredTranscriptCaptureDestinationExporter.export(
+                transcript: transcript,
+                flow: flow,
+                destinationID: destination.id,
+                audioSourceURL: nil,
+                locationOutcome: nil,
+                captureRootURL: root
+            )
+            XCTFail("Expected missing outcome cancellation")
+        } catch ConfiguredTranscriptCaptureError.locationUnavailableCancelled {
+            // Expected.
+        }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("instance-stage").path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("inbox-staging").path))
     }
 
     func test_configuredExportQueuesExactRequestAndStagedAudioWhenDestinationWriteFails() async throws {
@@ -442,6 +596,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
                 flow: flow,
                 destinationID: destination.id,
                 audioSourceURL: audioURL,
+                locationOutcome: nil,
                 captureRootURL: captureRoot,
                 pipeline: CapturePipeline(
                     writer: CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared)
@@ -486,6 +641,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
                 flow: CapturePresetStore.makeCustomFlow(),
                 destinationID: missingID,
                 audioSourceURL: nil,
+                locationOutcome: nil,
                 source: .watch,
                 captureRootURL: captureRoot
             )
@@ -536,6 +692,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
                 flow: flow,
                 destinationID: destination.id,
                 audioSourceURL: captureRoot.appendingPathComponent("missing.wav"),
+                locationOutcome: nil,
                 captureRootURL: captureRoot
             )
             XCTFail("Expected queued staging failure")
@@ -583,6 +740,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             destinationID: destination.id,
             audioSourceURL: sourceURL,
             preferredFilename: "Watch Recording.m4a",
+            locationOutcome: nil,
             captureRootURL: captureRoot,
             pipeline: CapturePipeline(writer: writer)
         )

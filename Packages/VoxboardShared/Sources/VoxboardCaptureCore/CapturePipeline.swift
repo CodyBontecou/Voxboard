@@ -3,6 +3,9 @@ import Foundation
 public enum CapturePipelineError: Error, Equatable, LocalizedError, Sendable {
     case destinationMismatch(expected: UUID, actual: UUID)
     case unsafeNotePath(String)
+    /// Durable unattended requests with an `.ask` policy stop here until a
+    /// foreground surface records an explicit decision.
+    case locationDecisionRequired(CaptureLocationUnavailableReason?)
 
     public var errorDescription: String? {
         switch self {
@@ -10,6 +13,8 @@ public enum CapturePipelineError: Error, Equatable, LocalizedError, Sendable {
             return "Capture destination mismatch. Expected \(expected.uuidString), received \(actual.uuidString)."
         case .unsafeNotePath(let path):
             return "The capture note path resolved outside its destination: \(path)"
+        case .locationDecisionRequired:
+            return "Location was unavailable for this Capture. Open Vox.md to retry, send without location, or cancel."
         }
     }
 }
@@ -123,6 +128,7 @@ public actor CapturePipeline {
         rootURL: URL,
         assetRootURL: URL? = nil
     ) async throws -> CaptureReceipt {
+        try Self.validateLocationDecision(in: request)
         await CapturePipelineGate.shared.acquire()
 
         let reservation: CaptureDeliveryReservation
@@ -228,6 +234,9 @@ public actor CapturePipeline {
                 renderedPrefix = templateRenderer.render(effectiveDestination.entryPrefix, for: request)
                 renderedSuffix = templateRenderer.render(effectiveDestination.entrySuffix, for: request)
             }
+            let documentMetadata = request.voxProfile?.metadataScope == .entry
+                ? nil
+                : try CaptureLocationMetadataRenderer().render(request: request)
             let mutation = MarkdownCaptureMutation(
                 requestID: request.id,
                 entry: entry,
@@ -235,6 +244,7 @@ public actor CapturePipeline {
                 entryPrefix: renderedPrefix,
                 entrySuffix: renderedSuffix,
                 frontmatter: request.voxProfile?.metadataScope == .entry ? [:] : request.frontmatter,
+                locationMetadata: documentMetadata,
                 retryProtectionEnabled: effectiveDestination.retryProtectionEnabled,
                 destinationRootURL: rootURL,
                 relativeNotePath: relativeNotePath
@@ -305,6 +315,21 @@ public actor CapturePipeline {
                 return candidate
             }
             existing.insert(candidate)
+        }
+    }
+
+    private static func validateLocationDecision(in request: CaptureRequest) throws {
+        guard let policy = request.voxProfile?.locationPolicy, policy.isEnabled else { return }
+        switch request.locationOutcome {
+        case .available:
+            return
+        case .unavailable(let reason, _):
+            guard policy.unavailableBehavior == .sendWithoutLocation
+                    || request.locationDecisionOverride == .sendWithoutLocation else {
+                throw CapturePipelineError.locationDecisionRequired(reason)
+            }
+        case nil:
+            throw CapturePipelineError.locationDecisionRequired(nil)
         }
     }
 

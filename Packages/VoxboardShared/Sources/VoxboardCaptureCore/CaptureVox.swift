@@ -11,6 +11,9 @@ public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
     public var isEnabled: Bool
     public var isBuiltIn: Bool
     public var staticFrontmatter: [String: String]
+    /// Opt-in origin-time location capture and rendering policy. Missing legacy
+    /// values decode disabled.
+    public var locationPolicy: CapturePresetLocationPolicy
     /// Document frontmatter is ideal for one-note-per-capture destinations;
     /// inline entry fields keep rolling/shared notes from being relabeled.
     public var metadataScope: CapturePresetMetadataScope
@@ -34,6 +37,7 @@ public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
         isEnabled: Bool = true,
         isBuiltIn: Bool = false,
         staticFrontmatter: [String: String] = [:],
+        locationPolicy: CapturePresetLocationPolicy = CapturePresetLocationPolicy(),
         metadataScope: CapturePresetMetadataScope = .document,
         postProcessingMode: CapturePresetProcessingMode = .clean,
         customPostProcessingInstruction: String = "",
@@ -49,6 +53,7 @@ public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
         self.isEnabled = isEnabled
         self.isBuiltIn = isBuiltIn
         self.staticFrontmatter = staticFrontmatter
+        self.locationPolicy = locationPolicy
         self.metadataScope = metadataScope
         self.postProcessingMode = postProcessingMode
         self.customPostProcessingInstruction = customPostProcessingInstruction
@@ -104,6 +109,7 @@ public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
         case isEnabled
         case isBuiltIn
         case staticFrontmatter
+        case locationPolicy
         case metadataScope
         case postProcessingMode
         case customPostProcessingInstruction
@@ -123,6 +129,8 @@ public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
             isEnabled: try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? true,
             isBuiltIn: try container.decodeIfPresent(Bool.self, forKey: .isBuiltIn) ?? false,
             staticFrontmatter: try container.decodeIfPresent([String: String].self, forKey: .staticFrontmatter) ?? [:],
+            locationPolicy: try container.decodeIfPresent(CapturePresetLocationPolicy.self, forKey: .locationPolicy)
+                ?? CapturePresetLocationPolicy(),
             metadataScope: try container.decodeIfPresent(CapturePresetMetadataScope.self, forKey: .metadataScope) ?? .document,
             postProcessingMode: try container.decodeIfPresent(CapturePresetProcessingMode.self, forKey: .postProcessingMode) ?? .clean,
             customPostProcessingInstruction: try container.decodeIfPresent(String.self, forKey: .customPostProcessingInstruction) ?? "",

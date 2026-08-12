@@ -5,9 +5,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$ROOT/Voxboard.xcodeproj/project.pbxproj"
 
 python3 - "$ROOT" "$PROJECT" <<'PY'
+from __future__ import annotations
+
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit
+import json
 import re
 import sys
 
@@ -114,6 +117,57 @@ for required in [
     if required not in main_info:
         errors.append(f'main app Info.plist is missing {required}')
 
+location_purpose_contracts = [
+    (
+        root / 'Voxboard/Info.plist',
+        root / 'Voxboard/InfoPlist.xcstrings',
+        'NSLocationWhenInUseUsageDescription',
+        'Vox.md gets your location once when you insert a map link, or when you send or stop recording with a location-enabled Capture Preset.',
+    ),
+    (
+        root / 'Voxboard Share Extension/Info.plist',
+        root / 'Voxboard Share Extension/InfoPlist.xcstrings',
+        'NSLocationWhenInUseUsageDescription',
+        'When location metadata is enabled for a Capture Preset, Vox.md gets one location when you send shared content.',
+    ),
+    (
+        root / 'Voxboard Watch/Info.plist',
+        root / 'Voxboard Watch/InfoPlist.xcstrings',
+        'NSLocationWhenInUseUsageDescription',
+        'When location is enabled for a Capture Preset, Vox.md gets one location from this Apple Watch when recording stops.',
+    ),
+    (
+        root / 'Voxboard Mac/Info.plist',
+        root / 'Voxboard Mac/InfoPlist.xcstrings',
+        'NSLocationUsageDescription',
+        'When location is enabled for a Capture Preset, Vox.md gets one location when you send or stop a recording.',
+    ),
+]
+expected_location_locales = {
+    'ar', 'bn', 'de', 'en', 'es', 'fr', 'hi', 'id', 'it', 'ja', 'ko', 'nl',
+    'pl', 'pt-BR', 'ru', 'ta', 'th', 'tr', 'uk', 'ur', 'vi', 'zh-Hans', 'zh-Hant',
+}
+for plist_path, catalog_path, key, english_value in location_purpose_contracts:
+    plist = plist_path.read_text()
+    if key not in plist or f'<string>{english_value}</string>' not in plist:
+        errors.append(f'{plist_path.relative_to(root)} has stale location purpose copy')
+    catalog = json.loads(catalog_path.read_text())
+    entry = catalog.get('strings', {}).get(key, {})
+    localizations = entry.get('localizations', {})
+    if set(localizations) != expected_location_locales:
+        errors.append(f'{catalog_path.relative_to(root)} lacks complete location purpose locale coverage')
+    english_unit = localizations.get('en', {}).get('stringUnit', {})
+    if english_unit.get('value') != english_value:
+        errors.append(f'{catalog_path.relative_to(root)} location purpose English does not match Info.plist')
+    untranslated = [
+        locale for locale, value in localizations.items()
+        if locale != 'en' and value.get('stringUnit', {}).get('value') == english_value
+    ]
+    if untranslated:
+        errors.append(
+            f'{catalog_path.relative_to(root)} labels English location purpose copy as translated: {untranslated}'
+        )
+
 widget_bundle = (root / 'Voxboard Widget/VoxboardWidgetBundle.swift').read_text()
 if 'VoxboardCaptureWidget()' not in widget_bundle:
     errors.append('widget bundle does not expose the Quick Capture widget')
@@ -166,6 +220,7 @@ recording_only_settings_gate = '''            if flow.watchOutputMode != .record
                 }
                 if showsFrontmatterSection {
                     frontmatterSection
+                    locationMetadataSection
                 }
                 audioExportSection
             }'''
@@ -638,6 +693,18 @@ if website_docs.exists():
     ]:
         if f'id="{section_id}"' not in docs_html:
             errors.append(f'website documentation is missing the {section_id} category')
+    for required in [
+        'id="preset-location"',
+        'Exact (default)',
+        'two decimal places',
+        'Apple’s system reverse geocoder',
+        'Always Send Without Location',
+        'never reacquire a later location',
+        'completed Watch queue items',
+        'independent Capture Bar action',
+    ]:
+        if required not in docs_html:
+            errors.append(f'website location documentation is missing {required}')
 
 website_llms = website_root / 'llms.txt'
 if not website_llms.exists():
@@ -649,6 +716,9 @@ else:
         'https://vox.isolated.tech/docs/',
         '## Keyboard Safety Note',
         'Allow Full Access',
+        'Per-preset location metadata is opt-in',
+        'unattended Ask result is durable',
+        'completed Watch queue items',
     ]:
         if required not in llms:
             errors.append(f'website llms.txt is missing {required}')

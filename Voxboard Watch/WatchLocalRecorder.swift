@@ -1,5 +1,7 @@
 import AVFoundation
+import CoreLocation
 import Foundation
+import VoxboardCaptureCore
 import WidgetKit
 
 @MainActor
@@ -8,6 +10,7 @@ final class WatchLocalRecorder: ObservableObject {
         case idle
         case recording
         case paused
+        case locating
         case transferring
         case waitingForPhone
         case transcribing
@@ -34,6 +37,9 @@ final class WatchLocalRecorder: ObservableObject {
         var presetID: String?
         var presetName: String?
         var presetSnapshot: Data?
+        /// Privacy-adjusted Watch-origin result captured exactly once when the
+        /// recording stopped. Sync retries transfer this same durable value.
+        var locationOutcome: CaptureLocationOutcome?
 
         var fileURL: URL {
             WatchLocalRecorder.recordingsDirectoryURL.appendingPathComponent(filename)
@@ -50,7 +56,8 @@ final class WatchLocalRecorder: ObservableObject {
             remoteMessage: String? = nil,
             presetID: String? = nil,
             presetName: String? = nil,
-            presetSnapshot: Data? = nil
+            presetSnapshot: Data? = nil,
+            locationOutcome: CaptureLocationOutcome? = nil
         ) {
             self.id = id
             self.filename = filename
@@ -63,6 +70,7 @@ final class WatchLocalRecorder: ObservableObject {
             self.presetID = presetID
             self.presetName = presetName
             self.presetSnapshot = presetSnapshot
+            self.locationOutcome = locationOutcome
         }
 
         private enum CodingKeys: String, CodingKey {
@@ -77,6 +85,7 @@ final class WatchLocalRecorder: ObservableObject {
             case presetID
             case presetName
             case presetSnapshot
+            case locationOutcome
         }
 
         init(from decoder: Decoder) throws {
@@ -92,7 +101,8 @@ final class WatchLocalRecorder: ObservableObject {
                 remoteMessage: try container.decodeIfPresent(String.self, forKey: .remoteMessage),
                 presetID: try container.decodeIfPresent(String.self, forKey: .presetID),
                 presetName: try container.decodeIfPresent(String.self, forKey: .presetName),
-                presetSnapshot: try container.decodeIfPresent(Data.self, forKey: .presetSnapshot)
+                presetSnapshot: try container.decodeIfPresent(Data.self, forKey: .presetSnapshot),
+                locationOutcome: try container.decodeIfPresent(CaptureLocationOutcome.self, forKey: .locationOutcome)
             )
         }
     }
@@ -179,6 +189,8 @@ final class WatchLocalRecorder: ObservableObject {
             return String(localized: "Recording")
         case .paused:
             return String(localized: "Paused")
+        case .locating:
+            return String(localized: "Adding Location")
         case .transferring:
             return String(localized: "Syncing")
         case .waitingForPhone:
@@ -206,6 +218,8 @@ final class WatchLocalRecorder: ObservableObject {
             return String(localized: "Pause when you need a break, or stop when your thought is captured.")
         case .paused:
             return String(localized: "Recording paused. Resume when you're ready, or stop to save it.")
+        case .locating:
+            return String(localized: "Getting this Watch’s location once before saving.")
         case .transferring:
             return String(localized: "Sending Watch recordings to the iPhone queue.")
         case .waitingForPhone:
@@ -235,9 +249,45 @@ final class WatchLocalRecorder: ObservableObject {
     }
 
     var queueSummary: String {
-        queuedCount == 1
+        let saved = queuedCount == 1
             ? String(localized: "1 recording saved on Watch.")
             : String(localized: "\(queuedCount) recordings saved on Watch.")
+        let unavailable = queuedRecordings.filter {
+            if case .unavailable = $0.locationOutcome { return true }
+            return false
+        }
+        guard !unavailable.isEmpty else { return saved }
+        let behaviors = unavailable.map(locationUnavailableBehavior)
+        var details: [String] = []
+        let askCount = behaviors.filter { $0 == .ask }.count
+        let sendCount = behaviors.filter { $0 == .sendWithoutLocation }.count
+        let cancelCount = behaviors.filter { $0 == .cancel }.count
+        if askCount > 0 {
+            details.append(askCount == 1
+                ? String(localized: "iPhone will ask about 1 unavailable location.")
+                : String(localized: "iPhone will ask about \(askCount) unavailable locations."))
+        }
+        if sendCount > 0 {
+            details.append(sendCount == 1
+                ? String(localized: "1 recording will send without location.")
+                : String(localized: "\(sendCount) recordings will send without location."))
+        }
+        if cancelCount > 0 {
+            details.append(cancelCount == 1
+                ? String(localized: "1 recording will be canceled because location is required.")
+                : String(localized: "\(cancelCount) recordings will be canceled because location is required."))
+        }
+        return saved + " " + details.joined(separator: " ")
+    }
+
+    private func locationUnavailableBehavior(
+        for item: QueuedRecording
+    ) -> CaptureLocationUnavailableBehavior {
+        guard let data = item.presetSnapshot,
+              let profile = try? JSONDecoder().decode(CapturePresetProfile.self, from: data) else {
+            return .ask
+        }
+        return profile.locationPolicy.unavailableBehavior
     }
 
     private var widgetPhase: WatchRecordingPhase {
@@ -248,6 +298,8 @@ final class WatchLocalRecorder: ObservableObject {
             return .recording
         case .paused:
             return .paused
+        case .locating:
+            return .pending
         case .transferring:
             return .syncing
         case .waitingForPhone:
@@ -463,15 +515,55 @@ final class WatchLocalRecorder: ObservableObject {
             return
         }
 
-        let item = QueuedRecording(
+        let profile = presetSnapshot.flatMap {
+            try? JSONDecoder().decode(CapturePresetProfile.self, from: $0)
+        }
+        let enabledLocationPolicy = CaptureWatchLocationAcquisitionPolicy
+            .shouldAcquire(presetSnapshot: presetSnapshot)
+            ? profile?.locationPolicy
+            : nil
+        let stoppedAt = Date()
+        var item = QueuedRecording(
             id: id,
             filename: url.lastPathComponent,
             createdAt: createdAt,
             duration: recordedDuration,
             presetID: presetID,
             presetName: presetName,
-            presetSnapshot: presetSnapshot
+            presetSnapshot: presetSnapshot,
+            // Journal an origin-time placeholder synchronously after stop. If
+            // watchOS terminates during permission or location work, recovery
+            // retains a meaningful unavailable result rather than nil.
+            locationOutcome: enabledLocationPolicy.map {
+                _ in .unavailable(.unavailable, attemptedAt: stoppedAt)
+            }
         )
+        do {
+            try Self.saveActiveRecording(item)
+        } catch {
+            phase = .error(String(localized: "The recording is safe, but its stop state could not be journaled."))
+            message = String(localized: "Recording retained on Watch. Reopen Vox.md to recover it.")
+            return
+        }
+
+        if let enabledLocationPolicy {
+            phase = .locating
+            message = String(localized: "Recording saved. Getting this Watch’s location once…")
+            item.locationOutcome = await WatchCaptureLocationProvider().resolve(
+                policy: enabledLocationPolicy,
+                attemptedAt: stoppedAt
+            )
+            do {
+                // Atomic replacement closes the crash window between the
+                // placeholder and the final privacy-adjusted outcome.
+                try Self.saveActiveRecording(item)
+            } catch {
+                phase = .error(String(localized: "The recording is safe with its origin-time location status."))
+                message = String(localized: "Reopen Vox.md to recover and sync this recording.")
+                return
+            }
+        }
+
         do {
             try upsertQueuedRecording(item)
             Self.clearActiveRecording()
@@ -525,7 +617,8 @@ final class WatchLocalRecorder: ObservableObject {
                 duration: item.duration,
                 presetID: item.presetID,
                 presetName: item.presetName,
-                presetSnapshot: item.presetSnapshot
+                presetSnapshot: item.presetSnapshot,
+                locationOutcome: item.locationOutcome.flatMap { try? JSONEncoder().encode($0) }
             )
 
             if didQueue {
@@ -910,6 +1003,17 @@ final class WatchLocalRecorder: ObservableObject {
                 interrupted.duration,
                 (try? AVAudioPlayer(contentsOf: interrupted.fileURL).duration) ?? 0
             )
+            if interrupted.locationOutcome == nil,
+               CaptureWatchLocationAcquisitionPolicy.shouldAcquire(
+                   presetSnapshot: interrupted.presetSnapshot
+               ) {
+                // Termination before the normal stop journal cannot safely be
+                // replaced by a later fix. Preserve a typed unavailable result.
+                interrupted.locationOutcome = .unavailable(
+                    .unavailable,
+                    attemptedAt: Date()
+                )
+            }
             existing.append(interrupted)
         }
 
@@ -1070,4 +1174,181 @@ final class WatchLocalRecorder: ObservableObject {
         stopTimer()
         try? AVAudioSession.sharedInstance().setActive(false)
     }
+}
+
+@MainActor
+private final class WatchCaptureLocationProvider: NSObject, @preconcurrency CLLocationManagerDelegate {
+    private let manager = CLLocationManager()
+    private var continuation: CheckedContinuation<CLLocation, Error>?
+    private var timeoutTask: Task<Void, Never>?
+    private var requiresFullAccuracy = false
+
+    override init() {
+        super.init()
+        manager.delegate = self
+    }
+
+    func resolve(
+        policy: CapturePresetLocationPolicy,
+        attemptedAt: Date = Date()
+    ) async -> CaptureLocationOutcome {
+        requiresFullAccuracy = policy.precision == .exact
+        manager.desiredAccuracy = policy.precision == .exact
+            ? kCLLocationAccuracyBest
+            : kCLLocationAccuracyKilometer
+        do {
+            let raw = try await requestLocation()
+            let adjusted = CaptureLocationSnapshot(
+                latitude: raw.coordinate.latitude,
+                longitude: raw.coordinate.longitude,
+                horizontalAccuracy: raw.horizontalAccuracy >= 0 ? raw.horizontalAccuracy : nil,
+                timestamp: raw.timestamp,
+                source: .watch,
+                precision: policy.precision
+            )
+            var label: CaptureLocationLabel?
+            if policy.requiresLabels {
+                // City privacy is applied before any coordinate leaves the
+                // process through Apple's reverse-geocoding service.
+                let geocodeLocation = CLLocation(
+                    coordinate: CLLocationCoordinate2D(
+                        latitude: adjusted.latitude,
+                        longitude: adjusted.longitude
+                    ),
+                    altitude: 0,
+                    horizontalAccuracy: adjusted.horizontalAccuracy ?? -1,
+                    verticalAccuracy: -1,
+                    timestamp: adjusted.timestamp
+                )
+                label = try? await reverseGeocode(geocodeLocation)
+            }
+            return .available(CaptureLocationSnapshot(
+                latitude: adjusted.latitude,
+                longitude: adjusted.longitude,
+                horizontalAccuracy: adjusted.horizontalAccuracy,
+                timestamp: adjusted.timestamp,
+                source: .watch,
+                precision: adjusted.precision,
+                label: label
+            ))
+        } catch is CancellationError {
+            return .unavailable(.cancelled, attemptedAt: attemptedAt)
+        } catch let error as CLError where error.code == .denied {
+            return .unavailable(.permissionDenied, attemptedAt: attemptedAt)
+        } catch let error as WatchLocationError {
+            return .unavailable(error.reason, attemptedAt: attemptedAt)
+        } catch {
+            return .unavailable(.unavailable, attemptedAt: attemptedAt)
+        }
+    }
+
+    private func requestLocation() async throws -> CLLocation {
+        guard CLLocationManager.locationServicesEnabled() else {
+            throw WatchLocationError(.unavailable)
+        }
+        guard continuation == nil else { throw WatchLocationError(.unavailable) }
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                self.continuation = continuation
+                switch manager.authorizationStatus {
+                case .authorizedAlways, .authorizedWhenInUse:
+                    beginLocationRequest()
+                case .notDetermined:
+                    startTimeout(.seconds(60))
+                    manager.requestWhenInUseAuthorization()
+                case .denied:
+                    finish(.failure(WatchLocationError(.permissionDenied)))
+                case .restricted:
+                    finish(.failure(WatchLocationError(.restricted)))
+                @unknown default:
+                    finish(.failure(WatchLocationError(.unavailable)))
+                }
+            }
+        } onCancel: {
+            Task { @MainActor [weak self] in
+                self?.finish(.failure(CancellationError()))
+            }
+        }
+    }
+
+    private func beginLocationRequest() {
+        if requiresFullAccuracy, manager.accuracyAuthorization == .reducedAccuracy {
+            finish(.failure(WatchLocationError(.reducedAccuracy)))
+            return
+        }
+        startTimeout(.seconds(15))
+        manager.requestLocation()
+    }
+
+    private func startTimeout(_ duration: Duration) {
+        timeoutTask?.cancel()
+        timeoutTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: duration)
+            guard !Task.isCancelled else { return }
+            self?.finish(.failure(WatchLocationError(.timeout)))
+        }
+    }
+
+    private func finish(_ result: Result<CLLocation, Error>) {
+        guard let continuation else { return }
+        self.continuation = nil
+        timeoutTask?.cancel()
+        timeoutTask = nil
+        manager.stopUpdatingLocation()
+        continuation.resume(with: result)
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard continuation != nil else { return }
+        switch manager.authorizationStatus {
+        case .authorizedAlways, .authorizedWhenInUse:
+            beginLocationRequest()
+        case .denied:
+            finish(.failure(WatchLocationError(.permissionDenied)))
+        case .restricted:
+            finish(.failure(WatchLocationError(.restricted)))
+        case .notDetermined:
+            break
+        @unknown default:
+            finish(.failure(WatchLocationError(.unavailable)))
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last(where: {
+            $0.horizontalAccuracy >= 0 && abs($0.timestamp.timeIntervalSinceNow) < 30
+        }) else { return }
+        finish(.success(location))
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        finish(.failure(error))
+    }
+
+    private func reverseGeocode(_ location: CLLocation) async throws -> CaptureLocationLabel? {
+        try await withThrowingTaskGroup(of: CaptureLocationLabel?.self) { group in
+            group.addTask {
+                guard let placemark = try await CLGeocoder().reverseGeocodeLocation(location).first else {
+                    return nil
+                }
+                return CaptureLocationLabel(
+                    place: placemark.name,
+                    city: placemark.locality ?? placemark.subLocality,
+                    region: placemark.administrativeArea,
+                    country: placemark.country
+                )
+            }
+            group.addTask {
+                try await Task.sleep(for: .seconds(5))
+                throw WatchLocationError(.timeout)
+            }
+            defer { group.cancelAll() }
+            return try await group.next() ?? nil
+        }
+    }
+}
+
+private struct WatchLocationError: Error {
+    let reason: CaptureLocationUnavailableReason
+    init(_ reason: CaptureLocationUnavailableReason) { self.reason = reason }
 }

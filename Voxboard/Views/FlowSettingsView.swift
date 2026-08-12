@@ -191,6 +191,7 @@ private struct CapturePresetEditorView: View {
                 }
                 if showsFrontmatterSection {
                     frontmatterSection
+                    locationMetadataSection
                 }
                 audioExportSection
             }
@@ -454,6 +455,170 @@ private struct CapturePresetEditorView: View {
                 .onChange(of: frontmatterText) { _, value in
                     flow.staticFrontmatter = Self.parseFrontmatter(value)
                 }
+        }
+    }
+
+    private var locationMetadataSection: some View {
+        Section {
+            Toggle("Add Current Location", isOn: $flow.locationPolicy.isEnabled)
+                .tint(Geist.muted)
+                .accessibilityIdentifier("preset_location_enabled")
+
+            if flow.locationPolicy.isEnabled {
+                Picker("Precision", selection: $flow.locationPolicy.precision) {
+                    Text("Exact").tag(CaptureLocationPrecision.exact)
+                    Text("City").tag(CaptureLocationPrecision.city)
+                }
+                .accessibilityIdentifier("preset_location_precision")
+
+                Picker("When Location Is Unavailable", selection: $flow.locationPolicy.unavailableBehavior) {
+                    Text("Ask").tag(CaptureLocationUnavailableBehavior.ask)
+                    Text("Send Without Location").tag(CaptureLocationUnavailableBehavior.sendWithoutLocation)
+                    Text("Cancel Capture").tag(CaptureLocationUnavailableBehavior.cancel)
+                }
+                .accessibilityIdentifier("preset_location_unavailable_behavior")
+
+                Picker("Configuration", selection: $flow.locationPolicy.outputMode) {
+                    Text("Structured Fields").tag(CaptureLocationOutputMode.structured)
+                    Text("Advanced YAML Template")
+                        .tag(CaptureLocationOutputMode.advancedTemplate)
+                        .disabled(flow.metadataScope == .entry)
+                }
+                .accessibilityIdentifier("preset_location_output_mode")
+
+                if flow.locationPolicy.outputMode == .advancedTemplate,
+                   flow.metadataScope == .entry {
+                    Label(
+                        String(localized: "Advanced YAML Template") + " · " + String(localized: "Use Note Frontmatter Scope"),
+                        systemImage: "exclamationmark.triangle.fill"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(Geist.error)
+                    .accessibilityIdentifier("preset_location_scope_error")
+                    Button("Use Note Frontmatter Scope") {
+                        flow.metadataScope = .document
+                    }
+                }
+
+                if flow.metadataScope == .document {
+                    TextField("Name", text: $flow.locationPolicy.collectionKey)
+                        .textInputAutocapitalization(.never)
+                        .disableAutocorrection(true)
+                        .font(.system(.body, design: .monospaced))
+                        .accessibilityIdentifier("preset_location_collection_key")
+                    Text("Each Capture is appended to this collection by Capture ID, so a note can retain multiple locations without replacing earlier ones.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("Inline Entry Fields writes the selected `key:: value` fields beside each captured entry. No frontmatter collection is written.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if flow.locationPolicy.outputMode == .structured {
+                    ForEach(CaptureLocationField.allCases, id: \.self) { field in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Toggle(field.configurationDisplayName, isOn: locationFieldSelection(field))
+                                .tint(Geist.muted)
+                            if flow.locationPolicy.structuredFields.contains(where: { $0.field == field }) {
+                                TextField("Output", text: locationOutputKey(field))
+                                    .textInputAutocapitalization(.never)
+                                    .disableAutocorrection(true)
+                                    .font(.system(.body, design: .monospaced))
+                                    .accessibilityLabel(
+                                        String(localized: "Output") + " · " + field.configurationDisplayName
+                                    )
+                                    .accessibilityIdentifier("preset_location_key_\(field.rawValue)")
+                            }
+                        }
+                    }
+                } else {
+                    TextEditor(text: $flow.locationPolicy.advancedTemplate)
+                        .font(.system(.body, design: .monospaced))
+                        .frame(minHeight: 160)
+                        .accessibilityLabel("Advanced YAML Template")
+                        .accessibilityIdentifier("preset_location_advanced_template")
+                    Text("Nested mappings and list items are supported. Use placeholders such as `{{coordinates}}`, `{{city}}`, `{{timestamp}}`, and `{{id}}`.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                locationPolicyPreview
+
+                Text("Place, city, region, and country use Apple's system reverse geocoder only when selected and may make a network request. Provider links disclose the privacy-adjusted coordinates to Apple, Google, or OpenStreetMap only when you open a link.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+            }
+
+            Button("Reset Location Unavailable Choice") {
+                flow.locationPolicy.unavailableBehavior = .ask
+            }
+            .disabled(flow.locationPolicy.unavailableBehavior == .ask)
+            .accessibilityIdentifier("preset_location_reset_unavailable")
+
+            Button("Reset Location Configuration", role: .destructive) {
+                flow.locationPolicy = CapturePresetLocationPolicy()
+            }
+            .accessibilityIdentifier("preset_location_reset_configuration")
+        } header: {
+            Text("Location Metadata")
+        } footer: {
+            Text("Location is requested once at Capture send or recording stop. Exact keeps the origin fix; City rounds coordinates and omits a point-of-interest label. Vox.md does not track location in the background.")
+        }
+    }
+
+    private func locationFieldSelection(_ field: CaptureLocationField) -> Binding<Bool> {
+        Binding(
+            get: { flow.locationPolicy.structuredFields.contains(where: { $0.field == field }) },
+            set: { isSelected in
+                flow.locationPolicy.structuredFields.removeAll { $0.field == field }
+                if isSelected {
+                    flow.locationPolicy.structuredFields.append(CaptureLocationStructuredField(field: field))
+                }
+            }
+        )
+    }
+
+    private func locationOutputKey(_ field: CaptureLocationField) -> Binding<String> {
+        Binding(
+            get: {
+                flow.locationPolicy.structuredFields.first(where: { $0.field == field })?.outputKey
+                    ?? field.rawValue
+            },
+            set: { value in
+                guard let index = flow.locationPolicy.structuredFields.firstIndex(where: { $0.field == field }) else {
+                    return
+                }
+                flow.locationPolicy.structuredFields[index].outputKey = value
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var locationPolicyPreview: some View {
+        switch CaptureLocationConfigurationPreview.result(
+            profile: flow.captureProfile,
+            source: .app
+        ) {
+        case .success(let preview):
+            VStack(alignment: .leading, spacing: 8) {
+                Label("Delivery Preview", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                ScrollView(.horizontal) {
+                    Text(preview)
+                        .font(.system(.caption, design: .monospaced))
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("preset_location_preview")
+        case .failure(let error):
+            Label(error.message, systemImage: "exclamationmark.triangle.fill")
+                .font(.caption)
+                .foregroundStyle(Geist.error)
+                .accessibilityIdentifier("preset_location_validation_error")
         }
     }
 

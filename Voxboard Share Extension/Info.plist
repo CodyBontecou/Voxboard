@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDisplayName</key>
 	<string>Capture to Vox.md</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>When location metadata is enabled for a Capture Preset, Vox.md gets one location when you send shared content.</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>

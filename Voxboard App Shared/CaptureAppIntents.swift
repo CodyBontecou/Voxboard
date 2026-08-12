@@ -313,6 +313,7 @@ enum CaptureIntentSupport {
         )
     }
 
+    @MainActor
     static func enqueue(
         payloads: [CapturePayload],
         presetEntity: CaptureVoxEntity?,
@@ -335,6 +336,29 @@ enum CaptureIntentSupport {
             && profile?.postProcessingMode != CapturePresetProcessingMode.none
             ? .pending
             : (profile == nil ? .notRequested : .applied)
+        let locationOutcome: CaptureLocationOutcome?
+        var requiresForegroundDecision = false
+        if let policy = profile?.locationPolicy, policy.isEnabled {
+            let outcome = await CaptureLocationService().resolveLocationIfAuthorized(
+                policy: policy,
+                source: .shortcut
+            )
+            if case .unavailable = outcome {
+                switch policy.unavailableBehavior {
+                case .sendWithoutLocation:
+                    break
+                case .ask:
+                    // Persist the exact unavailable invocation before asking
+                    // the user to open the app. The app must never reacquire.
+                    requiresForegroundDecision = true
+                case .cancel:
+                    throw CaptureIntentError.locationUnavailableCancelled
+                }
+            }
+            locationOutcome = outcome
+        } else {
+            locationOutcome = nil
+        }
         let request = CaptureRequest(
             id: requestID,
             source: .shortcut,
@@ -342,11 +366,16 @@ enum CaptureIntentSupport {
             payloads: payloads,
             frontmatter: profile?.staticFrontmatter ?? [:],
             voxProfile: profile,
-            voxProcessingState: processingState
+            voxProcessingState: processingState,
+            locationOutcome: locationOutcome
         )
         try await CaptureInbox(rootDirectoryURL: root).enqueue(request)
+        if requiresForegroundDecision {
+            throw CaptureIntentError.locationDecisionRequiresApp
+        }
     }
 
+    @MainActor
     static func enqueue(
         file: IntentFile,
         presetEntity: CaptureVoxEntity?,
@@ -386,6 +415,10 @@ enum CaptureIntentSupport {
                 requestID: requestID
             )
         } catch {
+            if case CaptureIntentError.locationDecisionRequiresApp = error {
+                // The staged bytes are now referenced by the durable request.
+                throw error
+            }
             try? FileManager.default.removeItem(at: stagingDirectory)
             throw error
         }
@@ -439,6 +472,8 @@ enum CaptureIntentError: Error, LocalizedError {
     case destinationRequired
     case invalidURL
     case textTooLarge
+    case locationDecisionRequiresApp
+    case locationUnavailableCancelled
 
     var errorDescription: String? {
         switch self {
@@ -450,6 +485,10 @@ enum CaptureIntentError: Error, LocalizedError {
             return String(localized: "Only HTTP and HTTPS links can be captured.")
         case .textTooLarge:
             return String(localized: "Capture text is above the 100,000-character safety limit.")
+        case .locationDecisionRequiresApp:
+            return String(localized: "Location is unavailable. Open Vox.md to send this exact Capture without location or discard it.")
+        case .locationUnavailableCancelled:
+            return String(localized: "The Capture was cancelled because its preset requires an origin-time location.")
         }
     }
 }

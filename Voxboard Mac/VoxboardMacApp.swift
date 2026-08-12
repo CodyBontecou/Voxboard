@@ -51,6 +51,14 @@ struct VoxboardMacApp: App {
             captureDraftEventHandler: { [weak quickCaptureViewModel] event in
                 guard let quickCaptureViewModel else { return false }
                 switch event {
+                case .origin(let source, let locationOutcome, let profileSnapshot):
+                    return await quickCaptureViewModel.journalRecordedOrigin(
+                        source: source,
+                        outcome: locationOutcome,
+                        profileSnapshot: profileSnapshot
+                    )
+                case .clearOrigin(let profileID):
+                    return await quickCaptureViewModel.clearRecordedOrigin(profileID: profileID)
                 case .audio(let url):
                     return await quickCaptureViewModel.stageRecordedAudio(at: url) != nil
                 case .transcript(let text):

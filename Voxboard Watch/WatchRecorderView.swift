@@ -526,6 +526,8 @@ struct WatchRecorderView: View {
             return String(localized: "Recording")
         case .paused:
             return String(localized: "Paused")
+        case .locating:
+            return String(localized: "Adding Watch Location")
         case .transferring:
             return String(localized: "Syncing to iPhone")
         case .waitingForPhone:
@@ -547,7 +549,7 @@ struct WatchRecorderView: View {
 
     private var statusHeadlineSize: CGFloat {
         switch localRecorder.phase {
-        case .transferring, .delivering, .transferred:
+        case .locating, .transferring, .delivering, .transferred:
             return 16
         case .recording, .paused, .waitingForPhone, .transcribing, .error:
             return 18
@@ -568,6 +570,8 @@ struct WatchRecorderView: View {
                 return message
             }
             return String(localized: "Resume to continue, Stop to save, or Cancel to delete.")
+        case .locating:
+            return String(localized: "The recording is safe. Vox.md is requesting one location from this Watch.")
         case .transferring:
             return String(localized: "Your recording remains safe while it moves to iPhone.")
         case .waitingForPhone:
@@ -604,6 +608,8 @@ struct WatchRecorderView: View {
             return String(localized: "Live")
         case .paused:
             return String(localized: "Paused")
+        case .locating:
+            return String(localized: "Location")
         case .transferring:
             return String(localized: "Sync")
         case .waitingForPhone:
@@ -627,7 +633,7 @@ struct WatchRecorderView: View {
         switch localRecorder.phase {
         case .recording, .error:
             return .destructive
-        case .paused, .transferring, .waitingForPhone, .transcribing, .delivering, .transferred:
+        case .paused, .locating, .transferring, .waitingForPhone, .transcribing, .delivering, .transferred:
             return .active
         case .idle:
             return localRecorder.queuedCount > 0 ? .active : .neutral
@@ -640,6 +646,8 @@ struct WatchRecorderView: View {
             return "waveform"
         case .paused:
             return "pause.fill"
+        case .locating:
+            return "location.fill"
         case .transferring:
             return "iphone.radiowaves.left.and.right"
         case .waitingForPhone:

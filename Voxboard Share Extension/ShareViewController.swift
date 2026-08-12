@@ -2,7 +2,7 @@ import Observation
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
-import VoxboardCaptureCore
+import VoxboardShared
 
 final class ShareViewController: UIViewController {
     override func viewDidLoad() {
@@ -38,6 +38,7 @@ private final class ShareCaptureModel {
     var isSubmitting = false
     var isQueuedForLater = false
     var errorMessage: String?
+    var locationDecision: (reason: CaptureLocationUnavailableReason, attemptedAt: Date)?
 
     private let providers: [NSItemProvider]
     private weak var extensionContext: NSExtensionContext?
@@ -45,6 +46,8 @@ private final class ShareCaptureModel {
     private var loadedPayloads: [CapturePayload] = []
     private var captureRootURL: URL?
     private var cancellationRequested = false
+    private var pendingSendWithoutLocationOutcome: CaptureLocationOutcome?
+    private let locationProvider: any CaptureLocationOutcomeProviding = CaptureLocationService()
 
     init(providers: [NSItemProvider], extensionContext: NSExtensionContext?) {
         self.providers = providers
@@ -161,6 +164,40 @@ private final class ShareCaptureModel {
         isSubmitting = true
         do {
             let profile = selectedPreset
+            var locationOutcome: CaptureLocationOutcome?
+            var locationDecisionOverride: CaptureLocationDecisionOverride?
+            if let policy = profile?.locationPolicy, policy.isEnabled {
+                let usedExplicitSendWithout = pendingSendWithoutLocationOutcome != nil
+                let outcome: CaptureLocationOutcome
+                if let pendingSendWithoutLocationOutcome {
+                    outcome = pendingSendWithoutLocationOutcome
+                } else {
+                    outcome = await locationProvider.resolveLocation(
+                        policy: policy,
+                        source: .shareExtension
+                    )
+                }
+                pendingSendWithoutLocationOutcome = nil
+                if case .unavailable(let reason, let attemptedAt) = outcome,
+                   !usedExplicitSendWithout {
+                    switch policy.unavailableBehavior {
+                    case .ask:
+                        locationDecision = (reason, attemptedAt)
+                        isSubmitting = false
+                        return
+                    case .cancel:
+                        isSubmitting = false
+                        cancel()
+                        return
+                    case .sendWithoutLocation:
+                        break
+                    }
+                }
+                locationOutcome = outcome
+                if usedExplicitSendWithout {
+                    locationDecisionOverride = .sendWithoutLocation
+                }
+            }
             let processingState: CapturePresetProcessingState = profile?.captureProcessingEnabled == true
                 && profile?.postProcessingMode != CapturePresetProcessingMode.none
                 ? .pending
@@ -172,7 +209,9 @@ private final class ShareCaptureModel {
                 payloads: payloads,
                 frontmatter: profile?.staticFrontmatter ?? [:],
                 voxProfile: profile,
-                voxProcessingState: processingState
+                voxProcessingState: processingState,
+                locationOutcome: locationOutcome,
+                locationDecisionOverride: locationDecisionOverride
             )
             try await CaptureInbox(rootDirectoryURL: captureRootURL).enqueue(request)
             isQueuedForLater = true
@@ -191,6 +230,38 @@ private final class ShareCaptureModel {
                 fail(error.localizedDescription)
             }
         }
+    }
+
+    func retryUnavailableLocation() async {
+        locationDecision = nil
+        pendingSendWithoutLocationOutcome = nil
+        await submit()
+    }
+
+    func sendWithoutUnavailableLocation(alwaysForPreset: Bool) async {
+        guard let decision = locationDecision else { return }
+        pendingSendWithoutLocationOutcome = .unavailable(
+            decision.reason,
+            attemptedAt: decision.attemptedAt
+        )
+        if alwaysForPreset, let presetID = selectedPreset?.id {
+            CapturePresetStore.setLocationUnavailableBehavior(
+                .sendWithoutLocation,
+                presetID: presetID,
+                defaults: UserDefaults(suiteName: "group.bontecou.Voxboard")
+            )
+            if let index = presets.firstIndex(where: { $0.id == presetID }) {
+                presets[index].locationPolicy.unavailableBehavior = .sendWithoutLocation
+            }
+        }
+        locationDecision = nil
+        await submit()
+    }
+
+    func cancelUnavailableLocation() {
+        locationDecision = nil
+        pendingSendWithoutLocationOutcome = nil
+        cancel()
     }
 
     private func resolvedDestinationID(
@@ -460,6 +531,25 @@ private struct ShareCaptureView: View {
                         Section("Error") { Text(error).foregroundStyle(.red) }
                     }
                 }
+            }
+            .confirmationDialog(
+                "Location",
+                isPresented: Binding(
+                    get: { model.locationDecision != nil },
+                    set: { if !$0 { model.cancelUnavailableLocation() } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Retry") { Task { await model.retryUnavailableLocation() } }
+                Button("Send Without Location") {
+                    Task { await model.sendWithoutUnavailableLocation(alwaysForPreset: false) }
+                }
+                Button("Always Send Without Location for This Preset") {
+                    Task { await model.sendWithoutUnavailableLocation(alwaysForPreset: true) }
+                }
+                Button("Cancel", role: .cancel) { model.cancelUnavailableLocation() }
+            } message: {
+                Text("The shared items are preserved while you decide.")
             }
             .navigationTitle("Capture to Vox.md")
             .navigationBarTitleDisplayMode(.inline)

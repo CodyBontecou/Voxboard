@@ -9,7 +9,7 @@ final class CaptureLocationServiceTests: XCTestCase {
         let service = CaptureLocationService(
             manager: manager,
             timeout: .seconds(1),
-            reverseGeocodeLabel: { _ in "Test Place" }
+            reverseGeocodeLabel: { _ in CaptureLocationLabel(place: "Test Place") }
         )
 
         let task = Task { try await service.requestCurrentLocation() }
@@ -131,6 +131,188 @@ final class CaptureLocationServiceTests: XCTestCase {
         XCTAssertEqual(value.longitude, 10)
     }
 
+    func test_resolveSkipsGeocoderWhenConfiguredFieldsDoNotNeedLabels() async throws {
+        let manager = FakeCaptureLocationManager(status: .authorized)
+        var geocodeCount = 0
+        let service = CaptureLocationService(
+            manager: manager,
+            timeout: .seconds(1),
+            reverseGeocodeLabel: { _ in
+                geocodeCount += 1
+                return CaptureLocationLabel(place: "Unused")
+            }
+        )
+        let policy = CapturePresetLocationPolicy(
+            isEnabled: true,
+            precision: .city,
+            structuredFields: [.coordinates, .timestamp]
+        )
+        let task = Task { await service.resolveLocation(policy: policy, source: .shareExtension) }
+        await Task.yield()
+        manager.sendLocations([freshLocation(latitude: 45.5012, longitude: -73.5678)])
+
+        guard case .available(let snapshot) = await task.value else {
+            return XCTFail("Expected snapshot")
+        }
+        XCTAssertEqual(snapshot.latitude, 45.50)
+        XCTAssertEqual(snapshot.longitude, -73.57)
+        XCTAssertEqual(snapshot.horizontalAccuracy, 10)
+        XCTAssertEqual(snapshot.source, .shareExtension)
+        XCTAssertNil(snapshot.label)
+        XCTAssertEqual(geocodeCount, 0)
+    }
+
+    func test_resolveCollectsAllApplePlacemarkFieldsOnlyWhenRequired() async throws {
+        let manager = FakeCaptureLocationManager(status: .authorized)
+        let service = CaptureLocationService(
+            manager: manager,
+            timeout: .seconds(1),
+            reverseGeocodeLabel: { _ in
+                CaptureLocationLabel(place: "Library", city: "Montréal", region: "QC", country: "Canada")
+            }
+        )
+        let policy = CapturePresetLocationPolicy(isEnabled: true, structuredFields: [.place, .country])
+        let task = Task { await service.resolveLocation(policy: policy, source: .app) }
+        await Task.yield()
+        manager.sendLocations([freshLocation(latitude: 1, longitude: 2)])
+
+        guard case .available(let snapshot) = await task.value else {
+            return XCTFail("Expected snapshot")
+        }
+        XCTAssertEqual(snapshot.label?.place, "Library")
+        XCTAssertEqual(snapshot.label?.city, "Montréal")
+        XCTAssertEqual(snapshot.label?.region, "QC")
+        XCTAssertEqual(snapshot.label?.country, "Canada")
+    }
+
+    func test_resolveMapsDeniedAndTimeoutToDurableReasons() async {
+        let denied = CaptureLocationService(
+            manager: FakeCaptureLocationManager(status: .denied),
+            timeout: .seconds(1)
+        )
+        let policy = CapturePresetLocationPolicy(isEnabled: true)
+        guard case .unavailable(let deniedReason, let deniedAt) = await denied.resolveLocation(
+            policy: policy,
+            source: .shortcut
+        ) else { return XCTFail("Expected unavailable") }
+        XCTAssertEqual(deniedReason, .permissionDenied)
+        XCTAssertGreaterThan(deniedAt.timeIntervalSince1970, 0)
+
+        let timeout = CaptureLocationService(
+            manager: FakeCaptureLocationManager(status: .authorized),
+            timeout: .milliseconds(10)
+        )
+        guard case .unavailable(let timeoutReason, _) = await timeout.resolveLocation(
+            policy: policy,
+            source: .shortcut
+        ) else { return XCTFail("Expected unavailable") }
+        XCTAssertEqual(timeoutReason, .timeout)
+    }
+
+    func test_exactRequestsBestAccuracyAndCityGeocodesOnlyRoundedCoordinates() async throws {
+        let exactManager = FakeCaptureLocationManager(status: .authorized)
+        let exact = CaptureLocationService(manager: exactManager, timeout: .seconds(1))
+        let exactTask = Task {
+            await exact.resolveLocation(
+                policy: CapturePresetLocationPolicy(isEnabled: true, structuredFields: [.coordinates]),
+                source: .app
+            )
+        }
+        await Task.yield()
+        XCTAssertEqual(exactManager.desiredAccuracy, kCLLocationAccuracyBest)
+        exactManager.sendLocations([freshLocation(latitude: 45.501234, longitude: -73.567891)])
+        _ = await exactTask.value
+
+        let cityManager = FakeCaptureLocationManager(status: .authorized)
+        var geocodedCoordinate: CLLocationCoordinate2D?
+        let city = CaptureLocationService(
+            manager: cityManager,
+            timeout: .seconds(1),
+            reverseGeocodeLabel: { location in
+                geocodedCoordinate = location.coordinate
+                return CaptureLocationLabel(city: "Montréal")
+            }
+        )
+        let cityTask = Task {
+            await city.resolveLocation(
+                policy: CapturePresetLocationPolicy(
+                    isEnabled: true,
+                    precision: .city,
+                    structuredFields: [.city]
+                ),
+                source: .app
+            )
+        }
+        await Task.yield()
+        XCTAssertEqual(cityManager.desiredAccuracy, kCLLocationAccuracyKilometer)
+        cityManager.sendLocations([freshLocation(latitude: 45.501234, longitude: -73.567891)])
+        _ = await cityTask.value
+        XCTAssertEqual(geocodedCoordinate?.latitude, 45.50)
+        XCTAssertEqual(geocodedCoordinate?.longitude, -73.57)
+    }
+
+    func test_reducedAccuracyDoesNotProduceAnExactSnapshot() async {
+        let manager = FakeCaptureLocationManager(status: .authorized, accuracy: .reduced)
+        let service = CaptureLocationService(manager: manager, timeout: .seconds(1))
+
+        let outcome = await service.resolveLocation(
+            policy: CapturePresetLocationPolicy(
+                isEnabled: true,
+                precision: .exact,
+                structuredFields: [.coordinates]
+            ),
+            source: .mac
+        )
+
+        guard case .unavailable(let reason, _) = outcome else {
+            return XCTFail("Reduced authorization must not be labeled exact")
+        }
+        XCTAssertEqual(reason, .reducedAccuracy)
+        XCTAssertEqual(manager.locationRequestCount, 0)
+    }
+
+    func test_reverseGeocodeTimeoutFailsSoftToCoordinateOnly() async throws {
+        let manager = FakeCaptureLocationManager(status: .authorized)
+        let service = CaptureLocationService(
+            manager: manager,
+            timeout: .seconds(1),
+            reverseGeocodeTimeout: .milliseconds(10),
+            reverseGeocodeLabel: { _ in
+                try await Task.sleep(for: .seconds(1))
+                return CaptureLocationLabel(place: "Too late")
+            }
+        )
+        let task = Task {
+            await service.resolveLocation(
+                policy: CapturePresetLocationPolicy(isEnabled: true, structuredFields: [.place]),
+                source: .shortcut
+            )
+        }
+        await Task.yield()
+        manager.sendLocations([freshLocation(latitude: 1, longitude: 2)])
+        guard case .available(let snapshot) = await task.value else {
+            return XCTFail("Expected coordinates after geocoder timeout")
+        }
+        XCTAssertNil(snapshot.label)
+        XCTAssertEqual(snapshot.latitude, 1)
+    }
+
+    func test_automationNotDeterminedDoesNotPromptAndReturnsDurableUnavailable() async {
+        let manager = FakeCaptureLocationManager(status: .notDetermined)
+        let service = CaptureLocationService(manager: manager, timeout: .seconds(1))
+        let outcome = await service.resolveLocationIfAuthorized(
+            policy: CapturePresetLocationPolicy(isEnabled: true),
+            source: .shortcut
+        )
+        guard case .unavailable(let reason, let attemptedAt) = outcome else {
+            return XCTFail("Expected unavailable")
+        }
+        XCTAssertEqual(reason, .notDetermined)
+        XCTAssertGreaterThan(attemptedAt.timeIntervalSince1970, 0)
+        XCTAssertEqual(manager.authorizationRequestCount, 0)
+        XCTAssertEqual(manager.locationRequestCount, 0)
+    }
+
     func test_reverseGeocodeFailureFallsBackToGenericPrivateLabel() async throws {
         let manager = FakeCaptureLocationManager(status: .authorized)
         let service = CaptureLocationService(
@@ -175,16 +357,22 @@ final class CaptureLocationServiceTests: XCTestCase {
 private final class FakeCaptureLocationManager: CaptureLocationManaging {
     var authorizationStatus: CaptureLocationAuthorization
     var locationServicesEnabled = true
+    var accuracyAuthorization: CaptureLocationAccuracyAuthorization
     var onAuthorizationChange: ((CaptureLocationAuthorization) -> Void)?
     var onLocations: (([CLLocation]) -> Void)?
     var onFailure: ((Error) -> Void)?
+    var desiredAccuracy: CLLocationAccuracy = kCLLocationAccuracyHundredMeters
 
     private(set) var authorizationRequestCount = 0
     private(set) var locationRequestCount = 0
     private(set) var stopCount = 0
 
-    init(status: CaptureLocationAuthorization) {
+    init(
+        status: CaptureLocationAuthorization,
+        accuracy: CaptureLocationAccuracyAuthorization = .full
+    ) {
         authorizationStatus = status
+        accuracyAuthorization = accuracy
     }
 
     func requestWhenInUseAuthorization() {

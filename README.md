@@ -46,7 +46,7 @@ Capture from the main app, the Vox.md keyboard, Share Sheet, widgets, Control Ce
 ### Universal Quick Capture
 Capture typed Markdown, links, photos, selected screenshots, camera images, arbitrary files, document scans with on-device OCR and PDF generation, PencilKit sketches, journal pages extracted to Markdown, and voice attachments. Drafts and staged attachments are saved locally before export, so a permission or sync failure can be retried instead of losing the capture. With Automatic on supported iOS 26 devices, voice recordings show finalized and tentative Apple Speech text while recording. Whisper and Parakeet transcribe after recording stops. The audio remains usable if transcription is unavailable or fails.
 
-The composer is a selection-aware Markdown editor with undo, bold, italic, headings, hashtags, tasks, bullets, links, wiki links, due-date tokens, timestamps, case transformations, and paste controls. The Capture Bar can be reordered and trimmed to the actions you use. Location is an explicit one-shot action that inserts a Google Maps link; Vox.md does not monitor location or keep separate coordinate history.
+The composer is a selection-aware Markdown editor with undo, bold, italic, headings, hashtags, tasks, bullets, links, wiki links, due-date tokens, timestamps, case transformations, and paste controls. The Capture Bar can be reordered and trimmed to the actions you use. Its independent **Current Location** action remains an explicit one-shot action that inserts a Google Maps link in the draft; it does not enable preset metadata.
 
 Each Capture Preset owns one destination in an Obsidian vault or Files folder. Destinations can create new notes, target existing notes, or use daily, weekly, monthly, quarterly, or yearly rolling notes. Presets also control append or prepend placement, heading insertion, multiline YAML or Markdown entry formatting, templates, attachment subfolders, retry protection, and resolved path previews.
 
@@ -56,6 +56,15 @@ A Capture Preset describes both the intent of a capture and where it belongs. Th
 Capture processing is opt-in for typed and mixed Markdown so existing presets never rewrite user-authored text unexpectedly. When enabled, text-bearing payloads keep their association with audio or scans, Apple Intelligence runs locally when available, and deterministic/original-text fallbacks keep delivery working offline. The exact processed request is persisted before writing so retries do not rerun AI against changed settings.
 
 Quick Capture is available from the app, the Share Sheet, actionable Home Screen and Lock Screen widgets, Control Center, App Shortcuts for text, link, file, screenshot, and voice input, and preset-aware deep links. Capture history stores coarse preset, source, destination, and delivery metadata only. It does not store note text, URLs, coordinates, bookmarks, absolute paths, or attachment filenames. Pending and failed inbox items retain the content required for recovery. After delivery, Vox.md replaces each request with an ID-and-timestamp-only idempotency tombstone and sanitizes legacy completed requests on upgrade.
+
+### Opt-In Preset Location Metadata
+Location metadata is off by default and configured separately for each Capture Preset. When enabled, Vox.md requests one origin-time location: at Send for iOS/iPadOS, Share Sheet, Shortcuts, deep-link/composer, and Mac captures, or when an immediate voice or Watch recording routed through normal Capture delivery stops. Widgets, controls, and keyboard-driven preset recordings use the same invocation-or-stop boundary. Watch **Recording Only** is a privacy-minimizing raw audio export with no Markdown metadata surface, so it does not request location. There is no continuous or background location tracking.
+
+**Exact** is the default and retains the privacy-adjusted origin fix. **City** rounds latitude and longitude to two decimal places and omits point-of-interest labels. Presets can select and rename structured fields—coordinates, latitude, longitude, place, city, region, country, Apple Maps, Google Maps, OpenStreetMap, `geo:` URI, accuracy, timestamp, source, and Capture ID—or use validated advanced YAML for note frontmatter. Inline `key:: value` fields stay with an entry. Note frontmatter stores multiple locations in a collection keyed idempotently by Capture ID, preserving unrelated YAML and preventing retries from appending duplicates.
+
+Place labels use Apple’s system reverse geocoder only when a selected field needs them. It is free and needs no API key, but it may use the network and fails softly to coordinate-only metadata. Merely formatting an Apple Maps, Google Maps, or OpenStreetMap link does not contact that provider; opening a link discloses the same rounded or exact coordinates shown in the note to that provider.
+
+If a one-shot request is unavailable, an interactive surface can retry, cancel, send once without location, or save **Always Send Without Location** for that preset; preset settings expose a reset. An unattended `Ask` request keeps its durable origin-time unavailable result until a person decides, and retries never acquire a later location. Pending and failed requests may therefore retain the privacy-adjusted snapshot or unavailable outcome needed for recovery. Completed Capture requests, Watch queue items, and Capture history are scrubbed to content-free tombstones or coarse records with no coordinates, labels, provider URLs, or location templates.
 
 ### Voice Keyboard
 Add the Vox.md keyboard to iOS and dictate into any text field — Messages, Notes, Safari, or any app that accepts a keyboard. With Automatic on supported iOS 26 devices, finalized Apple Speech phrases stream into the active field while you speak; tentative words stay in the toolbar until Apple finalizes them. Whisper and Parakeet selections insert the completed transcript after recording stops. Parakeet users can optionally download the small on-device Voice Pause Detection companion to stop and transcribe keyboard segments after a configurable pause.
@@ -119,7 +128,7 @@ Unlimited transcription and Capture are a one-time **$9.99** unlock. No subscrip
 | Speech | Native, on-device Apple Speech transcription on supported iOS 26 devices |
 | Vision / VisionKit | Document scanning and on-device journal-page OCR |
 | PencilKit | In-capture sketches |
-| CoreLocation | Explicit one-shot map-link insertion |
+| CoreLocation | Explicit one-shot map-link insertion and opt-in origin-time Capture Preset metadata |
 | PhotosUI | User-selected photos and screenshot-filtered input |
 | AppIntents | App Shortcuts, Control Center actions, and preset-aware capture intents |
 | KeyboardKit | Custom keyboard UI foundation |
@@ -207,7 +216,7 @@ The app requests the following permissions/settings at runtime:
 
 - **Microphone** — records speech for local transcription or a user-requested Capture voice attachment.
 - **Camera / selected photos** — used only when explicitly adding local capture media, selected screenshots, or scans.
-- **Location When In Use** — requested only after tapping the location tool to insert one map link; no continuous monitoring or separate location history.
+- **Location When In Use** — requested only for the independent one-shot map-link action or when an opted-in Capture Preset needs its one origin-time location; no continuous or background tracking.
 - **Keyboard Full Access** — required by iOS for the keyboard extension to access the shared container and microphone workflow.
 - **Background Audio** — keeps the listening session alive while you switch apps.
 

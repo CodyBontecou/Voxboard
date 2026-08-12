@@ -177,6 +177,47 @@ struct MacCaptureWorkspaceView: View {
         } message: {
             Text("Enter a note name or vault-relative path. Vox.md inserts an Obsidian wiki link.")
         }
+        .confirmationDialog(
+            "Location",
+            isPresented: Binding(
+                get: { viewModel.locationDecision != nil },
+                set: { if !$0 { Task { await viewModel.cancelUnavailableLocation() } } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Retry") { Task { await viewModel.retryUnavailableLocation() } }
+            Button("Send Without Location") {
+                Task { await viewModel.sendWithoutUnavailableLocation(alwaysForPreset: false) }
+            }
+            Button("Always Send Without Location for This Preset") {
+                Task { await viewModel.sendWithoutUnavailableLocation(alwaysForPreset: true) }
+            }
+            Button("Cancel", role: .cancel) {
+                Task { await viewModel.cancelUnavailableLocation() }
+            }
+        } message: {
+            Text("Vox.md could not get an origin-time location. Your Capture draft is preserved.")
+        }
+        .confirmationDialog(
+            inboxLocationDecisionTitle,
+            isPresented: Binding(
+                get: { viewModel.inboxLocationDecision != nil },
+                set: { _ in }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Send Without Location") {
+                Task { await viewModel.sendInboxRequestWithoutLocation() }
+            }
+            Button("Always Send Without Location for This Preset") {
+                Task { await viewModel.sendInboxRequestWithoutLocation(alwaysForPreset: true) }
+            }
+            Button("Cancel and Discard Capture", role: .destructive) {
+                Task { await viewModel.discardInboxLocationRequest() }
+            }
+        } message: {
+            Text(inboxLocationDecisionMessage)
+        }
         .onReceive(NotificationCenter.default.publisher(for: .macShowCapture)) { notification in
             guard notification.object == nil || (notification.object as? String) == windowToken else { return }
             DispatchQueue.main.async { composerController.focus() }
@@ -231,7 +272,37 @@ struct MacCaptureWorkspaceView: View {
             .menuStyle(.borderlessButton)
             .fixedSize()
             .disabled(recorder.isRecording || recorder.isTranscribing || recorder.isExporting)
+            .accessibilityLabel("Capture Preset \(selectedFlow.displayName)")
             .accessibilityIdentifier("mac_capture_preset_selector")
+
+            if selectedFlow.locationPolicy.isEnabled {
+                HStack(spacing: Geist.Spacing.two) {
+                    if viewModel.isResolvingLocation || recorder.isResolvingLocation {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text("Finding Location…")
+                    } else {
+                        Image(systemName: "location.fill")
+                        Text("Current Location On")
+                    }
+                }
+                .font(Geist.caption())
+                .foregroundStyle(
+                    viewModel.isResolvingLocation || recorder.isResolvingLocation ? Geist.text : Geist.muted
+                )
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(
+                    (viewModel.isResolvingLocation || recorder.isResolvingLocation
+                        ? String(localized: "Finding Location…")
+                        : String(localized: "Current Location On"))
+                    + " " + selectedFlow.displayName
+                )
+                .accessibilityIdentifier(
+                    viewModel.isResolvingLocation || recorder.isResolvingLocation
+                        ? "mac_capture_finding_preset_location"
+                        : "mac_capture_active_preset_location"
+                )
+            }
 
             Button {
                 composerController.dismissFocus()
@@ -761,6 +832,22 @@ struct MacCaptureWorkspaceView: View {
         }
         return enabledFlows.first(where: { $0.id == CapturePresetStore.selectedFlowId() })
             ?? enabledFlows[0]
+    }
+
+    private var inboxLocationDecisionTitle: String {
+        guard let decision = viewModel.inboxLocationDecision else {
+            return String(localized: "Send Capture Without Location?")
+        }
+        let preset = decision.presetName ?? String(localized: "Unknown Preset")
+        return String(localized: "Location Needed for \(preset)")
+    }
+
+    private var inboxLocationDecisionMessage: String {
+        guard let decision = viewModel.inboxLocationDecision else { return "" }
+        let preset = decision.presetName ?? String(localized: "Unknown Preset")
+        return String(localized: "Send Capture Without Location?")
+            + " " + preset + ". "
+            + String(localized: "Location is unavailable. Open Vox.md to send this exact Capture without location or discard it.")
     }
 
     private var routeLabel: String {

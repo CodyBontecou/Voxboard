@@ -1,6 +1,15 @@
 import Foundation
 import VoxboardCaptureCore
 
+public extension Notification.Name {
+    static let captureInboxDecisionRequired = Notification.Name(
+        "VoxboardCaptureInboxDecisionRequired"
+    )
+    static let captureInboxDecisionResolved = Notification.Name(
+        "VoxboardCaptureInboxDecisionResolved"
+    )
+}
+
 public enum TranscriptCaptureAdapter {
     /// Unified Capture destinations receive the processed transcript body, just
     /// like typed Capture text. Standalone transcript-file exports own any
@@ -72,8 +81,13 @@ public struct TranscriptCaptureDestinationExporter {
         destinationRootURL: URL,
         stagingDirectoryURL: URL,
         audioSourceURL: URL?,
+        locationOutcome: CaptureLocationOutcome?,
         source: CaptureSource = .voice
     ) async throws -> CaptureReceipt {
+        try ConfiguredTranscriptCaptureDestinationExporter.enforceUnavailableCancellation(
+            flow: flow,
+            locationOutcome: locationOutcome
+        )
         let audioAsset: CaptureAssetReference?
         if let audioSourceURL, flow.audioSaveMode != .off {
             audioAsset = try await CaptureAssetStager(directoryURL: stagingDirectoryURL).stageCopy(
@@ -98,7 +112,8 @@ public struct TranscriptCaptureDestinationExporter {
             ),
             frontmatter: TranscriptCaptureAdapter.frontmatter(transcript: transcript, flow: flow),
             voxProfile: flow.captureProfile,
-            voxProcessingState: .applied
+            voxProcessingState: .applied,
+            locationOutcome: locationOutcome
         )
         return try await pipeline.capture(
             request,
@@ -149,6 +164,8 @@ public enum ConfiguredTranscriptCaptureError: Error, LocalizedError, Sendable {
     case destinationMissing(UUID)
     case staleDestination(String)
     case audioPreparationFailed
+    case requestPreparationFailed
+    case locationUnavailableCancelled
     case queuedForRetry(String)
 
     public var errorDescription: String? {
@@ -161,6 +178,10 @@ public enum ConfiguredTranscriptCaptureError: Error, LocalizedError, Sendable {
             return "The Files permission for ‘\(name)’ expired. Edit the capture destination and choose its folder again."
         case .audioPreparationFailed:
             return "The retained audio could not be prepared for capture. The original recording was kept for retry."
+        case .requestPreparationFailed:
+            return "The voice note could not be prepared for capture. The local transcript and recording were kept for retry."
+        case .locationUnavailableCancelled:
+            return "The Capture was cancelled because its preset requires an origin-time location. The local transcript was kept."
         case .queuedForRetry(let message):
             return "The voice note is queued for retry because its destination could not be written: \(message)"
         }
@@ -207,11 +228,13 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
         flow: CapturePreset,
         destinationID: UUID,
         audioSourceURL: URL?,
+        locationOutcome: CaptureLocationOutcome?,
         source: CaptureSource = .voice,
         captureRootURL: URL? = AppConstants.captureDirectoryURL,
         pipeline: CapturePipeline = AppCapturePipeline.shared,
         fileManager: FileManager = .default
     ) async throws -> CaptureReceipt {
+        try enforceUnavailableCancellation(flow: flow, locationOutcome: locationOutcome)
         guard let captureRootURL else { throw ConfiguredTranscriptCaptureError.storageUnavailable }
 
         // Transcript identity is the capture idempotency key. Re-entering the
@@ -262,6 +285,7 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
             frontmatter: TranscriptCaptureAdapter.frontmatter(transcript: transcript, flow: flow),
             voxProfile: flow.captureProfile,
             voxProcessingState: .applied,
+            locationOutcome: locationOutcome,
             attachmentsFolderNameOverride: TranscriptCaptureDestinationExporter
                 .attachmentFolderOverride(for: flow)
         )
@@ -286,11 +310,13 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
         destinationID: UUID,
         audioSourceURL: URL,
         preferredFilename: String? = nil,
+        locationOutcome: CaptureLocationOutcome?,
         source: CaptureSource = .watch,
         captureRootURL: URL? = AppConstants.captureDirectoryURL,
         pipeline: CapturePipeline = AppCapturePipeline.shared,
         fileManager: FileManager = .default
     ) async throws -> CaptureReceipt {
+        try enforceUnavailableCancellation(flow: flow, locationOutcome: locationOutcome)
         guard let captureRootURL else { throw ConfiguredTranscriptCaptureError.storageUnavailable }
 
         let relativeStagingDirectory = "inbox-staging/\(requestID.uuidString.lowercased())"
@@ -328,6 +354,7 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
             frontmatter: flow.staticFrontmatter,
             voxProfile: flow.captureProfile,
             voxProcessingState: .applied,
+            locationOutcome: locationOutcome,
             attachmentsFolderNameOverride: TranscriptCaptureDestinationExporter
                 .attachmentFolderOverride(for: flow)
         )
@@ -339,6 +366,17 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
             pipeline: pipeline,
             fileManager: fileManager
         )
+    }
+
+    fileprivate static func enforceUnavailableCancellation(
+        flow: CapturePreset,
+        locationOutcome: CaptureLocationOutcome?
+    ) throws {
+        guard flow.locationPolicy.isEnabled,
+              flow.locationPolicy.unavailableBehavior == .cancel else { return }
+        guard case .available = locationOutcome else {
+            throw ConfiguredTranscriptCaptureError.locationUnavailableCancelled
+        }
     }
 
     private static func deliver(
@@ -423,6 +461,14 @@ public enum ConfiguredTranscriptCaptureDestinationExporter {
             try? fileManager.removeItem(at: stagingDirectoryURL)
             return receipt
         } catch {
+            if let pipelineError = error as? CapturePipelineError,
+               case .locationDecisionRequired = pipelineError {
+                if didClaimRequest { try? await inbox.returnToPending(requestID: request.id) }
+                NotificationCenter.default.post(name: .captureInboxDecisionRequired, object: request.id)
+                throw ConfiguredTranscriptCaptureError.queuedForRetry(
+                    "Location was unavailable. Open Vox.md to send without location or discard this exact capture."
+                )
+            }
             // Preserve the exact idempotency key and any staged bytes. Failed
             // direct delivery returns the claimed request to pending so app
             // and macOS inbox drains can retry it without user content loss.

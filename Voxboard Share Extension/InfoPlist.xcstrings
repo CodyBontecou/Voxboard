@@ -143,6 +143,149 @@
           }
         }
       }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "comment": "Privacy prompt explaining optional preset location metadata in the share extension.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عند تفعيل بيانات الموقع الوصفية لإعداد مسبق للالتقاط، يحصل Vox.md على موقع واحد عند إرسال المحتوى المشترك."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনও ক্যাপচার প্রিসেটের জন্য অবস্থান মেটাডেটা চালু থাকলে, শেয়ার করা বিষয়বস্তু পাঠানোর সময় Vox.md একবার অবস্থান নেয়।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn Standortmetadaten für eine Aufnahmevoreinstellung aktiviert sind, ermittelt Vox.md beim Senden geteilter Inhalte einmalig einen Standort."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When location metadata is enabled for a Capture Preset, Vox.md gets one location when you send shared content."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando los metadatos de ubicación están activados para un preajuste de captura, Vox.md obtiene una ubicación al enviar contenido compartido."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lorsque les métadonnées de localisation sont activées pour un préréglage de capture, Vox.md obtient une seule position lors de l’envoi du contenu partagé."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जब किसी कैप्चर प्रीसेट के लिए स्थान मेटाडेटा चालू होता है, तब साझा सामग्री भेजते समय Vox.md एक बार स्थान प्राप्त करता है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saat metadata lokasi diaktifkan untuk Prasetel Tangkapan, Vox.md mengambil satu lokasi ketika Anda mengirim konten bersama."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando i metadati della posizione sono abilitati per un preset di acquisizione, Vox.md rileva una posizione quando invii contenuti condivisi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャプチャプリセットで位置情報メタデータが有効な場合、Vox.md は共有コンテンツの送信時に位置情報を一度取得します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캡처 프리셋에서 위치 메타데이터가 활성화된 경우 Vox.md는 공유 콘텐츠를 전송할 때 위치를 한 번 가져옵니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als locatiemetadata voor een opnamevoorinstelling is ingeschakeld, bepaalt Vox.md één locatie wanneer je gedeelde inhoud verstuurt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gdy metadane lokalizacji są włączone dla ustawienia przechwytywania, Vox.md jednorazowo pobiera lokalizację podczas wysyłania udostępnionej zawartości."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando os metadados de localização estão ativados para uma Predefinição de Captura, o Vox.md obtém uma localização ao enviar conteúdo compartilhado."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Если для шаблона захвата включены метаданные геопозиции, Vox.md однократно получает геопозицию при отправке общего содержимого."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "கேப்சர் முன்னமைவுக்கு இருப்பிட மெட்டாடேட்டா இயக்கப்பட்டிருந்தால், பகிரப்பட்ட உள்ளடக்கத்தை அனுப்பும்போது Vox.md ஒரு முறை இருப்பிடத்தைப் பெறுகிறது."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เมื่อเปิดใช้ข้อมูลเมตาตำแหน่งสำหรับพรีเซ็ตการจับภาพ Vox.md จะรับตำแหน่งหนึ่งครั้งเมื่อคุณส่งเนื้อหาที่แชร์"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir Yakalama Ön Ayarı için konum meta verileri etkinse Vox.md, paylaşılan içeriği gönderdiğinizde konumu bir kez alır."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Якщо для шаблону захоплення ввімкнено метадані геопозиції, Vox.md одноразово отримує геопозицію під час надсилання поширеного вмісту."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جب کسی کیپچر پری سیٹ کے لیے مقام کا میٹا ڈیٹا فعال ہو تو مشترکہ مواد بھیجتے وقت Vox.md ایک بار مقام حاصل کرتا ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khi siêu dữ liệu vị trí được bật cho Cài đặt sẵn Chụp, Vox.md lấy một vị trí khi bạn gửi nội dung được chia sẻ."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为采集预设启用位置元数据后，Vox.md 会在你发送共享内容时获取一次位置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為擷取預設啟用位置中繼資料後，Vox.md 會在你傳送共享內容時取得一次位置。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

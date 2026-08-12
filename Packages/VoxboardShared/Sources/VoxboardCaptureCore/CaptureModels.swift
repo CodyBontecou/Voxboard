@@ -385,6 +385,11 @@ public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
     /// read live settings, so later edits cannot change queued user content.
     public var voxProfile: CapturePresetProfile?
     public var voxProcessingState: CapturePresetProcessingState
+    /// The final origin-time location result. A durable unavailable result is
+    /// as meaningful as a snapshot and must never trigger later reacquisition.
+    public var locationOutcome: CaptureLocationOutcome?
+    /// Explicit one-capture resolution of an unavailable `.ask` outcome.
+    public var locationDecisionOverride: CaptureLocationDecisionOverride?
     /// Version marker for exact prepared-request reuse by durable drafts.
     public var originDraftUpdatedAt: Date?
     /// Exact one-capture route policy. These outrank the snapshotted Preset and
@@ -407,6 +412,8 @@ public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
         frontmatter: [String: String] = [:],
         voxProfile: CapturePresetProfile? = nil,
         voxProcessingState: CapturePresetProcessingState = .notRequested,
+        locationOutcome: CaptureLocationOutcome? = nil,
+        locationDecisionOverride: CaptureLocationDecisionOverride? = nil,
         originDraftUpdatedAt: Date? = nil,
         relativeNotePathOverride: String? = nil,
         placementOverride: CapturePlacement? = nil,
@@ -422,6 +429,8 @@ public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
         self.frontmatter = frontmatter
         self.voxProfile = voxProfile
         self.voxProcessingState = voxProcessingState
+        self.locationOutcome = locationOutcome
+        self.locationDecisionOverride = locationDecisionOverride
         self.originDraftUpdatedAt = originDraftUpdatedAt
         self.relativeNotePathOverride = relativeNotePathOverride
         self.placementOverride = placementOverride
@@ -443,6 +452,8 @@ public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
         case frontmatter
         case voxProfile
         case voxProcessingState
+        case locationOutcome
+        case locationDecisionOverride
         case originDraftUpdatedAt
         case relativeNotePathOverride
         case placementOverride
@@ -465,6 +476,11 @@ public struct CaptureRequest: Identifiable, Codable, Equatable, Sendable {
             voxProfile: container.decodeIfPresent(CapturePresetProfile.self, forKey: .voxProfile),
             voxProcessingState: container.decodeIfPresent(CapturePresetProcessingState.self, forKey: .voxProcessingState)
                 ?? .notRequested,
+            locationOutcome: container.decodeIfPresent(CaptureLocationOutcome.self, forKey: .locationOutcome),
+            locationDecisionOverride: container.decodeIfPresent(
+                CaptureLocationDecisionOverride.self,
+                forKey: .locationDecisionOverride
+            ),
             originDraftUpdatedAt: container.decodeIfPresent(Date.self, forKey: .originDraftUpdatedAt),
             relativeNotePathOverride: container.decodeIfPresent(String.self, forKey: .relativeNotePathOverride),
             placementOverride: container.decodeIfPresent(CapturePlacement.self, forKey: .placementOverride),

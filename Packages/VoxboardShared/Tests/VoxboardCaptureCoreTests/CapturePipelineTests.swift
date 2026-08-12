@@ -567,6 +567,139 @@ final class CapturePipelineTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("attachments/page.jpg").path))
     }
 
+    func test_unattendedAskLocationOutcomeRequiresDurableDecision() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        let profile = CapturePresetProfile(
+            id: "location",
+            name: "Location",
+            symbolName: "location",
+            locationPolicy: CapturePresetLocationPolicy(isEnabled: true, unavailableBehavior: .ask)
+        )
+        let request = CaptureRequest(
+            source: .shortcut,
+            destinationID: destination.id,
+            payloads: [.text("Do not silently deliver")],
+            voxProfile: profile,
+            locationOutcome: .unavailable(.permissionDenied, attemptedAt: Date())
+        )
+
+        do {
+            _ = try await CapturePipeline().capture(request, destination: destination, rootURL: root)
+            XCTFail("Expected a location decision")
+        } catch let error as CapturePipelineError {
+            XCTAssertEqual(error, .locationDecisionRequired(.permissionDenied))
+        }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Inbox.md").path))
+    }
+
+    func test_oneTimeSendWithoutOverrideDoesNotChangeAskPolicy() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        let profile = CapturePresetProfile(
+            id: "location",
+            name: "Location",
+            symbolName: "location",
+            locationPolicy: CapturePresetLocationPolicy(isEnabled: true, unavailableBehavior: .ask)
+        )
+        let attemptedAt = Date(timeIntervalSince1970: 1_700_000_000)
+        let oneTime = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("One time")],
+            voxProfile: profile,
+            locationOutcome: .unavailable(.timeout, attemptedAt: attemptedAt),
+            locationDecisionOverride: .sendWithoutLocation
+        )
+        _ = try await CapturePipeline().capture(oneTime, destination: destination, rootURL: root)
+        XCTAssertEqual(oneTime.voxProfile?.locationPolicy.unavailableBehavior, .ask)
+
+        let next = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("Next capture")],
+            voxProfile: profile,
+            locationOutcome: .unavailable(.timeout, attemptedAt: attemptedAt)
+        )
+        do {
+            _ = try await CapturePipeline().capture(next, destination: destination, rootURL: root)
+            XCTFail("A later ask capture must still require a decision")
+        } catch let error as CapturePipelineError {
+            XCTAssertEqual(error, .locationDecisionRequired(.timeout))
+        }
+    }
+
+    func test_sendWithoutLocationPolicyDeliversUnavailableSnapshotWithoutReacquiring() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        let profile = CapturePresetProfile(
+            id: "location",
+            name: "Location",
+            symbolName: "location",
+            locationPolicy: CapturePresetLocationPolicy(
+                isEnabled: true,
+                unavailableBehavior: .sendWithoutLocation
+            )
+        )
+        let request = CaptureRequest(
+            source: .shortcut,
+            destinationID: destination.id,
+            payloads: [.text("Coordinate-free")],
+            voxProfile: profile,
+            locationOutcome: .unavailable(.timeout, attemptedAt: Date())
+        )
+
+        _ = try await CapturePipeline().capture(request, destination: destination, rootURL: root)
+        let markdown = try String(contentsOf: root.appendingPathComponent("Inbox.md"), encoding: .utf8)
+        XCTAssertTrue(markdown.contains("Coordinate-free"))
+        XCTAssertFalse(markdown.contains("locations:"))
+    }
+
+    func test_documentScopedLocationAppendsFrontmatterCollectionThroughPipeline() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let noteURL = root.appendingPathComponent("Inbox.md")
+        try "---\ntitle: Keep\n---\n\nExisting".write(to: noteURL, atomically: true, encoding: .utf8)
+        let destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        let requestID = UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE")!
+        let profile = CapturePresetProfile(
+            id: "travel",
+            name: "Travel",
+            symbolName: "location",
+            locationPolicy: CapturePresetLocationPolicy(
+                isEnabled: true,
+                structuredFields: [.latitude, .longitude, .id]
+            )
+        )
+        let request = CaptureRequest(
+            id: requestID,
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("Visited")],
+            voxProfile: profile,
+            locationOutcome: .available(CaptureLocationSnapshot(
+                latitude: 10.25,
+                longitude: -20.5,
+                timestamp: Date(timeIntervalSince1970: 1_700_000_000),
+                source: .app,
+                precision: .exact
+            ))
+        )
+
+        let pipeline = CapturePipeline()
+        _ = try await pipeline.capture(request, destination: destination, rootURL: root)
+        _ = try await pipeline.capture(request, destination: destination, rootURL: root)
+
+        let markdown = try String(contentsOf: noteURL, encoding: .utf8)
+        XCTAssertTrue(markdown.contains("title: Keep"))
+        XCTAssertTrue(markdown.contains("locations:\n  - id: \"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\""))
+        XCTAssertTrue(markdown.contains("latitude: 10.250000"))
+        XCTAssertEqual(markdown.components(separatedBy: "Visited").count - 1, 1)
+    }
+
     func test_entryScopedVoxMetadataStaysWithEachRollingNoteEntry() async throws {
         let root = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: root) }

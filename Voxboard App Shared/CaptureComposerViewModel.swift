@@ -15,12 +15,17 @@ final class QuickCaptureViewModel {
     var defaultDestinationID: UUID?
     var isLoading = false
     var isSubmitting = false
+    var isResolvingLocation = false
     var errorMessage: String?
     var lastReceipt: CaptureReceipt?
     var failedInboxCount = 0
     var historyRecords: [CaptureHistoryRecord] = []
     var requestedInput: CaptureRequestedInput?
     var needsCaptureUnlock = false
+    /// Non-nil keeps the draft intact while the foreground UI asks how to
+    /// handle this origin-time unavailable result.
+    var locationDecision: CaptureLocationDecision?
+    var inboxLocationDecision: CaptureInboxLocationDecision?
 
     private let captureRootURL: URL?
     private let defaultCaptureSource: CaptureSource
@@ -29,6 +34,7 @@ final class QuickCaptureViewModel {
     private let historyStore: CaptureHistoryStore?
     private let pipeline: CapturePipeline
     private let requestProcessor: CapturePresetRequestProcessor
+    private let locationProvider: any CaptureLocationOutcomeProviding
     private var pendingDraftSave: Task<Void, Never>?
     private var initialLoadTask: Task<Bool, Never>?
     private var hasLoaded = false
@@ -37,11 +43,13 @@ final class QuickCaptureViewModel {
     private var liveRecordedTranscriptPreview: LiveTranscriptDraftPreview?
     private var liveRecordedTranscriptSessionID: UUID?
     private var invalidatedLiveTranscriptSessionIDs = Set<UUID>()
+    private var pendingSendWithoutLocationOutcome: CaptureLocationOutcome?
 
     init(
         captureRootURL: URL? = AppConstants.captureDirectoryURL,
         defaultCaptureSource: CaptureSource = .app,
-        requestProcessor: CapturePresetRequestProcessor = CapturePresetRequestProcessor()
+        requestProcessor: CapturePresetRequestProcessor = CapturePresetRequestProcessor(),
+        locationProvider: (any CaptureLocationOutcomeProviding)? = nil
     ) {
         self.captureRootURL = captureRootURL
         self.defaultCaptureSource = defaultCaptureSource
@@ -60,6 +68,7 @@ final class QuickCaptureViewModel {
         }
         self.pipeline = AppCapturePipeline.shared
         self.requestProcessor = requestProcessor
+        self.locationProvider = locationProvider ?? CaptureLocationService()
     }
 
     var selectedVoxProfile: CapturePresetProfile? {
@@ -523,6 +532,84 @@ final class QuickCaptureViewModel {
         await saveDraftNow()
     }
 
+    /// Persists an imported recording's source, origin result, and immutable
+    /// Preset policy before audio conversion/transcription can continue.
+    @discardableResult
+    func journalRecordedOrigin(
+        source: CaptureSource,
+        outcome: CaptureLocationOutcome?,
+        profileSnapshot: CapturePresetProfile
+    ) async -> Bool {
+        await load()
+        guard let draftStore else {
+            errorMessage = QuickCaptureViewModelError.storageUnavailable.localizedDescription
+            return false
+        }
+        guard draft.voxID == profileSnapshot.id else { return false }
+        let journaledDraftID = draft.id
+        let journaledRequestID = draft.requestID
+        do {
+            let journaled = try await draftStore.journalLocation(
+                draftID: draft.id,
+                requestID: draft.requestID,
+                outcome: outcome,
+                decisionOverride: draft.locationDecisionOverride,
+                profileSnapshot: profileSnapshot,
+                captureSource: source,
+                expectedVoxID: profileSnapshot.id
+            )
+            guard draft.id == journaledDraftID,
+                  draft.requestID == journaledRequestID,
+                  draft.voxID == profileSnapshot.id else {
+                // Preset selection is debounced. If it changed while the actor
+                // write was suspended, immediately restore the newer in-memory
+                // draft so the stale import snapshot cannot win on disk.
+                try? await draftStore.save(draft)
+                return false
+            }
+            draft.captureSource = source
+            draft.locationOutcome = outcome
+            draft.voxProfileSnapshot = profileSnapshot
+            errorMessage = nil
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    @discardableResult
+    func clearRecordedOrigin(profileID: String) async -> Bool {
+        await load()
+        guard let draftStore else { return false }
+        guard draft.voxID == profileID,
+              draft.voxProfileSnapshot?.id == profileID else { return true }
+        let clearedDraftID = draft.id
+        let clearedRequestID = draft.requestID
+        do {
+            let cleared = try await draftStore.clearLocationJournal(
+                draftID: draft.id,
+                requestID: draft.requestID,
+                captureSource: .fileImport,
+                expectedProfileID: profileID
+            )
+            guard draft.id == clearedDraftID,
+                  draft.requestID == clearedRequestID,
+                  draft.voxID == profileID else {
+                try? await draftStore.save(draft)
+                return true
+            }
+            draft.captureSource = cleared.captureSource
+            draft.locationOutcome = cleared.locationOutcome
+            draft.locationDecisionOverride = cleared.locationDecisionOverride
+            draft.voxProfileSnapshot = cleared.voxProfileSnapshot
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
     @discardableResult
     func appendRecordedTranscript(_ text: String) async -> Bool {
         await load()
@@ -898,7 +985,9 @@ final class QuickCaptureViewModel {
         let submittedAt = Date()
         draft.beginCaptureIfNeeded(at: submittedAt)
         var submittedDraft = draft
-        let submittedVoxProfile = selectedVoxProfile
+        // A journaled origin result owns the exact Preset policy that produced
+        // it. Do not combine that outcome with later edits to the same Preset.
+        let submittedVoxProfile = submittedDraft.voxProfileSnapshot ?? selectedVoxProfile
         guard let submittedDestinationID = effectiveDestinationID else {
             isSubmitting = false
             errorMessage = CaptureDraftError.destinationRequired.localizedDescription
@@ -908,6 +997,70 @@ final class QuickCaptureViewModel {
             submittedDraft = try await draftStore.save(submittedDraft, now: submittedAt)
             draft.preserveCaptureStart(from: submittedDraft)
             let submittedDraftID = submittedDraft.id
+            let preparedCandidate = try await draftStore.loadPreparedRequest(draftID: submittedDraftID)
+            let reusablePrepared = preparedCandidate.flatMap { prepared -> CaptureRequest? in
+                CapturePreparedRequestReuse.matches(
+                    prepared,
+                    draft: submittedDraft,
+                    destinationID: submittedDestinationID,
+                    presetID: submittedVoxProfile?.id
+                ) ? prepared : nil
+            }
+            if submittedVoxProfile?.locationPolicy.isEnabled == true, reusablePrepared == nil {
+                let policy = submittedVoxProfile!.locationPolicy
+                let usedExplicitSendWithout = pendingSendWithoutLocationOutcome != nil
+                let outcome: CaptureLocationOutcome
+                if let pendingSendWithoutLocationOutcome {
+                    outcome = pendingSendWithoutLocationOutcome
+                } else if let durableOutcome = submittedDraft.locationOutcome {
+                    // A suspended/relaunched Send reuses the exact origin result.
+                    outcome = durableOutcome
+                } else {
+                    isResolvingLocation = true
+                    outcome = await locationProvider.resolveLocation(
+                        policy: policy,
+                        source: submittedDraft.captureSource ?? defaultCaptureSource
+                    )
+                    isResolvingLocation = false
+                }
+                pendingSendWithoutLocationOutcome = nil
+                let decisionOverride: CaptureLocationDecisionOverride? = usedExplicitSendWithout
+                    ? .sendWithoutLocation
+                    : submittedDraft.locationDecisionOverride
+                // Journal before showing a decision or starting asynchronous
+                // preset processing. This merge preserves concurrent draft edits.
+                submittedDraft = try await draftStore.journalLocation(
+                    draftID: submittedDraft.id,
+                    requestID: submittedDraft.requestID,
+                    outcome: outcome,
+                    decisionOverride: decisionOverride,
+                    profileSnapshot: submittedVoxProfile
+                )
+                if draft.id == submittedDraft.id, draft.requestID == submittedDraft.requestID {
+                    draft.locationOutcome = outcome
+                    draft.locationDecisionOverride = decisionOverride
+                    draft.voxProfileSnapshot = submittedVoxProfile
+                }
+                if case .unavailable(let reason, let attemptedAt) = outcome,
+                   decisionOverride != .sendWithoutLocation {
+                    switch policy.unavailableBehavior {
+                    case .ask:
+                        locationDecision = CaptureLocationDecision(
+                            reason: reason,
+                            attemptedAt: attemptedAt,
+                            presetID: submittedVoxProfile!.id
+                        )
+                        isSubmitting = false
+                        return
+                    case .cancel:
+                        isSubmitting = false
+                        return
+                    case .sendWithoutLocation:
+                        break
+                    }
+                }
+            }
+            locationDecision = nil
             let pipeline = self.pipeline
             let requestProcessor = self.requestProcessor
             let receipt = try await draftStore.submit(draftID: submittedDraftID) { draft in
@@ -934,13 +1087,8 @@ final class QuickCaptureViewModel {
                     destination.noteTarget = .existingNote(relativePath: noteOverride)
                 }
                 let request: CaptureRequest
-                if let prepared = try await draftStore.loadPreparedRequest(draftID: draft.id),
-                   prepared.id == draft.requestID,
-                   prepared.originDraftUpdatedAt == draft.updatedAt,
-                   prepared.destinationID == submittedDestinationID,
-                   prepared.voxProfile == submittedVoxProfile,
-                   prepared.voxProcessingState != .pending {
-                    request = prepared
+                if let reusablePrepared {
+                    request = reusablePrepared
                 } else {
                     let unresolved = try draft.makeRequest(
                         source: defaultCaptureSource,
@@ -1033,6 +1181,65 @@ final class QuickCaptureViewModel {
         isSubmitting = false
     }
 
+    func retryUnavailableLocation() async {
+        locationDecision = nil
+        pendingSendWithoutLocationOutcome = nil
+        do {
+            draft = try await draftStore?.journalLocation(
+                draftID: draft.id,
+                requestID: draft.requestID,
+                outcome: nil,
+                decisionOverride: nil
+            ) ?? draft
+            await submit()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func sendWithoutUnavailableLocation(alwaysForPreset: Bool) async {
+        guard let decision = locationDecision else { return }
+        let outcome = CaptureLocationOutcome.unavailable(
+            decision.reason,
+            attemptedAt: decision.attemptedAt
+        )
+        pendingSendWithoutLocationOutcome = outcome
+        do {
+            draft = try await draftStore?.journalLocation(
+                draftID: draft.id,
+                requestID: draft.requestID,
+                outcome: outcome,
+                decisionOverride: .sendWithoutLocation
+            ) ?? draft
+        } catch {
+            errorMessage = error.localizedDescription
+            return
+        }
+        if alwaysForPreset {
+            CapturePresetStore.setLocationUnavailableBehavior(
+                .sendWithoutLocation,
+                presetID: decision.presetID,
+                defaults: AppConstants.sharedDefaults
+            )
+            refreshVoxProfiles()
+        }
+        locationDecision = nil
+        await submit()
+    }
+
+    func cancelUnavailableLocation() async {
+        locationDecision = nil
+        pendingSendWithoutLocationOutcome = nil
+        do {
+            draft = try await draftStore?.clearLocationJournal(
+                draftID: draft.id,
+                requestID: draft.requestID
+            ) ?? draft
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func handleDeepLink(_ action: CaptureDeepLinkAction) async {
         do {
             if destinations.isEmpty { await load() }
@@ -1088,10 +1295,12 @@ final class QuickCaptureViewModel {
             try await recoverOrphanedInboxRequests(in: inbox)
             _ = try await inbox.purgeCompleted(olderThan: 7 * 24 * 60 * 60)
             _ = try await inbox.purgeOrphanedStaging(olderThan: 24 * 60 * 60)
+            _ = try await CaptureRecordingOriginStore(rootDirectoryURL: captureRootURL)
+                .purge(olderThan: 24 * 60 * 60)
             var latestFailure: Error?
-            var quotaBlockedRequestIDs = Set<UUID>()
+            var blockedRequestIDs = Set<UUID>()
             while let request = try await inbox.claimNext(
-                excludingRequestIDs: quotaBlockedRequestIDs
+                excludingRequestIDs: blockedRequestIDs
             ) {
                 do {
                     try await processClaimedInboxRequest(request, inbox: inbox)
@@ -1101,7 +1310,10 @@ final class QuickCaptureViewModel {
                     }
                     // Keep this request pending, skip it for this drain, and
                     // continue so a later metered-voice request is not starved.
-                    quotaBlockedRequestIDs.insert(request.id)
+                    blockedRequestIDs.insert(request.id)
+                    continue
+                } catch CapturePipelineError.locationDecisionRequired {
+                    blockedRequestIDs.insert(request.id)
                     continue
                 } catch {
                     latestFailure = error
@@ -1116,6 +1328,57 @@ final class QuickCaptureViewModel {
         } catch {
             errorMessage = error.localizedDescription
             failedInboxCount = (try? await inbox.requestIDs(in: .failed).count) ?? failedInboxCount
+        }
+    }
+
+    func sendInboxRequestWithoutLocation(alwaysForPreset: Bool = false) async {
+        guard let decision = inboxLocationDecision,
+              let captureRootURL else { return }
+        let inbox = CaptureInbox(rootDirectoryURL: captureRootURL)
+        do {
+            guard try await inbox.sendWithoutLocation(requestID: decision.requestID) else {
+                throw QuickCaptureViewModelError.inboxRequestUnavailable
+            }
+            if alwaysForPreset, let presetID = decision.presetID {
+                CapturePresetStore.setLocationUnavailableBehavior(
+                    .sendWithoutLocation,
+                    presetID: presetID,
+                    defaults: AppConstants.sharedDefaults
+                )
+                refreshVoxProfiles()
+            }
+            inboxLocationDecision = nil
+            try await processInboxRequest(id: decision.requestID)
+            NotificationCenter.default.post(
+                name: .captureInboxDecisionResolved,
+                object: decision.requestID,
+                userInfo: ["discarded": false]
+            )
+            errorMessage = nil
+            await processPendingInbox()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func discardInboxLocationRequest() async {
+        guard let decision = inboxLocationDecision,
+              let captureRootURL else { return }
+        do {
+            let inbox = CaptureInbox(rootDirectoryURL: captureRootURL)
+            guard try await inbox.discard(requestID: decision.requestID) else {
+                throw QuickCaptureViewModelError.inboxRequestUnavailable
+            }
+            inboxLocationDecision = nil
+            NotificationCenter.default.post(
+                name: .captureInboxDecisionResolved,
+                object: decision.requestID,
+                userInfo: ["discarded": true]
+            )
+            errorMessage = nil
+            await processPendingInbox()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 
@@ -1374,6 +1637,32 @@ final class QuickCaptureViewModel {
                 needsCaptureUnlock = true
             }
             throw error
+        } catch let error as CapturePipelineError {
+            if case .locationDecisionRequired(let reason) = error {
+                // Preserve the exact processed request and origin outcome in a
+                // pending state. This is a user decision, not delivery failure.
+                try? await inbox.replaceProcessingRequest(request)
+                try? await inbox.returnToPending(requestID: request.id)
+                inboxLocationDecision = CaptureInboxLocationDecision(
+                    requestID: request.id,
+                    reason: reason,
+                    source: request.source,
+                    presetID: request.voxProfile?.id,
+                    presetName: request.voxProfile?.displayName
+                )
+                throw error
+            }
+            await recordHistory(
+                request: request,
+                destinationName: destinations.first(where: { $0.id == request.destinationID })?.name
+                    ?? String(localized: "Unavailable destination"),
+                relativeNotePath: nil,
+                attachmentCount: request.payloads.flatMap(Self.assets(in:)).count,
+                outcome: .failed,
+                failureCategory: Self.historyFailureCategory(for: error)
+            )
+            try? await inbox.fail(requestID: request.id)
+            throw error
         } catch {
             await recordHistory(
                 request: request,
@@ -1396,6 +1685,20 @@ final class QuickCaptureViewModel {
         }
         return resolution.url
     }
+}
+
+struct CaptureInboxLocationDecision: Equatable {
+    var requestID: UUID
+    var reason: CaptureLocationUnavailableReason?
+    var source: CaptureSource
+    var presetID: String?
+    var presetName: String?
+}
+
+struct CaptureLocationDecision: Equatable {
+    var reason: CaptureLocationUnavailableReason
+    var attemptedAt: Date
+    var presetID: String
 }
 
 enum QuickCaptureViewModelError: Error, LocalizedError {

@@ -266,6 +266,7 @@ enum WatchRecordingFileMetadataKey {
     static let presetID = "presetID"
     static let presetName = "presetName"
     static let presetSnapshot = "presetSnapshot"
+    static let locationOutcome = "locationOutcome"
 }
 
 enum WatchRecordingDeepLink {
@@ -739,7 +740,8 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
         duration: TimeInterval,
         presetID: String?,
         presetName: String?,
-        presetSnapshot: Data?
+        presetSnapshot: Data?,
+        locationOutcome: Data?
     ) -> Bool {
         guard WCSession.isSupported() else {
             setSnapshot(WatchRecordingSnapshot(
@@ -792,6 +794,9 @@ final class WatchPhoneBridge: NSObject, ObservableObject {
         if let presetID { metadata[WatchRecordingFileMetadataKey.presetID] = presetID }
         if let presetName { metadata[WatchRecordingFileMetadataKey.presetName] = presetName }
         if let presetSnapshot { metadata[WatchRecordingFileMetadataKey.presetSnapshot] = presetSnapshot }
+        if let locationOutcome {
+            metadata[WatchRecordingFileMetadataKey.locationOutcome] = locationOutcome
+        }
 
         session.transferFile(fileURL, metadata: metadata)
         setSnapshot(WatchRecordingSnapshot(

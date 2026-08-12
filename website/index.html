@@ -345,7 +345,7 @@
     <div class="section-header reveal rd1">
       <div class="section-label">04 / Capture Presets</div>
       <h2 class="section-title">One Preset for Intent and Destination</h2>
-      <p class="section-kicker">A Capture Preset remembers how to process and format a capture, plus the vault, note target, placement, attachments, and retry behavior. Pick one and keep moving.</p>
+      <p class="section-kicker">A Capture Preset remembers how to process and format a capture, plus the vault, note target, placement, attachments, retry behavior, and optional one-shot origin location metadata. Pick one and keep moving.</p>
     </div>
     <div class="route-pipeline reveal rd2" aria-label="Example Markdown route">
       <div class="route-pipeline-step">
@@ -392,6 +392,11 @@
         <div class="destination-meta">Markdown · YAML · Tokens</div>
         <div class="destination-label">Keep repeated captures consistent without reformatting them.</div>
       </div>
+      <div class="destination-card">
+        <div class="destination-name">Opt-In Location</div>
+        <div class="destination-meta">Exact · City · Structured YAML</div>
+        <div class="destination-label">Add one origin-time location to frontmatter or inline fields without background tracking.</div>
+      </div>
     </div>
   </div>
 </section>
@@ -411,7 +416,8 @@
       <div class="spec-row"><div class="spec-key">Rolling periods</div><div class="spec-val">Daily, weekly, monthly, quarterly, and yearly</div></div>
       <div class="spec-row"><div class="spec-key">Obsidian syntax</div><div class="spec-val">Wikilinks and embedded attachments</div></div>
       <div class="spec-row"><div class="spec-key">Entry formats</div><div class="spec-val">Reusable Markdown and YAML templates</div></div>
-      <div class="spec-row"><div class="spec-key">System entry points</div><div class="spec-val">App, widgets, Shortcuts, share extension, and keyboard</div></div>
+      <div class="spec-row"><div class="spec-key">System entry points</div><div class="spec-val">App, widgets, Shortcuts, share extension, keyboard, Apple Watch, and Mac</div></div>
+      <div class="spec-row"><div class="spec-key">Preset location</div><div class="spec-val">Opt-in one-shot origin metadata; Exact default or City rounding; no background tracking</div></div>
       <div class="spec-row"><div class="spec-key">Voice processing</div><div class="spec-val">On-device Apple Speech, Whisper, or Parakeet</div></div>
       <div class="spec-row"><div class="spec-key">Audio uploads</div><div class="spec-val">None for transcription</div></div>
       <div class="spec-row"><div class="spec-key">Account</div><div class="spec-val">Not required</div></div>
@@ -425,7 +431,7 @@
     <div class="privacy-eyebrow">Local First · User Controlled</div>
     <h2 class="privacy-title">Your Notes<br>Stay Yours</h2>
     <p class="privacy-desc">
-      Capture drafts, attachments, note paths, templates, typed text, and transcripts are not sent to Vox.md servers. Files go only to the destination you choose, and voice transcription runs on your device.
+      Capture drafts, attachments, note paths, templates, typed text, transcripts, and opted-in location are not collected by Vox.md servers or analytics. Files go only to the destination you choose, voice transcription runs on your device, and location is never tracked continuously or in the background.
     </p>
     <div class="privacy-flow" aria-label="Local data flow">
       <div><span>01</span><strong>Capture Draft</strong><small>On your device</small></div>

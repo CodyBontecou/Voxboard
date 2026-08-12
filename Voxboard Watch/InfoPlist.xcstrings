@@ -286,6 +286,149 @@
           }
         }
       }
+    },
+    "NSLocationWhenInUseUsageDescription": {
+      "comment": "Privacy prompt explaining one-shot Watch location access.",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عند تفعيل الموقع لإعداد مسبق للالتقاط، يحصل Vox.md على موقع واحد من Apple Watch هذه عند توقف التسجيل."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনও ক্যাপচার প্রিসেটের জন্য অবস্থান চালু থাকলে, রেকর্ডিং থামার সময় Vox.md এই Apple Watch থেকে একবার অবস্থান নেয়।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn der Standort für eine Aufnahmevoreinstellung aktiviert ist, ermittelt Vox.md beim Beenden der Aufnahme einmalig den Standort dieser Apple Watch."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When location is enabled for a Capture Preset, Vox.md gets one location from this Apple Watch when recording stops."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando la ubicación está activada para un preajuste de captura, Vox.md obtiene una ubicación de este Apple Watch al detenerse la grabación."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lorsque la localisation est activée pour un préréglage de capture, Vox.md obtient une seule position depuis cette Apple Watch à l’arrêt de l’enregistrement."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जब किसी कैप्चर प्रीसेट के लिए स्थान चालू होता है, तब रिकॉर्डिंग रुकने पर Vox.md इस Apple Watch से एक बार स्थान प्राप्त करता है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saat lokasi diaktifkan untuk Prasetel Tangkapan, Vox.md mengambil satu lokasi dari Apple Watch ini ketika perekaman berhenti."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando la posizione è abilitata per un preset di acquisizione, Vox.md rileva una posizione da questo Apple Watch al termine della registrazione."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャプチャプリセットで位置情報が有効な場合、Vox.md は録音の停止時にこの Apple Watch から位置情報を一度取得します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캡처 프리셋에서 위치가 활성화된 경우 Vox.md는 녹음이 중지될 때 이 Apple Watch에서 위치를 한 번 가져옵니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als locatie voor een opnamevoorinstelling is ingeschakeld, bepaalt Vox.md één locatie van deze Apple Watch wanneer de opname stopt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gdy lokalizacja jest włączona dla ustawienia przechwytywania, Vox.md jednorazowo pobiera lokalizację z tego Apple Watch po zatrzymaniu nagrywania."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quando a localização está ativada para uma Predefinição de Captura, o Vox.md obtém uma localização deste Apple Watch quando a gravação para."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Если для шаблона захвата включена геопозиция, Vox.md однократно получает геопозицию с этих Apple Watch при остановке записи."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "கேப்சர் முன்னமைவுக்கு இருப்பிடம் இயக்கப்பட்டிருந்தால், பதிவு நிறுத்தப்படும்போது Vox.md இந்த Apple Watch இலிருந்து ஒரு முறை இருப்பிடத்தைப் பெறுகிறது."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เมื่อเปิดใช้ตำแหน่งสำหรับพรีเซ็ตการจับภาพ Vox.md จะรับตำแหน่งจาก Apple Watch เรือนนี้หนึ่งครั้งเมื่อหยุดบันทึก"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir Yakalama Ön Ayarı için konum etkinse Vox.md, kayıt durduğunda bu Apple Watch’tan konumu bir kez alır."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Якщо для шаблону захоплення ввімкнено геопозицію, Vox.md одноразово отримує геопозицію з цього Apple Watch після зупинки запису."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جب کسی کیپچر پری سیٹ کے لیے مقام فعال ہو تو ریکارڈنگ رکنے پر Vox.md اس Apple Watch سے ایک بار مقام حاصل کرتا ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khi vị trí được bật cho Cài đặt sẵn Chụp, Vox.md lấy một vị trí từ Apple Watch này khi dừng ghi âm."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为采集预设启用位置后，Vox.md 会在录音停止时从此 Apple Watch 获取一次位置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "為擷取預設啟用位置後，Vox.md 會在錄音停止時從此 Apple Watch 取得一次位置。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

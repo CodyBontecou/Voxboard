@@ -20,6 +20,91 @@ final class CapturePresetTests: XCTestCase {
         XCTAssertFalse(CapturePresetStore.makeCustomFlow().speakerDiarizationEnabled)
     }
 
+    func test_locationPolicyDefaultsDisabledAndRoundTripsIntoCaptureProfile() throws {
+        var preset = CapturePresetStore.makeCustomFlow()
+        XCTAssertFalse(preset.locationPolicy.isEnabled)
+
+        preset.locationPolicy = CapturePresetLocationPolicy(
+            isEnabled: true,
+            precision: .city,
+            unavailableBehavior: .sendWithoutLocation,
+            outputMode: .advancedTemplate,
+            structuredFields: [.city, .geoURI],
+            collectionKey: "visits",
+            advancedTemplate: "city: {{city}}"
+        )
+        let decoded = try JSONDecoder().decode(
+            CapturePreset.self,
+            from: JSONEncoder().encode(preset)
+        )
+        XCTAssertEqual(decoded.locationPolicy, preset.locationPolicy)
+        XCTAssertEqual(decoded.captureProfile.locationPolicy, preset.locationPolicy)
+
+        var legacyObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(preset)) as? [String: Any]
+        )
+        legacyObject.removeValue(forKey: "locationPolicy")
+        let legacy = try JSONDecoder().decode(
+            CapturePreset.self,
+            from: JSONSerialization.data(withJSONObject: legacyObject)
+        )
+        XCTAssertFalse(legacy.locationPolicy.isEnabled)
+        XCTAssertEqual(legacy.locationPolicy.structuredFields, CapturePresetLocationPolicy.defaultStructuredFields)
+    }
+
+    func test_alwaysSendWithoutLocationDecisionPersistsAndCanBeReset() throws {
+        let suite = "RecordingFlowLocationPolicyTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        var preset = CapturePresetStore.makeCustomFlow()
+        preset.locationPolicy = CapturePresetLocationPolicy(isEnabled: true, unavailableBehavior: .ask)
+        CapturePresetStore.saveFlows([CapturePresetStore.defaultFlow, preset], defaults: defaults)
+
+        CapturePresetStore.setLocationUnavailableBehavior(
+            .sendWithoutLocation,
+            presetID: preset.id,
+            defaults: defaults
+        )
+        XCTAssertEqual(
+            CapturePresetStore.loadFlows(defaults: defaults).first(where: { $0.id == preset.id })?
+                .locationPolicy.unavailableBehavior,
+            .sendWithoutLocation
+        )
+
+        CapturePresetStore.setLocationUnavailableBehavior(.ask, presetID: preset.id, defaults: defaults)
+        XCTAssertEqual(
+            CapturePresetStore.loadFlows(defaults: defaults).first(where: { $0.id == preset.id })?
+                .locationPolicy.unavailableBehavior,
+            .ask
+        )
+    }
+
+    func test_concurrentUnavailableBehaviorUpdatesDoNotLoseAnotherPreset() throws {
+        let suite = "RecordingFlowLocationLockTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let first = CapturePresetStore.makeCustomFlow()
+        let second = CapturePresetStore.makeCustomFlow()
+        CapturePresetStore.saveFlows([CapturePresetStore.defaultFlow, first, second], defaults: defaults)
+
+        DispatchQueue.concurrentPerform(iterations: 2) { index in
+            CapturePresetStore.setLocationUnavailableBehavior(
+                .sendWithoutLocation,
+                presetID: index == 0 ? first.id : second.id,
+                defaults: defaults
+            )
+        }
+        let loaded = CapturePresetStore.loadFlows(defaults: defaults)
+        XCTAssertEqual(
+            loaded.first(where: { $0.id == first.id })?.locationPolicy.unavailableBehavior,
+            .sendWithoutLocation
+        )
+        XCTAssertEqual(
+            loaded.first(where: { $0.id == second.id })?.locationPolicy.unavailableBehavior,
+            .sendWithoutLocation
+        )
+    }
+
     func test_speakerDiarizationIsOptInAndRoundTrips() throws {
         var flow = CapturePresetStore.makeCustomFlow()
         flow.speakerDiarizationEnabled = true

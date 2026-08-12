@@ -21,6 +21,9 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
     public var entryPrefix: String
     public var entrySuffix: String
     public var frontmatter: [String: String]
+    /// A typed location item appended to its request-ID keyed frontmatter
+    /// collection. Nil preserves all legacy mutation behavior.
+    public var locationMetadata: CaptureLocationRenderedMetadata?
     public var retryProtectionEnabled: Bool
     /// Production pipeline writes include an authorized root and relative path
     /// so the writer can use descriptor-relative, no-symlink I/O.
@@ -34,6 +37,7 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
         entryPrefix: String = "",
         entrySuffix: String = "",
         frontmatter: [String: String] = [:],
+        locationMetadata: CaptureLocationRenderedMetadata? = nil,
         retryProtectionEnabled: Bool = false,
         destinationRootURL: URL? = nil,
         relativeNotePath: String? = nil
@@ -44,6 +48,7 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
         self.entryPrefix = entryPrefix
         self.entrySuffix = entrySuffix
         self.frontmatter = frontmatter
+        self.locationMetadata = locationMetadata
         self.retryProtectionEnabled = retryProtectionEnabled
         self.destinationRootURL = destinationRootURL
         self.relativeNotePath = relativeNotePath
@@ -61,6 +66,10 @@ public struct MarkdownDocumentEditor: Sendable {
         }
 
         var documentParts = splitLeadingFrontmatter(normalizedDocument)
+        if let location = mutation.locationMetadata,
+           try validatedLocationCollectionContains(location, in: documentParts.frontmatter) {
+            return normalizedDocument
+        }
         let entryParts = splitLeadingFrontmatter(normalizeNewlines(mutation.entry))
         let wrappedParts = splitLeadingFrontmatter(
             normalizeNewlines(mutation.entryPrefix)
@@ -78,6 +87,12 @@ public struct MarkdownDocumentEditor: Sendable {
             ),
             incoming: wrappedParts.frontmatter
         )
+        if let location = mutation.locationMetadata {
+            documentParts.frontmatter = try appendingLocation(
+                location,
+                to: documentParts.frontmatter
+            )
+        }
 
         let wrappedEntry = trimBoundaryNewlines(wrappedParts.body)
         let captureBlock: String
@@ -255,6 +270,108 @@ public struct MarkdownDocumentEditor: Sendable {
     }
 
     private static let additiveFrontmatterKeys: Set<String> = ["tags", "tag", "audio"]
+
+    private func validatedLocationCollectionContains(
+        _ location: CaptureLocationRenderedMetadata,
+        in frontmatter: [String]?
+    ) throws -> Bool {
+        guard let frontmatter,
+              let start = frontmatter.indices.first(where: {
+                  guard let key = frontmatterEntry(frontmatter[$0])?.key else { return false }
+                  return unquotedYAMLKey(key) == location.collectionKey
+              }) else { return false }
+        let end = sectionEnd(startingAt: start, in: frontmatter)
+        guard let entry = frontmatterEntry(frontmatter[start]) else {
+            throw CaptureLocationMetadataError.frontmatterCollision(location.collectionKey)
+        }
+        let value = entry.value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if value == "[]" {
+            let hasContent = frontmatter[(start + 1)..<end].contains {
+                !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    && !$0.trimmingCharacters(in: .whitespaces).hasPrefix("#")
+            }
+            guard !hasContent else {
+                throw CaptureLocationMetadataError.frontmatterCollision(location.collectionKey)
+            }
+            return false
+        }
+        guard value.isEmpty else {
+            throw CaptureLocationMetadataError.frontmatterCollision(location.collectionKey)
+        }
+
+        let continuation = frontmatter[(start + 1)..<end].compactMap { raw -> String? in
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty || trimmed.hasPrefix("#") { return nil }
+            return raw
+        }
+        if continuation.isEmpty { return false }
+        guard continuation.allSatisfy({ line in
+            !line.contains("\t") && line.prefix(while: { $0 == " " }).count >= 2
+        }) else {
+            throw CaptureLocationMetadataError.frontmatterCollision(location.collectionKey)
+        }
+        let source = continuation.map { String($0.dropFirst(2)) }.joined(separator: "\n")
+        let parsed: CaptureLocationYAMLValue
+        do {
+            var parser = try CaptureLocationConstrainedYAMLParser(source: source, maximumDepth: 32)
+            parsed = try parser.parse()
+        } catch {
+            throw CaptureLocationMetadataError.frontmatterCollision(location.collectionKey)
+        }
+        guard case .sequence(let items) = parsed else {
+            throw CaptureLocationMetadataError.frontmatterCollision(location.collectionKey)
+        }
+
+        var ids = Set<UUID>()
+        for item in items {
+            guard case .mapping(let pairs) = item,
+                  let idPair = pairs.first(where: { $0.key == "id" }),
+                  case .string(let rawID) = idPair.value,
+                  let id = UUID(uuidString: rawID),
+                  ids.insert(id).inserted else {
+                throw CaptureLocationMetadataError.frontmatterCollision(location.collectionKey)
+            }
+        }
+        return ids.contains(location.requestID)
+    }
+
+    private func appendingLocation(
+        _ location: CaptureLocationRenderedMetadata,
+        to frontmatter: [String]?
+    ) throws -> [String] {
+        var lines = frontmatter ?? []
+        let item = location.itemLines.enumerated().map { index, line in
+            index == 0 ? "  - \(line)" : "    \(line)"
+        }
+        guard let start = lines.indices.first(where: {
+            guard let key = frontmatterEntry(lines[$0])?.key else { return false }
+            return unquotedYAMLKey(key) == location.collectionKey
+        }) else {
+            lines.append("\(location.collectionKey):")
+            lines.append(contentsOf: item)
+            return lines
+        }
+
+        if try validatedLocationCollectionContains(location, in: lines) {
+            return lines
+        }
+        let entry = frontmatterEntry(lines[start])
+        if entry?.value == "[]" {
+            lines[start] = "\(location.collectionKey):"
+        }
+        let end = sectionEnd(startingAt: start, in: lines)
+        lines.insert(contentsOf: item, at: end)
+        return lines
+    }
+
+    private func unquotedYAMLKey(_ key: String) -> String {
+        guard key.count >= 2 else { return key }
+        if (key.hasPrefix("\"") && key.hasSuffix("\""))
+            || (key.hasPrefix("'") && key.hasSuffix("'")) {
+            return String(key.dropFirst().dropLast())
+        }
+        return key
+    }
 
     private func structuredFrontmatterLines(_ values: [String: String]) throws -> [String]? {
         guard !values.isEmpty else { return nil }

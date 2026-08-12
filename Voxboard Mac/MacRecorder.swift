@@ -11,6 +11,12 @@ enum MacRecordingCompletionMode: Equatable, Sendable {
 }
 
 enum MacCaptureDraftRecordingEvent: Sendable {
+    case origin(
+        source: CaptureSource,
+        locationOutcome: CaptureLocationOutcome?,
+        profileSnapshot: CapturePresetProfile
+    )
+    case clearOrigin(profileID: String)
     case audio(URL)
     case transcript(String)
     case liveTranscript(sessionID: UUID, finalizedText: String, volatileText: String?)
@@ -27,6 +33,7 @@ final class MacRecorder {
     var isRecording = false
     var isTranscribing = false
     var isExporting = false
+    var isResolvingLocation = false
     var recordingDuration: TimeInterval = 0
     var transcriptionProgress: TranscriptionProgress?
     var lastTranscriptionResult: String?
@@ -121,13 +128,19 @@ final class MacRecorder {
             return
         }
 
+        let originLocation = beginOriginLocationResolution(
+            completionMode: completionMode,
+            audioURL: recordedURL,
+            source: .mac
+        )
         transcribe(
             audioURL: recordedURL,
             modelId: modelManager.selectedModelId,
             language: modelManager.selectedLanguage,
             duration: duration,
             completionMode: completionMode,
-            sourceAudioURL: recordedURL
+            sourceAudioURL: recordedURL,
+            originLocation: originLocation
         )
     }
 
@@ -160,6 +173,16 @@ final class MacRecorder {
         defer { if didScope { url.stopAccessingSecurityScopedResource() } }
 
         do {
+            let recoveryOriginRecordingID: String? = {
+                let selected = url.standardizedFileURL
+                let appOwnedDirectory = dir.standardizedFileURL
+                if selected.deletingLastPathComponent() == appOwnedDirectory {
+                    return selected.lastPathComponent
+                }
+                guard let recoveryURL = lastRecoveryAudioURL,
+                      recoveryURL.standardizedFileURL == selected else { return nil }
+                return recoveryURL.lastPathComponent
+            }()
             try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
             let sourceExt = url.pathExtension.isEmpty ? "audio" : url.pathExtension
             let sourceCopy = dir
@@ -173,7 +196,28 @@ final class MacRecorder {
                 .appendingPathExtension("wav")
             let modelId = modelManager.selectedModelId
             let language = modelManager.selectedLanguage
-            let completionMode = requestedCompletionMode ?? .runPreset(flow: presetSnapshot(id: flowId))
+            let importFlow = presetSnapshot(id: flowId)
+            let completionMode = requestedCompletionMode ?? .runPreset(flow: importFlow)
+            // File selection is the import's origin boundary. Use the retained
+            // app-owned copy as a stable journal key before conversion begins.
+            let originLocation = beginOriginLocationResolution(
+                completionMode: completionMode,
+                audioURL: sourceCopy,
+                source: .fileImport,
+                flowOverride: importFlow,
+                recoveryRecordingID: recoveryOriginRecordingID
+            )
+            let disabledLocationDraftJournalTask: Task<Bool, Never>? = {
+                guard case .captureDraft = completionMode,
+                      !importFlow.locationPolicy.isEnabled else { return nil }
+                return Task { @MainActor [weak self] in
+                    await self?.captureDraftEventHandler?(.origin(
+                        source: .fileImport,
+                        locationOutcome: nil,
+                        profileSnapshot: importFlow.captureProfile
+                    )) ?? false
+                }
+            }()
             let progressRequestID = UUID()
 
             self.progressRequestID = progressRequestID
@@ -185,11 +229,44 @@ final class MacRecorder {
 
             Task.detached(priority: .userInitiated) { [weak self] in
                 guard let self else { return }
+                var activeOriginLocation = originLocation
                 do {
+                    if let disabledLocationDraftJournalTask,
+                       await disabledLocationDraftJournalTask.value == false {
+                        throw MacRecordingHandoffError.originMetadataPersistenceFailed
+                    }
+                    let originSnapshot: CaptureRecordingOriginSnapshot?
+                    if let originLocation {
+                        originSnapshot = try await originLocation.task.value
+                        guard originSnapshot != nil else {
+                            throw MacRecordingHandoffError.originMetadataPersistenceFailed
+                        }
+                    } else {
+                        originSnapshot = nil
+                    }
                     let workingURL = try AudioFileConverter.convertToWhisperWAV(
                         inputURL: sourceCopy,
                         outputURL: wavURL
                     )
+                    if let originLocation,
+                       let originSnapshot,
+                       workingURL.lastPathComponent != originLocation.recordingID,
+                       let rootURL = AppConstants.captureDirectoryURL {
+                        let originStore = CaptureRecordingOriginStore(rootDirectoryURL: rootURL)
+                        try await originStore.save(
+                            originSnapshot,
+                            recordingID: workingURL.lastPathComponent
+                        )
+                        try? await originStore.remove(recordingID: originLocation.recordingID)
+                        if let priorRecordingID = originLocation.priorRecordingID {
+                            try? await originStore.remove(recordingID: priorRecordingID)
+                        }
+                        activeOriginLocation = MacOriginLocationResolution(
+                            recordingID: workingURL.lastPathComponent,
+                            priorRecordingID: nil,
+                            task: Task<CaptureRecordingOriginSnapshot?, Error> { originSnapshot }
+                        )
+                    }
                     let duration = AudioFileConverter.duration(of: workingURL)
                         ?? AudioFileConverter.duration(of: sourceCopy)
                         ?? 0
@@ -200,12 +277,26 @@ final class MacRecorder {
                         duration: duration,
                         completionMode: completionMode,
                         sourceAudioURL: sourceCopy,
-                        progressRequestID: progressRequestID
+                        progressRequestID: progressRequestID,
+                        originLocation: activeOriginLocation,
+                        captureSource: .fileImport,
+                        captureProfile: importFlow.captureProfile
                     )
                     if workingURL != sourceCopy {
                         try? FileManager.default.removeItem(at: sourceCopy)
                     }
                 } catch {
+                    if case .captureDraft = completionMode {
+                        _ = await self.captureDraftEventHandler?(.clearOrigin(profileID: importFlow.id))
+                    }
+                    if let activeOriginLocation {
+                        activeOriginLocation.task.cancel()
+                        _ = try? await activeOriginLocation.task.value
+                        if let rootURL = AppConstants.captureDirectoryURL {
+                            try? await CaptureRecordingOriginStore(rootDirectoryURL: rootURL)
+                                .remove(recordingID: activeOriginLocation.recordingID)
+                        }
+                    }
                     await MainActor.run {
                         self.lastError = String(localized: "Could not import audio: \(error.localizedDescription)")
                         self.lastTranscriptionResult = nil
@@ -226,6 +317,119 @@ final class MacRecorder {
 
     private func presetSnapshot(id: String) -> CapturePreset {
         CapturePresetStore.flow(id: id) ?? CapturePresetStore.selectedFlow()
+    }
+
+    /// Journals a stop-time placeholder before requesting location, atomically
+    /// replaces it with the final outcome, and reuses an existing snapshot for
+    /// the same retained recording. Transcription awaits this task so a crash
+    /// cannot leave a later retry free to acquire a newer location.
+    private func beginOriginLocationResolution(
+        completionMode: MacRecordingCompletionMode,
+        audioURL: URL,
+        source: CaptureSource = .mac,
+        flowOverride: CapturePreset? = nil,
+        recoveryRecordingID: String? = nil
+    ) -> MacOriginLocationResolution? {
+        let flow: CapturePreset
+        if case .runPreset(let preset) = completionMode {
+            flow = preset
+        } else if case .captureDraft = completionMode, let flowOverride {
+            flow = flowOverride
+        } else {
+            return nil
+        }
+        guard flow.locationPolicy.isEnabled else { return nil }
+        let policy = flow.locationPolicy
+        let presetID = flow.id
+        let draftProfile: CapturePresetProfile? = {
+            guard case .captureDraft = completionMode, source == .fileImport else { return nil }
+            return flow.captureProfile
+        }()
+        let recordingID = audioURL.lastPathComponent
+        guard let rootURL = AppConstants.captureDirectoryURL else {
+            isResolvingLocation = true
+            return MacOriginLocationResolution(
+                recordingID: recordingID,
+                priorRecordingID: recoveryRecordingID,
+                task: Task { @MainActor [weak self] in
+                    defer { self?.isResolvingLocation = false }
+                    throw MacRecordingHandoffError.originMetadataPersistenceFailed
+                }
+            )
+        }
+        let store = CaptureRecordingOriginStore(rootDirectoryURL: rootURL)
+        isResolvingLocation = true
+        let task: Task<CaptureRecordingOriginSnapshot?, Error> = Task { @MainActor [weak self] in
+            defer { self?.isResolvingLocation = false }
+            if let existing = try await store.load(recordingID: recordingID) {
+                if let draftProfile,
+                   await self?.captureDraftEventHandler?(.origin(
+                        source: existing.source,
+                        locationOutcome: existing.outcome,
+                        profileSnapshot: draftProfile
+                   )) != true {
+                    throw MacRecordingHandoffError.originMetadataPersistenceFailed
+                }
+                return existing
+            }
+            if let recoveryRecordingID,
+               let recovered = try await store.load(recordingID: recoveryRecordingID),
+               recovered.presetID == presetID {
+                // Re-key the preserved recording before conversion. Its source
+                // and origin result remain authoritative; no new lookup occurs.
+                try await store.save(recovered, recordingID: recordingID)
+                if let draftProfile,
+                   await self?.captureDraftEventHandler?(.origin(
+                        source: recovered.source,
+                        locationOutcome: recovered.outcome,
+                        profileSnapshot: draftProfile
+                   )) != true {
+                    throw MacRecordingHandoffError.originMetadataPersistenceFailed
+                }
+                return recovered
+            }
+            let attemptedAt = Date()
+            let placeholder = CaptureRecordingOriginSnapshot(
+                presetID: presetID,
+                source: source,
+                outcome: .unavailable(.unavailable, attemptedAt: attemptedAt)
+            )
+            if let draftProfile,
+               await self?.captureDraftEventHandler?(.origin(
+                    source: source,
+                    locationOutcome: placeholder.outcome,
+                    profileSnapshot: draftProfile
+               )) != true {
+                throw MacRecordingHandoffError.originMetadataPersistenceFailed
+            }
+            try await store.save(placeholder, recordingID: recordingID)
+            let outcome = await CaptureLocationService().resolveLocation(
+                policy: policy,
+                source: source
+            )
+            let snapshot = CaptureRecordingOriginSnapshot(
+                presetID: presetID,
+                source: source,
+                outcome: outcome
+            )
+            try await store.save(snapshot, recordingID: recordingID)
+            if let draftProfile,
+               await self?.captureDraftEventHandler?(.origin(
+                    source: source,
+                    locationOutcome: snapshot.outcome,
+                    profileSnapshot: draftProfile
+               )) != true {
+                // The durable draft retains the placeholder, preventing a
+                // later retry from acquiring a different location.
+                return placeholder
+            }
+            return snapshot
+        }
+        return MacOriginLocationResolution(
+            recordingID: recordingID,
+            priorRecordingID: recoveryRecordingID,
+            task: task
+        )
     }
 
     private func validateSelectedModel(_ modelManager: ModelManager) -> Bool {
@@ -249,7 +453,10 @@ final class MacRecorder {
         language: String,
         duration: TimeInterval,
         completionMode: MacRecordingCompletionMode,
-        sourceAudioURL: URL?
+        sourceAudioURL: URL?,
+        originLocation: MacOriginLocationResolution?,
+        captureSource: CaptureSource = .mac,
+        captureProfile: CapturePresetProfile? = nil
     ) {
         let progressRequestID = UUID()
         self.progressRequestID = progressRequestID
@@ -266,7 +473,10 @@ final class MacRecorder {
                 duration: duration,
                 completionMode: completionMode,
                 sourceAudioURL: sourceAudioURL,
-                progressRequestID: progressRequestID
+                progressRequestID: progressRequestID,
+                originLocation: originLocation,
+                captureSource: captureSource,
+                captureProfile: captureProfile
             )
         }
     }
@@ -278,10 +488,34 @@ final class MacRecorder {
         duration: TimeInterval,
         completionMode: MacRecordingCompletionMode,
         sourceAudioURL: URL?,
-        progressRequestID: UUID
+        progressRequestID: UUID,
+        originLocation: MacOriginLocationResolution?,
+        captureSource: CaptureSource,
+        captureProfile: CapturePresetProfile?
     ) async {
         var hasDurableAudioCopy = false
         do {
+            // Resolve and durably journal the origin boundary before speech
+            // recognition can begin.
+            let originSnapshot = try await originLocation?.task.value
+            let locationOutcome = originSnapshot?.outcome
+            let resolvedCaptureSource = originSnapshot?.source ?? captureSource
+            if case .captureDraft = completionMode,
+               captureSource == .fileImport,
+               let captureProfile {
+                guard await captureDraftEventHandler?(.origin(
+                    source: resolvedCaptureSource,
+                    locationOutcome: locationOutcome,
+                    profileSnapshot: captureProfile
+                )) == true else {
+                    throw MacRecordingHandoffError.originMetadataPersistenceFailed
+                }
+                if let originLocation,
+                   let rootURL = AppConstants.captureDirectoryURL {
+                    try? await CaptureRecordingOriginStore(rootDirectoryURL: rootURL)
+                        .remove(recordingID: originLocation.recordingID)
+                }
+            }
             if case .captureDraft(let attachAudio) = completionMode, attachAudio {
                 hasDurableAudioCopy = await captureDraftEventHandler?(
                     .audio(sourceAudioURL ?? audioURL)
@@ -320,9 +554,18 @@ final class MacRecorder {
                 language: result.language,
                 completionMode: completionMode,
                 audioURL: audioURL,
-                sourceAudioURL: sourceAudioURL
+                sourceAudioURL: sourceAudioURL,
+                locationOutcome: locationOutcome,
+                originRecordingID: originLocation?.recordingID,
+                captureSource: resolvedCaptureSource
             )
         } catch {
+            if case .captureDraft = completionMode,
+               captureSource == .fileImport,
+               !hasDurableAudioCopy,
+               let captureProfile {
+                _ = await captureDraftEventHandler?(.clearOrigin(profileID: captureProfile.id))
+            }
             let discardsRecording: Bool
             if case .transcriptionOnly = completionMode {
                 discardsRecording = true
@@ -351,7 +594,10 @@ final class MacRecorder {
         language: String,
         completionMode: MacRecordingCompletionMode,
         audioURL: URL,
-        sourceAudioURL: URL?
+        sourceAudioURL: URL?,
+        locationOutcome: CaptureLocationOutcome?,
+        originRecordingID: String?,
+        captureSource: CaptureSource
     ) async {
         if case .transcriptionOnly = completionMode {
             let pasteboard = NSPasteboard.general
@@ -433,9 +679,18 @@ final class MacRecorder {
             // Requested audio is removed only after a durable audio-bearing
             // Capture request or legacy file export succeeds.
             var canRemoveRetainedAudio = !audioWasRequested
+            var canRemoveOriginSnapshot = false
             defer {
                 if canRemoveRetainedAudio, let retainedAudioURL {
                     try? FileManager.default.removeItem(at: retainedAudioURL)
+                }
+                if canRemoveOriginSnapshot,
+                   let originRecordingID,
+                   let rootURL = AppConstants.captureDirectoryURL {
+                    Task {
+                        try? await CaptureRecordingOriginStore(rootDirectoryURL: rootURL)
+                            .remove(recordingID: originRecordingID)
+                    }
                 }
             }
 
@@ -454,29 +709,50 @@ final class MacRecorder {
                         flow: flowForExport,
                         destinationID: captureDestinationID,
                         audioSourceURL: retainedAudioURL,
-                        source: .mac
+                        locationOutcome: locationOutcome,
+                        source: captureSource
                     )
                     canRemoveRetainedAudio = true
+                    canRemoveOriginSnapshot = true
                     await MainActor.run {
                         recorderForExport.lastExportURL = receipt.noteURL
                     }
                 } catch {
                     let queuedForRetry: Bool
-                    if let configuredError = error as? ConfiguredTranscriptCaptureError,
-                       case .queuedForRetry = configuredError {
-                        // The exporter copied the audio into the durable inbox.
-                        canRemoveRetainedAudio = true
-                        queuedForRetry = true
+                    let canceledForLocation: Bool
+                    if let configuredError = error as? ConfiguredTranscriptCaptureError {
+                        switch configuredError {
+                        case .queuedForRetry:
+                            // The exporter copied the audio and exact outcome
+                            // into the durable inbox.
+                            canRemoveRetainedAudio = true
+                            canRemoveOriginSnapshot = true
+                            queuedForRetry = true
+                            canceledForLocation = false
+                        case .locationUnavailableCancelled:
+                            canRemoveRetainedAudio = true
+                            canRemoveOriginSnapshot = true
+                            queuedForRetry = false
+                            canceledForLocation = true
+                        default:
+                            queuedForRetry = false
+                            canceledForLocation = false
+                        }
                     } else {
                         queuedForRetry = false
+                        canceledForLocation = false
                     }
                     KeyboardDebugLog.shared.log("[MacRecorder] Precise capture routing failed: \(error)")
                     let shouldExposeRecovery = !canRemoveRetainedAudio
                     await MainActor.run {
-                        recorderForExport.lastError = String(localized: "Your transcript was saved locally. \(error.localizedDescription)")
+                        recorderForExport.lastError = canceledForLocation
+                            ? String(localized: "Capture canceled because this preset requires an origin-time location.")
+                            : String(localized: "Your transcript was saved locally. \(error.localizedDescription)")
                         recorderForExport.lastExportURL = nil
                         if shouldExposeRecovery {
                             recorderForExport.lastRecoveryAudioURL = retainedAudioURL ?? audioURL
+                        } else if canceledForLocation {
+                            recorderForExport.lastRecoveryAudioURL = nil
                         }
                     }
                     if queuedForRetry {
@@ -581,6 +857,7 @@ final class MacRecorder {
                 }
             }
 
+            canRemoveOriginSnapshot = true
             let shouldExposeRecovery = audioWasRequested && !canRemoveRetainedAudio
             await MainActor.run {
                 recorderForExport.lastExportURL = exportURL
@@ -799,7 +1076,22 @@ final class MacRecorder {
     }
 }
 
+private struct MacOriginLocationResolution: Sendable {
+    let recordingID: String
+    let priorRecordingID: String?
+    let task: Task<CaptureRecordingOriginSnapshot?, Error>
+}
+
 private enum MacRecordingHandoffError: LocalizedError {
     case audioStagingFailed
-    var errorDescription: String? { String(localized: "The recording could not be attached to the Capture draft.") }
+    case originMetadataPersistenceFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .audioStagingFailed:
+            return String(localized: "The recording could not be attached to the Capture draft.")
+        case .originMetadataPersistenceFailed:
+            return String(localized: "Shared capture storage is unavailable.")
+        }
+    }
 }

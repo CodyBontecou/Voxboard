@@ -244,6 +244,49 @@ public actor CaptureInbox {
         }
     }
 
+    /// Applies an explicit decision to the exact durable request without
+    /// changing its preset snapshot or location outcome. No acquisition occurs.
+    @discardableResult
+    public func sendWithoutLocation(requestID: UUID) throws -> Bool {
+        try coordinator.coordinateWriting(at: rootDirectoryURL) { _ in
+            try ensureDirectories()
+            for state in [CaptureInboxState.pending, .failed] {
+                let url = itemURL(for: requestID, state: state)
+                guard fileManager.fileExists(atPath: url.path),
+                      var request = try? decoder.decode(
+                        CaptureRequest.self,
+                        from: Data(contentsOf: url)
+                      ) else { continue }
+                request.locationDecisionOverride = .sendWithoutLocation
+                try encoder.encode(request).write(to: url, options: .atomic)
+                if state == .failed {
+                    let pendingURL = itemURL(for: requestID, state: .pending)
+                    if fileManager.fileExists(atPath: pendingURL.path) {
+                        try fileManager.removeItem(at: url)
+                    } else {
+                        try fileManager.moveItem(at: url, to: pendingURL)
+                    }
+                }
+                return true
+            }
+            return false
+        }
+    }
+
+    /// Loads a private durable request only for foreground decision UI. Callers
+    /// must not copy it into history or completed tombstones.
+    public func request(requestID: UUID, states: [CaptureInboxState]) throws -> CaptureRequest? {
+        try coordinator.coordinateWriting(at: rootDirectoryURL) { _ in
+            try ensureDirectories()
+            for state in states where state != .completed {
+                let url = itemURL(for: requestID, state: state)
+                guard fileManager.fileExists(atPath: url.path) else { continue }
+                return try decoder.decode(CaptureRequest.self, from: Data(contentsOf: url))
+            }
+            return nil
+        }
+    }
+
     @discardableResult
     public func retryFailed(requestID: UUID) throws -> Bool {
         try coordinator.coordinateWriting(at: rootDirectoryURL) { _ in

@@ -361,6 +361,9 @@ struct QuickCaptureView: View {
         recordingLifecycleContent
             .task(id: fileExportToast?.id) { await dismissExportToastAfterDelay() }
             .onChange(of: scenePhase) { _, phase in handleScenePhaseChange(phase) }
+            .onReceive(NotificationCenter.default.publisher(for: .captureInboxDecisionRequired)) { _ in
+                Task { await viewModel.processPendingInbox() }
+            }
             .onDisappear(perform: handleCaptureDisappear)
     }
 
@@ -404,6 +407,47 @@ struct QuickCaptureView: View {
 
     private var presentedContent: some View {
         mediaPickerContent
+        .confirmationDialog(
+            "Location",
+            isPresented: Binding(
+                get: { viewModel.locationDecision != nil },
+                set: { if !$0 { Task { await viewModel.cancelUnavailableLocation() } } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Retry") { Task { await viewModel.retryUnavailableLocation() } }
+            Button("Send Without Location") {
+                Task { await viewModel.sendWithoutUnavailableLocation(alwaysForPreset: false) }
+            }
+            Button("Always Send Without Location for This Preset") {
+                Task { await viewModel.sendWithoutUnavailableLocation(alwaysForPreset: true) }
+            }
+            Button("Cancel", role: .cancel) {
+                Task { await viewModel.cancelUnavailableLocation() }
+            }
+        } message: {
+            Text("Vox.md could not get an origin-time location. Your draft is preserved.")
+        }
+        .confirmationDialog(
+            inboxLocationDecisionTitle,
+            isPresented: Binding(
+                get: { viewModel.inboxLocationDecision != nil },
+                set: { _ in }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Send Without Location") {
+                Task { await viewModel.sendInboxRequestWithoutLocation() }
+            }
+            Button("Always Send Without Location for This Preset") {
+                Task { await viewModel.sendInboxRequestWithoutLocation(alwaysForPreset: true) }
+            }
+            Button("Cancel and Discard Capture", role: .destructive) {
+                Task { await viewModel.discardInboxLocationRequest() }
+            }
+        } message: {
+            Text(inboxLocationDecisionMessage)
+        }
         .sheet(isPresented: $showsCaptureHistory) {
             HistoryView(viewModel: viewModel)
                 .environment(transcriptStore)
@@ -983,6 +1027,10 @@ struct QuickCaptureView: View {
                 voiceCaptureDetailsBar
                 GeistDivider()
             }
+            if selectedFlow.locationPolicy.isEnabled || isFindingLocation || persistentRecorder.isResolvingLocation {
+                locationPresetStatusBar
+                GeistDivider()
+            }
             routeSelectionRow
             GeistDivider()
             captureActionBar
@@ -1176,6 +1224,42 @@ struct QuickCaptureView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("capture_destination_banner")
+    }
+
+    private var locationPresetStatusBar: some View {
+        HStack(spacing: Geist.Spacing.two) {
+            if isFindingLocation || viewModel.isResolvingLocation || persistentRecorder.isResolvingLocation {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Finding Location…")
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.text)
+            } else {
+                Label("Current Location On", systemImage: "location.fill")
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.muted)
+            }
+            Text(selectedFlow.displayName)
+                .font(Geist.caption(.caption2))
+                .foregroundStyle(Geist.faint)
+                .lineLimit(1)
+            Spacer()
+        }
+        .padding(.horizontal, Geist.Spacing.three)
+        .frame(minHeight: Geist.ControlHeight.small)
+        .background(Geist.Palette.background200)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            (isFindingLocation || viewModel.isResolvingLocation || persistentRecorder.isResolvingLocation
+                ? String(localized: "Finding Location…")
+                : String(localized: "Current Location On"))
+            + " " + selectedFlow.displayName
+        )
+        .accessibilityIdentifier(
+            isFindingLocation || viewModel.isResolvingLocation || persistentRecorder.isResolvingLocation
+                ? "capture_finding_preset_location"
+                : "capture_active_preset_location"
+        )
     }
 
     private var routeSelectionRow: some View {
@@ -1401,6 +1485,22 @@ struct QuickCaptureView: View {
                 .contentShape(Rectangle())
                 .accessibilityLabel(accessibilityLabel)
         }
+    }
+
+    private var inboxLocationDecisionTitle: String {
+        guard let decision = viewModel.inboxLocationDecision else {
+            return String(localized: "Send Capture Without Location?")
+        }
+        let preset = decision.presetName ?? String(localized: "Unknown Preset")
+        return String(localized: "Location Needed for \(preset)")
+    }
+
+    private var inboxLocationDecisionMessage: String {
+        guard let decision = viewModel.inboxLocationDecision else { return "" }
+        let preset = decision.presetName ?? String(localized: "Unknown Preset")
+        return String(localized: "Send Capture Without Location?")
+            + " " + preset + ". "
+            + String(localized: "Location is unavailable. Open Vox.md to send this exact Capture without location or discard it.")
     }
 
     private var routeLabel: String {

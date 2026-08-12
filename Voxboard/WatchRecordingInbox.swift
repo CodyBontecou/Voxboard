@@ -39,6 +39,9 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
     let duration: TimeInterval?
     var flowSnapshot: CapturePreset?
     var flowSnapshotPayload: Data?
+    /// Final Watch-origin result. The phone must only render or retain this
+    /// value; it never requests a replacement location.
+    var locationOutcome: CaptureLocationOutcome?
     var requiresPresetSelection: Bool
     /// One-shot fallback chosen from the iPhone queue after Watch transcription
     /// fails. This remains durable across suspension and Capture delivery retries.
@@ -71,6 +74,22 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         return flowSnapshot?.displayName ?? String(localized: "Capture Preset")
     }
 
+    var shouldCancelForUnavailableLocation: Bool {
+        guard let policy = flowSnapshot?.locationPolicy,
+              policy.isEnabled,
+              policy.unavailableBehavior == .cancel else { return false }
+        guard case .available = locationOutcome else { return true }
+        return false
+    }
+
+    mutating func scrubSensitivePayloadForTombstone() {
+        locationOutcome = nil
+        flowSnapshot = nil
+        flowSnapshotPayload = nil
+        requiresPresetSelection = false
+        reservedOutputFolderBookmark = nil
+    }
+
     init(
         id: String,
         requestID: UUID,
@@ -81,6 +100,7 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         duration: TimeInterval?,
         flowSnapshot: CapturePreset?,
         flowSnapshotPayload: Data? = nil,
+        locationOutcome: CaptureLocationOutcome? = nil,
         requiresPresetSelection: Bool = false,
         capturesRecordingWithoutTranscript: Bool = false,
         reservedOutputFilename: String? = nil,
@@ -103,6 +123,7 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         self.duration = duration
         self.flowSnapshot = flowSnapshot
         self.flowSnapshotPayload = flowSnapshotPayload
+        self.locationOutcome = locationOutcome
         self.requiresPresetSelection = requiresPresetSelection
         self.capturesRecordingWithoutTranscript = capturesRecordingWithoutTranscript
         self.reservedOutputFilename = reservedOutputFilename
@@ -127,6 +148,7 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         case duration
         case flowSnapshot
         case flowSnapshotPayload
+        case locationOutcome
         case requiresPresetSelection
         case capturesRecordingWithoutTranscript
         case reservedOutputFilename
@@ -145,6 +167,7 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decode(String.self, forKey: .id)
         let receivedAt = try container.decodeIfPresent(Date.self, forKey: .receivedAt) ?? Date()
+        let phase = try container.decodeIfPresent(WatchRecordingProcessingPhase.self, forKey: .phase) ?? .queued
         self.init(
             id: id,
             requestID: try container.decodeIfPresent(UUID.self, forKey: .requestID)
@@ -157,6 +180,7 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
             duration: try container.decodeIfPresent(TimeInterval.self, forKey: .duration),
             flowSnapshot: try? container.decode(CapturePreset.self, forKey: .flowSnapshot),
             flowSnapshotPayload: try container.decodeIfPresent(Data.self, forKey: .flowSnapshotPayload),
+            locationOutcome: try container.decodeIfPresent(CaptureLocationOutcome.self, forKey: .locationOutcome),
             requiresPresetSelection: try container.decodeIfPresent(Bool.self, forKey: .requiresPresetSelection) ?? false,
             capturesRecordingWithoutTranscript: try container.decodeIfPresent(
                 Bool.self,
@@ -164,7 +188,7 @@ nonisolated struct WatchRecordingInboxItem: Codable, Equatable, Identifiable, Se
             ) ?? false,
             reservedOutputFilename: try container.decodeIfPresent(String.self, forKey: .reservedOutputFilename),
             reservedOutputFolderBookmark: try container.decodeIfPresent(Data.self, forKey: .reservedOutputFolderBookmark),
-            phase: try container.decodeIfPresent(WatchRecordingProcessingPhase.self, forKey: .phase) ?? .queued,
+            phase: phase,
             failureStage: try container.decodeIfPresent(WatchRecordingFailureStage.self, forKey: .failureStage),
             statusMessage: try container.decodeIfPresent(String.self, forKey: .statusMessage),
             attemptCount: try container.decodeIfPresent(Int.self, forKey: .attemptCount) ?? 0,
@@ -237,7 +261,11 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
             let flowSnapshotPayload = metadata[WatchRecordingFileMetadataKey.presetSnapshot] as? Data
             let transferredSnapshot = flowSnapshotPayload
                 .flatMap { try? JSONDecoder().decode(CapturePreset.self, from: $0) }
+            let locationOutcome = WatchRecordingFileMetadataKey.decodeLocationOutcome(from: metadata)
             let snapshotIsIncompatible = flowSnapshotPayload != nil && transferredSnapshot == nil
+            let locationOutcomeIsIncompatible = WatchRecordingFileMetadataKey
+                .containsIncompatibleLocationOutcome(in: metadata)
+            let metadataIsIncompatible = snapshotIsIncompatible || locationOutcomeIsIncompatible
             let flowSnapshot = flowSnapshotPayload == nil
                 ? resolvedFlowSnapshot(requestedPresetID: requestedPresetID)
                 : transferredSnapshot
@@ -251,11 +279,14 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
                 duration: duration,
                 flowSnapshot: flowSnapshot,
                 flowSnapshotPayload: flowSnapshotPayload,
-                phase: snapshotIsIncompatible ? .failed : .queued,
-                failureStage: snapshotIsIncompatible ? .storage : nil,
+                locationOutcome: locationOutcome,
+                phase: metadataIsIncompatible ? .failed : .queued,
+                failureStage: metadataIsIncompatible ? .storage : nil,
                 statusMessage: snapshotIsIncompatible
                     ? String(localized: "Update Vox.md on iPhone to use this recording's Capture Preset.")
-                    : String(localized: "Received from Apple Watch")
+                    : locationOutcomeIsIncompatible
+                        ? String(localized: "Update Vox.md on iPhone to use this recording's location metadata.")
+                        : String(localized: "Received from Apple Watch")
             )
 
             // Journal metadata before moving WCSession's temporary file. If the
@@ -317,6 +348,9 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
             if phase == .delivered {
                 items[index].deliveredAt = Date()
             }
+            if phase.isTerminal {
+                items[index].scrubSensitivePayloadForTombstone()
+            }
             items[index].updatedAt = Date()
             items[index].revision += 1
             do {
@@ -357,8 +391,11 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
     }
 
     @discardableResult
-    func discard(id: String) -> WatchRecordingInboxItem? {
-        let item = transition(id: id, to: .discarded, message: String(localized: "Discarded on iPhone"))
+    func discard(
+        id: String,
+        message: String = String(localized: "Discarded on iPhone")
+    ) -> WatchRecordingInboxItem? {
+        let item = transition(id: id, to: .discarded, message: message)
         if let item {
             try? FileManager.default.removeItem(at: item.fileURL)
         }
@@ -372,6 +409,9 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
                   items[index].phase.isTerminal,
                   revision >= items[index].revision else { return false }
             try? FileManager.default.removeItem(at: items[index].fileURL)
+            // Scrub terminal records written by older versions as soon as the
+            // Watch acknowledges them.
+            items[index].scrubSensitivePayloadForTombstone()
             if items[index].acknowledgedAt == nil {
                 items[index].acknowledgedAt = Date()
             }
@@ -426,6 +466,17 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
                 }
             } else {
                 items.append(sidecar)
+                recovered = true
+            }
+        }
+
+        // Migrate terminal records written before privacy scrubbing existed.
+        for index in items.indices where items[index].phase.isTerminal {
+            if items[index].locationOutcome != nil
+                || items[index].flowSnapshot != nil
+                || items[index].flowSnapshotPayload != nil
+                || items[index].reservedOutputFolderBookmark != nil {
+                items[index].scrubSensitivePayloadForTombstone()
                 recovered = true
             }
         }
@@ -533,4 +584,14 @@ nonisolated enum WatchRecordingFileMetadataKey {
     static let presetID = "presetID"
     static let presetName = "presetName"
     static let presetSnapshot = "presetSnapshot"
+    static let locationOutcome = "locationOutcome"
+
+    static func decodeLocationOutcome(from metadata: [String: Any]) -> CaptureLocationOutcome? {
+        (metadata[locationOutcome] as? Data)
+            .flatMap { try? JSONDecoder().decode(CaptureLocationOutcome.self, from: $0) }
+    }
+
+    static func containsIncompatibleLocationOutcome(in metadata: [String: Any]) -> Bool {
+        metadata[locationOutcome] != nil && decodeLocationOutcome(from: metadata) == nil
+    }
 }

@@ -77,20 +77,30 @@ struct VoxboardApp: App {
             transcriptionService: AppTranscriptionServices.shared,
             speakerDiarizationService: speakerDiarizationService,
             captureDraftEventHandler: { [weak captureViewModel] event in
-                guard let captureViewModel else { return }
+                guard let captureViewModel else { return false }
                 switch event {
+                case .origin(let source, let locationOutcome, let profileSnapshot):
+                    return await captureViewModel.journalRecordedOrigin(
+                        source: source,
+                        outcome: locationOutcome,
+                        profileSnapshot: profileSnapshot
+                    )
+                case .clearOrigin(let profileID):
+                    return await captureViewModel.clearRecordedOrigin(profileID: profileID)
                 case .audio(let url):
-                    await captureViewModel.stageRecordedAudio(at: url)
+                    return await captureViewModel.stageRecordedAudio(at: url) != nil
                 case .liveTranscript(let sessionID, let finalizedText, let volatileText):
                     await captureViewModel.updateLiveRecordedTranscript(
                         sessionID: sessionID,
                         finalizedText: finalizedText,
                         volatileText: volatileText
                     )
+                    return true
                 case .cancelLiveTranscript(let sessionID):
                     await captureViewModel.cancelLiveRecordedTranscript(sessionID: sessionID)
+                    return true
                 case .transcript(let text):
-                    await captureViewModel.appendRecordedTranscript(text)
+                    return await captureViewModel.appendRecordedTranscript(text)
                 }
             },
             transcriptEnricher: enricher

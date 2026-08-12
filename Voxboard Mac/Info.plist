@@ -4,6 +4,8 @@
 <dict>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Vox.md uses on-device speech recognition to preview a transcript while you record.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>When location is enabled for a Capture Preset, Vox.md gets one location when you send or stop a recording.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

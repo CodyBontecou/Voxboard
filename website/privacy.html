@@ -56,13 +56,13 @@
     <p>This Privacy Policy describes how Vox.md ("we," "our," or "the app") handles information when you use our iOS and macOS applications and their extensions. Audio, transcripts, keystrokes, capture drafts, attachments, exported file contents, and user-entered text are handled locally. Files are written only to locations you select; your chosen storage provider may sync those files under its own terms.</p>
 
     <h2>Information We Do Not Collect</h2>
-    <p>Vox.md does not collect or transmit any of the following to Vox.md or third-party servers:</p>
+    <p>Vox.md does not collect any of the following for the developer, analytics, advertising, or tracking. Data can leave the device only through a feature you choose, such as writing to a synced folder, requesting an Apple place label, or opening a map-provider link, as described below.</p>
     <ul>
       <li>Audio recordings or voice data</li>
       <li>Transcribed text or transcription history</li>
       <li>Keystrokes, typed text, or keyboard input</li>
       <li>Personal information such as your name, email, or phone number</li>
-      <li>Location data, contacts, or unrelated on-device data sent to Vox.md servers</li>
+      <li>Location data for the developer, analytics, advertising, or tracking</li>
       <li>Photos, scans, sketches, audio, and files you explicitly select for a local capture</li>
       <li>File names, folder paths, template text, exported note contents, or model file paths</li>
       <li>Advertising identifiers, raw IP address storage, or third-party tracking identifiers</li>
@@ -102,7 +102,10 @@
     </ul>
 
     <h2>Location Usage</h2>
-    <p>Vox.md requests location access only after you tap the location command in the Capture editor. It performs a one-time lookup and can reverse-geocode a short place label, then inserts the coordinates into a Google Maps link in your local Markdown draft. Vox.md does not monitor location in the background, retain separate location history, include coordinates in analytics or logs, or send location to a Vox.md server. The coordinates become part of the note you chose to create, and Apple and your selected file-sync provider may process data under their own terms.</p>
+    <p>Vox.md has two explicit location features. The independent Current Location Capture Bar action requests one location and inserts a Google Maps link in your local draft. Separately, location metadata is off by default and can be enabled per Capture Preset across iOS/iPadOS, Share Sheet, Shortcuts and intents, voice and keyboard-driven preset recording, widgets and controls, Apple Watch captures routed to Markdown, and Mac. Watch Recording Only remains a raw audio Files export with no metadata surface and does not request location.</p>
+    <p>An enabled preset requests one origin-time location at Send, invocation, or recording stop, depending on the capture source. Exact is the default. City precision rounds latitude and longitude to two decimal places and removes point-of-interest labels before the result is retained; all metadata and provider links use the same privacy-adjusted coordinates. Vox.md does not monitor location continuously, run background location tracking, include location in analytics or logs, or send it to a Vox.md server.</p>
+    <p>If selected metadata needs place, city, region, or country, Vox.md uses Apple’s system reverse geocoder. This service is free and requires no API key, but may make a network request to Apple under Apple’s terms. Reverse-geocoding failure does not block Capture; coordinate-only metadata remains available. Vox.md can format links for Apple Maps, Google Maps, and OpenStreetMap without contacting those providers. Only opening a link discloses its exact or rounded coordinates to that provider.</p>
+    <p>If location is unavailable, interactive surfaces can retry, cancel, send once without location, or save Always Send Without Location for that preset; the saved behavior can be reset in preset settings. Unattended Ask requests preserve their origin-time unavailable result for a later decision and never acquire a newer location during retry. Pending and failed requests may retain the already privacy-adjusted result needed for local recovery. Any coordinates written into Markdown become part of the note you chose, and your selected file-sync provider may process that file under its own terms.</p>
 
     <h2>Speech Models</h2>
     <p>Vox.md does not bundle speech model weights. Apple's supported language assets are managed by iOS. Optional Whisper, Parakeet, and voice-pause model downloads begin only after you choose them and are stored locally on your device. No account or personal information is required to prepare or download a model.</p>
@@ -113,7 +116,7 @@
 
     <h2>Data Storage &amp; Deletion</h2>
     <p>All app data — including transcription history, capture drafts, staged attachments, downloaded models, templates, and settings — is stored locally on your device or in a file destination you explicitly choose. Vox.md also keeps a content-free high-water record of successful free Capture deliveries in the system Keychain so a normal uninstall and reinstall on the same device does not reset the free allowance. It contains only the count and random identifiers for up to ten successful requests, which prevent retries from being charged twice. It contains no captured text, filenames, destinations, or attachment metadata and is never sent to Vox.md.</p>
-    <p>The local Recent Captures list contains delivery metadata only: outcome, source, Capture Preset identifier and display name, destination identifier and display name, relative note path, attachment count, timestamps, and a coarse failure category. It never duplicates note text, links, coordinates, bookmarks, absolute paths, or attachment filenames. Pending and failed captures retain only the content needed for local recovery. After successful delivery, the recoverable request is immediately replaced by an identifier-and-timestamp-only tombstone; upgrades also sanitize legacy completed requests.</p>
+    <p>The local Recent Captures list contains delivery metadata only: outcome, source, Capture Preset identifier and display name, destination identifier and display name, relative note path, attachment count, timestamps, and a coarse failure category. It never duplicates note text, links, coordinates, location labels or templates, bookmarks, absolute paths, or attachment filenames. Pending and failed captures retain only the content needed for local recovery, which may include an already privacy-adjusted location snapshot or durable unavailable outcome. After successful delivery, a recoverable Capture request is immediately replaced by an identifier-and-timestamp-only tombstone; completed Watch queue items are likewise scrubbed, and upgrades sanitize legacy completed requests.</p>
     <p>You can delete locally stored user content and settings by:</p>
     <ul>
       <li>Deleting individual transcriptions or clearing Recent Capture metadata from the history views within the app</li>

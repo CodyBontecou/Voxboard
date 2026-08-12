@@ -38,6 +38,11 @@ Documentation updated: 2026-07-29
 - When Apple Intelligence is unavailable, Todo and Meeting Notes have deterministic formatters; Clean Prose and Custom Instruction preserve the original text.
 - Typed and mixed-media processing is opt-in per preset. Voice transcripts use the selected preset mode.
 - Static metadata can be note-level frontmatter or per-entry inline fields.
+- Per-preset location metadata is opt-in and off by default. It requests one origin-time location at Send for iOS/iPadOS, Share Sheet, Shortcuts, deep-link/composer, and Mac captures, or at recording stop for immediate voice, keyboard-driven preset recording, and Watch captures routed through normal Markdown delivery. Widgets and controls use invocation or recording stop. Watch Recording Only is a raw audio Files export with no metadata surface and skips location. There is no continuous or background location tracking.
+- Exact is the default location precision. City rounds both coordinates to two decimal places and omits point-of-interest labels; every derived field and provider link uses the same privacy-adjusted coordinates.
+- Location output supports renameable structured fields or validated advanced YAML. Structured fields can be document frontmatter or per-entry inline fields. Document frontmatter retains multiple locations in an idempotent collection keyed by Capture ID; advanced YAML cannot replace unrelated frontmatter.
+- Apple’s system reverse geocoder is used only for selected label fields. It is free and requires no API key, may use the network, and fails softly to coordinate-only metadata. Provider links disclose their exact or rounded coordinates to Apple, Google, or OpenStreetMap only when the user opens them.
+- If location is unavailable, interactive surfaces can retry, cancel, send once without it, or persist Always Send Without Location per preset; preset settings expose a reset. An unattended Ask result is durable and never reacquires a later location.
 - Reusable Entry Templates, vault template files, prefix/suffix text, path tokens, attachment subfolders, and retry markers are supported.
 
 ## Capture Inputs and Editor
@@ -51,7 +56,7 @@ Quick Capture accepts:
 - Multipage document scans with PDF generation, page images, and best-effort on-device OCR.
 - Up to 10 manually captured journal pages or selected journal photos with on-device OCR.
 - PencilKit sketches with editable drawing data and PNG preview.
-- Explicit one-shot current location inserted as a Google Maps Markdown link.
+- An independent explicit one-shot Current Location Capture Bar action that inserts a Google Maps Markdown link; it does not enable preset location metadata.
 - Voice recordings and imported audio/video, transcribed locally.
 
 The configurable Capture Bar includes Add Media, Add Files, Scan Document, Extract Text, Undo, Format Markdown, Markdown Link, Set Due Date, Checklist, Bullet List, Paste, Internal Link, Sketch, Current Location, Insert Timestamp, Insert Date, and Change Text Case. Actions can be reordered or hidden.
@@ -106,7 +111,7 @@ Unknown or duplicate parameters, malformed identifiers, non-HTTP URLs, and overs
 
 Capture drafts, attachments, audio, transcripts, templates, routes, file paths, OCR results, typed text, and keyboard input are handled locally and are not sent to Vox.md servers. Files are written only to the destination selected by the user. If that folder uses iCloud Drive or another provider, that provider can sync it under its own terms.
 
-Production onboarding analytics are disabled by default. Vox.md has no third-party analytics SDK, ad network, or cross-app tracker. User-initiated model downloads contact external model-distribution infrastructure, currently Hugging Face directly or through FluidAudio, which can receive ordinary connection metadata but no capture content. After successful Capture delivery, recoverable request content is replaced with an identifier-and-timestamp-only tombstone. Completed Capture history stores coarse delivery metadata, not note content, URLs, coordinates, bookmarks, absolute paths, or attachment filenames.
+Production onboarding analytics are disabled by default. Vox.md has no third-party analytics SDK, ad network, or cross-app tracker. Location is not collected by the developer or analytics. User-initiated model downloads contact external model-distribution infrastructure, currently Hugging Face directly or through FluidAudio, which can receive ordinary connection metadata but no capture content. Pending and failed requests may retain the privacy-adjusted location snapshot or unavailable outcome needed for recovery. After successful delivery, recoverable Capture requests and completed Watch queue items are reduced to scrubbed tombstones. Completed Capture history stores coarse delivery metadata, not note content, URLs, coordinates, location labels or templates, bookmarks, absolute paths, or attachment filenames.
 
 - [Privacy Policy](https://vox.isolated.tech/privacy.html): Complete data handling and retention details.
 - [Terms of Service](https://vox.isolated.tech/terms.html): Product terms and transcription disclaimers.

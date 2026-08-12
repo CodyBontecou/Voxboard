@@ -14,6 +14,8 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
     public var kind: CapturePresetKind
     public var exportSettings: CapturePresetExportSettings
     public var staticFrontmatter: [String: String]
+    /// Opt-in location metadata policy shared by every Capture modality.
+    public var locationPolicy: CapturePresetLocationPolicy
     public var metadataScope: CapturePresetMetadataScope
     public var postProcessingMode: CapturePresetProcessingMode
     public var customPostProcessingInstruction: String
@@ -49,6 +51,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         kind: CapturePresetKind = .custom,
         exportSettings: CapturePresetExportSettings = CapturePresetExportSettings(),
         staticFrontmatter: [String: String] = [:],
+        locationPolicy: CapturePresetLocationPolicy = CapturePresetLocationPolicy(),
         metadataScope: CapturePresetMetadataScope = .document,
         postProcessingMode: CapturePresetProcessingMode = .clean,
         customPostProcessingInstruction: String = "",
@@ -71,6 +74,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         self.kind = kind
         self.exportSettings = exportSettings
         self.staticFrontmatter = staticFrontmatter
+        self.locationPolicy = locationPolicy
         self.metadataScope = metadataScope
         self.postProcessingMode = postProcessingMode
         self.customPostProcessingInstruction = customPostProcessingInstruction
@@ -127,6 +131,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
             isEnabled: isEnabled,
             isBuiltIn: isBuiltIn,
             staticFrontmatter: staticFrontmatter,
+            locationPolicy: locationPolicy,
             metadataScope: metadataScope,
             postProcessingMode: postProcessingMode,
             customPostProcessingInstruction: customPostProcessingInstruction,
@@ -163,6 +168,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         case kind
         case exportSettings
         case staticFrontmatter
+        case locationPolicy
         case metadataScope
         case postProcessingMode
         case customPostProcessingInstruction
@@ -191,6 +197,8 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
             exportSettings: try container.decodeIfPresent(CapturePresetExportSettings.self, forKey: .exportSettings)
                 ?? CapturePresetExportSettings(),
             staticFrontmatter: try container.decodeIfPresent([String: String].self, forKey: .staticFrontmatter) ?? [:],
+            locationPolicy: try container.decodeIfPresent(CapturePresetLocationPolicy.self, forKey: .locationPolicy)
+                ?? CapturePresetLocationPolicy(),
             metadataScope: try container.decodeIfPresent(CapturePresetMetadataScope.self, forKey: .metadataScope) ?? .document,
             postProcessingMode: try container.decodeIfPresent(CapturePresetProcessingMode.self, forKey: .postProcessingMode) ?? .clean,
             customPostProcessingInstruction: try container.decodeIfPresent(String.self, forKey: .customPostProcessingInstruction) ?? "",
@@ -218,6 +226,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         try container.encode(kind, forKey: .kind)
         try container.encode(exportSettings, forKey: .exportSettings)
         try container.encode(staticFrontmatter, forKey: .staticFrontmatter)
+        try container.encode(locationPolicy, forKey: .locationPolicy)
         try container.encode(metadataScope, forKey: .metadataScope)
         try container.encode(postProcessingMode, forKey: .postProcessingMode)
         try container.encode(customPostProcessingInstruction, forKey: .customPostProcessingInstruction)
@@ -601,6 +610,25 @@ public enum CapturePresetStore {
     private static func resolvedBookmarkName(_ bookmarkData: Data) -> String? {
         var isStale = false
         return try? URL(resolvingBookmarkData: bookmarkData, bookmarkDataIsStale: &isStale).lastPathComponent
+    }
+
+    /// Persists the foreground “always send without location” decision in the
+    /// preset itself so extensions and automation observe the same policy.
+    public static func setLocationUnavailableBehavior(
+        _ behavior: CaptureLocationUnavailableBehavior,
+        presetID: String,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) {
+        guard let defaults else { return }
+        withPresetWriteLock(at: presetWriteLockURL) {
+            var flows = loadFlows(defaults: defaults, persistMigrations: false)
+            guard let index = flows.firstIndex(where: { $0.id == presetID }) else { return }
+            flows[index].locationPolicy.unavailableBehavior = behavior
+            saveFlowsWithoutLock(
+                preservingMigratedRouteOwnership(in: flows, defaults: defaults),
+                defaults: defaults
+            )
+        }
     }
 
     public static func saveFlows(

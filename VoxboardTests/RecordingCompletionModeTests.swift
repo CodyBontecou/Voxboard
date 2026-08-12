@@ -25,11 +25,27 @@ final class RecordingCompletionModeTests: XCTestCase {
         XCTAssertEqual(completionMode.commandOrigin(overriding: .watch), .watch)
     }
 
-    func testKeyboardCommandIsTranscriptionOnly() {
+    func testKeyboardCommandRunsItsExplicitPreset() {
         let command = RecordingCommand(
             requestId: "keyboard",
             action: .startSegment,
             flowId: "custom",
+            origin: .keyboardExtension
+        )
+
+        XCTAssertEqual(
+            RecordingCompletionMode.completionMode(
+                forExternalCommand: command,
+                fallbackFlowID: "general"
+            ),
+            .runVox(flowID: "custom")
+        )
+    }
+
+    func testKeyboardCommandWithoutPresetIsTranscriptionOnly() {
+        let command = RecordingCommand(
+            requestId: "keyboard",
+            action: .startSegment,
             origin: .keyboardExtension
         )
 
@@ -56,6 +72,33 @@ final class RecordingCompletionModeTests: XCTestCase {
             ),
             .keyboardTranscription
         )
+    }
+
+    func testPresetSnapshotRemainsImmutableWhenLivePresetChanges() {
+        let original = CapturePreset(
+            id: "custom",
+            name: "Original",
+            symbolName: "location",
+            locationPolicy: CapturePresetLocationPolicy(isEnabled: true, precision: .exact)
+        )
+        var live = original
+        let snapshot = RecordingCompletionMode.presetSnapshot(
+            for: .runVox(flowID: original.id),
+            lookup: { $0 == live.id ? live : nil },
+            fallback: { live }
+        )
+
+        live.name = "Edited Later"
+        live.locationPolicy.precision = .city
+
+        XCTAssertEqual(snapshot, original)
+        XCTAssertEqual(snapshot?.locationPolicy.precision, .exact)
+        XCTAssertEqual(snapshot?.name, "Original")
+        XCTAssertNil(RecordingCompletionMode.presetSnapshot(
+            for: .captureDraft(attachAudio: false),
+            lookup: { _ in live },
+            fallback: { live }
+        ))
     }
 
     func testNonKeyboardExternalCommandStillRunsItsPreset() {

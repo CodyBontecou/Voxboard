@@ -106,11 +106,21 @@ public struct CaptureMarkdownRenderer: Sendable {
         if rendered.isEmpty, !attachmentOnlyFallbackBlocks.isEmpty {
             rendered = attachmentOnlyFallbackBlocks.joined(separator: "\n\n")
         }
-        if request.voxProfile?.metadataScope == .entry,
-           !request.frontmatter.isEmpty {
-            let metadata = inlineMetadata(request.frontmatter)
-            if !metadata.isEmpty {
-                rendered = insertingAfterLeadingFrontmatter(metadata, in: rendered)
+        if request.voxProfile?.metadataScope == .entry {
+            var metadataBlocks: [String] = []
+            if !request.frontmatter.isEmpty {
+                let metadata = inlineMetadata(request.frontmatter)
+                if !metadata.isEmpty { metadataBlocks.append(metadata) }
+            }
+            if let location = try CaptureLocationMetadataRenderer().render(request: request),
+               !location.inlineLines.isEmpty {
+                metadataBlocks.append(location.inlineLines.joined(separator: "\n"))
+            }
+            if !metadataBlocks.isEmpty {
+                rendered = insertingAfterLeadingFrontmatter(
+                    metadataBlocks.joined(separator: "\n"),
+                    in: rendered
+                )
             }
         }
         guard !rendered.isEmpty else { throw CaptureRenderingError.emptyRequest }

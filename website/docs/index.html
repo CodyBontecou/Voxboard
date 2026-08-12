@@ -179,7 +179,7 @@
           <li><strong>Speech recognition:</strong> Apple Speech on supported systems.</li>
           <li><strong>Files folder access:</strong> destinations, templates, imports, and recording-only Watch output.</li>
           <li><strong>Camera and selected photos:</strong> only when you add media, screenshots, journal photos, or scans.</li>
-          <li><strong>Location When In Use:</strong> only after you choose the Current Location Capture Bar command.</li>
+          <li><strong>Location When In Use:</strong> only for the independent Current Location Capture Bar command or when an opted-in Capture Preset needs its one origin-time location. Vox.md never tracks location continuously or in the background.</li>
           <li><strong>Notifications:</strong> optional delivery status, including unattended Apple Watch failures.</li>
           <li><strong>Keyboard Allow Full Access:</strong> required for the Vox.md keyboard to use its shared on-device app workflow. See <a href="#keyboard-setup">Keyboard setup</a>.</li>
         </ul>
@@ -209,7 +209,7 @@
           <div><strong>Document scans</strong><p>Scan pages with VisionKit. Vox.md preserves page images, creates a PDF, and includes best-effort on-device OCR.</p></div>
           <div><strong>Journal OCR</strong><p>Capture up to 10 manual-shutter journal pages or choose journal photos. Accurate Vision OCR uses automatic language detection.</p></div>
           <div><strong>Sketches</strong><p>Draw on a white PencilKit canvas with a black pen. Vox.md stores editable drawing data and a PNG preview.</p></div>
-          <div><strong>Location</strong><p>Request one current location and insert a validated Google Maps Markdown link. There is no background tracking.</p></div>
+          <div><strong>Current Location action</strong><p>Request one location and insert a validated Google Maps Markdown link in the draft. This independent Capture Bar action does not enable preset metadata.</p></div>
           <div><strong>Voice and imported audio</strong><p>Record from the composer or import audio/video, transcribe locally, and add the result to the draft or send it immediately.</p></div>
         </div>
 
@@ -295,6 +295,26 @@
           <li><strong>Inline Entry Fields</strong> writes <code>key:: value</code> fields beside each entry in a rolling note.</li>
           <li>When available, on-device enrichment can add a title, tags, category, and cleaned text alongside static preset metadata.</li>
         </ul>
+
+        <h3 id="preset-location">Opt-in location metadata</h3>
+        <p>Location metadata is off by default and belongs to each Capture Preset. When enabled, Vox.md requests one location at the capture’s origin: at Send for iOS/iPadOS, Share Sheet, Shortcuts, deep-link/composer, and Mac captures, or when an immediate voice, keyboard-driven preset recording, or Apple Watch recording routed through normal Capture delivery stops. Widget and control paths use their invocation or recording-stop boundary. Watch Recording Only is a raw audio Files export with no Markdown metadata surface and does not request location. Vox.md never continuously monitors location and never runs background location tracking.</p>
+        <div class="docs-table-wrap">
+          <table class="docs-table">
+            <thead><tr><th>Setting</th><th>Behavior</th></tr></thead>
+            <tbody>
+              <tr><td>Exact (default)</td><td>Keeps the privacy-adjusted origin fix and can include a point-of-interest label.</td></tr>
+              <tr><td>City</td><td>Rounds latitude and longitude to two decimal places and omits point-of-interest labels. All derived fields and links use those rounded coordinates.</td></tr>
+              <tr><td>Structured Fields</td><td>Select and rename coordinates, latitude, longitude, place, city, region, country, Apple Maps, Google Maps, OpenStreetMap, <code>geo:</code> URI, accuracy, timestamp, source, and Capture ID.</td></tr>
+              <tr><td>Advanced YAML Template</td><td>Uses validated, bounded YAML for Note Frontmatter. It cannot replace unrelated frontmatter and is not available for inline entry fields.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>At document scope, each result is appended to the configured frontmatter collection and keyed by Capture ID. One note can retain multiple locations, while an idempotent retry cannot append the same location twice. At entry scope, selected structured fields render as <code>key:: value</code> beside that captured entry.</p>
+        <p>Place, city, region, and country use Apple’s system reverse geocoder only when selected. The service is free and requires no API key, but may use a network connection; if lookup fails, Capture continues with coordinate-only metadata. Creating a provider link does not contact Apple, Google, or OpenStreetMap. Opening one discloses the same exact or rounded coordinates stored in the link to that provider.</p>
+        <div class="docs-callout docs-callout-neutral">
+          <strong>Unavailable location</strong>
+          <p>Interactive surfaces can retry, cancel, send once without location, or choose <em>Always Send Without Location</em> for that preset. Reset that saved choice in the preset’s Location Metadata settings. An unattended <em>Ask</em> capture persists its unavailable origin-time outcome until you decide; retry and recovery never reacquire a later location.</p>
+        </div>
 
         <h3 id="destinations">Markdown destinations</h3>
         <p>Each preset owns one destination rooted in an Obsidian vault or writable Files folder.</p>
@@ -420,7 +440,7 @@
         <h2>Start a Capture From the Share Sheet, Home Screen, Lock Screen, or Shortcuts</h2>
 
         <h3 id="share-extension">Share Extension</h3>
-        <p>The iOS Share Sheet action is named <strong>Capture to Vox.md</strong>. It accepts text, HTTP/HTTPS URLs, images, files, and movies, up to the shared item and asset limits. Choose a Capture Preset and destination, add an optional note, then Send. Content is staged in the private App Group, queued durably, and opened in Vox.md for delivery. If delivery needs the main app, use <strong>Open Vox.md</strong>.</p>
+        <p>The iOS Share Sheet action is named <strong>Capture to Vox.md</strong>. It accepts text, HTTP/HTTPS URLs, images, files, and movies, up to the shared item and asset limits. Choose a Capture Preset and destination, add an optional note, then Send. If that preset opted into location metadata, Share requests its one origin-time location at this Send action. Content is staged in the private App Group, queued durably, and opened in Vox.md for delivery. If delivery needs the main app, use <strong>Open Vox.md</strong>.</p>
 
         <h3 id="widgets">Home Screen and Lock Screen widgets</h3>
         <div class="docs-feature-grid docs-feature-grid-three">
@@ -438,7 +458,7 @@
         </ul>
 
         <h3 id="shortcuts">Shortcuts and App Intents</h3>
-        <p>Capture Presets appear as selectable entities in Shortcuts and supported controls. Shipped intents include:</p>
+        <p>Capture Presets appear as selectable entities in Shortcuts and supported controls. An opted-in preset requests one location during the intent invocation when the process is authorized and capable. If an unattended <em>Ask</em> request cannot get location, its unavailable origin-time result is retained for a later decision rather than reacquired. Shipped intents include:</p>
         <ul class="docs-columns">
           <li>Record with Vox.md</li>
           <li>Open Quick Capture</li>
@@ -480,6 +500,7 @@
           <li>Use Record, Stop, Cancel, Sync, and Refresh. Cancel explicitly deletes the local recording instead of syncing it.</li>
           <li>Recordings are journaled locally and recovered after interruptions or crashes.</li>
           <li>A recording remains on Watch until iPhone confirms delivery or discard.</li>
+          <li>For an opted-in preset routed through normal Capture delivery, Watch requests one Watch-origin location when recording stops and transfers that privacy-adjusted outcome with the preset snapshot. iPhone never substitutes its own location. Recording Only skips location because it exports raw audio without a Markdown metadata surface.</li>
         </ul>
 
         <h3 id="watch-presets">Capture Presets on Watch</h3>
@@ -512,7 +533,7 @@
           <li>Import a scan or PDF, create a sketch with a mouse, trackpad, or connected tablet, and add links, wikilinks, due dates, and text transformations.</li>
           <li>Record with <strong>Add to Draft</strong> or <strong>Send Immediately</strong>; optionally retain Audio in draft mode.</li>
           <li>Import audio or video for local transcription.</li>
-          <li>Press Command-Return to Send Capture.</li>
+          <li>Press Command-Return to Send Capture. An opted-in preset requests one Mac-origin location at Send or recording stop.</li>
           <li>A destination setup banner and route inspector expose the selected preset's resolved note and placement.</li>
         </ul>
 
@@ -582,9 +603,9 @@
           <div><strong>Your destination</strong><p>Completed files go only to the folder you chose. A third-party file provider may sync them under its own terms.</p></div>
         </div>
         <ul>
-          <li>After successful delivery, recoverable request content is replaced with an identifier-and-timestamp-only tombstone.</li>
-          <li>Completed Capture history stores delivery metadata, not note text, URLs, coordinates, bookmarks, absolute paths, or attachment filenames.</li>
-          <li>Pending and failed items retain only what is needed for local recovery.</li>
+          <li>After successful delivery, recoverable Capture requests become content-free receipts and completed Watch queue items retain only coarse terminal delivery fields. Neither retains coordinates, labels, provider URLs, location templates, or preset payloads.</li>
+          <li>Completed Capture history stores delivery metadata, not note text, URLs, coordinates, location labels or templates, bookmarks, absolute paths, or attachment filenames.</li>
+          <li>Pending and failed items retain only what is needed for local recovery, which may include a preset snapshot and its already privacy-adjusted location or unavailable outcome.</li>
           <li>Production onboarding analytics are disabled by default. The app contains no third-party analytics SDK, ad network, or cross-app tracker.</li>
           <li>The composer fetches cached inspirational quotes from ZenQuotes without sending draft content or identifiers.</li>
         </ul>
@@ -618,6 +639,10 @@
           <details>
             <summary>A Watch recording is queued</summary>
             <p>Open Vox.md on iPhone, then open Watch Recordings. Refresh or retry, choose a valid preset when requested, and keep the app installed and available for background handoff. Force-quit blocks background delivery until reopen.</p>
+          </details>
+          <details>
+            <summary>Preset location is unavailable</summary>
+            <p>Use Retry only while you are still resolving the original interactive Send. You can instead cancel, send once without location, or always send without location for that preset. Reset a saved choice in the preset’s Location Metadata settings. A queued unattended request keeps its original unavailable result and will not fetch a newer location.</p>
           </details>
         </div>
         <div class="docs-callout docs-support-callout">
