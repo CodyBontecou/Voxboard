@@ -7,7 +7,9 @@ import AppKit
 import UIKit
 #endif
 
-struct RecordingQueuePreferencesView: View {
+private struct RecordingQueuePreferencesView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @State private var isExpanded = false
     @State private var retentionMode: SourceAudioRetentionMode
     @State private var timedRetentionDays: Int
     @State private var processingPolicy: RecordingJobProcessingPolicy
@@ -22,47 +24,161 @@ struct RecordingQueuePreferencesView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("After recording")
-                    .font(.headline)
-                Picker("After recording", selection: $processingPolicy) {
-                    Text("Process immediately").tag(RecordingJobProcessingPolicy.immediate)
-                    Text("Process when Vox.md is idle").tag(RecordingJobProcessingPolicy.whenIdle)
-                    Text("Process manually").tag(RecordingJobProcessingPolicy.manual)
+        DisclosureGroup(isExpanded: $isExpanded) {
+            VStack(alignment: .leading, spacing: Geist.Spacing.four) {
+                GeistDivider()
+
+                preferenceField(
+                    title: "After Recording",
+                    detail: processingDetail
+                ) {
+                    Menu {
+                        Button("Immediately") {
+                            processingPolicy = .immediate
+                        }
+                        Button("When Idle") {
+                            processingPolicy = .whenIdle
+                        }
+                        Button("Manually") {
+                            processingPolicy = .manual
+                        }
+                    } label: {
+                        queueMenuLabel(processingSummary)
+                    }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityLabel("After Recording")
+                    .accessibilityValue(processingSummary)
                 }
-                .labelsHidden()
-                Text(processingDetail)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
 
-            Divider()
+                GeistDivider()
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Original audio")
-                    .font(.headline)
-                Picker("Original audio", selection: $retentionMode) {
-                    Text("Delete after successful processing").tag(SourceAudioRetentionMode.deleteAfterSuccess)
-                    Text("Keep for a period").tag(SourceAudioRetentionMode.timed)
-                    Text("Keep permanently").tag(SourceAudioRetentionMode.permanent)
-                }
-                .labelsHidden()
+                preferenceField(
+                    title: "Original Audio",
+                    detail: "Failed recordings stay here until you retry or delete them."
+                ) {
+                    Menu {
+                        Button("After Processing") {
+                            retentionMode = .deleteAfterSuccess
+                        }
+                        Button("For a Period") {
+                            retentionMode = .timed
+                        }
+                        Button("Permanently") {
+                            retentionMode = .permanent
+                        }
+                    } label: {
+                        queueMenuLabel(retentionMenuLabel)
+                    }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityLabel("Original Audio")
+                    .accessibilityValue(retentionMenuLabel)
 
-                if retentionMode == .timed {
-                    Stepper(value: $timedRetentionDays, in: 1...365) {
-                        Text("Keep for \(timedRetentionDays) day\(timedRetentionDays == 1 ? "" : "s")")
+                    if retentionMode == .timed {
+                        Stepper(value: $timedRetentionDays, in: 1...365) {
+                            Text("Keep for \(timedRetentionDays) day\(timedRetentionDays == 1 ? "" : "s")")
+                                .font(Geist.label())
+                                .foregroundStyle(Geist.text)
+                        }
+                        .tint(Geist.focus)
+                        .accessibilityLabel("Original Audio Retention")
+                        .accessibilityValue("\(timedRetentionDays) day\(timedRetentionDays == 1 ? "" : "s")")
                     }
                 }
-
-                Text("Failed or interrupted recordings are always preserved until you retry or delete them.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            }
+            .padding(.top, Geist.Spacing.four)
+        } label: {
+            VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+                Text("Queue Settings")
+                    .font(Geist.heading(.headline))
+                    .foregroundStyle(Geist.text)
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Text(configurationSummary)
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.muted)
+                }
             }
         }
+        .tint(Geist.text)
+        .geistCard(padding: Geist.Spacing.four)
         .onChange(of: retentionMode) { _, _ in save() }
         .onChange(of: timedRetentionDays) { _, _ in save() }
         .onChange(of: processingPolicy) { _, _ in save() }
+    }
+
+    private var configurationSummary: String {
+        String(
+            localized: "\(processingSummary) · \(retentionSummary)"
+        )
+    }
+
+    private var processingSummary: String {
+        switch processingPolicy {
+        case .immediate: return String(localized: "Immediately")
+        case .whenIdle: return String(localized: "When Idle")
+        case .manual: return String(localized: "Manually")
+        }
+    }
+
+    private var retentionSummary: String {
+        switch retentionMode {
+        case .deleteAfterSuccess: return String(localized: "Delete Audio After Processing")
+        case .timed: return String(localized: "Keep Audio for \(timedRetentionDays) Days")
+        case .permanent: return String(localized: "Keep Audio Permanently")
+        }
+    }
+
+    private var retentionMenuLabel: String {
+        switch retentionMode {
+        case .deleteAfterSuccess: return String(localized: "After Processing")
+        case .timed: return String(localized: "For a Period")
+        case .permanent: return String(localized: "Permanently")
+        }
+    }
+
+    private func queueMenuLabel(_ title: String) -> some View {
+        HStack(spacing: Geist.Spacing.two) {
+            Text(title)
+                .lineLimit(1)
+            Spacer(minLength: Geist.Spacing.two)
+            Image(systemName: "chevron.up.chevron.down")
+                .font(.system(.caption, weight: .semibold))
+                .accessibilityHidden(true)
+        }
+        .font(Geist.label())
+        .foregroundStyle(Geist.text)
+        .frame(
+            maxWidth: .infinity,
+            minHeight: Geist.ControlHeight.medium,
+            alignment: .leading
+        )
+        .padding(.horizontal, Geist.Spacing.three)
+        .background(Geist.Palette.background100)
+        .overlay(
+            RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous)
+                .stroke(Geist.border, lineWidth: 1)
+        )
+        .clipShape(
+            RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous)
+        )
+        .contentShape(Rectangle())
+    }
+
+    private func preferenceField<Control: View>(
+        title: LocalizedStringKey,
+        detail: String,
+        @ViewBuilder control: () -> Control
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.two) {
+            Text(title)
+                .font(Geist.label())
+                .foregroundStyle(Geist.text)
+            control()
+            Text(detail)
+                .font(Geist.caption())
+                .foregroundStyle(Geist.muted)
+        }
     }
 
     private var processingDetail: String {
@@ -133,25 +249,35 @@ struct RecordingQueueView: View {
     }
 
     var body: some View {
-        Group {
-            if queue.actionableJobs.isEmpty {
-                ContentUnavailableView(
-                    "No Recordings in Queue",
-                    systemImage: "waveform.badge.checkmark",
-                    description: Text("New recordings are staged here before transcription so they can recover after interruption.")
-                )
-            } else {
-                List {
-                    ForEach(queue.actionableJobs) { job in
-                        RecordingQueueRow(
-                            job: job,
-                            queue: queue,
-                            retryCoordinator: retryCoordinator,
-                            recoveryPresets: recoveryPresets
-                        )
+        ZStack {
+            Geist.surface2.ignoresSafeArea()
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: Geist.Spacing.eight) {
+                    RecordingQueuePreferencesView()
+
+                    VStack(alignment: .leading, spacing: Geist.Spacing.four) {
+                        queueSectionHeader
+
+                        if queue.actionableJobs.isEmpty {
+                            emptyQueueView
+                        } else {
+                            ForEach(queue.actionableJobs) { job in
+                                RecordingQueueRow(
+                                    job: job,
+                                    queue: queue,
+                                    retryCoordinator: retryCoordinator,
+                                    recoveryPresets: recoveryPresets
+                                )
+                                .geistCard(padding: Geist.Spacing.four)
+                            }
+                        }
                     }
                 }
-                .listStyle(.plain)
+                .frame(maxWidth: 1_200)
+                .padding(.horizontal, Geist.Spacing.four)
+                .padding(.vertical, Geist.Spacing.six)
+                .frame(maxWidth: .infinity)
             }
         }
         .navigationTitle("Recording Queue")
@@ -207,10 +333,42 @@ struct RecordingQueueView: View {
         .accessibilityLabel(runtimeValidationStatus ?? "Runtime queue actions pending")
         #endif
         .alert("Recording Queue Error", isPresented: errorPresented) {
-            Button("OK") {}
+            Button("Dismiss Error") {}
         } message: {
             Text(queue.lastError ?? String(localized: "Unknown error"))
         }
+    }
+
+    private var queueSectionHeader: some View {
+        HStack(alignment: .firstTextBaseline, spacing: Geist.Spacing.three) {
+            Text("Recordings")
+                .font(Geist.heading(.headline))
+                .foregroundStyle(Geist.text)
+            Spacer()
+            if !queue.actionableJobs.isEmpty {
+                Text("\(queue.actionableJobs.count)")
+                    .font(Geist.mono(.footnote, medium: true))
+                    .foregroundStyle(Geist.muted)
+                    .accessibilityLabel("\(queue.actionableJobs.count) recordings")
+            }
+        }
+    }
+
+    private var emptyQueueView: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            Image(systemName: "waveform.badge.checkmark")
+                .font(.system(size: 24, weight: .medium))
+                .foregroundStyle(Geist.muted)
+                .accessibilityHidden(true)
+            Text("No Recordings Yet")
+                .font(Geist.heading(.headline))
+                .foregroundStyle(Geist.text)
+            Text("Record audio to stage it here before transcription. Interrupted recordings return here for recovery.")
+                .font(Geist.body(.subheadline))
+                .foregroundStyle(Geist.muted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .geistCard(padding: Geist.Spacing.six)
     }
 
     #if DEBUG
@@ -370,46 +528,55 @@ private struct RecordingQueueRow: View {
     let recoveryPresets: [CapturePreset]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
             if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 4) {
-                    Label(title, systemImage: symbolName)
-                        .font(.headline)
-                    Text(status)
-                        .font(.caption)
-                        .foregroundStyle(statusColor)
+                VStack(alignment: .leading, spacing: Geist.Spacing.two) {
+                    titleLabel
+                    statusLabel
                 }
             } else {
-                HStack(alignment: .firstTextBaseline) {
-                    Label(title, systemImage: symbolName)
-                        .font(.headline)
+                HStack(alignment: .firstTextBaseline, spacing: Geist.Spacing.three) {
+                    titleLabel
                     Spacer()
-                    Text(status)
-                        .font(.caption)
-                        .foregroundStyle(statusColor)
+                    statusLabel
                 }
             }
 
             Text("\(job.createdAt.formatted(date: .abbreviated, time: .shortened)) · \(formattedDuration(job.duration))")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(Geist.mono(.footnote))
+                .foregroundStyle(Geist.muted)
 
-            if let message = job.statusMessage, !message.isEmpty {
+            if !dynamicTypeSize.isAccessibilitySize,
+               let message = job.statusMessage,
+               !message.isEmpty {
                 Text(message)
-                    .font(.caption)
-                    .foregroundStyle(job.phase == .failed ? .red : .secondary)
+                    .font(Geist.caption())
+                    .foregroundStyle(job.phase == .failed ? Geist.error : Geist.muted)
             }
 
             if queue.activeJobID == job.id,
                let progress = queue.transcriptionProgress,
                let fraction = progress.exactFractionCompleted {
                 ProgressView(value: fraction)
+                    .tint(Geist.focus)
             }
 
+            GeistDivider()
+
             actionArea
-                .buttonStyle(.borderless)
         }
-        .padding(.vertical, 8)
+    }
+
+    private var titleLabel: some View {
+        Label(title, systemImage: symbolName)
+            .font(Geist.heading(.headline))
+            .foregroundStyle(Geist.text)
+    }
+
+    private var statusLabel: some View {
+        Label(status, systemImage: statusSymbolName)
+            .font(Geist.caption())
+            .foregroundStyle(statusColor)
     }
 
     @ViewBuilder
@@ -424,7 +591,7 @@ private struct RecordingQueueRow: View {
         LazyVGrid(
             columns: compactActionColumns,
             alignment: .leading,
-            spacing: 10
+            spacing: Geist.Spacing.two
         ) {
             applicableActions
             deleteAction
@@ -437,7 +604,7 @@ private struct RecordingQueueRow: View {
         if dynamicTypeSize.isAccessibilitySize {
             return [GridItem(.flexible())]
         }
-        return [GridItem(.adaptive(minimum: 135), spacing: 12)]
+        return [GridItem(.adaptive(minimum: 135), spacing: Geist.Spacing.two)]
     }
     #endif
 
@@ -446,11 +613,12 @@ private struct RecordingQueueRow: View {
         primaryAction
 
         if let text = job.transcriptText, !text.isEmpty {
-            Button("Copy", systemImage: "doc.on.doc") {
+            Button("Copy Transcript", systemImage: "doc.on.doc") {
                 if copy(text) {
                     Task { await queue.acknowledgeCopiedResult(job) }
                 }
             }
+            .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
         }
 
         if let audioURL = queue.audioURL(for: job) {
@@ -458,28 +626,30 @@ private struct RecordingQueueRow: View {
         }
 
         Menu("Keep Audio", systemImage: "externaldrive") {
-            Button("Delete after success") {
+            Button("Delete After Processing") {
                 Task { await queue.updateRetention(job, policy: .deleteAfterSuccess) }
             }
-            Button("Use timed retention") {
+            Button("Use Timed Retention") {
                 let configured = RecordingQueuePreferences.load().sourceAudioRetention
                 let interval = configured.mode == .timed
                     ? configured.retentionInterval ?? SourceAudioRetentionPolicy.defaultTimedRetention
                     : SourceAudioRetentionPolicy.defaultTimedRetention
                 Task { await queue.updateRetention(job, policy: .timed(interval)) }
             }
-            Button("Keep permanently") {
+            Button("Keep Permanently") {
                 Task { await queue.updateRetention(job, policy: .permanent) }
             }
         }
+        .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
     }
 
     @ViewBuilder
     private var deleteAction: some View {
         if job.phase != .processing && job.phase != .finalizing {
-            Button("Delete", systemImage: "trash", role: .destructive) {
+            Button("Delete Recording", systemImage: "trash", role: .destructive) {
                 Task { await queue.discard(job) }
             }
+            .buttonStyle(GeistButtonStyle(variant: .destructive, size: .small))
         }
     }
 
@@ -490,6 +660,7 @@ private struct RecordingQueueRow: View {
             Button("Process Now", systemImage: "play.fill") {
                 Task { await queue.processNow(job) }
             }
+            .buttonStyle(GeistButtonStyle(variant: .primary, size: .small))
         case .failed where job.delivery == .recovery:
             Menu("Choose Preset", systemImage: "arrow.triangle.branch") {
                 if recoveryPresets.isEmpty {
@@ -514,8 +685,9 @@ private struct RecordingQueueRow: View {
                     }
                 }
             }
+            .buttonStyle(GeistButtonStyle(variant: .primary, size: .small))
         case .failed:
-            Button("Retry", systemImage: "arrow.clockwise") {
+            Button("Retry Recording", systemImage: "arrow.clockwise") {
                 Task {
                     if let retryCoordinator {
                         await retryCoordinator.retry(job)
@@ -524,6 +696,7 @@ private struct RecordingQueueRow: View {
                     }
                 }
             }
+            .buttonStyle(GeistButtonStyle(variant: .primary, size: .small))
         case .completed where job.transcriptText != nil:
             EmptyView()
         default:
@@ -534,13 +707,15 @@ private struct RecordingQueueRow: View {
     @ViewBuilder
     private func audioAction(_ url: URL) -> some View {
         #if os(macOS)
-        Button("Reveal", systemImage: "folder") {
+        Button("Reveal Audio", systemImage: "folder") {
             NSWorkspace.shared.activateFileViewerSelecting([url])
         }
+        .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
         #else
         ShareLink(item: url) {
             Label("Share Audio", systemImage: "square.and.arrow.up")
         }
+        .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
         #endif
     }
 
@@ -583,8 +758,18 @@ private struct RecordingQueueRow: View {
         }
     }
 
+    private var statusSymbolName: String {
+        switch job.phase {
+        case .queued: return "clock"
+        case .processing, .finalizing: return "waveform"
+        case .completed: return "checkmark.circle"
+        case .failed: return "exclamationmark.triangle"
+        case .discarded: return "trash"
+        }
+    }
+
     private var statusColor: Color {
-        job.phase == .failed ? .red : .secondary
+        job.phase == .failed ? Geist.error : Geist.muted
     }
 
     @discardableResult

@@ -226,9 +226,9 @@ struct MetaSettingsView: View {
             GeistDivider()
 
             settingsNavigationRow(
-                "Manage Recordings",
-                description: "Process, retry, share, retain, or delete queued audio",
-                systemImage: "waveform.badge.clock"
+                "Open Recording Queue",
+                description: "Manage queued audio and choose processing and retention defaults",
+                systemImage: "waveform"
             ) {
                 RecordingQueueView(
                     queue: persistentRecorder.recordingQueue,
@@ -244,13 +244,6 @@ struct MetaSettingsView: View {
                     )
                 }
             }
-
-            GeistDivider()
-
-            RecordingQueuePreferencesView()
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .background(Geist.bg)
         }
     }
 

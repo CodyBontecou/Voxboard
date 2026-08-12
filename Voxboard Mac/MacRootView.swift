@@ -1876,22 +1876,18 @@ struct MacSettingsView: View {
                     )
                     sectionHeader("02", "Capture Configuration")
                     configurationSettings
-                    sectionHeader("03", "Recording Queue")
-                    RecordingQueuePreferencesView()
-                        .padding(20)
-                        .background(Geist.bg)
-                    sectionHeader("04", "Global Keybinds")
+                    sectionHeader("03", "Global Keybinds")
                     hotKeySettings
-                    sectionHeader("05", "Visibility")
+                    sectionHeader("04", "Visibility")
                     visibilitySettings
-                    sectionHeader("06", "About")
+                    sectionHeader("05", "About")
                     settingsRow(title: String(localized: "VERSION"), detail: appVersionString, trailing: "")
                     settingsRow(
                         title: String(localized: "PROCESSING"),
                         detail: String(localized: "Voice and text stay on-device."),
                         trailing: String(localized: "PRIVATE")
                     )
-                    sectionHeader("07", "Debug")
+                    sectionHeader("06", "Debug")
                     Button("View Debug Log") { showDebug = true }
                         .buttonStyle(GeistButtonStyle(variant: .secondary))
                         .padding(20)
