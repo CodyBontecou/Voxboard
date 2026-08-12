@@ -16,7 +16,9 @@ public enum AudioAttachmentExporter {
         sourceAudioURL: URL,
         transcriptFileURL: URL,
         flow: CapturePreset?,
-        transcriptFolderScopeURL: URL? = nil
+        transcriptFolderScopeURL: URL? = nil,
+        previouslyExportedURL: URL? = nil,
+        deliveryTransactionDirectoryURL: URL? = nil
     ) async throws -> URL? {
         guard let flow, flow.audioSaveMode != .off else { return nil }
         let audioFolderOverride = flow.audioSaveMode == .attachmentsFolder
@@ -28,16 +30,45 @@ public enum AudioAttachmentExporter {
         let needsScoping = folderNeedingScope?.startAccessingSecurityScopedResource() ?? false
         defer { if needsScoping { folderNeedingScope?.stopAccessingSecurityScopedResource() } }
 
-        let destination = uniquedURL(audioDestinationURL(
+        if let previouslyExportedURL, isUsableFile(previouslyExportedURL) {
+            return previouslyExportedURL
+        }
+        let transaction = deliveryTransactionDirectoryURL.map {
+            ExternalFileDeliveryTransaction(directoryURL: $0)
+        }
+        if let transaction, let resumed = try transaction.resumeIfPrepared() {
+            return resumed.url
+        }
+
+        let preferredDestination = uniquedURL(audioDestinationURL(
             for: transcriptFileURL,
             flow: flow,
             preferredExtension: "m4a",
             audioFolderOverride: audioFolderOverride
         ))
-
         do {
-            try await exportM4A(from: sourceAudioURL, to: destination)
-            return destination
+            if let transaction, let deliveryTransactionDirectoryURL {
+                try FileManager.default.createDirectory(
+                    at: deliveryTransactionDirectoryURL,
+                    withIntermediateDirectories: true
+                )
+                let convertedURL = deliveryTransactionDirectoryURL
+                    .appendingPathComponent("converted", isDirectory: false)
+                    .appendingPathExtension("m4a")
+                try? FileManager.default.removeItem(at: convertedURL)
+                defer { try? FileManager.default.removeItem(at: convertedURL) }
+                try await exportM4A(from: sourceAudioURL, to: convertedURL)
+                let published = try transaction.prepareAndPublish(
+                    data: Data(contentsOf: convertedURL),
+                    to: preferredDestination,
+                    expecting: .missing
+                )
+                return published.url
+            }
+            try await exportM4A(from: sourceAudioURL, to: preferredDestination)
+            return preferredDestination
+        } catch let error as ExternalFileDeliveryTransaction.TransactionError {
+            throw error
         } catch {
             // Fallback: keep the original/working file extension, usually WAV.
             let fallbackExt = sourceAudioURL.pathExtension.isEmpty ? "wav" : sourceAudioURL.pathExtension
@@ -47,11 +78,15 @@ public enum AudioAttachmentExporter {
                 preferredExtension: fallbackExt,
                 audioFolderOverride: audioFolderOverride
             ))
-            try FileManager.default.createDirectory(
-                at: fallback.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-            try FileManager.default.copyItem(at: sourceAudioURL, to: fallback)
+            if let transaction {
+                let published = try transaction.prepareAndPublish(
+                    data: Data(contentsOf: sourceAudioURL),
+                    to: fallback,
+                    expecting: .missing
+                )
+                return published.url
+            }
+            try atomicCopy(from: sourceAudioURL, to: fallback)
             return fallback
         }
     }
@@ -112,17 +147,19 @@ public enum AudioAttachmentExporter {
     }
 
     private static func exportM4A(from sourceURL: URL, to destinationURL: URL) async throws {
+        let folderURL = destinationURL.deletingLastPathComponent()
         try FileManager.default.createDirectory(
-            at: destinationURL.deletingLastPathComponent(),
+            at: folderURL,
             withIntermediateDirectories: true
         )
-        try? FileManager.default.removeItem(at: destinationURL)
+        let temporaryURL = temporaryURL(for: destinationURL)
+        defer { try? FileManager.default.removeItem(at: temporaryURL) }
 
         let asset = AVURLAsset(url: sourceURL)
         guard let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
             throw ExportError.couldNotCreateSession
         }
-        session.outputURL = destinationURL
+        session.outputURL = temporaryURL
         session.outputFileType = .m4a
         session.shouldOptimizeForNetworkUse = false
 
@@ -138,6 +175,37 @@ public enum AudioAttachmentExporter {
                 }
             }
         }
+        try replaceAtomically(temporaryURL: temporaryURL, destinationURL: destinationURL)
+    }
+
+    private static func atomicCopy(from sourceURL: URL, to destinationURL: URL) throws {
+        let folderURL = destinationURL.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true)
+        let temporaryURL = temporaryURL(for: destinationURL)
+        defer { try? FileManager.default.removeItem(at: temporaryURL) }
+        try FileManager.default.copyItem(at: sourceURL, to: temporaryURL)
+        try replaceAtomically(temporaryURL: temporaryURL, destinationURL: destinationURL)
+    }
+
+    private static func temporaryURL(for destinationURL: URL) -> URL {
+        let baseName = destinationURL.deletingPathExtension().lastPathComponent
+        return destinationURL.deletingLastPathComponent()
+            .appendingPathComponent(".\(baseName).\(UUID().uuidString).partial")
+            .appendingPathExtension(destinationURL.pathExtension)
+    }
+
+    private static func replaceAtomically(temporaryURL: URL, destinationURL: URL) throws {
+        if FileManager.default.fileExists(atPath: destinationURL.path) {
+            _ = try FileManager.default.replaceItemAt(destinationURL, withItemAt: temporaryURL)
+        } else {
+            try FileManager.default.moveItem(at: temporaryURL, to: destinationURL)
+        }
+    }
+
+    private static func isUsableFile(_ url: URL) -> Bool {
+        guard FileManager.default.fileExists(atPath: url.path) else { return false }
+        let values = try? url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+        return values?.isRegularFile == true && (values?.fileSize ?? 0) > 0
     }
 
     private static func sanitizedFolderName(_ raw: String) -> String {

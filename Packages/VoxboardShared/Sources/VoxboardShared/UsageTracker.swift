@@ -12,6 +12,8 @@ public final class UsageTracker {
     public static let freeMinutesLimit: Double = 15.0
     public static let freeCaptureLimit: Int = 10
     private static let usageSecondsKey = "totalTranscriptionSeconds"
+    private static let usageReceiptBaselineKey = "transcriptionUsageReceiptBaselineV1"
+    private static let usageReceiptsKey = "transcriptionUsageReceiptsV1"
     static let hasUnlockedKey = "hasUnlocked"
     static let accessLevelKey = "unlimitedAccessLevelV1"
     private static let permanentAccessLevelKey = "permanentUnlimitedAccessLevelV1"
@@ -78,9 +80,45 @@ public final class UsageTracker {
 
     // MARK: - Mutation
 
-    /// Add `seconds` to the cumulative counter. Call after every successful transcription.
-    public func addUsage(seconds: Double) {
-        totalSecondsUsed += seconds
+    /// Add `seconds` to the cumulative counter. A queued delivery ID makes the
+    /// write idempotent across retry/relaunch; legacy and interactive callers
+    /// can continue to omit it.
+    public func addUsage(seconds: Double, deliveryID: UUID? = nil) {
+        guard let defaults else {
+            totalSecondsUsed += seconds
+            persist()
+            return
+        }
+        guard let deliveryID else {
+            totalSecondsUsed += seconds
+            if defaults.object(forKey: Self.usageReceiptBaselineKey) != nil {
+                // Once the idempotent ledger exists, unidentified interactive
+                // and Watch usage belongs in its baseline; otherwise reload
+                // would reconstruct from an older baseline and lose it.
+                defaults.set(
+                    defaults.double(forKey: Self.usageReceiptBaselineKey) + seconds,
+                    forKey: Self.usageReceiptBaselineKey
+                )
+            }
+            persist()
+            return
+        }
+
+        var receipts = defaults.dictionary(forKey: Self.usageReceiptsKey) as? [String: Double] ?? [:]
+        let key = deliveryID.uuidString.lowercased()
+        guard receipts[key] == nil else { return }
+        let baseline: Double
+        if defaults.object(forKey: Self.usageReceiptBaselineKey) == nil {
+            baseline = totalSecondsUsed
+            defaults.set(baseline, forKey: Self.usageReceiptBaselineKey)
+        } else {
+            baseline = defaults.double(forKey: Self.usageReceiptBaselineKey)
+        }
+        receipts[key] = seconds
+        // Persist the receipt ledger first. If the process exits before the
+        // mirrored total write, reload derives the exact value from this ledger.
+        defaults.set(receipts, forKey: Self.usageReceiptsKey)
+        totalSecondsUsed = baseline + receipts.values.reduce(0, +)
         persist()
     }
 
@@ -143,7 +181,14 @@ public final class UsageTracker {
     /// Re-read values from disk (call when the app becomes active to pick up any
     /// changes written by the keyboard extension).
     public func reload() {
-        totalSecondsUsed = defaults?.double(forKey: Self.usageSecondsKey) ?? 0
+        if let defaults,
+           defaults.object(forKey: Self.usageReceiptBaselineKey) != nil {
+            let baseline = defaults.double(forKey: Self.usageReceiptBaselineKey)
+            let receipts = defaults.dictionary(forKey: Self.usageReceiptsKey) as? [String: Double] ?? [:]
+            totalSecondsUsed = baseline + receipts.values.reduce(0, +)
+        } else {
+            totalSecondsUsed = defaults?.double(forKey: Self.usageSecondsKey) ?? 0
+        }
         let mirroredCaptures = defaults?.integer(
             forKey: AppConstants.captureUsageMirrorKey
         ) ?? 0

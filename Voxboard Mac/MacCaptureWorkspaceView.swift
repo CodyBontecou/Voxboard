@@ -273,6 +273,7 @@ struct MacCaptureWorkspaceView: View {
             .fixedSize()
             .disabled(recorder.isRecording || recorder.isTranscribing || recorder.isExporting)
             .accessibilityLabel("Capture Preset \(selectedFlow.displayName)")
+            .disabled(recorder.isRecording)
             .accessibilityIdentifier("mac_capture_preset_selector")
 
             if selectedFlow.locationPolicy.isEnabled {
@@ -561,14 +562,14 @@ struct MacCaptureWorkspaceView: View {
             .pickerStyle(.segmented)
             .labelsHidden()
             .frame(width: 230)
-            .disabled(recorder.isRecording || recorder.isTranscribing || recorder.isExporting)
+            .disabled(recorder.isRecording)
             .accessibilityIdentifier("mac_capture_recording_mode")
 
             if recordingMode == .draft {
                 Toggle("Audio", isOn: $attachRecordingAudio)
                     .toggleStyle(.checkbox)
                     .font(Geist.caption())
-                    .disabled(recorder.isRecording || recorder.isTranscribing || recorder.isExporting)
+                    .disabled(recorder.isRecording)
                     .help("Attach the recording to this Capture draft")
             }
 
@@ -589,7 +590,6 @@ struct MacCaptureWorkspaceView: View {
                 size: .small
             ))
             .fixedSize()
-            .disabled(recorder.isTranscribing || recorder.isExporting)
             .accessibilityIdentifier("mac_capture_record")
 
             Button {
@@ -913,7 +913,8 @@ struct MacCaptureWorkspaceView: View {
             recorder.startRecording(
                 modelManager: modelManager,
                 flowId: selectedFlow.id,
-                completionMode: selectedRecordingCompletionMode
+                completionMode: selectedRecordingCompletionMode,
+                draftRequestID: recordingMode == .draft ? viewModel.draft.requestID : nil
             )
         }
     }
@@ -1033,7 +1034,8 @@ struct MacCaptureWorkspaceView: View {
             from: url,
             modelManager: modelManager,
             flowId: selectedFlow.id,
-            completionMode: selectedRecordingCompletionMode
+            completionMode: selectedRecordingCompletionMode,
+            draftRequestID: recordingMode == .draft ? viewModel.draft.requestID : nil
         )
     }
 

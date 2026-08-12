@@ -214,6 +214,253 @@ final class TranscriptExportKitAdapterTests: XCTestCase {
         }
     }
 
+    func test_newFileRetryReusesExactAtomicOutputInsteadOfCreatingDuplicateName() throws {
+        let transcript = Transcript(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000111")!,
+            text: "Crash-safe new file",
+            date: Date(timeIntervalSince1970: 1_700_000_000),
+            duration: 1,
+            modelUsed: "base",
+            language: "en"
+        )
+        let config = TranscriptExportConfiguration(
+            format: .txt,
+            mode: .newFile,
+            deliveryTransactionDirectoryURL: tempFolder
+                .appendingPathComponent("transactions/new-file", isDirectory: true)
+        )
+        let run = TranscriptExportRun(configuration: config)
+
+        let firstURL = try run.export(transcript, to: tempFolder)
+        let retriedURL = try run.export(transcript, to: tempFolder)
+
+        XCTAssertEqual(retriedURL, firstURL)
+        XCTAssertEqual(
+            try FileManager.default.contentsOfDirectory(
+                at: tempFolder,
+                includingPropertiesForKeys: nil
+            ).filter { $0.pathExtension == "txt" }.count,
+            1
+        )
+    }
+
+    func test_plainTextAppendRetryDoesNotRepeatAtomicTailPayload() throws {
+        let transcript = Transcript(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000222")!,
+            text: "Crash-safe append payload",
+            date: Date(timeIntervalSince1970: 1_700_000_001),
+            duration: 1,
+            modelUsed: "base",
+            language: "en"
+        )
+        let run = TranscriptExportRun(configuration: TranscriptExportConfiguration(
+            format: .txt,
+            mode: .append,
+            deliveryTransactionDirectoryURL: tempFolder
+                .appendingPathComponent("transactions/text-append", isDirectory: true)
+        ))
+
+        let url = try run.export(transcript, to: tempFolder)
+        _ = try run.export(transcript, to: tempFolder)
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertEqual(content.components(separatedBy: "Crash-safe append payload").count - 1, 1)
+    }
+
+    func test_jsonAppendRetryDeduplicatesStableTranscriptID() throws {
+        let transcript = Transcript(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000333")!,
+            text: "Crash-safe JSON append",
+            date: Date(timeIntervalSince1970: 1_700_000_002),
+            duration: 1,
+            modelUsed: "base",
+            language: "en"
+        )
+        let run = TranscriptExportRun(configuration: TranscriptExportConfiguration(
+            format: .json,
+            mode: .append,
+            deliveryTransactionDirectoryURL: tempFolder
+                .appendingPathComponent("transactions/json-append", isDirectory: true)
+        ))
+
+        let url = try run.export(transcript, to: tempFolder)
+        _ = try run.export(transcript, to: tempFolder)
+
+        let data = try Data(contentsOf: url)
+        let decoded = try JSONDecoder().decode([Transcript].self, from: data)
+        XCTAssertEqual(decoded.map(\.id), [transcript.id])
+    }
+
+    func test_distinctIdenticalPlainTextAppendDeliveriesAreBothWritten() throws {
+        let first = Transcript(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000501")!,
+            text: "Intentionally identical",
+            date: Date(timeIntervalSince1970: 1_700_000_003),
+            duration: 1,
+            modelUsed: "base",
+            language: "en"
+        )
+        let second = Transcript(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000502")!,
+            text: first.text,
+            date: first.date,
+            duration: first.duration,
+            modelUsed: first.modelUsed,
+            language: first.language
+        )
+
+        let firstURL = try TranscriptExportRun(configuration: TranscriptExportConfiguration(
+            format: .txt,
+            mode: .append,
+            deliveryTransactionDirectoryURL: tempFolder
+                .appendingPathComponent("transactions/distinct-append-1", isDirectory: true)
+        )).export(first, to: tempFolder)
+        _ = try TranscriptExportRun(configuration: TranscriptExportConfiguration(
+            format: .txt,
+            mode: .append,
+            deliveryTransactionDirectoryURL: tempFolder
+                .appendingPathComponent("transactions/distinct-append-2", isDirectory: true)
+        )).export(second, to: tempFolder)
+
+        let content = try String(contentsOf: firstURL, encoding: .utf8)
+        XCTAssertEqual(content.components(separatedBy: "Intentionally identical").count - 1, 2)
+    }
+
+    func test_distinctIdenticalNewFileDeliveriesUseDifferentFiles() throws {
+        let first = Transcript(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000503")!,
+            text: "Same new-file body",
+            date: Date(timeIntervalSince1970: 1_700_000_004),
+            duration: 1,
+            modelUsed: "base",
+            language: "en"
+        )
+        let second = Transcript(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000504")!,
+            text: first.text,
+            date: first.date,
+            duration: first.duration,
+            modelUsed: first.modelUsed,
+            language: first.language
+        )
+        let makeRun: (String) -> TranscriptExportRun = { key in
+            TranscriptExportRun(configuration: TranscriptExportConfiguration(
+                format: .txt,
+                mode: .newFile,
+                newFileNameTemplate: "fixed",
+                deliveryTransactionDirectoryURL: self.tempFolder
+                    .appendingPathComponent("transactions/\(key)", isDirectory: true)
+            ))
+        }
+
+        let firstURL = try makeRun("distinct-new-1").export(first, to: tempFolder)
+        let secondURL = try makeRun("distinct-new-2").export(second, to: tempFolder)
+
+        XCTAssertNotEqual(firstURL, secondURL)
+        XCTAssertEqual(firstURL.lastPathComponent, "fixed.txt")
+        XCTAssertEqual(secondURL.lastPathComponent, "fixed-2.txt")
+    }
+
+    func test_newFileTransactionResumesPreviouslySelectedUniquedPath() throws {
+        let occupiedURL = tempFolder.appendingPathComponent("fixed.txt")
+        try "Unrelated existing note".write(to: occupiedURL, atomically: true, encoding: .utf8)
+        let transcript = Transcript(
+            id: UUID(uuidString: "00000000-0000-0000-0000-000000000505")!,
+            text: "Crash after writing the uniqued path",
+            date: Date(timeIntervalSince1970: 1_700_000_005),
+            duration: 1,
+            modelUsed: "base",
+            language: "en"
+        )
+        let run = TranscriptExportRun(configuration: TranscriptExportConfiguration(
+            format: .txt,
+            mode: .newFile,
+            newFileNameTemplate: "fixed",
+            deliveryTransactionDirectoryURL: tempFolder
+                .appendingPathComponent("transactions/uniqued-retry", isDirectory: true)
+        ))
+
+        let firstURL = try run.export(transcript, to: tempFolder)
+        let retriedURL = try run.export(transcript, to: tempFolder)
+
+        XCTAssertEqual(firstURL.lastPathComponent, "fixed-2.txt")
+        XCTAssertEqual(retriedURL, firstURL)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: tempFolder.appendingPathComponent("fixed-3.txt").path))
+    }
+
+    func test_deliveryTransactionRejectsExternalEditAfterPublishedCrashBoundary() throws {
+        let targetURL = tempFolder.appendingPathComponent("conflict.txt")
+        try "Before".write(to: targetURL, atomically: true, encoding: .utf8)
+        let transaction = ExternalFileDeliveryTransaction(
+            directoryURL: tempFolder.appendingPathComponent("transactions/conflict", isDirectory: true)
+        )
+        _ = try transaction.prepareAndPublish(
+            data: Data("Expected postimage".utf8),
+            to: targetURL,
+            expecting: .contents(Data("Before".utf8))
+        )
+        try "User changed destination".write(to: targetURL, atomically: true, encoding: .utf8)
+
+        XCTAssertThrowsError(try transaction.resumeIfPrepared()) { error in
+            XCTAssertEqual(
+                error as? ExternalFileDeliveryTransaction.TransactionError,
+                .destinationConflict
+            )
+        }
+        XCTAssertEqual(
+            try String(contentsOf: targetURL, encoding: .utf8),
+            "User changed destination"
+        )
+    }
+
+    func test_deliveryTransactionRejectsEditBetweenReadAndJournalPreparation() throws {
+        let targetURL = tempFolder.appendingPathComponent("preimage-conflict.txt")
+        let original = Data("Original preimage".utf8)
+        try original.write(to: targetURL, options: .atomic)
+        let transaction = ExternalFileDeliveryTransaction(
+            directoryURL: tempFolder.appendingPathComponent("transactions/preimage-conflict", isDirectory: true)
+        )
+        let userEdited = Data("Concurrent user edit".utf8)
+        try userEdited.write(to: targetURL, options: .atomic)
+
+        XCTAssertThrowsError(try transaction.prepareAndPublish(
+            data: Data("Stale merged result".utf8),
+            to: targetURL,
+            expecting: .contents(original)
+        )) { error in
+            XCTAssertEqual(
+                error as? ExternalFileDeliveryTransaction.TransactionError,
+                .destinationConflict
+            )
+        }
+        XCTAssertEqual(try Data(contentsOf: targetURL), userEdited)
+    }
+
+    func test_deliveryTransactionRejectsEditInsideFinalCoordinatedPublishBoundary() throws {
+        let targetURL = tempFolder.appendingPathComponent("coordinated-conflict.txt")
+        let original = Data("Original coordinated preimage".utf8)
+        let userEdited = Data("Edit during coordinated publication".utf8)
+        try original.write(to: targetURL, options: .atomic)
+        let transaction = ExternalFileDeliveryTransaction(
+            directoryURL: tempFolder.appendingPathComponent("transactions/coordinated-conflict", isDirectory: true),
+            beforeCoordinatedPublish: {
+                try userEdited.write(to: targetURL, options: .atomic)
+            }
+        )
+
+        XCTAssertThrowsError(try transaction.prepareAndPublish(
+            data: Data("Would overwrite user edit".utf8),
+            to: targetURL,
+            expecting: .contents(original)
+        )) { error in
+            XCTAssertEqual(
+                error as? ExternalFileDeliveryTransaction.TransactionError,
+                .destinationConflict
+            )
+        }
+        XCTAssertEqual(try Data(contentsOf: targetURL), userEdited)
+    }
+
     func test_previewGenerationUsesExportKitPlannedFilesWithoutWriting() async throws {
         let transcripts = [
             Transcript(text: "Older", duration: 1, modelUsed: "base", language: "en"),

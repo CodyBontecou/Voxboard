@@ -25,6 +25,7 @@ final class StoreManager {
     var purchasingProductID: String?
     var isRestoring = false
     var errorMessage: String?
+    private(set) var lastRestoreDiagnostics: PurchaseRestoreDiagnostics?
 
     var isPurchasing: Bool { purchasingProductID != nil }
     var product: Product? { product(for: .individual) }
@@ -36,6 +37,7 @@ final class StoreManager {
     private let usageTracker: UsageTracker
     @ObservationIgnored private var transactionListenerTask: Task<Void, Never>?
     @ObservationIgnored private var hasVerifiedAppTransaction = false
+    @ObservationIgnored private var lastEntitlementObservations: [PurchaseEntitlementObservation] = []
 
     // MARK: - Init / Deinit
 
@@ -303,6 +305,7 @@ final class StoreManager {
                     ? String(localized: "Could not verify your previous purchase. Please try again.")
                     : String(localized: "No Vox.md Unlimited purchase was found.")
             }
+            await recordRestoreDiagnostics(syncSucceeded: true, syncError: nil)
             OnboardingAnalyticsClient.shared.trackRestoreFinished(
                 outcome: restored ? .succeeded : .failed,
                 context: context,
@@ -312,6 +315,10 @@ final class StoreManager {
             )
         } catch {
             errorMessage = String(localized: "Restore failed: \(error.localizedDescription)")
+            await recordRestoreDiagnostics(
+                syncSucceeded: false,
+                syncError: String(describing: type(of: error))
+            )
             OnboardingAnalyticsClient.shared.trackRestoreFinished(
                 outcome: .failed,
                 context: context,
@@ -328,22 +335,87 @@ final class StoreManager {
         including additionalProducts: [VoxboardPurchaseProduct] = []
     ) async -> [VoxboardPurchaseProduct] {
         var currentProducts = additionalProducts
+        var observations: [PurchaseEntitlementObservation] = []
 
         for await result in Transaction.currentEntitlements {
-            guard case .verified(let transaction) = result,
-                  transaction.revocationDate == nil,
-                  let product = VoxboardPurchaseProduct(rawValue: transaction.productID) else {
-                continue
+            switch result {
+            case .verified(let transaction):
+                let product = VoxboardPurchaseProduct(rawValue: transaction.productID)
+                observations.append(PurchaseEntitlementObservation(
+                    productID: transaction.productID,
+                    isVerified: true,
+                    isRecognized: product != nil,
+                    isRevoked: transaction.revocationDate != nil,
+                    isUpgraded: transaction.isUpgraded,
+                    ownershipType: String(describing: transaction.ownershipType),
+                    environment: String(describing: transaction.environment)
+                ))
+                guard transaction.revocationDate == nil, let product else { continue }
+                if !currentProducts.contains(product) {
+                    currentProducts.append(product)
+                }
+                await transaction.finish()
+            case .unverified(let transaction, let error):
+                observations.append(PurchaseEntitlementObservation(
+                    productID: transaction.productID,
+                    isVerified: false,
+                    isRecognized: VoxboardPurchaseProduct(rawValue: transaction.productID) != nil,
+                    isRevoked: transaction.revocationDate != nil,
+                    isUpgraded: transaction.isUpgraded,
+                    ownershipType: String(describing: transaction.ownershipType),
+                    environment: String(describing: transaction.environment),
+                    verificationError: String(describing: type(of: error))
+                ))
             }
-            if !currentProducts.contains(product) {
-                currentProducts.append(product)
-            }
-            await transaction.finish()
         }
 
+        lastEntitlementObservations = observations
         usageTracker.reconcileStoreEntitlements(currentProducts)
         isEntitlementStateReady = hasVerifiedAppTransaction || !currentProducts.isEmpty
         return currentProducts
+    }
+
+    private func recordRestoreDiagnostics(syncSucceeded: Bool, syncError: String?) async {
+        let storefront = await Storefront.current
+        var observations = lastEntitlementObservations
+        for product in VoxboardPurchaseProduct.allCases
+        where !observations.contains(where: { $0.productID == product.rawValue }) {
+            guard let latest = await Transaction.latest(for: product.rawValue) else { continue }
+            switch latest {
+            case .verified(let transaction):
+                observations.append(PurchaseEntitlementObservation(
+                    productID: transaction.productID,
+                    isVerified: true,
+                    isRecognized: true,
+                    isRevoked: transaction.revocationDate != nil,
+                    isUpgraded: transaction.isUpgraded,
+                    ownershipType: String(describing: transaction.ownershipType),
+                    environment: String(describing: transaction.environment)
+                ))
+            case .unverified(let transaction, let error):
+                observations.append(PurchaseEntitlementObservation(
+                    productID: transaction.productID,
+                    isVerified: false,
+                    isRecognized: true,
+                    isRevoked: transaction.revocationDate != nil,
+                    isUpgraded: transaction.isUpgraded,
+                    ownershipType: String(describing: transaction.ownershipType),
+                    environment: String(describing: transaction.environment),
+                    verificationError: String(describing: type(of: error))
+                ))
+            }
+        }
+        let diagnostics = PurchaseRestoreDiagnostics(
+            platform: "iOS",
+            syncSucceeded: syncSucceeded,
+            syncError: syncError,
+            requestedProductIDs: VoxboardPurchaseProduct.allCases.map(\.rawValue),
+            loadedProductIDs: Array(productsByID.keys),
+            storefrontCountryCode: storefront?.countryCode,
+            observations: observations
+        )
+        lastRestoreDiagnostics = diagnostics
+        KeyboardDebugLog.shared.log("[StoreManager] Restore diagnostics \(diagnostics.summary)")
     }
 
     private func listenForTransactions() -> Task<Void, Never> {

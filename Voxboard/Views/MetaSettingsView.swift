@@ -11,6 +11,7 @@ struct MetaSettingsView: View {
 
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(StoreManager.self) private var storeManager
+    @Environment(ModelManager.self) private var modelManager
     @Environment(\.openURL) private var openURL
 
     @State private var showPaywall = false
@@ -32,6 +33,8 @@ struct MetaSettingsView: View {
                         upgradeSection
                         GeistDivider()
                         activitySection
+                        GeistDivider()
+                        recordingQueueSection
                         GeistDivider()
                         customizationSection
                         GeistDivider()
@@ -215,11 +218,47 @@ struct MetaSettingsView: View {
         }
     }
 
+    // MARK: - Recording Queue Section
+
+    private var recordingQueueSection: some View {
+        VStack(spacing: 0) {
+            sectionHeader("02", "Recording Queue")
+            GeistDivider()
+
+            settingsNavigationRow(
+                "Manage Recordings",
+                description: "Process, retry, share, retain, or delete queued audio",
+                systemImage: "waveform.badge.clock"
+            ) {
+                RecordingQueueView(
+                    queue: persistentRecorder.recordingQueue,
+                    recoveryPresets: CapturePresetStore.loadFlows()
+                ) { job, delivery in
+                    await persistentRecorder.recordingQueue.retry(
+                        job,
+                        modelID: modelManager.selectedModelId,
+                        fallbackModelID: modelManager.preferredFallbackModelID,
+                        replaceFallbackModelID: true,
+                        language: modelManager.selectedLanguage,
+                        delivery: delivery
+                    )
+                }
+            }
+
+            GeistDivider()
+
+            RecordingQueuePreferencesView()
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Geist.bg)
+        }
+    }
+
     // MARK: - Customization Section
 
     private var customizationSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("02", "Customization")
+            sectionHeader("03", "Customization")
             GeistDivider()
 
             settingsNavigationRow(
@@ -294,7 +333,7 @@ struct MetaSettingsView: View {
 
     private var keyboardSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("03", "Keyboard")
+            sectionHeader("04", "Keyboard")
             GeistDivider()
 
             HStack {
@@ -324,7 +363,7 @@ struct MetaSettingsView: View {
 
     private var lockScreenSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("04", "Lock Screen")
+            sectionHeader("05", "Lock Screen")
             GeistDivider()
 
             HStack {
@@ -388,7 +427,7 @@ struct MetaSettingsView: View {
 
     private var aboutSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("05", "About")
+            sectionHeader("06", "About")
             GeistDivider()
 
             var rows: [(String, String)] = [
@@ -430,7 +469,7 @@ struct MetaSettingsView: View {
 
     private var feedbackSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("06", "Feedback")
+            sectionHeader("07", "Feedback")
             GeistDivider()
 
             Button(action: openDiscord) {
@@ -482,7 +521,7 @@ struct MetaSettingsView: View {
 
     private var debugSection: some View {
         VStack(spacing: 0) {
-            sectionHeader("07", "Debug")
+            sectionHeader("08", "Debug")
             GeistDivider()
 
             Button {

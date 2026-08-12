@@ -30,6 +30,30 @@ enum RecordingCompletionMode: Equatable, Sendable {
         return flowID
     }
 
+    var recordingJobDelivery: RecordingJobDelivery {
+        switch self {
+        case .keyboardTranscription:
+            return .keyboard(requestID: "")
+        case .captureDraft(let attachAudio):
+            return .captureDraft(attachAudio: attachAudio)
+        case .runVox(let flowID):
+            return .preset(CapturePresetStore.flow(id: flowID) ?? CapturePresetStore.selectedFlow())
+        }
+    }
+
+    init?(jobDelivery: RecordingJobDelivery) {
+        switch jobDelivery {
+        case .keyboard:
+            self = .keyboardTranscription
+        case .captureDraft(let attachAudio):
+            self = .captureDraft(attachAudio: attachAudio)
+        case .preset(let flow):
+            self = .runVox(flowID: flow.id)
+        case .clipboard, .recovery:
+            return nil
+        }
+    }
+
     var defaultCommandOrigin: RecordingCommand.Origin {
         switch self {
         case .keyboardTranscription:
@@ -85,13 +109,19 @@ enum CaptureDraftRecordingEvent: Sendable {
         profileSnapshot: CapturePresetProfile
     )
     case clearOrigin(profileID: String)
-    case audio(URL)
+    case audio(URL, draftRequestID: UUID?, deliveryID: UUID)
     case liveTranscript(sessionID: UUID, finalizedText: String, volatileText: String?)
     case cancelLiveTranscript(sessionID: UUID)
-    case transcript(String)
+    case transcript(String, draftRequestID: UUID?, liveSessionID: UUID?, deliveryID: UUID)
 }
 
 typealias CaptureDraftRecordingEventHandler = @MainActor @Sendable (CaptureDraftRecordingEvent) async -> Bool
+
+struct RecordingSegmentHandoffSnapshot: Equatable, Sendable {
+    let draftRequestID: UUID?
+    let liveSessionID: UUID?
+    let presetSnapshot: CapturePreset?
+}
 
 /// Always-on audio recorder that captures microphone input into a circular buffer.
 ///
@@ -106,6 +136,10 @@ final class PersistentRecorder {
 
     private static let modelSetupAnalyticsKey = "onboarding.analytics.model_setup_completed.v1"
     private static let completionAnalyticsKey = "onboarding.analytics.completed.v1"
+    #if DEBUG
+    private static let runtimeQueuePauseAfterClaimArgument =
+        "--runtime-queue-pause-after-claim"
+    #endif
 
     // MARK: - Public State
 
@@ -173,6 +207,13 @@ final class PersistentRecorder {
     private var segmentOrigin: RecordingCommand.Origin?
     private var transcribingCompletionMode: RecordingCompletionMode?
     private var transcribingCommandOrigin: RecordingCommand.Origin?
+    private var segmentDraftRequestID: UUID?
+    private let segmentJournalLock = NSLock()
+    private let segmentJournalWriteQueue = DispatchQueue(
+        label: "bontecou.Voxboard.active-recording-journal",
+        qos: .utility
+    )
+    private var segmentJournalWriter: IncrementalWAVWriter?
     private var segmentStartedAt: TimeInterval = 0
     private var liveTranscriptionSetupTask: Task<LiveSegmentTranscriptionCoordinator?, Never>?
     private var endOfSpeechSetupTask: Task<VoiceAutoStopCoordinator?, Never>?
@@ -247,6 +288,9 @@ final class PersistentRecorder {
     /// to populate title/tags/category/cleanedText on the just-saved transcript.
     private let transcriptEnricher: TranscriptEnricher?
 
+    /// Durable source-audio queue shared with the macOS implementation.
+    private(set) var recordingQueue: RecordingJobQueue!
+
     /// Tracks cumulative usage for the free-tier paywall.
     private let usageTracker: UsageTracker
 
@@ -284,6 +328,22 @@ final class PersistentRecorder {
         self.captureDraftEventHandler = captureDraftEventHandler
         self.transcriptEnricher = transcriptEnricher
         ensureRecordingsDirectory()
+
+        let queueRoot = AppConstants.recordingJobsDirectoryURL
+            ?? FileManager.default.temporaryDirectory.appendingPathComponent("VoxboardRecordingJobs", isDirectory: true)
+        let jobStore = RecordingJobStore(rootDirectoryURL: queueRoot)
+        self.recordingQueue = RecordingJobQueue(store: jobStore) { [weak self] job, audioURL, progress in
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains(
+                PersistentRecorder.runtimeQueuePauseAfterClaimArgument
+            ) {
+                try await Task.sleep(for: .seconds(30))
+                return RecordingJobExecutionResult()
+            }
+            #endif
+            guard let self else { throw CancellationError() }
+            return try await self.executeQueuedJob(job, audioURL: audioURL, onProgress: progress)
+        }
 
         // Clear any stale listening state left over from a previous session.
         // If the app was killed/crashed while listening, the IPC file still says
@@ -404,6 +464,7 @@ final class PersistentRecorder {
                 if let floatData = outputBuffer.floatChannelData?[0], outputBuffer.frameLength > 0 {
                     let ptr = UnsafeBufferPointer(start: floatData, count: Int(outputBuffer.frameLength))
                     self.circularBuffer.append(ptr)
+                    self.appendToSegmentJournal(ptr)
                     self.writeAudioLevelIfNeeded(floatData, frameCount: Int(outputBuffer.frameLength))
                 }
             } else {
@@ -411,6 +472,7 @@ final class PersistentRecorder {
                 if let floatData = buffer.floatChannelData?[0], buffer.frameLength > 0 {
                     let ptr = UnsafeBufferPointer(start: floatData, count: Int(buffer.frameLength))
                     self.circularBuffer.append(ptr)
+                    self.appendToSegmentJournal(ptr)
                     self.writeAudioLevelIfNeeded(floatData, frameCount: Int(buffer.frameLength))
                 }
             }
@@ -605,7 +667,7 @@ final class PersistentRecorder {
         case .began:
             log.log("[PersistentRecorder] ⚠️ Audio interruption began")
             if isSegmentActive {
-                cancelSegment()
+                cancelSegment(preserveAudioForRecovery: true)
             }
             if shouldAutoStopListeningAfterCurrentRecording {
                 lastError = String(localized: "Recording interrupted — please try again")
@@ -710,10 +772,11 @@ final class PersistentRecorder {
     func startOneShotInAppSegment(
         flowId requestedFlowId: String? = nil,
         completionMode: RecordingCompletionMode? = nil,
-        origin requestedOrigin: RecordingCommand.Origin? = nil
+        origin requestedOrigin: RecordingCommand.Origin? = nil,
+        draftRequestID: UUID? = nil
     ) -> Bool {
-        guard !isSegmentActive, !isTranscribing else {
-            log.log("[PersistentRecorder] ⚠️ one-shot start skipped — segment active or transcribing")
+        guard !isSegmentActive else {
+            log.log("[PersistentRecorder] ⚠️ one-shot start skipped — segment already active")
             return false
         }
         if usageTracker.isAtLimit {
@@ -738,7 +801,8 @@ final class PersistentRecorder {
         startInAppSegment(
             flowId: requestedFlowId,
             completionMode: completionMode,
-            origin: requestedOrigin
+            origin: requestedOrigin,
+            draftRequestID: draftRequestID
         )
 
         if !isSegmentActive, startedTemporaryListening {
@@ -751,15 +815,16 @@ final class PersistentRecorder {
     func startInAppSegment(
         flowId requestedFlowId: String? = nil,
         completionMode: RecordingCompletionMode? = nil,
-        origin requestedOrigin: RecordingCommand.Origin? = nil
+        origin requestedOrigin: RecordingCommand.Origin? = nil,
+        draftRequestID: UUID? = nil
     ) {
         guard isListening else {
             lastError = String(localized: "Start listening first")
             log.log("[PersistentRecorder] ❌ startInAppSegment but not listening")
             return
         }
-        guard !isSegmentActive, !isTranscribing else {
-            log.log("[PersistentRecorder] ⚠️ startInAppSegment skipped — segment active or transcribing")
+        guard !isSegmentActive else {
+            log.log("[PersistentRecorder] ⚠️ startInAppSegment skipped — segment already active")
             return
         }
 
@@ -792,6 +857,7 @@ final class PersistentRecorder {
             fallback: { CapturePresetStore.selectedFlow() }
         )
         segmentOrigin = command.origin
+        segmentDraftRequestID = draftRequestID
 
         log.log("[PersistentRecorder] 🎙 In-app segment start: \(requestId) flow=\(flowId)")
         handleStartSegment(command)
@@ -816,10 +882,11 @@ final class PersistentRecorder {
     @discardableResult
     func importAudioFile(
         from url: URL,
-        completionMode requestedCompletionMode: RecordingCompletionMode? = nil
+        completionMode requestedCompletionMode: RecordingCompletionMode? = nil,
+        draftRequestID: UUID? = nil
     ) -> Bool {
-        guard !isSegmentActive, !isTranscribing else {
-            lastError = String(localized: "Wait for the current recording to finish")
+        guard !isSegmentActive else {
+            lastError = String(localized: "Finish the current recording before importing audio")
             return false
         }
         if usageTracker.isAtLimit {
@@ -860,6 +927,42 @@ final class PersistentRecorder {
                 fallback: { importFlow }
             )
             let requestId = "import-\(UUID().uuidString)"
+            let jobID = UUID()
+            let fallbackModelID = AppConstants.sharedDefaults?.string(
+                forKey: AppConstants.selectedFallbackModelKey
+            )
+            let queueConfiguration = RecordingQueuePreferences.load()
+            let initialDelivery: RecordingJobDelivery = {
+                if case .runVox = completionMode, let immediatePresetSnapshot {
+                    return .preset(immediatePresetSnapshot)
+                }
+                return completionMode.recordingJobDelivery
+            }()
+            do {
+                try RecordingJobHandoffIntentStore(recordingsDirectoryURL: dir).save(
+                    RecordingJobHandoffIntent(
+                        jobID: jobID,
+                        audioFilename: sourceCopy.lastPathComponent,
+                        requestID: requestId,
+                        draftRequestID: draftRequestID,
+                        captureSource: .fileImport,
+                        locationOutcome: importFlow.locationPolicy.isEnabled
+                            ? .unavailable(.unavailable, attemptedAt: Date())
+                            : nil,
+                        duration: 0,
+                        source: .importedAudio,
+                        delivery: initialDelivery,
+                        modelID: modelId,
+                        fallbackModelID: fallbackModelID,
+                        language: language,
+                        configuration: queueConfiguration
+                    )
+                )
+            } catch {
+                lastError = String(localized: "Could not preserve the imported recording handoff.")
+                return false
+            }
+            recordingQueue.setCaptureActive(true)
             let originLocationTask = beginOriginLocationResolution(
                 requestID: requestId,
                 completionMode: completionMode,
@@ -884,25 +987,8 @@ final class PersistentRecorder {
                 }
             }()
 
-            transcribingCompletionMode = completionMode
-            processingRequestId = requestId
-            progressRequestId = requestId
-            lastPublishedTranscriptionPercent = nil
-            transcriptionProgress = nil
-            isTranscribing = true
             lastTranscriptionResult = nil
             lastError = nil
-
-            // File imports do not keep an audio session alive, so iOS is free to
-            // suspend the app as soon as the user locks the device or switches
-            // apps. Ask for finite background execution time so user-initiated
-            // import conversion + transcription can finish like live recordings.
-            var bgTask: UIBackgroundTaskIdentifier = .invalid
-            bgTask = UIApplication.shared.beginBackgroundTask {
-                log.log("[PersistentRecorder] ⚠️ Import background task expired")
-                UIApplication.shared.endBackgroundTask(bgTask)
-                bgTask = .invalid
-            }
 
             Task.detached(priority: .userInitiated) { [weak self] in
                 do {
@@ -918,8 +1004,8 @@ final class PersistentRecorder {
                             ]
                         )
                     }
-                    if let originLocationTask,
-                       await originLocationTask.value == nil {
+                    let originSnapshot = await originLocationTask?.value
+                    if originLocationTask != nil, originSnapshot == nil {
                         throw NSError(
                             domain: "CaptureOriginMetadata",
                             code: 1,
@@ -937,21 +1023,39 @@ final class PersistentRecorder {
                     let duration = AudioFileConverter.duration(of: workingURL)
                         ?? AudioFileConverter.duration(of: sourceCopy)
                         ?? 0
-                    await self?.transcribe(
-                        audioURL: workingURL,
-                        modelId: modelId,
-                        language: language,
-                        requestId: requestId,
-                        duration: duration,
-                        completionMode: completionMode,
-                        sourceAudioURL: sourceCopy,
-                        originLocationTask: originLocationTask,
-                        captureSource: .fileImport,
-                        captureProfile: importFlow.captureProfile,
-                        presetSnapshot: immediatePresetSnapshot
+                    let stagedIntent = try RecordingJobHandoffIntentStore(
+                        recordingsDirectoryURL: dir
+                    ).load(jobID: jobID)
+                    guard let stagedIntent else {
+                        throw NSError(domain: "RecordingHandoff", code: 2)
+                    }
+                    try RecordingJobHandoffIntentStore(recordingsDirectoryURL: dir).save(
+                        stagedIntent.finalized(
+                            audioFilename: workingURL.lastPathComponent,
+                            relatedAudioFilenames: workingURL == sourceCopy ? [] : [sourceCopy.lastPathComponent],
+                            duration: duration,
+                            captureSource: originSnapshot?.source ?? .fileImport,
+                            locationOutcome: originSnapshot?.outcome
+                        )
                     )
-                    if workingURL != sourceCopy {
-                        try? FileManager.default.removeItem(at: sourceCopy)
+                    await MainActor.run {
+                        self?.enqueueAppRecording(
+                            audioURL: workingURL,
+                            requestId: requestId,
+                            modelId: modelId,
+                            fallbackModelId: fallbackModelID,
+                            language: language,
+                            duration: duration,
+                            completionMode: completionMode,
+                            source: .importedAudio,
+                            jobID: jobID,
+                            draftRequestID: draftRequestID,
+                            captureSource: originSnapshot?.source ?? .fileImport,
+                            locationOutcome: originSnapshot?.outcome,
+                            presetSnapshot: immediatePresetSnapshot,
+                            queueConfiguration: queueConfiguration,
+                            finishCaptureHandoff: true
+                        )
                     }
                 } catch {
                     if case .captureDraft = completionMode {
@@ -961,30 +1065,9 @@ final class PersistentRecorder {
                     }
                     await MainActor.run {
                         self?.discardOriginLocationResolution(originLocationTask, requestID: requestId)
-                        self?.lastError = String(localized: "Could not import audio: \(error.localizedDescription)")
+                        self?.lastError = String(localized: "Could not import audio: \(error.localizedDescription). The imported source was preserved.")
                         self?.lastTranscriptionResult = nil
-                        if self?.processingRequestId == requestId {
-                            self?.processingRequestId = nil
-                            self?.progressRequestId = nil
-                            self?.transcriptionProgress = nil
-                            self?.lastPublishedTranscriptionPercent = nil
-                        }
-                    }
-                    try? FileManager.default.removeItem(at: sourceCopy)
-                    try? FileManager.default.removeItem(at: wavURL)
-                }
-                await MainActor.run {
-                    self?.isTranscribing = false
-                    self?.transcribingCompletionMode = nil
-                    if self?.processingRequestId == requestId {
-                        self?.processingRequestId = nil
-                        self?.progressRequestId = nil
-                        self?.transcriptionProgress = nil
-                        self?.lastPublishedTranscriptionPercent = nil
-                    }
-                    if bgTask != .invalid {
-                        UIApplication.shared.endBackgroundTask(bgTask)
-                        bgTask = .invalid
+                        self?.recordingQueue.setCaptureActive(false)
                     }
                 }
             }
@@ -1076,6 +1159,12 @@ final class PersistentRecorder {
             self.segmentStartedAt = startedAt
             self.isSegmentActive = true
             self.segmentDuration = 0
+            if self.segmentCompletionMode == .keyboardTranscription {
+                self.recordingQueue.interruptForInteractiveWork()
+            } else {
+                self.recordingQueue.setCaptureActive(true)
+            }
+            self.startSegmentJournal(requestID: command.requestId)
             self.startDurationTimer()
             log.log("[PersistentRecorder] ✅ Segment UI state updated on main thread")
         }
@@ -1088,15 +1177,14 @@ final class PersistentRecorder {
             return
         }
 
-        guard !isSegmentActive, !isTranscribing, processingRequestId == nil else {
-            log.log("[PersistentRecorder] ⚠️ startSegment but another segment is active or transcribing")
+        guard !isSegmentActive else {
+            log.log("[PersistentRecorder] ⚠️ startSegment but another segment is active")
             writeErrorResponse(
                 requestId: command.requestId,
-                message: String(localized: "Wait for the current transcription to finish")
+                message: String(localized: "Finish the current recording first")
             )
             return
         }
-
         // Paywall check — block if free tier exhausted
         if usageTracker.isAtLimit {
             log.log("[PersistentRecorder] 🔒 Free limit reached — blocking segment")
@@ -1155,6 +1243,12 @@ final class PersistentRecorder {
         segmentStartedAt = Date().timeIntervalSince1970
         isSegmentActive = true
         segmentDuration = 0
+        if segmentCompletionMode == .keyboardTranscription {
+            recordingQueue.interruptForInteractiveWork()
+        } else {
+            recordingQueue.setCaptureActive(true)
+        }
+        startSegmentJournal(requestID: command.requestId)
 
         startLiveTranscriptionIfSupported(
             command: command,
@@ -1291,7 +1385,7 @@ final class PersistentRecorder {
                     await startedSession.cancel()
                 }
                 if publishesToCapture {
-                    log.log("[PersistentRecorder] Live Apple Speech setup failed; using batch transcription: \(error.localizedDescription)")
+                    KeyboardDebugLog.shared.log("[PersistentRecorder] Live Apple Speech setup failed; using batch transcription: \(error.localizedDescription)")
                 }
                 return nil
             }
@@ -1444,6 +1538,15 @@ final class PersistentRecorder {
                 lookup: { CapturePresetStore.flow(id: $0) },
                 fallback: { CapturePresetStore.selectedFlow() }
             )
+        // Snapshot every identity needed by the asynchronous handoff before any
+        // clearSegmentState call can reset the mutable recorder session.
+        let handoffSnapshot = Self.handoffSnapshot(
+            draftRequestID: segmentDraftRequestID,
+            liveSessionID: liveCaptureSessionID,
+            presetSnapshot: presetSnapshot
+        )
+        let draftRequestID = handoffSnapshot.draftRequestID
+        let captureSessionID = handoffSnapshot.liveSessionID
         // Start origin acquisition at the stop event, before audio extraction or
         // transcription. Legacy insertion-only keyboard and draft modes skip it.
         let originLocationTask = beginOriginLocationResolution(
@@ -1458,11 +1561,19 @@ final class PersistentRecorder {
         transcriptionProgress = nil
         transcribingCompletionMode = completionMode
         transcribingCommandOrigin = command.origin ?? segmentOrigin
+        if completionMode == .keyboardTranscription {
+            processingRequestId = requestId
+            progressRequestId = requestId
+            lastPublishedTranscriptionPercent = nil
+            transcriptionProgress = nil
+            transcribingCompletionMode = completionMode
+        }
         log.log("[PersistentRecorder] ⏹ Stopping segment: \(requestId.prefix(8)) trigger=\(trigger.rawValue) (segmentRequestId=\(segmentRequestId?.prefix(8) ?? "nil"), command.requestId=\(command.requestId.prefix(8)))")
         osLog.notice("⏹ Stopping segment: \(requestId)")
 
         stopDurationTimer()
         isSegmentActive = false
+        let segmentJournalURL = finalizeSegmentJournal()
         cancelEndOfSpeechDetection()
         TranscriptionIPC.clearAudioLevel()
 
@@ -1495,6 +1606,7 @@ final class PersistentRecorder {
                     transcribingCommandOrigin = nil
                     discardOriginLocationResolution(originLocationTask, requestID: requestId)
                     clearSegmentState()
+                    recordingQueue.setCaptureActive(false)
                     stopListening()
                     startListening()
                 }
@@ -1546,6 +1658,119 @@ final class PersistentRecorder {
         }
 
         log.log("[PersistentRecorder] WAV written: \(wavURL.lastPathComponent)")
+
+        if completionMode != .keyboardTranscription {
+            let modelId = segmentModelId ?? command.modelId ?? AppConstants.defaultTranscriptionBackendID
+            let language = segmentLanguage ?? command.language ?? "auto"
+            let duration = TimeInterval(durationSec)
+
+            if shouldAutoStopListeningAfterCurrentRecording {
+                stopListening()
+            } else {
+                LiveActivityController.shared.update(
+                    isSegmentActive: false,
+                    isTranscribing: false,
+                    startedAt: nil
+                )
+            }
+            let jobID = captureSessionID ?? UUID()
+            let delivery: RecordingJobDelivery = {
+                if case .runVox = completionMode, let presetSnapshot {
+                    return .preset(presetSnapshot)
+                }
+                return completionMode.recordingJobDelivery
+            }()
+            let fallbackModelID = AppConstants.sharedDefaults?.string(
+                forKey: AppConstants.selectedFallbackModelKey
+            )
+            let queueConfiguration = RecordingQueuePreferences.load()
+            let handoffIntentStore = AppConstants.recordingsDirectoryURL.map(
+                RecordingJobHandoffIntentStore.init(recordingsDirectoryURL:)
+            )
+            guard let handoffIntentStore else {
+                lastError = String(localized: "The recording handoff could not be preserved. The original audio was preserved.")
+                discardOriginLocationResolution(originLocationTask, requestID: requestId)
+                clearSegmentState()
+                recordingQueue.setCaptureActive(false)
+                return
+            }
+            do {
+                try handoffIntentStore.save(RecordingJobHandoffIntent(
+                    jobID: jobID,
+                    audioFilename: wavURL.lastPathComponent,
+                    relatedAudioFilenames: [segmentJournalURL?.lastPathComponent].compactMap { $0 },
+                    requestID: requestId,
+                    draftRequestID: draftRequestID,
+                    liveSessionID: captureSessionID,
+                    captureSource: CaptureSource.recordingSource(for: command.origin ?? segmentOrigin),
+                    locationOutcome: presetSnapshot?.locationPolicy.isEnabled == true
+                        ? .unavailable(.unavailable, attemptedAt: Date())
+                        : nil,
+                    duration: duration,
+                    source: .iOSApp,
+                    delivery: delivery,
+                    modelID: modelId,
+                    fallbackModelID: fallbackModelID,
+                    language: language,
+                    configuration: queueConfiguration
+                ))
+            } catch {
+                lastError = String(localized: "The recording handoff could not be preserved. The original audio was preserved.")
+                discardOriginLocationResolution(originLocationTask, requestID: requestId)
+                clearSegmentState()
+                recordingQueue.setCaptureActive(false)
+                return
+            }
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                let originSnapshot = await originLocationTask?.value
+                guard originLocationTask == nil || originSnapshot != nil else {
+                    self.lastError = String(localized: "Shared capture storage is unavailable. The recording was preserved.")
+                    self.recordingQueue.setCaptureActive(false)
+                    return
+                }
+                do {
+                    guard let stagedIntent = try handoffIntentStore.load(jobID: jobID) else {
+                        throw NSError(domain: "RecordingHandoff", code: 2)
+                    }
+                    try handoffIntentStore.save(stagedIntent.finalized(
+                        audioFilename: wavURL.lastPathComponent,
+                        relatedAudioFilenames: [segmentJournalURL?.lastPathComponent].compactMap { $0 },
+                        duration: duration,
+                        captureSource: originSnapshot?.source,
+                        locationOutcome: originSnapshot?.outcome
+                    ))
+                } catch {
+                    self.lastError = String(localized: "The recording handoff could not be preserved. The original audio was preserved.")
+                    self.recordingQueue.setCaptureActive(false)
+                    return
+                }
+                self.enqueueAppRecording(
+                    audioURL: wavURL,
+                    requestId: requestId,
+                    modelId: modelId,
+                    fallbackModelId: fallbackModelID,
+                    language: language,
+                    duration: duration,
+                    completionMode: completionMode,
+                    jobID: jobID,
+                    draftRequestID: draftRequestID,
+                    liveSessionID: captureSessionID,
+                    fallbackRecoveryURL: segmentJournalURL,
+                    captureSource: originSnapshot?.source,
+                    locationOutcome: originSnapshot?.outcome,
+                    presetSnapshot: presetSnapshot,
+                    queueConfiguration: queueConfiguration,
+                    finishCaptureHandoff: true
+                )
+            }
+            clearSegmentState()
+            TranscriptionIPC.clearStatus()
+            WatchRecordingController.shared.publishState()
+            return
+        }
+
+        recordingQueue.interruptForInteractiveWork()
 
         // Update status to transcribing. If this was a one-shot recording,
         // tear down audio capture now (restoring system haptics) while leaving
@@ -1607,21 +1832,41 @@ final class PersistentRecorder {
                 usesLiveDelivery = await coordinator.hasPublishedFinalizedText()
             }
 
-            await self.transcribe(
-                audioURL: wavURL,
-                modelId: modelId,
-                language: language,
-                requestId: requestId,
-                duration: duration,
-                completionMode: completionMode,
-                sourceAudioURL: wavURL,
-                resolvedResult: liveResult,
-                usesLiveDelivery: usesLiveDelivery,
-                recordingStartedAt: recordingStartedAt,
-                transcriptionStartedAt: transcriptionStartedAt,
-                originLocationTask: originLocationTask,
-                presetSnapshot: presetSnapshot
-            )
+                do {
+                let cleanupResult = try await KeyboardRecordingArtifactRetention.perform(
+                    wavURL: wavURL,
+                    journalURL: segmentJournalURL
+                ) {
+                    _ = try await self.transcribe(
+                        audioURL: wavURL,
+                        modelId: modelId,
+                        language: language,
+                        requestId: requestId,
+                        duration: duration,
+                        completionMode: completionMode,
+                        sourceAudioURL: wavURL,
+                        resolvedResult: liveResult,
+                        usesLiveDelivery: usesLiveDelivery,
+                        recordingStartedAt: recordingStartedAt,
+                        transcriptionStartedAt: transcriptionStartedAt,
+                        originLocationTask: originLocationTask,
+                        presetSnapshot: presetSnapshot,
+                        cleanupWorkingAudio: false
+                    )
+                }
+                if !cleanupResult.didRemoveAllArtifacts {
+                    KeyboardDebugLog.shared.log(
+                        "[PersistentRecorder] Keyboard delivery succeeded; "
+                        + "retained \(cleanupResult.retainedArtifactCount) artifact(s) after cleanup failure; "
+                        + "unprotected=\(cleanupResult.unprotectedRetainedArtifactCount)"
+                    )
+                }
+            } catch {
+                // The transcription method has already published the interactive
+                // keyboard error. Keep the WAV so support/recovery tooling can
+                // recover it instead of deleting the only source recording.
+                KeyboardDebugLog.shared.log("[PersistentRecorder] Keyboard transcription preserved after failure: \(error.localizedDescription)")
+            }
 
             await MainActor.run {
                 self.isTranscribing = false
@@ -1634,6 +1879,7 @@ final class PersistentRecorder {
                     self.lastPublishedTranscriptionPercent = nil
                 }
                 self.finishLiveActivityAfterTranscription()
+                self.recordingQueue.finishInteractiveWork(includeIdle: true)
                 WatchRecordingController.shared.publishState()
                 if bgTask != .invalid {
                     UIApplication.shared.endBackgroundTask(bgTask)
@@ -1657,12 +1903,15 @@ final class PersistentRecorder {
         transcribingCompletionMode = nil
         transcribingCommandOrigin = nil
         if processingRequestId == requestId {
+            isTranscribing = false
+            transcribingCompletionMode = nil
             processingRequestId = nil
             progressRequestId = nil
             transcriptionProgress = nil
             lastPublishedTranscriptionPercent = nil
         }
         clearSegmentState()
+        recordingQueue.setCaptureActive(false)
 
         if shouldAutoStopListeningAfterCurrentRecording {
             stopListening()
@@ -1673,12 +1922,25 @@ final class PersistentRecorder {
     }
 
     private func finishLiveActivityAfterTranscription() {
+        guard !isSegmentActive else { return }
         if shouldEndLiveActivityAfterCurrentTranscription {
             shouldEndLiveActivityAfterCurrentTranscription = false
             LiveActivityController.shared.end()
         } else if isListening {
             LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: false, startedAt: nil)
         }
+    }
+
+    static func handoffSnapshot(
+        draftRequestID: UUID?,
+        liveSessionID: UUID?,
+        presetSnapshot: CapturePreset?
+    ) -> RecordingSegmentHandoffSnapshot {
+        RecordingSegmentHandoffSnapshot(
+            draftRequestID: draftRequestID,
+            liveSessionID: liveSessionID,
+            presetSnapshot: presetSnapshot
+        )
     }
 
     private func clearSegmentState() {
@@ -1691,11 +1953,12 @@ final class PersistentRecorder {
         segmentCompletionMode = nil
         segmentPresetSnapshot = nil
         segmentOrigin = nil
+        segmentDraftRequestID = nil
         segmentDuration = 0
     }
 
     /// Cancel an active segment without transcribing.
-    func cancelSegment() {
+    func cancelSegment(preserveAudioForRecovery: Bool = false) {
         guard isSegmentActive else { return }
         log.log("[PersistentRecorder] Cancelling segment")
 
@@ -1703,11 +1966,227 @@ final class PersistentRecorder {
         isSegmentActive = false
         TranscriptionIPC.clearAudioLevel()
         clearCaptureLiveTranscription(requestId: segmentRequestId)
+        let recoveryURL = finalizeSegmentJournal()
+        if !preserveAudioForRecovery, let recoveryURL {
+            try? FileManager.default.removeItem(at: recoveryURL)
+        }
         clearSegmentState()
+        recordingQueue.setCaptureActive(false)
 
         TranscriptionIPC.clearStatus()
         LiveActivityController.shared.update(isSegmentActive: false, isTranscribing: false, startedAt: nil)
         WatchRecordingController.shared.publishState()
+    }
+
+    // MARK: - Active Recording Journal
+
+    private func startSegmentJournal(requestID: String) {
+        let oldWriter = segmentJournalLock.withLock { () -> IncrementalWAVWriter? in
+            let oldWriter = segmentJournalWriter
+            segmentJournalWriter = nil
+            return oldWriter
+        }
+        if oldWriter != nil {
+            segmentJournalWriteQueue.sync {}
+            _ = try? oldWriter?.finalize()
+        }
+
+        guard let directory = AppConstants.recordingsDirectoryURL else { return }
+        let safeRequestID = requestID
+            .filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }
+            .prefix(80)
+        let url = directory
+            .appendingPathComponent("segment_active_\(safeRequestID)_\(UUID().uuidString.lowercased())")
+            .appendingPathExtension("wav")
+        do {
+            let writer = try IncrementalWAVWriter(url: url, sampleRate: whisperSampleRate)
+            segmentJournalLock.withLock { segmentJournalWriter = writer }
+        } catch {
+            log.log("[PersistentRecorder] ⚠️ Could not start durable recording journal: \(error.localizedDescription)")
+        }
+    }
+
+    private func appendToSegmentJournal(_ samples: UnsafeBufferPointer<Float>) {
+        let ownedSamples = Array(samples)
+        segmentJournalLock.withLock {
+            guard let writer = segmentJournalWriter else { return }
+            segmentJournalWriteQueue.async {
+                do {
+                    try writer.append(samples: ownedSamples)
+                } catch {
+                    KeyboardDebugLog.shared.log(
+                        "[PersistentRecorder] ⚠️ Durable recording journal write failed: \(error.localizedDescription)"
+                    )
+                }
+            }
+        }
+    }
+
+    private func finalizeSegmentJournal() -> URL? {
+        let writer = segmentJournalLock.withLock { () -> IncrementalWAVWriter? in
+            let writer = segmentJournalWriter
+            segmentJournalWriter = nil
+            return writer
+        }
+        guard let writer else { return nil }
+        segmentJournalWriteQueue.sync {}
+        do {
+            return try writer.finalize()
+        } catch {
+            log.log("[PersistentRecorder] ⚠️ Could not finalize durable recording journal: \(error.localizedDescription)")
+            return writer.url
+        }
+    }
+
+    // MARK: - Durable Recording Queue
+
+    func resumeRecordingQueue(includeIdle: Bool = true) {
+        recordingQueue.resume(includeIdle: includeIdle)
+    }
+
+    private func enqueueAppRecording(
+        audioURL: URL,
+        requestId: String,
+        modelId: String,
+        fallbackModelId: String? = nil,
+        language: String,
+        duration: TimeInterval,
+        completionMode: RecordingCompletionMode,
+        source: RecordingJobSource = .iOSApp,
+        jobID: UUID = UUID(),
+        draftRequestID: UUID? = nil,
+        liveSessionID: UUID? = nil,
+        fallbackRecoveryURL: URL? = nil,
+        captureSource: CaptureSource? = nil,
+        locationOutcome: CaptureLocationOutcome? = nil,
+        presetSnapshot: CapturePreset? = nil,
+        queueConfiguration: RecordingQueueConfiguration? = nil,
+        finishCaptureHandoff: Bool = false
+    ) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer {
+                if finishCaptureHandoff {
+                    self.recordingQueue.setCaptureActive(false)
+                }
+            }
+            do {
+                let delivery: RecordingJobDelivery
+                if case .runVox = completionMode, let presetSnapshot {
+                    delivery = .preset(presetSnapshot)
+                } else {
+                    delivery = completionMode.recordingJobDelivery
+                }
+                _ = try await self.recordingQueue.enqueue(
+                    sourceURL: audioURL,
+                    id: jobID,
+                    requestID: requestId,
+                    draftRequestID: draftRequestID,
+                    liveSessionID: liveSessionID,
+                    captureSource: captureSource,
+                    locationOutcome: locationOutcome,
+                    duration: duration,
+                    source: source,
+                    delivery: delivery,
+                    modelID: modelId,
+                    fallbackModelID: fallbackModelId,
+                    language: language,
+                    configuration: queueConfiguration
+                )
+                if let fallbackRecoveryURL {
+                    try? FileManager.default.removeItem(at: fallbackRecoveryURL)
+                }
+            } catch {
+                self.lastError = String(localized: "The recording could not be queued. \(error.localizedDescription) The original audio was preserved.")
+            }
+        }
+    }
+
+    private func executeQueuedJob(
+        _ job: RecordingJob,
+        audioURL: URL,
+        onProgress: @escaping RecordingJobProgressHandler
+    ) async throws -> RecordingJobExecutionResult {
+        guard let completionMode = RecordingCompletionMode(jobDelivery: job.delivery) else {
+            throw PersistentRecordingJobError.recoveryRoutingRequired
+        }
+        guard !usageTracker.isAtLimit else {
+            needsUnlock = true
+            throw PersistentRecordingJobError.transcriptionLimitReached
+        }
+        var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "RecordingJob-\(job.id.uuidString)") { [weak self] in
+            log.log("[PersistentRecorder] Recording queue background time expired for \(job.id.uuidString.prefix(8))")
+            Task { @MainActor in
+                self?.recordingQueue.interruptForSystemExpiration()
+            }
+            if backgroundTask != .invalid {
+                UIApplication.shared.endBackgroundTask(backgroundTask)
+                backgroundTask = .invalid
+            }
+        }
+        defer {
+            if backgroundTask != .invalid {
+                UIApplication.shared.endBackgroundTask(backgroundTask)
+                backgroundTask = .invalid
+            }
+        }
+        let requestId = job.requestID ?? "queued-\(job.id.uuidString)"
+        let flowSnapshot: CapturePreset?
+        if case .preset(let preset) = job.delivery {
+            flowSnapshot = preset
+        } else {
+            flowSnapshot = nil
+        }
+
+        isTranscribing = true
+        transcribingCompletionMode = completionMode
+        processingRequestId = requestId
+        progressRequestId = requestId
+        transcriptionProgress = nil
+        lastPublishedTranscriptionPercent = nil
+        lastError = nil
+        defer {
+            isTranscribing = false
+            transcribingCompletionMode = nil
+            if processingRequestId == requestId {
+                processingRequestId = nil
+                progressRequestId = nil
+                transcriptionProgress = nil
+                lastPublishedTranscriptionPercent = nil
+            }
+            finishLiveActivityAfterTranscription()
+            WatchRecordingController.shared.publishState()
+        }
+
+        do {
+            return try await transcribe(
+                audioURL: audioURL,
+                modelId: job.modelID,
+                fallbackModelId: job.fallbackModelID,
+                language: job.language,
+                requestId: requestId,
+                duration: job.duration,
+                completionMode: completionMode,
+                sourceAudioURL: audioURL,
+                captureSource: job.captureSource,
+                selectedFlowOverride: flowSnapshot,
+                originLocationOutcomeOverride: job.locationOutcome,
+                draftRequestID: job.draftRequestID,
+                liveSessionID: job.liveSessionID,
+                cleanupWorkingAudio: false,
+                jobProgressHandler: onProgress,
+                transcriptID: job.id,
+                exportedNotePath: job.exportedNotePath,
+                exportedAudioPath: job.exportedAudioPath,
+                audioReferenceAttachedAt: job.audioReferenceAttachedAt
+            )
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            lastError = "\(error.localizedDescription) The recording was preserved in the queue."
+            throw error
+        }
     }
 
     // MARK: - Transcription
@@ -1833,6 +2312,7 @@ final class PersistentRecorder {
     private func transcribe(
         audioURL: URL,
         modelId: String,
+        fallbackModelId: String? = nil,
         language: String,
         requestId: String,
         duration: TimeInterval,
@@ -1845,10 +2325,32 @@ final class PersistentRecorder {
         originLocationTask: Task<CaptureRecordingOriginSnapshot?, Never>? = nil,
         captureSource: CaptureSource? = nil,
         captureProfile: CapturePresetProfile? = nil,
-        presetSnapshot: CapturePreset? = nil
-    ) async {
+        presetSnapshot: CapturePreset? = nil,
+        selectedFlowOverride: CapturePreset? = nil,
+        originLocationOutcomeOverride: CaptureLocationOutcome? = nil,
+        draftRequestID: UUID? = nil,
+        liveSessionID: UUID? = nil,
+        cleanupWorkingAudio: Bool = true,
+        jobProgressHandler: RecordingJobProgressHandler? = nil,
+        transcriptID: UUID? = nil,
+        exportedNotePath: String? = nil,
+        exportedAudioPath: String? = nil,
+        audioReferenceAttachedAt: Date? = nil
+    ) async throws -> RecordingJobExecutionResult {
         osLog.notice("🔄 Transcribing audio: \(audioURL.lastPathComponent) backend=\(modelId)")
         log.log("[PersistentRecorder] Transcribing with backend \(modelId)…")
+
+        if case .captureDraft(let attachAudio) = completionMode, attachAudio {
+            guard let transcriptID else {
+                throw PersistentRecordingJobError.audioStagingFailed
+            }
+            let staged = await captureDraftEventHandler?(.audio(
+                sourceAudioURL ?? audioURL,
+                draftRequestID: draftRequestID,
+                deliveryID: transcriptID
+            )) ?? false
+            guard staged else { throw PersistentRecordingJobError.audioStagingFailed }
+        }
 
         let selectedFlow: CapturePreset?
         if let presetSnapshot {
@@ -1857,11 +2359,19 @@ final class PersistentRecorder {
         case .keyboardTranscription, .captureDraft:
             selectedFlow = nil
         case .runVox(let flowID):
-            selectedFlow = CapturePresetStore.flow(id: flowID) ?? CapturePresetStore.selectedFlow()
+            selectedFlow = selectedFlowOverride
+                ?? CapturePresetStore.flow(id: flowID)
+                ?? CapturePresetStore.selectedFlow()
         } }
         let originSnapshot: CaptureRecordingOriginSnapshot?
         if let originLocationTask {
             originSnapshot = await originLocationTask.value
+        } else if let originLocationOutcomeOverride {
+            originSnapshot = CaptureRecordingOriginSnapshot(
+                presetID: selectedFlow?.id ?? "",
+                source: captureSource ?? .voice,
+                outcome: originLocationOutcomeOverride
+            )
         } else if let rootURL = AppConstants.captureDirectoryURL {
             originSnapshot = try? await CaptureRecordingOriginStore(rootDirectoryURL: rootURL)
                 .load(recordingID: requestId)
@@ -1877,7 +2387,7 @@ final class PersistentRecorder {
             await MainActor.run {
                 self.lastError = String(localized: "Shared capture storage is unavailable.")
             }
-            return
+            throw PersistentRecordingJobError.originMetadataPersistenceFailed
         }
         let originLocationOutcome = originSnapshot?.outcome
         let originCaptureSource = originSnapshot?.source ?? captureSource ?? .voice
@@ -1893,26 +2403,17 @@ final class PersistentRecorder {
                 await MainActor.run {
                     self.lastError = String(localized: "Shared capture storage is unavailable.")
                 }
-                return
+                throw PersistentRecordingJobError.originMetadataPersistenceFailed
             }
             // The draft now owns the exact outcome and policy; remove the
             // short-lived duplicate recording journal immediately.
             await removeOriginLocationSnapshot(requestID: requestId)
         }
 
-        if case .captureDraft(let attachAudio) = completionMode, attachAudio {
-            guard await captureDraftEventHandler?(.audio(sourceAudioURL ?? audioURL)) == true else {
-                if captureSource == .fileImport, let captureProfile {
-                    _ = await captureDraftEventHandler?(.clearOrigin(profileID: captureProfile.id))
-                    await removeOriginLocationSnapshot(requestID: requestId)
-                }
-                return
-            }
-        }
-
         let identifiesSpeakers = selectedFlow?.speakerDiarizationEnabled == true
         let progressHandler: TranscriptionProgressHandler = { [weak self] progress in
             Task { @MainActor [weak self] in
+                jobProgressHandler?(progress)
                 self?.acceptTranscriptionProgress(
                     progress,
                     requestId: requestId,
@@ -1935,7 +2436,8 @@ final class PersistentRecorder {
                         result = try await transcriptionService.transcribeResult(
                             audioURL: audioURL,
                             modelID: modelId,
-                            fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
+                            fallbackModelID: fallbackModelId
+                                ?? AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
                             language: language,
                             onProgress: progressHandler
                         )
@@ -1952,14 +2454,19 @@ final class PersistentRecorder {
                 result = try await transcriptionService.transcribeResult(
                     audioURL: audioURL,
                     modelID: modelId,
-                    fallbackModelID: AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
+                    fallbackModelID: fallbackModelId
+                        ?? AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey),
                     language: language,
                     onProgress: progressHandler
                 )
             }
         } catch is CancellationError {
-            await cancelTranscription(requestId: requestId, audioURL: audioURL)
-            return
+            await cancelTranscription(
+                requestId: requestId,
+                audioURL: audioURL,
+                cleanupWorkingAudio: cleanupWorkingAudio
+            )
+            throw CancellationError()
         } catch {
             log.log("[PersistentRecorder] ❌ Transcription failed: \(error.localizedDescription)")
             if case .captureDraft(let attachAudio) = completionMode,
@@ -1974,9 +2481,11 @@ final class PersistentRecorder {
                 self.lastTranscriptionResult = nil
                 self.writeErrorResponse(requestId: requestId, message: error.localizedDescription)
             }
-            try? FileManager.default.removeItem(at: audioURL)
-            await removeOriginLocationSnapshot(requestID: requestId)
-            return
+            if cleanupWorkingAudio {
+                try? FileManager.default.removeItem(at: audioURL)
+                await removeOriginLocationSnapshot(requestID: requestId)
+            }
+            throw error
         }
 
         // Percentage covers ASR only. Reject queued callbacks before optional
@@ -2000,8 +2509,12 @@ final class PersistentRecorder {
                     log.log("[PersistentRecorder] ✅ Identified \(Set(diarization.turns.map(\.speaker)).count) speakers")
                 }
             } catch is CancellationError {
-                await cancelTranscription(requestId: requestId, audioURL: audioURL)
-                return
+                await cancelTranscription(
+                    requestId: requestId,
+                    audioURL: audioURL,
+                    cleanupWorkingAudio: cleanupWorkingAudio
+                )
+                throw CancellationError()
             } catch {
                 // Match Rescript's mobile behavior: diarization is best-effort,
                 // while the timestamped transcription remains fully usable.
@@ -2013,21 +2526,42 @@ final class PersistentRecorder {
         log.log("[PersistentRecorder] Result from \(result.backendName): \(resolvedText.count) chars")
         osLog.notice("✅ Transcription result: \(resolvedText.count) chars")
 
-        if case .captureDraft(let attachAudio) = completionMode {
-            guard !resolvedText.isEmpty,
-                  await captureDraftEventHandler?(.transcript(resolvedText)) == true else {
-                if captureSource == .fileImport, !attachAudio, let captureProfile {
-                    _ = await captureDraftEventHandler?(.clearOrigin(profileID: captureProfile.id))
-                    await removeOriginLocationSnapshot(requestID: requestId)
+        // Checkpoint successful queued ASR before any requested external
+        // delivery. TranscriptStore replaces by ID, and UsageTracker receipts by
+        // ID, so retries are exactly-once even if delivery later fails.
+        if let transcriptID, !resolvedText.isEmpty {
+            try await MainActor.run {
+                self.transcriptStore.add(Transcript(
+                    id: transcriptID,
+                    text: resolvedText,
+                    date: Date(),
+                    duration: duration,
+                    modelUsed: result.backendName,
+                    language: result.language,
+                    speakerTurns: speakerTurns
+                ))
+                if let persistenceError = self.transcriptStore.lastPersistenceError {
+                    throw persistenceError
                 }
-                await MainActor.run {
-                    self.lastError = String(localized: "Shared capture storage is unavailable.")
-                }
-                return
+                self.usageTracker.addUsage(seconds: duration, deliveryID: transcriptID)
             }
         }
 
-        await MainActor.run {
+        if case .captureDraft = completionMode, !resolvedText.isEmpty {
+            guard let transcriptID else {
+                throw PersistentRecordingJobError.transcriptStagingFailed
+            }
+            let saved = await captureDraftEventHandler?(.transcript(
+                resolvedText,
+                draftRequestID: draftRequestID,
+                liveSessionID: liveSessionID,
+                deliveryID: transcriptID
+            )) ?? false
+            guard saved else { throw PersistentRecordingJobError.transcriptStagingFailed }
+        }
+
+        let scheduledDeliveryTask: Task<Bool, Never>? = try await MainActor.run {
+            var deliveryTask: Task<Bool, Never>?
             self.clearCaptureLiveTranscription(requestId: requestId)
             if let text, !text.isEmpty {
                 // Only publish to the IPC channel for keyboard-initiated requests.
@@ -2046,7 +2580,8 @@ final class PersistentRecorder {
                         try TranscriptionIPC.writeResponse(response)
                         log.log("[PersistentRecorder] 📤 Response written (requestId=\(requestId.prefix(8)), chars=\(text.count))")
                     } catch {
-                        log.log("[PersistentRecorder] ❌ writeResponse FAILED: \(error) — keyboard will not receive transcription!")
+                        log.log("[PersistentRecorder] ❌ writeResponse FAILED: \(error) — preserving keyboard audio")
+                        throw PersistentRecordingJobError.keyboardDeliveryFailed
                     }
                     TranscriptionIPC.postResponseNotification()
                     osLog.notice("📤 Response written and notification posted for \(requestId)")
@@ -2063,7 +2598,7 @@ final class PersistentRecorder {
                 // the raw transcript editable; explicit Preset runs preserve their
                 // formatting, enrichment, and configured export behavior.
                 let rawTranscript = Transcript(
-                    id: UUID(),
+                    id: transcriptID ?? UUID(),
                     text: text,
                     date: Date(),
                     duration: duration,
@@ -2074,6 +2609,10 @@ final class PersistentRecorder {
                 let transcript = selectedFlow.map { TranscriptFlowFormatter.apply(flow: $0, to: rawTranscript) }
                     ?? rawTranscript
                 self.transcriptStore.add(transcript)
+                if let persistenceError = self.transcriptStore.lastPersistenceError {
+                    throw persistenceError
+                }
+                self.usageTracker.addUsage(seconds: duration, deliveryID: transcriptID)
                 ReviewPromptManager.shared.recordSuccessfulTranscription(
                     totalTranscriptionCount: self.transcriptStore.transcripts.count,
                     transcriptDates: self.transcriptStore.transcripts.map(\.date)
@@ -2092,6 +2631,7 @@ final class PersistentRecorder {
                 let audioSourceForExport: URL? = {
                     guard flowForExport.audioSaveMode != .off else { return nil }
                     let source = sourceAudioURL ?? audioURL
+                    if !cleanupWorkingAudio { return source }
                     guard let dir = AppConstants.recordingsDirectoryURL else { return nil }
                     let ext = source.pathExtension.isEmpty ? "wav" : source.pathExtension
                     let retained = dir.appendingPathComponent("export_audio_\(UUID().uuidString)").appendingPathExtension(ext)
@@ -2103,16 +2643,35 @@ final class PersistentRecorder {
                         return nil
                     }
                 }()
+                let noteDeliveryTransactionURL = transcriptID.map {
+                    self.recordingQueue.store.externalDeliveryTransactionDirectoryURL(
+                        for: $0,
+                        artifact: .note
+                    )
+                }
+                let audioDeliveryTransactionURL = transcriptID.map {
+                    self.recordingQueue.store.externalDeliveryTransactionDirectoryURL(
+                        for: $0,
+                        artifact: .audio
+                    )
+                }
+                let audioReferenceDeliveryTransactionURL = transcriptID.map {
+                    self.recordingQueue.store.externalDeliveryTransactionDirectoryURL(
+                        for: $0,
+                        artifact: .noteAudioReference
+                    )
+                }
 
-                let runExport: @Sendable () async -> Void = { [weak self] in
+                let runExport: @Sendable () async -> Bool = { [self] in
                     let captureDestinationID = await ConfiguredTranscriptCaptureDestinationExporter
                         .resolvedDestinationID(flow: flowForExport)
                     // Legacy exports consume this private working copy. Precise
                     // capture exports keep it until either delivery succeeds or
                     // an exact audio-bearing inbox request is durable.
-                    var canRemoveRetainedAudio = captureDestinationID == nil
+                    let audioWasRequested = flowForExport.audioSaveMode != .off
+                    var canRemoveRetainedAudio = !audioWasRequested
                     defer {
-                        if canRemoveRetainedAudio, let audioSourceForExport {
+                        if cleanupWorkingAudio, canRemoveRetainedAudio, let audioSourceForExport {
                             try? FileManager.default.removeItem(at: audioSourceForExport)
                         }
                     }
@@ -2121,6 +2680,16 @@ final class PersistentRecorder {
                     }
 
                     if let captureDestinationID {
+                        if let exportedNotePath {
+                            let checkpointedURL = URL(fileURLWithPath: exportedNotePath)
+                            if FileManager.default.fileExists(atPath: checkpointedURL.path) {
+                                canRemoveRetainedAudio = true
+                                await MainActor.run {
+                                    self.lastFileExportEvent = FileExportEvent(result: .success(checkpointedURL))
+                                }
+                                return true
+                            }
+                        }
                         do {
                             let receipt = try await ConfiguredTranscriptCaptureDestinationExporter.export(
                                 transcript: latest,
@@ -2130,35 +2699,50 @@ final class PersistentRecorder {
                                 locationOutcome: originLocationOutcome,
                                 source: originCaptureSource
                             )
+                            if let transcriptID {
+                                try await self.recordingQueue.markExportedNote(
+                                    id: transcriptID,
+                                    url: receipt.noteURL
+                                )
+                            }
                             canRemoveRetainedAudio = true
                             if let rootURL = AppConstants.captureDirectoryURL {
                                 try? await CaptureRecordingOriginStore(rootDirectoryURL: rootURL)
                                     .remove(recordingID: requestId)
                             }
                             await MainActor.run {
-                                self?.lastFileExportEvent = FileExportEvent(result: .success(receipt.noteURL))
+                                self.lastFileExportEvent = FileExportEvent(result: .success(receipt.noteURL))
                             }
+                            return true
                         } catch {
+                            let queuedForRetry: Bool
                             if let configuredError = error as? ConfiguredTranscriptCaptureError {
                                 switch configuredError {
-                                case .queuedForRetry, .locationUnavailableCancelled:
-                                    // Queued requests own staged audio; explicit
-                                    // cancel keeps the original transcript/audio.
+                                case .queuedForRetry:
+                                    // The inbox owns an exact staged audio copy and
+                                    // the origin-bound request metadata.
                                     canRemoveRetainedAudio = true
-                                    if let rootURL = AppConstants.captureDirectoryURL {
-                                        try? await CaptureRecordingOriginStore(rootDirectoryURL: rootURL)
-                                            .remove(recordingID: requestId)
-                                    }
+                                    queuedForRetry = true
+                                case .locationUnavailableCancelled:
+                                    canRemoveRetainedAudio = true
+                                    queuedForRetry = false
                                 default:
-                                    break
+                                    queuedForRetry = false
                                 }
+                                if canRemoveRetainedAudio,
+                                   let rootURL = AppConstants.captureDirectoryURL {
+                                    try? await CaptureRecordingOriginStore(rootDirectoryURL: rootURL)
+                                        .remove(recordingID: requestId)
+                                }
+                            } else {
+                                queuedForRetry = false
                             }
-                            log.log("[PersistentRecorder] ❌ Precise capture routing failed: \(error)")
+                            KeyboardDebugLog.shared.log("[PersistentRecorder] ❌ Precise capture routing failed: \(error)")
                             await MainActor.run {
-                                self?.lastFileExportEvent = FileExportEvent(result: .failure(error.localizedDescription))
+                                self.lastFileExportEvent = FileExportEvent(result: .failure(error.localizedDescription))
                             }
+                            return queuedForRetry
                         }
-                        return
                     }
 
                     var folderOverride: URL? = nil
@@ -2199,73 +2783,114 @@ final class PersistentRecorder {
                         }
                     }
 
+                    let checkpointedNoteURL = exportedNotePath.map(URL.init(fileURLWithPath:))
+                        .flatMap { FileManager.default.fileExists(atPath: $0.path) ? $0 : nil }
                     let url: URL
                     do {
-                        switch try TranscriptFileExporter.exportConfigured(
-                            latest,
-                            folderURLOverride: folderOverride,
-                            autoOrganizeSubfolder: autoOrganizeSubfolder,
-                            flow: flowForExport
-                        ) {
-                        case .disabled:
-                            return
-                        case .exported(let exportedURL):
-                            url = exportedURL
+                        if let checkpointedNoteURL {
+                            url = checkpointedNoteURL
+                        } else {
+                            switch try TranscriptFileExporter.exportConfigured(
+                                latest,
+                                folderURLOverride: folderOverride,
+                                autoOrganizeSubfolder: autoOrganizeSubfolder,
+                                flow: flowForExport,
+                                deliveryTransactionDirectoryURL: noteDeliveryTransactionURL
+                            ) {
+                            case .disabled:
+                                if audioWasRequested {
+                                    await MainActor.run {
+                                        self.lastFileExportEvent = FileExportEvent(
+                                            result: .failure("Audio retention is enabled, but this Preset has no export destination.")
+                                        )
+                                    }
+                                    return false
+                                }
+                                return true
+                            case .exported(let exportedURL):
+                                url = exportedURL
+                                if let transcriptID {
+                                    try await self.recordingQueue.markExportedNote(
+                                        id: transcriptID,
+                                        url: exportedURL
+                                    )
+                                }
+                            }
                         }
                     } catch {
-                        log.log("[PersistentRecorder] ❌ File export failed: \(error)")
+                        KeyboardDebugLog.shared.log("[PersistentRecorder] ❌ File export failed: \(error)")
                         await MainActor.run {
-                            self?.lastFileExportEvent = FileExportEvent(result: .failure(error.localizedDescription))
+                            self.lastFileExportEvent = FileExportEvent(result: .failure(error.localizedDescription))
                         }
-                        return
+                        return false
                     }
 
                     if let audioSourceForExport {
                         let noteFolderScopeURL = folderOverride ?? TranscriptFileExporter.resolveExportFolderURL(flow: flowForExport)
                         do {
-                            if let audioURL = try await AudioAttachmentExporter.exportAudioIfNeeded(
+                            let checkpointedAudioURL = exportedAudioPath.map(URL.init(fileURLWithPath:))
+                            if try await CheckpointedAudioDelivery.deliver(
                                 sourceAudioURL: audioSourceForExport,
                                 transcriptFileURL: url,
                                 flow: flowForExport,
-                                transcriptFolderScopeURL: noteFolderScopeURL
-                            ) {
-                                let relativePath = AudioAttachmentExporter.relativePath(from: url, to: audioURL)
-                                try TranscriptFileExporter.attachAudioReference(
-                                    to: url,
-                                    relativePath: relativePath,
-                                    securityScopedFolderURL: noteFolderScopeURL,
-                                    embedInMarkdown: flowForExport.exportSettings.embedAudioInMarkdown,
-                                    embedPlacement: flowForExport.exportSettings.audioEmbedPlacement
-                                )
+                                transcriptFolderScopeURL: noteFolderScopeURL,
+                                previouslyExportedURL: checkpointedAudioURL,
+                                audioReferenceAlreadyAttached: audioReferenceAttachedAt != nil,
+                                audioDeliveryTransactionDirectoryURL: audioDeliveryTransactionURL,
+                                audioReferenceDeliveryTransactionDirectoryURL: audioReferenceDeliveryTransactionURL,
+                                checkpointExport: { audioURL in
+                                    if let transcriptID {
+                                        try await self.recordingQueue.markExportedAudio(
+                                            id: transcriptID,
+                                            url: audioURL
+                                        )
+                                    }
+                                },
+                                checkpointReference: {
+                                    if let transcriptID {
+                                        try await self.recordingQueue.markAudioReferenceAttached(
+                                            id: transcriptID
+                                        )
+                                    }
+                                }
+                            ) != nil {
+                                canRemoveRetainedAudio = true
                             }
                         } catch {
-                            log.log("[PersistentRecorder] ⚠️ Audio export failed: \(error)")
+                            KeyboardDebugLog.shared.log("[PersistentRecorder] ⚠️ Audio export failed: \(error)")
                             await MainActor.run {
-                                self?.lastFileExportEvent = FileExportEvent(
+                                self.lastFileExportEvent = FileExportEvent(
                                     result: .failure("The note was saved, but its audio attachment failed: \(error.localizedDescription)")
                                 )
                             }
-                            return
+                            return false
                         }
                     }
 
-                    await MainActor.run {
-                        self?.lastFileExportEvent = FileExportEvent(result: .success(url))
+                    if audioWasRequested && !canRemoveRetainedAudio {
+                        await MainActor.run {
+                            self.lastFileExportEvent = FileExportEvent(
+                                result: .failure("The note was saved, but its requested audio could not be exported.")
+                            )
+                        }
+                        return false
                     }
+                    await MainActor.run {
+                        self.lastFileExportEvent = FileExportEvent(result: .success(url))
+                    }
+                    return true
                 }
 
                     if let enricher = self.transcriptEnricher, flowForExport.usesAIEnrichment {
-                        Task.detached(priority: .utility) {
+                        deliveryTask = Task.detached(priority: .utility) {
                             await enricher.enrichAndUpdate(transcript: initialTranscript, flow: flowForExport, into: store)
-                            await runExport()
+                            return await runExport()
                         }
                     } else {
-                        Task.detached(priority: .utility) { await runExport() }
+                        deliveryTask = Task.detached(priority: .utility) { await runExport() }
                     }
                 }
 
-                // Track usage for the free-tier paywall
-                self.usageTracker.addUsage(seconds: duration)
                 let analyticsMetadata: OnboardingAnalyticsModelMetadata
                 if let localModel = WhisperModelInfo.availableModels.first(where: { $0.id == result.backendID }) {
                     analyticsMetadata = OnboardingAnalyticsModelMetadata(model: localModel)
@@ -2287,10 +2912,23 @@ final class PersistentRecorder {
                 writeErrorResponse(requestId: requestId, message: "No speech detected")
                 Task { await self.removeOriginLocationSnapshot(requestID: requestId) }
             }
+            return deliveryTask
         }
 
-        // Clean up WAV file
-        try? FileManager.default.removeItem(at: audioURL)
+        if let scheduledDeliveryTask,
+           await scheduledDeliveryTask.value == false {
+            throw PersistentRecordingJobError.deliveryFailed
+        }
+
+        guard !resolvedText.isEmpty else {
+            throw PersistentRecordingJobError.noSpeechDetected
+        }
+        if cleanupWorkingAudio {
+            try? FileManager.default.removeItem(at: audioURL)
+        }
+        return RecordingJobExecutionResult(
+            transcriptText: completionMode == .keyboardTranscription ? resolvedText : nil
+        )
     }
 
     @MainActor
@@ -2322,12 +2960,14 @@ final class PersistentRecorder {
                 transcriptionProgress: fraction
             ))
         }
-        LiveActivityController.shared.update(
-            isSegmentActive: false,
-            isTranscribing: true,
-            startedAt: nil,
-            transcriptionProgress: fraction
-        )
+        if !isSegmentActive {
+            LiveActivityController.shared.update(
+                isSegmentActive: false,
+                isTranscribing: true,
+                startedAt: nil,
+                transcriptionProgress: fraction
+            )
+        }
     }
 
     @MainActor
@@ -2336,7 +2976,7 @@ final class PersistentRecorder {
         progressRequestId = nil
         transcriptionProgress = nil
         lastPublishedTranscriptionPercent = nil
-        if isTranscribing {
+        if isTranscribing && !isSegmentActive {
             LiveActivityController.shared.update(
                 isSegmentActive: false,
                 isTranscribing: true,
@@ -2346,15 +2986,21 @@ final class PersistentRecorder {
         }
     }
 
-    private func cancelTranscription(requestId: String, audioURL: URL) async {
+    private func cancelTranscription(
+        requestId: String,
+        audioURL: URL,
+        cleanupWorkingAudio: Bool
+    ) async {
         await MainActor.run {
             self.stopAcceptingTranscriptionProgress(requestId: requestId)
             self.clearCaptureLiveTranscription(requestId: requestId)
             self.lastTranscriptionResult = nil
             TranscriptionIPC.clearStatus()
         }
-        try? FileManager.default.removeItem(at: audioURL)
-        await removeOriginLocationSnapshot(requestID: requestId)
+        if cleanupWorkingAudio {
+            try? FileManager.default.removeItem(at: audioURL)
+            await removeOriginLocationSnapshot(requestID: requestId)
+        }
     }
 
     // MARK: - WAV Writing
@@ -2512,14 +3158,17 @@ final class PersistentRecorder {
             // extra ~few-ms dispatch latency negligible.
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                // Force-cancel any lingering segment from a previous session.
-                // This is the root cause of requestId mismatches: if the keyboard
-                // extension was killed mid-session, isSegmentActive stays true and
-                // new recordings silently reuse the old segmentRequestId.
+                // Never infer that another active capture is stale merely because
+                // a new keyboard command arrived. Cancelling here used to delete
+                // the app/widget recording and its journal. Preserve the owner and
+                // ask the interactive caller to finish that capture first.
                 if self.isSegmentActive {
-                    let age = Date().timeIntervalSince1970 - self.segmentStartedAt
-                    log.log("[PersistentRecorder] ⚠️ Force-cancelling stale segment (age=\(Int(age))s) before new start")
-                    self.cancelSegment()
+                    log.log("[PersistentRecorder] ⚠️ Rejecting overlapping start; active request remains preserved")
+                    self.writeErrorResponse(
+                        requestId: command.requestId,
+                        message: String(localized: "Finish the current recording first")
+                    )
+                    return
                 }
                 self.handleStartSegment(command)
             }
@@ -2638,6 +3287,49 @@ final class PersistentRecorder {
     private func ensureRecordingsDirectory() {
         guard let dir = AppConstants.recordingsDirectoryURL else { return }
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+    }
+}
+
+private enum PersistentRecordingJobError: LocalizedError, RecordingJobFailureClassifying {
+    case noSpeechDetected
+    case audioStagingFailed
+    case transcriptStagingFailed
+    case originMetadataPersistenceFailed
+    case recoveryRoutingRequired
+    case transcriptionLimitReached
+    case deliveryFailed
+    case keyboardDeliveryFailed
+
+    var recordingJobFailureStage: RecordingJobFailureStage {
+        switch self {
+        case .audioStagingFailed, .transcriptStagingFailed, .deliveryFailed, .keyboardDeliveryFailed:
+            return .delivery
+        case .originMetadataPersistenceFailed, .recoveryRoutingRequired:
+            return .storage
+        case .noSpeechDetected, .transcriptionLimitReached:
+            return .transcription
+        }
+    }
+
+    var errorDescription: String? {
+        switch self {
+        case .noSpeechDetected:
+            return String(localized: "No speech was detected in the recording.")
+        case .audioStagingFailed:
+            return String(localized: "The recording could not be attached to the Capture draft.")
+        case .transcriptStagingFailed:
+            return String(localized: "The transcript could not be attached to the Capture draft.")
+        case .originMetadataPersistenceFailed:
+            return String(localized: "Shared capture storage is unavailable.")
+        case .recoveryRoutingRequired:
+            return String(localized: "Choose a Capture Preset before retrying this recovered recording.")
+        case .transcriptionLimitReached:
+            return String(localized: "You've used your free transcription time. Unlock Vox.md to process this recording.")
+        case .deliveryFailed:
+            return String(localized: "The transcript was saved, but its configured destination did not finish. The source recording was preserved for retry.")
+        case .keyboardDeliveryFailed:
+            return String(localized: "The keyboard could not receive the transcript. The recording was preserved.")
+        }
     }
 }
 

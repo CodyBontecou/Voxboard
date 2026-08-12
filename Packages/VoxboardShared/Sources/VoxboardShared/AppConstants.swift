@@ -16,6 +16,7 @@ public enum AppConstants: Sendable {
     public static let appGroupIdentifier = "group.bontecou.Voxboard"
     public static let modelsDirectoryName = "WhisperModels"
     public static let recordingsDirectoryName = "Recordings"
+    public static let recordingJobsDirectoryName = "RecordingJobs"
     public static let captureDirectoryName = "Capture"
     public static let captureLibraryFilename = CaptureLibraryStore.defaultFilename
     public static let captureHistoryFilename = "capture-history-v1.json"
@@ -34,6 +35,11 @@ public enum AppConstants: Sendable {
     public static let minimumVoiceAutoStopPauseDuration: TimeInterval = 0.5
     public static let maximumVoiceAutoStopPauseDuration: TimeInterval = 2.0
     public static let voiceAutoStopCapturePathKeyPrefix = "voiceAutoStop.capturePath"
+
+    #if DEBUG
+    public static let debugSharedContainerOverrideEnvironmentKey =
+        "VOXBOARD_SHARED_CONTAINER_OVERRIDE"
+    #endif
 
     // Legacy source-compatible aliases.
     public static let parakeetKeyboardAutoStopEnabledKey = voiceAutoStopEnabledKey
@@ -71,6 +77,18 @@ public enum AppConstants: Sendable {
     }
 
     public static var sharedContainerURL: URL? {
+        #if DEBUG
+        if let overrideURL = debugSharedContainerOverrideURL(
+            environment: ProcessInfo.processInfo.environment
+        ) {
+            try? FileManager.default.createDirectory(
+                at: overrideURL,
+                withIntermediateDirectories: true
+            )
+            return overrideURL
+        }
+        #endif
+
         if let appGroupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) {
             return appGroupURL
         }
@@ -93,12 +111,29 @@ public enum AppConstants: Sendable {
         #endif
     }
 
+    #if DEBUG
+    static func debugSharedContainerOverrideURL(
+        environment: [String: String]
+    ) -> URL? {
+        guard let path = environment[debugSharedContainerOverrideEnvironmentKey]?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+              !path.isEmpty else {
+            return nil
+        }
+        return URL(fileURLWithPath: path, isDirectory: true).standardizedFileURL
+    }
+    #endif
+
     public static var modelsDirectoryURL: URL? {
         sharedContainerURL?.appendingPathComponent(modelsDirectoryName)
     }
 
     public static var recordingsDirectoryURL: URL? {
         sharedContainerURL?.appendingPathComponent(recordingsDirectoryName)
+    }
+
+    public static var recordingJobsDirectoryURL: URL? {
+        recordingsDirectoryURL?.appendingPathComponent(recordingJobsDirectoryName, isDirectory: true)
     }
 
     public static var captureDirectoryURL: URL? {

@@ -12,6 +12,7 @@ extension Notification.Name {
 
 private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
     case capture = "Capture"
+    case queue = "Recording Queue"
     case history = "History"
     case settings = "Settings"
 
@@ -20,6 +21,7 @@ private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
     var title: String {
         switch self {
         case .capture: String(localized: "Capture")
+        case .queue: String(localized: "Recording Queue")
         case .history: String(localized: "History")
         case .settings: String(localized: "Settings")
         }
@@ -28,6 +30,7 @@ private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
     var symbol: String {
         switch self {
         case .capture: return "square.and.pencil"
+        case .queue: return "waveform.badge.clock"
         case .history: return "clock.arrow.circlepath"
         case .settings: return "gearshape.fill"
         }
@@ -36,6 +39,7 @@ private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
 
 struct MacRootView: View {
     @Environment(\.openWindow) private var openWindow
+    @Environment(ModelManager.self) private var modelManager
     @Bindable var recorder: MacRecorder
     @Bindable var quickCaptureViewModel: QuickCaptureViewModel
     let windowCoordinator: MacWindowCoordinator
@@ -134,6 +138,20 @@ struct MacRootView: View {
                 openHistory: { windowCoordinator.showHistory() },
                 openSettings: { selection = .settings }
             )
+        case .queue:
+            RecordingQueueView(
+                queue: recorder.recordingQueue,
+                recoveryPresets: CapturePresetStore.loadFlows()
+            ) { job, delivery in
+                await recorder.recordingQueue.retry(
+                    job,
+                    modelID: modelManager.selectedModelId,
+                    fallbackModelID: modelManager.preferredFallbackModelID,
+                    replaceFallbackModelID: true,
+                    language: modelManager.selectedLanguage,
+                    delivery: delivery
+                )
+            }
         case .history:
             MacHistoryView(viewModel: quickCaptureViewModel)
         case .settings:
@@ -169,6 +187,14 @@ struct MacLocalizationScreenshotRoot: View {
             NavigationStack { MacModelView() }
         case "05-presets":
             NavigationStack { MacCapturePresetSettingsView() }
+        case "06-recording-queue":
+            NavigationStack {
+                RecordingQueueView(
+                    queue: recorder.recordingQueue,
+                    recoveryPresets: CapturePresetStore.loadFlows()
+                )
+            }
+            .frame(minWidth: 1_180, minHeight: 760)
         default:
             MacCaptureWorkspaceView(
                 viewModel: quickCaptureViewModel,
@@ -1850,18 +1876,22 @@ struct MacSettingsView: View {
                     )
                     sectionHeader("02", "Capture Configuration")
                     configurationSettings
-                    sectionHeader("03", "Global Keybinds")
+                    sectionHeader("03", "Recording Queue")
+                    RecordingQueuePreferencesView()
+                        .padding(20)
+                        .background(Geist.bg)
+                    sectionHeader("04", "Global Keybinds")
                     hotKeySettings
-                    sectionHeader("04", "Visibility")
+                    sectionHeader("05", "Visibility")
                     visibilitySettings
-                    sectionHeader("05", "About")
+                    sectionHeader("06", "About")
                     settingsRow(title: String(localized: "VERSION"), detail: appVersionString, trailing: "")
                     settingsRow(
                         title: String(localized: "PROCESSING"),
                         detail: String(localized: "Voice and text stay on-device."),
                         trailing: String(localized: "PRIVATE")
                     )
-                    sectionHeader("06", "Debug")
+                    sectionHeader("07", "Debug")
                     Button("View Debug Log") { showDebug = true }
                         .buttonStyle(GeistButtonStyle(variant: .secondary))
                         .padding(20)
@@ -2118,7 +2148,7 @@ struct MacSettingsView: View {
                 hotKeyRow(
                     target: .transcriptionOnly,
                     title: String(localized: "Transcribe to Clipboard"),
-                    detail: String(localized: "Copy plain text to the clipboard without creating a note, saving to History, or retaining audio.")
+                    detail: String(localized: "Copy immediately when processed now. Deferred results wait in Recording Queue so they never overwrite your clipboard later.")
                 )
 
                 hotKeyRow(
@@ -2222,7 +2252,7 @@ struct MacSettingsView: View {
     private func hotKeyDetail(for target: MacHotKeyTarget) -> String {
         switch target {
         case .transcriptionOnly:
-            return String(localized: "Start or stop a temporary transcription. The result is copied to the clipboard without being saved to a file or History.")
+            return String(localized: "Start or stop a temporary transcription. Immediate results are copied; deferred results wait for an explicit Copy action in Recording Queue.")
         case .selectedPreset:
             return String(localized: "Start or stop recording with whichever Capture Preset is currently selected.")
         case .preset(let presetID):

@@ -15,6 +15,7 @@ struct VoxboardMacApp: App {
     @State private var quickCaptureViewModel: QuickCaptureViewModel
     @State private var windowCoordinator: MacWindowCoordinator
     #if DEBUG
+    private static let runtimeQueueValidationArgument = "--runtime-queue-validation"
     private static var localizationScreenshotWindow: NSWindow?
     #endif
     @AppStorage(MacAppVisibilityMode.storageKey, store: AppConstants.sharedDefaults)
@@ -59,10 +60,23 @@ struct VoxboardMacApp: App {
                     )
                 case .clearOrigin(let profileID):
                     return await quickCaptureViewModel.clearRecordedOrigin(profileID: profileID)
-                case .audio(let url):
-                    return await quickCaptureViewModel.stageRecordedAudio(at: url) != nil
-                case .transcript(let text):
-                    return await quickCaptureViewModel.appendRecordedTranscript(text)
+                case .audio(let url, let draftRequestID, let deliveryID):
+                    guard draftRequestID == nil || quickCaptureViewModel.draft.requestID == draftRequestID else {
+                        return false
+                    }
+                    return await quickCaptureViewModel.stageRecordedAudio(
+                        at: url,
+                        deliveryID: deliveryID
+                    ) != nil
+                case .transcript(let text, let draftRequestID, let liveSessionID, let deliveryID):
+                    guard draftRequestID == nil || quickCaptureViewModel.draft.requestID == draftRequestID else {
+                        return false
+                    }
+                    return await quickCaptureViewModel.appendRecordedTranscript(
+                        text,
+                        sessionID: liveSessionID,
+                        deliveryID: deliveryID
+                    )
                 case .liveTranscript(let sessionID, let finalizedText, let volatileText):
                     await quickCaptureViewModel.updateLiveRecordedTranscript(
                         sessionID: sessionID,
@@ -70,8 +84,8 @@ struct VoxboardMacApp: App {
                         volatileText: volatileText
                     )
                     return true
-                case .cancelLiveTranscript:
-                    await quickCaptureViewModel.cancelLiveRecordedTranscript()
+                case .cancelLiveTranscript(let sessionID):
+                    await quickCaptureViewModel.cancelLiveRecordedTranscript(sessionID: sessionID)
                     return true
                 }
             },
@@ -92,6 +106,20 @@ struct VoxboardMacApp: App {
         _windowCoordinator = State(initialValue: windowCoordinator)
 
         #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains(Self.runtimeQueueValidationArgument) {
+            // Allows isolated, noninteractive app-runtime validation with
+            // VOXBOARD_SHARED_CONTAINER_OVERRIDE. No production launch path
+            // observes either test hook.
+            DispatchQueue.main.async {
+                recorder.resumeRecordingQueue()
+            }
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(500))
+                await recorder.runRuntimeMicrophoneCaptureIfRequested(
+                    modelManager: modelManager
+                )
+            }
+        }
         if ProcessInfo.processInfo.arguments.contains("--localization-screenshot") {
             DispatchQueue.main.async {
                 let root = MacLocalizationScreenshotRoot(
@@ -144,18 +172,18 @@ struct VoxboardMacApp: App {
                 .onAppear {
                     appDelegate.configureURLHandler(handleURL)
                     appDelegate.configureLifecycleHandlers(
-                        didBecomeActive: { [weak quickCaptureViewModel, weak windowCoordinator] in
+                        didBecomeActive: { [weak quickCaptureViewModel, weak recorder, weak windowCoordinator] in
                             if let quickCaptureViewModel, let windowCoordinator {
                                 Self.consumePendingQuickCaptureOpenIfNeeded(
                                     quickCaptureViewModel: quickCaptureViewModel,
                                     windowCoordinator: windowCoordinator
                                 )
                             }
+                            recorder?.resumeRecordingQueue()
                             await quickCaptureViewModel?.retryFailedInbox()
                         },
                         flushDraft: { [weak quickCaptureViewModel, weak recorder, weak windowCoordinator] in
                             if recorder?.isRecording == true
-                                || recorder?.isTranscribing == true
                                 || recorder?.isExporting == true {
                                 recorder?.lastError = String(localized: "Wait for the current recording or Capture export to finish before quitting.")
                                 windowCoordinator?.showMain(.showCapture)
@@ -171,6 +199,7 @@ struct VoxboardMacApp: App {
                     transcriptStore.reload()
                     usageTracker.reload()
                     configureGlobalHotKeys()
+                    recorder.resumeRecordingQueue()
                     Self.consumePendingQuickCaptureOpenIfNeeded(
                         quickCaptureViewModel: quickCaptureViewModel,
                         windowCoordinator: windowCoordinator
@@ -215,7 +244,6 @@ struct VoxboardMacApp: App {
                     )
                 }
                 .keyboardShortcut("r", modifiers: [.command, .shift])
-                .disabled(recorder.isTranscribing || recorder.isExporting)
 
                 Button("Add Files to Capture…") {
                     windowCoordinator.showMain(.chooseFiles)
@@ -397,11 +425,6 @@ struct VoxboardMacApp: App {
         flowID requestedFlowID: String? = nil,
         completionMode: MacRecordingCompletionMode? = nil
     ) {
-        guard !recorder.isTranscribing, !recorder.isExporting else {
-            NSSound.beep()
-            return
-        }
-
         let flowId = requestedFlowID ?? CapturePresetStore.selectedFlowId()
         if recorder.isRecording {
             recorder.stopAndTranscribe(modelManager: modelManager, flowId: flowId)
@@ -1184,7 +1207,6 @@ private struct MacMenuBarMenu: View {
             } label: {
                 Label(recordButtonTitle, systemImage: usageTracker.isAtLimit ? "lock.fill" : "mic.fill")
             }
-            .disabled(recorder.isTranscribing || recorder.isExporting)
         }
 
         Button {
@@ -1192,7 +1214,7 @@ private struct MacMenuBarMenu: View {
         } label: {
             Label("Import Audio…", systemImage: "waveform")
         }
-        .disabled(recorder.isRecording || recorder.isTranscribing || recorder.isExporting || usageTracker.isAtLimit)
+        .disabled(recorder.isRecording || usageTracker.isAtLimit)
 
         if let result = recorder.lastTranscriptionResult, !result.isEmpty {
             Button {
@@ -1218,7 +1240,7 @@ private struct MacMenuBarMenu: View {
                     .tag(flow.id)
             }
         }
-        .disabled(recorder.isRecording || recorder.isTranscribing || recorder.isExporting)
+        .disabled(recorder.isRecording)
 
         Button {
             windowCoordinator.showMain(.showCapture)
@@ -1263,8 +1285,6 @@ private struct MacMenuBarMenu: View {
 
     private var recordButtonTitle: String {
         if usageTracker.isAtLimit { return String(localized: "Unlock to Record") }
-        if recorder.isTranscribing { return String(localized: "Transcribing…") }
-        if recorder.isExporting { return String(localized: "Finishing Export…") }
         return String(localized: "Start Recording")
     }
 

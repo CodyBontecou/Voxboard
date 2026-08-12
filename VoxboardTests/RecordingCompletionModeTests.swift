@@ -101,6 +101,22 @@ final class RecordingCompletionModeTests: XCTestCase {
         ))
     }
 
+    func testSegmentHandoffSnapshotPreservesDraftSessionAndPresetIdentity() {
+        let draftID = UUID()
+        let sessionID = UUID()
+        let preset = CapturePreset(id: "snapshot", name: "Snapshot", symbolName: "mic")
+
+        let snapshot = PersistentRecorder.handoffSnapshot(
+            draftRequestID: draftID,
+            liveSessionID: sessionID,
+            presetSnapshot: preset
+        )
+
+        XCTAssertEqual(snapshot.draftRequestID, draftID)
+        XCTAssertEqual(snapshot.liveSessionID, sessionID)
+        XCTAssertEqual(snapshot.presetSnapshot, preset)
+    }
+
     func testNonKeyboardExternalCommandStillRunsItsPreset() {
         let command = RecordingCommand(
             requestId: "live-activity",

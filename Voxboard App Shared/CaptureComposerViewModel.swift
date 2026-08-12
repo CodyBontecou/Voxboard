@@ -611,8 +611,22 @@ final class QuickCaptureViewModel {
     }
 
     @discardableResult
-    func appendRecordedTranscript(_ text: String) async -> Bool {
+    func appendRecordedTranscript(
+        _ text: String,
+        sessionID: UUID? = nil,
+        deliveryID: UUID? = nil
+    ) async -> Bool {
         await load()
+        if let deliveryID,
+           draft.appliedRecordingTranscriptIDs?.contains(deliveryID) == true {
+            return true
+        }
+        if let sessionID,
+           let activeSessionID = liveRecordedTranscriptSessionID,
+           activeSessionID != sessionID {
+            errorMessage = String(localized: "Another recording is still updating this Capture. Retry the queued recording after it finishes.")
+            return false
+        }
         guard let draftStore else {
             errorMessage = QuickCaptureViewModelError.storageUnavailable.localizedDescription
             return false
@@ -645,6 +659,11 @@ final class QuickCaptureViewModel {
         let savedAt = Date()
         draft.updatedAt = savedAt
         draft.beginCaptureIfNeeded(at: savedAt)
+        if let deliveryID {
+            var appliedIDs = draft.appliedRecordingTranscriptIDs ?? []
+            if !appliedIDs.contains(deliveryID) { appliedIDs.append(deliveryID) }
+            draft.appliedRecordingTranscriptIDs = appliedIDs
+        }
         do {
             let persistedDraft = try await draftStore.save(draft, now: savedAt)
             draft.preserveCaptureStart(from: persistedDraft)
@@ -660,27 +679,56 @@ final class QuickCaptureViewModel {
     }
 
     @discardableResult
-    func stageRecordedAudio(at sourceURL: URL) async -> CaptureAssetReference? {
+    func stageRecordedAudio(
+        at sourceURL: URL,
+        deliveryID: UUID? = nil
+    ) async -> CaptureAssetReference? {
         await load()
         guard let stagingDirectory = stagingDirectoryURL else {
             errorMessage = QuickCaptureViewModelError.storageUnavailable.localizedDescription
             return nil
         }
+        let receiptKey = deliveryID?.uuidString.lowercased()
+        var staleAsset: CaptureAssetReference?
+        if let receiptKey,
+           let asset = draft.stagedRecordingAudioReceipts?[receiptKey],
+           draft.additionalPayloads.flatMap(Self.assets(in:)).contains(asset) {
+            let stagedURL = stagingDirectory.appendingPathComponent(asset.relativePath)
+            if FileManager.default.fileExists(atPath: stagedURL.path) {
+                return asset
+            }
+            staleAsset = asset
+        }
         let stager = CaptureAssetStager(directoryURL: stagingDirectory)
         var stagedAsset: CaptureAssetReference?
+        let previousDraft = draft
         do {
             let sourceExtension = sourceURL.pathExtension.isEmpty ? "wav" : sourceURL.pathExtension.lowercased()
             let contentType = UTType(filenameExtension: sourceExtension)?.identifier ?? UTType.audio.identifier
             let asset = try await stager.stageCopy(
                 from: sourceURL,
-                preferredFilename: "Recording-\(Self.captureFilenameTimestamp()).\(sourceExtension)",
+                preferredFilename: deliveryID.map { "Recording-\($0.uuidString.lowercased()).\(sourceExtension)" }
+                    ?? "Recording-\(Self.captureFilenameTimestamp()).\(sourceExtension)",
                 contentTypeIdentifier: contentType
             )
             stagedAsset = asset
-            try await appendStagedPayload(.audio(asset, transcript: nil), using: stager)
+            if let staleAsset {
+                draft.additionalPayloads.removeAll { payload in
+                    Self.assets(in: payload).contains(staleAsset)
+                }
+                if let receiptKey {
+                    draft.stagedRecordingAudioReceipts?.removeValue(forKey: receiptKey)
+                }
+            }
+            try await appendStagedPayload(
+                .audio(asset, transcript: nil),
+                using: stager,
+                recordingAudioDeliveryID: deliveryID
+            )
             errorMessage = nil
             return asset
         } catch {
+            draft = previousDraft
             if let stagedAsset { try? await stager.remove(stagedAsset) }
             errorMessage = error.localizedDescription
             return nil
@@ -1430,7 +1478,8 @@ final class QuickCaptureViewModel {
 
     private func appendStagedPayload(
         _ payload: CapturePayload,
-        using stager: CaptureAssetStager
+        using stager: CaptureAssetStager,
+        recordingAudioDeliveryID: UUID? = nil
     ) async throws {
         let proposed = draft.additionalPayloads + [payload]
         guard attachmentsFitInputBudget(proposed) else {
@@ -1446,10 +1495,24 @@ final class QuickCaptureViewModel {
             throw QuickCaptureViewModelError.storageUnavailable
         }
         draft.additionalPayloads.append(payload)
+        let receiptKey = recordingAudioDeliveryID?.uuidString.lowercased()
+        let previousReceipt = receiptKey.flatMap { draft.stagedRecordingAudioReceipts?[$0] }
+        if let receiptKey, let asset = Self.assets(in: payload).first {
+            var receipts = draft.stagedRecordingAudioReceipts ?? [:]
+            receipts[receiptKey] = asset
+            draft.stagedRecordingAudioReceipts = receipts
+        }
         do {
             try await saveDurableDraft(using: draftStore)
         } catch {
             _ = draft.additionalPayloads.popLast()
+            if let receiptKey {
+                if let previousReceipt {
+                    draft.stagedRecordingAudioReceipts?[receiptKey] = previousReceipt
+                } else {
+                    draft.stagedRecordingAudioReceipts?.removeValue(forKey: receiptKey)
+                }
+            }
             for asset in Self.assets(in: payload) {
                 try? await stager.remove(asset)
             }

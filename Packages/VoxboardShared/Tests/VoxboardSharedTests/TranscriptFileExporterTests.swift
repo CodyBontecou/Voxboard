@@ -172,6 +172,145 @@ final class TranscriptFileExporterTests: XCTestCase {
         XCTAssertTrue(content.contains("---\n\n![[meeting.m4a]]\n\n# Meeting"))
     }
 
+    func test_attachAudioReference_replacesStaleTextReferenceAfterAudioRepair() throws {
+        let url = tempFolder.appendingPathComponent("meeting.txt")
+        try "Transcript body mentions Audio: missing.wav in prose.\n\nAudio: missing.wav.backup\nAudio: missing.wav".write(
+            to: url,
+            atomically: true,
+            encoding: .utf8
+        )
+
+        try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "meeting-2.wav",
+            replacingRelativePath: "missing.wav"
+        )
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(content.contains("Transcript body mentions Audio: missing.wav in prose."))
+        XCTAssertTrue(content.contains("Audio: missing.wav.backup"))
+        XCTAssertFalse(content.components(separatedBy: .newlines).contains("Audio: missing.wav"))
+        XCTAssertEqual(occurrences(of: "Audio: meeting-2.wav", in: content), 1)
+    }
+
+    func test_attachAudioReference_replacesStaleMarkdownAudioAfterRepair() throws {
+        let url = tempFolder.appendingPathComponent("meeting.md")
+        try "---\naudio: \"missing.wav\"\n---\n\n![[missing.wav]]\n\nTranscript".write(
+            to: url,
+            atomically: true,
+            encoding: .utf8
+        )
+
+        try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "meeting-2.wav",
+            embedInMarkdown: true,
+            embedPlacement: .top,
+            replacingRelativePath: "missing.wav"
+        )
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertFalse(content.contains("missing.wav"))
+        XCTAssertEqual(occurrences(of: "meeting-2.wav", in: content), 2)
+    }
+
+    func test_attachAudioReference_replacesStaleYAMLReferenceAfterAudioRepair() throws {
+        let url = tempFolder.appendingPathComponent("meeting.yaml")
+        try "title: Meeting\naudio: missing.wav\nbody: Transcript\n".write(
+            to: url,
+            atomically: true,
+            encoding: .utf8
+        )
+
+        try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "meeting-2.wav",
+            replacingRelativePath: "missing.wav"
+        )
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertFalse(content.contains("missing.wav"))
+        XCTAssertEqual(occurrences(of: "audio:", in: content), 1)
+        XCTAssertTrue(content.contains("audio: \"meeting-2.wav\""))
+    }
+
+    func test_attachAudioReference_isIdempotentForYAMLRetry() throws {
+        let url = tempFolder.appendingPathComponent("meeting.yaml")
+        try "title: Meeting\nbody: Transcript\n".write(to: url, atomically: true, encoding: .utf8)
+
+        try TranscriptFileExporter.attachAudioReference(to: url, relativePath: "meeting.m4a")
+        let once = try String(contentsOf: url, encoding: .utf8)
+        try TranscriptFileExporter.attachAudioReference(to: url, relativePath: "meeting.m4a")
+        let twice = try String(contentsOf: url, encoding: .utf8)
+
+        XCTAssertEqual(twice, once)
+        XCTAssertEqual(occurrences(of: "audio:", in: twice), 1)
+    }
+
+    func test_attachAudioReference_isIdempotentForTextRetry() throws {
+        let url = tempFolder.appendingPathComponent("meeting.txt")
+        try "Transcript body".write(to: url, atomically: true, encoding: .utf8)
+
+        try TranscriptFileExporter.attachAudioReference(to: url, relativePath: "meeting.m4a")
+        let once = try String(contentsOf: url, encoding: .utf8)
+        try TranscriptFileExporter.attachAudioReference(to: url, relativePath: "meeting.m4a")
+        let twice = try String(contentsOf: url, encoding: .utf8)
+
+        XCTAssertEqual(twice, once)
+        XCTAssertEqual(occurrences(of: "Audio: meeting.m4a", in: twice), 1)
+    }
+
+    func test_attachAudioReference_transactionResumesWithoutRepeatingMutation() throws {
+        let url = tempFolder.appendingPathComponent("transactional-meeting.txt")
+        let transactionURL = tempFolder.appendingPathComponent(
+            "transactions/audio-reference",
+            isDirectory: true
+        )
+        try "Transcript body".write(to: url, atomically: true, encoding: .utf8)
+
+        try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "meeting.m4a",
+            deliveryTransactionDirectoryURL: transactionURL
+        )
+        try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "meeting.m4a",
+            deliveryTransactionDirectoryURL: transactionURL
+        )
+
+        let content = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertEqual(occurrences(of: "Audio: meeting.m4a", in: content), 1)
+    }
+
+    func test_attachAudioReference_transactionRejectsEditAfterUncheckpointedWrite() throws {
+        let url = tempFolder.appendingPathComponent("edited-meeting.txt")
+        let transactionURL = tempFolder.appendingPathComponent(
+            "transactions/edited-audio-reference",
+            isDirectory: true
+        )
+        try "Transcript body".write(to: url, atomically: true, encoding: .utf8)
+        try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "meeting.m4a",
+            deliveryTransactionDirectoryURL: transactionURL
+        )
+        let userEdited = try String(contentsOf: url, encoding: .utf8) + "\nUser edit"
+        try userEdited.write(to: url, atomically: true, encoding: .utf8)
+
+        XCTAssertThrowsError(try TranscriptFileExporter.attachAudioReference(
+            to: url,
+            relativePath: "meeting.m4a",
+            deliveryTransactionDirectoryURL: transactionURL
+        )) { error in
+            XCTAssertEqual(
+                error as? ExternalFileDeliveryTransaction.TransactionError,
+                .destinationConflict
+            )
+        }
+        XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), userEdited)
+    }
+
     // MARK: - JSON New File
 
     func test_export_json_newFile_isDecodableTranscript() throws {

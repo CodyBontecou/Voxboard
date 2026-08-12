@@ -140,4 +140,63 @@ final class PurchaseAccessTests: XCTestCase {
             .family
         )
     }
+
+    func testQueuedUsageReceiptIsExactlyOnceAndSurvivesRelaunch() {
+        let deliveryID = UUID()
+        var tracker: UsageTracker? = UsageTracker(defaults: defaults)
+
+        tracker?.addUsage(seconds: 42, deliveryID: deliveryID)
+        tracker?.addUsage(seconds: 42, deliveryID: deliveryID)
+        XCTAssertEqual(tracker?.totalSecondsUsed, 42)
+
+        tracker = UsageTracker(defaults: defaults)
+        XCTAssertEqual(tracker?.totalSecondsUsed, 42)
+        tracker?.addUsage(seconds: 42, deliveryID: deliveryID)
+        XCTAssertEqual(tracker?.totalSecondsUsed, 42)
+
+        tracker?.addUsage(seconds: 8, deliveryID: UUID())
+        XCTAssertEqual(tracker?.totalSecondsUsed, 50)
+    }
+
+    func testInteractiveUsageAfterQueuedReceiptSurvivesRelaunch() {
+        var tracker: UsageTracker? = UsageTracker(defaults: defaults)
+        tracker?.addUsage(seconds: 30, deliveryID: UUID())
+        tracker?.addUsage(seconds: 12)
+        XCTAssertEqual(tracker?.totalSecondsUsed, 42)
+
+        tracker = UsageTracker(defaults: defaults)
+        XCTAssertEqual(tracker?.totalSecondsUsed, 42)
+        tracker?.addUsage(seconds: 8, deliveryID: UUID())
+        XCTAssertEqual(tracker?.totalSecondsUsed, 50)
+
+        tracker = UsageTracker(defaults: defaults)
+        XCTAssertEqual(tracker?.totalSecondsUsed, 50)
+    }
+
+    func testRestoreDiagnosticsExposeFamilyOwnershipWithoutAccountIdentifiers() {
+        let diagnostics = PurchaseRestoreDiagnostics(
+            platform: "macOS",
+            syncSucceeded: true,
+            requestedProductIDs: VoxboardPurchaseProduct.allCases.map(\.rawValue),
+            loadedProductIDs: [VoxboardPurchaseProduct.family.rawValue],
+            storefrontCountryCode: "US",
+            observations: [
+                PurchaseEntitlementObservation(
+                    productID: VoxboardPurchaseProduct.family.rawValue,
+                    isVerified: true,
+                    isRecognized: true,
+                    isRevoked: false,
+                    isUpgraded: false,
+                    ownershipType: "familyShared",
+                    environment: "production"
+                ),
+            ]
+        )
+
+        XCTAssertTrue(diagnostics.summary.contains("bontecou.Voxboard.family"))
+        XCTAssertTrue(diagnostics.summary.contains("familyShared"))
+        XCTAssertTrue(diagnostics.summary.contains("storefront=US"))
+        XCTAssertFalse(diagnostics.summary.localizedCaseInsensitiveContains("transactionID"))
+        XCTAssertFalse(diagnostics.summary.localizedCaseInsensitiveContains("appleAccount"))
+    }
 }

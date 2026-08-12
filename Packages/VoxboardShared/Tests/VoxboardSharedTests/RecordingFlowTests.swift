@@ -1007,5 +1007,84 @@ final class CapturePresetTests: XCTestCase {
         )
         XCTAssertTrue(FileManager.default.fileExists(atPath: savedAudioURL.path))
     }
+
+    func test_exportAudioIfNeeded_deliveryTransactionReusesAtomicAttachment() async throws {
+        let tempFolder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VoxboardAudioIdempotencyTests-\(UUID().uuidString)")
+        let notesFolder = tempFolder.appendingPathComponent("Notes")
+        try FileManager.default.createDirectory(at: notesFolder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempFolder) }
+
+        let sourceAudioURL = tempFolder.appendingPathComponent("recording.wav")
+        try Data("not-a-real-wav".utf8).write(to: sourceAudioURL)
+        let transcriptURL = notesFolder.appendingPathComponent("Inbox.txt")
+        try "Transcript".write(to: transcriptURL, atomically: true, encoding: .utf8)
+        var flow = CapturePresetStore.makeCustomFlow()
+        flow.audioSaveMode = .alongsideTranscript
+        let transactionDirectory = tempFolder
+            .appendingPathComponent("transactions/audio", isDirectory: true)
+
+        let first = try await AudioAttachmentExporter.exportAudioIfNeeded(
+            sourceAudioURL: sourceAudioURL,
+            transcriptFileURL: transcriptURL,
+            flow: flow,
+            transcriptFolderScopeURL: notesFolder,
+            deliveryTransactionDirectoryURL: transactionDirectory
+        )
+        let retried = try await AudioAttachmentExporter.exportAudioIfNeeded(
+            sourceAudioURL: sourceAudioURL,
+            transcriptFileURL: transcriptURL,
+            flow: flow,
+            transcriptFolderScopeURL: notesFolder,
+            deliveryTransactionDirectoryURL: transactionDirectory
+        )
+
+        let firstURL = try XCTUnwrap(first)
+        XCTAssertEqual(retried, firstURL)
+        XCTAssertFalse(firstURL.lastPathComponent.contains("00000000"))
+        XCTAssertEqual(
+            try FileManager.default.contentsOfDirectory(
+                at: notesFolder,
+                includingPropertiesForKeys: nil
+            ).filter { $0.pathExtension == firstURL.pathExtension }.count,
+            1
+        )
+    }
+
+    func test_exportAudioIfNeeded_republishesWhenCheckpointedFileIsEmpty() async throws {
+        let tempFolder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VoxboardAudioCheckpointTests-\(UUID().uuidString)")
+        let notesFolder = tempFolder.appendingPathComponent("Notes")
+        try FileManager.default.createDirectory(at: notesFolder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempFolder) }
+
+        let sourceAudioURL = tempFolder.appendingPathComponent("recording.wav")
+        try Data("recoverable-audio".utf8).write(to: sourceAudioURL)
+        let transcriptURL = notesFolder.appendingPathComponent("Inbox.txt")
+        try "Transcript".write(to: transcriptURL, atomically: true, encoding: .utf8)
+        let emptyCheckpointURL = notesFolder.appendingPathComponent("Inbox.wav")
+        try Data().write(to: emptyCheckpointURL)
+        var flow = CapturePresetStore.makeCustomFlow()
+        flow.audioSaveMode = .alongsideTranscript
+        let transactionDirectory = tempFolder
+            .appendingPathComponent("transactions/repaired-audio", isDirectory: true)
+
+        let repaired = try await AudioAttachmentExporter.exportAudioIfNeeded(
+            sourceAudioURL: sourceAudioURL,
+            transcriptFileURL: transcriptURL,
+            flow: flow,
+            transcriptFolderScopeURL: notesFolder,
+            previouslyExportedURL: emptyCheckpointURL,
+            deliveryTransactionDirectoryURL: transactionDirectory
+        )
+
+        let repairedURL = try XCTUnwrap(repaired)
+        XCTAssertNotEqual(repairedURL, emptyCheckpointURL)
+        XCTAssertGreaterThan(
+            try XCTUnwrap(repairedURL.resourceValues(forKeys: [.fileSizeKey]).fileSize),
+            0
+        )
+        XCTAssertTrue(FileManager.default.fileExists(atPath: transactionDirectory.path))
+    }
     #endif
 }

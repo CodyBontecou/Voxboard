@@ -96,7 +96,6 @@ final class CapturePresetController {
         }
 
         Task.detached(priority: .userInitiated) {
-            defer { try? FileManager.default.removeItem(at: audioURL) }
             do {
                 let result = try await service.transcribeResult(
                     audioURL: audioURL,
@@ -129,29 +128,36 @@ final class CapturePresetController {
                 )
                 log.log("[App:RecFlow] Transcription complete")
 
-                await MainActor.run { [weak self] in
+                let deliverySucceeded = try await MainActor.run { [weak self] in
                     guard let self else {
                         if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
-                        return
+                        return false
                     }
                     self.transcriptionProgress = nil
                     self.transcriptionResult = result.text
                     let response = TranscriptionResponse(requestId: reqId, text: result.text)
-                    try? TranscriptionIPC.writeResponse(response)
+                    try TranscriptionIPC.writeResponse(response)
                     TranscriptionIPC.postResponseNotification()
-                    TranscriptionIPC.writeStatus(RecordingStatus(requestId: reqId, phase: .done))
                     self.transcriptStore.add(Transcript(
                         text: result.text,
                         duration: duration,
                         modelUsed: result.backendName,
                         language: result.language
                     ))
+                    if let persistenceError = self.transcriptStore.lastPersistenceError {
+                        throw persistenceError
+                    }
+                    TranscriptionIPC.writeStatus(RecordingStatus(requestId: reqId, phase: .done))
                     ReviewPromptManager.shared.recordSuccessfulTranscription(
                         totalTranscriptionCount: self.transcriptStore.transcripts.count,
                         transcriptDates: self.transcriptStore.transcripts.map(\.date)
                     )
                     self.phase = .done
                     if bgTask != .invalid { UIApplication.shared.endBackgroundTask(bgTask) }
+                    return true
+                }
+                if deliverySucceeded {
+                    try? FileManager.default.removeItem(at: audioURL)
                 }
             } catch {
                 await MainActor.run { [weak self] in

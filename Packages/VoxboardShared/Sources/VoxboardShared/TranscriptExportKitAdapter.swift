@@ -32,6 +32,7 @@ public struct TranscriptExportConfiguration: Equatable, Sendable {
     public var newFileNameTemplate: String
     public var appendFileName: String
     public var markdownTemplateContent: String?
+    public var deliveryTransactionDirectoryURL: URL?
 
     public init(
         format: ExportFileFormat,
@@ -44,7 +45,8 @@ public struct TranscriptExportConfiguration: Equatable, Sendable {
         audioAttachmentRelativePath: String? = nil,
         newFileNameTemplate: String = TranscriptFileExporter.defaultNewFileNameTemplate,
         appendFileName: String = TranscriptFileExporter.defaultAppendFileName,
-        markdownTemplateContent: String? = nil
+        markdownTemplateContent: String? = nil,
+        deliveryTransactionDirectoryURL: URL? = nil
     ) {
         self.format = format
         self.mode = mode
@@ -57,6 +59,7 @@ public struct TranscriptExportConfiguration: Equatable, Sendable {
         self.newFileNameTemplate = newFileNameTemplate
         self.appendFileName = appendFileName
         self.markdownTemplateContent = markdownTemplateContent
+        self.deliveryTransactionDirectoryURL = deliveryTransactionDirectoryURL
     }
 
     public var selectedFormatIDs: [String] { [format.exportKitFormatID] }
@@ -198,7 +201,11 @@ public struct TranscriptExportPathPlanner {
     ) throws -> PlannedExportFile {
         var relativePath = try plannedRelativePath(record: record, descriptor: descriptor)
         if ensureUniqueFilename, let destination, let fileSystem {
-            relativePath = try uniquedRelativePath(relativePath, destination: destination, fileSystem: fileSystem)
+            relativePath = try uniqueRelativePath(
+                relativePath,
+                destination: destination,
+                fileSystem: fileSystem
+            )
         }
 
         return PlannedExportFile(
@@ -231,7 +238,7 @@ public struct TranscriptExportPathPlanner {
         return try template.plannedRelativePath(variables: variables, safetyPolicy: safetyPolicy)
     }
 
-    private func uniquedRelativePath(
+    private func uniqueRelativePath(
         _ relativePath: String,
         destination: ExportDestination,
         fileSystem: any ExportFileSystem
@@ -281,10 +288,28 @@ public struct TranscriptDestinationWriter {
         )
     }
 
+    func resolvedContent(
+        for file: PlannedExportFile,
+        configuration: TranscriptExportConfiguration,
+        existingContent: String?
+    ) throws -> (value: String, action: ExportFileWriteAction) {
+        guard let existingContent else { return (file.content, .exported) }
+        guard configuration.mode == .append else { return (file.content, .exported) }
+        guard let strategy = mergeStrategy(for: configuration) else {
+            return (file.content, .exported)
+        }
+        return (
+            try strategy.merge(existing: existingContent, new: file.content, file: file),
+            .updated
+        )
+    }
+
     private func mergeStrategy(for configuration: TranscriptExportConfiguration) -> (any ExportMergeStrategy)? {
         guard configuration.mode == .append else { return nil }
         if configuration.format == .json {
-            return TranscriptJSONAppendMergeStrategy()
+            return TranscriptJSONAppendMergeStrategy(
+                deduplicateStableID: configuration.deliveryTransactionDirectoryURL != nil
+            )
         }
         let isMarkdownDocument = configuration.format == .md
             || (configuration.format == .yaml && configuration.yamlUsesMarkdownExtension)
@@ -346,17 +371,28 @@ public struct TranscriptSeparatorAppendMergeStrategy: ExportMergeStrategy, Senda
 }
 
 public struct TranscriptJSONAppendMergeStrategy: ExportMergeStrategy, Sendable {
-    public init() {}
+    public var deduplicateStableID: Bool
+
+    public init(deduplicateStableID: Bool = false) {
+        self.deduplicateStableID = deduplicateStableID
+    }
 
     public func merge(existing: String, new: String, file: PlannedExportFile) throws -> String {
         let decoder = JSONDecoder()
         let existingData = Data(existing.utf8)
         let newData = Data(new.utf8)
         var transcripts = try decoder.decode([Transcript].self, from: existingData)
-        if let appended = try? decoder.decode([Transcript].self, from: newData) {
-            transcripts.append(contentsOf: appended)
+        let appended: [Transcript]
+        if let decoded = try? decoder.decode([Transcript].self, from: newData) {
+            appended = decoded
         } else {
-            transcripts.append(try decoder.decode(Transcript.self, from: newData))
+            appended = [try decoder.decode(Transcript.self, from: newData)]
+        }
+        if deduplicateStableID {
+            let existingIDs = Set(transcripts.map(\.id))
+            transcripts.append(contentsOf: appended.filter { !existingIDs.contains($0.id) })
+        } else {
+            transcripts.append(contentsOf: appended)
         }
         return try TranscriptFileExporter.exportKitEncodedTranscriptArray(transcripts)
     }
@@ -389,6 +425,13 @@ public struct TranscriptExportRun {
         _ record: TranscriptExportRecord,
         to destination: ExportDestination
     ) throws -> ExportFileWriteResult {
+        let transaction = configuration.deliveryTransactionDirectoryURL.map {
+            ExternalFileDeliveryTransaction(directoryURL: $0)
+        }
+        if let transaction, let resumed = try transaction.resumeIfPrepared() {
+            return try resumedWriteResult(resumed, destination: destination)
+        }
+
         let registry = try TranscriptExportRendererFactory.registry(configuration: configuration)
         let descriptor = try registry.descriptors(for: configuration.selectedFormatIDs)[0]
         let rendered = try registry.render(record: record, formatID: descriptor.id)
@@ -404,7 +447,67 @@ public struct TranscriptExportRun {
         let writer = TranscriptDestinationWriter(
             fileWriter: ExportFileWriter(fileSystem: fileSystem, safetyPolicy: safetyPolicy)
         )
-        return try writer.write(plan, configuration: configuration, to: destination)
+        guard let transaction else {
+            return try writer.write(plan, configuration: configuration, to: destination)
+        }
+
+        let baseURL = try destination.resolvedBaseURL(safetyPolicy: safetyPolicy)
+        let targetURL = try safetyPolicy.appending(
+            plan.relativePath,
+            to: baseURL,
+            isDirectory: false
+        )
+        let parentURL = targetURL.deletingLastPathComponent()
+        let createdParentDirectory = !fileSystem.fileExists(at: parentURL)
+        let existingContent = fileSystem.fileExists(at: targetURL)
+            ? try fileSystem.readString(at: targetURL)
+            : nil
+        let resolved = try writer.resolvedContent(
+            for: plan,
+            configuration: configuration,
+            existingContent: existingContent
+        )
+        let targetExpectation: ExternalFileDeliveryTransaction.TargetExpectation
+        if let existingContent {
+            targetExpectation = .contents(Data(existingContent.utf8))
+        } else {
+            targetExpectation = .missing
+        }
+        let published = try transaction.prepareAndPublish(
+            data: Data(resolved.value.utf8),
+            to: targetURL,
+            expecting: targetExpectation
+        )
+        return ExportFileWriteResult(
+            fileID: plan.id,
+            relativePath: plan.relativePath,
+            url: published.url,
+            bytesWritten: published.byteCount,
+            createdParentDirectory: createdParentDirectory,
+            writeMode: configuration.writeMode,
+            action: resolved.action
+        )
+    }
+
+    private func resumedWriteResult(
+        _ published: ExternalFileDeliveryTransaction.PublishedFile,
+        destination: ExportDestination
+    ) throws -> ExportFileWriteResult {
+        let baseURL = try destination.resolvedBaseURL(safetyPolicy: safetyPolicy).standardizedFileURL
+        let targetURL = published.url.standardizedFileURL
+        let prefix = baseURL.path.hasSuffix("/") ? baseURL.path : baseURL.path + "/"
+        guard targetURL.path.hasPrefix(prefix) else {
+            throw ExternalFileDeliveryTransaction.TransactionError.destinationConflict
+        }
+        return ExportFileWriteResult(
+            fileID: "resumed-delivery",
+            relativePath: String(targetURL.path.dropFirst(prefix.count)),
+            url: targetURL,
+            bytesWritten: published.byteCount,
+            createdParentDirectory: false,
+            writeMode: configuration.writeMode,
+            action: configuration.mode == .append ? .updated : .exported
+        )
     }
 }
 

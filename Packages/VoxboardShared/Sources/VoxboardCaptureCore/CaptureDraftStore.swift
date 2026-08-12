@@ -59,6 +59,10 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
     public var relativeNotePathOverride: String?
     public var entryTemplateID: UUID?
     public var additionalPayloads: [CapturePayload]
+    /// Idempotency receipts for queued recording delivery. Optional so drafts
+    /// written by older releases continue to decode without migration.
+    public var stagedRecordingAudioReceipts: [String: CaptureAssetReference]?
+    public var appliedRecordingTranscriptIDs: [UUID]?
 
     public init(
         id: UUID = UUID(),
@@ -78,7 +82,9 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         placementOverride: CapturePlacement? = nil,
         relativeNotePathOverride: String? = nil,
         entryTemplateID: UUID? = nil,
-        additionalPayloads: [CapturePayload] = []
+        additionalPayloads: [CapturePayload] = [],
+        stagedRecordingAudioReceipts: [String: CaptureAssetReference]? = nil,
+        appliedRecordingTranscriptIDs: [UUID]? = nil
     ) {
         self.id = id
         self.requestID = requestID
@@ -104,6 +110,8 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         self.relativeNotePathOverride = relativeNotePathOverride
         self.entryTemplateID = entryTemplateID
         self.additionalPayloads = additionalPayloads
+        self.stagedRecordingAudioReceipts = stagedRecordingAudioReceipts
+        self.appliedRecordingTranscriptIDs = appliedRecordingTranscriptIDs
     }
 
     public var hasCaptureContent: Bool {
@@ -280,6 +288,8 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
         case relativeNotePathOverride
         case entryTemplateID
         case additionalPayloads
+        case stagedRecordingAudioReceipts
+        case appliedRecordingTranscriptIDs
     }
 
     public init(from decoder: Decoder) throws {
@@ -312,7 +322,12 @@ public struct CaptureDraft: Identifiable, Codable, Equatable, Sendable {
             placementOverride: try container.decodeIfPresent(CapturePlacement.self, forKey: .placementOverride),
             relativeNotePathOverride: try container.decodeIfPresent(String.self, forKey: .relativeNotePathOverride),
             entryTemplateID: try container.decodeIfPresent(UUID.self, forKey: .entryTemplateID),
-            additionalPayloads: try container.decodeIfPresent([CapturePayload].self, forKey: .additionalPayloads) ?? []
+            additionalPayloads: try container.decodeIfPresent([CapturePayload].self, forKey: .additionalPayloads) ?? [],
+            stagedRecordingAudioReceipts: try container.decodeIfPresent(
+                [String: CaptureAssetReference].self,
+                forKey: .stagedRecordingAudioReceipts
+            ),
+            appliedRecordingTranscriptIDs: try container.decodeIfPresent([UUID].self, forKey: .appliedRecordingTranscriptIDs)
         )
     }
 }

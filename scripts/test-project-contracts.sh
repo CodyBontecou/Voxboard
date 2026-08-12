@@ -9,6 +9,9 @@ from __future__ import annotations
 
 from html.parser import HTMLParser
 from pathlib import Path
+import json
+import os
+import struct
 from urllib.parse import urlsplit
 import json
 import re
@@ -18,6 +21,386 @@ root = Path(sys.argv[1])
 project_path = Path(sys.argv[2])
 project = project_path.read_text()
 errors: list[str] = []
+
+purchase_source = (
+    root / 'Packages/VoxboardShared/Sources/VoxboardShared/PurchaseAccess.swift'
+).read_text()
+storekit_config = json.loads((root / 'Voxboard/Voxboard.storekit').read_text())
+storekit_products = {
+    product['productID']: product
+    for product in storekit_config.get('nonConsumableProducts', [])
+}
+expected_purchase_products = {
+    'bontecou.Voxboard.unlock': False,
+    'bontecou.Voxboard.family': True,
+    'bontecou.Voxboard.familyUpgrade': True,
+}
+if set(storekit_products) != set(expected_purchase_products):
+    errors.append(
+        f'StoreKit product IDs are {sorted(storekit_products)}, '
+        f'expected {sorted(expected_purchase_products)}'
+    )
+for product_id, family_sharable in expected_purchase_products.items():
+    if product_id not in purchase_source:
+        errors.append(f'PurchaseAccess does not recognize {product_id}')
+    product = storekit_products.get(product_id)
+    if product is not None and product.get('familySharable') is not family_sharable:
+        errors.append(
+            f'{product_id} familySharable={product.get("familySharable")}, '
+            f'expected {family_sharable}'
+        )
+
+storekit_release_patch = (
+    root / 'artifacts/releases/mac-family-restore-diagnostics.patch'
+).read_text()
+patched_paths = set(re.findall(r'^diff --git a/(.+?) b/', storekit_release_patch, flags=re.M))
+expected_storekit_patch_paths = {
+    'Packages/VoxboardShared/Sources/VoxboardShared/PurchaseAccess.swift',
+    'Voxboard Mac/MacStoreManager.swift',
+}
+if patched_paths != expected_storekit_patch_paths:
+    errors.append(
+        f'independent Mac StoreKit patch changes {sorted(patched_paths)}, '
+        f'expected only {sorted(expected_storekit_patch_paths)}'
+    )
+
+completion_audit_path = root / 'docs/recording-queue-storekit-completion-audit.md'
+if not completion_audit_path.exists():
+    errors.append('recording queue and StoreKit completion audit is missing')
+else:
+    completion_audit = completion_audit_path.read_text()
+    for required in [
+        'Overall status: **Not complete',
+        '## Concrete objective',
+        '## Requirement-to-artifact checklist',
+        '## Constraint checklist',
+        '## Verification surface',
+        '## Unmet gates — completion is prohibited',
+        'Physical-device recording matrix',
+        'macOS signing and account matrix',
+    ]:
+        if required not in completion_audit:
+            errors.append(f'completion audit is missing required gate {required}')
+    for requirement_number in range(1, 11):
+        if f'| {requirement_number} |' not in completion_audit:
+            errors.append(f'completion audit does not map requirement {requirement_number}')
+
+ios_runtime_evidence_path = root / 'artifacts/validation/ios-recording-queue-runtime-2026-08-11.md'
+if not ios_runtime_evidence_path.exists():
+    errors.append('iOS recording queue runtime evidence report is missing')
+else:
+    ios_runtime_evidence = ios_runtime_evidence_path.read_text()
+    for required in [
+        'Result: **PASS**',
+        'Interrupted external WAV import',
+        'Live claimed-job termination and relaunch recovery',
+        'Runtime UI matrix',
+        'adaptive two-column grid',
+        'accessibility Dynamic Type sizes it switches to one column',
+        'Vision OCR fails the harness',
+        'does **not** claim to validate termination inside a production ASR backend',
+        'does not cover physical microphone capture',
+    ]:
+        if required not in ios_runtime_evidence:
+            errors.append(f'iOS runtime evidence is missing scope/evidence {required}')
+
+ios_runtime_ui_paths = [
+    root / 'artifacts/validation/ios-recording-queue-runtime-ui-failed-2026-08-11.png',
+    root / 'artifacts/validation/ios-recording-queue-runtime-ui-failed-accessibility-2026-08-11.png',
+    root / 'artifacts/validation/ios-recording-queue-runtime-ui-queued-2026-08-11.png',
+    root / 'artifacts/validation/ios-recording-queue-runtime-ui-copy-2026-08-11.png',
+]
+for ios_runtime_ui_path in ios_runtime_ui_paths:
+    if not ios_runtime_ui_path.exists():
+        errors.append(f'iOS recording queue runtime UI evidence is missing: {ios_runtime_ui_path.name}')
+        continue
+    png = ios_runtime_ui_path.read_bytes()
+    if len(png) < 24 or png[:8] != b'\x89PNG\r\n\x1a\n':
+        errors.append(f'iOS recording queue runtime UI evidence is not a PNG: {ios_runtime_ui_path.name}')
+    else:
+        width, height = struct.unpack('>II', png[16:24])
+        if width < 1_000 or height < 2_000:
+            errors.append(
+                f'iOS recording queue runtime UI evidence is too small: '
+                f'{ios_runtime_ui_path.name} {width}x{height}'
+            )
+
+ios_runtime_test_path = root / 'scripts/test-ios-recording-queue-runtime.sh'
+if not ios_runtime_test_path.exists():
+    errors.append('isolated iOS recording queue runtime test is missing')
+else:
+    ios_runtime_test = ios_runtime_test_path.read_text()
+    for required in [
+        'simctl create',
+        'simctl delete',
+        'VOXBOARD_SHARED_CONTAINER_OVERRIDE',
+        '--runtime-queue-validation --disable-release-notes',
+        'recording_runtime_validation.wav',
+        'VOXBOARD_IOS_RUNTIME_EVIDENCE_DIRECTORY',
+        'content_size accessibility-extra-extra-large',
+        'validate-recording-queue-screenshot.swift',
+        '--runtime-queue-pause-after-claim',
+        '--runtime-queue-activate-actions',
+        'Runtime queue actions passed',
+        'live claimed-job termination and relaunch recovery passed.',
+        'queue action activation passed.',
+        'Isolated iOS Simulator runtime queue validation passed.',
+    ]:
+        if required not in ios_runtime_test:
+            errors.append(f'iOS queue runtime test is missing contract {required}')
+    if not os.access(ios_runtime_test_path, os.X_OK):
+        errors.append('iOS queue runtime test is not executable')
+
+mac_runtime_evidence_path = root / 'artifacts/validation/mac-recording-queue-runtime-2026-08-11.md'
+if not mac_runtime_evidence_path.exists():
+    errors.append('macOS recording queue runtime evidence report is missing')
+else:
+    mac_runtime_evidence = mac_runtime_evidence_path.read_text()
+    for required in [
+        'Result: **PASS**',
+        'Interrupted external WAV import',
+        'Live claimed-job termination and relaunch recovery',
+        'Two-process worker exclusion and failed-job retention',
+        'Runtime UI rendering',
+        'Vision OCR fails the harness',
+        'Choose Preset, Reveal, Keep Audio, and Delete',
+        'Process Now, Reveal, Keep Audio, and Delete',
+        'completed deferred clipboard',
+        'Copy, Reveal, Keep Audio, and Delete',
+        'does **not** claim to validate termination inside a production ASR backend',
+        'does not yet cover successful real microphone capture',
+        'VOXBOARD_VALIDATE_REAL_MAC_MICROPHONE=1',
+        'BLOCKED',
+    ]:
+        if required not in mac_runtime_evidence:
+            errors.append(f'macOS runtime evidence is missing scope/evidence {required}')
+
+mac_runtime_ui_paths = [
+    root / 'artifacts/validation/mac-recording-queue-runtime-ui-2026-08-11.png',
+    root / 'artifacts/validation/mac-recording-queue-runtime-ui-2026-08-11-queued.png',
+    root / 'artifacts/validation/mac-recording-queue-runtime-ui-2026-08-11-copy.png',
+]
+for mac_runtime_ui_path in mac_runtime_ui_paths:
+    if not mac_runtime_ui_path.exists():
+        errors.append(f'macOS recording queue runtime UI evidence is missing: {mac_runtime_ui_path.name}')
+        continue
+    png = mac_runtime_ui_path.read_bytes()
+    if len(png) < 24 or png[:8] != b'\x89PNG\r\n\x1a\n':
+        errors.append(f'macOS recording queue runtime UI evidence is not a PNG: {mac_runtime_ui_path.name}')
+    else:
+        width, height = struct.unpack('>II', png[16:24])
+        if width < 800 or height < 400:
+            errors.append(
+                f'macOS recording queue runtime UI evidence is too small: '
+                f'{mac_runtime_ui_path.name} {width}x{height}'
+            )
+
+screenshot_validator_path = root / 'scripts/validate-recording-queue-screenshot.swift'
+if not screenshot_validator_path.exists():
+    errors.append('recording queue semantic screenshot validator is missing')
+else:
+    screenshot_validator = screenshot_validator_path.read_text()
+    for required in [
+        'VNRecognizeTextRequest',
+        'ios-failed-accessibility',
+        'ios-copy-ready',
+        'mac-copy-ready',
+        'Forbidden:',
+    ]:
+        if required not in screenshot_validator:
+            errors.append(f'recording queue screenshot validator is missing {required}')
+    if not os.access(screenshot_validator_path, os.X_OK):
+        errors.append('recording queue screenshot validator is not executable')
+
+mac_runtime_test_path = root / 'scripts/test-mac-recording-queue-runtime.sh'
+if not mac_runtime_test_path.exists():
+    errors.append('isolated macOS recording queue runtime test is missing')
+else:
+    mac_runtime_test = mac_runtime_test_path.read_text()
+    for required in [
+        'VOXBOARD_SHARED_CONTAINER_OVERRIDE',
+        '--runtime-queue-validation',
+        'recording_runtime_validation.wav',
+        'VOXBOARD_RUNTIME_SCREENSHOT_OUTPUT',
+        '--localization-screenshot 06-recording-queue',
+        'COPY_SCREENSHOT_OUTPUT',
+        'validate-recording-queue-screenshot.swift',
+        '"delivery"] = {"clipboard": {}}',
+        '--runtime-queue-pause-after-claim',
+        'Isolated macOS live claimed-job termination and relaunch recovery passed.',
+        'Isolated macOS two-process worker lease passed.',
+        'VOXBOARD_VALIDATE_REAL_MAC_MICROPHONE',
+        'codesign --force --deep --sign -',
+        'runtime-microphone.entitlements',
+        'com.apple.security.device.audio-input',
+        '--runtime-microphone-capture',
+        'Isolated real macOS microphone capture and durable queue handoff passed.',
+        'RUNTIME_ROOT="$(mktemp -d "$RUNTIME_PARENT/mac.XXXXXX")"',
+        'realpath "$RUNTIME_ROOT"',
+        'Refusing symlinked runtime validation parent',
+        'attemptCount',
+    ]:
+        if required not in mac_runtime_test:
+            errors.append(f'macOS queue runtime test is missing contract {required}')
+    if not os.access(mac_runtime_test_path, os.X_OK):
+        errors.append('macOS queue runtime test is not executable')
+    if 'VOXBOARD_MAC_APP' in mac_runtime_test:
+        errors.append('macOS queue runtime test must not accept caller-supplied apps')
+
+app_constants_source = (root / 'Packages/VoxboardShared/Sources/VoxboardShared/AppConstants.swift').read_text()
+ios_app_source = (root / 'Voxboard/VoxboardApp.swift').read_text()
+ios_recorder_source = (root / 'Voxboard/PersistentRecorder.swift').read_text()
+mac_app_source = (root / 'Voxboard Mac/VoxboardMacApp.swift').read_text()
+mac_recorder_source = (root / 'Voxboard Mac/MacRecorder.swift').read_text()
+debug_hook_contracts = [
+    (
+        'AppConstants',
+        app_constants_source,
+        '#if DEBUG\n    public static let debugSharedContainerOverrideEnvironmentKey =',
+        '"VOXBOARD_SHARED_CONTAINER_OVERRIDE"',
+        'environment[debugSharedContainerOverrideEnvironmentKey]',
+    ),
+    (
+        'VoxboardApp',
+        ios_app_source,
+        '#if DEBUG\n    private static let runtimeQueueValidationArgument =',
+        '"--runtime-queue-validation"',
+        'arguments.contains(Self.runtimeQueueValidationArgument)',
+    ),
+    (
+        'PersistentRecorder',
+        ios_recorder_source,
+        '#if DEBUG\n    private static let runtimeQueuePauseAfterClaimArgument =',
+        '"--runtime-queue-pause-after-claim"',
+        'arguments.contains(\n                PersistentRecorder.runtimeQueuePauseAfterClaimArgument',
+    ),
+    (
+        'VoxboardMacApp',
+        mac_app_source,
+        '#if DEBUG\n    private static let runtimeQueueValidationArgument =',
+        '"--runtime-queue-validation"',
+        'arguments.contains(Self.runtimeQueueValidationArgument)',
+    ),
+    (
+        'MacRecorder',
+        mac_recorder_source,
+        '#if DEBUG\n    private static let runtimeQueuePauseAfterClaimArgument =',
+        '"--runtime-queue-pause-after-claim"',
+        'arguments.contains(\n                MacRecorder.runtimeQueuePauseAfterClaimArgument',
+    ),
+    (
+        'MacRecorder microphone',
+        mac_recorder_source,
+        'private static let runtimeMicrophoneCaptureArgument =',
+        '"--runtime-microphone-capture"',
+        'arguments.contains(Self.runtimeMicrophoneCaptureArgument)',
+    ),
+]
+for source_name, source, declaration, raw_value, use in debug_hook_contracts:
+    if declaration not in source or use not in source or source.count(raw_value) != 1:
+        errors.append(
+            f'{source_name} runtime validation value must be declared only inside DEBUG '
+            'and referenced through that unavailable-in-Release symbol'
+        )
+
+recording_queue_views = (root / 'Voxboard App Shared/RecordingQueueViews.swift').read_text()
+action_debug_match = re.search(
+    r'#if DEBUG\n(?P<body>.*?)\n    #endif\n\n    private func retryAllFailedJobs',
+    recording_queue_views,
+    flags=re.S,
+)
+if action_debug_match is None:
+    errors.append('recording queue action validation task and method must share one DEBUG block')
+else:
+    action_debug_body = action_debug_match.group('body')
+    required_guard = '''guard processInfo.arguments.contains("--runtime-queue-validation"),
+                  processInfo.arguments.contains("--runtime-queue-activate-actions"),
+                  let overridePath = processInfo.environment[
+                    AppConstants.debugSharedContainerOverrideEnvironmentKey
+                  ],
+                  !overridePath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  let overrideURL = Optional(
+                    URL(fileURLWithPath: overridePath, isDirectory: true)
+                        .standardizedFileURL
+                  ),
+                  overrideURL.path.hasPrefix(
+                    URL(
+                        fileURLWithPath: "/tmp/VoxQueueRuntimeValidation",
+                        isDirectory: true
+                    ).standardizedFileURL.path + "/"
+                  ),
+                  AppConstants.sharedContainerURL?.standardizedFileURL.path
+                    == overrideURL.path else { return }'''
+    for required in [
+        required_guard,
+        '.task {',
+        'private func activateRuntimeValidationActions(',
+        'private func activateExtendedRuntimeValidationActions()',
+        '"--runtime-queue-activate-extended-actions"',
+        'await queue.retry(failed)',
+        'await queue.processNow(queued)',
+        'await queue.updateRetention(queued, policy: .permanent)',
+        'await queue.acknowledgeCopiedResult(copyReady)',
+        'await queue.discard(currentQueued)',
+        'let retryAllJobs = queue.retryAllEligibleJobs.filter {',
+        '"runtime-retry-one.wav"',
+        '"runtime-retry-two.wav"',
+        '$0.originalFilename.map(retryFilenames.contains) == true',
+        '$0.originalFilename == "runtime-timed.wav"',
+        '$0.originalFilename == "runtime-delete-after.wav"',
+        'await queue.updateRetention(\n            timed,\n            policy: .timed(',
+        'await queue.updateRetention(\n            deleteAfterSuccess,\n            policy: .deleteAfterSuccess',
+    ]:
+        if required not in action_debug_body:
+            errors.append(
+                f'recording queue action validation DEBUG/isolation block is missing {required}'
+            )
+if recording_queue_views.count('"--runtime-queue-activate-actions"') != 1:
+    errors.append('recording queue action activation argument must appear once inside its DEBUG hook')
+
+ios_runtime_harness = (root / 'scripts/test-ios-recording-queue-runtime.sh').read_text()
+for required in [
+    'expected.write_text(json.dumps(created_ids, indent=2, sort_keys=True))',
+    'set(retry_ids) != {expected["retry-one"], expected["retry-two"]}',
+    'retention_ids != [expected["timed"], expected["delete-after"]]',
+]:
+    if required not in ios_runtime_harness:
+        errors.append(f'iOS extended action harness is missing exact fixture-ID check {required}')
+
+for required in [
+    '#if os(macOS)\n        HStack(spacing: 12)',
+    'LazyVGrid(',
+    'GridItem(.adaptive(minimum: 135)',
+    'dynamicTypeSize.isAccessibilitySize',
+    'return [GridItem(.flexible())]',
+    '.navigationBarTitleDisplayMode(dynamicTypeSize.isAccessibilitySize ? .inline : .large)',
+]:
+    if required not in recording_queue_views:
+        errors.append(f'recording queue compact action layout is missing {required}')
+
+storekit_preflight_path = root / 'scripts/preflight-mac-family-restore-release.sh'
+if not storekit_preflight_path.exists():
+    errors.append('independent Mac StoreKit release preflight script is missing')
+else:
+    storekit_preflight = storekit_preflight_path.read_text()
+    for required in [
+        'mac-family-restore-diagnostics.patch',
+        'CODE_SIGNING_ALLOWED=NO',
+        'asc iap list',
+        'asc builds list',
+        'Apple Distribution',
+        'no local provisioning profile',
+        'Release upload is intentionally not attempted',
+        'Never feed an untrusted or stale patch into a build',
+        'set +e',
+    ]:
+        if required not in storekit_preflight:
+            errors.append(f'Mac StoreKit preflight is missing safety contract {required}')
+    for forbidden in ['asc builds upload', 'asc publish', '--confirm', 'git worktree prune']:
+        if forbidden in storekit_preflight:
+            errors.append(f'Mac StoreKit preflight must remain read-only: {forbidden}')
+    if not os.access(storekit_preflight_path, os.X_OK):
+        errors.append('Mac StoreKit preflight script is not executable')
 
 widget_bundle_id = 'bontecou.Voxboard.Voxboard-Widget'
 blocks = re.findall(
@@ -775,7 +1158,7 @@ class WebsiteHTMLContractParser(HTMLParser):
         self.ids: list[str] = []
         self.references: list[str] = []
 
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+    def handle_starttag(self, tag: str, attrs) -> None:
         attributes = dict(attrs)
         if tag == 'main':
             self.main_count += 1

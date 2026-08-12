@@ -23,8 +23,11 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
         get { audioBufferHandlerLock.withLock { storedAudioBufferHandler } }
         set { audioBufferHandlerLock.withLock { storedAudioBufferHandler = newValue } }
     }
-    private var pcmBuffers: [AVAudioPCMBuffer] = []
+    private var capturedFrameCount = 0
     private let bufferLock = NSLock()
+    private var durableCaptureFile: AVAudioFile?
+    private var durableCaptureURL: URL?
+    private let durableCaptureLock = NSLock()
     private var timer: Timer?
     private var startTime: Date?
 
@@ -107,18 +110,41 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
         let hwFormat = inputNode.outputFormat(forBus: 0)
         log.log("[AudioRecorder] Input node format: \(hwFormat.sampleRate) Hz, \(hwFormat.channelCount) ch")
 
-        // Clear previous buffers
+        // Clear previous buffers and open a durable hardware-format journal.
+        // The journal is flushed as microphone buffers arrive, so a crash during
+        // recording leaves recoverable audio instead of RAM-only samples.
         bufferLock.lock()
-        pcmBuffers.removeAll()
+        capturedFrameCount = 0
         bufferLock.unlock()
+        let captureURL = url.deletingPathExtension().appendingPathExtension("caf")
+        try? FileManager.default.removeItem(at: captureURL)
+        do {
+            durableCaptureFile = try AVAudioFile(
+                forWriting: captureURL,
+                settings: hwFormat.settings,
+                commonFormat: hwFormat.commonFormat,
+                interleaved: hwFormat.isInterleaved
+            )
+            durableCaptureURL = captureURL
+        } catch {
+            log.log("[AudioRecorder] ❌ Could not create durable capture journal: \(error)")
+            return false
+        }
 
         // Install tap — capture audio buffers from the mic
         let bufferSize: AVAudioFrameCount = 4096
         inputNode.installTap(onBus: 0, bufferSize: bufferSize, format: hwFormat) { [weak self] buffer, _ in
             guard let self else { return }
             self.audioBufferHandler?(buffer)
+            self.durableCaptureLock.withLock {
+                do {
+                    try self.durableCaptureFile?.write(from: buffer)
+                } catch {
+                    log.log("[AudioRecorder] ⚠️ Durable capture journal write failed: \(error)")
+                }
+            }
             self.bufferLock.lock()
-            self.pcmBuffers.append(buffer)
+            self.capturedFrameCount += Int(buffer.frameLength)
             self.bufferLock.unlock()
         }
 
@@ -128,6 +154,11 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
         } catch {
             log.log("[AudioRecorder] ❌ Engine start failed: \(error)")
             inputNode.removeTap(onBus: 0)
+            durableCaptureLock.withLock { durableCaptureFile = nil }
+            if let durableCaptureURL {
+                try? FileManager.default.removeItem(at: durableCaptureURL)
+            }
+            durableCaptureURL = nil
             return false
         }
 
@@ -155,19 +186,20 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         audioEngine = nil
+        durableCaptureLock.withLock {
+            durableCaptureFile = nil
+        }
 
         timer?.invalidate()
         timer = nil
         isRecording = false
 
-        // Collect captured buffers
         bufferLock.lock()
-        let capturedBuffers = pcmBuffers
-        pcmBuffers.removeAll()
+        let totalFrames = capturedFrameCount
+        capturedFrameCount = 0
         bufferLock.unlock()
 
-        let totalFrames = capturedBuffers.reduce(0) { $0 + Int($1.frameLength) }
-        log.log("[AudioRecorder] Captured \(capturedBuffers.count) buffers, \(totalFrames) frames, duration=\(String(format: "%.1f", recordingDuration))s")
+        log.log("[AudioRecorder] Captured \(totalFrames) frames, duration=\(String(format: "%.1f", recordingDuration))s")
 
         guard totalFrames > 0 else {
             log.log("[AudioRecorder] ⚠️ No audio frames captured")
@@ -178,20 +210,29 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
             return nil
         }
 
-        // Convert to 16 kHz mono Int16 and write WAV
-        guard let url = recordingURL else { return nil }
-        let hwFormat = capturedBuffers[0].format
-
-        let success = writeWAV(
-            to: url,
-            buffers: capturedBuffers,
-            sourceFormat: hwFormat,
-            targetSampleRate: whisperSampleRate
-        )
+        // Convert the incrementally flushed hardware-format journal to the
+        // transcription WAV only after capture has stopped. The journal remains
+        // recoverable if conversion or process execution fails.
+        guard let url = recordingURL,
+              let durableCaptureURL else { return nil }
+        let success: Bool
+        do {
+            _ = try AudioFileConverter.convertToWhisperWAV(
+                inputURL: durableCaptureURL,
+                outputURL: url,
+                targetSampleRate: whisperSampleRate
+            )
+            success = true
+        } catch {
+            log.log("[AudioRecorder] ❌ Durable journal conversion failed: \(error)")
+            success = false
+        }
 
         if success {
             let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? -1
             log.log("[AudioRecorder] ✅ WAV written: \(size) bytes")
+            try? FileManager.default.removeItem(at: durableCaptureURL)
+            self.durableCaptureURL = nil
         } else {
             log.log("[AudioRecorder] ❌ Failed to write WAV")
         }

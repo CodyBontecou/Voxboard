@@ -624,16 +624,7 @@ struct QuickCaptureView: View {
 
     private var voiceCaptureButton: some View {
         Group {
-            if persistentRecorder.isAppRecordingTranscribing {
-                if let fraction = persistentRecorder.transcriptionProgress?.exactFractionCompleted {
-                    ProgressView(value: fraction)
-                        .progressViewStyle(.circular)
-                        .controlSize(.small)
-                } else {
-                    ProgressView()
-                        .controlSize(.small)
-                }
-            } else if persistentRecorder.isAppRecordingSegmentActive {
+            if persistentRecorder.isAppRecordingSegmentActive {
                 HStack(spacing: Geist.Spacing.two) {
                     Text(formatRecordingDuration(persistentRecorder.segmentDuration))
                         .font(Geist.caption(.caption2))
@@ -827,27 +818,6 @@ struct QuickCaptureView: View {
             }
             .buttonStyle(GeistButtonStyle(variant: .destructive, size: .small))
             .accessibilityIdentifier("capture_recording_stop")
-        } else if persistentRecorder.isAppRecordingTranscribing {
-            if let progress = persistentRecorder.transcriptionProgress,
-               let fraction = progress.exactFractionCompleted,
-               let percent = progress.formattedWholePercentCompleted {
-                VStack(spacing: 2) {
-                    ProgressView(value: fraction)
-                        .frame(width: 64)
-                    Text(percent)
-                        .font(Geist.mono(.caption2))
-                        .foregroundStyle(Geist.muted)
-                }
-                .frame(width: 72, height: 36)
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel("Transcribing recording")
-                .accessibilityValue("\(percent) complete")
-            } else {
-                ProgressView()
-                    .controlSize(.small)
-                    .frame(width: 72, height: 36)
-                    .accessibilityLabel("Transcribing recording")
-            }
         } else {
             Button(action: startInlineRecording) {
                 Label(
@@ -983,9 +953,7 @@ struct QuickCaptureView: View {
             // work happens to be finishing in the draft.
             persistentRecorder.stopInAppSegment()
         } else if !persistentRecorder.isSegmentActive,
-                  !isProcessingMedia,
-                  !persistentRecorder.isTranscribing,
-                  !watchRecordingPipeline.isProcessing {
+                  !isProcessingMedia {
             startInlineRecording()
         }
     }
@@ -1008,10 +976,7 @@ struct QuickCaptureView: View {
     }
 
     private var recordingOptionsAreLocked: Bool {
-        persistentRecorder.isSegmentActive
-            || persistentRecorder.isTranscribing
-            || watchRecordingPipeline.isProcessing
-            || isProcessingMedia
+        persistentRecorder.isSegmentActive || isProcessingMedia
     }
 
     private var recordingUsageLabel: String {
@@ -2055,15 +2020,14 @@ struct QuickCaptureView: View {
             return
         }
         guard !persistentRecorder.isSegmentActive,
-              !persistentRecorder.isTranscribing,
-              !watchRecordingPipeline.isProcessing,
               !isProcessingMedia else { return }
 
         lastStartedRecordingMode = recordingMode
         persistentRecorder.lastTranscriptionResult = nil
         _ = persistentRecorder.startOneShotInAppSegment(
             flowId: selectedFlow.id,
-            completionMode: selectedRecordingCompletionMode
+            completionMode: selectedRecordingCompletionMode,
+            draftRequestID: recordingMode == .draft ? viewModel.draft.requestID : nil
         )
     }
 
@@ -2092,7 +2056,8 @@ struct QuickCaptureView: View {
             persistentRecorder.lastTranscriptionResult = nil
             _ = persistentRecorder.importAudioFile(
                 from: url,
-                completionMode: selectedRecordingCompletionMode
+                completionMode: selectedRecordingCompletionMode,
+                draftRequestID: recordingMode == .draft ? viewModel.draft.requestID : nil
             )
         case .failure(let error):
             persistentRecorder.lastError = error.localizedDescription

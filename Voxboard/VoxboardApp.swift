@@ -4,6 +4,10 @@ import VoxboardShared
 
 @main
 struct VoxboardApp: App {
+    #if DEBUG
+    private static let runtimeQueueValidationArgument = "--runtime-queue-validation"
+    #endif
+
     @UIApplicationDelegateAdaptor(VoxboardAppDelegate.self) private var appDelegate
 
     @State private var modelManager = ModelManager()
@@ -87,8 +91,14 @@ struct VoxboardApp: App {
                     )
                 case .clearOrigin(let profileID):
                     return await captureViewModel.clearRecordedOrigin(profileID: profileID)
-                case .audio(let url):
-                    return await captureViewModel.stageRecordedAudio(at: url) != nil
+                case .audio(let url, let draftRequestID, let deliveryID):
+                    guard draftRequestID == nil || captureViewModel.draft.requestID == draftRequestID else {
+                        return false
+                    }
+                    return await captureViewModel.stageRecordedAudio(
+                        at: url,
+                        deliveryID: deliveryID
+                    ) != nil
                 case .liveTranscript(let sessionID, let finalizedText, let volatileText):
                     await captureViewModel.updateLiveRecordedTranscript(
                         sessionID: sessionID,
@@ -99,8 +109,15 @@ struct VoxboardApp: App {
                 case .cancelLiveTranscript(let sessionID):
                     await captureViewModel.cancelLiveRecordedTranscript(sessionID: sessionID)
                     return true
-                case .transcript(let text):
-                    return await captureViewModel.appendRecordedTranscript(text)
+                case .transcript(let text, let draftRequestID, let liveSessionID, let deliveryID):
+                    guard draftRequestID == nil || captureViewModel.draft.requestID == draftRequestID else {
+                        return false
+                    }
+                    return await captureViewModel.appendRecordedTranscript(
+                        text,
+                        sessionID: liveSessionID,
+                        deliveryID: deliveryID
+                    )
                 }
             },
             transcriptEnricher: enricher
@@ -136,15 +153,37 @@ struct VoxboardApp: App {
         transcriptionService: AppTranscriptionServices.shared
     )
 
+    @ViewBuilder
+    private var rootContent: some View {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains(Self.runtimeQueueValidationArgument) {
+            NavigationStack {
+                RecordingQueueView(
+                    queue: persistentRecorder.recordingQueue,
+                    recoveryPresets: CapturePresetStore.loadFlows()
+                )
+            }
+        } else {
+            standardRootContent
+        }
+        #else
+        standardRootContent
+        #endif
+    }
+
+    private var standardRootContent: some View {
+        RootView(
+            persistentRecorder: persistentRecorder,
+            quickCaptureViewModel: quickCaptureViewModel,
+            rootDestination: $rootDestination,
+            pendingKeyboardLaunch: $pendingKeyboardLaunch,
+            pendingWidgetRecord: $pendingWidgetRecord
+        )
+    }
+
     var body: some Scene {
         WindowGroup {
-            RootView(
-                persistentRecorder: persistentRecorder,
-                quickCaptureViewModel: quickCaptureViewModel,
-                rootDestination: $rootDestination,
-                pendingKeyboardLaunch: $pendingKeyboardLaunch,
-                pendingWidgetRecord: $pendingWidgetRecord
-            )
+            rootContent
             .environment(modelManager)
             .environment(transcriptStore)
             .environment(usageTracker)
@@ -165,6 +204,7 @@ struct VoxboardApp: App {
                     watchPipeline: watchRecordingPipeline
                 )
                 watchRecordingPipeline.resume()
+                persistentRecorder.resumeRecordingQueue()
                 consumePendingWidgetRecordIfNeeded()
                 consumePendingQuickCaptureOpenIfNeeded()
 
@@ -190,6 +230,7 @@ struct VoxboardApp: App {
             .onChange(of: usageTracker.hasUnlocked) { _, hasUnlocked in
                 guard hasUnlocked else { return }
                 watchRecordingPipeline.resume()
+                persistentRecorder.resumeRecordingQueue()
                 Task { await quickCaptureViewModel.processPendingInbox() }
             }
             .onChange(of: modelManager.hasActiveDownloads) { _, _ in
@@ -230,6 +271,7 @@ struct VoxboardApp: App {
                     await storeManager.syncCurrentEntitlements()
                     usageTracker.reload()
                     watchRecordingPipeline.resume()
+                    persistentRecorder.resumeRecordingQueue()
                     await quickCaptureViewModel.processPendingInbox()
                     watchRecordingPipeline.resume()
                 }

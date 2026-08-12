@@ -69,6 +69,37 @@ final class AppConstantsTests: XCTestCase {
         })
     }
 
+    func test_recordingQueueUsesAStableChildOfRecordingsDirectory() {
+        XCTAssertEqual(AppConstants.recordingJobsDirectoryName, "RecordingJobs")
+        XCTAssertEqual(
+            AppConstants.recordingJobsDirectoryURL,
+            AppConstants.recordingsDirectoryURL?.appendingPathComponent("RecordingJobs", isDirectory: true)
+        )
+    }
+
+    #if DEBUG
+    func test_debugSharedContainerOverrideIsExplicitAndStandardized() {
+        let expected = FileManager.default.temporaryDirectory
+            .appendingPathComponent("vox-runtime-validation", isDirectory: true)
+            .standardizedFileURL
+
+        XCTAssertEqual(
+            AppConstants.debugSharedContainerOverrideURL(
+                environment: [
+                    "VOXBOARD_SHARED_CONTAINER_OVERRIDE": "  \(expected.path)/nested/..  "
+                ]
+            ),
+            expected
+        )
+        XCTAssertNil(
+            AppConstants.debugSharedContainerOverrideURL(
+                environment: ["VOXBOARD_SHARED_CONTAINER_OVERRIDE": "  "]
+            )
+        )
+        XCTAssertNil(AppConstants.debugSharedContainerOverrideURL(environment: [:]))
+    }
+    #endif
+
     func test_captureStorageUsesVersionedStableNames() {
         XCTAssertEqual(AppConstants.captureDirectoryName, "Capture")
         XCTAssertEqual(AppConstants.captureLibraryFilename, "capture-library-v1.json")

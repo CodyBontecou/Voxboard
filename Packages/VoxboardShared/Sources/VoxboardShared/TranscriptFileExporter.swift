@@ -181,6 +181,7 @@ public enum TranscriptFileExporter {
         audioAttachmentRelativePath: String? = nil,
         newFileNameTemplateOverride: String? = nil,
         appendFileNameOverride: String? = nil,
+        deliveryTransactionDirectoryURL: URL? = nil,
         defaults: UserDefaults? = nil
     ) throws -> URL {
         let configuration = exportKitConfiguration(
@@ -194,6 +195,7 @@ public enum TranscriptFileExporter {
             audioAttachmentRelativePath: audioAttachmentRelativePath,
             newFileNameTemplateOverride: newFileNameTemplateOverride,
             appendFileNameOverride: appendFileNameOverride,
+            deliveryTransactionDirectoryURL: deliveryTransactionDirectoryURL,
             defaults: defaults
         )
         return try TranscriptExportRun(configuration: configuration).export(transcript, to: folderURL)
@@ -352,7 +354,11 @@ public enum TranscriptFileExporter {
             .filter { !$0.isEmpty }
     }
 
-    private static func applyMarkdownFrontmatter(to markdown: String, frontmatter: [String: String]) -> String {
+    private static func applyMarkdownFrontmatter(
+        to markdown: String,
+        frontmatter: [String: String],
+        replacingAudioRelativePath: String? = nil
+    ) -> String {
         let entries = frontmatterEntries(frontmatter)
         guard !entries.isEmpty else { return markdown }
         let block = "---\n" + entries.map(\.line).joined(separator: "\n") + "\n---"
@@ -365,7 +371,11 @@ public enum TranscriptFileExporter {
         if existingLines.count == 1, existingLines[0].isEmpty {
             existingLines = []
         }
-        let mergedLines = mergeFrontmatterEntries(entries, into: existingLines)
+        let mergedLines = mergeFrontmatterEntries(
+            entries,
+            into: existingLines,
+            replacingAudioRelativePath: replacingAudioRelativePath
+        )
         return "---\n" + mergedLines.joined(separator: "\n") + "\n---" + markdown[bounds.blockRange.upperBound...]
     }
 
@@ -403,6 +413,30 @@ public enum TranscriptFileExporter {
         guard !normalizedPath.isEmpty else { return "" }
         let escaped = normalizedPath.replacingOccurrences(of: "]", with: "\\]")
         return "![[\(escaped)]]"
+    }
+
+    private static func replacingAudioReference(
+        in text: String,
+        fileExtension: String,
+        oldRelativePath: String,
+        newRelativePath: String
+    ) -> String {
+        guard oldRelativePath != newRelativePath else { return text }
+        switch fileExtension {
+        case "md", "markdown":
+            return text.replacingOccurrences(
+                of: obsidianAudioEmbed(relativePath: oldRelativePath),
+                with: obsidianAudioEmbed(relativePath: newRelativePath)
+            )
+        case "txt":
+            let staleReference = "Audio: \(oldRelativePath)"
+            let replacement = "Audio: \(newRelativePath)"
+            return text.components(separatedBy: "\n")
+                .map { $0 == staleReference ? replacement : $0 }
+                .joined(separator: "\n")
+        default:
+            return text
+        }
     }
 
     private struct MarkdownFrontmatterBounds {
@@ -453,12 +487,17 @@ public enum TranscriptFileExporter {
 
     private static func mergeFrontmatterEntries(
         _ entries: [MarkdownFrontmatterEntry],
-        into lines: [String]
+        into lines: [String],
+        replacingAudioRelativePath: String? = nil
     ) -> [String] {
         var merged = lines
         for entry in entries {
             if entry.key == "audio" {
-                merged = upsertAudioFrontmatterEntry(entry, into: merged)
+                merged = upsertAudioFrontmatterEntry(
+                    entry,
+                    into: merged,
+                    replacingRelativePath: replacingAudioRelativePath
+                )
                 continue
             }
 
@@ -478,7 +517,8 @@ public enum TranscriptFileExporter {
 
     private static func upsertAudioFrontmatterEntry(
         _ entry: MarkdownFrontmatterEntry,
-        into lines: [String]
+        into lines: [String],
+        replacingRelativePath: String? = nil
     ) -> [String] {
         var merged = lines
         let matches = frontmatterLineIndices(in: merged, key: entry.key)
@@ -490,6 +530,9 @@ public enum TranscriptFileExporter {
         var values: [String] = []
         for index in matches {
             values.append(contentsOf: frontmatterValues(fromLine: merged[index]))
+        }
+        if let replacingRelativePath {
+            values.removeAll { $0 == replacingRelativePath }
         }
         values.append(contentsOf: frontmatterValues(fromRawValue: entry.value))
         values = uniquePreservingOrder(values.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
@@ -858,6 +901,7 @@ public enum TranscriptFileExporter {
         newFileNameTemplateOverride: String?,
         appendFileNameOverride: String?,
         markdownTemplateContent: String? = nil,
+        deliveryTransactionDirectoryURL: URL? = nil,
         defaults: UserDefaults?
     ) -> TranscriptExportConfiguration {
         let configuredNewFileTemplate = newFileNameTemplateOverride ?? defaults?.string(forKey: AppConstants.fileExportNewFileNameTemplateKey)
@@ -873,7 +917,8 @@ public enum TranscriptFileExporter {
             audioAttachmentRelativePath: audioAttachmentRelativePath,
             newFileNameTemplate: nonEmptyTrimmed(configuredNewFileTemplate) ?? defaultNewFileNameTemplate,
             appendFileName: nonEmptyTrimmed(configuredAppendFileName) ?? defaultAppendFileName,
-            markdownTemplateContent: markdownTemplateContent
+            markdownTemplateContent: markdownTemplateContent,
+            deliveryTransactionDirectoryURL: deliveryTransactionDirectoryURL
         )
     }
 
@@ -964,6 +1009,7 @@ public enum TranscriptFileExporter {
         autoOrganizeSubfolder: String? = nil,
         flow: CapturePreset? = nil,
         audioAttachmentRelativePath: String? = nil,
+        deliveryTransactionDirectoryURL: URL? = nil,
         defaults: UserDefaults? = AppConstants.sharedDefaults
     ) throws -> TranscriptConfiguredExportOutcome {
         guard let defaults else { throw TranscriptConfiguredExportError.settingsUnavailable }
@@ -1048,6 +1094,7 @@ public enum TranscriptFileExporter {
                         mode: mode,
                         newFileNameTemplateOverride: newFileNameTemplateOverride,
                         appendFileNameOverride: appendFileNameOverride,
+                        deliveryTransactionDirectoryURL: deliveryTransactionDirectoryURL,
                         defaults: defaults
                     )
                 }
@@ -1064,6 +1111,7 @@ public enum TranscriptFileExporter {
                     audioAttachmentRelativePath: audioAttachmentRelativePath,
                     newFileNameTemplateOverride: newFileNameTemplateOverride,
                     appendFileNameOverride: appendFileNameOverride,
+                    deliveryTransactionDirectoryURL: deliveryTransactionDirectoryURL,
                     defaults: defaults
                 )
             } catch let error as TranscriptConfiguredExportError {
@@ -1137,29 +1185,77 @@ public enum TranscriptFileExporter {
         relativePath: String,
         securityScopedFolderURL: URL? = nil,
         embedInMarkdown: Bool = false,
-        embedPlacement: CapturePresetAudioEmbedPlacement = .bottom
+        embedPlacement: CapturePresetAudioEmbedPlacement = .bottom,
+        replacingRelativePath: String? = nil,
+        deliveryTransactionDirectoryURL: URL? = nil
     ) throws {
         guard !relativePath.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         let needsScope = securityScopedFolderURL?.startAccessingSecurityScopedResource() ?? false
         defer { if needsScope { securityScopedFolderURL?.stopAccessingSecurityScopedResource() } }
 
         let ext = transcriptFileURL.pathExtension.lowercased()
-        let existing = (try? String(contentsOf: transcriptFileURL, encoding: .utf8)) ?? ""
+        guard ["md", "markdown", "yaml", "yml", "txt"].contains(ext) else { return }
+        let transaction = deliveryTransactionDirectoryURL.map {
+            ExternalFileDeliveryTransaction(directoryURL: $0)
+        }
+        if let transaction, let resumed = try transaction.resumeIfPrepared() {
+            guard resumed.url.standardizedFileURL == transcriptFileURL.standardizedFileURL else {
+                throw ExternalFileDeliveryTransaction.TransactionError.destinationConflict
+            }
+            return
+        }
+
+        let existing = try String(contentsOf: transcriptFileURL, encoding: .utf8)
+        let replacingPath = replacingRelativePath?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let validReplacingPath = replacingPath.flatMap { $0.isEmpty ? nil : $0 }
+        let base = validReplacingPath.map {
+            replacingAudioReference(
+                in: existing,
+                fileExtension: ext,
+                oldRelativePath: $0,
+                newRelativePath: relativePath
+            )
+        } ?? existing
         let updated: String
         switch ext {
         case "md", "markdown":
-            let markdownWithFrontmatter = applyMarkdownFrontmatter(to: existing, frontmatter: ["audio": relativePath])
+            let markdownWithFrontmatter = applyMarkdownFrontmatter(
+                to: base,
+                frontmatter: ["audio": relativePath],
+                replacingAudioRelativePath: validReplacingPath
+            )
             updated = embedInMarkdown
                 ? applyMarkdownAudioEmbed(to: markdownWithFrontmatter, relativePath: relativePath, placement: embedPlacement)
                 : markdownWithFrontmatter
         case "yaml", "yml":
-            updated = existing + (existing.hasSuffix("\n") ? "" : "\n") + "audio: \(yamlQuoted(relativePath))\n"
+            var lines = base.components(separatedBy: .newlines)
+            while lines.last?.isEmpty == true { lines.removeLast() }
+            let audioEntry = frontmatterEntries(["audio": relativePath])
+            let merged = mergeFrontmatterEntries(
+                audioEntry,
+                into: lines,
+                replacingAudioRelativePath: validReplacingPath
+            )
+            updated = merged.joined(separator: "\n") + "\n"
         case "txt":
-            updated = existing + "\n\nAudio: \(relativePath)"
+            let reference = "Audio: \(relativePath)"
+            if base.components(separatedBy: .newlines).contains(reference) {
+                updated = base
+            } else {
+                updated = base + "\n\n\(reference)"
+            }
         default:
             return
         }
-        try updated.write(to: transcriptFileURL, atomically: true, encoding: .utf8)
+        if let transaction {
+            _ = try transaction.prepareAndPublish(
+                data: Data(updated.utf8),
+                to: transcriptFileURL,
+                expecting: .contents(Data(existing.utf8))
+            )
+        } else {
+            try updated.write(to: transcriptFileURL, atomically: true, encoding: .utf8)
+        }
     }
 
     /// Render the transcript through the chosen template file and write or
@@ -1176,6 +1272,7 @@ public enum TranscriptFileExporter {
         mode: ExportFileMode = .newFile,
         newFileNameTemplateOverride: String? = nil,
         appendFileNameOverride: String? = nil,
+        deliveryTransactionDirectoryURL: URL? = nil,
         defaults: UserDefaults? = nil
     ) throws -> URL {
         let needsScope = templateURL.startAccessingSecurityScopedResource()
@@ -1194,6 +1291,7 @@ public enum TranscriptFileExporter {
             newFileNameTemplateOverride: newFileNameTemplateOverride,
             appendFileNameOverride: appendFileNameOverride,
             markdownTemplateContent: templateContent,
+            deliveryTransactionDirectoryURL: deliveryTransactionDirectoryURL,
             defaults: defaults
         )
         return try TranscriptExportRun(configuration: configuration).export(transcript, to: folderURL)
