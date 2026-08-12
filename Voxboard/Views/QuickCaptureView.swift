@@ -2080,17 +2080,16 @@ struct QuickCaptureView: View {
 
         let requestedFlowID = AppConstants.sharedDefaults?.string(forKey: AppConstants.pendingWidgetRecordFlowIdKey)
         AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingWidgetRecordFlowIdKey)
-        let flowID: String = requestedFlowID.flatMap { requested in
-            guard let flow = CapturePresetStore.flow(id: requested), flow.isEnabled else { return nil }
-            selectFlow(flow)
-            return flow.id
-        } ?? selectedFlow.id
+        let selection = WidgetRecordingFlowSelection.resolve(requestedFlowID: requestedFlowID)
+        if let explicitlyRequestedFlow = selection.explicitlyRequestedFlow {
+            selectFlow(explicitlyRequestedFlow)
+        }
 
         lastStartedRecordingMode = .preset
         persistentRecorder.lastTranscriptionResult = nil
         _ = persistentRecorder.startOneShotInAppSegment(
-            flowId: flowID,
-            completionMode: .runVox(flowID: flowID),
+            flowId: selection.flowID,
+            completionMode: .runVox(flowID: selection.flowID),
             origin: .quickRecord
         )
     }

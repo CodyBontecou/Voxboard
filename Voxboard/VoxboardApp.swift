@@ -338,12 +338,7 @@ struct VoxboardApp: App {
                 log.log("[App] Widget record request ignored — Lock Screen Record Button disabled")
                 return
             }
-            if let flowId = URLComponents(url: url, resolvingAgainstBaseURL: false)?
-                .queryItems?
-                .first(where: { $0.name == "flowId" })?
-                .value {
-                AppConstants.sharedDefaults?.set(flowId, forKey: AppConstants.pendingWidgetRecordFlowIdKey)
-            }
+            WidgetRecordingFlowSelection.persistRequestedFlowID(from: url)
             log.log("[App] Widget record request — opening inline Capture recording controls")
             rootDestination = .capture
             pendingWidgetRecord = true

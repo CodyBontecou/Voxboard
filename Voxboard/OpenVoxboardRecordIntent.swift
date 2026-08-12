@@ -115,6 +115,47 @@ struct OpenVoxboardRecordIntent: AppIntent {
     }
 }
 
+// MARK: - Pending Widget Recording Selection
+
+struct WidgetRecordingFlowSelection {
+    let flowID: String
+    let explicitlyRequestedFlow: CapturePreset?
+
+    static func persistRequestedFlowID(
+        from url: URL,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) {
+        let requestedFlowID = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+            .queryItems?
+            .first(where: { $0.name == "flowId" })?
+            .value
+        if let requestedFlowID, !requestedFlowID.isEmpty {
+            defaults?.set(requestedFlowID, forKey: AppConstants.pendingWidgetRecordFlowIdKey)
+        } else {
+            defaults?.removeObject(forKey: AppConstants.pendingWidgetRecordFlowIdKey)
+        }
+    }
+
+    static func resolve(
+        requestedFlowID: String?,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) -> WidgetRecordingFlowSelection {
+        if let requestedFlowID,
+           let flow = CapturePresetStore.flow(id: requestedFlowID, defaults: defaults),
+           flow.isEnabled {
+            return WidgetRecordingFlowSelection(
+                flowID: flow.id,
+                explicitlyRequestedFlow: flow
+            )
+        }
+
+        return WidgetRecordingFlowSelection(
+            flowID: CapturePresetStore.selectedFlowId(defaults: defaults),
+            explicitlyRequestedFlow: nil
+        )
+    }
+}
+
 // MARK: - Control Configuration Intent
 
 @available(iOS 18.0, *)

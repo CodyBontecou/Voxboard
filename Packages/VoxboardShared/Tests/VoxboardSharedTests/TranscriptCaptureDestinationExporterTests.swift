@@ -117,8 +117,19 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
     }
 
     func test_watchTodoUsesSharedCapturePlacementWithoutLegacyTranscriptHeading() async throws {
-        let root = try temporaryFolder(named: "watch-todo-destination")
-        let staging = try temporaryFolder(named: "watch-todo-staging")
+        try await assertTodoCaptureHasNoLegacyTranscriptHeading(source: .watch, fixtureName: "watch")
+    }
+
+    func test_lockScreenWidgetTodoUsesSharedCapturePlacementWithoutLegacyTranscriptHeading() async throws {
+        try await assertTodoCaptureHasNoLegacyTranscriptHeading(source: .widget, fixtureName: "widget")
+    }
+
+    private func assertTodoCaptureHasNoLegacyTranscriptHeading(
+        source: CaptureSource,
+        fixtureName: String
+    ) async throws {
+        let root = try temporaryFolder(named: "\(fixtureName)-todo-destination")
+        let staging = try temporaryFolder(named: "\(fixtureName)-todo-staging")
         defer {
             try? FileManager.default.removeItem(at: root)
             try? FileManager.default.removeItem(at: staging)
@@ -146,7 +157,7 @@ final class TranscriptCaptureDestinationExporterTests: XCTestCase {
             destinationRootURL: root,
             stagingDirectoryURL: staging.appendingPathComponent("request"),
             audioSourceURL: nil,
-            source: .watch
+            source: source
         )
 
         let markdown = try String(contentsOf: noteURL, encoding: .utf8)
