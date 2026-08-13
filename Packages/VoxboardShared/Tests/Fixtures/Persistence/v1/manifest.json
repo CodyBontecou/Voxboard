@@ -753,10 +753,10 @@
   ],
   "foundationWire" : "Default Foundation JSON: Date numeric seconds since 2001-01-01, Data base64, UUID string, raw enum string.",
   "generatorPath" : "Packages\/VoxboardShared\/Sources\/VoxboardPersistenceFixtures\/main.swift",
-  "generatorSHA256" : "863b5e40b12fa015e31c8325bfd05670029d5e48fb062c4b074b6af80d5fbd8d",
+  "generatorSHA256" : "7977a949ae4e5b9161af41b2f406f42dde9a308e064af4816ccc16882bd120e0",
   "planningParentCommit" : "b50167aebb959e394908af3a5949f43fa88d6265",
   "privacy" : "Fixed synthetic values only; no user defaults, App Group, bookmarks, media library, location, microphone, or WCSession access.",
   "producer" : "VoxboardPersistenceFixtures using production package codecs; app-target Watch and toolbar fixtures are validated by VoxboardTests",
-  "producerRevision" : "uncommitted-determinism-candidate-worktree",
+  "producerRevision" : "6d453e7c4cc60fda0fb2cb9d9399c8d92873b7d0",
   "schemaVersion" : 1
 }

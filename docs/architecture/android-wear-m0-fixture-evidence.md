@@ -3,8 +3,8 @@
 Status: **local format audit complete — baseline/hosted/device gates remain open**
 
 The committed corpus is under `Packages/VoxboardShared/Tests/Fixtures/Persistence/v1/`.
-Its `manifest.json` records `b50167a` only as the planning parent and records the current producer as
-`uncommitted-determinism-candidate-worktree` until the deterministic codec follow-up exists. It also records the generator path/SHA-256, fixed synthetic provenance,
+Its `manifest.json` records `b50167a` only as the planning parent and records deterministic codec revision
+`6d453e7c4cc60fda0fb2cb9d9399c8d92873b7d0` as the producer. It also records the generator path/SHA-256, fixed synthetic provenance,
 and a SHA-256 plus byte count for every file. CI validates committed bytes; it never
 regenerates them first.
 
@@ -82,16 +82,15 @@ persist-before-insert/restart reducer, and Watch terminal replay executes the
 production save-before-delete queue/audio transition and durable reload. Applicable
 cells are `executed`; inapplicable behavior has a production-format rationale.
 
-The initial M0 commit exists, but the deterministic-codec follow-up and its final
-fixture provenance attestation are still uncommitted. A genuine fresh-checkout run
-of that final revision and successful hosted Apple CI are not recorded, and
+The M0 implementation and deterministic-codec commits exist. A genuine fresh-checkout
+run of the final attested revision and successful hosted Apple CI are not recorded, and
 physical-device/account gates remain external. Passing the matrix validator must
 not be reported as product or physical-device parity.
 
 ## Provenance and regeneration
 
 - Planning parent (not the fixture-producing revision): `b50167aebb959e394908af3a5949f43fa88d6265`.
-- Current producer marker: `uncommitted-determinism-candidate-worktree`; replace after the deterministic codec follow-up exists.
+- Fixture-producing deterministic codec revision: `6d453e7c4cc60fda0fb2cb9d9399c8d92873b7d0`; the manifest generator SHA-256 attests the final source including this record.
 - Generator source: `Packages/VoxboardShared/Sources/VoxboardPersistenceFixtures/main.swift`.
 - Validation command:
   `swift run --package-path Packages/VoxboardShared VoxboardPersistenceFixtures --validate`.

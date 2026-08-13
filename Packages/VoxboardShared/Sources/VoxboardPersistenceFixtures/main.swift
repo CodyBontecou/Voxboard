@@ -496,7 +496,7 @@ struct VoxboardPersistenceFixtures {
         let manifest = FixtureManifest(
             schemaVersion: 1,
             planningParentCommit: "b50167aebb959e394908af3a5949f43fa88d6265",
-            producerRevision: "uncommitted-determinism-candidate-worktree",
+            producerRevision: "6d453e7c4cc60fda0fb2cb9d9399c8d92873b7d0",
             generatorPath: "Packages/VoxboardShared/Sources/VoxboardPersistenceFixtures/main.swift",
             generatorSHA256: sha256(generatorData),
             producer: "VoxboardPersistenceFixtures using production package codecs; app-target Watch and toolbar fixtures are validated by VoxboardTests",
@@ -517,7 +517,7 @@ struct VoxboardPersistenceFixtures {
         let generatorDigest = sha256(try Data(contentsOf: generatorURL))
         guard manifest.schemaVersion == 1,
               manifest.planningParentCommit == "b50167aebb959e394908af3a5949f43fa88d6265",
-              manifest.producerRevision == "uncommitted-determinism-candidate-worktree",
+              manifest.producerRevision == "6d453e7c4cc60fda0fb2cb9d9399c8d92873b7d0",
               manifest.generatorPath == "Packages/VoxboardShared/Sources/VoxboardPersistenceFixtures/main.swift",
               manifest.generatorSHA256 == generatorDigest,
               manifest.producer == "VoxboardPersistenceFixtures using production package codecs; app-target Watch and toolbar fixtures are validated by VoxboardTests" else {

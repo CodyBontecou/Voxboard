@@ -11,8 +11,8 @@ Implementation plan: `docs/android-wear-shared-core-implementation-plan.md`
 | Vox.md planning and implementation-start parent | `b50167aebb959e394908af3a5949f43fa88d6265` (`Prepare Vox.md 2.1 release`) |
 | Recording queue introduction | `ed0fbf0f680cc7ace6a51fbf1ea1a419242d9234` (`Add durable cross-platform recording queue`), an ancestor of the baseline |
 | Health.md architecture precedent | `c70de9201ab7cfbadf2442183dfba23c0d248478` |
-| M0 implementation baseline | determinism follow-up candidate is uncommitted; `f8098dc91befb10f0afd1170a4b0868a20eb07c1` is the initial M0 commit |
-| Fixture-producing implementation revision | `uncommitted-determinism-candidate-worktree`; final revision will be recorded after the deterministic codec follow-up is committed |
+| M0 implementation baseline | `6d453e7c4cc60fda0fb2cb9d9399c8d92873b7d0` (`Attest deterministic M0 fixture provenance`); `f8098dc` is the initial M0 commit |
+| Fixture-producing implementation revision | `6d453e7c4cc60fda0fb2cb9d9399c8d92873b7d0`; the manifest separately hashes the final generator source |
 
 Health.md references are read from the pinned commit with `git show`/`git cat-file`, not from uncommitted state in a neighboring checkout. The patterns being adopted are the native/Rust ownership boundary, independently versioned contracts, generated-binding policy, exact fixture comparisons, immutable commit barrier, and `legacy`/`shadow`/`rust` rollout. Health-domain DTOs and renderer profiles are not copied.
 
@@ -47,7 +47,7 @@ The baseline commit contains the intended recording queue and store implementati
 - `Voxboard/PersistentRecorder.swift`
 - `Voxboard/VoxboardApp.swift`
 
-The initial M0 commit records `b50167a` as its parent. The deterministic-codec follow-up is still an uncommitted candidate, so fixture provenance intentionally uses `uncommitted-determinism-candidate-worktree`; `b50167a` and `f8098dc` are not represented as the final fixture-producing codec revision.
+The initial M0 commit records `b50167a` as its parent. Fixture provenance records the deterministic-codec revision `6d453e7c4cc60fda0fb2cb9d9399c8d92873b7d0`; `b50167a` and `f8098dc` are not represented as the final fixture-producing codec revision.
 
 ## Supported Apple baseline
 
