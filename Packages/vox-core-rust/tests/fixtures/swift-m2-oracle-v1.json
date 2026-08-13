@@ -1,0 +1,237 @@
+{
+  "cases" : [
+    {
+      "expected" : {
+        "bytesBase64" : "LS0tCmNvdW50OiA3CnNvdXJjZTogInN5bnRoZXRpYyIKLS0tCgojIyBhcHAgMjAyMy1XNDYKRmlyc3QKCltBIFxbbGFiZWxcXSBcXCB2YWx1ZV0oaHR0cHM6Ly9leGFtcGxlLmludmFsaWQvYSUyOGIlMjkpCgpDYWZlzIEg8J+RqfCfj73igI3wn5K7Cgo8IS0tIHZveC1jYXB0dXJlOjExMTExMTExLTExMTEtNDExMS04MTExLTExMTExMTExMTExMSAtLT4K",
+        "logicalPath" : [
+          "Inbox",
+          "Unicode",
+          "2023-11-14-141320-11111111.md"
+        ],
+        "sha256" : "148dd4bc00b2a3e3ec5d1daac92e51bdf770ff4c630a677aa43cadbb36653f5b"
+      },
+      "id" : "m2-positive-1",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "## {source} {week}\n",
+        "entrySuffix" : "",
+        "finalNewline" : true,
+        "frontmatter" : [
+          {
+            "name" : "source",
+            "value" : "synthetic"
+          },
+          {
+            "name" : "count",
+            "value" : "7"
+          }
+        ],
+        "logicalFolder" : [
+          "Inbox",
+          "Unicode"
+        ],
+        "noteNameTemplate" : "{date}-{time}-{id8}",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "First"
+          },
+          {
+            "kind" : "link",
+            "label" : "A [label] \\ value",
+            "url" : "https://example.invalid/a(b)"
+          },
+          {
+            "kind" : "text",
+            "text" : "Café 👩🏽‍💻"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : true,
+        "source" : "app",
+        "timezone" : "America/Los_Angeles"
+      }
+    },
+    {
+      "expected" : {
+        "bytesBase64" : "W2h0dHBzOi8vZXhhbXBsZS5pbnZhbGlkLyVDMyVBOV0oaHR0cHM6Ly9leGFtcGxlLmludmFsaWQvJUMzJUE5KQ==",
+        "logicalPath" : [
+          "Inbox",
+          "capture-3.md"
+        ],
+        "sha256" : "82232e128210a219ea068bf376726783fbbb9b43c5e1052ec5917fb99fc0fa47"
+      },
+      "id" : "m2-positive-2",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1704067200000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "capture.md",
+        "occupiedPaths" : [
+          [
+            "Inbox",
+            "capture.md"
+          ],
+          [
+            "Inbox",
+            "capture-2.md"
+          ]
+        ],
+        "payloads" : [
+          {
+            "kind" : "link",
+            "label" : "",
+            "url" : "https://example.invalid/é"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "share",
+        "timezone" : "Asia/Kathmandu"
+      }
+    },
+    {
+      "expected" : {
+        "bytesBase64" : "LS0tCnRlbXBsYXRlOiB0cnVlCi0tLQoKe2RhdGV9IHJlbWFpbnMgbGl0ZXJhbAo=",
+        "logicalPath" : [
+          "Inbox",
+          "note.txt"
+        ],
+        "sha256" : "1cf00c631a295e550eafcd65377b02042e0d3284b6f0d222dad57cfb07a9ca15"
+      },
+      "id" : "m2-positive-3",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "---\ntemplate: true\n---\n",
+        "entrySuffix" : "",
+        "finalNewline" : true,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "note.txt",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "{date} remains literal"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "app",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expectedError" : "unsupportedNondeterministicIdentity",
+      "id" : "m2-negative-unsupported-random-uuid",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "## {source} {week}\n",
+        "entrySuffix" : "",
+        "finalNewline" : true,
+        "frontmatter" : [
+          {
+            "name" : "source",
+            "value" : "synthetic"
+          },
+          {
+            "name" : "count",
+            "value" : "7"
+          }
+        ],
+        "logicalFolder" : [
+          "Inbox",
+          "Unicode"
+        ],
+        "noteNameTemplate" : "{date}-{time}-{id8}",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "First"
+          },
+          {
+            "kind" : "link",
+            "label" : "A [label] \\ value",
+            "url" : "https://example.invalid/a(b)"
+          },
+          {
+            "kind" : "text",
+            "text" : "Café 👩🏽‍💻"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : true,
+        "source" : "app",
+        "timezone" : "America/Los_Angeles"
+      }
+    },
+    {
+      "expectedError" : "unsupportedCaseInsensitiveCollision",
+      "id" : "m2-negative-case-insensitive-collision",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1704067200000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "capture.md",
+        "occupiedPaths" : [
+          [
+            "Inbox",
+            "capture.md"
+          ],
+          [
+            "Inbox",
+            "capture-2.md"
+          ]
+        ],
+        "payloads" : [
+          {
+            "kind" : "link",
+            "label" : "",
+            "url" : "https://example.invalid/é"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "share",
+        "timezone" : "Asia/Kathmandu"
+      }
+    }
+  ],
+  "corpusVersion" : 1,
+  "producer" : {
+    "name" : "VoxboardM2Oracle",
+    "productionConsumers" : [
+      "CapturePathPlanner",
+      "CaptureMarkdownRenderer",
+      "CaptureEntryTemplateRenderer",
+      "MarkdownDocumentEditor"
+    ],
+    "sourceSHA256" : "d575b6ccd2fc2247e6ec72293e3650a9fdaef4b49167b8237b191731650732fa"
+  }
+}

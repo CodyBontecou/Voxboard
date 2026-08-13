@@ -12,6 +12,7 @@ let package = Package(
         .library(name: "VoxboardCaptureCore", targets: ["VoxboardCaptureCore"]),
         .library(name: "VoxboardShared", targets: ["VoxboardShared"]),
         .executable(name: "VoxboardPersistenceFixtures", targets: ["VoxboardPersistenceFixtures"]),
+        .executable(name: "VoxboardM2Oracle", targets: ["VoxboardM2Oracle"]),
     ],
     dependencies: [
         .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.13.4"),
@@ -44,6 +45,10 @@ let package = Package(
         .executableTarget(
             name: "VoxboardPersistenceFixtures",
             dependencies: ["VoxboardCaptureCore", "VoxboardShared"]
+        ),
+        .executableTarget(
+            name: "VoxboardM2Oracle",
+            dependencies: ["VoxboardCaptureCore"]
         ),
         .testTarget(
             name: "VoxboardCaptureCoreTests",

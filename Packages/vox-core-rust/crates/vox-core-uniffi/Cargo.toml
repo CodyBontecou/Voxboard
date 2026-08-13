@@ -1,0 +1,21 @@
+[package]
+name = "vox-core-uniffi"
+description = "Thin bounded UniFFI boundary for vox-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[dependencies]
+thiserror.workspace = true
+uniffi.workspace = true
+uuid.workspace = true
+vox-core.workspace = true
+
+[lints]
+workspace = true

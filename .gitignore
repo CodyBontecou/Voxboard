@@ -16,6 +16,7 @@ build/
 # SPM
 .build/
 Packages/VoxboardShared/.build/
+Packages/vox-core-rust/target/
 
 # Secrets
 api_key.json
