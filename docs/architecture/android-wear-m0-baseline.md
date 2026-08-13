@@ -1,6 +1,6 @@
 # Android/Wear Shared-Core M0 Baseline
 
-Status: **Committed and fresh-checkout verified; hosted CI attestation pending**
+Status: **M0 complete — committed, fresh-checkout verified, and hosted Apple CI passed**
 
 Implementation plan: `docs/android-wear-shared-core-implementation-plan.md`
 
@@ -82,7 +82,15 @@ The implementation baseline is validated with Xcode 26.6 (build 17F113) and Swif
 | `Packages/VoxboardShared/Tests/Fixtures/Persistence/v1/` | Synthetic raw legacy bytes and expected decode behavior | Implemented 150-entry corpus; all 29 persisted formats classify all 10 required dimensions, with every cell executed or explicitly not applicable |
 | `docs/architecture/android-wear-m0-fixture-evidence.md` | Distinguish executable production-codec evidence from remaining compatibility-matrix gaps | Implemented; local format matrix complete and baseline/hosted/device gates explicit |
 | `VoxboardPersistenceFixtures` executable | Generate and validate production-codec fixtures without reading user state | Implemented for package-owned surfaces; app-target and Watch-only codecs are executed by their native test targets |
-| `.github/workflows/apple-ci.yml` | Repeatable Apple compile/test gate | Implemented locally; hosted run pending |
+| `.github/workflows/apple-ci.yml` | Repeatable Apple compile/test gate | Passed all five hosted jobs at `c173f3b90a03a1d11f563a7a2ddb9682f9ceb0c7` |
+
+## Hosted Apple CI attestation
+
+- Final tested revision: `c173f3b90a03a1d11f563a7a2ddb9682f9ceb0c7`.
+- Successful workflow: [Apple CI run 31673674485](https://github.com/CodyBontecou/vox.md/actions/runs/31673674485).
+- Hosted toolchain: Xcode 26.6 (`17F113`), Apple Swift 6.3.3 (`swiftlang-6.3.3.1.3`, `clang-2100.1.1.101`).
+- Successful jobs: repository contracts, shared Swift package tests and fixture validation, iOS app-hosted tests, macOS build, and Watch tests/build.
+- Physical-device, pairing, signing, upload, StoreKit/account, storage-pressure, and system-service behavior remains external; simulator CI does not claim those outcomes.
 
 ## Baseline rules
 

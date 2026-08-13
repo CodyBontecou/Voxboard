@@ -1,6 +1,6 @@
 # Android/Wear M0 Apple persistence fixture evidence
 
-Status: **local format audit complete — baseline/hosted/device gates remain open**
+Status: **M0 format and hosted-CI audit complete — physical-device/account gates remain external**
 
 The committed corpus is under `Packages/VoxboardShared/Tests/Fixtures/Persistence/v1/`.
 Its `manifest.json` records `b50167a` only as the planning parent and records deterministic codec revision
@@ -83,10 +83,13 @@ production save-before-delete queue/audio transition and durable reload. Applica
 cells are `executed`; inapplicable behavior has a production-format rationale.
 
 The M0 implementation and deterministic-codec commits exist. A clean local clone of
-the final attested revision passed project contracts, fixture validation, and all
-Swift package tests without modifying tracked files. Successful hosted Apple CI is
-not yet recorded, and physical-device/account gates remain external. Passing the matrix validator must
-not be reported as product or physical-device parity.
+the attested implementation passed project contracts, fixture validation, and all
+Swift package tests without modifying tracked files. Hosted Apple CI subsequently
+passed all five jobs at `c173f3b90a03a1d11f563a7a2ddb9682f9ceb0c7` in
+[run 31673674485](https://github.com/CodyBontecou/vox.md/actions/runs/31673674485),
+using Xcode 26.6 and Swift 6.3.3. Physical-device/account gates remain external.
+Passing the matrix validator or simulator CI must not be reported as physical-device
+parity.
 
 ## Provenance and regeneration
 
@@ -98,6 +101,5 @@ not be reported as product or physical-device parity.
 - Intentional regeneration command:
   `swift run --package-path Packages/VoxboardShared VoxboardPersistenceFixtures --generate`.
 
-The final implementation-baseline commit cannot be recorded until these changes are
-committed. A fixture change requires reviewing the byte diff and manifest SHA-256
-diff; regeneration is not a compatibility test by itself.
+A fixture change requires reviewing the byte diff and manifest SHA-256 diff;
+regeneration is not a compatibility test by itself.

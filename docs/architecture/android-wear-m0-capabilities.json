@@ -9,7 +9,7 @@
       "macos": "14.0",
       "watchos": "10.0"
     },
-    "fixtureProducer": "Swift production codecs at the implementation parent; synthetic inputs only"
+    "fixtureProducer": "Swift production codecs at 6d453e7c4cc60fda0fb2cb9d9399c8d92873b7d0; synthetic inputs only; manifest separately attests the final generator source hash"
   },
   "dependencyCatalog": [
     {
