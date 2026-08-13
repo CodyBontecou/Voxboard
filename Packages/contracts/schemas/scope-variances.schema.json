@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vox.md/contracts/schemas/scope-variances.schema.json",
+  "title": "M1 capability scope variance overlay",
+  "type": "object",
+  "required": ["schemaVersion", "variances"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "variances": {
+      "type": "array",
+      "maxItems": 270,
+      "items": {"$ref": "#/$defs/variance"}
+    }
+  },
+  "$defs": {
+    "variance": {
+      "type": "object",
+      "required": ["capabilityID", "classification", "decisionID", "reason", "userVisibleBehavior", "objectiveAmended", "parityStatus"],
+      "additionalProperties": false,
+      "properties": {
+        "capabilityID": {"type": "string", "pattern": "^cap\\.[a-z0-9][a-z0-9.-]*$", "maxLength": 160},
+        "classification": {"enum": ["unavailable", "deferred"]},
+        "decisionID": {"type": "string", "pattern": "^PD-M1-[A-Z0-9-]+$", "maxLength": 96},
+        "reason": {"type": "string", "minLength": 1, "maxLength": 2048},
+        "userVisibleBehavior": {"type": "string", "minLength": 1, "maxLength": 2048},
+        "objectiveAmended": {"const": false},
+        "parityStatus": {"const": "blocking"}
+      }
+    }
+  }
+}

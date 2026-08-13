@@ -11,12 +11,14 @@ Do not commit this file as proof. Create one JSON record conforming to `Packages
 - Provider ID, authority, package name, installed version, signing-certificate SHA-256
 - UTC start/end, operator identity
 - Synthetic fixture IDs and SHA-256
-- Expected and actual outcome
-- Measurements with units
-- Sanitized artifact references and SHA-256
+- Expected catalog outcome and structured actual result/summary codes
+- Measurements with units, the exact declared sampling method, and the full bounded sample set
+- Artifact references and SHA-256
+- For privacy-governed cases, only canonical `.diagnostic.json` summaries matching the strict allowlist schema for every fixture/artifact; no raw log, screenshot, free text, URI, filename, content, or storage handle
+- For packaging, one baseline/candidate entry and actual referenced files for every required leaf artifact scope; absolute sizes and the complete scoped growth list are computed from those files
 - Status: `passed`, `failed`, `blocked`, `notRun`, or catalog-authorized `notApplicable`
 
-Never place user content or placeholder values such as `TBD`, `unknown`, dummy serials, or fabricated versions in completed evidence. A missing physical fact means the run is incomplete (`blocked` or `notRun`), not passed.
+Never place user content or placeholder values such as `TBD`, standalone `unknown`, dummy serials, or fabricated versions in completed evidence. The canonical durable state `unknownOutcome` is domain vocabulary, not a placeholder. A missing physical fact means the run is incomplete (`blocked` or `notRun`), not passed.
 
 ## Review checklist
 

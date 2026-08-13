@@ -1,236 +1,288 @@
 {
   "$schema": "../schemas/performance-gates.schema.json",
-  "schemaVersion": 1,
+  "deferredRequiredBudgets": [
+    {
+      "id": "local-asr-model-package",
+      "reason": "Select the launch model and supported tiers from measured licensing, quality, size, memory, and runtime evidence before M4 starts.",
+      "requiredBeforeMilestone": "M4"
+    }
+  ],
   "gateSetID": "android-wear-performance-gates-v1",
   "gates": [
     {
       "id": "enqueue-text-link-p95",
-      "milestone": "M3",
       "metric": "duration",
-      "statistic": "p95",
+      "milestone": "M3",
+      "minimumSamples": 20,
       "operator": "lessThanOrEqual",
-      "value": 500,
-      "unit": "ms"
+      "samplingMethod": "Twenty or more independent production-path runs after one untimed warm-up; report nearest-rank p95 over the complete declared sample set.",
+      "statistic": "p95",
+      "unit": "ms",
+      "value": 500
     },
     {
       "id": "quick-capture-warm-p95",
-      "milestone": "M3",
       "metric": "duration",
-      "statistic": "p95",
+      "milestone": "M3",
+      "minimumSamples": 20,
       "operator": "lessThanOrEqual",
-      "value": 500,
-      "unit": "ms"
+      "samplingMethod": "Twenty or more independent production-path runs after one untimed warm-up; report nearest-rank p95 over the complete declared sample set.",
+      "statistic": "p95",
+      "unit": "ms",
+      "value": 500
     },
     {
       "id": "quick-capture-cold-p95",
-      "milestone": "M3",
       "metric": "duration",
-      "statistic": "p95",
+      "milestone": "M3",
+      "minimumSamples": 20,
       "operator": "lessThanOrEqual",
-      "value": 1500,
-      "unit": "ms"
+      "samplingMethod": "Twenty or more independent production-path runs after one untimed warm-up; report nearest-rank p95 over the complete declared sample set.",
+      "statistic": "p95",
+      "unit": "ms",
+      "value": 1500
     },
     {
       "id": "rust-materialize-1mib-p95",
-      "milestone": "M2",
       "metric": "duration",
-      "statistic": "p95",
+      "milestone": "M2",
+      "minimumSamples": 20,
       "operator": "lessThanOrEqual",
-      "value": 100,
-      "unit": "ms"
+      "samplingMethod": "Twenty or more independent production-path runs after one untimed warm-up; report nearest-rank p95 over the complete declared sample set.",
+      "statistic": "p95",
+      "unit": "ms",
+      "value": 100
     },
     {
       "id": "rust-materialize-additional-rss",
-      "milestone": "M2",
       "metric": "additionalRSS",
-      "statistic": "maximum",
+      "milestone": "M2",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 67108864,
-      "unit": "bytes"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "maximum",
+      "unit": "bytes",
+      "value": 67108864
     },
     {
       "id": "ffi-max-chunk",
-      "milestone": "M2",
       "metric": "chunkSize",
-      "statistic": "maximum",
+      "milestone": "M2",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 1048576,
-      "unit": "bytes"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "maximum",
+      "unit": "bytes",
+      "value": 1048576
     },
     {
       "id": "materialization-max-aggregate",
-      "milestone": "M2",
       "metric": "acceptedAggregateInput",
-      "statistic": "minimum",
+      "milestone": "M2",
+      "minimumSamples": 1,
       "operator": "greaterThanOrEqual",
-      "value": 268435456,
-      "unit": "bytes"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "minimum",
+      "unit": "bytes",
+      "value": 268435456
     },
     {
       "id": "saf-actionable-watchdog",
-      "milestone": "M3",
       "metric": "duration",
-      "statistic": "maximum",
+      "milestone": "M3",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 30000,
-      "unit": "ms"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "maximum",
+      "unit": "ms",
+      "value": 30000
     },
     {
       "id": "recorder-session-duration",
-      "milestone": "M4",
       "metric": "duration",
-      "statistic": "minimum",
+      "milestone": "M4",
+      "minimumSamples": 1,
       "operator": "greaterThanOrEqual",
-      "value": 3600,
-      "unit": "s"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "minimum",
+      "unit": "s",
+      "value": 3600
     },
     {
       "id": "recorder-max-prefix-loss",
-      "milestone": "M4",
       "metric": "duration",
-      "statistic": "maximum",
+      "milestone": "M4",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 2,
-      "unit": "s"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "maximum",
+      "unit": "s",
+      "value": 2
     },
     {
       "id": "asr-realtime-factor",
-      "milestone": "M4",
       "metric": "ratio",
-      "statistic": "maximum",
+      "milestone": "M4",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 1,
-      "unit": "ratio"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "maximum",
+      "unit": "ratio",
+      "value": 1
     },
     {
       "id": "asr-peak-rss",
-      "milestone": "M4",
       "metric": "peakRSS",
-      "statistic": "maximum",
+      "milestone": "M4",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 1342177280,
-      "unit": "bytes"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "maximum",
+      "unit": "bytes",
+      "value": 1342177280
     },
     {
       "id": "asr-cancel-latency",
-      "milestone": "M4",
       "metric": "duration",
-      "statistic": "maximum",
+      "milestone": "M4",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 2,
-      "unit": "s"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "maximum",
+      "unit": "s",
+      "value": 2
     },
     {
       "id": "wear-session-duration",
-      "milestone": "M7",
       "metric": "duration",
-      "statistic": "minimum",
+      "milestone": "M7",
+      "minimumSamples": 1,
       "operator": "greaterThanOrEqual",
-      "value": 3600,
-      "unit": "s"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "minimum",
+      "unit": "s",
+      "value": 3600
     },
     {
       "id": "wear-battery-consumption",
-      "milestone": "M7",
       "metric": "batteryConsumption",
-      "statistic": "maximum",
+      "milestone": "M7",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 20,
-      "unit": "percent"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "maximum",
+      "unit": "percent",
+      "value": 20
     },
     {
       "id": "wear-transfer-ingest",
-      "milestone": "M7",
       "metric": "duration",
-      "statistic": "maximum",
+      "milestone": "M7",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 600,
-      "unit": "s"
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "maximum",
+      "unit": "s",
+      "value": 600
     },
     {
       "id": "android-core-arm64-uncompressed",
-      "milestone": "M2",
       "metric": "artifactSize",
-      "statistic": "maximum",
+      "milestone": "M2",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 12582912,
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "scope": "arm64-v8a",
+      "statistic": "maximum",
       "unit": "bytes",
-      "scope": "arm64-v8a"
+      "value": 12582912
     },
     {
       "id": "android-core-armv7-uncompressed",
-      "milestone": "M2",
       "metric": "artifactSize",
-      "statistic": "maximum",
+      "milestone": "M2",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 10485760,
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "scope": "armeabi-v7a",
+      "statistic": "maximum",
       "unit": "bytes",
-      "scope": "armeabi-v7a"
+      "value": 10485760
     },
     {
       "id": "android-core-x86_64-uncompressed",
-      "milestone": "M2",
       "metric": "artifactSize",
-      "statistic": "maximum",
+      "milestone": "M2",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 14680064,
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "scope": "x86_64",
+      "statistic": "maximum",
       "unit": "bytes",
-      "scope": "x86_64"
+      "value": 14680064
     },
     {
       "id": "android-core-x86-uncompressed",
-      "milestone": "M2",
       "metric": "artifactSize",
-      "statistic": "maximum",
+      "milestone": "M2",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 12582912,
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "scope": "x86",
+      "statistic": "maximum",
       "unit": "bytes",
-      "scope": "x86"
+      "value": 12582912
     },
     {
       "id": "apple-xcframework-aggregate",
-      "milestone": "M2",
       "metric": "artifactSize",
-      "statistic": "maximum",
+      "milestone": "M2",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 62914560,
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "scope": "xcframework-uncompressed-aggregate",
+      "statistic": "maximum",
       "unit": "bytes",
-      "scope": "xcframework-uncompressed-aggregate"
+      "value": 62914560
     },
     {
       "id": "apple-xcframework-per-slice",
-      "milestone": "M2",
       "metric": "artifactSize",
-      "statistic": "maximum",
+      "milestone": "M2",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 15728640,
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "scope": "xcframework-slice",
+      "statistic": "maximum",
       "unit": "bytes",
-      "scope": "xcframework-uncompressed-slice"
+      "value": 15728640
     },
     {
       "id": "packaging-growth",
-      "milestone": "M2",
       "metric": "growth",
-      "statistic": "maximum",
+      "milestone": "M2",
+      "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "value": 10,
-      "unit": "percent"
-    }
-  ],
-  "deferredRequiredBudgets": [
-    {
-      "id": "local-asr-model-package",
-      "requiredBeforeMilestone": "M4",
-      "reason": "Select the launch model and supported tiers from measured licensing, quality, size, memory, and runtime evidence before M4 starts."
+      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "statistic": "maximum",
+      "unit": "percent",
+      "value": 10
     }
   ],
   "packagingBaselinePolicy": {
-    "id": "m2-pre-shared-core-packaging-baseline-v1",
-    "required": true,
-    "milestone": "M2",
-    "method": "Build the planning-parent revision and candidate revision from clean checkouts with the same pinned release toolchain, target matrix, features, stripping, symbols, archive container, and uncompressed-size procedure; record each source commit, toolchain identity, artifact identity, byte count, and artifact SHA-256.",
     "baselineRevision": "b50167aebb959e394908af3a5949f43fa88d6265",
+    "comparisonScope": "Each candidate artifact is compared only with the identically scoped baseline artifact; the maximum scoped growth is evaluated by packaging-growth.",
+    "growthFormula": "((candidateBytes - baselineBytes) / baselineBytes) * 100",
+    "id": "m2-pre-shared-core-packaging-baseline-v1",
+    "method": "Build the planning-parent revision and candidate revision from clean checkouts with the same pinned release toolchain, target matrix, features, stripping, symbols, archive container, and uncompressed-size procedure; record each source commit, toolchain identity, artifact identity, byte count, and artifact SHA-256.",
+    "milestone": "M2",
+    "required": true,
+    "requiredHashFields": [
+      "baselineArtifactSha256",
+      "candidateArtifactSha256"
+    ],
     "requiredIdentityFields": [
+      "gateID",
       "baselineRevision",
       "candidateRevision",
       "toolchainID",
@@ -239,11 +291,14 @@
       "featureSet",
       "artifactID"
     ],
-    "requiredHashFields": [
-      "baselineArtifactSha256",
-      "candidateArtifactSha256"
-    ],
-    "growthFormula": "((candidateBytes - baselineBytes) / baselineBytes) * 100",
-    "comparisonScope": "Each candidate artifact is compared only with the identically scoped baseline artifact; the maximum scoped growth is evaluated by packaging-growth."
-  }
+    "requiredLeafScopes": [
+      {"gateID": "android-core-arm64-uncompressed", "targetScope": "arm64-v8a"},
+      {"gateID": "android-core-armv7-uncompressed", "targetScope": "armeabi-v7a"},
+      {"gateID": "android-core-x86_64-uncompressed", "targetScope": "x86_64"},
+      {"gateID": "android-core-x86-uncompressed", "targetScope": "x86"},
+      {"gateID": "apple-xcframework-per-slice", "targetScope": "xcframework-ios-device-arm64"},
+      {"gateID": "apple-xcframework-per-slice", "targetScope": "xcframework-ios-simulator-arm64-x86_64"}
+    ]
+  },
+  "schemaVersion": 1
 }

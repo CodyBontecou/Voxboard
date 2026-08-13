@@ -1,50 +1,53 @@
 {
   "$schema": "https://vox.md/contracts/schemas/case-evidence.schema.json",
-  "schemaVersion": 1,
-  "campaignID": "synthetic-campaign",
-  "evidenceID": "synthetic-rec-001",
-  "caseID": "REC-001",
-  "deviceRoleID": "phone-low-api28",
-  "providerID": null,
-  "status": "passed",
-  "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "contractManifestSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "signedBuildID": "synthetic-signed-build",
+  "actual": {
+    "resultCode": "passed",
+    "summaryCode": "expectedOutcomeObserved"
+  },
+  "artifacts": [
+    {
+      "id": "artifacts/synthetic.log",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
   "buildSignatureSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "operator": "synthetic-operator",
-  "startedAt": "2029-01-01T00:00:00Z",
+  "campaignID": "synthetic-campaign",
+  "caseID": "REC-001",
+  "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "completedAt": "2029-01-01T00:01:00Z",
+  "contractManifestSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "device": {
-    "roleID": "phone-low-api28",
-    "manufacturer": "Google",
-    "model": "Pixel 3",
-    "serialHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-    "osVersion": "synthetic-os-28",
     "apiLevel": 28,
     "buildFingerprint": "synthetic/fingerprint/release",
-    "totalStorageBytes": 10000000000,
-    "freeStorageBytes": 5000000000
+    "freeStorageBytes": 5000000000,
+    "manufacturer": "Google",
+    "model": "Pixel 3",
+    "osVersion": "synthetic-os-28",
+    "roleID": "phone-low-api28",
+    "serialHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "totalStorageBytes": 10000000000
   },
-  "provider": null,
+  "deviceRoleID": "phone-low-api28",
+  "evidenceID": "synthetic-rec-001",
   "expected": "Synthetic durable prefix expectation",
-  "actual": "Synthetic durable prefix observed",
   "fixtureHashes": [
     {
       "id": "artifacts/synthetic.bin",
       "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
   ],
-  "measurements": [],
   "invariantResults": [
     {
       "invariantID": "INV-LAST-DURABLE-COPY",
       "passed": true
     }
   ],
-  "artifacts": [
-    {
-      "id": "artifacts/synthetic.log",
-      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    }
-  ]
+  "measurements": [],
+  "operator": "synthetic-operator",
+  "provider": null,
+  "providerID": null,
+  "schemaVersion": 1,
+  "signedBuildID": "synthetic-signed-build",
+  "startedAt": "2029-01-01T00:00:00Z",
+  "status": "passed"
 }

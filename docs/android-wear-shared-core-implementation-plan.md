@@ -1010,7 +1010,7 @@ Promote by operation/profile, not globally. Retain Swift legacy authority for at
 
 ### Physical-device matrix
 
-At minimum, M1 records exact model/OS/build identifiers for:
+At minimum, M1 records the following named procurement targets and campaign fact requirements. Exact lab device model/serial, OS/API, build fingerprint, signed build ID, and build signature are observed—not fabricated—in each later physical campaign before that evidence can pass:
 
 - One physical phone on API 28–30 for the low/minimum tier, plus an API 28 emulator when maintained physical hardware is unobtainable
 - One current supported Pixel phone

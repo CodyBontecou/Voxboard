@@ -204,6 +204,7 @@
           "additionalProperties": false,
           "properties": {
             "inventoryRevision": {
+              "maximum": 9223372036854775807,
               "minimum": 0,
               "type": "integer"
             },
@@ -216,6 +217,7 @@
                     "type": "string"
                   },
                   "revision": {
+                    "maximum": 9223372036854775807,
                     "minimum": 0,
                     "type": "integer"
                   },
@@ -484,6 +486,7 @@
               "type": "string"
             },
             "presetRevision": {
+              "maximum": 9223372036854775807,
               "minimum": 0,
               "type": "integer"
             },
@@ -596,6 +599,7 @@
               "type": "string"
             },
             "presetRevision": {
+              "maximum": 9223372036854775807,
               "minimum": 0,
               "type": "integer"
             },
@@ -832,6 +836,7 @@
               "type": "integer"
             },
             "frontierRevision": {
+              "maximum": 9223372036854775807,
               "minimum": 0,
               "type": "integer"
             }
@@ -922,6 +927,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "lastRevision": {
+                    "maximum": 9223372036854775807,
                     "minimum": 0,
                     "type": "integer"
                   },
@@ -1029,6 +1035,7 @@
               "type": "integer"
             },
             "frontierRevision": {
+              "maximum": 9223372036854775807,
               "minimum": 0,
               "type": "integer"
             },
@@ -1611,6 +1618,7 @@
               "type": "string"
             },
             "retryFromRevision": {
+              "maximum": 9223372036854775807,
               "minimum": 0,
               "type": "integer"
             },

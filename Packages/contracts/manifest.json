@@ -1,10 +1,16 @@
 {
   "files": [
     {
-      "bytes": 2006,
+      "bytes": 2488,
+      "category": "contractWorkflow",
+      "path": ".github/workflows/contracts-ci.yml",
+      "sha256": "581f96928b931c74db1c55f1fc9fc7ddebe72af030a5087dd823268d22856967"
+    },
+    {
+      "bytes": 2085,
       "category": "contractReadme",
       "path": "Packages/contracts/README.md",
-      "sha256": "6f8634000cbf49846b7cea334192ccfd6213a09dc97f685b8bf206ae7a7ceddb"
+      "sha256": "37f73871c34574de6c6b18153bab3b3b966e30c8bd335625f5a3321925618e76"
     },
     {
       "bytes": 948,
@@ -151,46 +157,202 @@
       "sha256": "d0a9b02510f9e883d32a004239dc7dd3abcb47efac75869696b6534823420379"
     },
     {
-      "bytes": 4884,
+      "bytes": 11240,
       "category": "contractFixture",
-      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-ack-without-ingest.json",
-      "sha256": "85ae6a079b428db4b85fc81092ddff842b3d8d894be8fb182528f2b98e92d1fa"
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-asset-replacement-after-ingest.json",
+      "sha256": "825a909f2cb0ec3391e634c21f6deecd767cfd84c5f91211d242191da0c6491b"
     },
     {
-      "bytes": 5660,
+      "bytes": 10400,
       "category": "contractFixture",
-      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-correlation-change.json",
-      "sha256": "94bdd5f201250d8aa53dabaeb2721c307797c3c566936866a97d35b8dffe8bad"
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-cross-correlation-vault.json",
+      "sha256": "e39e1c9896f0d32c85362a15406d1aee944d4caee53d566ed9ce40b561afb7da"
     },
     {
-      "bytes": 5660,
+      "bytes": 10400,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-cross-recording-ingest.json",
+      "sha256": "c1edcebfc75150a7165d897ed9c971c9805a153891554065fc2bcb7939b7fa08"
+    },
+    {
+      "bytes": 10400,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-delete-before-vault.json",
-      "sha256": "2033b57b55433044dc336a6ad1ec66f7c087f8b7ed21b0839e0f908c5fe078a6"
+      "sha256": "1ce9ec0946d333839a9ba45e447917ed0111ee19407f8484f6fdc618aeb91ffe"
     },
     {
-      "bytes": 5660,
+      "bytes": 10400,
       "category": "contractFixture",
-      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-revision-regression.json",
-      "sha256": "729a75f1de69a6144e90e7eed35cfff7e27a0e1f2394f4a52dd0a76646d6730f"
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-delete-correlation.json",
+      "sha256": "590952013156bae55ad8ed1bb75435d1c006b7999d178c9ab21f32c0fe656ba8"
     },
     {
-      "bytes": 5660,
+      "bytes": 10405,
       "category": "contractFixture",
-      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-sender-change.json",
-      "sha256": "e3986943d28a142e58167414faf1702cffd41c5a584f1a41fc5efee72118c87b"
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-disposition.json",
+      "sha256": "0b435c9ba613ffc9b59ad758aa94cc3fdd61212f3f6ea5ac0e5c7c351a4b5fa6"
     },
     {
-      "bytes": 6265,
+      "bytes": 10400,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-frontier-asset.json",
+      "sha256": "b9fd67d905fd000221aaa7ea0d040812a8462c2efbf6d7e2078a2b52e18d0c88"
+    },
+    {
+      "bytes": 10400,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-frontier-exceeds-asset.json",
+      "sha256": "7b4f48a12eb4955683ef40d5beaae93d974e90720e6233d056552ae686fcf42b"
+    },
+    {
+      "bytes": 10400,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-frontier-progression.json",
+      "sha256": "5b4986ed0d63805150cbb07d6fa10582b1f9c8894f3e8ccadf8d4250c9adf028"
+    },
+    {
+      "bytes": 10400,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-frontier-revision.json",
+      "sha256": "c4ae85b2c14e03c06a9a590d313b4cea5efeb457406641dab011cca38a457df9"
+    },
+    {
+      "bytes": 7910,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-frozen-policy-reassignment.json",
+      "sha256": "f19b1b49db6d311061c462042fa4e0d3993fbcc073a612a4a136053e68489794"
+    },
+    {
+      "bytes": 5078,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-future-retry.json",
+      "sha256": "135e28e9981bd97d67e0a1d297d466656b2afb3b41c656c7f88f003e63d840b8"
+    },
+    {
+      "bytes": 10400,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-ingest-hash.json",
+      "sha256": "dc396e18f06230bb1dbc6e4e378ee51fe1ae07273f9ae423e0f4977543d0f056"
+    },
+    {
+      "bytes": 8889,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-message-id-collision.json",
+      "sha256": "1ef94318690c62003e40a55edbf3bd9fa2d28881841c2f4959a83228f53ddb68"
+    },
+    {
+      "bytes": 4382,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-metadata-preset.json",
+      "sha256": "edd6af70413c757c98468562ce32321bf294580b179817dfebdcbb4ea2f07157"
+    },
+    {
+      "bytes": 5039,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-reconciliation-duplicate-recording.json",
+      "sha256": "63d5ddc91b4cdf0181add702748d9c6c1baaf1d13f2441e35d969ca3de036fe5"
+    },
+    {
+      "bytes": 4871,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-reconciliation-last-revision.json",
+      "sha256": "9f5c085cea627d77bf485d3b7db8bda5b9e26e01abad1a759f9aa7f1f53edf32"
+    },
+    {
+      "bytes": 4931,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-reconciliation-pending-correlation.json",
+      "sha256": "7d623c1f452928b4f7bb10e291ba4753b5ba4616fff76fcfd60294d79c1b7706"
+    },
+    {
+      "bytes": 4869,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-reconciliation-recording-mismatch.json",
+      "sha256": "cbf54db096e9026fbad8faab1b50cbac42a2518691c3d8ad23fdd72717e357fc"
+    },
+    {
+      "bytes": 10482,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-recording-only-mode-policy.json",
+      "sha256": "8f4b61cb8b2480b9aa93c21c293d879f7bec081247d3cf3aef5ec26a32df8ffc"
+    },
+    {
+      "bytes": 4714,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-retired-installation-switchback.json",
+      "sha256": "9b439f4fa5296d29e21c3688ee25920d4823ecb2c42b4ab408456a093a486954"
+    },
+    {
+      "bytes": 11104,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-terminal-followup.json",
-      "sha256": "fd568fcea7a061a5208b884947235e6eaafe2e035403f89d6d5f609332eefaff"
+      "sha256": "b1ffabaedc33f496989abbbb77b714f4a6ebe4dd69f3d03ab19edfe2f81a417a"
     },
     {
-      "bytes": 5660,
+      "bytes": 4404,
       "category": "contractFixture",
-      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-ingest-commit-delete.json",
-      "sha256": "39d065a727c5aa36b3e9a0d407f3b23c13566bd508d10f1e6a61fc8dc48bdea6"
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-transcript-recording-only-policy.json",
+      "sha256": "42ac644f75bee3c54edef14a5563b1bf8f8386340ed5b2fa173c39f4f0778843"
+    },
+    {
+      "bytes": 2308,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-unsupported-followup.json",
+      "sha256": "72d4534efc05818ca467691eba56e2cd3248310746ffe1d0a41291fa899a36f3"
+    },
+    {
+      "bytes": 10400,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-vault-correlation.json",
+      "sha256": "cdc3cfddec9b5757cbc154dd8fbca66b54b5c63bcd5e8633abffab74edb1c9d0"
+    },
+    {
+      "bytes": 8889,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-duplicate-stale-noop.json",
+      "sha256": "029a5784b1f1e7915e61bb21b0ef1351289330be88de2dbb1848a7d333cd0bc8"
+    },
+    {
+      "bytes": 5829,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-explicit-discard.json",
+      "sha256": "bb425ecab673ebd7b26ed454f765e7de8058cfc18154ddf5cf85ef29fba8d3db"
+    },
+    {
+      "bytes": 4869,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-negotiation-preset-reconciliation.json",
+      "sha256": "fc57f87fa99dc3314fd5ec83e92fd2a1300fb673f29bbdc2ae659b6593c8b97f"
+    },
+    {
+      "bytes": 5805,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-reassign-retry.json",
+      "sha256": "e1e24edb15dad14861c9c7632d46f46fa6bc4bd4af987ad491cf425f3bf98bf4"
+    },
+    {
+      "bytes": 10485,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-recording-only.json",
+      "sha256": "94d9a3e102ba9f5e062b028ae717abbb9c43a0731d7fe324825343211f208e9c"
+    },
+    {
+      "bytes": 3862,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-reinstall-reconciliation.json",
+      "sha256": "121ba1c571949de23cfcde6957838b23d2aad1a9918a14181e6df66dff966db9"
+    },
+    {
+      "bytes": 5130,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-terminal-failure-retains-media.json",
+      "sha256": "c83f389539545a4f8817f81a69489af43643e7f8143f8985df79e6df405d4563"
+    },
+    {
+      "bytes": 10400,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-transcript-ingest-commit-delete.json",
+      "sha256": "8521db3128f52dbef80dc63951c2ce33953190473d939d368c4a46131452ac0a"
     },
     {
       "bytes": 636,
@@ -214,7 +376,7 @@
       "bytes": 890,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/wearable-protocol/invalid-recording-mode-policy.json",
-      "sha256": "519ebfd555dc1f9e63a1e944ac9f73b5ee5826cac0e1d1126b6d7cc8bb5e347f"
+      "sha256": "46efef7ac73b6c43744c16c3f9e175bbf41dd5b305a285833520506fd7f55d54"
     },
     {
       "bytes": 659,
@@ -250,13 +412,13 @@
       "bytes": 683,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/wearable-protocol/valid-presetInventory.json",
-      "sha256": "26b8e722f35cc5beab57c22f592e0c5338c1b1e06d6fa0bc8936a5f7c075a39f"
+      "sha256": "7f860204e9a2439d4e5eb2192f9a686ce3fa95294ffda3e542d6f565d4b158ff"
     },
     {
       "bytes": 1558,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/wearable-protocol/valid-presetSnapshot.json",
-      "sha256": "77eac507ac6bd65d4e3c777811dafaa98f4ee6c53adf86fd24c33baae3ac95f4"
+      "sha256": "25d53927a3a08338d538ed0772b33c91c265ed2025c1f22b0a316cff9b159205"
     },
     {
       "bytes": 565,
@@ -274,7 +436,7 @@
       "bytes": 887,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/wearable-protocol/valid-recordingMetadata.json",
-      "sha256": "355360bfdb05e0f222087e4db6710ef0346ce39acac2c10c52a044205065252c"
+      "sha256": "f19f7395e42ac2e57866b26945b4e5fee592cee9bd4e2f1acd8cbb4918d9c976"
     },
     {
       "bytes": 536,
@@ -337,10 +499,10 @@
       "sha256": "75af08d91becf9e99f04cc4f069dd125c247499d7ef57e8b55e3b007a75b52d8"
     },
     {
-      "bytes": 4374,
+      "bytes": 7593,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/aggregate.schema.json",
-      "sha256": "abcce482de1818cc1d1f9ed01db525ade4a299d9852f2ce7288f4ddb353f6355"
+      "sha256": "d0dae925a31c63f69584415b2431ad411c8f62518c4bcffcceded8c3b9d4de9e"
     },
     {
       "bytes": 785,
@@ -349,10 +511,10 @@
       "sha256": "d16ad559be374f16dcf7b2090b3bec671260c62b271c955e6d6200edc85a0cff"
     },
     {
-      "bytes": 1653,
+      "bytes": 4164,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/approval.schema.json",
-      "sha256": "5481e6190ff1cc9faba651d92b6ae269aa8423d02b0dd24ac41511bd1245e1d9"
+      "sha256": "6df225b863b01ef8b3108b228e81430ee60da840218abce4b45fde9866d60705"
     },
     {
       "bytes": 1877,
@@ -367,10 +529,10 @@
       "sha256": "afd9e1329f9330db8b195693d435d9cb3d18c23ba6e3a67027275f385b423071"
     },
     {
-      "bytes": 8338,
+      "bytes": 9378,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/case-evidence.schema.json",
-      "sha256": "3a64327f0606e80f4a483384a7ae8b2ff79855c7818d446a9e0b4eea1585b805"
+      "sha256": "4ac477ef22244dd97d03c939151e024e8da1fd444180b221da4cba4b7446b296"
     },
     {
       "bytes": 1985,
@@ -379,16 +541,28 @@
       "sha256": "18d045e5567805422ffe399e03a406cc820abd5a156cc81d6497cc79337ad05b"
     },
     {
-      "bytes": 4165,
+      "bytes": 1625,
+      "category": "validationSchema",
+      "path": "Packages/contracts/schemas/diagnostic-summary.schema.json",
+      "sha256": "8634007660fb842d4153e4e32bfce76b64050d62e9456d26b9f30604f94ee9d4"
+    },
+    {
+      "bytes": 5186,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/performance-gates.schema.json",
-      "sha256": "bc554bae374b2235d9697498634c6f6aba7c120b0ff5f404cf5ec1f58f987028"
+      "sha256": "9f71608ab9e4e61c7b28cf23e66b71cb7565fb0fbeb1396cd71ba4aeeaecfe54"
     },
     {
       "bytes": 1585,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/provider-matrix.schema.json",
       "sha256": "fcc27a00d1a72a96dd6c3fbb4c946ac3d1cb17e28f196e32f8ea6fe3cd184c95"
+    },
+    {
+      "bytes": 1242,
+      "category": "validationSchema",
+      "path": "Packages/contracts/schemas/scope-variances.schema.json",
+      "sha256": "1a6e3703e54778032b041213afd487ba457a038dce59827d3f6e74875413ff36"
     },
     {
       "bytes": 44,
@@ -403,34 +577,34 @@
       "sha256": "019fc4b10d58c28957ebf47c9283238ebc78dad8f6b4f6c7dd41cbf6d4bbcd7b"
     },
     {
-      "bytes": 12366,
+      "bytes": 22078,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/generate_fixtures.py",
-      "sha256": "d8025ba76014eacf7edaabcef501f9251d58e22acdfed8033063ea1679f93b79"
+      "sha256": "0d2381b5f189aca99d6730758b8f0d3b6711405cd0f4ddab4aedde60251382c5"
     },
     {
-      "bytes": 22219,
+      "bytes": 34936,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate.py",
-      "sha256": "8ea760ca06bd6e68ebab5b73dadf1eaeb6952792f17427f104cf5b3b9c95d5d1"
+      "sha256": "1a888a2847cb32761fb653b422f21ce71171f6e069d4ee3a77b74d9f22ce22d2"
     },
     {
-      "bytes": 17650,
+      "bytes": 29415,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_validation_definitions.py",
-      "sha256": "5c50178a31e6a6c87bf284106222d0759beddf97ca65f1a6e0705e23cac75589"
+      "sha256": "fde8d1fec02eab8a92da8d632781a0d0b998daaaa70bd2006c254fba1f079683"
     },
     {
-      "bytes": 4945,
+      "bytes": 14724,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "83fc378ecbcf2f39a689578cbc042472a7e24afee353693c96e49b59458bab71"
+      "sha256": "01ea3d3d57ed80a485f29fe7f5886c40a9b5f35c55b34b751e439921ab543c1f"
     },
     {
-      "bytes": 5083,
+      "bytes": 22246,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validation_definitions.py",
-      "sha256": "a1533d8b486f2a33ccf25199580ebe9479a769fdbe8b40dad9afe703ef918ab0"
+      "sha256": "4289eb7f7c216b1ef1deaf4f0f8aa89ff7c23e43e9f9d26fbcab0ac084de1133"
     },
     {
       "bytes": 1728,
@@ -445,10 +619,10 @@
       "sha256": "6e7c01cb0d4a99d05efcc0a1cc6c65f9dc4d6418024a7764d47f66805dd5512d"
     },
     {
-      "bytes": 12728,
+      "bytes": 12948,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/case-catalog.json",
-      "sha256": "eb749b958da377edbb0a17cf8f123dbdcb061b5ce8d7ddafb03f5d56bbf9e9b2"
+      "sha256": "ce2e23ae50065c30f81b8e0f488d22e285ce7bfc4d77e479d2e718f4358b6692"
     },
     {
       "bytes": 877,
@@ -463,10 +637,10 @@
       "sha256": "56f3ec7d9ebcbe3f041267a468c44eb9a13eed1997f934401596539469552f76"
     },
     {
-      "bytes": 6717,
+      "bytes": 11483,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/performance-gates.json",
-      "sha256": "2db95a80103e092bd4bb97bbd2763220f4d2d91ad28c58b6f78801962b7116d6"
+      "sha256": "35bf8e551ec431e462dd4b4a8f71e0bef9017138a6f65c13cb830d536da5dc09"
     },
     {
       "bytes": 1410,
@@ -475,28 +649,28 @@
       "sha256": "b8c59c1155b0fd34643f6ed82303353ca02cf788e75d730ed6a0e0c6c73bd593"
     },
     {
-      "bytes": 1297,
+      "bytes": 1374,
       "category": "contractSource",
       "path": "Packages/contracts/wearable-protocol/v1/contract.md",
-      "sha256": "22cbfa347efce4f97dbdc087c397b47157b0fb51092f90572b392ce5b3115428"
+      "sha256": "6475caa473b5f375d676e3f47c3d2facc1f5b520cafe712abd0e32311f8c3c41"
     },
     {
-      "bytes": 50891,
+      "bytes": 51271,
       "category": "contractSource",
       "path": "Packages/contracts/wearable-protocol/v1/schema.json",
-      "sha256": "112d83e5085a3661e0a15042cb54fe39212f127ac92b8dadbb41e6e9d8ed9638"
+      "sha256": "2da6b1ebdb80b7ece3121bf601b7f6f96c615aac3e429d3b8e15deccefb0ec24"
     },
     {
-      "bytes": 520,
+      "bytes": 3188,
       "category": "contractSource",
       "path": "Packages/contracts/wearable-protocol/v1/trace-contract.md",
-      "sha256": "8fcc291d76adc778c3e23096cf708cd3aa54503d9d244e5cc39c62377d44dc86"
+      "sha256": "6c15b26de817719e92f32428c534f807138ca5560fbfbe71b7d92c22166406c6"
     },
     {
-      "bytes": 1020,
+      "bytes": 2307,
       "category": "contractSource",
       "path": "Packages/contracts/wearable-protocol/v1/trace.schema.json",
-      "sha256": "de8fc48f32cb4cdcc3003a9be34658663e96a2e8652cd8f60f398fddb10a26d4"
+      "sha256": "e4ec1db8011c9c54d8a05fb18effdafd3023b464095ca24e615e5b6674b9a8d2"
     },
     {
       "bytes": 4107,
@@ -589,10 +763,10 @@
       "sha256": "70bd9e8a415cc29d640fa7efb2668ac0bcc3a748efe31f5bc931470acae870d5"
     },
     {
-      "bytes": 2058,
+      "bytes": 2176,
       "category": "acceptedDecision",
       "path": "docs/architecture/adr-0016-vox-owned-toolchain-pinning.md",
-      "sha256": "2e46c46b645148ab3d99586921d69d582ad33a2c9374ecfb0b0cf36870d56e77"
+      "sha256": "80a3d4f6a730deb3a3ee65cd112b55cc6c8d42cb62f1d8d53fbf019816136fa6"
     },
     {
       "bytes": 3469,
@@ -601,16 +775,28 @@
       "sha256": "d5d3dc6a3334a55a3aaab02c066eaa4cd491a751fea92a6da4c1200d9b7dbd0c"
     },
     {
-      "bytes": 1490,
+      "bytes": 5094,
       "category": "validationDocumentation",
-      "path": "docs/validation/android-wear-case-evidence-template.md",
-      "sha256": "231e77b319ab490afd1522aa50d95249ac564a298fad0ef96aa633db8fe93149"
+      "path": "docs/validation/android-performance-gates.md",
+      "sha256": "326a28e331b0d68eb60718c3233efc7b60a0fd4587b50aa7bf363f596036892d"
     },
     {
-      "bytes": 5265,
+      "bytes": 2097,
+      "category": "validationDocumentation",
+      "path": "docs/validation/android-wear-case-evidence-template.md",
+      "sha256": "7c1217d8a7c64b4b6e12c90a363b146abd10b59076f9338af640004965b8e0a6"
+    },
+    {
+      "bytes": 8188,
       "category": "validationDocumentation",
       "path": "docs/validation/android-wear-validation-program.md",
-      "sha256": "9a28664435b00778d9c73fbf18dc74b8ab4424569c473905a361f097258d3da7"
+      "sha256": "2e24f793dba69ff8a42fdd1aaa2dba722ea7491d1005d81ba9dfe29f4df64156"
+    },
+    {
+      "bytes": 56891,
+      "category": "contractGate",
+      "path": "scripts/test-project-contracts.sh",
+      "sha256": "0aa99b1a57f64e7a71ae12b8c763d26fc2934e894556ec05963ad620baedc2a3"
     }
   ],
   "fixtureCases": [
@@ -1118,11 +1304,11 @@
     {
       "expect": "invalid",
       "expectedError": {
-        "code": "trace.commitWithoutIngest",
-        "path": "$.envelopes[4].messageKind"
+        "code": "trace.assetReplacementAfterIngest",
+        "path": "$.events[8].envelope.payload"
       },
       "family": "wearable-protocol-trace",
-      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-ack-without-ingest.json",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-asset-replacement-after-ingest.json",
       "producer": {
         "name": "vox-contract-fixture-generator",
         "revision": "m1-v1",
@@ -1133,11 +1319,11 @@
     {
       "expect": "invalid",
       "expectedError": {
-        "code": "trace.correlationIDMismatch",
-        "path": "$.envelopes[4].correlationID"
+        "code": "trace.commitCorrelation",
+        "path": "$.events[8].envelope.payload.phoneIngestedCorrelationID"
       },
       "family": "wearable-protocol-trace",
-      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-correlation-change.json",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-cross-correlation-vault.json",
       "producer": {
         "name": "vox-contract-fixture-generator",
         "revision": "m1-v1",
@@ -1148,8 +1334,23 @@
     {
       "expect": "invalid",
       "expectedError": {
-        "code": "trace.deletionBeforeCommit",
-        "path": "$.envelopes[5].messageKind"
+        "code": "trace.ingestMismatch",
+        "path": "$.events[7].envelope.payload"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-cross-recording-ingest.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.deletionCorrelation",
+        "path": "$.events[8].envelope.payload.vaultCommitCorrelationID"
       },
       "family": "wearable-protocol-trace",
       "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-delete-before-vault.json",
@@ -1163,11 +1364,11 @@
     {
       "expect": "invalid",
       "expectedError": {
-        "code": "trace.revisionNonMonotonic",
-        "path": "$.envelopes[4].revision"
+        "code": "trace.deletionCorrelation",
+        "path": "$.events[9].envelope.payload.vaultCommitCorrelationID"
       },
       "family": "wearable-protocol-trace",
-      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-revision-regression.json",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-delete-correlation.json",
       "producer": {
         "name": "vox-contract-fixture-generator",
         "revision": "m1-v1",
@@ -1178,11 +1379,236 @@
     {
       "expect": "invalid",
       "expectedError": {
-        "code": "trace.senderInstallationIDMismatch",
-        "path": "$.envelopes[3].senderInstallationID"
+        "code": "trace.dispositionMismatch",
+        "path": "$.events[0].expectedDisposition"
       },
       "family": "wearable-protocol-trace",
-      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-sender-change.json",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-disposition.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.assetMismatch",
+        "path": "$.events[4].envelope.payload"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-frontier-asset.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "wear.frontierBounds",
+        "path": "$.payload.durableOffset"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-frontier-exceeds-asset.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.chunkSequence",
+        "path": "$.events[5].envelope.payload.chunkSequence"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-frontier-progression.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.frontierRevision",
+        "path": "$.events[5].envelope.payload.frontierRevision"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-frontier-revision.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.reassignMeaning",
+        "path": "$.events[5].envelope.payload.targetCapabilityReference"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-frozen-policy-reassignment.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.retryRevision",
+        "path": "$.events[3].envelope.payload.retryFromRevision"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-future-retry.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.ingestMismatch",
+        "path": "$.events[7].envelope.payload"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-ingest-hash.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.messageIDCollision",
+        "path": "$.events[5].envelope.messageID"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-message-id-collision.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.metadataPresetMismatch",
+        "path": "$.events[2].envelope.payload"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-metadata-preset.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.reconciliationDuplicateRecording",
+        "path": "$.events[3].envelope.payload.recordings"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-reconciliation-duplicate-recording.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.reconciliationFrontier",
+        "path": "$.events[3].envelope.payload.recordings"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-reconciliation-last-revision.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.reconciliationPendingCorrelation",
+        "path": "$.events[3].envelope.payload.pendingActionCorrelationIDs"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-reconciliation-pending-correlation.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.reconciliationRecordingIdentity",
+        "path": "$.events[3].envelope.payload.recordings"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-reconciliation-recording-mismatch.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "wear.recordingModePolicy",
+        "path": "$.payload.mode"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-recording-only-mode-policy.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.dispositionMismatch",
+        "path": "$.events[4].expectedDisposition"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-retired-installation-switchback.json",
       "producer": {
         "name": "vox-contract-fixture-generator",
         "revision": "m1-v1",
@@ -1194,7 +1620,7 @@
       "expect": "invalid",
       "expectedError": {
         "code": "trace.postTerminal",
-        "path": "$.envelopes[7].messageKind"
+        "path": "$.events[10].envelope.messageKind"
       },
       "family": "wearable-protocol-trace",
       "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-terminal-followup.json",
@@ -1206,9 +1632,131 @@
       "synthetic": true
     },
     {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "wear.recordingModePolicy",
+        "path": "$.payload.mode"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-transcript-recording-only-policy.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.postTerminal",
+        "path": "$.events[1].envelope.messageKind"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-unsupported-followup.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "trace.commitCorrelation",
+        "path": "$.events[8].envelope.payload.phoneIngestedCorrelationID"
+      },
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/invalid-vault-correlation.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
       "expect": "valid",
       "family": "wearable-protocol-trace",
-      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-ingest-commit-delete.json",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-duplicate-stale-noop.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-explicit-discard.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-negotiation-preset-reconciliation.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-reassign-retry.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-recording-only.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-reinstall-reconciliation.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-terminal-failure-retains-media.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "wearable-protocol-trace",
+      "path": "Packages/contracts/fixtures/wearable-protocol-trace/valid-transcript-ingest-commit-delete.json",
       "producer": {
         "name": "vox-contract-fixture-generator",
         "revision": "m1-v1",
@@ -1276,13 +1824,39 @@
         "fixtures/wearable-protocol/valid-transferReceipt.json",
         "fixtures/wearable-protocol/valid-unsupportedVersion.json",
         "fixtures/wearable-protocol/valid-vaultCommitted.json",
-        "fixtures/wearable-protocol-trace/invalid-ack-without-ingest.json",
-        "fixtures/wearable-protocol-trace/invalid-correlation-change.json",
+        "fixtures/wearable-protocol-trace/invalid-asset-replacement-after-ingest.json",
+        "fixtures/wearable-protocol-trace/invalid-cross-correlation-vault.json",
+        "fixtures/wearable-protocol-trace/invalid-cross-recording-ingest.json",
         "fixtures/wearable-protocol-trace/invalid-delete-before-vault.json",
-        "fixtures/wearable-protocol-trace/invalid-revision-regression.json",
-        "fixtures/wearable-protocol-trace/invalid-sender-change.json",
+        "fixtures/wearable-protocol-trace/invalid-delete-correlation.json",
+        "fixtures/wearable-protocol-trace/invalid-disposition.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-asset.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-exceeds-asset.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-progression.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-revision.json",
+        "fixtures/wearable-protocol-trace/invalid-frozen-policy-reassignment.json",
+        "fixtures/wearable-protocol-trace/invalid-future-retry.json",
+        "fixtures/wearable-protocol-trace/invalid-ingest-hash.json",
+        "fixtures/wearable-protocol-trace/invalid-message-id-collision.json",
+        "fixtures/wearable-protocol-trace/invalid-metadata-preset.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-duplicate-recording.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-last-revision.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-pending-correlation.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-recording-mismatch.json",
+        "fixtures/wearable-protocol-trace/invalid-recording-only-mode-policy.json",
+        "fixtures/wearable-protocol-trace/invalid-retired-installation-switchback.json",
         "fixtures/wearable-protocol-trace/invalid-terminal-followup.json",
-        "fixtures/wearable-protocol-trace/valid-ingest-commit-delete.json"
+        "fixtures/wearable-protocol-trace/invalid-transcript-recording-only-policy.json",
+        "fixtures/wearable-protocol-trace/invalid-unsupported-followup.json",
+        "fixtures/wearable-protocol-trace/invalid-vault-correlation.json",
+        "fixtures/wearable-protocol-trace/valid-duplicate-stale-noop.json",
+        "fixtures/wearable-protocol-trace/valid-explicit-discard.json",
+        "fixtures/wearable-protocol-trace/valid-negotiation-preset-reconciliation.json",
+        "fixtures/wearable-protocol-trace/valid-reassign-retry.json",
+        "fixtures/wearable-protocol-trace/valid-recording-only.json",
+        "fixtures/wearable-protocol-trace/valid-reinstall-reconciliation.json",
+        "fixtures/wearable-protocol-trace/valid-terminal-failure-retains-media.json",
+        "fixtures/wearable-protocol-trace/valid-transcript-ingest-commit-delete.json"
       ]
     },
     {
@@ -1342,13 +1916,39 @@
         "fixtures/wearable-protocol/valid-transferReceipt.json",
         "fixtures/wearable-protocol/valid-unsupportedVersion.json",
         "fixtures/wearable-protocol/valid-vaultCommitted.json",
-        "fixtures/wearable-protocol-trace/invalid-ack-without-ingest.json",
-        "fixtures/wearable-protocol-trace/invalid-correlation-change.json",
+        "fixtures/wearable-protocol-trace/invalid-asset-replacement-after-ingest.json",
+        "fixtures/wearable-protocol-trace/invalid-cross-correlation-vault.json",
+        "fixtures/wearable-protocol-trace/invalid-cross-recording-ingest.json",
         "fixtures/wearable-protocol-trace/invalid-delete-before-vault.json",
-        "fixtures/wearable-protocol-trace/invalid-revision-regression.json",
-        "fixtures/wearable-protocol-trace/invalid-sender-change.json",
+        "fixtures/wearable-protocol-trace/invalid-delete-correlation.json",
+        "fixtures/wearable-protocol-trace/invalid-disposition.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-asset.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-exceeds-asset.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-progression.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-revision.json",
+        "fixtures/wearable-protocol-trace/invalid-frozen-policy-reassignment.json",
+        "fixtures/wearable-protocol-trace/invalid-future-retry.json",
+        "fixtures/wearable-protocol-trace/invalid-ingest-hash.json",
+        "fixtures/wearable-protocol-trace/invalid-message-id-collision.json",
+        "fixtures/wearable-protocol-trace/invalid-metadata-preset.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-duplicate-recording.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-last-revision.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-pending-correlation.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-recording-mismatch.json",
+        "fixtures/wearable-protocol-trace/invalid-recording-only-mode-policy.json",
+        "fixtures/wearable-protocol-trace/invalid-retired-installation-switchback.json",
         "fixtures/wearable-protocol-trace/invalid-terminal-followup.json",
-        "fixtures/wearable-protocol-trace/valid-ingest-commit-delete.json"
+        "fixtures/wearable-protocol-trace/invalid-transcript-recording-only-policy.json",
+        "fixtures/wearable-protocol-trace/invalid-unsupported-followup.json",
+        "fixtures/wearable-protocol-trace/invalid-vault-correlation.json",
+        "fixtures/wearable-protocol-trace/valid-duplicate-stale-noop.json",
+        "fixtures/wearable-protocol-trace/valid-explicit-discard.json",
+        "fixtures/wearable-protocol-trace/valid-negotiation-preset-reconciliation.json",
+        "fixtures/wearable-protocol-trace/valid-reassign-retry.json",
+        "fixtures/wearable-protocol-trace/valid-recording-only.json",
+        "fixtures/wearable-protocol-trace/valid-reinstall-reconciliation.json",
+        "fixtures/wearable-protocol-trace/valid-terminal-failure-retains-media.json",
+        "fixtures/wearable-protocol-trace/valid-transcript-ingest-commit-delete.json"
       ]
     },
     {
@@ -1408,20 +2008,46 @@
         "fixtures/wearable-protocol/valid-transferReceipt.json",
         "fixtures/wearable-protocol/valid-unsupportedVersion.json",
         "fixtures/wearable-protocol/valid-vaultCommitted.json",
-        "fixtures/wearable-protocol-trace/invalid-ack-without-ingest.json",
-        "fixtures/wearable-protocol-trace/invalid-correlation-change.json",
+        "fixtures/wearable-protocol-trace/invalid-asset-replacement-after-ingest.json",
+        "fixtures/wearable-protocol-trace/invalid-cross-correlation-vault.json",
+        "fixtures/wearable-protocol-trace/invalid-cross-recording-ingest.json",
         "fixtures/wearable-protocol-trace/invalid-delete-before-vault.json",
-        "fixtures/wearable-protocol-trace/invalid-revision-regression.json",
-        "fixtures/wearable-protocol-trace/invalid-sender-change.json",
+        "fixtures/wearable-protocol-trace/invalid-delete-correlation.json",
+        "fixtures/wearable-protocol-trace/invalid-disposition.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-asset.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-exceeds-asset.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-progression.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-revision.json",
+        "fixtures/wearable-protocol-trace/invalid-frozen-policy-reassignment.json",
+        "fixtures/wearable-protocol-trace/invalid-future-retry.json",
+        "fixtures/wearable-protocol-trace/invalid-ingest-hash.json",
+        "fixtures/wearable-protocol-trace/invalid-message-id-collision.json",
+        "fixtures/wearable-protocol-trace/invalid-metadata-preset.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-duplicate-recording.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-last-revision.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-pending-correlation.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-recording-mismatch.json",
+        "fixtures/wearable-protocol-trace/invalid-recording-only-mode-policy.json",
+        "fixtures/wearable-protocol-trace/invalid-retired-installation-switchback.json",
         "fixtures/wearable-protocol-trace/invalid-terminal-followup.json",
-        "fixtures/wearable-protocol-trace/valid-ingest-commit-delete.json"
+        "fixtures/wearable-protocol-trace/invalid-transcript-recording-only-policy.json",
+        "fixtures/wearable-protocol-trace/invalid-unsupported-followup.json",
+        "fixtures/wearable-protocol-trace/invalid-vault-correlation.json",
+        "fixtures/wearable-protocol-trace/valid-duplicate-stale-noop.json",
+        "fixtures/wearable-protocol-trace/valid-explicit-discard.json",
+        "fixtures/wearable-protocol-trace/valid-negotiation-preset-reconciliation.json",
+        "fixtures/wearable-protocol-trace/valid-reassign-retry.json",
+        "fixtures/wearable-protocol-trace/valid-recording-only.json",
+        "fixtures/wearable-protocol-trace/valid-reinstall-reconciliation.json",
+        "fixtures/wearable-protocol-trace/valid-terminal-failure-retains-media.json",
+        "fixtures/wearable-protocol-trace/valid-transcript-ingest-commit-delete.json"
       ]
     }
   ],
   "producer": {
     "name": "vox-contract-manifest-generator",
     "script": "Packages/contracts/scripts/validate.py",
-    "scriptSHA256": "8ea760ca06bd6e68ebab5b73dadf1eaeb6952792f17427f104cf5b3b9c95d5d1"
+    "scriptSHA256": "1a888a2847cb32761fb653b422f21ce71171f6e069d4ee3a77b74d9f22ce22d2"
   },
   "producerRevision": "29ec869c8bda4d511af787af394658d0274b339b",
   "schemaVersion": 2

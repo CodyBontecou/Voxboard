@@ -1,0 +1,66 @@
+name: Portable contracts CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/contracts-ci.yml'
+      - 'Packages/contracts/**'
+      - 'Packages/VoxboardShared/Tests/Fixtures/Contracts/**'
+      - 'Packages/vox-core-rust/tests/resources/contracts/**'
+      - 'apps/android/core-bridge/src/test/resources/contracts/**'
+      - 'docs/architecture/adr-*.md'
+      - 'docs/architecture/android-wear-m1-decisions.md'
+      - 'docs/architecture/android-wear-m0-capabilities.json'
+      - 'docs/validation/**'
+      - 'scripts/test-project-contracts.sh'
+      - 'scripts/validate-android-wear-m0.py'
+  pull_request:
+    paths:
+      - '.github/workflows/contracts-ci.yml'
+      - 'Packages/contracts/**'
+      - 'Packages/VoxboardShared/Tests/Fixtures/Contracts/**'
+      - 'Packages/vox-core-rust/tests/resources/contracts/**'
+      - 'apps/android/core-bridge/src/test/resources/contracts/**'
+      - 'docs/architecture/adr-*.md'
+      - 'docs/architecture/android-wear-m1-decisions.md'
+      - 'docs/architecture/android-wear-m0-capabilities.json'
+      - 'docs/validation/**'
+      - 'scripts/test-project-contracts.sh'
+      - 'scripts/validate-android-wear-m0.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contracts-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  portable-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout complete contract provenance
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Validate portable contracts and project gates
+        run: ./scripts/test-project-contracts.sh
+      - name: Prove deterministic regeneration
+        shell: bash
+        run: |
+          set -euo pipefail
+          scan() {
+            find Packages/contracts \
+                 Packages/VoxboardShared/Tests/Fixtures/Contracts/v1 \
+                 Packages/vox-core-rust/tests/resources/contracts/v1 \
+                 apps/android/core-bridge/src/test/resources/contracts/v1 \
+                 -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum
+          }
+          scan > "$RUNNER_TEMP/contracts-before.sha256"
+          python3 Packages/contracts/scripts/generate_fixtures.py
+          python3 Packages/contracts/scripts/validate.py --regenerate-manifest
+          scan > "$RUNNER_TEMP/contracts-after.sha256"
+          diff -u "$RUNNER_TEMP/contracts-before.sha256" "$RUNNER_TEMP/contracts-after.sha256"

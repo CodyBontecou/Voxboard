@@ -16,10 +16,11 @@ recorded.
 
 Vox.md owns its toolchain choices. The mandatory baseline and review process are defined
 in [`android-wear-toolchain-baseline.md`](android-wear-toolchain-baseline.md). Before M2
-starts, the repository must commit exact Rust/UniFFI/bindgen and Apple packaging pins in
-the canonical Vox-owned pin manifest plus native lock/toolchain files. Before M3 starts,
-it must add exact JDK, Gradle, AGP, Kotlin, Android SDK/build-tools, NDK, Compose, and
-Android dependency pins.
+starts, the repository must commit exact Rust/UniFFI/bindgen, Apple packaging, Android
+NDK revision, exact native API/platform level for every Rust target, and complete
+Android ABI-to-Rust-target mapping pins in the canonical Vox-owned pin manifest plus
+native lock/toolchain files. Before M3 starts, it must add exact JDK,
+Gradle, AGP, Kotlin, Android SDK/build-tools, Compose, and Android dependency pins.
 
 No version is inherited dynamically from Health.md, a developer workstation, CI image
 alias, “latest,” or an unreviewed transitive resolution. The pin manifest is an index;

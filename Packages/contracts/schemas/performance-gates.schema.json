@@ -1,65 +1,33 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://vox.md/contracts/schemas/performance-gates.schema.json",
-  "title": "Performance gate definitions",
-  "type": "object",
-  "required": [
-    "$schema",
-    "schemaVersion",
-    "gateSetID",
-    "gates",
-    "deferredRequiredBudgets",
-    "packagingBaselinePolicy"
-  ],
-  "additionalProperties": false,
-  "properties": {
-    "$schema": {
-      "const": "../schemas/performance-gates.schema.json"
-    },
-    "schemaVersion": {
-      "const": 1
-    },
-    "gateSetID": {
-      "type": "string",
-      "minLength": 1
-    },
-    "gates": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/gate"
-      }
-    },
-    "deferredRequiredBudgets": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/deferred"
-      }
-    },
-    "packagingBaselinePolicy": {
-      "$ref": "#/$defs/packagingBaselinePolicy"
-    }
-  },
   "$defs": {
-    "gate": {
-      "type": "object",
-      "required": [
-        "id",
-        "milestone",
-        "metric",
-        "statistic",
-        "operator",
-        "value",
-        "unit"
-      ],
+    "deferred": {
       "additionalProperties": false,
       "properties": {
         "id": {
-          "type": "string",
-          "pattern": "^[a-z0-9_]+(?:-[a-z0-9_]+)*$"
+          "minLength": 1,
+          "type": "string"
         },
-        "milestone": {
+        "reason": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "requiredBeforeMilestone": {
           "pattern": "^M[0-9]+$"
+        }
+      },
+      "required": [
+        "id",
+        "requiredBeforeMilestone",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "gate": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_]+(?:-[a-z0-9_]+)*$",
+          "type": "string"
         },
         "metric": {
           "enum": [
@@ -74,12 +42,12 @@
             "growth"
           ]
         },
-        "statistic": {
-          "enum": [
-            "p95",
-            "maximum",
-            "minimum"
-          ]
+        "milestone": {
+          "pattern": "^M[0-9]+$"
+        },
+        "minimumSamples": {
+          "minimum": 1,
+          "type": "integer"
         },
         "operator": {
           "enum": [
@@ -87,9 +55,20 @@
             "greaterThanOrEqual"
           ]
         },
-        "value": {
-          "type": "number",
-          "exclusiveMinimum": 0
+        "samplingMethod": {
+          "minLength": 20,
+          "type": "string"
+        },
+        "scope": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "statistic": {
+          "enum": [
+            "p95",
+            "maximum",
+            "minimum"
+          ]
         },
         "unit": {
           "enum": [
@@ -100,68 +79,69 @@
             "percent"
           ]
         },
-        "scope": {
-          "type": "string",
-          "minLength": 1
+        "value": {
+          "exclusiveMinimum": 0,
+          "type": "number"
         }
-      }
-    },
-    "deferred": {
-      "type": "object",
+      },
       "required": [
         "id",
-        "requiredBeforeMilestone",
-        "reason"
+        "milestone",
+        "metric",
+        "statistic",
+        "operator",
+        "value",
+        "unit",
+        "minimumSamples",
+        "samplingMethod"
       ],
+      "type": "object"
+    },
+    "packagingLeafScope": {
+      "type": "object",
+      "required": ["gateID", "targetScope"],
       "additionalProperties": false,
       "properties": {
-        "id": {
-          "type": "string",
-          "minLength": 1
-        },
-        "requiredBeforeMilestone": {
-          "pattern": "^M[0-9]+$"
-        },
-        "reason": {
-          "type": "string",
-          "minLength": 1
-        }
+        "gateID": {"enum": ["android-core-arm64-uncompressed", "android-core-armv7-uncompressed", "android-core-x86_64-uncompressed", "android-core-x86-uncompressed", "apple-xcframework-per-slice"]},
+        "targetScope": {"enum": ["arm64-v8a", "armeabi-v7a", "x86_64", "x86", "xcframework-ios-device-arm64", "xcframework-ios-simulator-arm64-x86_64"]}
       }
     },
     "packagingBaselinePolicy": {
-      "type": "object",
-      "required": [
-        "id",
-        "required",
-        "milestone",
-        "method",
-        "baselineRevision",
-        "requiredIdentityFields",
-        "requiredHashFields",
-        "growthFormula",
-        "comparisonScope"
-      ],
       "additionalProperties": false,
       "properties": {
+        "baselineRevision": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "comparisonScope": {
+          "minLength": 40,
+          "type": "string"
+        },
+        "growthFormula": {
+          "const": "((candidateBytes - baselineBytes) / baselineBytes) * 100"
+        },
         "id": {
           "const": "m2-pre-shared-core-packaging-baseline-v1"
         },
-        "required": {
-          "const": true
+        "method": {
+          "minLength": 80,
+          "type": "string"
         },
         "milestone": {
           "const": "M2"
         },
-        "method": {
-          "type": "string",
-          "minLength": 80
+        "required": {
+          "const": true
         },
-        "baselineRevision": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
+        "requiredHashFields": {
+          "const": [
+            "baselineArtifactSha256",
+            "candidateArtifactSha256"
+          ]
         },
         "requiredIdentityFields": {
           "const": [
+            "gateID",
             "baselineRevision",
             "candidateRevision",
             "toolchainID",
@@ -171,20 +151,68 @@
             "artifactID"
           ]
         },
-        "requiredHashFields": {
-          "const": [
-            "baselineArtifactSha256",
-            "candidateArtifactSha256"
-          ]
-        },
-        "growthFormula": {
-          "const": "((candidateBytes - baselineBytes) / baselineBytes) * 100"
-        },
-        "comparisonScope": {
-          "type": "string",
-          "minLength": 40
+        "requiredLeafScopes": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/packagingLeafScope"}
         }
-      }
+      },
+      "required": [
+        "id",
+        "required",
+        "milestone",
+        "method",
+        "baselineRevision",
+        "requiredIdentityFields",
+        "requiredHashFields",
+        "growthFormula",
+        "comparisonScope",
+        "requiredLeafScopes"
+      ],
+      "type": "object"
     }
-  }
+  },
+  "$id": "https://vox.md/contracts/schemas/performance-gates.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "const": "../schemas/performance-gates.schema.json"
+    },
+    "deferredRequiredBudgets": {
+      "items": {
+        "$ref": "#/$defs/deferred"
+      },
+      "type": "array"
+    },
+    "gateSetID": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "gates": {
+      "items": {
+        "$ref": "#/$defs/gate"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "packagingBaselinePolicy": {
+      "$ref": "#/$defs/packagingBaselinePolicy"
+    },
+    "schemaVersion": {
+      "const": 1
+    }
+  },
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "gateSetID",
+    "gates",
+    "deferredRequiredBudgets",
+    "packagingBaselinePolicy"
+  ],
+  "title": "Performance gate definitions",
+  "type": "object"
 }

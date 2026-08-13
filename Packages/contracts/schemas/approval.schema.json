@@ -1,29 +1,166 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://vox.md/contracts/schemas/approval.schema.json",
-  "title": "Validation approval or waiver",
-  "type": "object",
-  "required": ["$schema", "schemaVersion", "approvalID", "kind", "status", "subjectID", "subjectSha256", "definitionAggregateSha256", "evidenceAggregateSha256", "approvedBy", "approvedAt", "expiresAt", "rationale"],
-  "additionalProperties": false,
-  "properties": {
-    "$schema": {"const": "https://vox.md/contracts/schemas/approval.schema.json"},
-    "schemaVersion": {"const": 1},
-    "approvalID": {"$ref": "#/$defs/nonPlaceholder"},
-    "kind": {"enum": ["definition", "campaign", "releaseGate", "providerReplacement", "lowTierEmulatorFallback", "waiver"]},
-    "status": {"enum": ["approved", "rejected", "pending", "expired"]},
-    "subjectID": {"$ref": "#/$defs/nonPlaceholder"},
-    "subjectSha256": {"$ref": "#/$defs/sha256"},
-    "definitionAggregateSha256": {"$ref": "#/$defs/sha256"},
-    "evidenceAggregateSha256": {"$ref": "#/$defs/sha256"},
-    "approvedBy": {"$ref": "#/$defs/nonPlaceholder"},
-    "approvedAt": {"type": "string", "format": "date-time"},
-    "expiresAt": {"type": "string", "format": "date-time"},
-    "rationale": {"$ref": "#/$defs/nonPlaceholder"},
-    "requirementID": {"type": "string", "pattern": "^(?!INV-)[A-Za-z0-9._-]+$"},
-    "owner": {"$ref": "#/$defs/nonPlaceholder"}
-  },
   "$defs": {
-    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "nonPlaceholder": {"type": "string", "minLength": 2, "pattern": "(?i)^(?!.*(?:tbd|todo|unknown|placeholder|dummy|changeme|example|n/a|not[-_ ]?set)).+$"}
-  }
+    "commonProperties": {
+      "properties": {
+        "$schema": {
+          "const": "https://vox.md/contracts/schemas/approval.schema.json"
+        },
+        "approvalID": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "approvedAt": {
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$",
+          "type": "string"
+        },
+        "approvedBy": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "definitionAggregateSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "evidenceAggregateSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "expiresAt": {
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$",
+          "type": "string"
+        },
+        "rationale": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "status": {
+          "enum": [
+            "approved",
+            "rejected",
+            "pending",
+            "expired"
+          ]
+        },
+        "subjectID": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "subjectSha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "$schema",
+        "schemaVersion",
+        "approvalID",
+        "kind",
+        "status",
+        "subjectID",
+        "subjectSha256",
+        "definitionAggregateSha256",
+        "evidenceAggregateSha256",
+        "approvedBy",
+        "approvedAt",
+        "expiresAt",
+        "rationale"
+      ],
+      "type": "object"
+    },
+    "nonPlaceholder": {
+      "minLength": 2,
+      "pattern": "(?i)^(?!.*(?:tbd|todo|placeholder|dummy|changeme|example|n/a|not[-_ ]?set)).+$",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "standardApproval": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/commonProperties"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "$schema": {},
+            "approvalID": {},
+            "approvedAt": {},
+            "approvedBy": {},
+            "definitionAggregateSha256": {},
+            "evidenceAggregateSha256": {},
+            "expiresAt": {},
+            "kind": {
+              "enum": [
+                "definition",
+                "campaign",
+                "releaseGate",
+                "providerReplacement",
+                "lowTierEmulatorFallback"
+              ]
+            },
+            "rationale": {},
+            "schemaVersion": {},
+            "status": {},
+            "subjectID": {},
+            "subjectSha256": {}
+          },
+          "required": [
+            "kind"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "waiver": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/commonProperties"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "$schema": {},
+            "approvalID": {},
+            "approvedAt": {},
+            "approvedBy": {},
+            "definitionAggregateSha256": {},
+            "evidenceAggregateSha256": {},
+            "expiresAt": {},
+            "kind": {
+              "const": "waiver"
+            },
+            "owner": {
+              "$ref": "#/$defs/nonPlaceholder"
+            },
+            "rationale": {},
+            "requirementID": {
+              "pattern": "^(?!INV-)[A-Za-z0-9._-]+$",
+              "type": "string"
+            },
+            "schemaVersion": {},
+            "status": {},
+            "subjectID": {},
+            "subjectSha256": {}
+          },
+          "required": [
+            "kind",
+            "requirementID",
+            "owner"
+          ],
+          "type": "object"
+        }
+      ]
+    }
+  },
+  "$id": "https://vox.md/contracts/schemas/approval.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/standardApproval"
+    },
+    {
+      "$ref": "#/$defs/waiver"
+    }
+  ],
+  "title": "Validation approval or waiver"
 }

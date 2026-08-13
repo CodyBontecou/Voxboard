@@ -1,14 +1,382 @@
 {
   "$schema": "../schemas/case-catalog.schema.json",
-  "schemaVersion": 1,
-  "catalogID": "android-wear-cases-v1",
-  "statusVocabulary": [
-    "passed",
-    "failed",
-    "blocked",
-    "notRun",
-    "notApplicable"
+  "cases": [
+    {
+      "category": "REC",
+      "deviceRoles": [
+        "phone-low-api28",
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "After abrupt process kill and explicit relaunch, the durable prefix is recoverable with no more than two seconds lost.",
+      "id": "REC-001",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Abrupt process kill preserves recorder prefix"
+    },
+    {
+      "category": "REC",
+      "deviceRoles": [
+        "phone-low-api28",
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "Explicit relaunch offers finalize, recover, or discard for the last durable prefix; continuous recording is not claimed.",
+      "id": "REC-002",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Force-stop and reboot recovery"
+    },
+    {
+      "category": "REC",
+      "deviceRoles": [
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "Call interruption, device mic toggle, permission revocation, and zero input become distinct actionable durable states without deleting audio.",
+      "id": "REC-003",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Interruption, mic revoke, and zero-input handling"
+    },
+    {
+      "category": "SAF",
+      "deviceRoles": [
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "Attachments commit before note; each artifact and note is read back and length/hash verified.",
+      "id": "SAF-001",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-BOUND-CONTENT"
+      ],
+      "providerApplicability": "allRequired",
+      "required": true,
+      "title": "Create new note and attachments with verification"
+    },
+    {
+      "category": "SAF",
+      "deviceRoles": [
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "Revoked permission enters needsPermission and the staged package remains recoverable through re-selection.",
+      "id": "SAF-002",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY"
+      ],
+      "providerApplicability": "allRequired",
+      "required": true,
+      "title": "Revoked grant preserves queue"
+    },
+    {
+      "category": "SAF",
+      "deviceRoles": [
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "The operation completes or reaches durable retry/unknownOutcome within the watchdog without blocking UI or duplicating content.",
+      "id": "SAF-003",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-NO-BLIND-RETRY",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "providerApplicability": "nonLocalRequired",
+      "required": true,
+      "title": "Offline, slow, and eventually consistent provider"
+    },
+    {
+      "category": "SAF",
+      "deviceRoles": [
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "Injected crashes before, during, and immediately after commit reconcile using marker/hash/receipt or require explicit inspection.",
+      "id": "SAF-004",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-NO-BLIND-RETRY",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "providerApplicability": "allRequired",
+      "required": true,
+      "title": "Crash-window reconciliation"
+    },
+    {
+      "category": "REC",
+      "deviceRoles": [
+        "large-screen"
+      ],
+      "expected": "Rotation, resize, split-screen, background, and foreground transitions preserve the durable recording and editable capture state while warm and cold latency gates pass.",
+      "id": "REC-004",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY"
+      ],
+      "milestone": "M3",
+      "performanceGateIDs": [
+        "quick-capture-warm-p95",
+        "quick-capture-cold-p95"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Large-screen lifecycle and responsive capture"
+    },
+    {
+      "category": "SAF",
+      "deviceRoles": [
+        "large-screen"
+      ],
+      "expected": "Expanded, split-screen, and resized provider flows preserve staged content and finish or enter a durable actionable state without duplicate delivery.",
+      "id": "SAF-005",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-NO-BLIND-RETRY"
+      ],
+      "milestone": "M3",
+      "performanceGateIDs": [
+        "saf-actionable-watchdog"
+      ],
+      "providerApplicability": "allRequired",
+      "required": true,
+      "title": "Large-screen provider picker and durable delivery"
+    },
+    {
+      "category": "WEAR",
+      "deviceRoles": [
+        "wear-reference",
+        "wear-samsung"
+      ],
+      "expected": "Ten synthetic recordings remain recoverable through 72 hours disconnected and reconcile when the phone returns.",
+      "id": "WEAR-001",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-WEAR-ACK-DELETE"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Disconnected 72-hour and ten-recording retention"
+    },
+    {
+      "category": "WEAR",
+      "deviceRoles": [
+        "wear-reference",
+        "wear-samsung"
+      ],
+      "expected": "Duplicate/corrupt chunks are rejected or deduplicated and transfer resumes from durable frontiers with checksum verification.",
+      "id": "WEAR-002",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-WEAR-ACK-DELETE",
+        "INV-BOUND-CONTENT"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Duplicate, corrupt, and resumed transfer"
+    },
+    {
+      "category": "WEAR",
+      "deviceRoles": [
+        "wear-reference",
+        "wear-samsung"
+      ],
+      "expected": "Phone reinstall cannot cause silent watch deletion; outstanding IDs and acknowledgements reconcile explicitly.",
+      "id": "WEAR-003",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-WEAR-ACK-DELETE"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Phone reinstall and acknowledgement reconciliation"
+    },
+    {
+      "category": "WEAR",
+      "deviceRoles": [
+        "wear-reference",
+        "wear-samsung"
+      ],
+      "expected": "Below the normal free-space floor, the watch offers explicit recovery/discard and never silently weakens acknowledgement-based deletion.",
+      "id": "WEAR-004",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-WEAR-ACK-DELETE"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Storage-pressure retention frontier"
+    },
+    {
+      "category": "PERF",
+      "deviceRoles": [
+        "phone-low-api28"
+      ],
+      "expected": "Saved locally is not shown before the package is durable and p95 meets the gate.",
+      "id": "PERF-001",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY"
+      ],
+      "performanceGateIDs": [
+        "enqueue-text-link-p95"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Text/link durable enqueue latency"
+    },
+    {
+      "category": "PERF",
+      "deviceRoles": [
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "Editable UI latency meets warm and cold gates.",
+      "id": "PERF-002",
+      "invariants": [],
+      "performanceGateIDs": [
+        "quick-capture-warm-p95",
+        "quick-capture-cold-p95"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Quick Capture warm/cold latency"
+    },
+    {
+      "category": "PERF",
+      "deviceRoles": [
+        "phone-low-api28"
+      ],
+      "expected": "Streamed materialization meets latency, memory, chunk, and aggregate gates.",
+      "id": "PERF-003",
+      "invariants": [
+        "INV-BOUND-CONTENT"
+      ],
+      "milestone": "M2",
+      "performanceGateIDs": [
+        "rust-materialize-1mib-p95",
+        "rust-materialize-additional-rss",
+        "ffi-max-chunk",
+        "materialization-max-aggregate"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Rust materialization latency and memory"
+    },
+    {
+      "category": "PERF",
+      "deviceRoles": [
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "Provider operation finishes or enters durable actionable state within the watchdog.",
+      "id": "PERF-004",
+      "invariants": [
+        "INV-NO-BLIND-RETRY",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "performanceGateIDs": [
+        "saf-actionable-watchdog"
+      ],
+      "providerApplicability": "allRequired",
+      "required": true,
+      "title": "SAF watchdog"
+    },
+    {
+      "category": "PERF",
+      "deviceRoles": [
+        "phone-low-api28",
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "A 60-minute recording has bounded prefix loss, no thermal warning, and no unbounded memory growth.",
+      "id": "PERF-005",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY"
+      ],
+      "milestone": "M4",
+      "performanceGateIDs": [
+        "recorder-session-duration",
+        "recorder-max-prefix-loss"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Recorder durability and memory"
+    },
+    {
+      "category": "PERF",
+      "deviceRoles": [
+        "phone-low-api28",
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "expected": "Declared launch model meets RTF, memory, and cancellation gates without network inference.",
+      "id": "PERF-006",
+      "invariants": [
+        "INV-NO-NETWORK-INFERENCE"
+      ],
+      "milestone": "M4",
+      "performanceGateIDs": [
+        "asr-realtime-factor",
+        "asr-peak-rss",
+        "asr-cancel-latency"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Local ASR performance"
+    },
+    {
+      "category": "PERF",
+      "deviceRoles": [
+        "wear-reference",
+        "wear-samsung"
+      ],
+      "expected": "Recording endurance, battery, integrity, and stable-connection transfer gates pass.",
+      "id": "PERF-007",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-WEAR-ACK-DELETE"
+      ],
+      "milestone": "M7",
+      "performanceGateIDs": [
+        "wear-session-duration",
+        "wear-battery-consumption",
+        "wear-transfer-ingest"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "Wear endurance and transfer"
+    },
+    {
+      "category": "PERF",
+      "deviceRoles": [],
+      "expected": "Source-built core artifacts remain within absolute and growth budgets.",
+      "id": "PERF-008",
+      "invariants": [],
+      "milestone": "M2",
+      "performanceGateIDs": [
+        "android-core-arm64-uncompressed",
+        "android-core-armv7-uncompressed",
+        "android-core-x86_64-uncompressed",
+        "android-core-x86-uncompressed",
+        "apple-xcframework-aggregate",
+        "apple-xcframework-per-slice",
+        "packaging-growth"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M2 native core packaging budgets"
+    }
   ],
+  "catalogID": "android-wear-cases-v1",
   "nonWaivableInvariants": [
     {
       "id": "INV-LAST-DURABLE-COPY",
@@ -28,384 +396,19 @@
     },
     {
       "id": "INV-PRIVACY-DIAGNOSTICS",
-      "text": "Evidence and diagnostics contain no captured content, filenames, URIs, coordinates, transcripts, audio, or storage handles."
+      "text": "Privacy-governed evidence contains no captured content or storage handles because actual is structured vocabulary and every fixture/artifact is a strict canonical diagnostic summary with only allowlisted fields, enums, counts, and hashes."
     },
     {
       "id": "INV-WEAR-ACK-DELETE",
       "text": "Wear source deletion requires durable correlated sourceDeletionAuthorized after vaultCommitted; storage pressure cannot silently weaken the threshold."
     }
   ],
-  "cases": [
-    {
-      "id": "REC-001",
-      "title": "Abrupt process kill preserves recorder prefix",
-      "category": "REC",
-      "required": true,
-      "deviceRoles": [
-        "phone-low-api28",
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "none",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY"
-      ],
-      "expected": "After abrupt process kill and explicit relaunch, the durable prefix is recoverable with no more than two seconds lost."
-    },
-    {
-      "id": "REC-002",
-      "title": "Force-stop and reboot recovery",
-      "category": "REC",
-      "required": true,
-      "deviceRoles": [
-        "phone-low-api28",
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "none",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY"
-      ],
-      "expected": "Explicit relaunch offers finalize, recover, or discard for the last durable prefix; continuous recording is not claimed."
-    },
-    {
-      "id": "REC-003",
-      "title": "Interruption, mic revoke, and zero-input handling",
-      "category": "REC",
-      "required": true,
-      "deviceRoles": [
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "none",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY"
-      ],
-      "expected": "Call interruption, device mic toggle, permission revocation, and zero input become distinct actionable durable states without deleting audio."
-    },
-    {
-      "id": "SAF-001",
-      "title": "Create new note and attachments with verification",
-      "category": "SAF",
-      "required": true,
-      "deviceRoles": [
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "allRequired",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY",
-        "INV-BOUND-CONTENT"
-      ],
-      "expected": "Attachments commit before note; each artifact and note is read back and length/hash verified."
-    },
-    {
-      "id": "SAF-002",
-      "title": "Revoked grant preserves queue",
-      "category": "SAF",
-      "required": true,
-      "deviceRoles": [
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "allRequired",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY"
-      ],
-      "expected": "Revoked permission enters needsPermission and the staged package remains recoverable through re-selection."
-    },
-    {
-      "id": "SAF-003",
-      "title": "Offline, slow, and eventually consistent provider",
-      "category": "SAF",
-      "required": true,
-      "deviceRoles": [
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "nonLocalRequired",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY",
-        "INV-NO-BLIND-RETRY"
-      ],
-      "expected": "The operation completes or reaches durable retry/unknownOutcome within the watchdog without blocking UI or duplicating content."
-    },
-    {
-      "id": "SAF-004",
-      "title": "Crash-window reconciliation",
-      "category": "SAF",
-      "required": true,
-      "deviceRoles": [
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "allRequired",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY",
-        "INV-NO-BLIND-RETRY"
-      ],
-      "expected": "Injected crashes before, during, and immediately after commit reconcile using marker/hash/receipt or require explicit inspection."
-    },
-    {
-      "id": "REC-004",
-      "title": "Large-screen lifecycle and responsive capture",
-      "category": "REC",
-      "required": true,
-      "milestone": "M3",
-      "deviceRoles": [
-        "large-screen"
-      ],
-      "providerApplicability": "none",
-      "performanceGateIDs": [
-        "quick-capture-warm-p95",
-        "quick-capture-cold-p95"
-      ],
-      "invariants": [
-        "INV-LAST-DURABLE-COPY"
-      ],
-      "expected": "Rotation, resize, split-screen, background, and foreground transitions preserve the durable recording and editable capture state while warm and cold latency gates pass."
-    },
-    {
-      "id": "SAF-005",
-      "title": "Large-screen provider picker and durable delivery",
-      "category": "SAF",
-      "required": true,
-      "milestone": "M3",
-      "deviceRoles": [
-        "large-screen"
-      ],
-      "providerApplicability": "allRequired",
-      "performanceGateIDs": [
-        "saf-actionable-watchdog"
-      ],
-      "invariants": [
-        "INV-LAST-DURABLE-COPY",
-        "INV-NO-BLIND-RETRY"
-      ],
-      "expected": "Expanded, split-screen, and resized provider flows preserve staged content and finish or enter a durable actionable state without duplicate delivery."
-    },
-    {
-      "id": "WEAR-001",
-      "title": "Disconnected 72-hour and ten-recording retention",
-      "category": "WEAR",
-      "required": true,
-      "deviceRoles": [
-        "wear-reference",
-        "wear-samsung"
-      ],
-      "providerApplicability": "none",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY",
-        "INV-WEAR-ACK-DELETE"
-      ],
-      "expected": "Ten synthetic recordings remain recoverable through 72 hours disconnected and reconcile when the phone returns."
-    },
-    {
-      "id": "WEAR-002",
-      "title": "Duplicate, corrupt, and resumed transfer",
-      "category": "WEAR",
-      "required": true,
-      "deviceRoles": [
-        "wear-reference",
-        "wear-samsung"
-      ],
-      "providerApplicability": "none",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY",
-        "INV-WEAR-ACK-DELETE",
-        "INV-BOUND-CONTENT"
-      ],
-      "expected": "Duplicate/corrupt chunks are rejected or deduplicated and transfer resumes from durable frontiers with checksum verification."
-    },
-    {
-      "id": "WEAR-003",
-      "title": "Phone reinstall and acknowledgement reconciliation",
-      "category": "WEAR",
-      "required": true,
-      "deviceRoles": [
-        "wear-reference",
-        "wear-samsung"
-      ],
-      "providerApplicability": "none",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY",
-        "INV-WEAR-ACK-DELETE"
-      ],
-      "expected": "Phone reinstall cannot cause silent watch deletion; outstanding IDs and acknowledgements reconcile explicitly."
-    },
-    {
-      "id": "WEAR-004",
-      "title": "Storage-pressure retention frontier",
-      "category": "WEAR",
-      "required": true,
-      "deviceRoles": [
-        "wear-reference",
-        "wear-samsung"
-      ],
-      "providerApplicability": "none",
-      "invariants": [
-        "INV-LAST-DURABLE-COPY",
-        "INV-WEAR-ACK-DELETE"
-      ],
-      "expected": "Below the normal free-space floor, the watch offers explicit recovery/discard and never silently weakens acknowledgement-based deletion."
-    },
-    {
-      "id": "PERF-001",
-      "title": "Text/link durable enqueue latency",
-      "category": "PERF",
-      "required": true,
-      "deviceRoles": [
-        "phone-low-api28"
-      ],
-      "providerApplicability": "none",
-      "performanceGateIDs": [
-        "enqueue-text-link-p95"
-      ],
-      "invariants": [
-        "INV-LAST-DURABLE-COPY"
-      ],
-      "expected": "Saved locally is not shown before the package is durable and p95 meets the gate."
-    },
-    {
-      "id": "PERF-002",
-      "title": "Quick Capture warm/cold latency",
-      "category": "PERF",
-      "required": true,
-      "deviceRoles": [
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "none",
-      "performanceGateIDs": [
-        "quick-capture-warm-p95",
-        "quick-capture-cold-p95"
-      ],
-      "invariants": [],
-      "expected": "Editable UI latency meets warm and cold gates."
-    },
-    {
-      "id": "PERF-003",
-      "title": "Rust materialization latency and memory",
-      "category": "PERF",
-      "required": true,
-      "milestone": "M2",
-      "deviceRoles": [
-        "phone-low-api28"
-      ],
-      "providerApplicability": "none",
-      "performanceGateIDs": [
-        "rust-materialize-1mib-p95",
-        "rust-materialize-additional-rss",
-        "ffi-max-chunk",
-        "materialization-max-aggregate"
-      ],
-      "invariants": [
-        "INV-BOUND-CONTENT"
-      ],
-      "expected": "Streamed materialization meets latency, memory, chunk, and aggregate gates."
-    },
-    {
-      "id": "PERF-004",
-      "title": "SAF watchdog",
-      "category": "PERF",
-      "required": true,
-      "deviceRoles": [
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "allRequired",
-      "performanceGateIDs": [
-        "saf-actionable-watchdog"
-      ],
-      "invariants": [
-        "INV-NO-BLIND-RETRY"
-      ],
-      "expected": "Provider operation finishes or enters durable actionable state within the watchdog."
-    },
-    {
-      "id": "PERF-005",
-      "title": "Recorder durability and memory",
-      "category": "PERF",
-      "required": true,
-      "milestone": "M4",
-      "deviceRoles": [
-        "phone-low-api28",
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "none",
-      "performanceGateIDs": [
-        "recorder-session-duration",
-        "recorder-max-prefix-loss"
-      ],
-      "invariants": [
-        "INV-LAST-DURABLE-COPY"
-      ],
-      "expected": "A 60-minute recording has bounded prefix loss, no thermal warning, and no unbounded memory growth."
-    },
-    {
-      "id": "PERF-006",
-      "title": "Local ASR performance",
-      "category": "PERF",
-      "required": true,
-      "milestone": "M4",
-      "deviceRoles": [
-        "phone-low-api28",
-        "phone-current-pixel",
-        "phone-current-samsung"
-      ],
-      "providerApplicability": "none",
-      "performanceGateIDs": [
-        "asr-realtime-factor",
-        "asr-peak-rss",
-        "asr-cancel-latency"
-      ],
-      "invariants": [
-        "INV-NO-NETWORK-INFERENCE"
-      ],
-      "expected": "Declared launch model meets RTF, memory, and cancellation gates without network inference."
-    },
-    {
-      "id": "PERF-007",
-      "title": "Wear endurance and transfer",
-      "category": "PERF",
-      "required": true,
-      "milestone": "M7",
-      "deviceRoles": [
-        "wear-reference",
-        "wear-samsung"
-      ],
-      "providerApplicability": "none",
-      "performanceGateIDs": [
-        "wear-session-duration",
-        "wear-battery-consumption",
-        "wear-transfer-ingest"
-      ],
-      "invariants": [
-        "INV-LAST-DURABLE-COPY",
-        "INV-WEAR-ACK-DELETE"
-      ],
-      "expected": "Recording endurance, battery, integrity, and stable-connection transfer gates pass."
-    },
-    {
-      "id": "PERF-008",
-      "title": "M2 native core packaging budgets",
-      "category": "PERF",
-      "required": true,
-      "milestone": "M2",
-      "deviceRoles": [],
-      "providerApplicability": "none",
-      "performanceGateIDs": [
-        "android-core-arm64-uncompressed",
-        "android-core-armv7-uncompressed",
-        "android-core-x86_64-uncompressed",
-        "android-core-x86-uncompressed",
-        "apple-xcframework-aggregate",
-        "apple-xcframework-per-slice",
-        "packaging-growth"
-      ],
-      "invariants": [],
-      "expected": "Source-built core artifacts remain within absolute and growth budgets."
-    }
+  "schemaVersion": 1,
+  "statusVocabulary": [
+    "passed",
+    "failed",
+    "blocked",
+    "notRun",
+    "notApplicable"
   ]
 }

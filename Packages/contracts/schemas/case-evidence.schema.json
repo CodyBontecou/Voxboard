@@ -1,8 +1,400 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "device": {
+      "additionalProperties": false,
+      "properties": {
+        "apiLevel": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "buildFingerprint": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "freeStorageBytes": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "manufacturer": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "model": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "osVersion": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "roleID": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "serialHash": {
+          "$ref": "#/$defs/sha256"
+        },
+        "totalStorageBytes": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "roleID",
+        "manufacturer",
+        "model",
+        "serialHash",
+        "osVersion",
+        "apiLevel",
+        "buildFingerprint",
+        "totalStorageBytes",
+        "freeStorageBytes"
+      ],
+      "type": "object"
+    },
+    "hashRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "gateID": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "metric": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "operator": {
+          "enum": [
+            "lessThanOrEqual",
+            "greaterThanOrEqual"
+          ]
+        },
+        "sampleValues": {
+          "items": {
+            "type": "number"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "samplingMethod": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "scope": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "statistic": {
+          "enum": [
+            "p95",
+            "maximum",
+            "minimum"
+          ]
+        },
+        "unit": {
+          "enum": [
+            "ms",
+            "s",
+            "bytes",
+            "ratio",
+            "percent"
+          ]
+        },
+        "value": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "gateID",
+        "metric",
+        "statistic",
+        "operator",
+        "value",
+        "unit",
+        "scope",
+        "sampleValues",
+        "samplingMethod"
+      ],
+      "type": "object"
+    },
+    "nonPlaceholder": {
+      "minLength": 2,
+      "pattern": "(?i)^(?!.*(?:tbd|todo|placeholder|dummy|changeme|example|n/a|not[-_ ]?set)).+$",
+      "type": "string"
+    },
+    "packagingBaseline": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactID": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "baselineArtifactSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "baselineBytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "baselineRevision": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "buildConfiguration": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "candidateArtifactSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "candidateBytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "candidateRevision": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "featureSet": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "gateID": {
+          "pattern": "^[a-z0-9_]+(?:-[a-z0-9_]+)*$",
+          "type": "string"
+        },
+        "policyID": {
+          "const": "m2-pre-shared-core-packaging-baseline-v1"
+        },
+        "targetScope": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "toolchainID": {
+          "$ref": "#/$defs/nonPlaceholder"
+        }
+      },
+      "required": [
+        "policyID",
+        "gateID",
+        "baselineRevision",
+        "candidateRevision",
+        "toolchainID",
+        "targetScope",
+        "buildConfiguration",
+        "featureSet",
+        "artifactID",
+        "baselineBytes",
+        "candidateBytes",
+        "baselineArtifactSha256",
+        "candidateArtifactSha256"
+      ],
+      "type": "object"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
   "$id": "https://vox.md/contracts/schemas/case-evidence.schema.json",
-  "title": "Completed synthetic or physical validation case evidence",
-  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "const": "https://vox.md/contracts/schemas/case-evidence.schema.json"
+    },
+    "actual": {
+      "additionalProperties": false,
+      "properties": {
+        "resultCode": {
+          "enum": [
+            "passed",
+            "failed",
+            "blocked",
+            "notRun",
+            "notApplicable"
+          ]
+        },
+        "summaryCode": {
+          "enum": [
+            "expectedOutcomeObserved",
+            "expectedOutcomeNotObserved",
+            "executionBlocked",
+            "executionNotRun",
+            "catalogNotApplicable"
+          ]
+        }
+      },
+      "required": [
+        "resultCode",
+        "summaryCode"
+      ],
+      "type": "object"
+    },
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/hashRef"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "buildSignatureSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "campaignID": {
+      "$ref": "#/$defs/nonPlaceholder"
+    },
+    "caseID": {
+      "pattern": "^(REC|SAF|WEAR|PERF)-[0-9]{3}$"
+    },
+    "commitSha": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "completedAt": {
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$",
+      "type": "string"
+    },
+    "contractManifestSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "device": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/device"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "deviceRoleID": {
+      "pattern": "^[a-z0-9-]+$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "evidenceID": {
+      "$ref": "#/$defs/nonPlaceholder"
+    },
+    "expected": {
+      "$ref": "#/$defs/nonPlaceholder"
+    },
+    "fixtureHashes": {
+      "items": {
+        "$ref": "#/$defs/hashRef"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "invariantResults": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "invariantID": {
+            "pattern": "^INV-[A-Z0-9-]+$"
+          },
+          "passed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "invariantID",
+          "passed"
+        ],
+        "type": "object"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "measurements": {
+      "items": {
+        "$ref": "#/$defs/measurement"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "notApplicableRule": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "operator": {
+      "$ref": "#/$defs/nonPlaceholder"
+    },
+    "packagingBaselines": {
+      "items": {
+        "$ref": "#/$defs/packagingBaseline"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "type": "array"
+    },
+    "provider": {
+      "additionalProperties": false,
+      "properties": {
+        "authority": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "installedPackageVersion": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "packageName": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "providerID": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "signingCertificateSha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "providerID",
+        "authority",
+        "packageName",
+        "installedPackageVersion",
+        "signingCertificateSha256"
+      ],
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "providerID": {
+      "pattern": "^[a-z0-9-]+$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "signedBuildID": {
+      "$ref": "#/$defs/nonPlaceholder"
+    },
+    "startedAt": {
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "passed",
+        "failed",
+        "blocked",
+        "notRun",
+        "notApplicable"
+      ]
+    }
+  },
   "required": [
     "$schema",
     "schemaVersion",
@@ -27,357 +419,6 @@
     "invariantResults",
     "artifacts"
   ],
-  "additionalProperties": false,
-  "properties": {
-    "$schema": {
-      "const": "https://vox.md/contracts/schemas/case-evidence.schema.json"
-    },
-    "schemaVersion": {
-      "const": 1
-    },
-    "campaignID": {
-      "$ref": "#/$defs/nonPlaceholder"
-    },
-    "evidenceID": {
-      "$ref": "#/$defs/nonPlaceholder"
-    },
-    "caseID": {
-      "pattern": "^(REC|SAF|WEAR|PERF)-[0-9]{3}$"
-    },
-    "deviceRoleID": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "pattern": "^[a-z0-9-]+$"
-    },
-    "providerID": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "pattern": "^[a-z0-9-]+$"
-    },
-    "status": {
-      "enum": [
-        "passed",
-        "failed",
-        "blocked",
-        "notRun",
-        "notApplicable"
-      ]
-    },
-    "notApplicableRule": {
-      "type": "string",
-      "minLength": 1
-    },
-    "commitSha": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{40}$"
-    },
-    "contractManifestSha256": {
-      "$ref": "#/$defs/sha256"
-    },
-    "signedBuildID": {
-      "$ref": "#/$defs/nonPlaceholder"
-    },
-    "buildSignatureSha256": {
-      "$ref": "#/$defs/sha256"
-    },
-    "operator": {
-      "$ref": "#/$defs/nonPlaceholder"
-    },
-    "startedAt": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "completedAt": {
-      "type": "string",
-      "format": "date-time"
-    },
-    "device": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/device"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "provider": {
-      "type": [
-        "object",
-        "null"
-      ],
-      "required": [
-        "providerID",
-        "authority",
-        "packageName",
-        "installedPackageVersion",
-        "signingCertificateSha256"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "providerID": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "authority": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "packageName": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "installedPackageVersion": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "signingCertificateSha256": {
-          "$ref": "#/$defs/sha256"
-        }
-      }
-    },
-    "expected": {
-      "$ref": "#/$defs/nonPlaceholder"
-    },
-    "actual": {
-      "$ref": "#/$defs/nonPlaceholder"
-    },
-    "fixtureHashes": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/hashRef"
-      }
-    },
-    "measurements": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/measurement"
-      }
-    },
-    "invariantResults": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "object",
-        "required": [
-          "invariantID",
-          "passed"
-        ],
-        "additionalProperties": false,
-        "properties": {
-          "invariantID": {
-            "pattern": "^INV-[A-Z0-9-]+$"
-          },
-          "passed": {
-            "type": "boolean"
-          }
-        }
-      }
-    },
-    "artifacts": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {
-        "$ref": "#/$defs/hashRef"
-      }
-    },
-    "packagingBaseline": {
-      "$ref": "#/$defs/packagingBaseline"
-    }
-  },
-  "$defs": {
-    "sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
-    "nonPlaceholder": {
-      "type": "string",
-      "minLength": 2,
-      "pattern": "(?i)^(?!.*(?:tbd|todo|unknown|placeholder|dummy|changeme|example|n/a|not[-_ ]?set)).+$"
-    },
-    "hashRef": {
-      "type": "object",
-      "required": [
-        "id",
-        "sha256"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "id": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "sha256": {
-          "$ref": "#/$defs/sha256"
-        }
-      }
-    },
-    "measurement": {
-      "type": "object",
-      "required": [
-        "gateID",
-        "metric",
-        "statistic",
-        "operator",
-        "value",
-        "unit",
-        "scope",
-        "sampleValues"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "gateID": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "metric": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "statistic": {
-          "enum": [
-            "p95",
-            "maximum",
-            "minimum"
-          ]
-        },
-        "operator": {
-          "enum": [
-            "lessThanOrEqual",
-            "greaterThanOrEqual"
-          ]
-        },
-        "value": {
-          "type": "number"
-        },
-        "unit": {
-          "enum": [
-            "ms",
-            "s",
-            "bytes",
-            "ratio",
-            "percent"
-          ]
-        },
-        "scope": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "sampleValues": {
-          "type": "array",
-          "minItems": 1,
-          "items": {
-            "type": "number"
-          }
-        }
-      }
-    },
-    "device": {
-      "type": "object",
-      "required": [
-        "roleID",
-        "manufacturer",
-        "model",
-        "serialHash",
-        "osVersion",
-        "apiLevel",
-        "buildFingerprint",
-        "totalStorageBytes",
-        "freeStorageBytes"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "roleID": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "manufacturer": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "model": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "serialHash": {
-          "$ref": "#/$defs/sha256"
-        },
-        "osVersion": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "apiLevel": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "buildFingerprint": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "totalStorageBytes": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "freeStorageBytes": {
-          "type": "integer",
-          "minimum": 0
-        }
-      }
-    },
-    "packagingBaseline": {
-      "type": "object",
-      "required": [
-        "policyID",
-        "baselineRevision",
-        "candidateRevision",
-        "toolchainID",
-        "targetScope",
-        "buildConfiguration",
-        "featureSet",
-        "artifactID",
-        "baselineBytes",
-        "candidateBytes",
-        "baselineArtifactSha256",
-        "candidateArtifactSha256"
-      ],
-      "additionalProperties": false,
-      "properties": {
-        "policyID": {
-          "const": "m2-pre-shared-core-packaging-baseline-v1"
-        },
-        "baselineRevision": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "candidateRevision": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "toolchainID": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "targetScope": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "buildConfiguration": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "featureSet": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "artifactID": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "baselineBytes": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "candidateBytes": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "baselineArtifactSha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "candidateArtifactSha256": {
-          "$ref": "#/$defs/sha256"
-        }
-      }
-    }
-  }
+  "title": "Completed synthetic or physical validation case evidence",
+  "type": "object"
 }

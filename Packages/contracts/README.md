@@ -8,7 +8,7 @@ Every family has normative prose, strict JSON Schema, positive and isolated nega
 
 ADR-0013 lifecycle applies: all current mirrors are `resourceOnlyPlanned`; if present they must be exact byte/file-set mirrors but claim no execution. Promotion to `required` needs a named executable consumer and evidence. Rust and Kotlin remain planned. Swift also remains planned because no executable production-language consumer currently reads this corpus.
 
-`scope-variances.json` overlays no current rows. A future `unavailable`/`deferred` variance requires an accepted decision ID, reason, user-visible behavior, `objectiveAmended: false`, and `parityStatus: blocking`; the base 270-row inventory always preserves M0 ownership.
+`scope-variances.json` overlays no current rows and is validated against an exact strict schema. Only `unavailable` and `deferred` are valid overlay classifications; each requires an accepted decision ID, reason, user-visible behavior, `objectiveAmended: false`, and `parityStatus: blocking`. The base 270-row inventory always preserves M0 ownership.
 
 ```sh
 python3 Packages/contracts/scripts/convert_capabilities.py --check

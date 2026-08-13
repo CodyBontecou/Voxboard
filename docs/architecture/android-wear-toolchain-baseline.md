@@ -26,6 +26,8 @@ Required before **M2 starts**:
 - Cargo resolver and exact UniFFI CLI/library/bindgen versions;
 - Apple target triples, Xcode build/version, Swift version, and XCFramework packaging
   command/tool identity;
+- exact Android NDK revision, exact native API/platform level for every Rust target, and
+  the complete Android ABI-to-Rust-target mapping needed to build M2 Android libraries;
 - generated Swift and Kotlin binding generator version/config hashes; and
 - hashes/paths for the committed Rust lockfile, `rust-toolchain.toml`, binding config,
   and generation scripts.
@@ -35,9 +37,8 @@ Required before **M3 starts** (in addition to the M2 fields):
 - JDK vendor and exact version;
 - Gradle distribution version and checksum;
 - Android Gradle Plugin and Kotlin versions;
-- compile SDK, target SDK, min SDKs, exact SDK build-tools, and exact NDK revision;
-- Compose compiler/BOM or individually pinned Compose artifacts;
-- Android ABI list and exact Rust target mapping; and
+- compile SDK, target SDK, min SDKs, and exact SDK build-tools;
+- Compose compiler/BOM or individually pinned Compose artifacts; and
 - hashes/paths for version catalogs, wrapper properties, dependency lock/verification
   metadata, and Android binding-generation configuration.
 
@@ -66,10 +67,12 @@ does not permit floating versions.
 
 ## Current entry-gate state
 
-- **M2: BLOCKED.** Exact Rust, UniFFI, binding, Xcode/Swift, target, and packaging pins
-  have not been selected and committed in the Vox-owned manifest/native files.
-- **M3: BLOCKED.** Exact Android/JDK/Gradle/AGP/Kotlin/SDK/NDK/Compose pins and Android
-  lock/verification files do not yet exist.
+- **M2: BLOCKED.** Exact Rust, UniFFI, binding, Xcode/Swift, target, packaging, Android
+  NDK, native API/platform levels, and ABI-to-Rust-target pins have not been selected and
+  committed in the Vox-owned manifest/native files.
+- **M3: BLOCKED.** The M2 NDK/native-target prerequisites above remain required; the
+  additional exact JDK/Gradle/AGP/Kotlin/SDK/Compose pins and Android lock/verification
+  files also do not yet exist.
 
 This status records missing prerequisites only. It claims no implementation, generated
 binding authority, build reproducibility, or validation evidence.

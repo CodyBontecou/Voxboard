@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stdlib-only validation for Vox.md M1 contracts, traces, mirrors, and ledger."""
 from __future__ import annotations
-import argparse, hashlib, json, re, shutil, subprocess, sys
+import argparse, copy, hashlib, json, re, shutil, subprocess, sys
 from pathlib import Path, PurePosixPath
 
 CLOSURE="29ec869c8bda4d511af787af394658d0274b339b"
@@ -41,6 +41,8 @@ def category(path,root):
  if r.startswith("Packages/contracts/validation/"): return "validationDefinition"
  if r.startswith("docs/architecture/adr-") or r.endswith("android-wear-m1-decisions.md"): return "acceptedDecision"
  if r.startswith("docs/validation/"): return "validationDocumentation"
+ if r==".github/workflows/contracts-ci.yml": return "contractWorkflow"
+ if r=="scripts/test-project-contracts.sh": return "contractGate"
  if "/fixtures/" in r: return "contractFixture"
  return "contractSource"
 
@@ -54,6 +56,7 @@ def governed(root):
  files += sorted(p for p in (base/"fixtures").glob("*/*.json"))
  files += sorted((root/"docs/architecture").glob("adr-*.md")); files.append(root/"docs/architecture/android-wear-m1-decisions.md")
  files += sorted(p for p in (root/"docs/validation").rglob("*") if p.is_file())
+ files += [root/".github/workflows/contracts-ci.yml",root/"scripts/test-project-contracts.sh"]
  return sorted(set(files),key=lambda p:relpath(p,root))
 
 def resources(root):
@@ -167,52 +170,176 @@ def semantic(family,obj,context=None):
   p=obj["payload"]; k=obj["messageKind"]
   if k=="recordingMetadata":
    only=p["mode"]=="recordingOnly"
-   if only != (p["localASRPolicy"]=="disabled" and p["locationPolicy"]=="excluded" and p["recordingOnlyFolderPolicyReference"] is not None and p["recordingOnlyFilenamePolicyReference"] is not None):
+   recording_only_policy=p["localASRPolicy"]=="disabled" and p["locationPolicy"]=="excluded" and p["recordingOnlyFolderPolicyReference"] is not None and p["recordingOnlyFilenamePolicyReference"] is not None
+   transcript_policy=p["recordingOnlyFolderPolicyReference"] is None and p["recordingOnlyFilenamePolicyReference"] is None
+   if (only and not recording_only_policy) or (not only and not transcript_policy):
     reject("wear.recordingModePolicy","$.payload.mode","Recording Only policies must be complete and transcript references absent")
-  if k=="transferFrontier" and p["durableOffset"]>p["assetLength"]: reject("wear.frontierBounds","$.payload.durableOffset","offset exceeds asset")
+  if k=="transferFrontier" and (p["durableOffset"]>p["assetLength"] or p["chunkLength"]>p["assetLength"]): reject("wear.frontierBounds","$.payload.durableOffset","frontier offset or chunk exceeds asset")
  if family=="wearable-protocol-trace": validate_trace(obj)
 
+def recording_scope(e):
+ return (e["senderInstallationID"],e["deviceID"],e["recordingID"],e["epoch"],e["correlationID"])
+
+def reconciliation_state(kind,prior=None):
+ if kind in ("capabilityHello","presetInventory","presetSnapshot","recordingMetadata"): return "localRecorded"
+ if kind in ("assetManifest","transferFrontier","transferReceipt"): return "assetPublished"
+ if kind=="phoneIngested": return "phoneIngested"
+ if kind in ("vaultCommitted","sourceDeletionAuthorized"): return "vaultCommitted"
+ if kind in ("terminalFailure","discarded"): return kind
+ return prior
+
 def validate_trace(trace):
- env=trace["envelopes"]; first=env[0]; sender=first["senderInstallationID"]; device=first["deviceID"]; recording=first["recordingID"]; epoch=first["epoch"]; corr=first["correlationID"]
- last=-1; kinds=[]; terminal=None
- for i,e in enumerate(env):
-  for field,expected in (("senderInstallationID",sender),("deviceID",device),("recordingID",recording),("epoch",epoch),("correlationID",corr)):
-   if e[field]!=expected: reject(f"trace.{field}Mismatch",f"$.envelopes[{i}].{field}","trace correlation changed")
-  if e["revision"]<=last: reject("trace.revisionNonMonotonic",f"$.envelopes[{i}].revision","revision must increase")
-  last=e["revision"]; kind=e["messageKind"]
-  if terminal and not (terminal=="vaultCommitted" and kind=="sourceDeletionAuthorized"): reject("trace.postTerminal",f"$.envelopes[{i}].messageKind","message follows terminal outcome")
-  if kind=="phoneIngested" and not any(x in kinds for x in ("transferReceipt","assetManifest")): reject("trace.ingestWithoutTransfer","$.envelopes[%d].messageKind"%i,"ingest lacks transfer evidence")
-  if kind=="vaultCommitted" and "phoneIngested" not in kinds: reject("trace.commitWithoutIngest",f"$.envelopes[{i}].messageKind","vault ACK lacks phone ingest")
-  if kind=="sourceDeletionAuthorized" and "vaultCommitted" not in kinds: reject("trace.deletionBeforeCommit",f"$.envelopes[{i}].messageKind","deletion lacks vault ACK")
-  if kind in ("vaultCommitted","terminalFailure","discarded"): terminal=kind
-  kinds.append(kind)
- final=kinds[-1]
- if final!=trace["expectedFinalState"]: reject("trace.finalState","$.expectedFinalState","declared state differs")
- allowed=final in ("sourceDeletionAuthorized","discarded")
- if trace["expectedDeletionPermitted"]!=allowed: reject("trace.deletionExpectation","$.expectedDeletionPermitted","deletion expectation differs")
+ states={}; revisions={}; message_ids={}; installation_epochs={}; retired_installations=set(); record_frontiers={}; active_installation=None
+ for i,event in enumerate(trace["events"]):
+  e=event["envelope"]; expected=event["expectedDisposition"]; kind=e["messageKind"]
+  installation=e["senderInstallationID"]; sender_message=(installation,e["messageID"]); encoded=canonical(e); scope=recording_scope(e); revision_scope=scope[:4]; record_key=scope[:3]; known_epoch=installation_epochs.get(installation)
+  semantic("wearable-protocol",e)
+  prior=message_ids.get(sender_message)
+  if prior is not None:
+   if prior!=encoded: reject("trace.messageIDCollision",f"$.events[{i}].envelope.messageID","sender-scoped message ID changed envelope bytes after first observation")
+   disposition="duplicateNoOp"
+  elif installation in retired_installations:
+   disposition="foreignInstallationRejected"
+  elif active_installation is not None and installation!=active_installation:
+   can_reconcile=kind=="reconciliationSummary" and (known_epoch is None or e["epoch"]>known_epoch)
+   disposition="accepted" if can_reconcile else "foreignInstallationRejected"
+  elif known_epoch is not None and e["epoch"]<known_epoch: disposition="staleEpochNoOp"
+  elif revision_scope in revisions and e["revision"]<=revisions[revision_scope]: disposition="staleRevisionNoOp"
+  else: disposition="accepted"
+  # First observation is authoritative even when rejected or stale. Reuse must be byte-identical.
+  message_ids[sender_message]=encoded
+  if disposition!=expected: reject("trace.dispositionMismatch",f"$.events[{i}].expectedDisposition",f"computed {disposition}")
+  if disposition!="accepted": continue
+  if active_installation is not None and installation!=active_installation:
+   retired_installations.add(active_installation)
+  active_installation=installation; installation_epochs[installation]=max(e["epoch"],known_epoch if known_epoch is not None else e["epoch"])
+  previous_revision=revisions.get(revision_scope); revisions[revision_scope]=e["revision"]
+  s=states.setdefault(scope,{"accepted":[],"acceptedRevisions":set(),"state":"reconciled","terminal":None,"inventory":{},"snapshots":{},"metadata":None,"frozenPolicy":None,"asset":None,"frontier":None,"receipt":None,"ingested":None,"vault":None,"actions":{}})
+  imported_frontier=record_frontiers.get(record_key); imported_terminal=imported_frontier[1] if imported_frontier and imported_frontier[1] in ("vaultCommitted","terminalFailure","discarded") else None
+  terminal=s["terminal"] or imported_terminal
+  if terminal and not (terminal=="vaultCommitted" and kind=="sourceDeletionAuthorized"):
+   reject("trace.postTerminal",f"$.events[{i}].envelope.messageKind","accepted message follows terminal outcome in recording scope")
+  p=e["payload"]
+  if kind=="reconciliationSummary":
+   recording_ids=[x["recordingID"] for x in p["recordings"]]
+   if len(recording_ids)!=len(set(recording_ids)): reject("trace.reconciliationDuplicateRecording",f"$.events[{i}].envelope.payload.recordings","recording IDs must be unique")
+   if recording_ids.count(e["recordingID"])!=1: reject("trace.reconciliationRecordingIdentity",f"$.events[{i}].envelope.payload.recordings","summary must include envelope recording exactly once")
+   entry=next(x for x in p["recordings"] if x["recordingID"]==e["recordingID"])
+   known_frontier=record_frontiers.get(record_key)
+   if known_frontier is not None and (entry["lastRevision"],entry["state"])!=known_frontier: reject("trace.reconciliationFrontier",f"$.events[{i}].envelope.payload.recordings","known recording revision/state must match reducer history")
+   pending=p["pendingActionCorrelationIDs"]
+   prior_correlations={x["correlationID"] for state in states.values() for x in state["accepted"] if x["senderInstallationID"]==installation and x["deviceID"]==e["deviceID"] and x["messageKind"] in ("reassign","retry","discard")}
+   if any(x not in prior_correlations for x in pending): reject("trace.reconciliationPendingCorrelation",f"$.events[{i}].envelope.payload.pendingActionCorrelationIDs","pending correlations must identify earlier accepted installation/device messages")
+   for reconciled in p["recordings"]:
+    key=(installation,e["deviceID"],reconciled["recordingID"]); known=record_frontiers.get(key)
+    if known is not None and (reconciled["lastRevision"],reconciled["state"])!=known: reject("trace.reconciliationFrontier",f"$.events[{i}].envelope.payload.recordings","known recording revision/state must match reducer history")
+    record_frontiers[key]=(reconciled["lastRevision"],reconciled["state"])
+    imported_revision_scope=(installation,e["deviceID"],reconciled["recordingID"],e["epoch"])
+    revisions[imported_revision_scope]=max(revisions.get(imported_revision_scope,-1),reconciled["lastRevision"])
+    imported_scope=(installation,e["deviceID"],reconciled["recordingID"],e["epoch"],e["correlationID"])
+    imported=states.setdefault(imported_scope,{"accepted":[],"acceptedRevisions":set(),"state":"reconciled","terminal":None,"inventory":{},"snapshots":{},"metadata":None,"frozenPolicy":None,"asset":None,"frontier":None,"receipt":None,"ingested":None,"vault":None,"actions":{}})
+    imported["acceptedRevisions"].add(reconciled["lastRevision"]); imported["state"]=reconciled["state"]
+    if reconciled["state"] in ("vaultCommitted","terminalFailure","discarded"): imported["terminal"]=reconciled["state"]
+  if kind=="unsupportedVersion": s["terminal"]=kind
+  elif kind=="presetInventory":
+   s["inventory"]={x["presetID"]:(x["revision"],x["snapshotHash"]) for x in p["presets"]}
+  elif kind=="presetSnapshot":
+   key=p["presetID"]
+   if s["inventory"].get(key)!=(p["presetRevision"],p["snapshotHash"]): reject("trace.presetMismatch",f"$.events[{i}].envelope.payload","snapshot does not match accepted inventory")
+   if sha(canonical(p["portablePolicy"]))!=p["snapshotHash"]: reject("trace.presetHash",f"$.events[{i}].envelope.payload.snapshotHash","snapshot hash must attest complete portable policy canonical bytes")
+   s["snapshots"][key]=p
+  elif kind=="recordingMetadata":
+   if s["metadata"] is not None: reject("trace.metadataAlreadyFrozen",f"$.events[{i}].envelope.payload","recording metadata and policy are immutable in a recording scope")
+   snap=s["snapshots"].get(p["presetID"])
+   if not snap or (p["presetRevision"],p["presetSnapshotHash"])!=(snap["presetRevision"],snap["snapshotHash"]): reject("trace.metadataPresetMismatch",f"$.events[{i}].envelope.payload","metadata does not match accepted preset snapshot")
+   policy=snap["portablePolicy"]
+   if (p["localASRPolicy"],p["locationPolicy"],p["recordingOnlyFolderPolicyReference"],p["recordingOnlyFilenamePolicyReference"])!=(policy["localASRPolicy"],policy["locationPolicy"],policy["recordingOnlyFolderPolicyReference"],policy["recordingOnlyFilenamePolicyReference"]): reject("trace.metadataPolicyMismatch",f"$.events[{i}].envelope.payload","metadata does not match complete frozen portable policy")
+   s["metadata"]=copy.deepcopy(p); s["frozenPolicy"]=copy.deepcopy(policy)
+  elif kind=="assetManifest":
+   if not s["metadata"]: reject("trace.assetWithoutMetadata",f"$.events[{i}].envelope.payload","asset lacks accepted frozen recording metadata")
+   if s["ingested"] is not None: reject("trace.assetReplacementAfterIngest",f"$.events[{i}].envelope.payload","asset cannot be replaced after phone ingest in the same recording scope")
+   s["asset"]=(p["assetID"],p["length"],p["sha256"]); s["frontier"]=None; s["receipt"]=None; s["ingested"]=None; s["vault"]=None; s["terminal"]=None
+  elif kind=="transferFrontier":
+   if s["asset"]!=(p["assetID"],p["assetLength"],p["assetSHA256"]): reject("trace.assetMismatch",f"$.events[{i}].envelope.payload","frontier does not match scoped manifest")
+   previous=s["frontier"]
+   if previous:
+    expected_offset=previous["durableOffset"]+p["chunkLength"]
+    if p["frontierRevision"]<=previous["frontierRevision"]: reject("trace.frontierRevision",f"$.events[{i}].envelope.payload.frontierRevision","frontier revision must strictly increase")
+    if p["chunkSequence"]!=previous["chunkSequence"]+1: reject("trace.chunkSequence",f"$.events[{i}].envelope.payload.chunkSequence","chunk sequence must be contiguous")
+    if p["durableOffset"]!=expected_offset: reject("trace.frontierProgression",f"$.events[{i}].envelope.payload.durableOffset","durable offset must advance by chunk length")
+   elif p["chunkSequence"]!=0 or p["durableOffset"]!=p["chunkLength"]:
+    reject("trace.frontierStart",f"$.events[{i}].envelope.payload","first frontier must be chunk zero at its chunk length")
+   s["frontier"]=p
+  elif kind=="transferReceipt":
+   f=s["frontier"]
+   if not s["asset"] or not f or p["assetID"]!=s["asset"][0] or p["durableOffset"]!=f["durableOffset"] or p["frontierRevision"]!=f["frontierRevision"]: reject("trace.receiptMismatch",f"$.events[{i}].envelope.payload","receipt does not match scoped durable frontier")
+   s["receipt"]=p
+  elif kind=="phoneIngested":
+   a=s["asset"]; f=s["frontier"]; r=s["receipt"]
+   if not a or not f or not r or p["durableReceiptID"]!=r["transportReceiptID"] or (p["assetLength"],p["assetSHA256"])!=a[1:] or f["durableOffset"]!=a[1]: reject("trace.ingestMismatch",f"$.events[{i}].envelope.payload","phone ingest lacks matching complete scoped asset/frontier/receipt")
+   s["ingested"]=e
+  elif kind=="vaultCommitted":
+   ingest=s["ingested"]
+   if not ingest or p["phoneIngestedCorrelationID"]!=ingest["correlationID"]: reject("trace.commitCorrelation",f"$.events[{i}].envelope.payload.phoneIngestedCorrelationID","vault ACK lacks scoped correlated ingest")
+   if s["metadata"]["mode"]=="recordingOnly" and (p["verifiedArtifactLength"],p["verifiedArtifactHash"])!=s["asset"][1:]: reject("trace.recordingOnlyArtifactMismatch",f"$.events[{i}].envelope.payload","Recording Only vault artifact must match source media")
+   s["vault"]=e; s["terminal"]=kind
+  elif kind=="sourceDeletionAuthorized":
+   vault=s["vault"]
+   if not vault or p["vaultCommitCorrelationID"]!=vault["correlationID"] or p["durableObservationReceiptID"]!=vault["payload"]["destinationReceiptID"]: reject("trace.deletionCorrelation",f"$.events[{i}].envelope.payload.vaultCommitCorrelationID","deletion lacks scoped correlated vault ACK receipt")
+   s["terminal"]=kind
+  elif kind=="terminalFailure":
+   if not any(x["correlationID"]==p["failedMessageCorrelationID"] for x in s["accepted"]): reject("trace.failureCorrelation",f"$.events[{i}].envelope.payload.failedMessageCorrelationID","failure lacks earlier scoped correlated message")
+   s["terminal"]=kind
+  elif kind in ("reassign","retry","discard"):
+   action=p["actionID"]
+   if action in s["actions"]: reject("trace.actionIDCollision",f"$.events[{i}].envelope.payload.actionID","action ID must be unique in recording scope")
+   if kind=="retry" and (p["retryFromRevision"] not in s["acceptedRevisions"] or p["retryFromRevision"]>=e["revision"]): reject("trace.retryRevision",f"$.events[{i}].envelope.payload.retryFromRevision","retry must name an earlier accepted revision")
+   if kind=="reassign" and (not s["frozenPolicy"] or p["targetCapabilityReference"]==s["frozenPolicy"]["destinationCapabilityReference"]): reject("trace.reassignMeaning",f"$.events[{i}].envelope.payload.targetCapabilityReference","reassign must change the destination frozen at recording metadata")
+   s["actions"][action]=kind
+  elif kind=="discarded":
+   if s["actions"].get(p["actionReceiptID"])!="discard": reject("trace.discardCorrelation",f"$.events[{i}].envelope.payload.actionReceiptID","discard receipt lacks scoped user action")
+   s["terminal"]=kind
+  s["accepted"].append(e); s["acceptedRevisions"].add(e["revision"]); s["state"]=kind
+  if kind!="reconciliationSummary":
+   prior_frontier=record_frontiers.get(record_key); reduced=reconciliation_state(kind,prior_frontier[1] if prior_frontier else None)
+   if reduced is not None: record_frontiers[record_key]=(e["revision"],reduced)
+ final=trace["expectedFinalRecordingIdentity"]
+ final_scope=(final["senderInstallationID"],final["deviceID"],final["recordingID"],final["epoch"],final["correlationID"])
+ if final_scope not in states: reject("trace.finalIdentity","$.expectedFinalRecordingIdentity","final recording scope was not accepted")
+ state=states[final_scope]["state"]
+ if state!=trace["expectedFinalState"]: reject("trace.finalState","$.expectedFinalState",f"computed {state}")
+ allowed=state in ("sourceDeletionAuthorized","discarded")
+ if trace["expectedDeletionPermitted"]!=allowed: reject("trace.deletionExpectation","$.expectedDeletionPermitted","deletion expectation differs for final recording scope")
 
 def accepted_decisions(root):
  text=(root/"docs/architecture/android-wear-m1-decisions.md").read_text()
  return set(DECISION_RE.findall(text))
 
 def validate_capabilities(root,inventory,overlay):
- m0=load(root/"docs/architecture/android-wear-m0-capabilities.json")
- if inventory.get("producerRevision")!=CLOSURE or inventory.get("healthMdPrecedent")!=HEALTH: reject("capability.provenance","$","pin mismatch")
- src=inventory["source"]
- if src.get("sha256")!=digest(root/src["path"]): reject("capability.sourceHash","$.source.sha256","M0 source drift")
+ base=root/"Packages/contracts"; schema_file=base/"schemas/scope-variances.schema.json"; schema=load(schema_file)
+ audit_schema(schema); schema_validate(overlay,schema,schema_file=schema_file,root_schema=schema,contracts_root=base)
+ m0_path=root/"docs/architecture/android-wear-m0-capabilities.json"; m0=load(m0_path)
+ expected_caps=[]
+ for c in m0["capabilities"]:
+  item={k:copy.deepcopy(c[k]) for k in ("id","outcome","evidence","platforms")}
+  item.update(classification={"shared":"shared","native":"native","adjusted":"adjusted"}[c["owner"]],legacyParity=c["parity"],programScope=c["programScope"],milestone=c["milestone"],dependencies=copy.deepcopy(c["dependencies"]))
+  item["acceptance"]=[dict({"mappingID":f"{c['id']}.acceptance.{i+1}"},**copy.deepcopy(a)) for i,a in enumerate(c["acceptance"])]
+  item["status"]=c["status"]; expected_caps.append(item)
+ expected_inventory={"schemaVersion":1,"producerRevision":CLOSURE,"healthMdPrecedent":HEALTH,"source":{"path":"docs/architecture/android-wear-m0-capabilities.json","sha256":digest(m0_path)},"dependencyCatalog":copy.deepcopy(m0["dependencyCatalog"]),"capabilities":expected_caps}
+ if inventory!=expected_inventory: reject("capability.conversionDrift","$","inventory must exactly equal deterministic M0 conversion, including acceptance and dependencies")
  old={x["id"]:x for x in m0["capabilities"]}; new={x["id"]:x for x in inventory["capabilities"]}
  if set(old)!=set(new) or len(new)!=270: reject("capability.oneToOne","$.capabilities","M0 IDs not retained")
  variances={x["capabilityID"]:x for x in overlay["variances"]}; decisions=accepted_decisions(root)
  if len(variances)!=len(overlay["variances"]): reject("variance.duplicate","$.variances","duplicate capability")
  for cid,o in old.items():
   n=new[cid]; expected={"shared":"shared","native":"native","adjusted":"adjusted"}[o["owner"]]
-  classification=variances.get(cid,{}).get("classification",expected)
+  classification=variances.get(cid,{}).get("classification")
   if n["classification"]!=expected: reject("capability.ownerDrift",f"$.capabilities[{cid}].classification","base inventory must preserve owner")
   for key in ("outcome","evidence","platforms","programScope","milestone","dependencies","status"):
    if n.get(key)!=o.get(key): reject("capability.retention",f"$.capabilities[{cid}].{key}","M0 field drift")
-  if classification in ("unavailable","deferred"):
+  if classification is not None:
    v=variances[cid]
-   if v.get("decisionID") not in decisions or not v.get("reason") or not v.get("userVisibleBehavior") or v.get("objectiveAmended") is not False or v.get("parityStatus")!="blocking": reject("variance.unapproved",f"$.variances[{cid}]","variance requires accepted blocking decision")
+   if v["decisionID"] not in decisions: reject("variance.unapproved",f"$.variances[{cid}]","variance requires accepted blocking decision")
  for cid in variances:
   if cid not in old: reject("variance.unknownCapability","$.variances","unknown capability")
 
@@ -288,11 +415,12 @@ def validate(root):
   if mirror.get("sources")!=rels: reject("mirror.sourceSet",f"$.mirrors.{path}","source list differs")
   if lifecycle=="required" and (not mirror.get("consumer") or not mirror.get("evidence") or not (root/mirror["evidence"]).is_file()): reject("mirror.requiredEvidence",f"$.mirrors.{path}","named executable consumer evidence required")
   if lifecycle=="resourceOnlyPlanned" and (mirror.get("consumer") is not None or mirror.get("evidence") is not None): reject("mirror.plannedClaimsEvidence",f"$.mirrors.{path}","planned mirror cannot claim execution")
-  target=root/path; actual={p.relative_to(target).as_posix() for p in target.rglob("*") if p.is_file()} if target.exists() else set()
-  if target.exists() and actual!=set(rels): reject("mirror.exactFileSet",f"$.mirrors.{path}","resource set differs")
-  if target.exists():
-   for rel in rels:
-    if (target/rel).read_bytes()!=(base/rel).read_bytes(): reject("mirror.bytes",f"$.mirrors.{path}/{rel}","bytes differ")
+  target=root/path
+  if not target.is_dir(): reject("mirror.missing",f"$.mirrors.{path}","declared M1 resource mirror must be present")
+  actual={p.relative_to(target).as_posix() for p in target.rglob("*") if p.is_file()}
+  if actual!=set(rels): reject("mirror.exactFileSet",f"$.mirrors.{path}","resource set differs")
+  for rel in rels:
+   if (target/rel).read_bytes()!=(base/rel).read_bytes(): reject("mirror.bytes",f"$.mirrors.{path}/{rel}","bytes differ")
  if seen!=set(MIRRORS): reject("mirror.inventory","$.mirrors","destination missing")
  overlay=load(base/"scope-variances.json"); validate_capabilities(root,load(base/"product-capabilities.json"),overlay)
  print(f"Contracts validation passed: {len(records)} governed files, {len(cases)} fixtures, 270 owner-preserving capabilities, {len(MIRRORS)} resource mirrors.")
