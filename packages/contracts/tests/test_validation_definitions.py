@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-CONTRACTS_ROOT = REPOSITORY_ROOT / "Packages" / "contracts"
+CONTRACTS_ROOT = REPOSITORY_ROOT / "packages" / "contracts"
 VALIDATOR = CONTRACTS_ROOT / "scripts" / "validate_validation_definitions.py"
 
 

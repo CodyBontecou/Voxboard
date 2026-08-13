@@ -1,4 +1,5 @@
 import json
+import hashlib
 import shutil
 import subprocess
 import sys
@@ -13,7 +14,25 @@ class ContractValidatorTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory()
         self.root=Path(self.temp.name)/'repo'
-        shutil.copytree(ROOT,self.root,ignore=shutil.ignore_patterns('.git','.build','build','.swiftpm','__pycache__'))
+        required_trees = [
+            'packages/contracts',
+            'Packages/VoxboardShared/Tests/Fixtures/Contracts',
+            'packages/vox-core-rust/tests/resources/contracts',
+            'apps/android/core-bridge/src/test/resources/contracts',
+        ]
+        for relative in required_trees:
+            source = ROOT / relative
+            destination = self.root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copytree(
+                source,
+                destination,
+                ignore=shutil.ignore_patterns('__pycache__'),
+            )
+        ledger = Path('docs/architecture/android-wear-m0-capabilities.json')
+        destination = self.root / ledger
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / ledger, destination)
 
     def tearDown(self): self.temp.cleanup()
 
@@ -44,7 +63,6 @@ class ContractValidatorTests(unittest.TestCase):
         self.json_file('packages/contracts/product-capabilities.json',mutate)
         # Update manifest hash/count so retention, rather than byte drift, is exercised.
         p=self.root/'packages/contracts/product-capabilities.json'; m=self.root/'packages/contracts/manifest.json'; manifest=json.loads(m.read_text())
-        import hashlib
         for r in manifest['files']:
             if r['path']=='packages/contracts/product-capabilities.json': r.update(bytes=len(p.read_bytes()),sha256=hashlib.sha256(p.read_bytes()).hexdigest())
         m.write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
