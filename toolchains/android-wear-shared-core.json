@@ -1,0 +1,48 @@
+{
+  "$schema": "android-wear-shared-core.schema.json",
+  "androidNative": {
+    "cargoNdkVersion": "4.1.2",
+    "ndkRevision": "27.1.12297006",
+    "targets": [
+      {"abi": "arm64-v8a", "apiLevel": 28, "rustTarget": "aarch64-linux-android"},
+      {"abi": "armeabi-v7a", "apiLevel": 28, "rustTarget": "armv7-linux-androideabi"},
+      {"abi": "x86_64", "apiLevel": 28, "rustTarget": "x86_64-linux-android"},
+      {"abi": "x86", "apiLevel": 28, "rustTarget": "i686-linux-android"}
+    ]
+  },
+  "apple": {
+    "deploymentTarget": "17.6",
+    "packagingTool": "xcodebuild -create-xcframework",
+    "swiftVersion": "6.3.3",
+    "targets": ["aarch64-apple-ios", "aarch64-apple-ios-sim", "x86_64-apple-ios"],
+    "xcodeBuild": "17F113",
+    "xcodeVersion": "26.6"
+  },
+  "bindingGeneration": {
+    "hashStatus": "required-before-implementation",
+    "kotlinConfigPath": "Packages/vox-core-rust/uniffi.toml",
+    "kotlinScriptPath": "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh",
+    "swiftConfigPath": "Packages/vox-core-rust/uniffi.toml",
+    "swiftScriptPath": "Packages/vox-core-rust/scripts/generate-swift-bindings.sh"
+  },
+  "requiredBeforeImplementation": [
+    "Packages/vox-core-rust/Cargo.lock",
+    "Packages/vox-core-rust/scripts/generate-swift-bindings.sh",
+    "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh",
+    "Packages/vox-core-rust/scripts/build-android-cdylibs.sh",
+    "Packages/vox-core-rust/scripts/build-apple-xcframework.sh"
+  ],
+  "rust": {
+    "cargoResolver": "3",
+    "components": ["clippy", "rustfmt"],
+    "edition": "2024",
+    "msrv": "1.87.0",
+    "profile": "minimal",
+    "rustToolchainPath": "Packages/vox-core-rust/rust-toolchain.toml",
+    "targets": ["aarch64-apple-ios", "aarch64-apple-ios-sim", "x86_64-apple-ios", "aarch64-linux-android", "armv7-linux-androideabi", "x86_64-linux-android", "i686-linux-android"],
+    "toolchain": "1.97.1"
+  },
+  "schemaVersion": 1,
+  "status": "m2-entry-pins-selected-no-build-claim",
+  "uniffi": {"bindgenVersion": "0.32.0", "cliVersion": "0.32.0", "libraryVersion": "0.32.0"}
+}

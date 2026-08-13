@@ -270,20 +270,17 @@
     }
   ],
   "packagingBaselinePolicy": {
-    "baselineRevision": "b50167aebb959e394908af3a5949f43fa88d6265",
-    "comparisonScope": "Each candidate artifact is compared only with the identically scoped baseline artifact; the maximum scoped growth is evaluated by packaging-growth.",
-    "growthFormula": "((candidateBytes - baselineBytes) / baselineBytes) * 100",
-    "id": "m2-pre-shared-core-packaging-baseline-v1",
-    "method": "Build the planning-parent revision and candidate revision from clean checkouts with the same pinned release toolchain, target matrix, features, stripping, symbols, archive container, and uncompressed-size procedure; record each source commit, toolchain identity, artifact identity, byte count, and artifact SHA-256.",
+    "futureGrowthRule": "The approved first M2 artifact set becomes the future identically scoped nonzero baseline. Later artifacts must pass both their absolute gate and packaging-growth at 10 percent.",
+    "id": "m2-first-core-packaging-baseline-v1",
+    "initializationMode": "absoluteFirstCoreThenApprovedBaseline",
+    "initializationRule": "The first M2 shared-core artifacts have no percentage baseline. Each of the six exact leaves must pass its absolute gate with nonzero bytes and SHA-256; no zero-byte or fabricated predecessor is permitted.",
     "milestone": "M2",
     "required": true,
     "requiredHashFields": [
-      "baselineArtifactSha256",
       "candidateArtifactSha256"
     ],
     "requiredIdentityFields": [
       "gateID",
-      "baselineRevision",
       "candidateRevision",
       "toolchainID",
       "targetScope",
@@ -292,12 +289,30 @@
       "artifactID"
     ],
     "requiredLeafScopes": [
-      {"gateID": "android-core-arm64-uncompressed", "targetScope": "arm64-v8a"},
-      {"gateID": "android-core-armv7-uncompressed", "targetScope": "armeabi-v7a"},
-      {"gateID": "android-core-x86_64-uncompressed", "targetScope": "x86_64"},
-      {"gateID": "android-core-x86-uncompressed", "targetScope": "x86"},
-      {"gateID": "apple-xcframework-per-slice", "targetScope": "xcframework-ios-device-arm64"},
-      {"gateID": "apple-xcframework-per-slice", "targetScope": "xcframework-ios-simulator-arm64-x86_64"}
+      {
+        "gateID": "android-core-arm64-uncompressed",
+        "targetScope": "arm64-v8a"
+      },
+      {
+        "gateID": "android-core-armv7-uncompressed",
+        "targetScope": "armeabi-v7a"
+      },
+      {
+        "gateID": "android-core-x86_64-uncompressed",
+        "targetScope": "x86_64"
+      },
+      {
+        "gateID": "android-core-x86-uncompressed",
+        "targetScope": "x86"
+      },
+      {
+        "gateID": "apple-xcframework-per-slice",
+        "targetScope": "xcframework-ios-device-arm64"
+      },
+      {
+        "gateID": "apple-xcframework-per-slice",
+        "targetScope": "xcframework-ios-simulator-arm64-x86_64"
+      }
     ]
   },
   "schemaVersion": 1

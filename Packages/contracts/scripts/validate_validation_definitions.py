@@ -250,7 +250,7 @@ def validate_campaign(root:Path,cdir:Path,docs,schemas)->None:
             growths=[]; seen_gates=set()
             for b in baselines:
                 scope=b["targetScope"]; gate_id=b["gateID"]; seen_gates.add(gate_id)
-                if b["baselineRevision"]!=docs["performance-gates.json"]["packagingBaselinePolicy"]["baselineRevision"] or b["candidateRevision"]!=e["commitSha"]: raise ValidationError("packaging baseline identity missing or wrong")
+                if b["baselineRevision"]==b["candidateRevision"] or b["candidateRevision"]!=e["commitSha"]: raise ValidationError("packaging future baseline identity missing or wrong")
                 baseline_id=b["artifactID"]+".baseline"; candidate_id=b["artifactID"]+".candidate"
                 if refs.get(baseline_id)!=(b["baselineArtifactSha256"],b["baselineBytes"]) or refs.get(candidate_id)!=(b["candidateArtifactSha256"],b["candidateBytes"]): raise ValidationError("packaging bytes/hashes are not bound to referenced artifact files")
                 growths.append(((b["candidateBytes"]-b["baselineBytes"])/b["baselineBytes"])*100)
@@ -324,7 +324,7 @@ def validate(root:Path,campaign:Path|None=None)->None:
     if campaign: validate_campaign(root,campaign,docs,schemas)
     print(f"Validation definitions passed: {len(devices)} roles, {len(providers)} providers, {len(cases)} cases, {len(gates)} gates" + ("; campaign computed" if campaign else ""))
 
-CANONICAL_HASHES={'devices': 'ecd13c2b779065abe91824bdbc2726c3e1363368fe46558fe694aa571597d8a4', 'providers': 'd0e9a96c63213cbaa13c587e92b6318ae63f88ecd88b7387c0a441c57e0eaed2', 'cases': '040cd3a30f4dc2ee6dc6e28571a3c9afa40bdf97163de23fdf7242fa20896970', 'gates': 'a8eab54baec341a33e5aad308464e662656d0b859296f292388f72ad9353022a', 'aggregate': '871d3746e8d18191510f211caa5877c2a59056223abcac2365f207d9034dd013', 'evidencePolicy': '843a97c88a5303036a0fd1a5c57fd62c323a90e9201bfc5b04ef4040b7fda9b3', 'approvalPolicy': '72733b3c0b09f38ee7b534a456dbfabec103afa169413f37eac70979f037fab3', 'schemas': '65edfab2dca668d66917ea1a5c88143903105ee5f2e555a404fafad263c8393d'}
+CANONICAL_HASHES={'devices': 'ecd13c2b779065abe91824bdbc2726c3e1363368fe46558fe694aa571597d8a4', 'providers': 'd0e9a96c63213cbaa13c587e92b6318ae63f88ecd88b7387c0a441c57e0eaed2', 'cases': '040cd3a30f4dc2ee6dc6e28571a3c9afa40bdf97163de23fdf7242fa20896970', 'gates': '4e2a436353c4c34d42d54a8be415dbe818e64621dc7cada8b30c8807b5ba2040', 'aggregate': '871d3746e8d18191510f211caa5877c2a59056223abcac2365f207d9034dd013', 'evidencePolicy': '843a97c88a5303036a0fd1a5c57fd62c323a90e9201bfc5b04ef4040b7fda9b3', 'approvalPolicy': '72733b3c0b09f38ee7b534a456dbfabec103afa169413f37eac70979f037fab3', 'schemas': '1abb5372f6e42c16b6ada17c95e04b8959df497810e48d4ce887d894a318f877'}
 
 def main()->int:
     ap=argparse.ArgumentParser(); ap.add_argument("--contracts-root",type=Path,default=Path(__file__).resolve().parents[1]); ap.add_argument("--campaign-dir",type=Path)

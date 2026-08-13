@@ -41,7 +41,7 @@ class Tests(unittest.TestCase):
     for j,(scope,gid) in enumerate(package_scopes):
      bp=c/f'artifacts/package-{j}.baseline';cp=c/f'artifacts/package-{j}.candidate';artifact=f'artifacts/package-{j}';b=bp.stat().st_size;candidate=cp.stat().st_size
      arts += [{'id':artifact+'.baseline','sha256':digest(bp)},{'id':artifact+'.candidate','sha256':digest(cp)}]
-     baselines.append({'policyID':'m2-pre-shared-core-packaging-baseline-v1','gateID':gid,'baselineRevision':docs['performance-gates.json']['packagingBaselinePolicy']['baselineRevision'],'candidateRevision':commit,'toolchainID':'pinned-release-toolchain','targetScope':scope,'buildConfiguration':'release-stripped','featureSet':'default-features','artifactID':artifact,'baselineBytes':b,'candidateBytes':candidate,'baselineArtifactSha256':digest(bp),'candidateArtifactSha256':digest(cp)})
+     baselines.append({'policyID':'m2-first-core-packaging-baseline-v1','gateID':gid,'baselineRevision':'b'*40,'candidateRevision':commit,'toolchainID':'pinned-release-toolchain','targetScope':scope,'buildConfiguration':'release-stripped','featureSet':'default-features','artifactID':artifact,'baselineBytes':b,'candidateBytes':candidate,'baselineArtifactSha256':digest(bp),'candidateArtifactSha256':digest(cp)})
      growth.append((candidate-b)/b*100)
     for gid in case['performanceGateIDs']:
      if gid=='packaging-growth': continue

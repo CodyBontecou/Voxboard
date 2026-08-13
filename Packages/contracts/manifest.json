@@ -13,10 +13,10 @@
       "sha256": "37f73871c34574de6c6b18153bab3b3b966e30c8bd335625f5a3321925618e76"
     },
     {
-      "bytes": 948,
+      "bytes": 2282,
       "category": "contractSource",
       "path": "Packages/contracts/artifact-plan/v1/contract.md",
-      "sha256": "2abb47f23807e1e93ac83c8f6b5f771c53c1f83cb7d8b34809763eb1cf6a3b7d"
+      "sha256": "ee9a737d0552b811c6c80b7dbfd597805b72e53606cd40f34848de565cc91b00"
     },
     {
       "bytes": 11847,
@@ -49,34 +49,46 @@
       "sha256": "c19b1dd5fa31ac616b568d0c0494c664f131b51d77d42292b6cdf993900d14f3"
     },
     {
+      "bytes": 1713,
+      "category": "contractSource",
+      "path": "Packages/contracts/core-api/v1/contract.md",
+      "sha256": "9ae130c2fde09cef52ae39e3503d945087dee9babfff747b382c256e277db5aa"
+    },
+    {
+      "bytes": 5544,
+      "category": "contractSource",
+      "path": "Packages/contracts/core-api/v1/schema.json",
+      "sha256": "565e4ba59384272785013e0d323409fc8b92d90caed8a3ca93527c657d11ef00"
+    },
+    {
       "bytes": 2652,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-commit-order.json",
-      "sha256": "cf6de0a1ed0c4e842f5218f1c4300300e134f38a8f5d0e46aa8abbc13f6e0a9a"
+      "sha256": "7b3b112368bc47afc1d7f8df9287d8df11c5c6f9bdd7815f48ab03c08f32bcf4"
     },
     {
       "bytes": 2651,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
-      "sha256": "df09316419405b60c80112c62a7fd7b8e513190dc5a76ca41e4e2958546a32a4"
+      "sha256": "4c7e79a8b5c8b93fdbc797368a0676e4723f698aaf1c66b2ef52a03b368882fd"
     },
     {
       "bytes": 2654,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-marker-syntax.json",
-      "sha256": "0277b744d2406208d2954eb77c08b3e3d48838a6dddbc289f001e3899a2f3ee5"
+      "sha256": "1e603fdeaa0fbebc8e89055fad4a2e3a113f9a8e860bae8a062c9286ea56aba6"
     },
     {
       "bytes": 2646,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-tag-artifact-mismatch.json",
-      "sha256": "dca6c27ba07fa2bc88bf14ccca2dbe06c733a2de78af14f65c8fdb3295811b32"
+      "sha256": "2bb4cd6cad6214abd1ad36a41ddf03efd2fcb30ddb25c26a2a71646d5687f33e"
     },
     {
       "bytes": 2652,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/valid-complete.json",
-      "sha256": "25436267b66d51154e81303a8896e4b0e166f8c79576a2ff7fd300e2e85a08cc"
+      "sha256": "6601310b15141ddba1532e425738954a111e7a9b9d96666a9f878b90cd392375"
     },
     {
       "bytes": 4155,
@@ -137,6 +149,90 @@
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/capture-preparation-input/valid-complete.json",
       "sha256": "14fcb71e33e63cdd8a2869bc4ecbec6013201731da01dc98e67d70168c3773f0"
+    },
+    {
+      "bytes": 289,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-chunk-oversize.json",
+      "sha256": "09ba6d4f745cbd2a95106ec690fa1982e9cfa2389c426f493d721f3b39fa0c54"
+    },
+    {
+      "bytes": 556,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-descriptor-order.json",
+      "sha256": "02a5ab8fa531e9ea462889764aa813ce44588313d6825604651e5f5bd88a43b0"
+    },
+    {
+      "bytes": 594,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-duplicate-drained-artifact.json",
+      "sha256": "24ced087d5d7a143131805ad79a4b0d47c11c692bfda1bdd67662d4d3ca4a785"
+    },
+    {
+      "bytes": 112,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-incompatible-no-mismatch.json",
+      "sha256": "26cf85274e957a7a0a0e309e82c2b950fad4200996a86aebfedfc8e6b75946ef"
+    },
+    {
+      "bytes": 105,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-ready-not-permitted.json",
+      "sha256": "122f6c86285140c9aae6d19e22941439795184fd0539f40191638a56caf90589"
+    },
+    {
+      "bytes": 415,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-unknown-field.json",
+      "sha256": "92d748b541709d7ad6faf573d4ba797cb585cf0daf5f26364a826a16392f1cbc"
+    },
+    {
+      "bytes": 370,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-unsupported-profile.json",
+      "sha256": "047d319b776b17ad955ab64280c13bcf3fa066408cfbf78995339a9a3ff16fa8"
+    },
+    {
+      "bytes": 393,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-build-info.json",
+      "sha256": "fea110d808ad69558020326e43c89a4cf769979979efc0abf80152c82cbfb1df"
+    },
+    {
+      "bytes": 354,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-drained-hashes.json",
+      "sha256": "1318a034690b999f65379d2a51e6a925c7b122a9e8a98332b811695291cba13a"
+    },
+    {
+      "bytes": 556,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-expected-artifacts.json",
+      "sha256": "6a2bbb1312c2b5ece84ac31b894152b856ac6fc422cdefc39c913a1bae35c255"
+    },
+    {
+      "bytes": 370,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-expected-versions.json",
+      "sha256": "7f9f24f2cdee319396ad6c0890948f790131b7db34ffc78622faf2a7df9967fd"
+    },
+    {
+      "bytes": 284,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-prepared-chunk.json",
+      "sha256": "4d22fec0e9a68dae7f5f0808c3744a2045e0a8b06f654023b024d1d1c72d00da"
+    },
+    {
+      "bytes": 140,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-readiness-incompatible.json",
+      "sha256": "ec1dae760f5aecb151e054f965d49608d9cab0f30c2313c7172fcc6baa28b3ca"
+    },
+    {
+      "bytes": 104,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-readiness-ready.json",
+      "sha256": "1a4b18c430e7eacaae31b54328777652bc534106092935ebdd06a37b5f8424de"
     },
     {
       "bytes": 1379,
@@ -529,10 +625,10 @@
       "sha256": "afd9e1329f9330db8b195693d435d9cb3d18c23ba6e3a67027275f385b423071"
     },
     {
-      "bytes": 9378,
+      "bytes": 9373,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/case-evidence.schema.json",
-      "sha256": "4ac477ef22244dd97d03c939151e024e8da1fd444180b221da4cba4b7446b296"
+      "sha256": "ff3dff474b807afa777aff3ac7eaf508197a147d6451e47bf5b2a03ab48ae735"
     },
     {
       "bytes": 1985,
@@ -547,10 +643,10 @@
       "sha256": "8634007660fb842d4153e4e32bfce76b64050d62e9456d26b9f30604f94ee9d4"
     },
     {
-      "bytes": 5186,
+      "bytes": 5237,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/performance-gates.schema.json",
-      "sha256": "9f71608ab9e4e61c7b28cf23e66b71cb7565fb0fbeb1396cd71ba4aeeaecfe54"
+      "sha256": "9e04cd6628751c9503a4594e47ce1f1679d9e598241963d58006031a5fe1c67d"
     },
     {
       "bytes": 1585,
@@ -577,34 +673,40 @@
       "sha256": "019fc4b10d58c28957ebf47c9283238ebc78dad8f6b4f6c7dd41cbf6d4bbcd7b"
     },
     {
-      "bytes": 22078,
+      "bytes": 26342,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/generate_fixtures.py",
-      "sha256": "0d2381b5f189aca99d6730758b8f0d3b6711405cd0f4ddab4aedde60251382c5"
+      "sha256": "11fca2fd21b6b9ecc9485fd9f7c521a979a7e0769c17d43e3f27a9f8d9338403"
     },
     {
-      "bytes": 34936,
+      "bytes": 37708,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate.py",
-      "sha256": "1a888a2847cb32761fb653b422f21ce71171f6e069d4ee3a77b74d9f22ce22d2"
+      "sha256": "9808696daf65fb329d2d0e04bb9854138118ee862dcdf7787326de46582bc9d3"
     },
     {
-      "bytes": 29415,
+      "bytes": 4010,
+      "category": "validatorScript",
+      "path": "Packages/contracts/scripts/validate_toolchain.py",
+      "sha256": "d78dc0f2f55f82fb9f2ffc4c35d2ea7f4e24ab45df179f4ab4b32cf357f21d2d"
+    },
+    {
+      "bytes": 29367,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_validation_definitions.py",
-      "sha256": "fde8d1fec02eab8a92da8d632781a0d0b998daaaa70bd2006c254fba1f079683"
+      "sha256": "6e625f4ba9dee0aed8786debae3ef68f3a25626e5c28c1bbb879a54395852da0"
     },
     {
-      "bytes": 14724,
+      "bytes": 16871,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "01ea3d3d57ed80a485f29fe7f5886c40a9b5f35c55b34b751e439921ab543c1f"
+      "sha256": "aebf56c305efe5ce3529b82721bff120e83b96363d554b6254525d823e986c89"
     },
     {
-      "bytes": 22246,
+      "bytes": 22170,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validation_definitions.py",
-      "sha256": "4289eb7f7c216b1ef1deaf4f0f8aa89ff7c23e43e9f9d26fbcab0ac084de1133"
+      "sha256": "c2a15877633ffa32db4482194942d0c8efb6daf1d96e7215ce80f5f8c961676f"
     },
     {
       "bytes": 1728,
@@ -637,10 +739,10 @@
       "sha256": "56f3ec7d9ebcbe3f041267a468c44eb9a13eed1997f934401596539469552f76"
     },
     {
-      "bytes": 11483,
+      "bytes": 11415,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/performance-gates.json",
-      "sha256": "35bf8e551ec431e462dd4b4a8f71e0bef9017138a6f65c13cb830d536da5dc09"
+      "sha256": "123d095a6481c435a97ce66b4121868a976c8f8013c9686b6f9827be0be064fe"
     },
     {
       "bytes": 1410,
@@ -671,6 +773,24 @@
       "category": "contractSource",
       "path": "Packages/contracts/wearable-protocol/v1/trace.schema.json",
       "sha256": "e4ec1db8011c9c54d8a05fb18effdafd3023b464095ca24e615e5b6674b9a8d2"
+    },
+    {
+      "bytes": 187,
+      "category": "toolchainEntryStub",
+      "path": "Packages/vox-core-rust/Cargo.toml",
+      "sha256": "1d0f01ead55bf58db8024042cb67d3e0fb52a816f7b3303a437c17dda03472c9"
+    },
+    {
+      "bytes": 278,
+      "category": "toolchainEntryStub",
+      "path": "Packages/vox-core-rust/rust-toolchain.toml",
+      "sha256": "6a1f49af4d9af63384a21553941bf24d80ac79afdd60d99a4ce37d223892ac90"
+    },
+    {
+      "bytes": 199,
+      "category": "toolchainEntryStub",
+      "path": "Packages/vox-core-rust/uniffi.toml",
+      "sha256": "476df59aa633d2cb3c41dbc4c98857a4afa0cf1d3de3b408681f621986fff88a"
     },
     {
       "bytes": 4107,
@@ -769,16 +889,22 @@
       "sha256": "80a3d4f6a730deb3a3ee65cd112b55cc6c8d42cb62f1d8d53fbf019816136fa6"
     },
     {
-      "bytes": 3469,
+      "bytes": 2926,
       "category": "acceptedDecision",
-      "path": "docs/architecture/android-wear-m1-decisions.md",
-      "sha256": "d5d3dc6a3334a55a3aaab02c066eaa4cd491a751fea92a6da4c1200d9b7dbd0c"
+      "path": "docs/architecture/adr-0017-core-api-identities-readiness-packaging.md",
+      "sha256": "cf467fae1abd38fa2318f336ff3b01b0177014bfa71efbf8ac0e482b03ce9404"
     },
     {
-      "bytes": 5094,
+      "bytes": 3806,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/android-wear-m1-decisions.md",
+      "sha256": "16a73e83e467c821bd2293f93e21611350ed87d26aff658ce7b3896a624f7062"
+    },
+    {
+      "bytes": 5292,
       "category": "validationDocumentation",
       "path": "docs/validation/android-performance-gates.md",
-      "sha256": "326a28e331b0d68eb60718c3233efc7b60a0fd4587b50aa7bf363f596036892d"
+      "sha256": "eed30fe8d63993ac4128ad8585ede5086f506f58fd478d7e0922edcef41752a4"
     },
     {
       "bytes": 2097,
@@ -787,16 +913,28 @@
       "sha256": "7c1217d8a7c64b4b6e12c90a363b146abd10b59076f9338af640004965b8e0a6"
     },
     {
-      "bytes": 8188,
+      "bytes": 7706,
       "category": "validationDocumentation",
       "path": "docs/validation/android-wear-validation-program.md",
-      "sha256": "2e24f793dba69ff8a42fdd1aaa2dba722ea7491d1005d81ba9dfe29f4df64156"
+      "sha256": "bef3bb21ac0e395bbfc6ab1b90c4417e853e7cf2f4a5e14a6ca32758873f4293"
     },
     {
-      "bytes": 56891,
+      "bytes": 56956,
       "category": "contractGate",
       "path": "scripts/test-project-contracts.sh",
-      "sha256": "0aa99b1a57f64e7a71ae12b8c763d26fc2934e894556ec05963ad620baedc2a3"
+      "sha256": "ddd50cbdb85a52ce03c44167b07c2a0dbd27a730085316ddf9f74bc3eb052bc6"
+    },
+    {
+      "bytes": 2083,
+      "category": "toolchainDefinition",
+      "path": "toolchains/android-wear-shared-core.json",
+      "sha256": "96f55c253f1677f9327cc68040edc6a49c6e533b81e9daa5e6e70b3e3700a888"
+    },
+    {
+      "bytes": 3532,
+      "category": "toolchainDefinition",
+      "path": "toolchains/android-wear-shared-core.schema.json",
+      "sha256": "d7f5f444eeb75f6c1624c84bf624795d194b149226a980bf2fba8347d06ac618"
     }
   ],
   "fixtureCases": [
@@ -1006,6 +1144,188 @@
       "expect": "valid",
       "family": "capture-preparation-input",
       "path": "Packages/contracts/fixtures/capture-preparation-input/valid-complete.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "schema.oneOf",
+        "path": "$"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-chunk-oversize.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "core.descriptorOrder",
+        "path": "$.artifacts"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-descriptor-order.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "core.duplicateDrainedArtifact",
+        "path": "$.artifacts"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-duplicate-drained-artifact.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "core.readinessCoherence",
+        "path": "$"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-incompatible-no-mismatch.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "core.readinessCoherence",
+        "path": "$"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-ready-not-permitted.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "schema.oneOf",
+        "path": "$"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-unknown-field.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "schema.oneOf",
+        "path": "$"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-unsupported-profile.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-build-info.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-drained-hashes.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-expected-artifacts.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-expected-versions.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-prepared-chunk.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-readiness-incompatible.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-readiness-ready.json",
       "producer": {
         "name": "vox-contract-fixture-generator",
         "revision": "m1-v1",
@@ -1785,6 +2105,8 @@
         "wearable-protocol/v1/schema.json",
         "wearable-protocol/v1/trace-contract.md",
         "wearable-protocol/v1/trace.schema.json",
+        "core-api/v1/contract.md",
+        "core-api/v1/schema.json",
         "fixtures/artifact-plan/invalid-commit-order.json",
         "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
         "fixtures/artifact-plan/invalid-marker-syntax.json",
@@ -1800,6 +2122,20 @@
         "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
         "fixtures/capture-preparation-input/invalid-unsafe-path.json",
         "fixtures/capture-preparation-input/valid-complete.json",
+        "fixtures/core-api/invalid-chunk-oversize.json",
+        "fixtures/core-api/invalid-descriptor-order.json",
+        "fixtures/core-api/invalid-duplicate-drained-artifact.json",
+        "fixtures/core-api/invalid-incompatible-no-mismatch.json",
+        "fixtures/core-api/invalid-ready-not-permitted.json",
+        "fixtures/core-api/invalid-unknown-field.json",
+        "fixtures/core-api/invalid-unsupported-profile.json",
+        "fixtures/core-api/valid-build-info.json",
+        "fixtures/core-api/valid-drained-hashes.json",
+        "fixtures/core-api/valid-expected-artifacts.json",
+        "fixtures/core-api/valid-expected-versions.json",
+        "fixtures/core-api/valid-prepared-chunk.json",
+        "fixtures/core-api/valid-readiness-incompatible.json",
+        "fixtures/core-api/valid-readiness-ready.json",
         "fixtures/required-observations/invalid-duplicate-id.json",
         "fixtures/required-observations/invalid-tag-request-mismatch.json",
         "fixtures/required-observations/valid-all-kinds.json",
@@ -1877,6 +2213,8 @@
         "wearable-protocol/v1/schema.json",
         "wearable-protocol/v1/trace-contract.md",
         "wearable-protocol/v1/trace.schema.json",
+        "core-api/v1/contract.md",
+        "core-api/v1/schema.json",
         "fixtures/artifact-plan/invalid-commit-order.json",
         "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
         "fixtures/artifact-plan/invalid-marker-syntax.json",
@@ -1892,6 +2230,20 @@
         "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
         "fixtures/capture-preparation-input/invalid-unsafe-path.json",
         "fixtures/capture-preparation-input/valid-complete.json",
+        "fixtures/core-api/invalid-chunk-oversize.json",
+        "fixtures/core-api/invalid-descriptor-order.json",
+        "fixtures/core-api/invalid-duplicate-drained-artifact.json",
+        "fixtures/core-api/invalid-incompatible-no-mismatch.json",
+        "fixtures/core-api/invalid-ready-not-permitted.json",
+        "fixtures/core-api/invalid-unknown-field.json",
+        "fixtures/core-api/invalid-unsupported-profile.json",
+        "fixtures/core-api/valid-build-info.json",
+        "fixtures/core-api/valid-drained-hashes.json",
+        "fixtures/core-api/valid-expected-artifacts.json",
+        "fixtures/core-api/valid-expected-versions.json",
+        "fixtures/core-api/valid-prepared-chunk.json",
+        "fixtures/core-api/valid-readiness-incompatible.json",
+        "fixtures/core-api/valid-readiness-ready.json",
         "fixtures/required-observations/invalid-duplicate-id.json",
         "fixtures/required-observations/invalid-tag-request-mismatch.json",
         "fixtures/required-observations/valid-all-kinds.json",
@@ -1969,6 +2321,8 @@
         "wearable-protocol/v1/schema.json",
         "wearable-protocol/v1/trace-contract.md",
         "wearable-protocol/v1/trace.schema.json",
+        "core-api/v1/contract.md",
+        "core-api/v1/schema.json",
         "fixtures/artifact-plan/invalid-commit-order.json",
         "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
         "fixtures/artifact-plan/invalid-marker-syntax.json",
@@ -1984,6 +2338,20 @@
         "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
         "fixtures/capture-preparation-input/invalid-unsafe-path.json",
         "fixtures/capture-preparation-input/valid-complete.json",
+        "fixtures/core-api/invalid-chunk-oversize.json",
+        "fixtures/core-api/invalid-descriptor-order.json",
+        "fixtures/core-api/invalid-duplicate-drained-artifact.json",
+        "fixtures/core-api/invalid-incompatible-no-mismatch.json",
+        "fixtures/core-api/invalid-ready-not-permitted.json",
+        "fixtures/core-api/invalid-unknown-field.json",
+        "fixtures/core-api/invalid-unsupported-profile.json",
+        "fixtures/core-api/valid-build-info.json",
+        "fixtures/core-api/valid-drained-hashes.json",
+        "fixtures/core-api/valid-expected-artifacts.json",
+        "fixtures/core-api/valid-expected-versions.json",
+        "fixtures/core-api/valid-prepared-chunk.json",
+        "fixtures/core-api/valid-readiness-incompatible.json",
+        "fixtures/core-api/valid-readiness-ready.json",
         "fixtures/required-observations/invalid-duplicate-id.json",
         "fixtures/required-observations/invalid-tag-request-mismatch.json",
         "fixtures/required-observations/valid-all-kinds.json",
@@ -2047,7 +2415,7 @@
   "producer": {
     "name": "vox-contract-manifest-generator",
     "script": "Packages/contracts/scripts/validate.py",
-    "scriptSHA256": "1a888a2847cb32761fb653b422f21ce71171f6e069d4ee3a77b74d9f22ce22d2"
+    "scriptSHA256": "9808696daf65fb329d2d0e04bb9854138118ee862dcdf7787326de46582bc9d3"
   },
   "producerRevision": "29ec869c8bda4d511af787af394658d0274b339b",
   "schemaVersion": 2

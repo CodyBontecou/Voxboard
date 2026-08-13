@@ -1,7 +1,7 @@
 {
   "artifacts": [
     {
-      "artifactID": "55555555-5555-4555-8555-555555555555",
+      "artifactID": "554250c4-e8dc-51c0-8b4e-daca6fd1ab4e",
       "commitSequence": 0,
       "equivalenceRule": "sameSourceAndResultHash",
       "expectedExistingPolicy": "absent",
@@ -14,7 +14,7 @@
         "audio.wav"
       ],
       "mediaType": "audio/wav",
-      "operationID": "77777777-7777-4777-8777-777777777777",
+      "operationID": "0b506bbe-39de-56c2-a1fc-912fb375d02b",
       "receiptKind": "attachmentCommit",
       "resultLength": 32,
       "resultSHA256": "1111111111111111111111111111111111111111111111111111111111111111",
@@ -24,7 +24,7 @@
       "sourceSHA256": "1111111111111111111111111111111111111111111111111111111111111111"
     },
     {
-      "artifactID": "88888888-8888-4888-8888-888888888888",
+      "artifactID": "092b8435-ea25-54a3-8824-d76adb80a2a1",
       "commitSequence": 0,
       "equivalenceRule": "exactBytes",
       "expectedExistingPolicy": "hashMatch",
@@ -38,8 +38,8 @@
         "capture.md"
       ],
       "mediaType": "text/markdown; charset=utf-8",
-      "operationID": "99999999-9999-4999-8999-999999999999",
-      "preparedStreamID": "44444444-4444-4444-8444-444444444444",
+      "operationID": "84ad1460-9d3d-5734-bfa5-1de91c32de4b",
+      "preparedStreamID": "e180bdd2-e290-5641-aebc-d63332f95237",
       "receiptKind": "noteCommit",
       "resultLength": 25,
       "resultSHA256": "3333333333333333333333333333333333333333333333333333333333333333",
@@ -63,7 +63,7 @@
     "profileVersion": 1,
     "rendererRevision": "swift-legacy-m0"
   },
-  "planHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "planHash": "f4646f448570c81927e5568bbc0d56aeb606698d2013fc592c2e2c8bca72c22f",
   "preparedByteDelivery": {
     "finalJSONDuplicatesBytes": false,
     "maximumChunkBytes": 1048576,

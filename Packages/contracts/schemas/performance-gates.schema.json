@@ -97,33 +97,20 @@
       ],
       "type": "object"
     },
-    "packagingLeafScope": {
-      "type": "object",
-      "required": ["gateID", "targetScope"],
-      "additionalProperties": false,
-      "properties": {
-        "gateID": {"enum": ["android-core-arm64-uncompressed", "android-core-armv7-uncompressed", "android-core-x86_64-uncompressed", "android-core-x86-uncompressed", "apple-xcframework-per-slice"]},
-        "targetScope": {"enum": ["arm64-v8a", "armeabi-v7a", "x86_64", "x86", "xcframework-ios-device-arm64", "xcframework-ios-simulator-arm64-x86_64"]}
-      }
-    },
     "packagingBaselinePolicy": {
       "additionalProperties": false,
       "properties": {
-        "baselineRevision": {
-          "pattern": "^[0-9a-f]{40}$",
+        "futureGrowthRule": {
+          "minLength": 80,
           "type": "string"
-        },
-        "comparisonScope": {
-          "minLength": 40,
-          "type": "string"
-        },
-        "growthFormula": {
-          "const": "((candidateBytes - baselineBytes) / baselineBytes) * 100"
         },
         "id": {
-          "const": "m2-pre-shared-core-packaging-baseline-v1"
+          "const": "m2-first-core-packaging-baseline-v1"
         },
-        "method": {
+        "initializationMode": {
+          "const": "absoluteFirstCoreThenApprovedBaseline"
+        },
+        "initializationRule": {
           "minLength": 80,
           "type": "string"
         },
@@ -135,14 +122,12 @@
         },
         "requiredHashFields": {
           "const": [
-            "baselineArtifactSha256",
             "candidateArtifactSha256"
           ]
         },
         "requiredIdentityFields": {
           "const": [
             "gateID",
-            "baselineRevision",
             "candidateRevision",
             "toolchainID",
             "targetScope",
@@ -152,24 +137,54 @@
           ]
         },
         "requiredLeafScopes": {
-          "type": "array",
-          "minItems": 6,
+          "items": {
+            "$ref": "#/$defs/packagingLeafScope"
+          },
           "maxItems": 6,
-          "uniqueItems": true,
-          "items": {"$ref": "#/$defs/packagingLeafScope"}
+          "minItems": 6,
+          "type": "array",
+          "uniqueItems": true
         }
       },
       "required": [
         "id",
         "required",
         "milestone",
-        "method",
-        "baselineRevision",
+        "initializationMode",
+        "initializationRule",
+        "futureGrowthRule",
         "requiredIdentityFields",
         "requiredHashFields",
-        "growthFormula",
-        "comparisonScope",
         "requiredLeafScopes"
+      ],
+      "type": "object"
+    },
+    "packagingLeafScope": {
+      "additionalProperties": false,
+      "properties": {
+        "gateID": {
+          "enum": [
+            "android-core-arm64-uncompressed",
+            "android-core-armv7-uncompressed",
+            "android-core-x86_64-uncompressed",
+            "android-core-x86-uncompressed",
+            "apple-xcframework-per-slice"
+          ]
+        },
+        "targetScope": {
+          "enum": [
+            "arm64-v8a",
+            "armeabi-v7a",
+            "x86_64",
+            "x86",
+            "xcframework-ios-device-arm64",
+            "xcframework-ios-simulator-arm64-x86_64"
+          ]
+        }
+      },
+      "required": [
+        "gateID",
+        "targetScope"
       ],
       "type": "object"
     }

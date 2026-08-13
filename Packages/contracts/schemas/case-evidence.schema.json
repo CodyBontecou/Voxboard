@@ -168,7 +168,7 @@
           "type": "string"
         },
         "policyID": {
-          "const": "m2-pre-shared-core-packaging-baseline-v1"
+          "const": "m2-first-core-packaging-baseline-v1"
         },
         "targetScope": {
           "$ref": "#/$defs/nonPlaceholder"

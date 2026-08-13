@@ -1,78 +1,55 @@
 # Android/Wear shared-core toolchain baseline
 
-Status: **Pin slots approved; exact selections pending**
+Status: **M2 entry pins selected; no build or implementation claim**
 
-Decision authority: [ADR-0016](adr-0016-vox-owned-toolchain-pinning.md)
+Decision authority: [ADR-0016](adr-0016-vox-owned-toolchain-pinning.md) and
+[ADR-0017](adr-0017-core-api-identities-readiness-packaging.md).
 
-This document defines the Vox-owned pin file and update process. It is not a version
-record yet: the repository has no Rust workspace or Android build from which the exact
-selections can be honestly established. M2 and M3 stay blocked as stated below.
+The strict machine authority is `toolchains/android-wear-shared-core.json`, checked by
+`Packages/contracts/scripts/validate_toolchain.py`. Its schema rejects extra fields and
+the validator compares every exact value plus native entry stubs.
 
-## Canonical machine-readable pin file
+## Exact M2 entry pins
 
-The canonical index will be committed at:
+- Rust toolchain 1.97.1; MSRV 1.87.0; edition 2024; Cargo resolver 3; minimal profile
+  with rustfmt/clippy.
+- UniFFI library, bindgen, and CLI exactly 0.32.0; cargo-ndk exactly 4.1.2.
+- Android NDK 27.1.12297006 and native API 28 for:
+  `arm64-v8a`/`aarch64-linux-android`,
+  `armeabi-v7a`/`armv7-linux-androideabi`,
+  `x86_64`/`x86_64-linux-android`, and `x86`/`i686-linux-android`.
+- Xcode 26.6 build 17F113; Swift 6.3.3; iOS deployment 17.6 for
+  `aarch64-apple-ios`, `aarch64-apple-ios-sim`, and `x86_64-apple-ios`.
+- Apple packaging tool identity is `xcodebuild -create-xcframework`.
 
-```text
-toolchains/android-wear-shared-core.json
-```
+`Packages/vox-core-rust/rust-toolchain.toml`, `Cargo.toml`, and `uniffi.toml` are honest
+entry configuration stubs only. They contain no crate and claim no behavior.
 
-It must be strict JSON with an integer schema version and exact, non-range values for
-all applicable fields. `latest`, `stable`, wildcards, version ranges, preview aliases,
-CI-image aliases, and omitted required fields are invalid.
+## Required before implementation files land
 
-Required before **M2 starts**:
+Cargo.lock and the two binding-generation and two native packaging scripts do not yet
+exist. Their exact paths are enumerated as `required-before-implementation`. The
+validator fails closed if any appears while still in that state; the implementation
+commit must replace the status with governed file SHA-256 values and validate their
+pins/config. Thus no fake hash is recorded, but drift cannot silently begin.
 
-- Rust toolchain/channel resolved to an exact release and required components/targets;
-- Cargo resolver and exact UniFFI CLI/library/bindgen versions;
-- Apple target triples, Xcode build/version, Swift version, and XCFramework packaging
-  command/tool identity;
-- exact Android NDK revision, exact native API/platform level for every Rust target, and
-  the complete Android ABI-to-Rust-target mapping needed to build M2 Android libraries;
-- generated Swift and Kotlin binding generator version/config hashes; and
-- hashes/paths for the committed Rust lockfile, `rust-toolchain.toml`, binding config,
-  and generation scripts.
-
-Required before **M3 starts** (in addition to the M2 fields):
-
-- JDK vendor and exact version;
-- Gradle distribution version and checksum;
-- Android Gradle Plugin and Kotlin versions;
-- compile SDK, target SDK, min SDKs, and exact SDK build-tools;
-- Compose compiler/BOM or individually pinned Compose artifacts; and
-- hashes/paths for version catalogs, wrapper properties, dependency lock/verification
-  metadata, and Android binding-generation configuration.
-
-Native files such as `rust-toolchain.toml`, `Cargo.lock`, Gradle wrapper properties,
-version catalogs, dependency verification/locks, and CI Xcode selection remain the
-execution authorities. The JSON index must agree with them and makes cross-file drift
-reviewable.
+Generated Swift/Kotlin sources, libraries, XCFrameworks, AARs, and `.so` files do not
+exist and are not claimed. M2 behavior begins only after the lock and scripts land with
+hash governance.
 
 ## Selection and update process
 
-1. Open a dedicated toolchain proposal naming every old/new exact value, upstream
-   release and security notes, supported host/target matrix, license/provenance changes,
-   and rollback revision.
-2. Confirm each candidate exists in an authoritative distribution and is mutually
-   compatible; do not infer a version from Health.md or a local cache.
-3. Update the JSON index and all native lock/toolchain files atomically.
-4. Regenerate committed bindings and require zero unreviewed diff after a second clean
-   generation.
-5. Run contract/schema tests, Rust tests, host-language consumer tests, ABI/package
-   builds, binary-size budgets, and the milestone's supported host/device checks.
-6. Review and commit the update; CI uses only the committed pins and fails on drift or
-   downloads that violate checksum/verification metadata.
+Any update must name old/new exact values, upstream release/security information,
+supported targets, license/provenance change, rollback revision, and regenerate all
+bindings. Contract, Rust, host-language, ABI/package, and size gates must pass from clean
+checkouts. Floating aliases, ranges, local-cache inference, and dynamic Health.md
+inheritance are forbidden.
 
-Emergency security updates follow the same record and validation requirements; urgency
-does not permit floating versions.
+## Current gates
 
-## Current entry-gate state
-
-- **M2: BLOCKED.** Exact Rust, UniFFI, binding, Xcode/Swift, target, packaging, Android
-  NDK, native API/platform levels, and ABI-to-Rust-target pins have not been selected and
-  committed in the Vox-owned manifest/native files.
-- **M3: BLOCKED.** The M2 NDK/native-target prerequisites above remain required; the
-  additional exact JDK/Gradle/AGP/Kotlin/SDK/Compose pins and Android lock/verification
-  files also do not yet exist.
-
-This status records missing prerequisites only. It claims no implementation, generated
-binding authority, build reproducibility, or validation evidence.
+- **M2 entry foundation: PASS.** Exact selections and fail-closed pre-implementation
+  slots are committed. This permits implementing the reviewed M2 scope; it does not
+  satisfy any M2 exit gate.
+- **M3: BLOCKED.** Exact JDK vendor/version, Gradle/checksum, AGP, Kotlin, compile/target
+  SDK, build-tools, Compose, wrapper/catalog, dependency locks/verification, and Android
+  binding configuration remain required.

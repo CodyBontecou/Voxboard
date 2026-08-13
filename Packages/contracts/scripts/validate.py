@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Stdlib-only validation for Vox.md M1 contracts, traces, mirrors, and ledger."""
 from __future__ import annotations
-import argparse, copy, hashlib, json, re, shutil, subprocess, sys
+import argparse, copy, hashlib, json, re, shutil, subprocess, sys, uuid
 from pathlib import Path, PurePosixPath
 
 CLOSURE="29ec869c8bda4d511af787af394658d0274b339b"
 HEALTH="c70de9201ab7cfbadf2442183dfba23c0d248478"
-FAMILIES=("capture-preparation-input","required-observations","capture-materialization-input","artifact-plan","wearable-protocol")
+FAMILIES=("capture-preparation-input","required-observations","capture-materialization-input","artifact-plan","wearable-protocol","core-api")
 MIRRORS={
  "Packages/VoxboardShared/Tests/Fixtures/Contracts/v1":"resourceOnlyPlanned",
  "Packages/vox-core-rust/tests/resources/contracts/v1":"resourceOnlyPlanned",
@@ -39,6 +39,8 @@ def category(path,root):
  if r.startswith("Packages/contracts/tests/"): return "validatorTest"
  if r.startswith("Packages/contracts/schemas/"): return "validationSchema"
  if r.startswith("Packages/contracts/validation/"): return "validationDefinition"
+ if r.startswith("toolchains/"): return "toolchainDefinition"
+ if r.startswith("Packages/vox-core-rust/"): return "toolchainEntryStub"
  if r.startswith("docs/architecture/adr-") or r.endswith("android-wear-m1-decisions.md"): return "acceptedDecision"
  if r.startswith("docs/validation/"): return "validationDocumentation"
  if r==".github/workflows/contracts-ci.yml": return "contractWorkflow"
@@ -57,6 +59,7 @@ def governed(root):
  files += sorted((root/"docs/architecture").glob("adr-*.md")); files.append(root/"docs/architecture/android-wear-m1-decisions.md")
  files += sorted(p for p in (root/"docs/validation").rglob("*") if p.is_file())
  files += [root/".github/workflows/contracts-ci.yml",root/"scripts/test-project-contracts.sh"]
+ files += [root/"toolchains/android-wear-shared-core.json",root/"toolchains/android-wear-shared-core.schema.json",root/"Packages/vox-core-rust/rust-toolchain.toml",root/"Packages/vox-core-rust/Cargo.toml",root/"Packages/vox-core-rust/uniffi.toml"]
  return sorted(set(files),key=lambda p:relpath(p,root))
 
 def resources(root):
@@ -166,6 +169,19 @@ def semantic(family,obj,context=None):
   seq=[x["commitSequence"] for x in obj["artifacts"]]
   if seq!=list(range(len(seq))): reject("plan.commitSequence","$.artifacts","sequence must be ordered and contiguous")
   if obj["artifacts"][-1]["kind"]!="note" or sum(a["kind"]=="note" for a in obj["artifacts"])!=1: reject("plan.noteLast","$.artifacts","exactly one note commits last")
+  namespace=uuid.UUID("8c7f8d7e-4f61-5d92-a94a-3b9e6cc8e415")
+  def derived(domain,preimage):
+   raw=bytearray(hashlib.sha1(namespace.bytes+domain.encode("ascii")+b"\0"+canonical(preimage)).digest()[:16]); raw[6]=(raw[6]&15)|80; raw[8]=(raw[8]&63)|128; return str(uuid.UUID(bytes=bytes(raw)))
+  for i,a in enumerate(obj["artifacts"]):
+   operation_id=derived("vox.operation.v1",{"commitSequence":a["commitSequence"],"operation":obj["operation"],"requestID":obj["requestID"]})
+   if a["operationID"]!=operation_id: reject("plan.operationID",f"$.artifacts[{i}].operationID","deterministic UUID mismatch")
+   artifact_id=derived("vox.artifact.v1",{"kind":a["kind"],"logicalPath":a["logicalPath"],"operationID":operation_id})
+   if a["artifactID"]!=artifact_id: reject("plan.artifactID",f"$.artifacts[{i}].artifactID","deterministic UUID mismatch")
+   if a["kind"]=="note":
+    stream_id=derived("vox.stream.v1",{"artifactID":artifact_id,"resultLength":a["resultLength"],"resultSHA256":a["resultSHA256"]})
+    if a["preparedStreamID"]!=stream_id: reject("plan.streamID",f"$.artifacts[{i}].preparedStreamID","deterministic UUID mismatch")
+  copy_plan=copy.deepcopy(obj); copy_plan["planHash"]="0"*64
+  if obj["planHash"]!=sha(canonical(copy_plan)): reject("plan.hash","$.planHash","canonical plan hash mismatch")
  if family=="wearable-protocol":
   p=obj["payload"]; k=obj["messageKind"]
   if k=="recordingMetadata":
@@ -176,6 +192,19 @@ def semantic(family,obj,context=None):
     reject("wear.recordingModePolicy","$.payload.mode","Recording Only policies must be complete and transcript references absent")
   if k=="transferFrontier" and (p["durableOffset"]>p["assetLength"] or p["chunkLength"]>p["assetLength"]): reject("wear.frontierBounds","$.payload.durableOffset","frontier offset or chunk exceeds asset")
  if family=="wearable-protocol-trace": validate_trace(obj)
+ if family=="core-api":
+  kind=obj["kind"]
+  if kind=="readinessResult":
+   ready=obj["status"]=="ready"
+   if ready!=(obj["sessionPermitted"] is True) or ready!=(obj["mismatchCodes"]==[]): reject("core.readinessCoherence","$","ready alone permits a session and has no mismatches")
+  if kind=="expectedArtifactDescriptors":
+   seq=[x["commitSequence"] for x in obj["artifacts"]]
+   if seq!=list(range(len(seq))): reject("core.descriptorOrder","$.artifacts","commit sequence must be ordered and contiguous")
+   ids=[x["artifactID"] for x in obj["artifacts"]]; streams=[x["streamID"] for x in obj["artifacts"]]
+   if len(ids)!=len(set(ids)) or len(streams)!=len(set(streams)): reject("core.duplicateDescriptor","$.artifacts","artifact and stream IDs must be unique")
+  if kind=="drainedArtifactHashes":
+   ids=[x["artifactID"] for x in obj["artifacts"]]; streams=[x["streamID"] for x in obj["artifacts"]]
+   if len(ids)!=len(set(ids)) or len(streams)!=len(set(streams)): reject("core.duplicateDrainedArtifact","$.artifacts","artifact and stream IDs must be unique")
 
 def recording_scope(e):
  return (e["senderInstallationID"],e["deviceID"],e["recordingID"],e["epoch"],e["correlationID"])

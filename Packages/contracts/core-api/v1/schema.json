@@ -1,0 +1,128 @@
+{
+  "$defs": {
+    "artifactDescriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactID": {"$ref": "#/$defs/uuid"},
+        "commitSequence": {"maximum": 127, "minimum": 0, "type": "integer"},
+        "kind": {"enum": ["attachment", "note"]},
+        "length": {"maximum": 268435456, "minimum": 0, "type": "integer"},
+        "mediaType": {"maxLength": 127, "minLength": 1, "pattern": "^[A-Za-z0-9!#$&^_.+\\-/;= ]+$", "type": "string"},
+        "operationID": {"$ref": "#/$defs/uuid"},
+        "receiptKind": {"enum": ["attachmentCommit", "noteCommit"]},
+        "resultSHA256": {"$ref": "#/$defs/sha256"},
+        "streamID": {"$ref": "#/$defs/uuid"}
+      },
+      "required": ["artifactID", "operationID", "streamID", "commitSequence", "kind", "mediaType", "length", "resultSHA256", "receiptKind"],
+      "type": "object"
+    },
+    "artifactHash": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactID": {"$ref": "#/$defs/uuid"},
+        "length": {"maximum": 268435456, "minimum": 0, "type": "integer"},
+        "resultSHA256": {"$ref": "#/$defs/sha256"},
+        "streamID": {"$ref": "#/$defs/uuid"}
+      },
+      "required": ["artifactID", "streamID", "length", "resultSHA256"],
+      "type": "object"
+    },
+    "sha256": {"pattern": "^[0-9a-f]{64}$", "type": "string"},
+    "uuid": {"pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", "type": "string"},
+    "versions": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactPlanVersion": {"const": 1},
+        "captureMaterializationInputVersion": {"const": 1},
+        "capturePreparationInputVersion": {"const": 1},
+        "coreAPIVersion": {"const": 1},
+        "profileID": {"const": "apple-parity-v1"},
+        "profileVersion": {"const": 1},
+        "rendererRevision": {"const": "swift-legacy-m0"},
+        "requiredObservationsVersion": {"const": 1}
+      },
+      "required": ["coreAPIVersion", "capturePreparationInputVersion", "requiredObservationsVersion", "captureMaterializationInputVersion", "artifactPlanVersion", "rendererRevision", "profileID", "profileVersion"],
+      "type": "object"
+    }
+  },
+  "$id": "https://vox.md/contracts/core-api/v1/schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "buildConfiguration": {"enum": ["debug", "release"]},
+        "coreAPIVersion": {"const": 1},
+        "coreVersion": {"maxLength": 63, "minLength": 1, "pattern": "^[a-z0-9][a-z0-9.+-]*$", "type": "string"},
+        "kind": {"const": "buildInfo"},
+        "sourceRevision": {"pattern": "^[0-9a-f]{40}$", "type": "string"},
+        "supportedOperations": {"const": ["newNoteTextLink"]},
+        "supportedProfileIDs": {"const": ["apple-parity-v1"]},
+        "toolchainManifestSHA256": {"$ref": "#/$defs/sha256"}
+      },
+      "required": ["kind", "coreAPIVersion", "coreVersion", "sourceRevision", "buildConfiguration", "toolchainManifestSHA256", "supportedOperations", "supportedProfileIDs"],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"const": "expectedVersions"},
+        "operation": {"const": "newNoteTextLink"},
+        "versions": {"$ref": "#/$defs/versions"}
+      },
+      "required": ["kind", "operation", "versions"],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {"const": "readinessResult"},
+        "mismatchCodes": {
+          "items": {"enum": ["unsupportedCoreAPI", "unsupportedPreparationInput", "unsupportedRequiredObservations", "unsupportedMaterializationInput", "unsupportedArtifactPlan", "unsupportedRenderer", "unsupportedProfile", "unsupportedOperation", "toolchainManifestMismatch"]},
+          "maxItems": 9,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "sessionPermitted": {"type": "boolean"},
+        "status": {"enum": ["ready", "incompatible"]}
+      },
+      "required": ["kind", "status", "sessionPermitted", "mismatchCodes"],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "artifacts": {"items": {"$ref": "#/$defs/artifactDescriptor"}, "maxItems": 128, "minItems": 1, "type": "array"},
+        "kind": {"const": "expectedArtifactDescriptors"},
+        "requestID": {"$ref": "#/$defs/uuid"}
+      },
+      "required": ["kind", "requestID", "artifacts"],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "artifactID": {"$ref": "#/$defs/uuid"},
+        "byteCount": {"maximum": 1048576, "minimum": 0, "type": "integer"},
+        "chunkSHA256": {"$ref": "#/$defs/sha256"},
+        "eof": {"type": "boolean"},
+        "kind": {"const": "preparedChunkMetadata"},
+        "sequence": {"maximum": 262143, "minimum": 0, "type": "integer"},
+        "streamID": {"$ref": "#/$defs/uuid"}
+      },
+      "required": ["kind", "artifactID", "streamID", "sequence", "byteCount", "chunkSHA256", "eof"],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "artifacts": {"items": {"$ref": "#/$defs/artifactHash"}, "maxItems": 128, "minItems": 1, "type": "array"},
+        "kind": {"const": "drainedArtifactHashes"},
+        "requestID": {"$ref": "#/$defs/uuid"}
+      },
+      "required": ["kind", "requestID", "artifacts"],
+      "type": "object"
+    }
+  ],
+  "title": "Vox core API v1 records"
+}

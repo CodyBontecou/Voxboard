@@ -67,10 +67,11 @@ M1 freezes pre-implementation uncompressed release-artifact ceilings:
 The exact Apple leaf set is iOS device arm64 and one combined iOS Simulator
 arm64+x86_64 library slice. Packaging evidence binds clean baseline and candidate files,
 source revisions, pinned toolchain, configuration, features, artifact identity, actual
-byte counts, and SHA-256. The planning-parent baseline is
-`b50167aebb959e394908af3a5949f43fa88d6265`; it is not a fabricated binary result.
-M2 must produce the comparable baseline/candidate artifacts after its exact toolchain is
-pinned.
+byte counts, and SHA-256. The first M2 core has no honest predecessor artifact. Its six nonzero artifacts must
+pass these exact absolute gates without a percentage comparison; a zero-byte or
+planning-parent pseudo-artifact is forbidden. Once approved, that exact first-core
+artifact set becomes the future identically scoped percentage baseline. Every later
+artifact must pass both its absolute gate and the unchanged 10% growth gate.
 
 ## Deferred launch-model package budget
 

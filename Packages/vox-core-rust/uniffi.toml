@@ -1,0 +1,7 @@
+# M2 entry configuration only. Binding generation begins with implementation.
+[bindings.swift]
+module_name = "VoxCore"
+
+[bindings.kotlin]
+package_name = "md.vox.core"
+cdylib_name = "vox_core_uniffi"

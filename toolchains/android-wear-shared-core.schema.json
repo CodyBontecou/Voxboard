@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "status", "rust", "uniffi", "androidNative", "apple", "bindingGeneration", "requiredBeforeImplementation"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "status": {"const": "m2-entry-pins-selected-no-build-claim"},
+    "rust": {
+      "type": "object", "additionalProperties": false,
+      "required": ["toolchain", "msrv", "edition", "cargoResolver", "profile", "components", "targets", "rustToolchainPath"],
+      "properties": {
+        "toolchain": {"const": "1.97.1"}, "msrv": {"const": "1.87.0"}, "edition": {"const": "2024"}, "cargoResolver": {"const": "3"}, "profile": {"const": "minimal"},
+        "components": {"const": ["clippy", "rustfmt"]},
+        "targets": {"const": ["aarch64-apple-ios", "aarch64-apple-ios-sim", "x86_64-apple-ios", "aarch64-linux-android", "armv7-linux-androideabi", "x86_64-linux-android", "i686-linux-android"]},
+        "rustToolchainPath": {"const": "Packages/vox-core-rust/rust-toolchain.toml"}
+      }
+    },
+    "uniffi": {
+      "type": "object", "additionalProperties": false, "required": ["libraryVersion", "bindgenVersion", "cliVersion"],
+      "properties": {"libraryVersion": {"const": "0.32.0"}, "bindgenVersion": {"const": "0.32.0"}, "cliVersion": {"const": "0.32.0"}}
+    },
+    "androidNative": {
+      "type": "object", "additionalProperties": false, "required": ["ndkRevision", "cargoNdkVersion", "targets"],
+      "properties": {
+        "ndkRevision": {"const": "27.1.12297006"}, "cargoNdkVersion": {"const": "4.1.2"},
+        "targets": {"const": [
+          {"abi": "arm64-v8a", "apiLevel": 28, "rustTarget": "aarch64-linux-android"},
+          {"abi": "armeabi-v7a", "apiLevel": 28, "rustTarget": "armv7-linux-androideabi"},
+          {"abi": "x86_64", "apiLevel": 28, "rustTarget": "x86_64-linux-android"},
+          {"abi": "x86", "apiLevel": 28, "rustTarget": "i686-linux-android"}
+        ]}
+      }
+    },
+    "apple": {
+      "type": "object", "additionalProperties": false, "required": ["xcodeVersion", "xcodeBuild", "swiftVersion", "deploymentTarget", "targets", "packagingTool"],
+      "properties": {
+        "xcodeVersion": {"const": "26.6"}, "xcodeBuild": {"const": "17F113"}, "swiftVersion": {"const": "6.3.3"}, "deploymentTarget": {"const": "17.6"}, "packagingTool": {"const": "xcodebuild -create-xcframework"},
+        "targets": {"const": ["aarch64-apple-ios", "aarch64-apple-ios-sim", "x86_64-apple-ios"]}
+      }
+    },
+    "bindingGeneration": {
+      "type": "object", "additionalProperties": false, "required": ["swiftConfigPath", "kotlinConfigPath", "swiftScriptPath", "kotlinScriptPath", "hashStatus"],
+      "properties": {
+        "swiftConfigPath": {"const": "Packages/vox-core-rust/uniffi.toml"}, "kotlinConfigPath": {"const": "Packages/vox-core-rust/uniffi.toml"},
+        "swiftScriptPath": {"const": "Packages/vox-core-rust/scripts/generate-swift-bindings.sh"}, "kotlinScriptPath": {"const": "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh"},
+        "hashStatus": {"const": "required-before-implementation"}
+      }
+    },
+    "requiredBeforeImplementation": {
+      "const": ["Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/scripts/generate-swift-bindings.sh", "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh", "Packages/vox-core-rust/scripts/build-android-cdylibs.sh", "Packages/vox-core-rust/scripts/build-apple-xcframework.sh"]
+    }
+  }
+}

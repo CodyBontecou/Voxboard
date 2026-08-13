@@ -4,7 +4,7 @@ ROOT=Path(__file__).resolve().parents[3]; VALIDATOR=Path("Packages/contracts/scr
 class ContractValidatorTests(unittest.TestCase):
  def setUp(self):
   self.temp=tempfile.TemporaryDirectory(); self.root=Path(self.temp.name)/"repo"
-  trees=("Packages/contracts","Packages/VoxboardShared/Tests/Fixtures/Contracts","Packages/vox-core-rust/tests/resources/contracts","apps/android/core-bridge/src/test/resources/contracts","docs/validation")
+  trees=("Packages/contracts","Packages/VoxboardShared/Tests/Fixtures/Contracts","apps/android/core-bridge/src/test/resources/contracts","docs/validation","toolchains","Packages/vox-core-rust")
   for rel in trees:
    src=ROOT/rel; dst=self.root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst,ignore=shutil.ignore_patterns("__pycache__"))
   (self.root/"docs/architecture").mkdir(parents=True,exist_ok=True)
@@ -61,7 +61,8 @@ class ContractValidatorTests(unittest.TestCase):
   self.mutate("Packages/contracts/scope-variances.json",lambda x:x["variances"].append(v),True); self.rejected(self.run_validator(),"schema.unknownField")
  def trace_mutation_rejected(self,rel,fn,needle):
   self.mutate(rel,fn,True);canonical=self.root/rel;suffix=rel.removeprefix("Packages/contracts/")
-  for path in ("Packages/VoxboardShared/Tests/Fixtures/Contracts/v1","Packages/vox-core-rust/tests/resources/contracts/v1","apps/android/core-bridge/src/test/resources/contracts/v1"): shutil.copyfile(canonical,self.root/path/suffix)
+  for path in ("Packages/VoxboardShared/Tests/Fixtures/Contracts/v1","Packages/vox-core-rust/tests/resources/contracts/v1","apps/android/core-bridge/src/test/resources/contracts/v1"):
+   target=self.root/path/suffix; target.parent.mkdir(parents=True,exist_ok=True); shutil.copyfile(canonical,target)
   self.rejected(self.run_validator(),needle)
  def test_trace_sequence_mutation_rejected(self):
   self.trace_mutation_rejected("Packages/contracts/fixtures/wearable-protocol-trace/valid-transcript-ingest-commit-delete.json",lambda x:x["events"][5].update(expectedDisposition="duplicateNoOp"),"fixture.validRejected")
@@ -122,6 +123,27 @@ class ContractValidatorTests(unittest.TestCase):
     def f(x,index=index): changed=copy.deepcopy(x["events"][index]);changed["envelope"]["revision"]+=10;changed["expectedDisposition"]="foreignInstallationRejected";x["events"].append(changed)
     import copy
     self.trace_mutation_rejected(rel,f,"trace.messageIDCollision")
+ def test_core_api_semantic_negatives_are_typed(self):
+  cases=json.loads((self.root/"Packages/contracts/manifest.json").read_text())["fixtureCases"]
+  errors={Path(c["path"]).name:c.get("expectedError",{}).get("code") for c in cases if c["family"]=="core-api"}
+  self.assertEqual(errors["invalid-ready-not-permitted.json"],"core.readinessCoherence")
+  self.assertEqual(errors["invalid-incompatible-no-mismatch.json"],"core.readinessCoherence")
+  self.assertEqual(errors["invalid-descriptor-order.json"],"core.descriptorOrder")
+  self.assertEqual(errors["invalid-duplicate-drained-artifact.json"],"core.duplicateDrainedArtifact")
+ def test_artifact_identity_mutations_rejected(self):
+  rel="Packages/contracts/fixtures/artifact-plan/valid-complete.json"
+  for field,code in (("operationID","plan.operationID"),("artifactID","plan.artifactID"),("preparedStreamID","plan.streamID")):
+   with self.subTest(field=field):
+    self.tearDown();self.setUp()
+    def f(x,field=field): x["artifacts"][-1][field]="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+    self.trace_mutation_rejected(rel,f,code)
+ def test_artifact_plan_hash_mutation_rejected(self):
+  self.trace_mutation_rejected("Packages/contracts/fixtures/artifact-plan/valid-complete.json",lambda x:x.update(planHash="f"*64),"plan.hash")
+ def test_toolchain_validator_rejects_drift_and_landed_unhashed_files(self):
+  validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py"
+  p=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(p.read_text());m["rust"]["toolchain"]="stable";p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n")
+  r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0)
+  self.tearDown();self.setUp();pending=self.root/"Packages/vox-core-rust/Cargo.lock";pending.write_text("# premature\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("landed without replacing",r.stderr+r.stdout)
  def test_all_wearable_integers_are_bounded(self):
   schema=json.loads((self.root/"Packages/contracts/wearable-protocol/v1/schema.json").read_text());missing=[]
   def walk(v,path="$"):

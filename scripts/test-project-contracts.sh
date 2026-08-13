@@ -7,6 +7,7 @@ PROJECT="$ROOT/Voxboard.xcodeproj/project.pbxproj"
 "$ROOT/scripts/validate-android-wear-m0.py"
 python3 "$ROOT/Packages/contracts/scripts/convert_capabilities.py" --check
 python3 "$ROOT/Packages/contracts/scripts/validate.py"
+python3 "$ROOT/Packages/contracts/scripts/validate_toolchain.py"
 python3 "$ROOT/Packages/contracts/scripts/validate_validation_definitions.py"
 python3 -m unittest discover -s "$ROOT/Packages/contracts/tests"
 

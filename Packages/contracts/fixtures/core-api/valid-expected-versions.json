@@ -1,0 +1,14 @@
+{
+  "kind": "expectedVersions",
+  "operation": "newNoteTextLink",
+  "versions": {
+    "artifactPlanVersion": 1,
+    "captureMaterializationInputVersion": 1,
+    "capturePreparationInputVersion": 1,
+    "coreAPIVersion": 1,
+    "profileID": "apple-parity-v1",
+    "profileVersion": 1,
+    "rendererRevision": "swift-legacy-m0",
+    "requiredObservationsVersion": 1
+  }
+}
