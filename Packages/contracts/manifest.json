@@ -505,10 +505,10 @@
       "sha256": "bcef33d3b3ff3f0348f9b879a51e467897b3565c31b291fc0f4491eeaea19983"
     },
     {
-      "bytes": 3226,
+      "bytes": 4427,
       "category": "acceptedDecision",
       "path": "docs/architecture/adr-0002-exact-markdown-logical-path-parity.md",
-      "sha256": "e748f45659bb6ae8058dbbfa4fbc178b5008bdc98dd05b820aa45e8017aca943"
+      "sha256": "dd2c7bf4b6e9fb0f73b35dc7fbe0fa38cf67420ca42c484a03e21df4234a4397"
     },
     {
       "bytes": 2909,
@@ -517,10 +517,10 @@
       "sha256": "922d21dacecdc740ce01f66d9b323f588bd33c63b88ba1ed9ff9e5beaaff95d5"
     },
     {
-      "bytes": 3123,
+      "bytes": 3967,
       "category": "acceptedDecision",
       "path": "docs/architecture/adr-0004-existing-note-retry-markers.md",
-      "sha256": "70de181a0a16ba5a332e6b7c4f4e9f5fde815c87d4e3d82351dab72e86ce0421"
+      "sha256": "b89be867fc406dabbd211c1d8dec25d7acbac42d8c7f7f5f1b6164444c2cd793"
     },
     {
       "bytes": 3091,
@@ -541,10 +541,10 @@
       "sha256": "efc1e2fe2994bfc2e6267d5818793defbb29014e49f58fef6b94edf53d0f3ced"
     },
     {
-      "bytes": 3489,
+      "bytes": 5553,
       "category": "acceptedDecision",
       "path": "docs/architecture/adr-0008-play-billing-network-isolation.md",
-      "sha256": "c69c1fb5b656e643499c9d464807d59ac22fc5dd68be5e4c3a6cf228ba248102"
+      "sha256": "d598f44b6eb57d217cac332536f8ce5e554dbf5781073ab3ea2b8d055564594b"
     },
     {
       "bytes": 3384,
@@ -577,10 +577,28 @@
       "sha256": "684bf4f647fd840987d5355cb437cc5d0f00c22133f4b8203bb8267b5e732158"
     },
     {
-      "bytes": 2775,
+      "bytes": 2906,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0014-offline-asr-baseline.md",
+      "sha256": "1353fce35c24760d8850cde88258cb3ce4229419dbe0ab34bec9ffd227bb9e3e"
+    },
+    {
+      "bytes": 3022,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0015-ime-visible-activity-fallback.md",
+      "sha256": "70bd9e8a415cc29d640fa7efb2668ac0bcc3a748efe31f5bc931470acae870d5"
+    },
+    {
+      "bytes": 2058,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0016-vox-owned-toolchain-pinning.md",
+      "sha256": "2e46c46b645148ab3d99586921d69d582ad33a2c9374ecfb0b0cf36870d56e77"
+    },
+    {
+      "bytes": 3469,
       "category": "acceptedDecision",
       "path": "docs/architecture/android-wear-m1-decisions.md",
-      "sha256": "9dd0bf1ea1690762d24f5b252a86b240a7b0762465c21d2f093832072eafe3e6"
+      "sha256": "d5d3dc6a3334a55a3aaab02c066eaa4cd491a751fea92a6da4c1200d9b7dbd0c"
     },
     {
       "bytes": 1490,
