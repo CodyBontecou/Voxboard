@@ -337,10 +337,10 @@
       "sha256": "75af08d91becf9e99f04cc4f069dd125c247499d7ef57e8b55e3b007a75b52d8"
     },
     {
-      "bytes": 3482,
+      "bytes": 4374,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/aggregate.schema.json",
-      "sha256": "6666853ba107b494c05933cdc37297505d83b7d40a1299f17ea583a9a4f20b13"
+      "sha256": "abcce482de1818cc1d1f9ed01db525ade4a299d9852f2ce7288f4ddb353f6355"
     },
     {
       "bytes": 785,
@@ -349,10 +349,10 @@
       "sha256": "d16ad559be374f16dcf7b2090b3bec671260c62b271c955e6d6200edc85a0cff"
     },
     {
-      "bytes": 1225,
+      "bytes": 1653,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/approval.schema.json",
-      "sha256": "65b5d59d280826599d504006466897ad71da58fc4f27c2bc5691036cbcc0df38"
+      "sha256": "5481e6190ff1cc9faba651d92b6ae269aa8423d02b0dd24ac41511bd1245e1d9"
     },
     {
       "bytes": 1877,
@@ -367,10 +367,10 @@
       "sha256": "afd9e1329f9330db8b195693d435d9cb3d18c23ba6e3a67027275f385b423071"
     },
     {
-      "bytes": 3958,
+      "bytes": 8338,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/case-evidence.schema.json",
-      "sha256": "348cd09618fbd5de265cfe428a8fc007ad33a3d770a8e0b76c317890e7a603e1"
+      "sha256": "3a64327f0606e80f4a483384a7ae8b2ff79855c7818d446a9e0b4eea1585b805"
     },
     {
       "bytes": 1985,
@@ -379,10 +379,10 @@
       "sha256": "18d045e5567805422ffe399e03a406cc820abd5a156cc81d6497cc79337ad05b"
     },
     {
-      "bytes": 1683,
+      "bytes": 4165,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/performance-gates.schema.json",
-      "sha256": "011baf8f8e928dc8c0f8a469a4378f68ed05bb91c3ff325fefcd32819def2c98"
+      "sha256": "bc554bae374b2235d9697498634c6f6aba7c120b0ff5f404cf5ec1f58f987028"
     },
     {
       "bytes": 1585,
@@ -415,10 +415,10 @@
       "sha256": "8ea760ca06bd6e68ebab5b73dadf1eaeb6952792f17427f104cf5b3b9c95d5d1"
     },
     {
-      "bytes": 17530,
+      "bytes": 17650,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_validation_definitions.py",
-      "sha256": "ecaa49938340020abe4c1f8488e11bd60f30a89a44d92bd36b32f873308670ea"
+      "sha256": "5c50178a31e6a6c87bf284106222d0759beddf97ca65f1a6e0705e23cac75589"
     },
     {
       "bytes": 4945,
@@ -427,10 +427,10 @@
       "sha256": "83fc378ecbcf2f39a689578cbc042472a7e24afee353693c96e49b59458bab71"
     },
     {
-      "bytes": 3689,
+      "bytes": 5083,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validation_definitions.py",
-      "sha256": "f3aefbae40999a503b06da1ae3d4cb0b11846389129c05e8b0e6d618b3f3c4dd"
+      "sha256": "cecfc20629f0c5debb548e57cb4258e11033080c676b39e263b9e602e7815053"
     },
     {
       "bytes": 1728,
@@ -445,10 +445,10 @@
       "sha256": "6e7c01cb0d4a99d05efcc0a1cc6c65f9dc4d6418024a7764d47f66805dd5512d"
     },
     {
-      "bytes": 10315,
+      "bytes": 12728,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/case-catalog.json",
-      "sha256": "76c236825da6723676d2494edf9001515f1ce1efdeda6e7c5e1737b91c4ddfd6"
+      "sha256": "eb749b958da377edbb0a17cf8f123dbdcb061b5ce8d7ddafb03f5d56bbf9e9b2"
     },
     {
       "bytes": 877,
@@ -463,10 +463,10 @@
       "sha256": "56f3ec7d9ebcbe3f041267a468c44eb9a13eed1997f934401596539469552f76"
     },
     {
-      "bytes": 4463,
+      "bytes": 6717,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/performance-gates.json",
-      "sha256": "9ae49a23ca6018aea8834b9c697f35695eb2a65d9f81a4b01dd88d3392cd7387"
+      "sha256": "2db95a80103e092bd4bb97bbd2763220f4d2d91ad28c58b6f78801962b7116d6"
     },
     {
       "bytes": 1410,
@@ -607,10 +607,10 @@
       "sha256": "231e77b319ab490afd1522aa50d95249ac564a298fad0ef96aa633db8fe93149"
     },
     {
-      "bytes": 3194,
+      "bytes": 5265,
       "category": "validationDocumentation",
       "path": "docs/validation/android-wear-validation-program.md",
-      "sha256": "a5e56bfe327acee11163ecb624e3e341f95a62b7d2aafa8d901186c9fb84b8c8"
+      "sha256": "a35af10e11dc532c2c050eaae3da9b6074343126d9c72833b9b3f98152b7d6b4"
     }
   ],
   "fixtureCases": [
