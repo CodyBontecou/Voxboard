@@ -39,9 +39,10 @@
         "profileID": {"const": "apple-parity-v1"},
         "profileVersion": {"const": 1},
         "rendererRevision": {"const": "swift-legacy-m0"},
-        "requiredObservationsVersion": {"const": 1}
+        "requiredObservationsVersion": {"const": 1},
+        "toolchainManifestSHA256": {"$ref": "#/$defs/sha256"}
       },
-      "required": ["coreAPIVersion", "capturePreparationInputVersion", "requiredObservationsVersion", "captureMaterializationInputVersion", "artifactPlanVersion", "rendererRevision", "profileID", "profileVersion"],
+      "required": ["coreAPIVersion", "capturePreparationInputVersion", "requiredObservationsVersion", "captureMaterializationInputVersion", "artifactPlanVersion", "rendererRevision", "profileID", "profileVersion", "toolchainManifestSHA256"],
       "type": "object"
     }
   },

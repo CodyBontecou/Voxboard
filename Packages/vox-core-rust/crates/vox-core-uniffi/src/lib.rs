@@ -96,6 +96,11 @@ impl From<vox_core::CoreError> for VoxCoreError {
         match value {
             Source::ControlTooLarge => Self::ControlTooLarge,
             Source::InvalidControl
+            | Source::StringTooLarge
+            | Source::ArrayTooLarge
+            | Source::IntegerOutOfRange
+            | Source::InvalidEnum
+            | Source::InvalidHash
             | Source::InvalidPath
             | Source::InvalidRendering
             | Source::Serialization => Self::InvalidControl,
@@ -127,7 +132,18 @@ impl From<vox_core::CoreError> for VoxCoreError {
 }
 
 fn guard<T>(call: impl FnOnce() -> Result<T, VoxCoreError>) -> Result<T, VoxCoreError> {
-    catch_unwind(AssertUnwindSafe(call)).unwrap_or(Err(VoxCoreError::InternalPanic))
+    // The boundary deliberately suppresses the hook while catching so panic payloads
+    // and source locations cannot escape to stderr. Hook replacement/restoration is
+    // serialized because the hook is process-global.
+    static PANIC_HOOK_LOCK: Mutex<()> = Mutex::new(());
+    let _lock = PANIC_HOOK_LOCK
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let previous = std::panic::take_hook();
+    std::panic::set_hook(Box::new(|_| {}));
+    let result = catch_unwind(AssertUnwindSafe(call));
+    std::panic::set_hook(previous);
+    result.unwrap_or(Err(VoxCoreError::InternalPanic))
 }
 
 #[uniffi::export]
@@ -238,13 +254,14 @@ impl CoreMaterializationSession {
         &self,
         artifact_id: &str,
         sequence: u32,
+        maximum_bytes: u64,
     ) -> Result<CorePreparedChunk, VoxCoreError> {
         guard(|| {
             let artifact_id = uuid_from_string(artifact_id)?;
             self.inner
                 .lock()
                 .map_err(|_| VoxCoreError::InternalPanic)?
-                .drain(artifact_id, sequence)
+                .drain(artifact_id, sequence, maximum_bytes)
                 .map(|value| CorePreparedChunk {
                     artifact_id: value.artifact_id.to_string(),
                     stream_id: value.stream_id.to_string(),

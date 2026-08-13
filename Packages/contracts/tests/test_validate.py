@@ -6,7 +6,7 @@ class ContractValidatorTests(unittest.TestCase):
   self.temp=tempfile.TemporaryDirectory(); self.root=Path(self.temp.name)/"repo"
   trees=("Packages/contracts","Packages/VoxboardShared/Tests/Fixtures/Contracts","apps/android/core-bridge/src/test/resources/contracts","docs/validation","toolchains","Packages/vox-core-rust")
   for rel in trees:
-   src=ROOT/rel; dst=self.root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst,ignore=shutil.ignore_patterns("__pycache__"))
+   src=ROOT/rel; dst=self.root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst,ignore=shutil.ignore_patterns("__pycache__","target",".build"))
   (self.root/"docs/architecture").mkdir(parents=True,exist_ok=True)
   for p in (ROOT/"docs/architecture").glob("adr-*.md"): shutil.copyfile(p,self.root/"docs/architecture"/p.name)
   for name in ("android-wear-m1-decisions.md","android-wear-m0-capabilities.json"): shutil.copyfile(ROOT/"docs/architecture"/name,self.root/"docs/architecture"/name)

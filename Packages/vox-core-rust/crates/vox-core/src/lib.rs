@@ -37,6 +37,16 @@ pub enum CoreError {
     ControlTooLarge,
     #[error("control input is invalid")]
     InvalidControl,
+    #[error("a string exceeds its contract bound")]
+    StringTooLarge,
+    #[error("an array exceeds its contract bound")]
+    ArrayTooLarge,
+    #[error("an integer is outside its contract bound")]
+    IntegerOutOfRange,
+    #[error("an enum value is outside its contract")]
+    InvalidEnum,
+    #[error("a hash is outside its contract")]
+    InvalidHash,
     #[error("control input contains an unknown field")]
     UnknownField,
     #[error("control input is not canonical")]
@@ -100,6 +110,11 @@ impl CoreError {
         match self {
             Self::ControlTooLarge => "controlTooLarge",
             Self::InvalidControl => "invalidControl",
+            Self::StringTooLarge => "stringTooLarge",
+            Self::ArrayTooLarge => "arrayTooLarge",
+            Self::IntegerOutOfRange => "integerOutOfRange",
+            Self::InvalidEnum => "invalidEnum",
+            Self::InvalidHash => "invalidHash",
             Self::UnknownField => "unknownField",
             Self::NonCanonicalControl => "nonCanonicalControl",
             Self::UnsupportedCoreApi => "unsupportedCoreAPI",
@@ -177,6 +192,8 @@ pub struct Versions {
     #[serde(rename = "profileID")]
     pub profile_id: String,
     pub profile_version: u32,
+    #[serde(rename = "toolchainManifestSHA256")]
+    pub toolchain_manifest_sha256: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
@@ -226,6 +243,9 @@ pub fn readiness(bytes: &[u8]) -> Result<ReadinessResult, CoreError> {
     }
     if versions.profile_id != PROFILE_ID || versions.profile_version != PROFILE_VERSION {
         mismatches.push("unsupportedProfile");
+    }
+    if versions.toolchain_manifest_sha256 != TOOLCHAIN_MANIFEST_SHA256 {
+        mismatches.push("toolchainManifestMismatch");
     }
     let ready = mismatches.is_empty();
     Ok(ReadinessResult {
@@ -527,59 +547,176 @@ pub fn prepare(bytes: &[u8]) -> Result<RequiredObservations, CoreError> {
     })
 }
 
+#[allow(clippy::too_many_lines)]
 fn validate_preparation(input: &PreparationInput) -> Result<(), CoreError> {
     if input.contract_version != PREPARATION_INPUT_VERSION {
         return Err(CoreError::UnsupportedPreparationInput);
+    }
+    if !matches!(
+        input.capture_source.as_str(),
+        "app" | "share" | "keyboard" | "widget" | "shortcut" | "watch" | "wear"
+    ) {
+        return Err(CoreError::InvalidEnum);
+    }
+    if !(0..=4_102_444_800_000).contains(&input.created_at_epoch_milliseconds) {
+        return Err(CoreError::IntegerOutOfRange);
+    }
+    bounded_string(&input.timezone, 1, 64)?;
+    input
+        .timezone
+        .parse::<Tz>()
+        .map_err(|_| CoreError::InvalidControl)?;
+    if input.calendar != "gregorian" {
+        return Err(CoreError::InvalidEnum);
+    }
+    bounded_string(&input.locale, 2, 35)?;
+    if !matches!(
+        input.operation.as_str(),
+        "newNote"
+            | "rollingNote"
+            | "existingNoteAppend"
+            | "existingNotePrepend"
+            | "existingNoteHeading"
+    ) {
+        return Err(CoreError::InvalidEnum);
     }
     if input.operation != "newNote" {
         return Err(CoreError::UnsupportedOperation);
     }
     validate_pins(&input.pins)?;
-    if input.payloads.is_empty() || input.payloads.len() > 128 {
-        return Err(CoreError::InvalidControl);
+    bounded_array(input.payloads.len(), 1, 128)?;
+    for payload in &input.payloads {
+        match payload {
+            Payload::Text { text, .. } => bounded_string(text, 0, 65_536)?,
+            Payload::Link { url, label, .. } => {
+                bounded_string(url, 1, 8_192)?;
+                bounded_string(label, 0, 4_096)?;
+                if !(url.starts_with("http://") || url.starts_with("https://")) {
+                    return Err(CoreError::InvalidRendering);
+                }
+            }
+            Payload::Asset {
+                media_type,
+                length,
+                sha256,
+                safe_extension,
+                original_name_policy,
+                ..
+            } => {
+                bounded_string(media_type, 1, 127)?;
+                if *length > 1_073_741_824 {
+                    return Err(CoreError::IntegerOutOfRange);
+                }
+                validate_hash(sha256)?;
+                bounded_string(safe_extension, 0, 16)?;
+                if !safe_extension
+                    .bytes()
+                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+                {
+                    return Err(CoreError::InvalidControl);
+                }
+                if !matches!(original_name_policy.as_str(), "discard" | "safeStem") {
+                    return Err(CoreError::InvalidEnum);
+                }
+                return Err(CoreError::UnsupportedOperation);
+            }
+        }
     }
-    if input
-        .payloads
-        .iter()
-        .any(|item| matches!(item, Payload::Asset { .. }))
-    {
-        return Err(CoreError::UnsupportedOperation);
+    if input.preset.revision > i64::MAX as u64 || input.invocation.sequence > i64::MAX as u64 {
+        return Err(CoreError::IntegerOutOfRange);
     }
-    if input.calendar != "gregorian" || input.locale.is_empty() || input.locale.len() > 35 {
-        return Err(CoreError::InvalidControl);
+    validate_hash(&input.preset.snapshot_hash)?;
+    if input.preset.template_freeze_point != "firstPreparation" {
+        return Err(CoreError::InvalidEnum);
     }
-    if input.preset.destination_policy.capability_class != "userVault" {
-        return Err(CoreError::UnsupportedOperation);
+    if !matches!(
+        input.preset.retry_marker_policy.as_str(),
+        "none" | "voxCaptureCommentV1"
+    ) {
+        return Err(CoreError::InvalidEnum);
     }
-    if input.preset.destination_policy.expected_case_sensitivity != "sensitive" {
+    let route = &input.preset.route_policy;
+    bounded_string(&route.note_name_template, 1, 1_024)?;
+    validate_segments(&route.logical_folder)?;
+    // One final note-name segment is added by the planner; artifact paths are capped at 32.
+    if route.logical_folder.len() == 32 {
+        return Err(CoreError::InvalidPath);
+    }
+    validate_segments(&route.attachment_folder)?;
+    if route.extension_policy != "markdownDotMd" {
+        return Err(CoreError::InvalidEnum);
+    }
+    if !matches!(
+        route.collision_policy.as_str(),
+        "fail" | "reuseIfHashMatches" | "deterministicSuffix"
+    ) {
+        return Err(CoreError::InvalidEnum);
+    }
+    if route.collision_policy != "deterministicSuffix" {
         return Err(CoreError::UnsupportedCollisionSemantics);
     }
-    if input.preset.route_policy.collision_policy != "deterministicSuffix" {
+    let metadata = &input.preset.metadata_policy;
+    if !matches!(
+        metadata.frontmatter_mode.as_str(),
+        "none" | "merge" | "replace"
+    ) || !matches!(
+        metadata.template_policy.as_str(),
+        "none" | "frozenObservation"
+    ) || !matches!(metadata.line_ending.as_str(), "lf" | "preserveExisting")
+    {
+        return Err(CoreError::InvalidEnum);
+    }
+    if metadata.frontmatter_mode == "replace" || metadata.line_ending != "lf" {
+        return Err(CoreError::UnsupportedOperation);
+    }
+    bounded_array(metadata.ordered_fields.len(), 0, 128)?;
+    let mut field_names = BTreeSet::new();
+    for field in &metadata.ordered_fields {
+        bounded_string(&field.name, 1, 128)?;
+        bounded_string(&field.value, 0, 8_192)?;
+        if field.name.contains(['\n', '\r']) || !field_names.insert(field.name.as_str()) {
+            return Err(CoreError::InvalidRendering);
+        }
+    }
+    let destination = &input.preset.destination_policy;
+    bounded_string(&destination.capability_reference, 1, 128)?;
+    if !matches!(
+        destination.capability_class.as_str(),
+        "userVault" | "recordingExport"
+    ) || !matches!(
+        destination.expected_case_sensitivity.as_str(),
+        "unknown" | "sensitive" | "insensitive"
+    ) {
+        return Err(CoreError::InvalidEnum);
+    }
+    if destination.capability_class != "userVault" {
+        return Err(CoreError::UnsupportedOperation);
+    }
+    if destination.expected_case_sensitivity != "sensitive" {
         return Err(CoreError::UnsupportedCollisionSemantics);
     }
-    if input.preset.route_policy.extension_policy != "markdownDotMd"
-        || input.preset.template_freeze_point != "firstPreparation"
-        || input.preset.metadata_policy.line_ending != "lf"
-        || !matches!(
-            input.preset.metadata_policy.frontmatter_mode.as_str(),
-            "none" | "merge"
-        )
-        || !matches!(
-            input.preset.metadata_policy.template_policy.as_str(),
-            "none" | "frozenObservation"
-        )
-        || !matches!(
-            input.preset.retry_marker_policy.as_str(),
-            "none" | "voxCaptureCommentV1"
-        )
-    {
-        return Err(CoreError::InvalidControl);
+    if !matches!(
+        input.invocation.location_outcome.as_str(),
+        "notRequested" | "unavailable" | "coordinatesFrozen" | "labelFrozen"
+    ) {
+        return Err(CoreError::InvalidEnum);
     }
-    validate_segments(&input.preset.route_policy.logical_folder)?;
     Ok(())
 }
 
 fn validate_pins(pins: &Pins) -> Result<(), CoreError> {
+    bounded_string(&pins.core_version, 1, 64)?;
+    bounded_string(&pins.renderer_revision, 1, 64)?;
+    bounded_string(&pins.profile_id, 1, 64)?;
+    if pins.profile_version == 0 || pins.profile_version > i32::MAX as u32 {
+        return Err(CoreError::IntegerOutOfRange);
+    }
+    if let Some(value) = &pins.model_profile_id {
+        bounded_string(value, 1, 64)?;
+    }
+    if let Some(value) = &pins.model_revision {
+        bounded_string(value, 1, 64)?;
+    }
     if pins.core_version != CORE_VERSION {
         return Err(CoreError::UnsupportedCoreApi);
     }
@@ -593,6 +730,39 @@ fn validate_pins(pins: &Pins) -> Result<(), CoreError> {
         return Err(CoreError::UnsupportedModel);
     }
     Ok(())
+}
+
+fn bounded_string(value: &str, minimum: usize, maximum: usize) -> Result<(), CoreError> {
+    let length = value.chars().count();
+    if length > maximum {
+        Err(CoreError::StringTooLarge)
+    } else if length < minimum {
+        Err(CoreError::InvalidControl)
+    } else {
+        Ok(())
+    }
+}
+
+fn bounded_array(length: usize, minimum: usize, maximum: usize) -> Result<(), CoreError> {
+    if length > maximum {
+        Err(CoreError::ArrayTooLarge)
+    } else if length < minimum {
+        Err(CoreError::InvalidControl)
+    } else {
+        Ok(())
+    }
+}
+
+fn validate_hash(value: &str) -> Result<(), CoreError> {
+    if value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+    {
+        Ok(())
+    } else {
+        Err(CoreError::InvalidHash)
+    }
 }
 
 pub fn path_candidates(input: &PreparationInput) -> Result<Vec<Vec<String>>, CoreError> {
@@ -684,20 +854,15 @@ pub fn render_tokens(
 }
 
 fn validate_segments(segments: &[String]) -> Result<(), CoreError> {
-    if segments.len() > 32 {
-        return Err(CoreError::InvalidPath);
-    }
+    bounded_array(segments.len(), 0, 32)?;
     segments
         .iter()
         .try_for_each(|segment| validate_segment(segment))
 }
 
 fn validate_segment(segment: &str) -> Result<(), CoreError> {
-    if segment.is_empty()
-        || segment.len() > 255
-        || matches!(segment, "." | "..")
-        || segment.contains(['/', '\\', '\0'])
-    {
+    bounded_string(segment, 1, 255)?;
+    if matches!(segment, "." | "..") || segment.contains(['/', '\\', '\0']) {
         return Err(CoreError::InvalidPath);
     }
     Ok(())
@@ -806,8 +971,10 @@ impl MaterializationSession {
     pub fn new(control: &[u8]) -> Result<Self, CoreError> {
         let input: MaterializationInput = parse_control(control)?;
         validate_materialization(&input, control.len())?;
+        validate_observations(&input.observations)?;
         let mut seen = BTreeSet::new();
         let mut streams = Vec::new();
+        let mut declared_stream_bytes = 0_u64;
         for observation in &input.observations {
             if !seen.insert(observation.id()) {
                 return Err(CoreError::ObservationMismatch);
@@ -847,6 +1014,12 @@ impl MaterializationSession {
                 }
             }
             if let Some((id, length)) = observation.stream() {
+                declared_stream_bytes = declared_stream_bytes
+                    .checked_add(length)
+                    .ok_or(CoreError::AggregateTooLarge)?;
+                if declared_stream_bytes > MAX_AGGREGATE_BYTES {
+                    return Err(CoreError::AggregateTooLarge);
+                }
                 let sha256 = match observation {
                     ObservationResult::FrozenTemplate { sha256, .. }
                     | ObservationResult::ExistingNote { sha256, .. } => sha256.clone(),
@@ -895,14 +1068,17 @@ impl MaterializationSession {
         if stream.id != stream_id || stream.next_sequence != sequence || stream.eof {
             return self.fail(CoreError::ObservationSequence);
         }
-        self.aggregate = self
-            .aggregate
-            .checked_add(bytes.len() as u64)
-            .ok_or(CoreError::AggregateTooLarge)?;
+        let Some(aggregate) = self.aggregate.checked_add(bytes.len() as u64) else {
+            return self.fail(CoreError::AggregateTooLarge);
+        };
+        self.aggregate = aggregate;
         if self.aggregate > MAX_AGGREGATE_BYTES {
             return self.fail(CoreError::AggregateTooLarge);
         }
-        stream.length += bytes.len() as u64;
+        let Some(length) = stream.length.checked_add(bytes.len() as u64) else {
+            return self.fail(CoreError::AggregateTooLarge);
+        };
+        stream.length = length;
         if stream.length > stream.expected_length {
             return self.fail(CoreError::InvalidObservationStream);
         }
@@ -910,7 +1086,10 @@ impl MaterializationSession {
         if let Some(template) = &mut stream.template {
             template.extend_from_slice(bytes);
         }
-        stream.next_sequence += 1;
+        let Some(next_sequence) = stream.next_sequence.checked_add(1) else {
+            return self.fail(CoreError::ObservationSequence);
+        };
+        stream.next_sequence = next_sequence;
         if eof {
             stream.eof = true;
             if stream.length != stream.expected_length
@@ -924,7 +1103,9 @@ impl MaterializationSession {
     }
 
     pub fn seal(&mut self) -> Result<ArtifactDescriptors, CoreError> {
-        self.ensure_state(State::Input)?;
+        if self.state != State::Input {
+            return self.terminal_error();
+        }
         if self.next_stream != self.streams.len() {
             return self.fail(CoreError::Incomplete);
         }
@@ -932,11 +1113,26 @@ impl MaterializationSession {
             .streams
             .iter()
             .find_map(|stream| stream.template.as_deref());
-        let (path, bytes) = materialize(&self.input, template)?;
+        let (path, bytes) = match materialize(&self.input, template) {
+            Ok(value) => value,
+            Err(error) => return self.fail(error),
+        };
+        if bytes.len() as u64 > MAX_AGGREGATE_BYTES {
+            return self.fail(CoreError::AggregateTooLarge);
+        }
         let hash = sha256_hex(&bytes);
-        let operation_id = operation_id(self.input.request_id, 0, "newNote")?;
-        let artifact_id = artifact_id(operation_id, "note", &path)?;
-        let stream_id = stream_id(artifact_id, bytes.len() as u64, &hash)?;
+        let operation_id = match operation_id(self.input.request_id, 0, "newNote") {
+            Ok(value) => value,
+            Err(error) => return self.fail(error),
+        };
+        let artifact_id = match artifact_id(operation_id, "note", &path) {
+            Ok(value) => value,
+            Err(error) => return self.fail(error),
+        };
+        let stream_id = match stream_id(artifact_id, bytes.len() as u64, &hash) {
+            Ok(value) => value,
+            Err(error) => return self.fail(error),
+        };
         let descriptor = ArtifactDescriptor {
             artifact_id,
             operation_id,
@@ -958,22 +1154,46 @@ impl MaterializationSession {
         })
     }
 
-    pub fn drain(&mut self, artifact_id: Uuid, sequence: u32) -> Result<PreparedChunk, CoreError> {
+    pub fn drain(
+        &mut self,
+        artifact_id: Uuid,
+        sequence: u32,
+        maximum_bytes: u64,
+    ) -> Result<PreparedChunk, CoreError> {
         if !matches!(self.state, State::Sealed | State::Draining) {
             return self.terminal_error();
         }
-        let descriptor = self.descriptor.as_ref().ok_or(CoreError::Incomplete)?;
-        if descriptor.artifact_id != artifact_id || sequence != self.drain_sequence {
+        if maximum_bytes == 0 || maximum_bytes > MAX_CHUNK_BYTES as u64 {
+            return self.fail(CoreError::ChunkTooLarge);
+        }
+        let (descriptor_artifact_id, descriptor_stream_id) = match self.descriptor.as_ref() {
+            Some(descriptor) => (descriptor.artifact_id, descriptor.stream_id),
+            None => return self.fail(CoreError::Incomplete),
+        };
+        if descriptor_artifact_id != artifact_id || sequence != self.drain_sequence {
             return self.fail(CoreError::DescriptorMismatch);
         }
-        let output = self.output.as_ref().ok_or(CoreError::Incomplete)?;
-        let end = output.len().min(self.drain_offset + MAX_CHUNK_BYTES);
-        let bytes = output[self.drain_offset..end].to_vec();
-        let eof = end == output.len();
+        let Ok(maximum_bytes) = usize::try_from(maximum_bytes) else {
+            return self.fail(CoreError::ChunkTooLarge);
+        };
+        let Some(candidate_end) = self.drain_offset.checked_add(maximum_bytes) else {
+            return self.fail(CoreError::ChunkTooLarge);
+        };
+        let (bytes, eof, end) = match self.output.as_ref() {
+            Some(output) => {
+                let end = output.len().min(candidate_end);
+                (
+                    output[self.drain_offset..end].to_vec(),
+                    end == output.len(),
+                    end,
+                )
+            }
+            None => return self.fail(CoreError::Incomplete),
+        };
         let chunk = PreparedChunk {
             kind: "preparedChunkMetadata",
             artifact_id,
-            stream_id: descriptor.stream_id,
+            stream_id: descriptor_stream_id,
             sequence,
             byte_count: bytes.len() as u64,
             chunk_sha256: sha256_hex(&bytes),
@@ -1056,6 +1276,12 @@ fn validate_materialization(
     if input.contract_version != MATERIALIZATION_INPUT_VERSION {
         return Err(CoreError::UnsupportedMaterializationInput);
     }
+    if input.preparation_revision > i64::MAX as u64 {
+        return Err(CoreError::IntegerOutOfRange);
+    }
+    validate_hash(&input.snapshot_hash)?;
+    bounded_array(input.observations.len(), 0, 256)?;
+    validate_observations(&input.observations)?;
     let preparation = PreparationInput {
         contract_version: PREPARATION_INPUT_VERSION,
         request_id: input.request_id,
@@ -1096,6 +1322,89 @@ fn validate_materialization(
         || !input.session.single_finalize
     {
         return Err(CoreError::InvalidControl);
+    }
+    Ok(())
+}
+
+fn validate_observations(observations: &[ObservationResult]) -> Result<(), CoreError> {
+    for observation in observations {
+        match observation {
+            ObservationResult::CandidateOccupancy {
+                status,
+                logical_paths,
+                ordered_set_hash,
+                ..
+            } => {
+                if status != "present" {
+                    return Err(CoreError::InvalidEnum);
+                }
+                bounded_array(logical_paths.len(), 0, 256)?;
+                for path in logical_paths {
+                    bounded_array(path.len(), 1, 32)?;
+                    validate_segments(path)?;
+                }
+                validate_hash(ordered_set_hash)?;
+            }
+            ObservationResult::FrozenTemplate {
+                status,
+                length,
+                sha256,
+                byte_stream_id,
+                ..
+            } => {
+                if !matches!(status.as_str(), "present" | "absent") {
+                    return Err(CoreError::InvalidEnum);
+                }
+                if *length > MAX_AGGREGATE_BYTES {
+                    return Err(CoreError::IntegerOutOfRange);
+                }
+                validate_hash(sha256)?;
+                let coherent = (status == "present" && byte_stream_id.is_some())
+                    || (status == "absent"
+                        && *length == 0
+                        && sha256 == ZERO_HASH
+                        && byte_stream_id.is_none());
+                if !coherent {
+                    return Err(CoreError::ObservationMismatch);
+                }
+            }
+            ObservationResult::ExistingNote {
+                status,
+                logical_path,
+                length,
+                sha256,
+                ..
+            } => {
+                if status != "present" {
+                    return Err(CoreError::InvalidEnum);
+                }
+                bounded_array(logical_path.len(), 1, 32)?;
+                validate_segments(logical_path)?;
+                if *length > MAX_AGGREGATE_BYTES {
+                    return Err(CoreError::IntegerOutOfRange);
+                }
+                validate_hash(sha256)?;
+            }
+            ObservationResult::StagedAssetMetadata {
+                status,
+                assets,
+                ordered_set_hash,
+                ..
+            } => {
+                if status != "present" {
+                    return Err(CoreError::InvalidEnum);
+                }
+                bounded_array(assets.len(), 1, 128)?;
+                validate_hash(ordered_set_hash)?;
+                for asset in assets {
+                    bounded_string(&asset.media_type, 1, 127)?;
+                    if asset.length > 1_073_741_824 {
+                        return Err(CoreError::IntegerOutOfRange);
+                    }
+                    validate_hash(&asset.sha256)?;
+                }
+            }
+        }
     }
     Ok(())
 }
@@ -1166,52 +1475,117 @@ pub fn materialize(
     if blocks.is_empty() {
         return Err(CoreError::InvalidRendering);
     }
-    let mut entry = blocks.join("\n\n");
-    if let Some(template) = template {
+    let entry = blocks.join("\n\n");
+    let rendered_template = if let Some(template) = template {
         let template = std::str::from_utf8(template).map_err(|_| CoreError::InvalidRendering)?;
-        let rendered = render_tokens(
+        Some(render_tokens(
             template,
             input.created_at_epoch_milliseconds,
             &input.timezone,
             input.request_id,
             &input.capture_source,
-        )?;
-        let rendered = rendered.trim_matches(['\r', '\n']);
-        if !rendered.is_empty() {
-            entry = format!("{rendered}\n\n{entry}");
-        }
-    }
-    if input.preset.metadata_policy.frontmatter_mode == "merge"
-        && !input.preset.metadata_policy.ordered_fields.is_empty()
-    {
-        let mut fields = BTreeMap::new();
+        )?)
+    } else {
+        None
+    };
+    let prefix = normalize_newlines(rendered_template.as_deref().unwrap_or_default());
+    let normalized_entry = trim_boundary_newlines(&normalize_newlines(&entry));
+    let (mut frontmatter, prefix_body) = split_leading_frontmatter(&prefix);
+    let body = format!("{prefix_body}{normalized_entry}");
+    if input.preset.metadata_policy.frontmatter_mode == "merge" {
         for field in &input.preset.metadata_policy.ordered_fields {
-            if field.name.is_empty()
-                || field.name.contains(['\n', '\r'])
-                || fields
-                    .insert(field.name.as_str(), field.value.as_str())
-                    .is_some()
-            {
-                return Err(CoreError::InvalidRendering);
+            let line = format!("{}: {}", yaml_key(&field.name), yaml_scalar(&field.value));
+            if frontmatter_entry_key(&line).is_some_and(|key| {
+                frontmatter
+                    .iter()
+                    .any(|existing| frontmatter_entry_key(existing) == Some(key))
+            }) {
+                continue;
             }
+            frontmatter.push(line);
         }
-        let lines = fields
-            .into_iter()
-            .map(|(name, value)| format!("{}: {}", yaml_key(name), yaml_scalar(value)))
-            .collect::<Vec<_>>();
-        entry = format!("---\n{}\n---\n\n{entry}", lines.join("\n"));
     }
+    let mut capture_block = trim_boundary_newlines(&body);
     if input.preset.retry_marker_policy == "voxCaptureCommentV1" {
-        entry.push_str("\n\n<!-- vox-capture:");
-        entry.push_str(&input.request_id.hyphenated().to_string());
-        entry.push_str(" -->");
+        let marker = format!("<!-- vox-capture:{} -->", input.request_id.hyphenated());
+        capture_block = if capture_block.trim().is_empty() {
+            marker
+        } else {
+            format!("{capture_block}\n\n{marker}")
+        };
     } else if input.preset.retry_marker_policy != "none" {
         return Err(CoreError::InvalidRendering);
     }
-    if input.preset.metadata_policy.final_newline {
-        entry.push('\n');
+    let mut document = assemble_markdown(&frontmatter, &capture_block);
+    if input.preset.metadata_policy.final_newline && !document.ends_with('\n') {
+        document.push('\n');
     }
-    Ok((path, entry.into_bytes()))
+    if document.len() as u64 > MAX_AGGREGATE_BYTES {
+        return Err(CoreError::AggregateTooLarge);
+    }
+    Ok((path, document.into_bytes()))
+}
+
+fn normalize_newlines(value: &str) -> String {
+    value.replace("\r\n", "\n").replace('\r', "\n")
+}
+
+fn trim_boundary_newlines(value: &str) -> String {
+    value.trim_matches('\n').to_owned()
+}
+
+fn split_leading_frontmatter(markdown: &str) -> (Vec<String>, String) {
+    let lines = markdown.split('\n').collect::<Vec<_>>();
+    if lines.first() != Some(&"---") {
+        return (Vec::new(), markdown.to_owned());
+    }
+    let Some(closing) = lines
+        .iter()
+        .enumerate()
+        .skip(1)
+        .find_map(|(index, line)| (*line == "---").then_some(index))
+    else {
+        return (Vec::new(), markdown.to_owned());
+    };
+    let frontmatter = lines[1..closing]
+        .iter()
+        .map(|line| (*line).to_owned())
+        .collect::<Vec<_>>();
+    if !frontmatter
+        .iter()
+        .any(|line| frontmatter_entry_key(line).is_some())
+    {
+        return (Vec::new(), markdown.to_owned());
+    }
+    let body = if closing + 1 < lines.len() {
+        lines[closing + 1..].join("\n")
+    } else {
+        String::new()
+    };
+    (frontmatter, body)
+}
+
+fn frontmatter_entry_key(line: &str) -> Option<&str> {
+    if line.starts_with([' ', '\t', '#']) {
+        return None;
+    }
+    let (key, _) = line.split_once(':')?;
+    let key = key.trim();
+    (!key.is_empty()).then_some(key)
+}
+
+fn assemble_markdown(frontmatter: &[String], body: &str) -> String {
+    let body = trim_boundary_newlines(body);
+    if frontmatter.is_empty() {
+        body
+    } else {
+        let block = format!("---\n{}\n---", frontmatter.join("\n"));
+        if body.trim().is_empty() {
+            block
+        } else {
+            format!("{block}\n\n{body}")
+        }
+    }
 }
 
 fn escape_label(value: &str) -> String {

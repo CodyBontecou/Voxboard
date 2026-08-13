@@ -9,6 +9,7 @@
     "profileID": "apple-parity-v1",
     "profileVersion": 1,
     "rendererRevision": "swift-legacy-m0",
-    "requiredObservationsVersion": 1
+    "requiredObservationsVersion": 1,
+    "toolchainManifestSHA256": "0000000000000000000000000000000000000000000000000000000000000000"
   }
 }

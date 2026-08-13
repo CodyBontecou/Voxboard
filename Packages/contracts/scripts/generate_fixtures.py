@@ -128,7 +128,7 @@ x=frozen_prefix();changed=copy.deepcopy(x[1]);changed['envelope']['revision']=4;
 inventory=copy.deepcopy(x[0]);inventory['envelope']['revision']=4;inventory['envelope']['messageID']='ccccccc3-1111-4111-8111-111111111111';inventory['envelope']['payload']['inventoryRevision']=8;inventory['envelope']['payload']['presets'][0].update(revision=8,snapshotHash=changed_hash)
 changed['envelope']['revision']=5;reassign_original=event('reassign',6,message_id='ccccccc4-1111-4111-8111-111111111111');reassign_original['envelope']['payload']['targetCapabilityReference']='synthetic-vault-capability';x += [inventory,changed,reassign_original];negative('invalid-frozen-policy-reassignment.json',x,'reassign',False)
 # Independently versioned core API records.
-core_versions={'artifactPlanVersion':1,'captureMaterializationInputVersion':1,'capturePreparationInputVersion':1,'coreAPIVersion':1,'profileID':'apple-parity-v1','profileVersion':1,'rendererRevision':'swift-legacy-m0','requiredObservationsVersion':1}
+core_versions={'artifactPlanVersion':1,'captureMaterializationInputVersion':1,'capturePreparationInputVersion':1,'coreAPIVersion':1,'profileID':'apple-parity-v1','profileVersion':1,'rendererRevision':'swift-legacy-m0','requiredObservationsVersion':1,'toolchainManifestSHA256':H[0]}
 core_records={
  'build-info':{'buildConfiguration':'release','coreAPIVersion':1,'coreVersion':'0.1.0-m2-foundation','kind':'buildInfo','sourceRevision':'603e45011a7a7a70363ea790fdc3af5dc54b9f79','supportedOperations':['newNoteTextLink'],'supportedProfileIDs':['apple-parity-v1'],'toolchainManifestSHA256':H[0]},
  'expected-versions':{'kind':'expectedVersions','operation':'newNoteTextLink','versions':core_versions},

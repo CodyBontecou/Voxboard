@@ -49,16 +49,16 @@
       "sha256": "c19b1dd5fa31ac616b568d0c0494c664f131b51d77d42292b6cdf993900d14f3"
     },
     {
-      "bytes": 1713,
+      "bytes": 1871,
       "category": "contractSource",
       "path": "Packages/contracts/core-api/v1/contract.md",
-      "sha256": "9ae130c2fde09cef52ae39e3503d945087dee9babfff747b382c256e277db5aa"
+      "sha256": "b6ede0acf0f0d5221e0b6d6f3adade055480ee6cc5be2de5bcc98eb51366b9c3"
     },
     {
-      "bytes": 5544,
+      "bytes": 5634,
       "category": "contractSource",
       "path": "Packages/contracts/core-api/v1/schema.json",
-      "sha256": "565e4ba59384272785013e0d323409fc8b92d90caed8a3ca93527c657d11ef00"
+      "sha256": "2df6b246ae9177ba327300e161127abac4ad6123767ee387d5b9b6cdefc3ff88"
     },
     {
       "bytes": 2652,
@@ -187,10 +187,10 @@
       "sha256": "92d748b541709d7ad6faf573d4ba797cb585cf0daf5f26364a826a16392f1cbc"
     },
     {
-      "bytes": 370,
+      "bytes": 469,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/core-api/invalid-unsupported-profile.json",
-      "sha256": "047d319b776b17ad955ab64280c13bcf3fa066408cfbf78995339a9a3ff16fa8"
+      "sha256": "185840f75d13702d859a45d450862655bf3dda28ae144d521d47350faf205193"
     },
     {
       "bytes": 393,
@@ -211,10 +211,10 @@
       "sha256": "6a2bbb1312c2b5ece84ac31b894152b856ac6fc422cdefc39c913a1bae35c255"
     },
     {
-      "bytes": 370,
+      "bytes": 469,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/core-api/valid-expected-versions.json",
-      "sha256": "7f9f24f2cdee319396ad6c0890948f790131b7db34ffc78622faf2a7df9967fd"
+      "sha256": "4f86d07109d4dd7be0ca211cd1b5a51901628f33c939fa5bbf55ffd9edc976a7"
     },
     {
       "bytes": 284,
@@ -673,10 +673,10 @@
       "sha256": "019fc4b10d58c28957ebf47c9283238ebc78dad8f6b4f6c7dd41cbf6d4bbcd7b"
     },
     {
-      "bytes": 26342,
+      "bytes": 26373,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/generate_fixtures.py",
-      "sha256": "11fca2fd21b6b9ecc9485fd9f7c521a979a7e0769c17d43e3f27a9f8d9338403"
+      "sha256": "4d3e4825457e6102203c2ba83ede0312b2b4fe5f283044e83d49533b25165a59"
     },
     {
       "bytes": 37708,
@@ -697,10 +697,10 @@
       "sha256": "6e625f4ba9dee0aed8786debae3ef68f3a25626e5c28c1bbb879a54395852da0"
     },
     {
-      "bytes": 16871,
+      "bytes": 16889,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "aebf56c305efe5ce3529b82721bff120e83b96363d554b6254525d823e986c89"
+      "sha256": "3dcecc64acf77173bc4efe9684b842e9669f45e12b6077f4e5cf95cd55cd37ac"
     },
     {
       "bytes": 22170,
