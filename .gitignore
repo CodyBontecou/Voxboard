@@ -11,6 +11,7 @@ build/
 
 # Whisper models (too large for git — download with: curl -L -o Voxboard/ggml-base.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin)
 *.bin
+!Packages/VoxboardShared/Tests/Fixtures/Persistence/v1/**/*.bin
 
 # SPM
 .build/
