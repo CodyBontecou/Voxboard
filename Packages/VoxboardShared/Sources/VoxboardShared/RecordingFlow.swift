@@ -438,6 +438,28 @@ public struct CapturePresetExportSettings: Codable, Equatable, Sendable {
         embedAudioInMarkdown = try container.decodeIfPresent(Bool.self, forKey: .embedAudioInMarkdown) ?? false
         audioEmbedPlacement = try container.decodeIfPresent(CapturePresetAudioEmbedPlacement.self, forKey: .audioEmbedPlacement) ?? .bottom
     }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(usesCustomExportSettings, forKey: .usesCustomExportSettings)
+        try container.encode(exportEnabled, forKey: .exportEnabled)
+        try container.encode(format, forKey: .format)
+        try container.encode(mode, forKey: .mode)
+        try container.encodeIfPresent(folderBookmark, forKey: .folderBookmark)
+        try container.encode(folderName, forKey: .folderName)
+        try container.encodeIfPresent(audioFolderBookmark, forKey: .audioFolderBookmark)
+        try container.encode(audioFolderName, forKey: .audioFolderName)
+        try container.encode(newFileNameTemplate, forKey: .newFileNameTemplate)
+        try container.encode(appendFileName, forKey: .appendFileName)
+        try container.encode(markdownTemplateEnabled, forKey: .markdownTemplateEnabled)
+        try container.encodeIfPresent(markdownTemplateBookmark, forKey: .markdownTemplateBookmark)
+        try container.encode(markdownTemplateName, forKey: .markdownTemplateName)
+        try container.encode(mdObsidianEnabled, forKey: .mdObsidianEnabled)
+        try container.encode(yamlUsesMarkdownExtension, forKey: .yamlUsesMarkdownExtension)
+        try container.encode(yamlProperties.sorted { $0.rawValue < $1.rawValue }, forKey: .yamlProperties)
+        try container.encode(embedAudioInMarkdown, forKey: .embedAudioInMarkdown)
+        try container.encode(audioEmbedPlacement, forKey: .audioEmbedPlacement)
+    }
 }
 
 private enum CapturePresetWriteLockError: Error {
@@ -648,7 +670,9 @@ public enum CapturePresetStore {
         _ flows: [CapturePreset],
         defaults: UserDefaults
     ) {
-        guard let data = try? JSONEncoder().encode(flows) else { return }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        guard let data = try? encoder.encode(flows) else { return }
         defaults.set(data, forKey: flowsKey)
     }
 

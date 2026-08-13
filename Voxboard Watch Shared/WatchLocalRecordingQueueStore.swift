@@ -303,7 +303,9 @@ struct WatchLocalRecordingQueueStore {
             at: recordingsDirectoryURL,
             withIntermediateDirectories: true
         )
-        try JSONEncoder().encode(recordings.sorted { $0.createdAt < $1.createdAt })
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        try encoder.encode(recordings.sorted { $0.createdAt < $1.createdAt })
             .write(to: queueIndexURL, options: .atomic)
     }
 
@@ -315,7 +317,9 @@ struct WatchLocalRecordingQueueStore {
             at: recordingsDirectoryURL,
             withIntermediateDirectories: true
         )
-        try JSONEncoder().encode(recording).write(to: activeRecordingURL, options: .atomic)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        try encoder.encode(recording).write(to: activeRecordingURL, options: .atomic)
     }
 
     func clearActiveRecording() {

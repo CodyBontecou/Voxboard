@@ -58,6 +58,7 @@ public final class TranscriptStore {
         self.coordinator = coordinator
         self.fileManager = fileManager
         self.activityStatsStore = activityStatsStore
+        encoder.outputFormatting = [.sortedKeys]
         load()
     }
 

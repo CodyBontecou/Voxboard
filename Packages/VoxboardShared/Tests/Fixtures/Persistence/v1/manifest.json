@@ -78,12 +78,12 @@
     {
       "byteCount" : 4752,
       "path" : "compatibility\/presets\/unknown-field.json",
-      "sha256" : "93d3c53b81ae7bca9de0a19cc3d3903008bef27cf4074b531900d4d28fa9de18"
+      "sha256" : "0961cbbe1d948f9d5b791541a1117fbb99015cf22105670e7858893b5daa8683"
     },
     {
       "byteCount" : 3886,
       "path" : "compatibility\/recording-jobs\/unknown-field.json",
-      "sha256" : "11d09564120f0c171fb8f28303bd08bc2eb681fdb27a3791ad9f3b469411276c"
+      "sha256" : "17fe2e5690825e6a1cc220925a87a588ae0f7f57efd1e020ffc430a588283647"
     },
     {
       "byteCount" : 208,
@@ -123,7 +123,7 @@
     {
       "byteCount" : 5604,
       "path" : "compatibility\/watch-inbox\/unknown-field.json",
-      "sha256" : "08743a3e89c7755f18d07b55f82a200fea7c4ca0b003645c24de530659962fd8"
+      "sha256" : "809bcffe3c9caa5b96495af237db90643a8eea8e82640c82e16c723677141204"
     },
     {
       "byteCount" : 24,
@@ -413,12 +413,12 @@
     {
       "byteCount" : 3834,
       "path" : "negative\/recording-jobs\/future-job-version.json",
-      "sha256" : "e366a5f7aca4e9e5a93c05d72d201a74a7ae5f24c17a8033e57fd6b4e7a3b30d"
+      "sha256" : "1dbe80223ead0c5338283d0348acdb47109c7445087583f2c05a156370592fd0"
     },
     {
       "byteCount" : 3838,
       "path" : "negative\/recording-jobs\/unknown-phase-enum.json",
-      "sha256" : "8032bca1428f5a2c5e4e43ea386c27995f30c732dd139a18412036c9c0b4f2c1"
+      "sha256" : "330e09a2469426dac84140295d5b4704d5984c05720539e578d65f9d57ebba32"
     },
     {
       "byteCount" : 27,
@@ -498,32 +498,32 @@
     {
       "byteCount" : 5556,
       "path" : "negative\/watch-inbox\/unknown-phase-enum.json",
-      "sha256" : "14b8aef03298619fb69e8b35165a4387e08f0e420becc36c6e269ee751bef4cf"
+      "sha256" : "466fe05e024d4143352602e38e810ea0a655ecd4c621582b7690dec850612b5b"
     },
     {
       "byteCount" : 2310,
       "path" : "presets\/preset-v1.json",
-      "sha256" : "2b926cf930fa7f1e549fc5585a7ff66755ece0aa6cfae0bbdd44b8b7d6f203c4"
+      "sha256" : "3fc0ba70e0aed1af92148a8ff3735862335eb985da24659abe141b768fec3733"
     },
     {
-      "byteCount" : 3799,
+      "byteCount" : 3792,
       "path" : "recording-jobs\/checkpoints\/audio.json",
-      "sha256" : "e692a6d5c53d28094c219a792ec10230d476dc2b75271e8a2dad83a90f81a934"
+      "sha256" : "58ab4344fab78e5e9a3ec0be1807ccd56fb06421b71c3f28cb94ed380e6be00f"
     },
     {
-      "byteCount" : 3852,
+      "byteCount" : 3845,
       "path" : "recording-jobs\/checkpoints\/note.json",
-      "sha256" : "6bc11e623f0e827505c39757109986b67f5adc9a1958e4bfeb16c8ec7b63f094"
+      "sha256" : "65b73a5cc4a9ff49011609c1063915914794f810ead35a4928709586ca46918d"
     },
     {
-      "byteCount" : 3892,
+      "byteCount" : 3887,
       "path" : "recording-jobs\/checkpoints\/reference.json",
-      "sha256" : "c3bb13770dc451eef4050c9de6da9ce7a8390e3d8942930a737d142bf41702d6"
+      "sha256" : "e5aaf4f8fc514a286ed39c5fa86b441510f9b07b1ef081144525d2dc0532ebd5"
     },
     {
-      "byteCount" : 3744,
+      "byteCount" : 3737,
       "path" : "recording-jobs\/checkpoints\/transcript.json",
-      "sha256" : "e53e36269882a50d1217372914ab6a3a5c91376b2c8ffeefdd374957fbcdc98b"
+      "sha256" : "1d6faae6d7125e06a9a6c7b93a75f8d69ed2c2740698f6afb1063b48a6d5f6e8"
     },
     {
       "byteCount" : 16,
@@ -568,22 +568,22 @@
     {
       "byteCount" : 3606,
       "path" : "recording-jobs\/handoff-v1.json",
-      "sha256" : "ebc948b65862235abb585affbb2cf6dcb792c4968a3eb6effa1600a472a973a3"
+      "sha256" : "4ea1caaa2b640aa5273989fe5d8f3df9a2c1dda4afd14cecb3bf65d153278b89"
     },
     {
       "byteCount" : 3833,
       "path" : "recording-jobs\/job-v1.json",
-      "sha256" : "d3b8864d726c6efeb92e30b7ae4b19389136798b38805aced5813b8378b28b88"
+      "sha256" : "c9cc0d1f9cf9f1494050a8cc8c96f09416ce6bd3c3848c150cea02741b9237c9"
     },
     {
       "byteCount" : 3844,
       "path" : "recording-jobs\/recovery\/completed-deleted-audio.json",
-      "sha256" : "5335f5d96cffdac123b6581afa59c28c0e4f86ba7beda45fd82e709934785f89"
+      "sha256" : "5c7610ecac6122f38c2fed3943c4e0e1ff72a3ad8c4ae778b1dd5c60352ae376"
     },
     {
       "byteCount" : 3831,
       "path" : "recording-jobs\/recovery\/finalizing-with-audio.json",
-      "sha256" : "53c3ac3eef76998ea3752f0e9efea710fad9974798ad18ad16897acf68476ca9"
+      "sha256" : "4491b97af5b94525bf73e10e9383aea8be7742726b6862cc3fb63945cb2a77c2"
     },
     {
       "byteCount" : 32,
@@ -593,22 +593,22 @@
     {
       "byteCount" : 3829,
       "path" : "recording-jobs\/recovery\/processing-with-audio.json",
-      "sha256" : "827dccc5dcc36736b2bcad808123ce4dafd81e338d56e2a05dae94d23bb6d16b"
+      "sha256" : "a953604fd7a12a96976ea88f2f29db91fa2ae43b9ea327fd149d5d9d5f48146f"
     },
     {
       "byteCount" : 3774,
       "path" : "recording-jobs\/recovery\/queued-missing-audio.json",
-      "sha256" : "db1768b7162b7fbbe27862e60efe59c13d0ce56e5f41d5219d7f67b92a648f59"
+      "sha256" : "21ee34955aea37d9443cbff5c9e01a947c6aed8029e509d98229ae77e5eb7280"
     },
     {
       "byteCount" : 115,
       "path" : "recording-origin\/origin-v1.json",
-      "sha256" : "91f2ac9441db304e213ecc53e20305fca27e700be2bce6d160125359b14992fe"
+      "sha256" : "08c82b4bcc1b6f0335994b2e0c04d09ecebd080e614cfaf6bf5949451883b3f2"
     },
     {
       "byteCount" : 4854,
       "path" : "settings\/allowlisted-settings-v1.json",
-      "sha256" : "95125866d6c9877d824670a74a5300fea7e367ca02fcd7b474f8aaddfa933bb1"
+      "sha256" : "601c8ce5c1ebecb7d5dd8abb9423808955194557dc139e1f612b013f63c3b11e"
     },
     {
       "byteCount" : 329,
@@ -618,7 +618,7 @@
     {
       "byteCount" : 382,
       "path" : "transcripts\/transcripts.json",
-      "sha256" : "28f02a0ffdfe5c61df6f6de0da7b6f2c9127589c68389eff4e064ed497b03037"
+      "sha256" : "5404ed0103ca6bff798e84108fecf3730b876a986b47d35c44e5f4d2d7ec992a"
     },
     {
       "byteCount" : 181,
@@ -628,7 +628,7 @@
     {
       "byteCount" : 2360,
       "path" : "watch-defaults\/confirmed-v1.json",
-      "sha256" : "35ce64980ea72f57d8a034184685c6c8a012e5fa398e62d836cc06b118efcc15"
+      "sha256" : "bb28d1e21b4bd817f6f9f2cc6482dc35cb42c2b33c1906b37df703e41e9322cb"
     },
     {
       "byteCount" : 128,
@@ -638,7 +638,7 @@
     {
       "byteCount" : 5551,
       "path" : "watch-inbox\/item-current.json",
-      "sha256" : "0dcf0ef47a70bc60e45be9d246358f3dc77336a455684b16efb0d585a6fc8942"
+      "sha256" : "a24b513d589b9dad020f15e80c0715e9166c4d1fe77ffbc20da61dafc89c8b97"
     },
     {
       "byteCount" : 98,
@@ -653,7 +653,7 @@
     {
       "byteCount" : 2712,
       "path" : "watch-local-queue\/index-current.json",
-      "sha256" : "90b86079b9d4a3972879eab5b50e77289c0b96c5f3862dd0031cda7bc99bb958"
+      "sha256" : "cf1f0f7675b59192c45ec49438c2e02587fa6721d3061a1470e08e0547824bcf"
     },
     {
       "byteCount" : 82,
@@ -676,14 +676,14 @@
       "sha256" : "a172167c5d0ccaed634254123a2be713b9157b44ae8b5f3552b9f5fa30b27fd5"
     },
     {
-      "byteCount" : 2360,
+      "byteCount" : 3694,
       "path" : "watch-property-lists\/application-context.binary.plist",
-      "sha256" : "e2b3cac48d37045556fdb265781becc538182843b2a8c54a4fa9347a31c8badf"
+      "sha256" : "ca39dd5f48263af16d8e7cd4c86b657756d5a670a8a7e0fbf8e14fbeed1e20a0"
     },
     {
       "byteCount" : 3694,
       "path" : "watch-property-lists\/application-context.xml",
-      "sha256" : "a10e1fde812797b3af2b74a672bd86fb7b9975a1eb07cb01b93358fd887e792f"
+      "sha256" : "ca39dd5f48263af16d8e7cd4c86b657756d5a670a8a7e0fbf8e14fbeed1e20a0"
     },
     {
       "byteCount" : 404,
@@ -726,14 +726,14 @@
       "sha256" : "76c82dc3f57d2b620b341d61d1f070671518184dd59a51b403a01253d5e773fb"
     },
     {
-      "byteCount" : 2116,
+      "byteCount" : 3117,
       "path" : "watch-property-lists\/file-metadata.binary.plist",
-      "sha256" : "1021674c6df97fdc623fa3a6a547ac8f36722b9c456d22ebc5ab215137dbbd61"
+      "sha256" : "5608fd90c552ce048f34d4295be7df2b81ddd4d01a86377434153cdae3ee38bf"
     },
     {
       "byteCount" : 3117,
       "path" : "watch-property-lists\/file-metadata.xml",
-      "sha256" : "53e3f5b9ce17131b7c14012be41b52916628ebc2c4fc6aa7538fda006b904890"
+      "sha256" : "5608fd90c552ce048f34d4295be7df2b81ddd4d01a86377434153cdae3ee38bf"
     },
     {
       "byteCount" : 511,
@@ -753,10 +753,10 @@
   ],
   "foundationWire" : "Default Foundation JSON: Date numeric seconds since 2001-01-01, Data base64, UUID string, raw enum string.",
   "generatorPath" : "Packages\/VoxboardShared\/Sources\/VoxboardPersistenceFixtures\/main.swift",
-  "generatorSHA256" : "12bd22c4cb5df0aef0da547e5b32c4714315268fd78757210c4099046d27a646",
+  "generatorSHA256" : "918a5e1cd923f4e99086600c9fc021d377f8d84f86322e43797aad7fbc8f4c24",
   "planningParentCommit" : "b50167aebb959e394908af3a5949f43fa88d6265",
   "privacy" : "Fixed synthetic values only; no user defaults, App Group, bookmarks, media library, location, microphone, or WCSession access.",
   "producer" : "VoxboardPersistenceFixtures using production package codecs; app-target Watch and toolbar fixtures are validated by VoxboardTests",
-  "producerRevision" : "uncommitted-m0-candidate-worktree",
+  "producerRevision" : "f8098dc91befb10f0afd1170a4b0868a20eb07c1",
   "schemaVersion" : 1
 }

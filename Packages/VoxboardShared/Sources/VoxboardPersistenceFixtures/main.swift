@@ -445,7 +445,7 @@ struct VoxboardPersistenceFixtures {
         }
 
         var futureJobObject = try JSONSerialization.jsonObject(
-            with: JSONEncoder().encode(job)
+            with: deterministicEncoded(job)
         ) as! [String: Any]
         futureJobObject["schemaVersion"] = 99
         let futureJobData = try JSONSerialization.data(
@@ -496,7 +496,7 @@ struct VoxboardPersistenceFixtures {
         let manifest = FixtureManifest(
             schemaVersion: 1,
             planningParentCommit: "b50167aebb959e394908af3a5949f43fa88d6265",
-            producerRevision: "uncommitted-m0-candidate-worktree",
+            producerRevision: "f8098dc91befb10f0afd1170a4b0868a20eb07c1",
             generatorPath: "Packages/VoxboardShared/Sources/VoxboardPersistenceFixtures/main.swift",
             generatorSHA256: sha256(generatorData),
             producer: "VoxboardPersistenceFixtures using production package codecs; app-target Watch and toolbar fixtures are validated by VoxboardTests",
@@ -517,7 +517,7 @@ struct VoxboardPersistenceFixtures {
         let generatorDigest = sha256(try Data(contentsOf: generatorURL))
         guard manifest.schemaVersion == 1,
               manifest.planningParentCommit == "b50167aebb959e394908af3a5949f43fa88d6265",
-              manifest.producerRevision == "uncommitted-m0-candidate-worktree",
+              manifest.producerRevision == "f8098dc91befb10f0afd1170a4b0868a20eb07c1",
               manifest.generatorPath == "Packages/VoxboardShared/Sources/VoxboardPersistenceFixtures/main.swift",
               manifest.generatorSHA256 == generatorDigest,
               manifest.producer == "VoxboardPersistenceFixtures using production package codecs; app-target Watch and toolbar fixtures are validated by VoxboardTests" else {
@@ -977,7 +977,7 @@ struct VoxboardPersistenceFixtures {
         let confirmed: [String: Any] = [
             "id": preset.id,
             "displayName": preset.displayName,
-            "snapshot": try JSONEncoder().encode(preset).base64EncodedString(),
+            "snapshot": try deterministicEncoded(preset).base64EncodedString(),
         ]
         let pending: [String: Any] = [
             "requestID": requestID.uuidString.lowercased(),
@@ -1003,7 +1003,7 @@ struct VoxboardPersistenceFixtures {
         preset: CapturePreset,
         location: CaptureLocationOutcome
     ) throws {
-        let snapshot = try JSONEncoder().encode(preset).base64EncodedString()
+        let snapshot = try deterministicEncoded(preset).base64EncodedString()
         let current: [String: Any] = [
             "id": requestID.uuidString.lowercased(),
             "filename": "watch-\(requestID.uuidString.lowercased()).m4a",
@@ -1016,7 +1016,7 @@ struct VoxboardPersistenceFixtures {
             "presetID": preset.id,
             "presetName": preset.displayName,
             "presetSnapshot": snapshot,
-            "locationOutcome": try JSONSerialization.jsonObject(with: JSONEncoder().encode(location)),
+            "locationOutcome": try JSONSerialization.jsonObject(with: deterministicEncoded(location)),
         ]
         let legacy: [String: Any] = [
             "id": "legacy",
@@ -1480,7 +1480,7 @@ struct VoxboardPersistenceFixtures {
         processing.exportedAudioPath = nil
         processing.exportedNotePath = nil
         processing.audioReferenceAttachedAt = nil
-        let seed = try JSONEncoder().encode(processing)
+        let seed = try deterministicEncoded(processing)
         try seed.write(
             to: items.appendingPathComponent(processing.id.uuidString.lowercased()).appendingPathExtension("json"),
             options: .atomic
@@ -1489,7 +1489,8 @@ struct VoxboardPersistenceFixtures {
             .write(to: audio.appendingPathComponent(processing.audioFilename), options: .atomic)
         let store = RecordingJobStore(
             rootDirectoryURL: temporaryRoot,
-            coordinator: ProcessLocalCaptureFileCoordinator()
+            coordinator: ProcessLocalCaptureFileCoordinator(),
+            now: { fixedDate }
         )
         let checkpointID = processing.id
         let transcript = try waitForAsync {
@@ -1592,7 +1593,8 @@ struct VoxboardPersistenceFixtures {
             isEnabled: true,
             retryDelayNanoseconds: UInt64.max,
             assignmentStore: assignmentStore,
-            runtimeContextProvider: { nil }
+            runtimeContextProvider: { nil },
+            eventIDProvider: { requestID.uuidString.lowercased() }
         )
         analytics.track(OnboardingAnalyticsEvent(name: .onboardingStarted))
         defaults.set(
@@ -1642,7 +1644,7 @@ struct VoxboardPersistenceFixtures {
         at root: URL,
         preset: CapturePreset
     ) throws {
-        let current = try JSONEncoder().encode([CapturePresetStore.defaultFlow, preset])
+        let current = try deterministicEncoded([CapturePresetStore.defaultFlow, preset])
         guard var array = try JSONSerialization.jsonObject(with: current) as? [[String: Any]] else {
             throw FixtureError.semanticMismatch("preset store compatibility source")
         }
@@ -2470,7 +2472,7 @@ struct VoxboardPersistenceFixtures {
             relativePath: "compatibility/inbox/pending-unknown-field.json"
         )
         var requestObject = try JSONSerialization.jsonObject(
-            with: JSONEncoder().encode(request)
+            with: deterministicEncoded(request)
         ) as! [String: Any]
         for key in [
             "captureSource", "locationOutcome", "locationDecisionOverride",
@@ -3063,7 +3065,7 @@ struct VoxboardPersistenceFixtures {
             "queuedCount": 1,
             "selectedPresetID": preset.id,
             "selectedPresetName": preset.name,
-            "selectedPresetSnapshot": try! JSONEncoder().encode(preset),
+            "selectedPresetSnapshot": try! deterministicEncoded(preset),
             "presetSelectionAvailable": true,
             "presetSelectionEpoch": Int64(1_700_000_000_000),
             "presetSelectionSequence": Int64(7),
@@ -3153,8 +3155,8 @@ struct VoxboardPersistenceFixtures {
             "originalFilename": "fixture.m4a",
             "presetID": preset.id,
             "presetName": preset.name,
-            "presetSnapshot": try! JSONEncoder().encode(preset),
-            "locationOutcome": try! JSONEncoder().encode(location),
+            "presetSnapshot": try! deterministicEncoded(preset),
+            "locationOutcome": try! deterministicEncoded(location),
         ]
     }
 
@@ -3175,7 +3177,7 @@ struct VoxboardPersistenceFixtures {
             dictionary[component] = try replacing(child, remaining: remaining.dropFirst())
             return dictionary
         }
-        let data = try JSONEncoder().encode(value)
+        let data = try deterministicEncoded(value)
         let object = try JSONSerialization.jsonObject(with: data)
         let replaced = try replacing(object, remaining: keyPath[...])
         let encoded = try JSONSerialization.data(
@@ -3188,8 +3190,14 @@ struct VoxboardPersistenceFixtures {
         return text
     }
 
+    private static func deterministicEncoded<T: Encodable>(_ value: T) throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        return try encoder.encode(value)
+    }
+
     private static func addingUnknownField<T: Encodable>(to value: T) throws -> String {
-        let data = try JSONEncoder().encode(value)
+        let data = try deterministicEncoded(value)
         guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw FixtureError.semanticMismatch("unknown field fixture source")
         }
@@ -3221,7 +3229,18 @@ struct VoxboardPersistenceFixtures {
         relativePath: String,
         format: PropertyListSerialization.PropertyListFormat
     ) throws {
-        let data = try PropertyListSerialization.data(fromPropertyList: value, format: format, options: 0)
+        // Binary plist serialization is semantically stable but may reorder its
+        // object table between processes. Canonicalize through the deterministic
+        // XML representation for repository byte fixtures; the `.binary.plist`
+        // path is retained as a compatibility input name and production readers
+        // detect the actual format from its bytes.
+        let canonicalFormat: PropertyListSerialization.PropertyListFormat =
+            format == .binary ? .xml : format
+        let data = try PropertyListSerialization.data(
+            fromPropertyList: value,
+            format: canonicalFormat,
+            options: 0
+        )
         try write(data, to: root, relativePath: relativePath)
     }
 
@@ -3334,7 +3353,11 @@ private struct SyntheticWatchInboxItem: Codable {
             receivedAt: VoxboardPersistenceFixtures.fixedDate.addingTimeInterval(1),
             duration: 42,
             flowSnapshot: preset,
-            flowSnapshotPayload: try! JSONEncoder().encode(preset),
+            flowSnapshotPayload: {
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = [.sortedKeys]
+                return try! encoder.encode(preset)
+            }(),
             locationOutcome: location,
             requiresPresetSelection: false,
             capturesRecordingWithoutTranscript: true,

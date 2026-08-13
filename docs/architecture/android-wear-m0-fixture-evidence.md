@@ -2,12 +2,12 @@
 
 Status: **local format audit complete — baseline/hosted/device gates remain open**
 
-The candidate corpus is under `Packages/VoxboardShared/Tests/Fixtures/Persistence/v1/`.
-Before the baseline commit, its `manifest.json` records `b50167a` only as the
-planning parent and names the producer revision as the uncommitted M0 candidate
-worktree. It also records the generator path/SHA-256, fixed synthetic provenance,
-and a SHA-256 plus byte count for every file. CI will validate committed bytes; it
-never regenerates them first.
+The committed corpus is under `Packages/VoxboardShared/Tests/Fixtures/Persistence/v1/`.
+Its `manifest.json` records `b50167a` only as the planning parent and records
+`f8098dc91befb10f0afd1170a4b0868a20eb07c1` as the fixture-producing implementation
+revision. It also records the generator path/SHA-256, fixed synthetic provenance,
+and a SHA-256 plus byte count for every file. CI validates committed bytes; it never
+regenerates them first.
 
 ## Executable production-codec coverage
 
@@ -91,7 +91,7 @@ not be reported as product or physical-device parity.
 ## Provenance and regeneration
 
 - Planning parent (not the fixture-producing revision): `b50167aebb959e394908af3a5949f43fa88d6265`.
-- Current producer revision marker: `uncommitted-m0-candidate-worktree`; replace it with the real implementation revision only after that commit exists.
+- Fixture-producing implementation revision: `f8098dc91befb10f0afd1170a4b0868a20eb07c1`.
 - Generator source: `Packages/VoxboardShared/Sources/VoxboardPersistenceFixtures/main.swift`.
 - Validation command:
   `swift run --package-path Packages/VoxboardShared VoxboardPersistenceFixtures --validate`.

@@ -190,7 +190,9 @@ enum WatchConfirmedPresetStore {
         _ preset: ConfirmedWatchCapturePreset?,
         defaults: UserDefaults = .standard
     ) {
-        if let preset, let data = try? JSONEncoder().encode(preset) {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        if let preset, let data = try? encoder.encode(preset) {
             defaults.set(data, forKey: confirmedKey)
         } else {
             defaults.removeObject(forKey: confirmedKey)
@@ -212,7 +214,9 @@ enum WatchPresetSelectionStore {
         _ pending: PendingWatchPresetSelection?,
         defaults: UserDefaults = .standard
     ) {
-        if let pending, let data = try? JSONEncoder().encode(pending) {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        if let pending, let data = try? encoder.encode(pending) {
             defaults.set(data, forKey: pendingKey)
         } else {
             defaults.removeObject(forKey: pendingKey)

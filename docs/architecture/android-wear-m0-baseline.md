@@ -1,6 +1,6 @@
 # Android/Wear Shared-Core M0 Baseline
 
-Status: **In progress**
+Status: **Candidate baseline committed; fresh-checkout and hosted CI attestation pending**
 
 Implementation plan: `docs/android-wear-shared-core-implementation-plan.md`
 
@@ -11,7 +11,8 @@ Implementation plan: `docs/android-wear-shared-core-implementation-plan.md`
 | Vox.md planning and implementation-start parent | `b50167aebb959e394908af3a5949f43fa88d6265` (`Prepare Vox.md 2.1 release`) |
 | Recording queue introduction | `ed0fbf0f680cc7ace6a51fbf1ea1a419242d9234` (`Add durable cross-platform recording queue`), an ancestor of the baseline |
 | Health.md architecture precedent | `c70de9201ab7cfbadf2442183dfba23c0d248478` |
-| Fixture producer before baseline commit | Vox.md Swift production codecs from this uncommitted M0 candidate worktree; the final implementation revision is intentionally not asserted yet |
+| M0 implementation baseline | `f8098dc91befb10f0afd1170a4b0868a20eb07c1` (`Establish Android and Wear shared-core M0 baseline`), direct child of the planning parent |
+| Fixture-producing implementation revision | `f8098dc91befb10f0afd1170a4b0868a20eb07c1`; generator/manifest attestation is committed immediately after this baseline |
 
 Health.md references are read from the pinned commit with `git show`/`git cat-file`, not from uncommitted state in a neighboring checkout. The patterns being adopted are the native/Rust ownership boundary, independently versioned contracts, generated-binding policy, exact fixture comparisons, immutable commit barrier, and `legacy`/`shadow`/`rust` rollout. Health-domain DTOs and renderer profiles are not copied.
 
@@ -46,7 +47,7 @@ The baseline commit contains the intended recording queue and store implementati
 - `Voxboard/PersistentRecorder.swift`
 - `Voxboard/VoxboardApp.swift`
 
-The first candidate implementation commit must record `b50167a` as its parent. After that commit exists, a follow-up provenance attestation must replace the manifest's `uncommitted-m0-candidate-worktree` marker with the real implementation revision and rerun fixture validation; `b50167a` is never the fixture-producing codec revision.
+The implementation baseline records `b50167a` as its parent. This follow-up provenance attestation records `f8098dc91befb10f0afd1170a4b0868a20eb07c1` as the fixture-producing implementation revision; `b50167a` is never represented as the fixture-producing codec revision.
 
 ## Supported Apple baseline
 

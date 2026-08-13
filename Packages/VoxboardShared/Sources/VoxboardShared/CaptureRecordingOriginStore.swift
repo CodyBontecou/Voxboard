@@ -30,7 +30,9 @@ public actor CaptureRecordingOriginStore {
 
     public func save(_ snapshot: CaptureRecordingOriginSnapshot, recordingID: String) throws {
         try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
-        try JSONEncoder().encode(snapshot).write(to: url(for: recordingID), options: .atomic)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        try encoder.encode(snapshot).write(to: url(for: recordingID), options: .atomic)
     }
 
     public func load(recordingID: String) throws -> CaptureRecordingOriginSnapshot? {

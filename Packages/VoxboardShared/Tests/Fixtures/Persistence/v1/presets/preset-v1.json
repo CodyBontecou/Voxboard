@@ -25,12 +25,12 @@
     "newFileNameTemplate" : "fixture-{timestamp}",
     "usesCustomExportSettings" : true,
     "yamlProperties" : [
-      "text",
-      "modelUsed",
-      "duration",
-      "language",
       "date",
-      "id"
+      "duration",
+      "id",
+      "language",
+      "modelUsed",
+      "text"
     ],
     "yamlUsesMarkdownExtension" : false
   },

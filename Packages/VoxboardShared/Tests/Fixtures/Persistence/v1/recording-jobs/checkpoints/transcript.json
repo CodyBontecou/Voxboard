@@ -34,10 +34,10 @@
           "yamlProperties" : [
             "date",
             "duration",
-            "text",
-            "modelUsed",
+            "id",
             "language",
-            "id"
+            "modelUsed",
+            "text"
           ],
           "yamlUsesMarkdownExtension" : false
         },
@@ -120,5 +120,5 @@
   "source" : "recovered",
   "statusMessage" : "Transcribing",
   "transcriptText" : "Synthetic checkpoint",
-  "updatedAt" : 808292950.962405
+  "updatedAt" : 721692800
 }

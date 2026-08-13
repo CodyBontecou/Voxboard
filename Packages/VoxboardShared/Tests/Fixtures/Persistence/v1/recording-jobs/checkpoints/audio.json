@@ -33,11 +33,11 @@
           "usesCustomExportSettings" : true,
           "yamlProperties" : [
             "date",
+            "duration",
+            "id",
             "language",
             "modelUsed",
-            "text",
-            "id",
-            "duration"
+            "text"
           ],
           "yamlUsesMarkdownExtension" : false
         },
@@ -121,5 +121,5 @@
   "source" : "recovered",
   "statusMessage" : "Transcribing",
   "transcriptText" : "Synthetic checkpoint",
-  "updatedAt" : 808292950.963363
+  "updatedAt" : 721692800
 }

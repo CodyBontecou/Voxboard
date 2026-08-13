@@ -33,11 +33,11 @@
           "newFileNameTemplate" : "fixture-{timestamp}",
           "usesCustomExportSettings" : true,
           "yamlProperties" : [
-            "language",
-            "id",
             "date",
-            "modelUsed",
             "duration",
+            "id",
+            "language",
+            "modelUsed",
             "text"
           ],
           "yamlUsesMarkdownExtension" : false
@@ -123,5 +123,5 @@
   "source" : "recovered",
   "statusMessage" : "Transcribing",
   "transcriptText" : "Synthetic checkpoint",
-  "updatedAt" : 808292950.9648
+  "updatedAt" : 721692800
 }

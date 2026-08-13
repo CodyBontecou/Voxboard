@@ -505,6 +505,7 @@ public actor RecordingJobStore {
     private var workerLockFileDescriptor: Int32?
     private let encoder: JSONEncoder
     private let decoder: JSONDecoder
+    private let now: @Sendable () -> Date
 
     private var itemsDirectoryURL: URL {
         rootDirectoryURL.appendingPathComponent("items", isDirectory: true)
@@ -532,11 +533,13 @@ public actor RecordingJobStore {
     public init(
         rootDirectoryURL: URL,
         coordinator: any CaptureFileCoordinating = NSFileCoordinatorCaptureFileCoordinator.shared,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.rootDirectoryURL = rootDirectoryURL
         self.coordinator = coordinator
         self.fileManager = fileManager
+        self.now = now
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         self.encoder = encoder
@@ -1511,7 +1514,7 @@ public actor RecordingJobStore {
     }
 
     private func touch(_ job: inout RecordingJob) {
-        job.updatedAt = Date()
+        job.updatedAt = now()
         job.revision += 1
     }
 

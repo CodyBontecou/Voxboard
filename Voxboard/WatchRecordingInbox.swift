@@ -572,14 +572,18 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
         for item in sorted {
             try saveSidecarUnlocked(item)
         }
-        let data = try JSONEncoder().encode(sorted)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let data = try encoder.encode(sorted)
         try data.write(to: indexURL, options: .atomic)
     }
 
     private func saveSidecarUnlocked(_ item: WatchRecordingInboxItem) throws {
         let url = directoryURL
             .appendingPathComponent("item-\(sanitize(item.id)).json")
-        try JSONEncoder().encode(item).write(to: url, options: .atomic)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        try encoder.encode(item).write(to: url, options: .atomic)
     }
 
     private func sanitize(_ string: String) -> String {

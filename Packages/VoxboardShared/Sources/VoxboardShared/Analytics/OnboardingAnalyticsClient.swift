@@ -28,6 +28,9 @@ public final class OnboardingAnalyticsClient: @unchecked Sendable {
         assignmentStore: OnboardingExperimentAssignmentStore? = nil,
         runtimeContextProvider: @escaping @Sendable () -> OnboardingAnalyticsRuntimeContext? = {
             OnboardingAnalyticsRuntimeContext.current()
+        },
+        eventIDProvider: @escaping @Sendable () -> String = {
+            UUID().uuidString.lowercased()
         }
     ) {
         self.isEnabled = isEnabled
@@ -37,7 +40,8 @@ public final class OnboardingAnalyticsClient: @unchecked Sendable {
         self.state = OnboardingAnalyticsClientState(
             store: OnboardingAnalyticsQueueStore(defaults: defaults, key: queueKey),
             maxQueueSize: max(0, maxQueueSize),
-            retryDelayNanoseconds: retryDelayNanoseconds
+            retryDelayNanoseconds: retryDelayNanoseconds,
+            eventIDProvider: eventIDProvider
         )
     }
 
@@ -119,14 +123,21 @@ private final class OnboardingAnalyticsClientState: @unchecked Sendable {
     private let store: OnboardingAnalyticsQueueStore
     private let maxQueueSize: Int
     private let retryDelayNanoseconds: UInt64
+    private let eventIDProvider: @Sendable () -> String
 
     private var payloads: [OnboardingAnalyticsPayload]
     private var flushTask: Task<Void, Never>?
 
-    init(store: OnboardingAnalyticsQueueStore, maxQueueSize: Int, retryDelayNanoseconds: UInt64) {
+    init(
+        store: OnboardingAnalyticsQueueStore,
+        maxQueueSize: Int,
+        retryDelayNanoseconds: UInt64,
+        eventIDProvider: @escaping @Sendable () -> String
+    ) {
         self.store = store
         self.maxQueueSize = maxQueueSize
         self.retryDelayNanoseconds = retryDelayNanoseconds
+        self.eventIDProvider = eventIDProvider
         self.payloads = store.load()
         trimToQueueCap()
         store.save(payloads)
@@ -207,7 +218,7 @@ private final class OnboardingAnalyticsClientState: @unchecked Sendable {
 
     private func payloadWithStableEventId(_ payload: OnboardingAnalyticsPayload) -> OnboardingAnalyticsPayload {
         guard payload.eventId == nil else { return payload }
-        return payload.withEventId(UUID().uuidString.lowercased())
+        return payload.withEventId(eventIDProvider())
     }
 
     private func trimToQueueCap() {
