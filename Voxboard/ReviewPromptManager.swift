@@ -54,6 +54,10 @@ final class ReviewPromptManager {
 
     private let promptDelayNanoseconds: UInt64 = 900_000_000
 
+    nonisolated deinit {
+        promptTask?.cancel()
+    }
+
     init(
         defaults: UserDefaults = AppConstants.sharedDefaults ?? .standard,
         calendar: Calendar = .current,

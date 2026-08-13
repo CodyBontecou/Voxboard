@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Validate portable project, migration, and Android/Wear M0 contracts
         run: ./scripts/test-project-contracts.sh
 

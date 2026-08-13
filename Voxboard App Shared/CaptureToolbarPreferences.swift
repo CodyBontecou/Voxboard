@@ -117,6 +117,10 @@ final class CaptureToolbarPreferences {
     private(set) var hiddenActions: Set<CaptureToolbarAction>
     private(set) var confirmsVoiceNotesBeforeAdding: Bool
 
+    // Avoid an actor-isolated synthesized destructor; this type owns no
+    // main-actor resources that require isolated teardown.
+    nonisolated deinit {}
+
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
 
