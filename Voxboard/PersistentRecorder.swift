@@ -134,8 +134,17 @@ struct RecordingSegmentHandoffSnapshot: Equatable, Sendable {
 @Observable
 final class PersistentRecorder {
 
-    private static let modelSetupAnalyticsKey = "onboarding.analytics.model_setup_completed.v1"
-    private static let completionAnalyticsKey = "onboarding.analytics.completed.v1"
+    static let modelSetupAnalyticsKey = "onboarding.analytics.model_setup_completed.v1"
+    static let completionAnalyticsKey = "onboarding.analytics.completed.v1"
+
+    static func claimOneShotAnalyticsMarker(
+        _ key: String,
+        defaults: UserDefaults
+    ) -> Bool {
+        guard !defaults.bool(forKey: key) else { return false }
+        defaults.set(true, forKey: key)
+        return true
+    }
     #if DEBUG
     private static let runtimeQueuePauseAfterClaimArgument =
         "--runtime-queue-pause-after-claim"
@@ -609,11 +618,13 @@ final class PersistentRecorder {
 
     private func trackModelSetupCompletedIfNeeded() {
         let defaults = AppConstants.sharedDefaults ?? .standard
-        guard !defaults.bool(forKey: Self.modelSetupAnalyticsKey),
-              let model = selectedModelForAnalytics(),
-              model.isDownloaded else { return }
+        guard let model = selectedModelForAnalytics(),
+              model.isDownloaded,
+              Self.claimOneShotAnalyticsMarker(
+                  Self.modelSetupAnalyticsKey,
+                  defaults: defaults
+              ) else { return }
 
-        defaults.set(true, forKey: Self.modelSetupAnalyticsKey)
         OnboardingAnalyticsClient.shared.trackModelSetupCompleted(
             metadata: OnboardingAnalyticsModelMetadata(model: model),
             quotaState: usageTracker.onboardingAnalyticsQuotaState
@@ -622,9 +633,11 @@ final class PersistentRecorder {
 
     private func trackOnboardingCompletedIfNeeded(metadata: OnboardingAnalyticsModelMetadata) {
         let defaults = AppConstants.sharedDefaults ?? .standard
-        guard !defaults.bool(forKey: Self.completionAnalyticsKey) else { return }
+        guard Self.claimOneShotAnalyticsMarker(
+            Self.completionAnalyticsKey,
+            defaults: defaults
+        ) else { return }
 
-        defaults.set(true, forKey: Self.completionAnalyticsKey)
         OnboardingAnalyticsClient.shared.trackOnboardingCompleted(
             modelMetadata: metadata,
             quotaState: usageTracker.onboardingAnalyticsQuotaState

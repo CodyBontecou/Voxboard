@@ -1,0 +1,13 @@
+{
+  "schemaVersion" : 1,
+  "values" : {
+    "recordingQueue.audioRetention.mode.v1" : {
+      "type" : "string",
+      "value" : "futureRetention"
+    },
+    "recordingQueue.processingPolicy.v1" : {
+      "type" : "string",
+      "value" : "futureProcessing"
+    }
+  }
+}

@@ -47,6 +47,8 @@ public final class ModelManager {
     private var activeDownloads: [String: ActiveDownload] = [:]
     @ObservationIgnored
     private var operationRegistry = ModelDownloadOperationRegistry()
+    @ObservationIgnored
+    private let settingsDefaults: UserDefaults?
 
     #if os(macOS)
     /// Prevents macOS from idling the display or system while a large model is
@@ -62,16 +64,16 @@ public final class ModelManager {
 
     public var selectedModelId: String {
         didSet {
-            AppConstants.sharedDefaults?.set(selectedModelId, forKey: AppConstants.selectedModelKey)
+            settingsDefaults?.set(selectedModelId, forKey: AppConstants.selectedModelKey)
             if WhisperModelInfo.availableModels.contains(where: { $0.id == selectedModelId }) {
-                AppConstants.sharedDefaults?.set(selectedModelId, forKey: AppConstants.selectedFallbackModelKey)
+                settingsDefaults?.set(selectedModelId, forKey: AppConstants.selectedFallbackModelKey)
             }
             ensureSelectedLanguageIsSupported()
         }
     }
 
     public var selectedLanguage: String {
-        didSet { AppConstants.sharedDefaults?.set(selectedLanguage, forKey: AppConstants.selectedLanguageKey) }
+        didSet { settingsDefaults?.set(selectedLanguage, forKey: AppConstants.selectedLanguageKey) }
     }
 
     public var selectedModel: WhisperModelInfo? {
@@ -85,7 +87,7 @@ public final class ModelManager {
     /// Last explicitly selected local model. Automatic uses it only when the
     /// system recognizer is unavailable or fails before producing a transcript.
     public var preferredFallbackModelID: String? {
-        AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedFallbackModelKey)
+        settingsDefaults?.string(forKey: AppConstants.selectedFallbackModelKey)
     }
 
     public func selectAutomatic() {
@@ -127,8 +129,12 @@ public final class ModelManager {
 
     // MARK: - Initialization
 
-    public init() {
-        let defaults = AppConstants.sharedDefaults
+    public convenience init() {
+        self.init(defaults: AppConstants.sharedDefaults)
+    }
+
+    package init(defaults: UserDefaults?) {
+        self.settingsDefaults = defaults
         let persistedSelection = defaults?.string(forKey: AppConstants.selectedModelKey)
 
         #if os(iOS)
@@ -632,7 +638,7 @@ public final class ModelManager {
         }
 
         if preferredFallbackModelID == model.id {
-            AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.selectedFallbackModelKey)
+            settingsDefaults?.removeObject(forKey: AppConstants.selectedFallbackModelKey)
         }
         if selectedModelId == model.id {
             selectedModelId = AppConstants.defaultTranscriptionBackendID

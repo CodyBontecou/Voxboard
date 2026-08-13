@@ -211,12 +211,23 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
     }
 
     private var indexURL: URL {
-        Self.inboxDirectory.appendingPathComponent("index.json")
+        directoryURL.appendingPathComponent("index.json")
     }
 
     private let lock = NSLock()
+    private let directoryURL: URL
 
-    private init() {}
+    private init() {
+        self.directoryURL = WatchRecordingInbox.inboxDirectory
+    }
+
+    init(compatibilityFixtureDirectoryURL: URL) {
+        self.directoryURL = compatibilityFixtureDirectoryURL
+    }
+
+    func compatibilityFixtureAudioURL(for item: WatchRecordingInboxItem) -> URL {
+        directoryURL.appendingPathComponent(item.filename)
+    }
 
     /// Moves WatchConnectivity's temporary file into durable storage before the
     /// delegate returns. Duplicate transfers never replace active or completed work.
@@ -230,8 +241,10 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
             var items = loadUnlocked()
             if let index = items.firstIndex(where: { $0.id == id }) {
                 var existing = items[index]
-                if !existing.hasAudio, !existing.phase.isTerminal {
-                    let destination = Self.inboxDirectory.appendingPathComponent(existing.filename)
+                let existingAudioURL = directoryURL.appendingPathComponent(existing.filename)
+                if !FileManager.default.fileExists(atPath: existingAudioURL.path),
+                   !existing.phase.isTerminal {
+                    let destination = existingAudioURL
                     try? FileManager.default.removeItem(at: destination)
                     try FileManager.default.moveItem(at: fileURL, to: destination)
                     existing.phase = .queued
@@ -256,7 +269,7 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
             let originalFilename = metadata[WatchRecordingFileMetadataKey.originalFilename] as? String
             let ext = fileURL.pathExtension.isEmpty ? "m4a" : fileURL.pathExtension
             let filename = "watch-\(sanitize(id)).\(ext)"
-            let destination = Self.inboxDirectory.appendingPathComponent(filename)
+            let destination = directoryURL.appendingPathComponent(filename)
             let requestedPresetID = metadata[WatchRecordingFileMetadataKey.presetID] as? String
             let flowSnapshotPayload = metadata[WatchRecordingFileMetadataKey.presetSnapshot] as? Data
             let transferredSnapshot = flowSnapshotPayload
@@ -304,6 +317,14 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
 
     func load() -> [WatchRecordingInboxItem] {
         withLock { loadUnlocked() }
+    }
+
+    static func writeCompatibilityFixture(
+        items: [WatchRecordingInboxItem],
+        directoryURL: URL
+    ) throws {
+        let inbox = WatchRecordingInbox(compatibilityFixtureDirectoryURL: directoryURL)
+        try inbox.withLock { try inbox.saveUnlocked(items) }
     }
 
     @discardableResult
@@ -385,7 +406,9 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
     ) -> WatchRecordingInboxItem? {
         let item = transition(id: id, to: .delivered, message: message)
         if let item {
-            try? FileManager.default.removeItem(at: item.fileURL)
+            try? FileManager.default.removeItem(
+                at: directoryURL.appendingPathComponent(item.filename)
+            )
         }
         return item
     }
@@ -397,7 +420,9 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
     ) -> WatchRecordingInboxItem? {
         let item = transition(id: id, to: .discarded, message: message)
         if let item {
-            try? FileManager.default.removeItem(at: item.fileURL)
+            try? FileManager.default.removeItem(
+                at: directoryURL.appendingPathComponent(item.filename)
+            )
         }
         return item
     }
@@ -408,7 +433,9 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
             guard let index = items.firstIndex(where: { $0.id == id }),
                   items[index].phase.isTerminal,
                   revision >= items[index].revision else { return false }
-            try? FileManager.default.removeItem(at: items[index].fileURL)
+            try? FileManager.default.removeItem(
+                at: directoryURL.appendingPathComponent(items[index].filename)
+            )
             // Scrub terminal records written by older versions as soon as the
             // Watch acknowledges them.
             items[index].scrubSensitivePayloadForTombstone()
@@ -448,7 +475,7 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
         var recovered = decoded == nil && indexData != nil
 
         let sidecarURLs = (try? FileManager.default.contentsOfDirectory(
-            at: Self.inboxDirectory,
+            at: directoryURL,
             includingPropertiesForKeys: nil,
             options: [.skipsHiddenFiles]
         ))?.filter { $0.lastPathComponent.hasPrefix("item-") && $0.pathExtension == "json" } ?? []
@@ -483,7 +510,7 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
 
         let knownFilenames = Set(items.map(\.filename))
         let orphanAudioURLs = ((try? FileManager.default.contentsOfDirectory(
-            at: Self.inboxDirectory,
+            at: directoryURL,
             includingPropertiesForKeys: [.creationDateKey, .contentModificationDateKey],
             options: [.skipsHiddenFiles]
         )) ?? []).filter {
@@ -511,7 +538,7 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
         }
 
         if indexData != nil && decoded == nil {
-            let backup = Self.inboxDirectory.appendingPathComponent(
+            let backup = directoryURL.appendingPathComponent(
                 "index-corrupt-\(Int(Date().timeIntervalSince1970)).json"
             )
             try? FileManager.default.copyItem(at: indexURL, to: backup)
@@ -534,7 +561,7 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
 
     private func ensureDirectory() throws {
         try FileManager.default.createDirectory(
-            at: Self.inboxDirectory,
+            at: directoryURL,
             withIntermediateDirectories: true
         )
     }
@@ -550,7 +577,7 @@ nonisolated final class WatchRecordingInbox: @unchecked Sendable {
     }
 
     private func saveSidecarUnlocked(_ item: WatchRecordingInboxItem) throws {
-        let url = Self.inboxDirectory
+        let url = directoryURL
             .appendingPathComponent("item-\(sanitize(item.id)).json")
         try JSONEncoder().encode(item).write(to: url, options: .atomic)
     }

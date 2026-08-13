@@ -1,0 +1,17 @@
+{
+  "schemaVersion" : 1,
+  "values" : {
+    "recordingQueue.audioRetention.interval.v1" : {
+      "type" : "string",
+      "value" : "not-a-duration"
+    },
+    "recordingQueue.audioRetention.mode.v1" : {
+      "type" : "int64",
+      "value" : 42
+    },
+    "recordingQueue.processingPolicy.v1" : {
+      "type" : "bool",
+      "value" : true
+    }
+  }
+}

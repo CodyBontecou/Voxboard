@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		ABF0000A2FD30000AABB000A /* WatchPhoneBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */; };
+		ABF0000B2FD30000AABB000B /* WatchLocalRecordingQueueStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABF0000C2FD30000AABB000C /* WatchLocalRecordingQueueStore.swift */; };
+		ABF0000D2FD30000AABB000D /* WatchLocalRecordingQueueStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABF0000C2FD30000AABB000C /* WatchLocalRecordingQueueStore.swift */; };
+		ABF0000E2FD30000AABB000E /* VoxboardCaptureCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0E291E4ACFADDC4D1EC10382 /* VoxboardCaptureCore */; };
 		154ED7783EDFF91EC1D07921 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B42D87F76743327017AE80B3 /* Assets.xcassets */; };
 		1A730FB345D4C90BB942A23D /* WatchPhoneBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */; };
 		297BB61327EC182072BDB12C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 02DA1EF2BDE8054CD5132FD0 /* Foundation.framework */; };
@@ -201,6 +205,7 @@
 		AA8100042FB10000AABB0004 /* MacSketchEditor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacSketchEditor.swift; path = "Voxboard Mac/MacSketchEditor.swift"; sourceTree = "<group>"; };
 		AA8100052FB10000AABB0005 /* MacCameraCaptureView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacCameraCaptureView.swift; path = "Voxboard Mac/MacCameraCaptureView.swift"; sourceTree = "<group>"; };
 		AA8100062FB10000AABB0006 /* MacEntryTemplateLibraryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacEntryTemplateLibraryView.swift; path = "Voxboard Mac/MacEntryTemplateLibraryView.swift"; sourceTree = "<group>"; };
+		ABF000012FD30000AABB0001 /* Voxboard Watch Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Voxboard Watch Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAE000012FC00000AABB0001 /* VoxboardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VoxboardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAF000002FD10000AABB0002 /* Shared Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = "Shared Localizable.xcstrings"; path = Voxboard/Localizable.xcstrings; sourceTree = SOURCE_ROOT; };
 		AAF100002FD20000AABB0001 /* Mac InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = InfoPlist.xcstrings; path = "Voxboard Mac/InfoPlist.xcstrings"; sourceTree = SOURCE_ROOT; };
@@ -209,6 +214,7 @@
 		AAF100002FD20000AABB0004 /* Share InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = InfoPlist.xcstrings; path = "Voxboard Share Extension/InfoPlist.xcstrings"; sourceTree = SOURCE_ROOT; };
 		AB2600012F901000AABB0001 /* FoundationModelsBackend.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FoundationModelsBackend.swift; path = Voxboard/FoundationModelsBackend.swift; sourceTree = "<group>"; };
 		AB7000012FC10000AABB0001 /* MacKeyboardHintCenter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacKeyboardHintCenter.swift; path = "Voxboard Mac/MacKeyboardHintCenter.swift"; sourceTree = "<group>"; };
+		ABF0000C2FD30000AABB000C /* WatchLocalRecordingQueueStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchLocalRecordingQueueStore.swift; sourceTree = "<group>"; };
 		B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WatchPhoneBridge.swift; sourceTree = "<group>"; };
 		B42D87F76743327017AE80B3 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Voxboard/Assets.xcassets; sourceTree = "<group>"; };
 		B7CCD1646C8EA9E9C4F0979E /* Voxboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Voxboard.app; path = Vox.md.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -285,6 +291,11 @@
 		AA8000012FB00000AABB0001 /* Voxboard App Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Voxboard App Shared";
+			sourceTree = "<group>";
+		};
+		ABF000022FD30000AABB0002 /* Voxboard Watch Tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Voxboard Watch Tests";
 			sourceTree = "<group>";
 		};
 		AAE000022FC00000AABB0002 /* VoxboardTests */ = {
@@ -446,6 +457,7 @@
 				B0142BC822AB83EF750ED30C /* Voxboard Watch */,
 				6EC8A447993E0439CE87DF71 /* Voxboard Watch Widget */,
 				C7146BA1A0F6BF8D87B7017C /* Voxboard Share Extension */,
+				ABF000022FD30000AABB0002 /* Voxboard Watch Tests */,
 				AAE000022FC00000AABB0002 /* VoxboardTests */,
 			);
 			sourceTree = "<group>";
@@ -460,6 +472,7 @@
 				0F9B6BE6CEFCD7819FE5AE0E /* Voxboard Watch.app */,
 				858885847BF7D36167D58E66 /* Voxboard Watch WidgetExtension.appex */,
 				7DE4A3528BD946F1CCB74457 /* Voxboard Share Extension.appex */,
+				ABF000012FD30000AABB0001 /* Voxboard Watch Tests.xctest */,
 				AAE000012FC00000AABB0001 /* VoxboardTests.xctest */,
 			);
 			name = Products;
@@ -522,6 +535,7 @@
 		E7FA8828C3CD57B5295A6C02 /* Voxboard Watch Shared */ = {
 			isa = PBXGroup;
 			children = (
+				ABF0000C2FD30000AABB000C /* WatchLocalRecordingQueueStore.swift */,
 				B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */,
 			);
 			path = "Voxboard Watch Shared";
@@ -647,6 +661,27 @@
 			productName = Voxboard;
 			productReference = B7CCD1646C8EA9E9C4F0979E /* Voxboard.app */;
 			productType = "com.apple.product-type.application";
+		};
+		ABF000032FD30000AABB0003 /* Voxboard Watch Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ABF000072FD30000AABB0007 /* Build configuration list for PBXNativeTarget "Voxboard Watch Tests" */;
+			buildPhases = (
+				ABF000042FD30000AABB0004 /* Sources */,
+				ABF000052FD30000AABB0005 /* Frameworks */,
+				ABF000062FD30000AABB0006 /* Resources */,
+			);
+			buildRules = ();
+			dependencies = ();
+			fileSystemSynchronizedGroups = (
+				ABF000022FD30000AABB0002 /* Voxboard Watch Tests */,
+			);
+			name = "Voxboard Watch Tests";
+			packageProductDependencies = (
+				0E291E4ACFADDC4D1EC10382 /* VoxboardCaptureCore */,
+			);
+			productName = VoxboardWatchTests;
+			productReference = ABF000012FD30000AABB0001 /* Voxboard Watch Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		AAE000032FC00000AABB0003 /* VoxboardTests */ = {
 			isa = PBXNativeTarget;
@@ -787,6 +822,7 @@
 				F0DA80EAA05F61E44B2AA91C /* Voxboard Watch */,
 				0E3F2B4FB4813EC6D280C148 /* Voxboard Watch WidgetExtension */,
 				C71CE7A43218B927DE0188B1 /* Voxboard Share Extension */,
+				ABF000032FD30000AABB0003 /* Voxboard Watch Tests */,
 				AAE000032FC00000AABB0003 /* VoxboardTests */,
 			);
 		};
@@ -874,6 +910,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A730FB345D4C90BB942A23D /* WatchPhoneBridge.swift in Sources */,
+				ABF0000B2FD30000AABB000B /* WatchLocalRecordingQueueStore.swift in Sources */,
 				C7E080794026AF997D984BA1 /* VoxboardWatchApp.swift in Sources */,
 				B697081A9BF8FA5A952C4260 /* WatchRecorderView.swift in Sources */,
 				F3691CC13571407D4CB11C0E /* WatchLocalRecorder.swift in Sources */,
@@ -901,6 +938,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ABF000042FD30000AABB0004 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (ABF0000A2FD30000AABB000A /* WatchPhoneBridge.swift in Sources */, ABF0000D2FD30000AABB000D /* WatchLocalRecordingQueueStore.swift in Sources */,); runOnlyForDeploymentPostprocessing = 0; };
+		ABF000052FD30000AABB0005 /* Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (ABF0000E2FD30000AABB000E /* VoxboardCaptureCore in Frameworks */,); runOnlyForDeploymentPostprocessing = 0; };
+		ABF000062FD30000AABB0006 /* Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		AAE000042FC00000AABB0004 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1540,6 +1580,37 @@
 			};
 			name = Release;
 		};
+		ABF000082FD30000AABB0008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.VoxboardWatchTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		ABF000092FD30000AABB0009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.VoxboardWatchTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 		AAE000082FC00000AABB0008 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1664,6 +1735,15 @@
 			buildConfigurations = (
 				340AC23AE55129D57C3BC903 /* Release */,
 				6392940EB81E09E4DF2B5762 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		ABF000072FD30000AABB0007 /* Build configuration list for PBXNativeTarget "Voxboard Watch Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ABF000082FD30000AABB0008 /* Debug */,
+				ABF000092FD30000AABB0009 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

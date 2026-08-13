@@ -1,0 +1,11 @@
+{
+  "action" : "stopSegment",
+  "flowId" : "fixture",
+  "futureFixtureField" : {
+    "ignored" : true
+  },
+  "language" : "en",
+  "modelId" : "automatic",
+  "origin" : "keyboardExtension",
+  "requestId" : "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+}

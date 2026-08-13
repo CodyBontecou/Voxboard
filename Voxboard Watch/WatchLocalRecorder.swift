@@ -19,93 +19,8 @@ final class WatchLocalRecorder: ObservableObject {
         case error(String)
     }
 
-    enum TransportState: String, Codable {
-        case local
-        case transferring
-        case uploaded
-    }
-
-    struct QueuedRecording: Codable, Equatable, Identifiable {
-        let id: String
-        let filename: String
-        let createdAt: Date
-        var duration: TimeInterval
-        var transportState: TransportState
-        var remotePhase: WatchRemoteRecordingPhase?
-        var remoteRevision: Int
-        var remoteMessage: String?
-        var presetID: String?
-        var presetName: String?
-        var presetSnapshot: Data?
-        /// Privacy-adjusted Watch-origin result captured exactly once when the
-        /// recording stopped. Sync retries transfer this same durable value.
-        var locationOutcome: CaptureLocationOutcome?
-
-        var fileURL: URL {
-            WatchLocalRecorder.recordingsDirectoryURL.appendingPathComponent(filename)
-        }
-
-        init(
-            id: String,
-            filename: String,
-            createdAt: Date,
-            duration: TimeInterval,
-            transportState: TransportState = .local,
-            remotePhase: WatchRemoteRecordingPhase? = nil,
-            remoteRevision: Int = 0,
-            remoteMessage: String? = nil,
-            presetID: String? = nil,
-            presetName: String? = nil,
-            presetSnapshot: Data? = nil,
-            locationOutcome: CaptureLocationOutcome? = nil
-        ) {
-            self.id = id
-            self.filename = filename
-            self.createdAt = createdAt
-            self.duration = duration
-            self.transportState = transportState
-            self.remotePhase = remotePhase
-            self.remoteRevision = remoteRevision
-            self.remoteMessage = remoteMessage
-            self.presetID = presetID
-            self.presetName = presetName
-            self.presetSnapshot = presetSnapshot
-            self.locationOutcome = locationOutcome
-        }
-
-        private enum CodingKeys: String, CodingKey {
-            case id
-            case filename
-            case createdAt
-            case duration
-            case transportState
-            case remotePhase
-            case remoteRevision
-            case remoteMessage
-            case presetID
-            case presetName
-            case presetSnapshot
-            case locationOutcome
-        }
-
-        init(from decoder: Decoder) throws {
-            let container = try decoder.container(keyedBy: CodingKeys.self)
-            self.init(
-                id: try container.decode(String.self, forKey: .id),
-                filename: try container.decode(String.self, forKey: .filename),
-                createdAt: try container.decode(Date.self, forKey: .createdAt),
-                duration: try container.decode(TimeInterval.self, forKey: .duration),
-                transportState: try container.decodeIfPresent(TransportState.self, forKey: .transportState) ?? .local,
-                remotePhase: try container.decodeIfPresent(WatchRemoteRecordingPhase.self, forKey: .remotePhase),
-                remoteRevision: try container.decodeIfPresent(Int.self, forKey: .remoteRevision) ?? 0,
-                remoteMessage: try container.decodeIfPresent(String.self, forKey: .remoteMessage),
-                presetID: try container.decodeIfPresent(String.self, forKey: .presetID),
-                presetName: try container.decodeIfPresent(String.self, forKey: .presetName),
-                presetSnapshot: try container.decodeIfPresent(Data.self, forKey: .presetSnapshot),
-                locationOutcome: try container.decodeIfPresent(CaptureLocationOutcome.self, forKey: .locationOutcome)
-            )
-        }
-    }
+    typealias TransportState = WatchLocalRecordingTransportState
+    typealias QueuedRecording = WatchLocalQueuedRecording
 
     @Published private(set) var phase: Phase = .idle { didSet { publishWidgetSnapshot() } }
     @Published private(set) var startedAt: Date? { didSet { publishWidgetSnapshot() } }
@@ -590,7 +505,9 @@ final class WatchLocalRecorder: ObservableObject {
         }
 
         let candidates = queuedRecordings.filter { item in
-            FileManager.default.fileExists(atPath: item.fileURL.path)
+            FileManager.default.fileExists(
+                atPath: Self.queueStore.audioURL(for: item).path
+            )
                 && item.transportState != .uploaded
                 && !inFlightTransferIDs.contains(item.id)
         }
@@ -611,7 +528,7 @@ final class WatchLocalRecorder: ObservableObject {
         var queuedForTransfer = 0
         for item in candidates {
             let didQueue = bridge.transferWatchRecording(
-                fileURL: item.fileURL,
+                fileURL: Self.queueStore.audioURL(for: item),
                 id: item.id,
                 createdAt: item.createdAt,
                 duration: item.duration,
@@ -650,31 +567,32 @@ final class WatchLocalRecorder: ObservableObject {
         }
 
         inFlightTransferIDs.remove(id)
-        guard queuedRecordings.contains(where: { $0.id == id }) else { return }
         let didSucceed = notification.userInfo?[WatchRecordingTransferNotificationKey.success] as? Bool ?? false
+        let completion = Self.queueStore.reconcilingTransferCompletion(
+            recordings: queuedRecordings,
+            recordingID: id,
+            didSucceed: didSucceed
+        )
+        guard completion.outcome != .unknownRecording else { return }
+        queuedRecordings = completion.recordings
+        saveQueuedRecordings()
+        guard !isRecording else { return }
 
-        if didSucceed {
-            let shouldRetry = queuedRecordings.first(where: { $0.id == id })?.remotePhase == .transportFailed
-            updateQueuedRecording(id: id) { item in
-                item.transportState = shouldRetry ? .local : .uploaded
-                if item.remotePhase == nil { item.remotePhase = .queued }
-            }
-            guard !isRecording else { return }
-            if shouldRetry {
-                phase = .error(String(localized: "iPhone could not save the transfer."))
-                message = String(localized: "Recording is safe on Watch. Tap Sync Queue to retry.")
-            } else {
-                phase = .waitingForPhone
-                message = String(localized: "Safely queued on iPhone. Waiting to process.")
-            }
-        } else {
-            updateQueuedRecording(id: id) { $0.transportState = .local }
-            guard !isRecording else { return }
+        switch completion.outcome {
+        case .uploaded:
+            phase = .waitingForPhone
+            message = String(localized: "Safely queued on iPhone. Waiting to process.")
+        case .retryRequired:
+            phase = .error(String(localized: "iPhone could not save the transfer."))
+            message = String(localized: "Recording is safe on Watch. Tap Sync Queue to retry.")
+        case .failed:
             cancelTransientSuccessReset()
             let errorMessage = notification.userInfo?[WatchRecordingTransferNotificationKey.errorMessage] as? String
             phase = .error(String(localized: "Saved on Watch, sync failed."))
             message = errorMessage.map { String(localized: "Saved on Watch. Sync failed: \($0)") }
                 ?? String(localized: "Saved on Watch. Tap Sync Queue after your iPhone is nearby.")
+        case .unknownRecording:
+            break
         }
     }
 
@@ -683,46 +601,28 @@ final class WatchLocalRecorder: ObservableObject {
         using bridge: WatchPhoneBridge
     ) {
         guard !statuses.isEmpty else { return }
-        var terminalAcknowledgements: [(String, Int)] = []
-
-        for status in statuses {
-            guard let existing = queuedRecordings.first(where: { $0.id == status.recordingID }) else {
-                if status.phase == .delivered || status.phase == .discarded {
-                    terminalAcknowledgements.append((status.recordingID, status.revision))
-                }
-                continue
-            }
-            guard status.revision > existing.remoteRevision else { continue }
-
-            if status.phase == .transportFailed {
-                updateQueuedRecording(id: status.recordingID) { item in
-                    item.transportState = .local
-                    item.remotePhase = .transportFailed
-                    item.remoteRevision = status.revision
-                    item.remoteMessage = status.message
-                }
-                continue
-            }
-
-            updateQueuedRecording(id: status.recordingID) { item in
-                item.transportState = .uploaded
-                item.remotePhase = status.phase
-                item.remoteRevision = status.revision
-                item.remoteMessage = status.message
-            }
-
-            if status.phase == .delivered || status.phase == .discarded {
-                removeQueuedRecording(id: status.recordingID, deleteFile: true)
-                terminalAcknowledgements.append((status.recordingID, status.revision))
-            }
+        let persisted: WatchLocalPersistedRemoteReconciliation
+        do {
+            persisted = try Self.queueStore.applyRemoteStatusesPersisting(
+                statuses,
+                recordings: queuedRecordings
+            )
+        } catch {
+            phase = .error(String(localized: "Could not save Watch sync progress."))
+            message = error.localizedDescription
+            return
         }
-
-        for (recordingID, revision) in terminalAcknowledgements {
-            bridge.acknowledge(recordingID: recordingID, revision: revision)
+        let reconciliation = persisted.reconciliation
+        queuedRecordings = reconciliation.recordings
+        for acknowledgement in reconciliation.terminalAcknowledgements {
+            bridge.acknowledge(
+                recordingID: acknowledgement.recordingID,
+                revision: acknowledgement.revision
+            )
         }
 
         guard !isRecording else { return }
-        if queuedRecordings.isEmpty, !terminalAcknowledgements.isEmpty {
+        if queuedRecordings.isEmpty, !reconciliation.terminalAcknowledgements.isEmpty {
             phase = .transferred
             message = String(localized: "Saved on iPhone. You can record another.")
             scheduleTransientSuccessReset()
@@ -973,12 +873,8 @@ final class WatchLocalRecorder: ObservableObject {
         return base.appendingPathComponent("WatchRecordings", isDirectory: true)
     }
 
-    nonisolated private static var queueIndexURL: URL {
-        recordingsDirectoryURL.appendingPathComponent("index.json")
-    }
-
-    nonisolated private static var activeRecordingURL: URL {
-        recordingsDirectoryURL.appendingPathComponent("active-recording.json")
+    nonisolated private static var queueStore: WatchLocalRecordingQueueStore {
+        WatchLocalRecordingQueueStore(recordingsDirectoryURL: recordingsDirectoryURL)
     }
 
     private func recordingsDirectory() throws -> URL {
@@ -987,85 +883,19 @@ final class WatchLocalRecorder: ObservableObject {
     }
 
     private static func loadQueuedRecordingsRecoveringInterruptedCapture() -> [QueuedRecording] {
-        let indexData = try? Data(contentsOf: queueIndexURL)
-        let decoded = indexData.flatMap { try? JSONDecoder().decode([QueuedRecording].self, from: $0) }
-        let indexCouldNotDecode = indexData != nil && decoded == nil
-        var existing = (decoded ?? []).filter {
-            FileManager.default.fileExists(atPath: $0.fileURL.path)
-        }
-
-        if let activeData = try? Data(contentsOf: activeRecordingURL),
-           var interrupted = try? JSONDecoder().decode(QueuedRecording.self, from: activeData),
-           FileManager.default.fileExists(atPath: interrupted.fileURL.path),
-           !existing.contains(where: { $0.id == interrupted.id }) {
-            interrupted.transportState = .local
-            interrupted.duration = max(
-                interrupted.duration,
-                (try? AVAudioPlayer(contentsOf: interrupted.fileURL).duration) ?? 0
-            )
-            if interrupted.locationOutcome == nil,
-               CaptureWatchLocationAcquisitionPolicy.shouldAcquire(
-                   presetSnapshot: interrupted.presetSnapshot
-               ) {
-                // Termination before the normal stop journal cannot safely be
-                // replaced by a later fix. Preserve a typed unavailable result.
-                interrupted.locationOutcome = .unavailable(
-                    .unavailable,
-                    attemptedAt: Date()
-                )
-            }
-            existing.append(interrupted)
-        }
-
-        // Recover every orphaned audio file. This is the last line of defense
-        // against a corrupt/incompatible index or termination before indexing.
-        let audioFiles = (try? FileManager.default.contentsOfDirectory(
-            at: recordingsDirectoryURL,
-            includingPropertiesForKeys: [.creationDateKey, .contentModificationDateKey],
-            options: [.skipsHiddenFiles]
-        )) ?? []
-        for url in audioFiles where url.pathExtension.lowercased() == "m4a" {
-            guard !existing.contains(where: { $0.filename == url.lastPathComponent }) else { continue }
-            let stem = url.deletingPathExtension().lastPathComponent
-            let id = stem.hasPrefix("watch-") ? String(stem.dropFirst("watch-".count)) : stem
-            let values = try? url.resourceValues(forKeys: [.creationDateKey, .contentModificationDateKey])
-            existing.append(QueuedRecording(
-                id: id,
-                filename: url.lastPathComponent,
-                createdAt: values?.creationDate ?? values?.contentModificationDate ?? Date(),
-                duration: (try? AVAudioPlayer(contentsOf: url).duration) ?? 0
-            ))
-        }
-
-        existing.sort { $0.createdAt < $1.createdAt }
-        do {
-            if indexCouldNotDecode {
-                let backup = recordingsDirectoryURL.appendingPathComponent(
-                    "index-corrupt-\(Int(Date().timeIntervalSince1970)).json"
-                )
-                try? FileManager.default.copyItem(at: queueIndexURL, to: backup)
-            }
-            try saveQueuedRecordings(existing)
-            clearActiveRecording()
-        } catch {
-            // Keep the original index/active manifest so a later launch can retry.
-        }
-        return existing
+        queueStore.loadRecoveringInterruptedCapture()
     }
 
     private static func saveQueuedRecordings(_ recordings: [QueuedRecording]) throws {
-        try FileManager.default.createDirectory(at: recordingsDirectoryURL, withIntermediateDirectories: true)
-        let data = try JSONEncoder().encode(recordings.sorted { $0.createdAt < $1.createdAt })
-        try data.write(to: queueIndexURL, options: .atomic)
+        try queueStore.save(recordings)
     }
 
     private static func saveActiveRecording(_ recording: QueuedRecording) throws {
-        try FileManager.default.createDirectory(at: recordingsDirectoryURL, withIntermediateDirectories: true)
-        try JSONEncoder().encode(recording).write(to: activeRecordingURL, options: .atomic)
+        try queueStore.saveActiveRecording(recording)
     }
 
     private static func clearActiveRecording() {
-        try? FileManager.default.removeItem(at: activeRecordingURL)
+        queueStore.clearActiveRecording()
     }
 
     private func saveQueuedRecordings() {
@@ -1097,14 +927,16 @@ final class WatchLocalRecorder: ObservableObject {
     private func removeQueuedRecording(id: String, deleteFile: Bool) {
         guard let item = queuedRecordings.first(where: { $0.id == id }) else { return }
         if deleteFile {
-            try? FileManager.default.removeItem(at: item.fileURL)
+            try? FileManager.default.removeItem(at: Self.queueStore.audioURL(for: item))
         }
         queuedRecordings.removeAll { $0.id == id }
         saveQueuedRecordings()
     }
 
     private func pruneMissingQueuedRecordings() {
-        let existing = queuedRecordings.filter { FileManager.default.fileExists(atPath: $0.fileURL.path) }
+        let existing = queuedRecordings.filter {
+            FileManager.default.fileExists(atPath: Self.queueStore.audioURL(for: $0).path)
+        }
         guard existing.count != queuedRecordings.count else { return }
         queuedRecordings = existing
         saveQueuedRecordings()

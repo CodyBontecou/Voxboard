@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>createdAt</key>
+	<real>1700000000</real>
+	<key>duration</key>
+	<real>42</real>
+	<key>kind</key>
+	<string>watchAudioRecording</string>
+	<key>locationOutcome</key>
+	<data>
+	eyJhdHRlbXB0ZWRBdCI6NzIxNjkyODAwLCJraW5kIjoidW5hdmFpbGFibGUiLCJyZWFz
+	b24iOiJ0aW1lb3V0In0=
+	</data>
+	<key>originalFilename</key>
+	<string>fixture.m4a</string>
+	<key>presetID</key>
+	<string>fixture</string>
+	<key>presetName</key>
+	<string>Synthetic Fixture</string>
+	<key>presetSnapshot</key>
+	<data>
+	eyJhdHRhY2htZW50c0ZvbGRlck5hbWUiOiJmaXh0dXJlcyIsImV4cG9ydFNldHRpbmdz
+	Ijp7InVzZXNDdXN0b21FeHBvcnRTZXR0aW5ncyI6dHJ1ZSwiYXVkaW9Gb2xkZXJOYW1l
+	IjoiIiwiYXVkaW9FbWJlZFBsYWNlbWVudCI6ImJvdHRvbSIsIm1vZGUiOiJuZXdGaWxl
+	IiwiYXBwZW5kRmlsZU5hbWUiOiJ2b3hib2FyZC10cmFuc2NyaXB0cyIsImZvcm1hdCI6
+	Im1kIiwibWFya2Rvd25UZW1wbGF0ZU5hbWUiOiIiLCJ5YW1sUHJvcGVydGllcyI6WyJ0
+	ZXh0IiwibW9kZWxVc2VkIiwiZHVyYXRpb24iLCJsYW5ndWFnZSIsImRhdGUiLCJpZCJd
+	LCJmb2xkZXJOYW1lIjoiU3ludGhldGljIEZvbGRlciIsImZvbGRlckJvb2ttYXJrIjoi
+	QkFVRyIsIm1kT2JzaWRpYW5FbmFibGVkIjp0cnVlLCJ5YW1sVXNlc01hcmtkb3duRXh0
+	ZW5zaW9uIjpmYWxzZSwiZW1iZWRBdWRpb0luTWFya2Rvd24iOnRydWUsIm5ld0ZpbGVO
+	YW1lVGVtcGxhdGUiOiJmaXh0dXJlLXt0aW1lc3RhbXB9IiwibWFya2Rvd25UZW1wbGF0
+	ZUVuYWJsZWQiOmZhbHNlLCJleHBvcnRFbmFibGVkIjp0cnVlfSwic3ltYm9sTmFtZSI6
+	IndhdmVmb3JtIiwiY2FwdHVyZUVudHJ5VGVtcGxhdGVJRCI6Ijk5OTk5OTk5LTg4ODgt
+	Nzc3Ny02NjY2LTU1NTU1NTU1NTU1NSIsInN0YXRpY0Zyb250bWF0dGVyIjp7ImZpeHR1
+	cmUiOiJ0cnVlIn0sImNhcHR1cmVQcm9tcHQiOiJTeW50aGV0aWMgcHJvbXB0IiwibWV0
+	YWRhdGFTY29wZSI6ImRvY3VtZW50IiwiY3VzdG9tUG9zdFByb2Nlc3NpbmdJbnN0cnVj
+	dGlvbiI6IiIsImNhcHR1cmVEZXN0aW5hdGlvbklEIjoiMTExMTExMTEtMjIyMi0zMzMz
+	LTQ0NDQtNTU1NTU1NTU1NTU1IiwiYXVkaW9TYXZlTW9kZSI6ImF0dGFjaG1lbnRzRm9s
+	ZGVyIiwiaWQiOiJmaXh0dXJlIiwia2luZCI6ImN1c3RvbSIsIm5hbWUiOiJTeW50aGV0
+	aWMgRml4dHVyZSIsInBvc3RQcm9jZXNzaW5nTW9kZSI6Im1lZXRpbmdOb3RlcyIsImNh
+	cHR1cmVQcm9jZXNzaW5nRW5hYmxlZCI6dHJ1ZSwiaXNFbmFibGVkIjp0cnVlLCJ3YXRj
+	aE91dHB1dE1vZGUiOiJyZWNvcmRpbmdPbmx5Iiwic3BlYWtlckRpYXJpemF0aW9uRW5h
+	YmxlZCI6dHJ1ZSwid2F0Y2hSZWNvcmRpbmdTZXR0aW5ncyI6eyJmaWxlbmFtZVRlbXBs
+	YXRlIjoiZml4dHVyZS17dGltZXN0YW1wfS17aWQ4fSIsImZvbGRlckJvb2ttYXJrIjoi
+	Q1FnSCIsImZvbGRlck5hbWUiOiJTeW50aGV0aWMgV2F0Y2ggRm9sZGVyIn0sImxvY2F0
+	aW9uUG9saWN5Ijp7Im91dHB1dE1vZGUiOiJzdHJ1Y3R1cmVkIiwiY29sbGVjdGlvbktl
+	eSI6ImxvY2F0aW9ucyIsInN0cnVjdHVyZWRGaWVsZHMiOlt7Im91dHB1dEtleSI6ImNv
+	b3JkaW5hdGVzIiwiZmllbGQiOiJjb29yZGluYXRlcyJ9LHsib3V0cHV0S2V5IjoicGxh
+	Y2UiLCJmaWVsZCI6InBsYWNlIn0seyJvdXRwdXRLZXkiOiJhcHBsZU1hcHNVUkwiLCJm
+	aWVsZCI6ImFwcGxlTWFwc1VSTCJ9LHsib3V0cHV0S2V5IjoidGltZXN0YW1wIiwiZmll
+	bGQiOiJ0aW1lc3RhbXAifSx7Im91dHB1dEtleSI6InNvdXJjZSIsImZpZWxkIjoic291
+	cmNlIn0seyJvdXRwdXRLZXkiOiJpZCIsImZpZWxkIjoiaWQifV0sImFkdmFuY2VkVGVt
+	cGxhdGUiOiIiLCJwcmVjaXNpb24iOiJjaXR5IiwidW5hdmFpbGFibGVCZWhhdmlvciI6
+	ImFzayIsImlzRW5hYmxlZCI6dHJ1ZX0sImNhcHR1cmVQbGFjZW1lbnRPdmVycmlkZSI6
+	eyJraW5kIjoicHJlcGVuZCJ9LCJpc0J1aWx0SW4iOmZhbHNlfQ==
+	</data>
+	<key>recordingID</key>
+	<string>aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee</string>
+</dict>
+</plist>

@@ -1,0 +1,114 @@
+{
+  "attemptCount" : 2,
+  "capturesRecordingWithoutTranscript" : true,
+  "createdAt" : 721692800,
+  "duration" : 42,
+  "failureStage" : "delivery",
+  "filename" : "watch-fixture.m4a",
+  "flowSnapshot" : {
+    "attachmentsFolderName" : "fixtures",
+    "audioSaveMode" : "attachmentsFolder",
+    "captureDestinationID" : "11111111-2222-3333-4444-555555555555",
+    "captureEntryTemplateID" : "99999999-8888-7777-6666-555555555555",
+    "capturePlacementOverride" : {
+      "kind" : "prepend"
+    },
+    "captureProcessingEnabled" : true,
+    "capturePrompt" : "Synthetic prompt",
+    "customPostProcessingInstruction" : "",
+    "exportSettings" : {
+      "appendFileName" : "voxboard-transcripts",
+      "audioEmbedPlacement" : "bottom",
+      "audioFolderName" : "",
+      "embedAudioInMarkdown" : true,
+      "exportEnabled" : true,
+      "folderBookmark" : "BAUG",
+      "folderName" : "Synthetic Folder",
+      "format" : "md",
+      "markdownTemplateEnabled" : false,
+      "markdownTemplateName" : "",
+      "mdObsidianEnabled" : true,
+      "mode" : "newFile",
+      "newFileNameTemplate" : "fixture-{timestamp}",
+      "usesCustomExportSettings" : true,
+      "yamlProperties" : [
+        "text",
+        "modelUsed",
+        "duration",
+        "language",
+        "date",
+        "id"
+      ],
+      "yamlUsesMarkdownExtension" : false
+    },
+    "id" : "fixture",
+    "isBuiltIn" : false,
+    "isEnabled" : true,
+    "kind" : "custom",
+    "locationPolicy" : {
+      "advancedTemplate" : "",
+      "collectionKey" : "locations",
+      "isEnabled" : true,
+      "outputMode" : "structured",
+      "precision" : "city",
+      "structuredFields" : [
+        {
+          "field" : "coordinates",
+          "outputKey" : "coordinates"
+        },
+        {
+          "field" : "place",
+          "outputKey" : "place"
+        },
+        {
+          "field" : "appleMapsURL",
+          "outputKey" : "appleMapsURL"
+        },
+        {
+          "field" : "timestamp",
+          "outputKey" : "timestamp"
+        },
+        {
+          "field" : "source",
+          "outputKey" : "source"
+        },
+        {
+          "field" : "id",
+          "outputKey" : "id"
+        }
+      ],
+      "unavailableBehavior" : "ask"
+    },
+    "metadataScope" : "document",
+    "name" : "Synthetic Fixture",
+    "postProcessingMode" : "meetingNotes",
+    "speakerDiarizationEnabled" : true,
+    "staticFrontmatter" : {
+      "fixture" : "true"
+    },
+    "symbolName" : "waveform",
+    "watchOutputMode" : "recordingOnly",
+    "watchRecordingSettings" : {
+      "filenameTemplate" : "fixture-{timestamp}-{id8}",
+      "folderBookmark" : "CQgH",
+      "folderName" : "Synthetic Watch Folder"
+    }
+  },
+  "flowSnapshotPayload" : "eyJhdHRhY2htZW50c0ZvbGRlck5hbWUiOiJmaXh0dXJlcyIsImV4cG9ydFNldHRpbmdzIjp7InVzZXNDdXN0b21FeHBvcnRTZXR0aW5ncyI6dHJ1ZSwiYXVkaW9Gb2xkZXJOYW1lIjoiIiwiYXVkaW9FbWJlZFBsYWNlbWVudCI6ImJvdHRvbSIsIm1vZGUiOiJuZXdGaWxlIiwibWFya2Rvd25UZW1wbGF0ZU5hbWUiOiIiLCJmb3JtYXQiOiJtZCIsImFwcGVuZEZpbGVOYW1lIjoidm94Ym9hcmQtdHJhbnNjcmlwdHMiLCJ5YW1sUHJvcGVydGllcyI6WyJ0ZXh0IiwibW9kZWxVc2VkIiwiZHVyYXRpb24iLCJsYW5ndWFnZSIsImRhdGUiLCJpZCJdLCJmb2xkZXJCb29rbWFyayI6IkJBVUciLCJtZE9ic2lkaWFuRW5hYmxlZCI6dHJ1ZSwiZm9sZGVyTmFtZSI6IlN5bnRoZXRpYyBGb2xkZXIiLCJ5YW1sVXNlc01hcmtkb3duRXh0ZW5zaW9uIjpmYWxzZSwiZW1iZWRBdWRpb0luTWFya2Rvd24iOnRydWUsIm5ld0ZpbGVOYW1lVGVtcGxhdGUiOiJmaXh0dXJlLXt0aW1lc3RhbXB9IiwibWFya2Rvd25UZW1wbGF0ZUVuYWJsZWQiOmZhbHNlLCJleHBvcnRFbmFibGVkIjp0cnVlfSwic3ltYm9sTmFtZSI6IndhdmVmb3JtIiwiY2FwdHVyZUVudHJ5VGVtcGxhdGVJRCI6Ijk5OTk5OTk5LTg4ODgtNzc3Ny02NjY2LTU1NTU1NTU1NTU1NSIsInN0YXRpY0Zyb250bWF0dGVyIjp7ImZpeHR1cmUiOiJ0cnVlIn0sImNhcHR1cmVQcm9tcHQiOiJTeW50aGV0aWMgcHJvbXB0IiwibWV0YWRhdGFTY29wZSI6ImRvY3VtZW50IiwiY3VzdG9tUG9zdFByb2Nlc3NpbmdJbnN0cnVjdGlvbiI6IiIsImNhcHR1cmVEZXN0aW5hdGlvbklEIjoiMTExMTExMTEtMjIyMi0zMzMzLTQ0NDQtNTU1NTU1NTU1NTU1IiwiYXVkaW9TYXZlTW9kZSI6ImF0dGFjaG1lbnRzRm9sZGVyIiwiaWQiOiJmaXh0dXJlIiwicG9zdFByb2Nlc3NpbmdNb2RlIjoibWVldGluZ05vdGVzIiwia2luZCI6ImN1c3RvbSIsIm5hbWUiOiJTeW50aGV0aWMgRml4dHVyZSIsImNhcHR1cmVQcm9jZXNzaW5nRW5hYmxlZCI6dHJ1ZSwiaXNFbmFibGVkIjp0cnVlLCJ3YXRjaE91dHB1dE1vZGUiOiJyZWNvcmRpbmdPbmx5Iiwic3BlYWtlckRpYXJpemF0aW9uRW5hYmxlZCI6dHJ1ZSwid2F0Y2hSZWNvcmRpbmdTZXR0aW5ncyI6eyJmaWxlbmFtZVRlbXBsYXRlIjoiZml4dHVyZS17dGltZXN0YW1wfS17aWQ4fSIsImZvbGRlck5hbWUiOiJTeW50aGV0aWMgV2F0Y2ggRm9sZGVyIiwiZm9sZGVyQm9va21hcmsiOiJDUWdIIn0sImxvY2F0aW9uUG9saWN5Ijp7InVuYXZhaWxhYmxlQmVoYXZpb3IiOiJhc2siLCJzdHJ1Y3R1cmVkRmllbGRzIjpbeyJmaWVsZCI6ImNvb3JkaW5hdGVzIiwib3V0cHV0S2V5IjoiY29vcmRpbmF0ZXMifSx7ImZpZWxkIjoicGxhY2UiLCJvdXRwdXRLZXkiOiJwbGFjZSJ9LHsiZmllbGQiOiJhcHBsZU1hcHNVUkwiLCJvdXRwdXRLZXkiOiJhcHBsZU1hcHNVUkwifSx7ImZpZWxkIjoidGltZXN0YW1wIiwib3V0cHV0S2V5IjoidGltZXN0YW1wIn0seyJmaWVsZCI6InNvdXJjZSIsIm91dHB1dEtleSI6InNvdXJjZSJ9LHsiZmllbGQiOiJpZCIsIm91dHB1dEtleSI6ImlkIn1dLCJhZHZhbmNlZFRlbXBsYXRlIjoiIiwib3V0cHV0TW9kZSI6InN0cnVjdHVyZWQiLCJpc0VuYWJsZWQiOnRydWUsInByZWNpc2lvbiI6ImNpdHkiLCJjb2xsZWN0aW9uS2V5IjoibG9jYXRpb25zIn0sImNhcHR1cmVQbGFjZW1lbnRPdmVycmlkZSI6eyJraW5kIjoicHJlcGVuZCJ9LCJpc0J1aWx0SW4iOmZhbHNlfQ==",
+  "id" : "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "locationOutcome" : {
+    "attemptedAt" : 721692800,
+    "kind" : "unavailable",
+    "reason" : "timeout"
+  },
+  "originalFilename" : "fixture.m4a",
+  "phase" : "futurePhase",
+  "receivedAt" : 721692801,
+  "requestID" : "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+  "requiresPresetSelection" : false,
+  "reservedOutputFilename" : "fixture-20231114-aaaaaaaa.m4a",
+  "reservedOutputFolderBookmark" : "CQgH",
+  "revision" : 3,
+  "statusMessage" : "Synthetic failure",
+  "updatedAt" : 721692802
+}

@@ -1,0 +1,12 @@
+{
+  "futureFixtureField" : {
+    "ignored" : true
+  },
+  "outcome" : {
+    "attemptedAt" : 721692800,
+    "kind" : "unavailable",
+    "reason" : "timeout"
+  },
+  "presetID" : "fixture",
+  "source" : "watch"
+}

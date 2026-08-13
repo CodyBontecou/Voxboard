@@ -1,0 +1,8 @@
+{
+  "outcome" : {
+    "attemptedAt" : 721692800,
+    "kind" : "unavailable",
+    "reason" : "timeout"
+  },
+  "source" : "watch"
+}

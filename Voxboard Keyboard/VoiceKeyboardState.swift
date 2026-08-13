@@ -551,14 +551,12 @@ final class VoiceKeyboardState {
     private var pollCount: Int = 0
 
     private func restoreLiveDeliveryCheckpoint(for requestId: String) {
-        guard let checkpoint = TranscriptionIPC.readLiveDeliveryCheckpoint(),
-              checkpoint.requestId == requestId else {
-            deliveredLiveText = ""
-            deliveredLiveRevision = 0
-            return
-        }
-        deliveredLiveText = checkpoint.deliveredText
-        deliveredLiveRevision = checkpoint.revision
+        let restored = LiveTranscriptionDeliveryReducer.restoredState(
+            from: TranscriptionIPC.readLiveDeliveryCheckpoint(),
+            requestID: requestId
+        )
+        deliveredLiveText = restored.deliveredText
+        deliveredLiveRevision = restored.revision
     }
 
     @MainActor
@@ -567,27 +565,31 @@ final class VoiceKeyboardState {
               snapshot.requestId == requestId else { return }
 
         volatileTranscription = snapshot.volatileText
-        guard snapshot.revision > deliveredLiveRevision else { return }
-        guard snapshot.finalizedText.hasPrefix(deliveredLiveText) else {
+        let state = LiveTranscriptionDeliveryState(
+            deliveredText: deliveredLiveText,
+            revision: deliveredLiveRevision
+        )
+        let outcome = LiveTranscriptionDeliveryReducer.apply(
+            snapshot,
+            requestID: requestId,
+            state: state,
+            persistCheckpoint: TranscriptionIPC.writeLiveDeliveryCheckpoint
+        )
+        let delta: String
+        switch outcome {
+        case .ignoredStale:
+            return
+        case .ignoredNonMonotonic:
             log.log("⚠️ Ignoring non-monotonic live transcript revision \(snapshot.revision)")
             return
-        }
-
-        let delta = String(snapshot.finalizedText.dropFirst(deliveredLiveText.count))
-        let checkpoint = LiveTranscriptionDeliveryCheckpoint(
-            requestId: requestId,
-            revision: snapshot.revision,
-            deliveredText: snapshot.finalizedText
-        )
-
-        // Persist first: if iOS terminates the keyboard between these two calls,
-        // recovery favors avoiding duplicated dictated text.
-        guard TranscriptionIPC.writeLiveDeliveryCheckpoint(checkpoint) else {
+        case .persistenceFailed:
             log.log("⚠️ Could not persist live delivery checkpoint; delaying insertion")
             return
+        case .committed(let committedState, let committedDelta):
+            deliveredLiveText = committedState.deliveredText
+            deliveredLiveRevision = committedState.revision
+            delta = committedDelta
         }
-        deliveredLiveText = snapshot.finalizedText
-        deliveredLiveRevision = snapshot.revision
 
         guard !delta.isEmpty else { return }
         if let textInserter {

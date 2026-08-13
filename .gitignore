@@ -1,6 +1,10 @@
 # Xcode
 *.xcuserstate
 *.xcworkspace
+!Voxboard.xcodeproj/project.xcworkspace/
+!Voxboard.xcodeproj/project.xcworkspace/xcshareddata/
+!Voxboard.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+!Voxboard.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 xcuserdata/
 DerivedData/
 build/

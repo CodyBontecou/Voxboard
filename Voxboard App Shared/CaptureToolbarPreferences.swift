@@ -110,7 +110,7 @@ final class CaptureToolbarPreferences {
         var hidden: [String]
     }
 
-    private static let storageKey = "capture.toolbar.configuration.v1"
+    static let storageKey = "capture.toolbar.configuration.v1"
 
     private let defaults: UserDefaults
     private(set) var orderedActions: [CaptureToolbarAction]

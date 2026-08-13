@@ -177,6 +177,41 @@ public struct ExternalFileDeliveryTransaction: Sendable {
         try? FileManager.default.removeItem(at: directoryURL)
     }
 
+    /// Produces an exact production journal/payload pair for repository-owned
+    /// compatibility fixtures without publishing to a user-selected location.
+    package func prepareCompatibilityFixture(
+        data: Data,
+        targetPath: String,
+        expectedExistingData: Data? = nil
+    ) throws {
+        let fileManager = FileManager.default
+        try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        try data.write(to: stagedPayloadURL, options: .atomic)
+        let journal = Journal(
+            version: Journal.currentVersion,
+            targetPath: targetPath,
+            preimage: expectedExistingData.map(snapshot(of:)) ?? .missing,
+            postimage: snapshot(of: data)
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(journal).write(to: journalURL, options: .atomic)
+    }
+
+    /// Decodes and verifies a committed compatibility fixture through the same
+    /// private production journal codec and digest checks used during resume.
+    package func validateCompatibilityFixture() throws -> (targetPath: String, byteCount: Int) {
+        let journal = try JSONDecoder().decode(Journal.self, from: Data(contentsOf: journalURL))
+        guard journal.version == Journal.currentVersion else {
+            throw TransactionError.incompleteJournal
+        }
+        let stagedData = try Data(contentsOf: stagedPayloadURL)
+        guard snapshot(of: stagedData) == journal.postimage else {
+            throw TransactionError.stagedPayloadChanged
+        }
+        return (journal.targetPath, journal.postimage.byteCount)
+    }
+
     private func publishCoordinated(
         _ data: Data,
         to targetURL: URL,

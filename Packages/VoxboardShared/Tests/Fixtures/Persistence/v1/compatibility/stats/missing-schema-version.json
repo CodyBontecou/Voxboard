@@ -1,0 +1,17 @@
+{
+  "captures" : [
+    {
+      "attachmentCount" : 1,
+      "date" : 721692800,
+      "id" : "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+      "source" : "watch"
+    }
+  ],
+  "recordings" : [
+    {
+      "date" : 721692800,
+      "duration" : 42,
+      "id" : "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+    }
+  ]
+}

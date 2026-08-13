@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$ROOT/Voxboard.xcodeproj/project.pbxproj"
 
+"$ROOT/scripts/validate-android-wear-m0.py"
+
 python3 - "$ROOT" "$PROJECT" <<'PY'
 from __future__ import annotations
 
@@ -652,6 +654,9 @@ watch_background_lease_source = (root / 'Voxboard/WatchRecordingBackgroundLease.
 watch_background_tests_source = (root / 'VoxboardTests/WatchRecordingBackgroundLeaseTests.swift').read_text()
 watch_app_delegate_source = (root / 'Voxboard/VoxboardAppDelegate.swift').read_text()
 watch_recorder_source = (root / 'Voxboard Watch/WatchLocalRecorder.swift').read_text()
+watch_queue_store_source = (
+    root / 'Voxboard Watch Shared/WatchLocalRecordingQueueStore.swift'
+).read_text()
 watch_view_source = (root / 'Voxboard Watch/WatchRecorderView.swift').read_text()
 
 watch_receive_marker = 'nonisolated func session(_ session: WCSession, didReceive file: WCSessionFile)'
@@ -769,12 +774,23 @@ for required in [
 for required in [
     'let epoch: Int64',
     'let sequence: Int64',
-    'Int64(Date().timeIntervalSince1970 * 1_000)',
+    'Int64(now.timeIntervalSince1970 * 1_000)',
 ]:
     if required not in watch_bridge_source:
         errors.append(f'Watch preset counters must remain arm64_32-safe: {required}')
 if 'Int(Date().timeIntervalSince1970 * 1_000)' in watch_bridge_source:
     errors.append('Watch preset epoch overflows 32-bit Int on physical Watch hardware')
+for required in [
+    'WatchLocalRecordingQueueStore',
+    'loadRecoveringInterruptedCapture',
+    'saveActiveRecording',
+    'index-corrupt-',
+]:
+    if required not in watch_queue_store_source:
+        errors.append(f'Watch queue compatibility store is missing {required}')
+if 'typealias QueuedRecording = WatchLocalQueuedRecording' not in watch_recorder_source:
+    errors.append('Watch recorder is not consuming the compatibility queue model')
+
 for required in [
     'hasPresetSelectionAvailabilityPayload',
     'selectedPresetSnapshot != nil',

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>command</key>
+	<string>acknowledge</string>
+	<key>recordingID</key>
+	<string>aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee</string>
+	<key>revision</key>
+	<integer>3</integer>
+	<key>sentAt</key>
+	<real>1700000000</real>
+</dict>
+</plist>

@@ -1,0 +1,13 @@
+{
+  "schemaVersion" : 1,
+  "values" : {
+    "selectedFallbackTranscriptionModel" : {
+      "type" : "string",
+      "value" : "futureFallback"
+    },
+    "selectedWhisperModel" : {
+      "type" : "string",
+      "value" : "futureBackend"
+    }
+  }
+}

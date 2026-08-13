@@ -1,0 +1,225 @@
+name: Apple CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apple-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  repository-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Validate portable project, migration, and Android/Wear M0 contracts
+        run: ./scripts/test-project-contracts.sh
+
+  swift-package-tests:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Select stable Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.6'
+      - name: Attest toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Resolve locked package dependencies
+        run: |
+          swift package --package-path Packages/VoxboardShared resolve
+          git diff --exit-code -- Packages/VoxboardShared/Package.resolved
+      - name: Validate synthetic persistence fixtures
+        run: swift run --package-path Packages/VoxboardShared VoxboardPersistenceFixtures --validate
+      - name: Run shared package tests
+        run: swift test --package-path Packages/VoxboardShared
+
+  ios-tests:
+    runs-on: macos-26
+    timeout-minutes: 75
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Select stable Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.6'
+      - name: Attest toolchain and project
+        run: |
+          xcodebuild -version
+          swift --version
+          xcodebuild -list -project Voxboard.xcodeproj \
+            -disableAutomaticPackageResolution \
+            -onlyUsePackageVersionsFromResolvedFile
+      - name: Select iOS simulator
+        id: simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          device_line=$(
+            xcrun simctl list devices available iOS \
+              | grep -E 'iPhone (17 Pro|17|16 Pro|16|15 Pro|15)' \
+              | head -n 1 \
+              || true
+          )
+          if [[ -z "$device_line" ]]; then
+            device_line=$(xcrun simctl list devices available iOS | grep -E 'iPhone' | head -n 1 || true)
+          fi
+          if [[ -z "$device_line" ]]; then
+            echo '::error::No available iOS Simulator device found'
+            exit 1
+          fi
+          udid=$(sed -nE 's/.*\(([0-9A-Fa-f-]+)\).*/\1/p' <<<"$device_line")
+          if [[ -z "$udid" ]]; then
+            echo "::error::Could not parse simulator UDID from: $device_line"
+            exit 1
+          fi
+          echo "Using simulator: $device_line"
+          echo "destination=platform=iOS Simulator,id=$udid" >> "$GITHUB_OUTPUT"
+      - name: Run iOS app-hosted tests
+        run: |
+          set -o pipefail
+          mkdir -p build/logs build/test-results
+          xcodebuild test \
+            -project Voxboard.xcodeproj \
+            -scheme VoxboardTests \
+            -configuration Debug \
+            -destination '${{ steps.simulator.outputs.destination }}' \
+            -derivedDataPath "$RUNNER_TEMP/Voxboard-iOS-Tests" \
+            -resultBundlePath "$PWD/build/test-results/Voxboard-iOS.xcresult" \
+            -disableAutomaticPackageResolution \
+            -onlyUsePackageVersionsFromResolvedFile \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            DEVELOPMENT_TEAM='' \
+            2>&1 | tee build/logs/ios-tests.log
+      - name: Upload iOS diagnostics
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: voxboard-ios-test-diagnostics
+          path: |
+            build/logs/ios-tests.log
+            build/test-results/Voxboard-iOS.xcresult
+          retention-days: 14
+
+  macos-build:
+    runs-on: macos-26
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Select stable Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.6'
+      - name: Build macOS app
+        run: |
+          set -o pipefail
+          mkdir -p build/logs
+          xcodebuild build \
+            -project Voxboard.xcodeproj \
+            -scheme 'Voxboard Mac' \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -derivedDataPath "$RUNNER_TEMP/Voxboard-macOS" \
+            -disableAutomaticPackageResolution \
+            -onlyUsePackageVersionsFromResolvedFile \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            DEVELOPMENT_TEAM='' \
+            2>&1 | tee build/logs/macos-build.log
+      - name: Upload macOS diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: voxboard-macos-build-diagnostics
+          path: build/logs/macos-build.log
+          retention-days: 14
+
+  watch-build:
+    runs-on: macos-26
+    timeout-minutes: 75
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Select stable Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.6'
+      - name: Select Watch simulator
+        id: watch-simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          device_line=$(xcrun simctl list devices available watchOS | grep -E 'Apple Watch' | head -n 1 || true)
+          if [[ -z "$device_line" ]]; then
+            echo '::error::No available watchOS Simulator device found'
+            exit 1
+          fi
+          udid=$(sed -nE 's/.*\(([0-9A-Fa-f-]+)\).*/\1/p' <<<"$device_line")
+          if [[ -z "$udid" ]]; then
+            echo "::error::Could not parse Watch simulator UDID from: $device_line"
+            exit 1
+          fi
+          echo "Using simulator: $device_line"
+          echo "destination=platform=watchOS Simulator,id=$udid" >> "$GITHUB_OUTPUT"
+      - name: Run Watch codec tests
+        run: |
+          set -o pipefail
+          mkdir -p build/logs build/test-results
+          xcodebuild test \
+            -project Voxboard.xcodeproj \
+            -scheme 'Voxboard Watch Tests' \
+            -configuration Debug \
+            -destination '${{ steps.watch-simulator.outputs.destination }}' \
+            -derivedDataPath "$RUNNER_TEMP/Voxboard-Watch-Tests" \
+            -resultBundlePath "$PWD/build/test-results/Voxboard-Watch.xcresult" \
+            -disableAutomaticPackageResolution \
+            -onlyUsePackageVersionsFromResolvedFile \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            DEVELOPMENT_TEAM='' \
+            2>&1 | tee build/logs/watch-tests.log
+      - name: Build Watch app and widget
+        run: |
+          set -o pipefail
+          mkdir -p build/logs
+          xcodebuild build \
+            -project Voxboard.xcodeproj \
+            -scheme 'Voxboard Watch' \
+            -configuration Debug \
+            -destination 'generic/platform=watchOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/Voxboard-Watch" \
+            -disableAutomaticPackageResolution \
+            -onlyUsePackageVersionsFromResolvedFile \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' \
+            DEVELOPMENT_TEAM='' \
+            2>&1 | tee build/logs/watch-build.log
+      - name: Upload Watch diagnostics
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: voxboard-watch-build-diagnostics
+          path: |
+            build/logs/watch-build.log
+            build/logs/watch-tests.log
+            build/test-results/Voxboard-Watch.xcresult
+          retention-days: 14

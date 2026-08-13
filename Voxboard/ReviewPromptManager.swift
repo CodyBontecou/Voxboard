@@ -38,7 +38,7 @@ struct ReviewPromptPolicy {
 final class ReviewPromptManager {
     static let shared = ReviewPromptManager()
 
-    private enum Keys {
+    enum Keys {
         static let successfulTranscriptionCount = "reviewPrompt.successfulTranscriptionCount.v1"
         static let successfulCaptureCount = "reviewPrompt.successfulCaptureCount.v1"
         static let usageDayIdentifiers = "reviewPrompt.usageDayIdentifiers.v1"

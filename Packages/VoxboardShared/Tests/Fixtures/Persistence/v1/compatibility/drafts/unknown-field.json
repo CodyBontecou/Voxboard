@@ -1,0 +1,103 @@
+{
+  "additionalPayloads" : [
+    {
+      "asset" : {
+        "byteCount" : 4,
+        "contentTypeIdentifier" : "public.mpeg-4-audio",
+        "originalFilename" : "voice.m4a",
+        "relativePath" : "staging\/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\/voice.m4a"
+      },
+      "embedPlacement" : "bottom",
+      "kind" : "retainedAudio"
+    }
+  ],
+  "appliedRecordingTranscriptIDs" : [
+    "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+  ],
+  "captureSource" : "deepLink",
+  "captureStartedAt" : 721692800,
+  "createdAt" : 721692800,
+  "deliveryKind" : "standard",
+  "destinationID" : "11111111-2222-3333-4444-555555555555",
+  "destinationSelectionMode" : "explicit",
+  "entryTemplateID" : "99999999-8888-7777-6666-555555555555",
+  "futureFixtureField" : {
+    "ignored" : true
+  },
+  "id" : "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+  "locationOutcome" : {
+    "attemptedAt" : 721692800,
+    "kind" : "unavailable",
+    "reason" : "timeout"
+  },
+  "placementOverride" : {
+    "kind" : "prepend"
+  },
+  "relativeNotePathOverride" : "Fixtures\/Draft.md",
+  "requestID" : "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+  "stagedRecordingAudioReceipts" : {
+    "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" : {
+      "byteCount" : 4,
+      "contentTypeIdentifier" : "public.mpeg-4-audio",
+      "originalFilename" : "voice.m4a",
+      "relativePath" : "staging\/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\/voice.m4a"
+    }
+  },
+  "text" : "Synthetic draft",
+  "updatedAt" : 721692805,
+  "voxID" : "fixture",
+  "voxProfileSnapshot" : {
+    "captureDestinationID" : "11111111-2222-3333-4444-555555555555",
+    "captureEntryTemplateID" : "99999999-8888-7777-6666-555555555555",
+    "capturePlacementOverride" : {
+      "kind" : "prepend"
+    },
+    "captureProcessingEnabled" : true,
+    "capturePrompt" : "Synthetic prompt",
+    "customPostProcessingInstruction" : "",
+    "id" : "fixture",
+    "isBuiltIn" : false,
+    "isEnabled" : true,
+    "locationPolicy" : {
+      "advancedTemplate" : "",
+      "collectionKey" : "locations",
+      "isEnabled" : true,
+      "outputMode" : "structured",
+      "precision" : "city",
+      "structuredFields" : [
+        {
+          "field" : "coordinates",
+          "outputKey" : "coordinates"
+        },
+        {
+          "field" : "place",
+          "outputKey" : "place"
+        },
+        {
+          "field" : "appleMapsURL",
+          "outputKey" : "appleMapsURL"
+        },
+        {
+          "field" : "timestamp",
+          "outputKey" : "timestamp"
+        },
+        {
+          "field" : "source",
+          "outputKey" : "source"
+        },
+        {
+          "field" : "id",
+          "outputKey" : "id"
+        }
+      ],
+      "unavailableBehavior" : "ask"
+    },
+    "metadataScope" : "document",
+    "name" : "Synthetic Fixture",
+    "postProcessingMode" : "meetingNotes",
+    "staticFrontmatter" : {
+      "fixture" : "true"
+    },
+    "symbolName" : "waveform"
+  }
+}

@@ -11,6 +11,7 @@ let package = Package(
     products: [
         .library(name: "VoxboardCaptureCore", targets: ["VoxboardCaptureCore"]),
         .library(name: "VoxboardShared", targets: ["VoxboardShared"]),
+        .executable(name: "VoxboardPersistenceFixtures", targets: ["VoxboardPersistenceFixtures"]),
     ],
     dependencies: [
         .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.13.4"),
@@ -39,6 +40,10 @@ let package = Package(
         .binaryTarget(
             name: "whisper",
             path: "../../whisper.xcframework"
+        ),
+        .executableTarget(
+            name: "VoxboardPersistenceFixtures",
+            dependencies: ["VoxboardCaptureCore", "VoxboardShared"]
         ),
         .testTarget(
             name: "VoxboardCaptureCoreTests",

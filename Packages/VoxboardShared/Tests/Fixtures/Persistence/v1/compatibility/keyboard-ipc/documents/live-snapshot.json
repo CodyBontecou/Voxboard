@@ -1,0 +1,10 @@
+{
+  "finalizedText" : "Synthetic finalized text",
+  "futureFixtureField" : {
+    "ignored" : true
+  },
+  "requestId" : "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "revision" : 3,
+  "updatedAt" : 1700000000,
+  "volatileText" : "synthetic tail"
+}

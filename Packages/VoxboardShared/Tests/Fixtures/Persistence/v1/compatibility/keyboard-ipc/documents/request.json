@@ -1,0 +1,10 @@
+{
+  "audioFileName" : "fixture.m4a",
+  "createdAt" : 1700000000,
+  "futureFixtureField" : {
+    "ignored" : true
+  },
+  "id" : "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "language" : "en",
+  "modelId" : "automatic"
+}

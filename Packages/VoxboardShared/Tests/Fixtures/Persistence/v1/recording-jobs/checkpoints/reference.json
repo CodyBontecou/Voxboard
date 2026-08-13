@@ -1,0 +1,127 @@
+{
+  "attemptCount" : 2,
+  "audioFilename" : "checkpoint.m4a",
+  "audioReferenceAttachedAt" : 721692800,
+  "captureSource" : "watch",
+  "createdAt" : 721692800,
+  "delivery" : {
+    "preset" : {
+      "_0" : {
+        "attachmentsFolderName" : "fixtures",
+        "audioSaveMode" : "attachmentsFolder",
+        "captureDestinationID" : "11111111-2222-3333-4444-555555555555",
+        "captureEntryTemplateID" : "99999999-8888-7777-6666-555555555555",
+        "capturePlacementOverride" : {
+          "kind" : "prepend"
+        },
+        "captureProcessingEnabled" : true,
+        "capturePrompt" : "Synthetic prompt",
+        "customPostProcessingInstruction" : "",
+        "exportSettings" : {
+          "appendFileName" : "voxboard-transcripts",
+          "audioEmbedPlacement" : "bottom",
+          "audioFolderName" : "",
+          "embedAudioInMarkdown" : true,
+          "exportEnabled" : true,
+          "folderBookmark" : "BAUG",
+          "folderName" : "Synthetic Folder",
+          "format" : "md",
+          "markdownTemplateEnabled" : false,
+          "markdownTemplateName" : "",
+          "mdObsidianEnabled" : true,
+          "mode" : "newFile",
+          "newFileNameTemplate" : "fixture-{timestamp}",
+          "usesCustomExportSettings" : true,
+          "yamlProperties" : [
+            "language",
+            "id",
+            "date",
+            "modelUsed",
+            "duration",
+            "text"
+          ],
+          "yamlUsesMarkdownExtension" : false
+        },
+        "id" : "fixture",
+        "isBuiltIn" : false,
+        "isEnabled" : true,
+        "kind" : "custom",
+        "locationPolicy" : {
+          "advancedTemplate" : "",
+          "collectionKey" : "locations",
+          "isEnabled" : true,
+          "outputMode" : "structured",
+          "precision" : "city",
+          "structuredFields" : [
+            {
+              "field" : "coordinates",
+              "outputKey" : "coordinates"
+            },
+            {
+              "field" : "place",
+              "outputKey" : "place"
+            },
+            {
+              "field" : "appleMapsURL",
+              "outputKey" : "appleMapsURL"
+            },
+            {
+              "field" : "timestamp",
+              "outputKey" : "timestamp"
+            },
+            {
+              "field" : "source",
+              "outputKey" : "source"
+            },
+            {
+              "field" : "id",
+              "outputKey" : "id"
+            }
+          ],
+          "unavailableBehavior" : "ask"
+        },
+        "metadataScope" : "document",
+        "name" : "Synthetic Fixture",
+        "postProcessingMode" : "meetingNotes",
+        "speakerDiarizationEnabled" : true,
+        "staticFrontmatter" : {
+          "fixture" : "true"
+        },
+        "symbolName" : "waveform",
+        "watchOutputMode" : "recordingOnly",
+        "watchRecordingSettings" : {
+          "filenameTemplate" : "fixture-{timestamp}-{id8}",
+          "folderBookmark" : "CQgH",
+          "folderName" : "Synthetic Watch Folder"
+        }
+      }
+    }
+  },
+  "duration" : 42,
+  "exportedAudioPath" : "\/synthetic\/checkpoint.m4a",
+  "exportedNotePath" : "\/synthetic\/checkpoint.md",
+  "fallbackModelID" : "ggml-base",
+  "id" : "00000000-0000-0000-0000-000000000010",
+  "initialProcessingPolicy" : "manual",
+  "language" : "en",
+  "locationOutcome" : {
+    "attemptedAt" : 721692800,
+    "kind" : "unavailable",
+    "reason" : "timeout"
+  },
+  "modelID" : "automatic",
+  "originalFilename" : "watch-fixture.m4a",
+  "phase" : "processing",
+  "processingPolicy" : "manual",
+  "requestID" : "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "retentionPolicy" : {
+    "mode" : "timed",
+    "retentionInterval" : 604800
+  },
+  "revision" : 7,
+  "schemaVersion" : 1,
+  "source" : "recovered",
+  "statusMessage" : "Transcribing",
+  "transcriptText" : "Synthetic checkpoint",
+  "updatedAt" : 808292950.9648
+}

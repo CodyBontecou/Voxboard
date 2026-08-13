@@ -1,0 +1,23 @@
+{
+  "futureEnvelopeField" : true,
+  "records" : [
+    {
+      "attachmentCount" : 1,
+      "createdAt" : 721692800,
+      "deliveredAt" : 721692810,
+      "destinationID" : "11111111-2222-3333-4444-555555555555",
+      "destinationName" : "Synthetic Vault",
+      "futureRecordField" : {
+        "ignored" : true
+      },
+      "outcome" : "delivered",
+      "relativeNotePath" : "Fixtures\/Inbox.md",
+      "requestID" : "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+      "schemaVersion" : 1,
+      "source" : "watch",
+      "voxID" : "fixture",
+      "voxName" : "Synthetic Fixture"
+    }
+  ],
+  "schemaVersion" : 1
+}

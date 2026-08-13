@@ -1,0 +1,40 @@
+{
+  "defaultDestinationID" : "11111111-2222-3333-4444-555555555555",
+  "destinations" : [
+    {
+      "attachmentsFolderName" : "fixtures",
+      "entryPrefix" : "- ",
+      "entrySuffix" : " #fixture",
+      "entryTemplateID" : "99999999-8888-7777-6666-555555555555",
+      "id" : "11111111-2222-3333-4444-555555555555",
+      "name" : "Synthetic Vault",
+      "noteTarget" : {
+        "kind" : "existingNote",
+        "relativePath" : "Fixtures\/Inbox.md"
+      },
+      "placement" : {
+        "kind" : "beneathHeading",
+        "missingHeadingBehavior" : "create",
+        "selector" : {
+          "level" : 2,
+          "title" : "Inbox"
+        }
+      },
+      "retryProtectionEnabled" : true,
+      "rootBookmark" : "AAEC\/w==",
+      "rootName" : "Synthetic Root"
+    }
+  ],
+  "entryTemplates" : [
+    {
+      "entryPrefix" : "- ",
+      "entrySuffix" : " #fixture",
+      "id" : "99999999-8888-7777-6666-555555555555",
+      "name" : "Synthetic Entry"
+    }
+  ],
+  "futureFixtureField" : {
+    "ignored" : true
+  },
+  "schemaVersion" : 1
+}

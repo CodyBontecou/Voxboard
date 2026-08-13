@@ -1,0 +1,13 @@
+{
+  "postimage" : {
+    "byteCount" : 14,
+    "digest" : "950d4ff0dc553dbf53bf3e2089167931f2c2fe4ec94aca17f115793a36740437",
+    "exists" : true
+  },
+  "preimage" : {
+    "byteCount" : 0,
+    "exists" : false
+  },
+  "targetPath" : "\/synthetic\/fixture-note.md",
+  "version" : 1
+}

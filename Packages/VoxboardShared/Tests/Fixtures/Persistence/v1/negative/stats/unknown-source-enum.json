@@ -1,0 +1,22 @@
+{
+  "captures" : [
+    {
+      "attachmentCount" : 1,
+      "date" : 721692800,
+      "futureEventField" : {
+        "ignored" : true
+      },
+      "id" : "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+      "source" : "futureSource"
+    }
+  ],
+  "futureFixtureField" : true,
+  "recordings" : [
+    {
+      "date" : 721692800,
+      "duration" : 42,
+      "id" : "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+    }
+  ],
+  "schemaVersion" : 1
+}

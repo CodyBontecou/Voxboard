@@ -7,6 +7,116 @@ import WatchConnectivity
 
 private let watchLog = Logger(subsystem: "bontecou.Voxboard", category: "WatchRecording")
 
+struct WatchRecordingControllerPersistence {
+    static let transportFailuresKey = "watchRecordingTransportFailures.v1"
+    static let transportFailureCursorKey = "watchRecordingTransportFailureCursor.v1"
+    static let stateEpochKey = "watchRecordingStateEpoch.v1"
+    static let stateRevisionKey = "watchRecordingStateRevision.v1"
+    static let presetSelectionEpochKey = "watchPresetSelection.lastEpoch.v1"
+    static let presetSelectionSequenceKey = "watchPresetSelection.lastSequence.v1"
+    static let presetSelectionRequestKey = "watchPresetSelection.lastRequestID.v1"
+    static let presetSelectionPresetKey = "watchPresetSelection.lastPresetID.v1"
+    static let presetSelectionResultKey = "watchPresetSelection.lastResult.v1"
+    static let presetSelectionErrorKey = "watchPresetSelection.lastError.v1"
+
+    let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    func storedInt64(forKey key: String) -> Int64 {
+        (defaults.object(forKey: key) as? NSNumber)?.int64Value ?? 0
+    }
+
+    func savePresetSelectionAcknowledgement(_ response: WatchPresetSelectionResponse) {
+        defaults.set(response.epoch, forKey: Self.presetSelectionEpochKey)
+        defaults.set(response.sequence, forKey: Self.presetSelectionSequenceKey)
+        defaults.set(response.requestID, forKey: Self.presetSelectionRequestKey)
+        defaults.set(response.presetID, forKey: Self.presetSelectionPresetKey)
+        defaults.set(response.outcome.rawValue, forKey: Self.presetSelectionResultKey)
+        if let errorMessage = response.errorMessage {
+            defaults.set(errorMessage, forKey: Self.presetSelectionErrorKey)
+        } else {
+            defaults.removeObject(forKey: Self.presetSelectionErrorKey)
+        }
+    }
+
+    func loadPresetSelectionAcknowledgement() -> WatchPresetSelectionResponse? {
+        guard let requestID = defaults.string(forKey: Self.presetSelectionRequestKey),
+              let presetID = defaults.string(forKey: Self.presetSelectionPresetKey),
+              let rawOutcome = defaults.string(forKey: Self.presetSelectionResultKey),
+              let outcome = WatchPresetSelectionOutcome(rawValue: rawOutcome) else { return nil }
+        return WatchPresetSelectionResponse(
+            requestID: requestID,
+            presetID: presetID,
+            epoch: storedInt64(forKey: Self.presetSelectionEpochKey),
+            sequence: storedInt64(forKey: Self.presetSelectionSequenceKey),
+            outcome: outcome,
+            errorMessage: defaults.string(forKey: Self.presetSelectionErrorKey)
+        )
+    }
+
+    func stateEpoch(now: Date = Date()) -> Int {
+        let existing = defaults.integer(forKey: Self.stateEpochKey)
+        guard existing <= 0 else { return existing }
+        let epoch = max(1, Int(now.timeIntervalSince1970 * 1_000))
+        defaults.set(epoch, forKey: Self.stateEpochKey)
+        return epoch
+    }
+
+    func nextStateRevision(now: Date = Date()) -> Int {
+        let current = defaults.integer(forKey: Self.stateRevisionKey)
+        let next: Int
+        if current == Int.max {
+            let oldEpoch = stateEpoch(now: now)
+            let timestamp = max(1, Int(now.timeIntervalSince1970 * 1_000))
+            let newEpoch = oldEpoch == Int.max ? timestamp : max(oldEpoch + 1, timestamp)
+            defaults.set(newEpoch, forKey: Self.stateEpochKey)
+            next = 1
+        } else {
+            _ = stateEpoch(now: now)
+            next = current + 1
+        }
+        defaults.set(next, forKey: Self.stateRevisionKey)
+        return next
+    }
+
+    func transportFailures() -> [String: String] {
+        defaults.dictionary(forKey: Self.transportFailuresKey) as? [String: String] ?? [:]
+    }
+
+    func nextTransportFailureBatch(limit: Int) -> [(String, String)] {
+        let failures = transportFailures()
+        let keys = failures.keys.sorted()
+        guard !keys.isEmpty, limit > 0 else { return [] }
+        guard keys.count > limit else {
+            return keys.compactMap { key in failures[key].map { (key, $0) } }
+        }
+        let rawCursor = defaults.integer(forKey: Self.transportFailureCursorKey)
+        let start = max(0, rawCursor) % keys.count
+        let count = min(limit, keys.count)
+        let batch = (0..<count).compactMap { offset -> (String, String)? in
+            let key = keys[(start + offset) % keys.count]
+            return failures[key].map { (key, $0) }
+        }
+        defaults.set((start + count) % keys.count, forKey: Self.transportFailureCursorKey)
+        return batch
+    }
+
+    func setTransportFailure(recordingID: String, message: String) {
+        var failures = transportFailures()
+        failures[recordingID] = message
+        defaults.set(failures, forKey: Self.transportFailuresKey)
+    }
+
+    func clearTransportFailure(recordingID: String) {
+        var failures = transportFailures()
+        guard failures.removeValue(forKey: recordingID) != nil else { return }
+        defaults.set(failures, forKey: Self.transportFailuresKey)
+    }
+}
+
 /// Receives Apple Watch start/stop commands and routes them into the same
 /// one-shot recorder used by the Lock Screen widget and Live Activity.
 final class WatchRecordingController: NSObject {
@@ -17,16 +127,7 @@ final class WatchRecordingController: NSObject {
     private weak var watchPipeline: WatchRecordingPipeline?
     private var hasActivatedSession = false
     private var needsStatePublishAfterActivation = false
-    private let transportFailureDefaultsKey = "watchRecordingTransportFailures.v1"
-    private let transportFailureCursorDefaultsKey = "watchRecordingTransportFailureCursor.v1"
-    private let stateEpochDefaultsKey = "watchRecordingStateEpoch.v1"
-    private let stateRevisionDefaultsKey = "watchRecordingStateRevision.v1"
-    private let presetSelectionEpochDefaultsKey = "watchPresetSelection.lastEpoch.v1"
-    private let presetSelectionSequenceDefaultsKey = "watchPresetSelection.lastSequence.v1"
-    private let presetSelectionRequestDefaultsKey = "watchPresetSelection.lastRequestID.v1"
-    private let presetSelectionPresetDefaultsKey = "watchPresetSelection.lastPresetID.v1"
-    private let presetSelectionResultDefaultsKey = "watchPresetSelection.lastResult.v1"
-    private let presetSelectionErrorDefaultsKey = "watchPresetSelection.lastError.v1"
+    private let persistence = WatchRecordingControllerPersistence()
     nonisolated private let backgroundTaskService: any WatchRecordingBackgroundTaskServicing
 
     private override init() {
@@ -287,14 +388,12 @@ final class WatchRecordingController: NSObject {
             return nil
         }
 
-        let defaults = UserDefaults.standard
-        let lastEpoch = storedInt64(
-            forKey: presetSelectionEpochDefaultsKey,
-            defaults: defaults
+        let defaults = persistence.defaults
+        let lastEpoch = persistence.storedInt64(
+            forKey: WatchRecordingControllerPersistence.presetSelectionEpochKey
         )
-        let lastSequence = storedInt64(
-            forKey: presetSelectionSequenceDefaultsKey,
-            defaults: defaults
+        let lastSequence = persistence.storedInt64(
+            forKey: WatchRecordingControllerPersistence.presetSelectionSequenceKey
         )
         let requestIsStale = epoch < lastEpoch
             || (epoch == lastEpoch && sequence < lastSequence)
@@ -310,8 +409,8 @@ final class WatchRecordingController: NSObject {
         }
 
         if epoch == lastEpoch, sequence == lastSequence, lastEpoch > 0 {
-            if defaults.string(forKey: presetSelectionRequestDefaultsKey) == requestID,
-               defaults.string(forKey: presetSelectionPresetDefaultsKey) == presetID,
+            if defaults.string(forKey: WatchRecordingControllerPersistence.presetSelectionRequestKey) == requestID,
+               defaults.string(forKey: WatchRecordingControllerPersistence.presetSelectionPresetKey) == presetID,
                let previous = lastPresetSelectionAcknowledgement() {
                 return previous
             }
@@ -347,40 +446,14 @@ final class WatchRecordingController: NSObject {
         (value as? NSNumber)?.int64Value
     }
 
-    private func storedInt64(forKey key: String, defaults: UserDefaults) -> Int64 {
-        (defaults.object(forKey: key) as? NSNumber)?.int64Value ?? 0
-    }
-
     private func persistPresetSelectionAcknowledgement(
         _ response: WatchPresetSelectionResponse
     ) {
-        let defaults = UserDefaults.standard
-        defaults.set(response.epoch, forKey: presetSelectionEpochDefaultsKey)
-        defaults.set(response.sequence, forKey: presetSelectionSequenceDefaultsKey)
-        defaults.set(response.requestID, forKey: presetSelectionRequestDefaultsKey)
-        defaults.set(response.presetID, forKey: presetSelectionPresetDefaultsKey)
-        defaults.set(response.outcome.rawValue, forKey: presetSelectionResultDefaultsKey)
-        if let errorMessage = response.errorMessage {
-            defaults.set(errorMessage, forKey: presetSelectionErrorDefaultsKey)
-        } else {
-            defaults.removeObject(forKey: presetSelectionErrorDefaultsKey)
-        }
+        persistence.savePresetSelectionAcknowledgement(response)
     }
 
     private func lastPresetSelectionAcknowledgement() -> WatchPresetSelectionResponse? {
-        let defaults = UserDefaults.standard
-        guard let requestID = defaults.string(forKey: presetSelectionRequestDefaultsKey),
-              let presetID = defaults.string(forKey: presetSelectionPresetDefaultsKey),
-              let rawOutcome = defaults.string(forKey: presetSelectionResultDefaultsKey),
-              let outcome = WatchPresetSelectionOutcome(rawValue: rawOutcome) else { return nil }
-        return WatchPresetSelectionResponse(
-            requestID: requestID,
-            presetID: presetID,
-            epoch: storedInt64(forKey: presetSelectionEpochDefaultsKey, defaults: defaults),
-            sequence: storedInt64(forKey: presetSelectionSequenceDefaultsKey, defaults: defaults),
-            outcome: outcome,
-            errorMessage: defaults.string(forKey: presetSelectionErrorDefaultsKey)
-        )
+        persistence.loadPresetSelectionAcknowledgement()
     }
 
     private func makePresetSummaryPayload(
@@ -443,64 +516,27 @@ final class WatchRecordingController: NSObject {
     }
 
     private func currentStateEpoch() -> Int {
-        let defaults = UserDefaults.standard
-        let existing = defaults.integer(forKey: stateEpochDefaultsKey)
-        guard existing <= 0 else { return existing }
-        let epoch = max(1, Int(Date().timeIntervalSince1970 * 1_000))
-        defaults.set(epoch, forKey: stateEpochDefaultsKey)
-        return epoch
+        persistence.stateEpoch()
     }
 
     private func nextStateRevision() -> Int {
-        let defaults = UserDefaults.standard
-        let current = defaults.integer(forKey: stateRevisionDefaultsKey)
-        let next: Int
-        if current == Int.max {
-            let oldEpoch = currentStateEpoch()
-            let newEpoch = max(oldEpoch + 1, Int(Date().timeIntervalSince1970 * 1_000))
-            defaults.set(newEpoch, forKey: stateEpochDefaultsKey)
-            next = 1
-        } else {
-            _ = currentStateEpoch()
-            next = current + 1
-        }
-        defaults.set(next, forKey: stateRevisionDefaultsKey)
-        return next
+        persistence.nextStateRevision()
     }
 
     private func transportFailures() -> [String: String] {
-        UserDefaults.standard.dictionary(forKey: transportFailureDefaultsKey) as? [String: String] ?? [:]
+        persistence.transportFailures()
     }
 
     private func nextTransportFailureBatch(limit: Int) -> [(String, String)] {
-        let failures = transportFailures()
-        let keys = failures.keys.sorted()
-        guard keys.count > limit else {
-            return keys.compactMap { key in failures[key].map { (key, $0) } }
-        }
-        let start = UserDefaults.standard.integer(forKey: transportFailureCursorDefaultsKey) % keys.count
-        let count = min(limit, keys.count)
-        let batch = (0..<count).compactMap { offset -> (String, String)? in
-            let key = keys[(start + offset) % keys.count]
-            return failures[key].map { (key, $0) }
-        }
-        UserDefaults.standard.set(
-            (start + count) % keys.count,
-            forKey: transportFailureCursorDefaultsKey
-        )
-        return batch
+        persistence.nextTransportFailureBatch(limit: limit)
     }
 
     private func setTransportFailure(recordingID: String, message: String) {
-        var failures = transportFailures()
-        failures[recordingID] = message
-        UserDefaults.standard.set(failures, forKey: transportFailureDefaultsKey)
+        persistence.setTransportFailure(recordingID: recordingID, message: message)
     }
 
     private func clearTransportFailure(recordingID: String) {
-        var failures = transportFailures()
-        guard failures.removeValue(forKey: recordingID) != nil else { return }
-        UserDefaults.standard.set(failures, forKey: transportFailureDefaultsKey)
+        persistence.clearTransportFailure(recordingID: recordingID)
     }
 
     @MainActor

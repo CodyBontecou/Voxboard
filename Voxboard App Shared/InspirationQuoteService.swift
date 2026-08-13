@@ -31,7 +31,7 @@ actor InspirationQuoteService {
         case noUsableQuotes
     }
 
-    private static let cacheKey = "inspiration-quotes.zenquotes.v1"
+    static let cacheKey = "inspiration-quotes.zenquotes.v1"
     private static let refreshInterval: TimeInterval = 2 * 60 * 60
     private static let endpoint = URL(string: "https://zenquotes.io/api/quotes")!
 

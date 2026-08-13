@@ -1,0 +1,762 @@
+{
+  "entries" : [
+    {
+      "byteCount" : 996,
+      "path" : "capture-library\/library-v1.json",
+      "sha256" : "38199b80673e1881cd93b551b019d1c5fa73d7100ab0dbfa35631a0a13928fd3"
+    },
+    {
+      "byteCount" : 1049,
+      "path" : "compatibility\/capture-library\/unknown-field.json",
+      "sha256" : "1741c443aa9668a2ab4511de916d926ce9aead1e943c2f653ba7a12d45660f1b"
+    },
+    {
+      "byteCount" : 2895,
+      "path" : "compatibility\/drafts\/unknown-field.json",
+      "sha256" : "46637d554f433405a07cac266b1037ace2b16a5389ad65554b0a0e353f2b2c8c"
+    },
+    {
+      "byteCount" : 614,
+      "path" : "compatibility\/history\/unknown-field.json",
+      "sha256" : "82bf9a1f00fe151584bc088b5d992dc4a6fd03f92186775c25191c9a508bee57"
+    },
+    {
+      "byteCount" : 163,
+      "path" : "compatibility\/inbox\/completed-unknown-field.json",
+      "sha256" : "7af0fd973b2a76b2e21f41a649997e4aa1fa4feddbb53edfa7ac93c06fff623e"
+    },
+    {
+      "byteCount" : 2606,
+      "path" : "compatibility\/inbox\/pending-unknown-field.json",
+      "sha256" : "739dc7cdf85f3039e275a722c0f267f8b74d4c4b8506108900169b8564a72126"
+    },
+    {
+      "byteCount" : 245,
+      "path" : "compatibility\/keyboard-ipc\/documents\/command.json",
+      "sha256" : "b0614a952670f8f1227d773fe7257412a0935e60c3f089560c4c7bdd5ab2c422"
+    },
+    {
+      "byteCount" : 141,
+      "path" : "compatibility\/keyboard-ipc\/documents\/listening-state.json",
+      "sha256" : "11e1f38e7d9635ce92532f4808698ad410a5936375262b696e180cd0c4bec9bc"
+    },
+    {
+      "byteCount" : 177,
+      "path" : "compatibility\/keyboard-ipc\/documents\/live-delivery-checkpoint.json",
+      "sha256" : "f9b30c667e34e03e4fd96224ef2b6abe3319a5f0f8ee0a9977bf358b794a50a8"
+    },
+    {
+      "byteCount" : 242,
+      "path" : "compatibility\/keyboard-ipc\/documents\/live-snapshot.json",
+      "sha256" : "9b83bc4df2ce844ab4240334731aae7bbe38e11daccb7435377808a883109e6b"
+    },
+    {
+      "byteCount" : 215,
+      "path" : "compatibility\/keyboard-ipc\/documents\/request.json",
+      "sha256" : "4f26749cf7da7eee6353b7560b789e7f4f38e8552fb233584bf6a94a88365e27"
+    },
+    {
+      "byteCount" : 180,
+      "path" : "compatibility\/keyboard-ipc\/documents\/response.json",
+      "sha256" : "6dab2289d8c829a2a63102fbd28f53232469604720b530a52cbf547d8c504606"
+    },
+    {
+      "byteCount" : 308,
+      "path" : "compatibility\/keyboard-ipc\/documents\/status.json",
+      "sha256" : "1f7143303db4153c28de5c5b038d2cc9f032703609558d515cb46c15e787c137"
+    },
+    {
+      "byteCount" : 164,
+      "path" : "compatibility\/keyboard-ipc\/unknown-field.json",
+      "sha256" : "270f3052d58604b241fe283302007d67f14f2ac41704d40978c51596158d18f1"
+    },
+    {
+      "byteCount" : 242,
+      "path" : "compatibility\/live-state\/unknown-field.json",
+      "sha256" : "943d30042cda79b4315c6bbd33ab3a63da440730ac3805a8814634db338da750"
+    },
+    {
+      "byteCount" : 4752,
+      "path" : "compatibility\/presets\/unknown-field.json",
+      "sha256" : "93d3c53b81ae7bca9de0a19cc3d3903008bef27cf4074b531900d4d28fa9de18"
+    },
+    {
+      "byteCount" : 3886,
+      "path" : "compatibility\/recording-jobs\/unknown-field.json",
+      "sha256" : "11d09564120f0c171fb8f28303bd08bc2eb681fdb27a3791ad9f3b469411276c"
+    },
+    {
+      "byteCount" : 208,
+      "path" : "compatibility\/recording-origin\/unknown-field.json",
+      "sha256" : "686bd17d101b2e03a9290d18c39b78e6321e03ef21501a62e3309054cdc3498d"
+    },
+    {
+      "byteCount" : 306,
+      "path" : "compatibility\/stats\/missing-schema-version.json",
+      "sha256" : "ba8d343ada738c936589863217ba637519c6909532b72354198ed31a8284cfd5"
+    },
+    {
+      "byteCount" : 423,
+      "path" : "compatibility\/stats\/unknown-field.json",
+      "sha256" : "de07faeb2e7c3296b96c658ea99a741eadb4f3528a71d1291cb52f342570eb0e"
+    },
+    {
+      "byteCount" : 611,
+      "path" : "compatibility\/transcripts\/unknown-field.json",
+      "sha256" : "a55d172a95b2ff36273881a6b4e40fbef47b75ea614d2419bebbda5c371e74dd"
+    },
+    {
+      "byteCount" : 1,
+      "path" : "compatibility\/usage\/legacy-high-water-decimal.txt",
+      "sha256" : "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451"
+    },
+    {
+      "byteCount" : 78,
+      "path" : "compatibility\/usage\/missing-default-fields.json",
+      "sha256" : "81661890c9b0ff35c10f9c5a6410eb9307ce547c0409d8e72b717369d6cbacf5"
+    },
+    {
+      "byteCount" : 234,
+      "path" : "compatibility\/usage\/unknown-field.json",
+      "sha256" : "a29cc5d31ccdd382ad96567e6479e93a468a8ed370c2c0abb467e73dd7dddd18"
+    },
+    {
+      "byteCount" : 5604,
+      "path" : "compatibility\/watch-inbox\/unknown-field.json",
+      "sha256" : "08743a3e89c7755f18d07b55f82a200fea7c4ca0b003645c24de530659962fd8"
+    },
+    {
+      "byteCount" : 24,
+      "path" : "drafts\/corrupt-input.json",
+      "sha256" : "ed61182fddb513b7451b62d6d9b3597a879dbcd9f3cea5b055cae9a79e2d4fbc"
+    },
+    {
+      "byteCount" : 2842,
+      "path" : "drafts\/draft-current.json",
+      "sha256" : "987f86b2e5461767b78a4e6f1b22022a1ae0d3758ad86b808b4b5aaa989c9fd7"
+    },
+    {
+      "byteCount" : 2553,
+      "path" : "drafts\/prepared-request.json",
+      "sha256" : "b73324209be32af2090183e40d844764dee9d708e265ba30710ac6952f4bc9b8"
+    },
+    {
+      "byteCount" : 26,
+      "path" : "history\/corrupt-input.json",
+      "sha256" : "660f97aa6a4a437bff9d37aabd3ede840f7a3a2c44344765694ccf985cc2d7b3"
+    },
+    {
+      "byteCount" : 518,
+      "path" : "history\/history-v1.json",
+      "sha256" : "224b1eb538b4a252b36fde3bd56783c1b22f19901db7decf1db3e35ba7061d49"
+    },
+    {
+      "byteCount" : 110,
+      "path" : "inbox\/completion-receipt-v1.json",
+      "sha256" : "f1806b34a2fa9ff9e36d5ccd1c28a39c82453bdaa50efeea59f45b58bdf4f3f2"
+    },
+    {
+      "byteCount" : 2553,
+      "path" : "inbox\/failed-request.json",
+      "sha256" : "b73324209be32af2090183e40d844764dee9d708e265ba30710ac6952f4bc9b8"
+    },
+    {
+      "byteCount" : 2553,
+      "path" : "inbox\/pending-request.json",
+      "sha256" : "b73324209be32af2090183e40d844764dee9d708e265ba30710ac6952f4bc9b8"
+    },
+    {
+      "byteCount" : 2553,
+      "path" : "inbox\/processing-request.json",
+      "sha256" : "b73324209be32af2090183e40d844764dee9d708e265ba30710ac6952f4bc9b8"
+    },
+    {
+      "byteCount" : 4,
+      "path" : "keyboard-ipc\/audio-level.bin",
+      "sha256" : "75e253f50979177eba47b2d0805ad36038789108924514d2a761a70de057d16f"
+    },
+    {
+      "byteCount" : 192,
+      "path" : "keyboard-ipc\/command.json",
+      "sha256" : "1c5ab87443973c4fe4a8d9bd34d8ab68bbb5fffa7c309299d015771959fa36b1"
+    },
+    {
+      "byteCount" : 88,
+      "path" : "keyboard-ipc\/listening-state.json",
+      "sha256" : "3da8275afc94050a11556ab2651c69387a501627d22c509cf71ad2e7d6eb510e"
+    },
+    {
+      "byteCount" : 124,
+      "path" : "keyboard-ipc\/live-delivery-checkpoint.json",
+      "sha256" : "a6bd70128aa82dd569a885f6677edcf9b0411db1bdd35f6dbc178e4a673fc1dd"
+    },
+    {
+      "byteCount" : 189,
+      "path" : "keyboard-ipc\/live-transcription.json",
+      "sha256" : "268bf73c6a9445ca54fb5f3f756a609a3f27d37fc628571067e4bda407880c4e"
+    },
+    {
+      "byteCount" : 22,
+      "path" : "keyboard-ipc\/pending-text.txt",
+      "sha256" : "f502504ad05cbc91e1bfb006f29e1a08749c62ee7da316c763264f427c34b558"
+    },
+    {
+      "byteCount" : 162,
+      "path" : "keyboard-ipc\/request.json",
+      "sha256" : "8ebb933ab7bf69fb935d38f931c458e0165baa929f33e1f1ec12300d2117f70c"
+    },
+    {
+      "byteCount" : 127,
+      "path" : "keyboard-ipc\/response.json",
+      "sha256" : "f99071c1679c2b484e0bc862d6684dd73ebbf5f17f16041e73e6003a06223921"
+    },
+    {
+      "byteCount" : 4,
+      "path" : "keyboard-ipc\/retained-audio.m4a",
+      "sha256" : "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119"
+    },
+    {
+      "byteCount" : 255,
+      "path" : "keyboard-ipc\/status.json",
+      "sha256" : "9182df605d7537b280d42c299aa9a57cb8429f2c75f62a08b1f098933ba1aaeb"
+    },
+    {
+      "byteCount" : 189,
+      "path" : "live-state\/live-activity-state.json",
+      "sha256" : "4cb2f7d46c671d20700936ecab0d699f9251a100e6ac880bdc881b2e3a288d04"
+    },
+    {
+      "byteCount" : 58,
+      "path" : "negative\/capture-library\/future-version.json",
+      "sha256" : "34bd1200e15876658e78202c0ca4d2bd7e4dd3153799c4e20554ebb5e8440a04"
+    },
+    {
+      "byteCount" : 220,
+      "path" : "negative\/capture-library\/malformed-bookmark.json",
+      "sha256" : "f11f1bdc4d266e59a72d89285621f41356ebaa8a4946b5703444f809cc3c8f0c"
+    },
+    {
+      "byteCount" : 1000,
+      "path" : "negative\/capture-library\/unknown-note-target-enum.json",
+      "sha256" : "1a81bfad286a109e4cba81aa1bed7f63a9e063d5595f14cf504f87b6465e1e29"
+    },
+    {
+      "byteCount" : 96,
+      "path" : "negative\/drafts\/missing-id.json",
+      "sha256" : "b80d78e90e79e2dccf8f230e43186f821f13a92bcf7b9fc35c9d678837454a0b"
+    },
+    {
+      "byteCount" : 2846,
+      "path" : "negative\/drafts\/unknown-source-enum.json",
+      "sha256" : "069e7ba071b1706ce7f3db4c7a9721b1f2b82a6c1feca1d17f6ca304048a6003"
+    },
+    {
+      "byteCount" : 33,
+      "path" : "negative\/history\/future-version.json",
+      "sha256" : "1d06db00fbefe039c6eb7bd26cb4d47cae8d7bb14f4349f0f0533429a09d01d1"
+    },
+    {
+      "byteCount" : 621,
+      "path" : "negative\/history\/unknown-source-enum.json",
+      "sha256" : "38d866ec8bd77edb2cb47d7ccd9c53c3494cec5b9a6fb601a9dfdfb83d9e8bd8"
+    },
+    {
+      "byteCount" : 95,
+      "path" : "negative\/inbox\/future-completion-receipt.json",
+      "sha256" : "68e4608ecd491e3b1ba0ab7c3fb187db392279ae3befc909e9cf1bc4bd929424"
+    },
+    {
+      "byteCount" : 686,
+      "path" : "negative\/inbox\/pending-missing-optional-fields.json",
+      "sha256" : "682b0a66b8bc62435df154429a7f6c04e5dccde8ed3005b6850353c918c1f6ed"
+    },
+    {
+      "byteCount" : 626,
+      "path" : "negative\/inbox\/pending-missing-required-field.json",
+      "sha256" : "c65859d7813a2c4edeafa1718c89d1a8e439e30683ff0a315296f60348e2025a"
+    },
+    {
+      "byteCount" : 693,
+      "path" : "negative\/inbox\/pending-unknown-source-enum.json",
+      "sha256" : "a7b0ebe31ec63593181c920c347a468d694cf0310560ab1ff61f302fd5a7ebfe"
+    },
+    {
+      "byteCount" : 24,
+      "path" : "negative\/keyboard-ipc\/crash\/finalized-text-only.txt",
+      "sha256" : "bffe70999b5ffe6b48fbe9e9127b3bcc623b8e64ae3e07e1a678a91711b84211"
+    },
+    {
+      "byteCount" : 35,
+      "path" : "negative\/keyboard-ipc\/crash\/torn-delivery-checkpoint.json",
+      "sha256" : "678bbdfb340ad9a4381c0a108836109957890a79239cd40ef262f7a677ecb5bd"
+    },
+    {
+      "byteCount" : 28,
+      "path" : "negative\/keyboard-ipc\/documents\/command.json",
+      "sha256" : "4ea0a11cd44889102d0b26fe05e0cf702f53b0f880ad5e1d2d5b600000c2f0c4"
+    },
+    {
+      "byteCount" : 36,
+      "path" : "negative\/keyboard-ipc\/documents\/listening-state.json",
+      "sha256" : "2fce91ddca22551be43d1106c0d884e6df29d7caff56bdc947aa9db89aea1505"
+    },
+    {
+      "byteCount" : 45,
+      "path" : "negative\/keyboard-ipc\/documents\/live-delivery-checkpoint.json",
+      "sha256" : "9ecfb42458ca5b68078ef41193f0061edcd0f518be8865a2f991b4c67bb5ed0f"
+    },
+    {
+      "byteCount" : 34,
+      "path" : "negative\/keyboard-ipc\/documents\/live-snapshot.json",
+      "sha256" : "dc12d60b35e09e49d3d87d85c030c81375772ac2a968b565923904811396c72b"
+    },
+    {
+      "byteCount" : 28,
+      "path" : "negative\/keyboard-ipc\/documents\/request.json",
+      "sha256" : "d4cf3aa7c8262c28899882647181a607c1cbed95d114d0f4df8599d40f375900"
+    },
+    {
+      "byteCount" : 29,
+      "path" : "negative\/keyboard-ipc\/documents\/response.json",
+      "sha256" : "79d3b2a80bd45b9c2cc17f44123d6004010f76855027aab500d07ecd83a76d25"
+    },
+    {
+      "byteCount" : 27,
+      "path" : "negative\/keyboard-ipc\/documents\/status.json",
+      "sha256" : "29df652f84369cb677fc2ede5d91f1f998a2e7321b6f7c3f50eecdb417f6ac39"
+    },
+    {
+      "byteCount" : 47,
+      "path" : "negative\/keyboard-ipc\/unknown-command-action.json",
+      "sha256" : "cf467c3d8d36d853e3aab1beb13fc97a6af91da4273ba6e7178e90a4c0dd3770"
+    },
+    {
+      "byteCount" : 45,
+      "path" : "negative\/keyboard-ipc\/unknown-status-phase.json",
+      "sha256" : "e0055058e4873c7ddbdac6653b14dfda9c6b591da7f874ae2b00ce411bff76cb"
+    },
+    {
+      "byteCount" : 31,
+      "path" : "negative\/live-state\/malformed.json",
+      "sha256" : "bdfd3217b5b530b1127f33bc119ddbd28a97df41f28f2fe762dfc31f67cc1105"
+    },
+    {
+      "byteCount" : 249,
+      "path" : "negative\/models\/unknown-selection.json",
+      "sha256" : "3497bd944dd4d8ed7c20bc4846c0191aca8d48db8a484a6b5cf8c4cc2739d5c5"
+    },
+    {
+      "byteCount" : 301,
+      "path" : "negative\/models\/wrong-types.json",
+      "sha256" : "3d820554d2f7d9d043058460364736c6dd0987426791e2e6d68da0614cc7175e"
+    },
+    {
+      "byteCount" : 8,
+      "path" : "negative\/presets\/malformed-store.bin",
+      "sha256" : "0c21a879c732a67910d80988df4919d794f6a070aab610ef865032a28046b021"
+    },
+    {
+      "byteCount" : 77,
+      "path" : "negative\/presets\/unknown-kind.json",
+      "sha256" : "0f8618c6b08331cda0e79077e77d3bf7cf7683483b85e2e4cbabc1cdb22930d1"
+    },
+    {
+      "byteCount" : 270,
+      "path" : "negative\/queue-preferences\/unknown-enums.json",
+      "sha256" : "c3933b73bb277a991f0dc8e8c9c850732638d0d86dfa10e11f3d4dc0561c85c6"
+    },
+    {
+      "byteCount" : 355,
+      "path" : "negative\/queue-preferences\/wrong-types.json",
+      "sha256" : "357313ac410555e9aecbdde85b0366bdc58b3e60bd709512a5a9200c6723159f"
+    },
+    {
+      "byteCount" : 280,
+      "path" : "negative\/recording-jobs\/delivery-journals\/digest-mismatch\/journal.json",
+      "sha256" : "890b2c6ab541d64d51f1f67184b98aaf480b8dae0b5c00e62aee7230057e3a03"
+    },
+    {
+      "byteCount" : 15,
+      "path" : "negative\/recording-jobs\/delivery-journals\/digest-mismatch\/payload",
+      "sha256" : "34f8bf4083ec15e056df717fdd8f42354e2f8d8091233f7a858811139058e548"
+    },
+    {
+      "byteCount" : 281,
+      "path" : "negative\/recording-jobs\/delivery-journals\/future-version\/journal.json",
+      "sha256" : "0b05ec1e34a7e8669d26b223cbbd96ebd0dfa73e7a4e2c50051c5dca585ca7d4"
+    },
+    {
+      "byteCount" : 14,
+      "path" : "negative\/recording-jobs\/delivery-journals\/future-version\/payload",
+      "sha256" : "950d4ff0dc553dbf53bf3e2089167931f2c2fe4ec94aca17f115793a36740437"
+    },
+    {
+      "byteCount" : 280,
+      "path" : "negative\/recording-jobs\/delivery-journals\/journal-only\/journal.json",
+      "sha256" : "890b2c6ab541d64d51f1f67184b98aaf480b8dae0b5c00e62aee7230057e3a03"
+    },
+    {
+      "byteCount" : 27,
+      "path" : "negative\/recording-jobs\/delivery-journals\/payload-only\/payload",
+      "sha256" : "404789e24e0208b66ae009673fdd694051e5ed614014811b6bba494c2f81742d"
+    },
+    {
+      "byteCount" : 333,
+      "path" : "negative\/recording-jobs\/delivery-journals\/unknown-field\/journal.json",
+      "sha256" : "7f9216979a529fc72238434a3de8a74edd3c0f92a25edc979ff257d27cd2e0bb"
+    },
+    {
+      "byteCount" : 14,
+      "path" : "negative\/recording-jobs\/delivery-journals\/unknown-field\/payload",
+      "sha256" : "950d4ff0dc553dbf53bf3e2089167931f2c2fe4ec94aca17f115793a36740437"
+    },
+    {
+      "byteCount" : 3834,
+      "path" : "negative\/recording-jobs\/future-job-version.json",
+      "sha256" : "e366a5f7aca4e9e5a93c05d72d201a74a7ae5f24c17a8033e57fd6b4e7a3b30d"
+    },
+    {
+      "byteCount" : 3838,
+      "path" : "negative\/recording-jobs\/unknown-phase-enum.json",
+      "sha256" : "8032bca1428f5a2c5e4e43ea386c27995f30c732dd139a18412036c9c0b4f2c1"
+    },
+    {
+      "byteCount" : 27,
+      "path" : "negative\/recording-origin\/malformed.json",
+      "sha256" : "f76402e71fc5c3b1b8696e11d29dd0d62cf121579b64391b1087ca3e77f50edd"
+    },
+    {
+      "byteCount" : 129,
+      "path" : "negative\/recording-origin\/missing-preset-id.json",
+      "sha256" : "92aa28fe526df0b387568d70189930de0fcfcc13533de2a685f85679aaef1ffd"
+    },
+    {
+      "byteCount" : 162,
+      "path" : "negative\/recording-origin\/unknown-source-enum.json",
+      "sha256" : "94e017f47c57c2adbaa20aee8577fbad3c5cbcaa4838fce2fe6489f9d2745398"
+    },
+    {
+      "byteCount" : 32,
+      "path" : "negative\/settings\/future-version.json",
+      "sha256" : "768c90eed109cd061369763bb4d55b895b64005baf4b07655024b198d535d8b6"
+    },
+    {
+      "byteCount" : 97,
+      "path" : "negative\/settings\/wrong-types.json",
+      "sha256" : "5c0a98b6b2034059317d43b6e58fbae344162617bb194aa95d0508a4a548a63b"
+    },
+    {
+      "byteCount" : 50,
+      "path" : "negative\/stats\/future-version.json",
+      "sha256" : "06343e36c7519cd23ac0ae53527fcd3c9366521578c78564952c3fc505acb3d0"
+    },
+    {
+      "byteCount" : 430,
+      "path" : "negative\/stats\/unknown-source-enum.json",
+      "sha256" : "5e36d0095f76f835c1b499ead8c2b0f604eff469ae443cc49e2a81967bedd292"
+    },
+    {
+      "byteCount" : 33,
+      "path" : "negative\/transcripts\/malformed.json",
+      "sha256" : "2c2ad6c54e96967ab78dcd75c2877af85810c46eb7b57eb543fb05be153a5d57"
+    },
+    {
+      "byteCount" : 140,
+      "path" : "negative\/usage-settings\/unknown-access-level.json",
+      "sha256" : "d84b18d65dd782bc2edab13d73314fcf6cf1ea57b8fbc67207a5021f7ff494f8"
+    },
+    {
+      "byteCount" : 444,
+      "path" : "negative\/usage-settings\/wrong-types.json",
+      "sha256" : "598224a3459ffb6398c5e327349ce04af328fa174625cedad4647da1b45619e6"
+    },
+    {
+      "byteCount" : 111,
+      "path" : "negative\/usage\/future-version.json",
+      "sha256" : "1ca4510f2602b44329c32df56a0313b3617abafe93b5e98fa934f07692bd10ca"
+    },
+    {
+      "byteCount" : 57,
+      "path" : "negative\/usage\/malformed.json",
+      "sha256" : "af26d6b4a0bd83a10050cd464455823cb9b5388251ae73a1b18d742ed79f9fb6"
+    },
+    {
+      "byteCount" : 46,
+      "path" : "negative\/watch-defaults\/confirmed-missing-id.json",
+      "sha256" : "da4e2a1311742591762957ef3c2c6f30026e691c71d3e60f6885a27750dcad3b"
+    },
+    {
+      "byteCount" : 89,
+      "path" : "negative\/watch-defaults\/pending-wrong-sequence.json",
+      "sha256" : "ebafecb4414f7593ec82f9823e83a7bb4ab5d106f99b28c8625f3ad9a4dd5c27"
+    },
+    {
+      "byteCount" : 30,
+      "path" : "negative\/watch-inbox\/malformed.json",
+      "sha256" : "e03e4399aa240d414b0fd0eb813e331baaee0c144e313227967db15f4365754d"
+    },
+    {
+      "byteCount" : 5556,
+      "path" : "negative\/watch-inbox\/unknown-phase-enum.json",
+      "sha256" : "14b8aef03298619fb69e8b35165a4387e08f0e420becc36c6e269ee751bef4cf"
+    },
+    {
+      "byteCount" : 2310,
+      "path" : "presets\/preset-v1.json",
+      "sha256" : "2b926cf930fa7f1e549fc5585a7ff66755ece0aa6cfae0bbdd44b8b7d6f203c4"
+    },
+    {
+      "byteCount" : 3799,
+      "path" : "recording-jobs\/checkpoints\/audio.json",
+      "sha256" : "e692a6d5c53d28094c219a792ec10230d476dc2b75271e8a2dad83a90f81a934"
+    },
+    {
+      "byteCount" : 3852,
+      "path" : "recording-jobs\/checkpoints\/note.json",
+      "sha256" : "6bc11e623f0e827505c39757109986b67f5adc9a1958e4bfeb16c8ec7b63f094"
+    },
+    {
+      "byteCount" : 3892,
+      "path" : "recording-jobs\/checkpoints\/reference.json",
+      "sha256" : "c3bb13770dc451eef4050c9de6da9ce7a8390e3d8942930a737d142bf41702d6"
+    },
+    {
+      "byteCount" : 3744,
+      "path" : "recording-jobs\/checkpoints\/transcript.json",
+      "sha256" : "e53e36269882a50d1217372914ab6a3a5c91376b2c8ffeefdd374957fbcdc98b"
+    },
+    {
+      "byteCount" : 16,
+      "path" : "recording-jobs\/delivered-source.m4a",
+      "sha256" : "f98a594c16784dbe52b14cf75c8ba4c41c51eb5f6212d866f683499c2d0bc593"
+    },
+    {
+      "byteCount" : 22,
+      "path" : "recording-jobs\/delivered-source.m4a.vox-delivered",
+      "sha256" : "b4c0c349dd985b193d72d1b1e20630279e89a124870142887c00b5575f7339c0"
+    },
+    {
+      "byteCount" : 282,
+      "path" : "recording-jobs\/delivery-journals\/audio\/journal.json",
+      "sha256" : "c73c3daed0fc1b3f05eca88f6bc7d21148d4c6f47f83fbd3e565cf430af27e4a"
+    },
+    {
+      "byteCount" : 16,
+      "path" : "recording-jobs\/delivery-journals\/audio\/payload",
+      "sha256" : "d761d406af2a4a5a15f67c924378ed88d1f85c13f1a37fc7366f59789b3bcd65"
+    },
+    {
+      "byteCount" : 280,
+      "path" : "recording-jobs\/delivery-journals\/note\/journal.json",
+      "sha256" : "890b2c6ab541d64d51f1f67184b98aaf480b8dae0b5c00e62aee7230057e3a03"
+    },
+    {
+      "byteCount" : 14,
+      "path" : "recording-jobs\/delivery-journals\/note\/payload",
+      "sha256" : "950d4ff0dc553dbf53bf3e2089167931f2c2fe4ec94aca17f115793a36740437"
+    },
+    {
+      "byteCount" : 363,
+      "path" : "recording-jobs\/delivery-journals\/noteAudioReference\/journal.json",
+      "sha256" : "8fb2f7efd4e5785325421e9ab9969d2a33bd3f0e8f6143f9fcb12a4b3d3e3346"
+    },
+    {
+      "byteCount" : 41,
+      "path" : "recording-jobs\/delivery-journals\/noteAudioReference\/payload",
+      "sha256" : "2ecacffe5312c5dad80222bc4b479d7251daa55e091a5a79d81f2b5536a9c545"
+    },
+    {
+      "byteCount" : 3606,
+      "path" : "recording-jobs\/handoff-v1.json",
+      "sha256" : "ebc948b65862235abb585affbb2cf6dcb792c4968a3eb6effa1600a472a973a3"
+    },
+    {
+      "byteCount" : 3833,
+      "path" : "recording-jobs\/job-v1.json",
+      "sha256" : "d3b8864d726c6efeb92e30b7ae4b19389136798b38805aced5813b8378b28b88"
+    },
+    {
+      "byteCount" : 3844,
+      "path" : "recording-jobs\/recovery\/completed-deleted-audio.json",
+      "sha256" : "5335f5d96cffdac123b6581afa59c28c0e4f86ba7beda45fd82e709934785f89"
+    },
+    {
+      "byteCount" : 3831,
+      "path" : "recording-jobs\/recovery\/finalizing-with-audio.json",
+      "sha256" : "53c3ac3eef76998ea3752f0e9efea710fad9974798ad18ad16897acf68476ca9"
+    },
+    {
+      "byteCount" : 32,
+      "path" : "recording-jobs\/recovery\/orphan-audio.wav",
+      "sha256" : "72cd6e8422c407fb6d098690f1130b7ded7ec2f7f5e1d30bd9d521f015363793"
+    },
+    {
+      "byteCount" : 3829,
+      "path" : "recording-jobs\/recovery\/processing-with-audio.json",
+      "sha256" : "827dccc5dcc36736b2bcad808123ce4dafd81e338d56e2a05dae94d23bb6d16b"
+    },
+    {
+      "byteCount" : 3774,
+      "path" : "recording-jobs\/recovery\/queued-missing-audio.json",
+      "sha256" : "db1768b7162b7fbbe27862e60efe59c13d0ce56e5f41d5219d7f67b92a648f59"
+    },
+    {
+      "byteCount" : 115,
+      "path" : "recording-origin\/origin-v1.json",
+      "sha256" : "91f2ac9441db304e213ecc53e20305fca27e700be2bce6d160125359b14992fe"
+    },
+    {
+      "byteCount" : 4854,
+      "path" : "settings\/allowlisted-settings-v1.json",
+      "sha256" : "95125866d6c9877d824670a74a5300fea7e367ca02fcd7b474f8aaddfa933bb1"
+    },
+    {
+      "byteCount" : 329,
+      "path" : "stats\/activity-stats-v1.json",
+      "sha256" : "cee872d4fe30dc9b78396aebd882e6ac4902e90c222c37d9bd9e3482e5c9e7fa"
+    },
+    {
+      "byteCount" : 382,
+      "path" : "transcripts\/transcripts.json",
+      "sha256" : "28f02a0ffdfe5c61df6f6de0da7b6f2c9127589c68389eff4e064ed497b03037"
+    },
+    {
+      "byteCount" : 181,
+      "path" : "usage\/capture-usage-v1.json",
+      "sha256" : "75812a83791293324f74f6a487a8dd426e86eabac58cb7b296e0c5ab6490bf6b"
+    },
+    {
+      "byteCount" : 2360,
+      "path" : "watch-defaults\/confirmed-v1.json",
+      "sha256" : "35ce64980ea72f57d8a034184685c6c8a012e5fa398e62d836cc06b118efcc15"
+    },
+    {
+      "byteCount" : 128,
+      "path" : "watch-defaults\/pending-v1.json",
+      "sha256" : "02f0a53a5d1eda9c2a60be6a358d0a3212d3811f8ca5b88910e5a386fc251ea2"
+    },
+    {
+      "byteCount" : 5551,
+      "path" : "watch-inbox\/item-current.json",
+      "sha256" : "0dcf0ef47a70bc60e45be9d246358f3dc77336a455684b16efb0d585a6fc8942"
+    },
+    {
+      "byteCount" : 98,
+      "path" : "watch-inbox\/item-legacy.json",
+      "sha256" : "d7413b27b7679e8b0ea971ee05229c6a96d81585b268771d4fcb161797488bce"
+    },
+    {
+      "byteCount" : 131,
+      "path" : "watch-local-queue\/active-recording.json",
+      "sha256" : "1543712e00ff8a5cdd4721b4065ca599a21fe104cf6ff05072b87974cbb86136"
+    },
+    {
+      "byteCount" : 2712,
+      "path" : "watch-local-queue\/index-current.json",
+      "sha256" : "90b86079b9d4a3972879eab5b50e77289c0b96c5f3862dd0031cda7bc99bb958"
+    },
+    {
+      "byteCount" : 82,
+      "path" : "watch-local-queue\/index-legacy.json",
+      "sha256" : "95b4b4e1ae8a77cb87d57b0ad8b277e56a522c6215c736947c914732cfd6cae9"
+    },
+    {
+      "byteCount" : 16,
+      "path" : "watch-local-queue\/watch-active.m4a",
+      "sha256" : "292afde3b64e6636d68f1120d9242f1f85e38ef7bf306e4407c2303eb63791ef"
+    },
+    {
+      "byteCount" : 16,
+      "path" : "watch-local-queue\/watch-orphan.m4a",
+      "sha256" : "6399f6d863b08f4652b342c2e1350b4c01e291332d9d84d84b575bf7272897d2"
+    },
+    {
+      "byteCount" : 315,
+      "path" : "watch-property-lists\/application-context-legacy-minimal.xml",
+      "sha256" : "a172167c5d0ccaed634254123a2be713b9157b44ae8b5f3552b9f5fa30b27fd5"
+    },
+    {
+      "byteCount" : 2360,
+      "path" : "watch-property-lists\/application-context.binary.plist",
+      "sha256" : "e2b3cac48d37045556fdb265781becc538182843b2a8c54a4fa9347a31c8badf"
+    },
+    {
+      "byteCount" : 3694,
+      "path" : "watch-property-lists\/application-context.xml",
+      "sha256" : "a10e1fde812797b3af2b74a672bd86fb7b9975a1eb07cb01b93358fd887e792f"
+    },
+    {
+      "byteCount" : 404,
+      "path" : "watch-property-lists\/commands\/acknowledge.xml",
+      "sha256" : "fea903f1ff4bed456109652bb47c1d562550761f6a96518b6ab7d158418c4a80"
+    },
+    {
+      "byteCount" : 545,
+      "path" : "watch-property-lists\/commands\/selectPreset.xml",
+      "sha256" : "1887f18799095ab476f4fe93418d6fde9a833e54e8e9156f70d9e903995c1b9d"
+    },
+    {
+      "byteCount" : 276,
+      "path" : "watch-property-lists\/commands\/start.xml",
+      "sha256" : "3a9b42b6fbd49dae8ac8165b7cf23155d9c9d7e49b164f67b892a0adfa57a891"
+    },
+    {
+      "byteCount" : 277,
+      "path" : "watch-property-lists\/commands\/status.xml",
+      "sha256" : "70f420ec1a499960374f676dcbf3fb6a3690b9f50999eeaaa64526ff8fb6d96b"
+    },
+    {
+      "byteCount" : 275,
+      "path" : "watch-property-lists\/commands\/stop.xml",
+      "sha256" : "20284c48cc9fdc7dc6ba4979ade3c4aacf174df16a19c1e3ccd028ac0831872f"
+    },
+    {
+      "byteCount" : 277,
+      "path" : "watch-property-lists\/commands\/toggle.xml",
+      "sha256" : "d921951ae9ecf56bab066ae87b87e2792a067c66ab267dc2c8f9d33ae488dd49"
+    },
+    {
+      "byteCount" : 595,
+      "path" : "watch-property-lists\/file-metadata-incompatible.xml",
+      "sha256" : "ce3ed5d323165ae4ec66ae8a0cf5dbb33072ecd4c874e759962859637f53a987"
+    },
+    {
+      "byteCount" : 466,
+      "path" : "watch-property-lists\/file-metadata-legacy-minimal.xml",
+      "sha256" : "76c82dc3f57d2b620b341d61d1f070671518184dd59a51b403a01253d5e773fb"
+    },
+    {
+      "byteCount" : 2116,
+      "path" : "watch-property-lists\/file-metadata.binary.plist",
+      "sha256" : "1021674c6df97fdc623fa3a6a547ac8f36722b9c456d22ebc5ab215137dbbd61"
+    },
+    {
+      "byteCount" : 3117,
+      "path" : "watch-property-lists\/file-metadata.xml",
+      "sha256" : "53e3f5b9ce17131b7c14012be41b52916628ebc2c4fc6aa7538fda006b904890"
+    },
+    {
+      "byteCount" : 511,
+      "path" : "watch-property-lists\/preset-acknowledgements\/accepted.xml",
+      "sha256" : "d77a739e540357bbcfe1e40f5afb8ecb99d386ede6314a46d2b43de41848291f"
+    },
+    {
+      "byteCount" : 590,
+      "path" : "watch-property-lists\/preset-acknowledgements\/rejected.xml",
+      "sha256" : "a0d0e33a3f0698177b73d47a16639eb48a9a3bbac6aaab3820a85cfc214f5550"
+    },
+    {
+      "byteCount" : 584,
+      "path" : "watch-property-lists\/preset-acknowledgements\/stale.xml",
+      "sha256" : "a848d2a1fc78af8e91e70af89866944e815c28eab4a3d2c11921660fbed2485a"
+    }
+  ],
+  "foundationWire" : "Default Foundation JSON: Date numeric seconds since 2001-01-01, Data base64, UUID string, raw enum string.",
+  "generatorPath" : "Packages\/VoxboardShared\/Sources\/VoxboardPersistenceFixtures\/main.swift",
+  "generatorSHA256" : "12bd22c4cb5df0aef0da547e5b32c4714315268fd78757210c4099046d27a646",
+  "planningParentCommit" : "b50167aebb959e394908af3a5949f43fa88d6265",
+  "privacy" : "Fixed synthetic values only; no user defaults, App Group, bookmarks, media library, location, microphone, or WCSession access.",
+  "producer" : "VoxboardPersistenceFixtures using production package codecs; app-target Watch and toolbar fixtures are validated by VoxboardTests",
+  "producerRevision" : "uncommitted-m0-candidate-worktree",
+  "schemaVersion" : 1
+}

@@ -333,6 +333,17 @@ public actor CaptureHistoryStore {
         try load()
     }
 
+    /// Deterministically writes a production history envelope for committed
+    /// repository compatibility fixtures without changing normal store policy.
+    package func writeCompatibilityFixture(_ records: [CaptureHistoryRecord]) throws {
+        for record in records {
+            try record.validateForPersistence()
+        }
+        try coordinator.coordinateWriting(at: fileURL) { coordinatedURL in
+            try persist(normalized(records), to: coordinatedURL)
+        }
+    }
+
     /// Replaces the record for the same request ID. Retrying a failed request
     /// therefore updates its one history row instead of adding a duplicate.
     @discardableResult

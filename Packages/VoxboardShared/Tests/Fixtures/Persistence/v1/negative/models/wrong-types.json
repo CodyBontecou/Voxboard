@@ -1,0 +1,17 @@
+{
+  "schemaVersion" : 1,
+  "values" : {
+    "selectedFallbackTranscriptionModel" : {
+      "type" : "data",
+      "value" : "AP8="
+    },
+    "selectedLanguage" : {
+      "type" : "bool",
+      "value" : true
+    },
+    "selectedWhisperModel" : {
+      "type" : "int64",
+      "value" : 42
+    }
+  }
+}

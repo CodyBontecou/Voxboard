@@ -1,0 +1,91 @@
+{
+  "schemaVersion" : 1,
+  "values" : {
+    "capture.toolbar.configuration.v1" : {
+      "type" : "data",
+      "value" : "eyJoaWRkZW4iOlsicGFzdGUiXSwib3JkZXIiOlsiYWRkTWVkaWEiLCJjdXJyZW50TG9jYXRpb24iXX0="
+    },
+    "hasUnlocked" : {
+      "type" : "bool",
+      "value" : false
+    },
+    "legacyUnlimitedAccessClassificationPendingV1" : {
+      "type" : "bool",
+      "value" : false
+    },
+    "onboarding.analytics.install_id.v1" : {
+      "type" : "string",
+      "value" : "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    },
+    "onboarding.analytics.queue.v1" : {
+      "type" : "data",
+      "value" : "W3siZXZlbnRJZCI6ImFjZmM1MjVmLTIzMjYtNDQzNC1hYmFkLWZiMTI0NzM3ZmQ4YiIsImV2ZW50TmFtZSI6Im9uYm9hcmRpbmdfc3RhcnRlZCIsInByb3BlcnRpZXMiOnsiZXhwZXJpbWVudElkIjoidm94Ym9hcmRfb25ib2FyZGluZ19hY3RpdmF0aW9uIiwidmFyaWFudElkIjoiYmFzZWxpbmVfdjEifX1d"
+    },
+    "onboarding.experiment.assignment.v1" : {
+      "type" : "data",
+      "value" : "eyJhc3NpZ25lZEF0Ijo3MjE2OTI4MDAsImV4cGVyaW1lbnRJZCI6InZveGJvYXJkX29uYm9hcmRpbmdfYWN0aXZhdGlvbiIsInZhcmlhbnRJZCI6ImJhc2VsaW5lX3YxIn0="
+    },
+    "permanentUnlimitedAccessLevelV1" : {
+      "type" : "string",
+      "value" : "free"
+    },
+    "recordingFlows" : {
+      "type" : "data",
+      "value" : "W3sid2F0Y2hPdXRwdXRNb2RlIjoicmVjb3JkaW5nT25seSIsInBvc3RQcm9jZXNzaW5nTW9kZSI6Im1lZXRpbmdOb3RlcyIsImF0dGFjaG1lbnRzRm9sZGVyTmFtZSI6ImZpeHR1cmVzIiwiYXVkaW9TYXZlTW9kZSI6ImF0dGFjaG1lbnRzRm9sZGVyIiwiY2FwdHVyZVByb21wdCI6IlN5bnRoZXRpYyBwcm9tcHQiLCJraW5kIjoiY3VzdG9tIiwiY2FwdHVyZUVudHJ5VGVtcGxhdGVJRCI6Ijk5OTk5OTk5LTg4ODgtNzc3Ny02NjY2LTU1NTU1NTU1NTU1NSIsImxvY2F0aW9uUG9saWN5Ijp7InVuYXZhaWxhYmxlQmVoYXZpb3IiOiJhc2siLCJzdHJ1Y3R1cmVkRmllbGRzIjpbeyJmaWVsZCI6ImNvb3JkaW5hdGVzIiwib3V0cHV0S2V5IjoiY29vcmRpbmF0ZXMifSx7ImZpZWxkIjoicGxhY2UiLCJvdXRwdXRLZXkiOiJwbGFjZSJ9LHsiZmllbGQiOiJhcHBsZU1hcHNVUkwiLCJvdXRwdXRLZXkiOiJhcHBsZU1hcHNVUkwifSx7ImZpZWxkIjoidGltZXN0YW1wIiwib3V0cHV0S2V5IjoidGltZXN0YW1wIn0seyJmaWVsZCI6InNvdXJjZSIsIm91dHB1dEtleSI6InNvdXJjZSJ9LHsiZmllbGQiOiJpZCIsIm91dHB1dEtleSI6ImlkIn1dLCJhZHZhbmNlZFRlbXBsYXRlIjoiIiwib3V0cHV0TW9kZSI6InN0cnVjdHVyZWQiLCJpc0VuYWJsZWQiOnRydWUsInByZWNpc2lvbiI6ImNpdHkiLCJjb2xsZWN0aW9uS2V5IjoibG9jYXRpb25zIn0sIm1ldGFkYXRhU2NvcGUiOiJkb2N1bWVudCIsImN1c3RvbVBvc3RQcm9jZXNzaW5nSW5zdHJ1Y3Rpb24iOiIiLCJuYW1lIjoiU3ludGhldGljIEZpeHR1cmUiLCJjYXB0dXJlUHJvY2Vzc2luZ0VuYWJsZWQiOnRydWUsIndhdGNoUmVjb3JkaW5nU2V0dGluZ3MiOnsiZmlsZW5hbWVUZW1wbGF0ZSI6ImZpeHR1cmUte3RpbWVzdGFtcH0te2lkOH0iLCJmb2xkZXJOYW1lIjoiU3ludGhldGljIFdhdGNoIEZvbGRlciIsImZvbGRlckJvb2ttYXJrIjoiQ1FnSCJ9LCJpZCI6ImZpeHR1cmUiLCJjYXB0dXJlUGxhY2VtZW50T3ZlcnJpZGUiOnsia2luZCI6InByZXBlbmQifSwiaXNCdWlsdEluIjpmYWxzZSwic3ltYm9sTmFtZSI6IndhdmVmb3JtIiwic3BlYWtlckRpYXJpemF0aW9uRW5hYmxlZCI6dHJ1ZSwiY2FwdHVyZURlc3RpbmF0aW9uSUQiOiIxMTExMTExMS0yMjIyLTMzMzMtNDQ0NC01NTU1NTU1NTU1NTUiLCJzdGF0aWNGcm9udG1hdHRlciI6eyJmaXh0dXJlIjoidHJ1ZSJ9LCJleHBvcnRTZXR0aW5ncyI6eyJtYXJrZG93blRlbXBsYXRlRW5hYmxlZCI6ZmFsc2UsInVzZXNDdXN0b21FeHBvcnRTZXR0aW5ncyI6dHJ1ZSwibmV3RmlsZU5hbWVUZW1wbGF0ZSI6ImZpeHR1cmUte3RpbWVzdGFtcH0iLCJtb2RlIjoibmV3RmlsZSIsIm1kT2JzaWRpYW5FbmFibGVkIjp0cnVlLCJhdWRpb0VtYmVkUGxhY2VtZW50IjoiYm90dG9tIiwiYXVkaW9Gb2xkZXJOYW1lIjoiIiwibWFya2Rvd25UZW1wbGF0ZU5hbWUiOiIiLCJmb3JtYXQiOiJtZCIsInlhbWxVc2VzTWFya2Rvd25FeHRlbnNpb24iOmZhbHNlLCJmb2xkZXJCb29rbWFyayI6IkJBVUciLCJleHBvcnRFbmFibGVkIjp0cnVlLCJmb2xkZXJOYW1lIjoiU3ludGhldGljIEZvbGRlciIsInlhbWxQcm9wZXJ0aWVzIjpbInRleHQiLCJtb2RlbFVzZWQiLCJkdXJhdGlvbiIsImxhbmd1YWdlIiwiZGF0ZSIsImlkIl0sImFwcGVuZEZpbGVOYW1lIjoidm94Ym9hcmQtdHJhbnNjcmlwdHMiLCJlbWJlZEF1ZGlvSW5NYXJrZG93biI6dHJ1ZX0sImlzRW5hYmxlZCI6dHJ1ZX1d"
+    },
+    "recordingQueue.audioRetention.interval.v1" : {
+      "type" : "double",
+      "value" : 604800
+    },
+    "recordingQueue.audioRetention.mode.v1" : {
+      "type" : "string",
+      "value" : "timed"
+    },
+    "recordingQueue.processingPolicy.v1" : {
+      "type" : "string",
+      "value" : "manual"
+    },
+    "selectedFallbackTranscriptionModel" : {
+      "type" : "string",
+      "value" : "ggml-tiny"
+    },
+    "selectedLanguage" : {
+      "type" : "string",
+      "value" : "en"
+    },
+    "selectedRecordingFlowId" : {
+      "type" : "string",
+      "value" : "fixture"
+    },
+    "selectedWhisperModel" : {
+      "type" : "string",
+      "value" : "ggml-tiny"
+    },
+    "totalTranscriptionSeconds" : {
+      "type" : "double",
+      "value" : 42
+    },
+    "transcriptionUsageReceiptBaselineV1" : {
+      "type" : "double",
+      "value" : 0
+    },
+    "transcriptionUsageReceiptsV1" : {
+      "type" : "stringDoubleDictionary",
+      "value" : {
+        "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" : 42
+      }
+    },
+    "unlimitedAccessLevelV1" : {
+      "type" : "string",
+      "value" : "free"
+    },
+    "watchPresetSelection.epoch.v1" : {
+      "type" : "int64",
+      "value" : 1700000000000
+    },
+    "watchPresetSelection.sequence.v1" : {
+      "type" : "int64",
+      "value" : 7
+    }
+  }
+}

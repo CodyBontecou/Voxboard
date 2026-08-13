@@ -1,0 +1,51 @@
+{
+  "originHash" : "5810e53e957f6eeb73d2f5fa058c0db47672eeb23aaf00fcbfc4e8db4979333c",
+  "pins" : [
+    {
+      "identity" : "exportkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CodyBontecou/ExportKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "17993dc0361c41145dc6429738ed369d9976e550"
+      }
+    },
+    {
+      "identity" : "fluidaudio",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/FluidInference/FluidAudio.git",
+      "state" : {
+        "revision" : "d9eef864d29783fc22754b12090631da5388c3a9",
+        "version" : "0.13.4"
+      }
+    },
+    {
+      "identity" : "keyboardkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/KeyboardKit/KeyboardKit.git",
+      "state" : {
+        "revision" : "e06d6f929afa60488cd62b8d30d616e77c5b9636",
+        "version" : "10.7.3"
+      }
+    },
+    {
+      "identity" : "licensekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LicenseKit/LicenseKit.git",
+      "state" : {
+        "revision" : "f9bdcdc3472918c6da7566940a12936374f0faee",
+        "version" : "2.1.3"
+      }
+    },
+    {
+      "identity" : "notelet",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mykolaharmash/notelet",
+      "state" : {
+        "revision" : "f01e68239a3e711895462e202b7cf1eac6f6bec3",
+        "version" : "1.1.0"
+      }
+    }
+  ],
+  "version" : 3
+}

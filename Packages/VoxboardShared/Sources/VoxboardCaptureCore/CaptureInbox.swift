@@ -107,7 +107,7 @@ public actor CaptureInbox {
         }
     }
 
-    public func complete(requestID: UUID) throws {
+    public func complete(requestID: UUID, completedAt: Date = Date()) throws {
         try coordinator.coordinateWriting(at: rootDirectoryURL) { _ in
             try ensureDirectories()
             let sourceURL = itemURL(for: requestID, state: .processing)
@@ -123,7 +123,10 @@ public actor CaptureInbox {
                 // Write the privacy-safe tombstone before deleting the durable
                 // request. A crash can leave both files, but never a completed
                 // file containing the original private capture payload.
-                try encoder.encode(CaptureCompletionReceipt(requestID: requestID))
+                try encoder.encode(CaptureCompletionReceipt(
+                    requestID: requestID,
+                    completedAt: completedAt
+                ))
                     .write(to: destinationURL, options: .atomic)
                 try fileManager.removeItem(at: sourceURL)
             }

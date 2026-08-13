@@ -1,0 +1,13 @@
+{
+  "postimage" : {
+    "byteCount" : 16,
+    "digest" : "d761d406af2a4a5a15f67c924378ed88d1f85c13f1a37fc7366f59789b3bcd65",
+    "exists" : true
+  },
+  "preimage" : {
+    "byteCount" : 0,
+    "exists" : false
+  },
+  "targetPath" : "\/synthetic\/fixture-audio.m4a",
+  "version" : 1
+}

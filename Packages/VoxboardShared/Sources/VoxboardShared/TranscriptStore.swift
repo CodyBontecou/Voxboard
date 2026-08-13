@@ -48,7 +48,7 @@ public final class TranscriptStore {
         )
     }
 
-    init(
+    package init(
         fileURL: URL?,
         coordinator: any CaptureFileCoordinating = NSFileCoordinatorCaptureFileCoordinator.shared,
         fileManager: FileManager = .default,

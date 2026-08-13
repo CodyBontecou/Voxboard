@@ -1,0 +1,13 @@
+{
+  "committedRequestIDs" : [
+    "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"
+  ],
+  "futureFixtureField" : {
+    "ignored" : true
+  },
+  "reservationTokensByRequestID" : [
+
+  ],
+  "schemaVersion" : 1,
+  "unattributedSuccessfulCount" : 0
+}

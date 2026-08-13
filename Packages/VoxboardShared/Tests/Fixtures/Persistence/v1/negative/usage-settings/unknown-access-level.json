@@ -1,0 +1,9 @@
+{
+  "schemaVersion" : 1,
+  "values" : {
+    "unlimitedAccessLevelV1" : {
+      "type" : "string",
+      "value" : "futureAccess"
+    }
+  }
+}

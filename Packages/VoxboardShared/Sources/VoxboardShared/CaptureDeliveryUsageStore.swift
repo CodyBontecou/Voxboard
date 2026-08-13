@@ -30,19 +30,36 @@ public struct CaptureDeliveryUsageSnapshot: Equatable, Sendable {
     }
 }
 
-struct CaptureUsageHighWaterMark: Equatable, Codable, Sendable {
-    var successfulCaptureCount: Int
-    var committedRequestIDs: Set<UUID>
+package struct CaptureUsageHighWaterMark: Equatable, Codable, Sendable {
+    package var successfulCaptureCount: Int
+    package var committedRequestIDs: Set<UUID>
 
-    init(successfulCaptureCount: Int, committedRequestIDs: Set<UUID> = []) {
+    package init(successfulCaptureCount: Int, committedRequestIDs: Set<UUID> = []) {
         self.successfulCaptureCount = max(0, successfulCaptureCount)
         self.committedRequestIDs = committedRequestIDs
     }
 }
 
-protocol CaptureUsageHighWaterMarkStoring: Sendable {
+package protocol CaptureUsageHighWaterMarkStoring: Sendable {
     func load() throws -> CaptureUsageHighWaterMark
     func raise(to highWaterMark: CaptureUsageHighWaterMark) throws
+}
+
+package enum CaptureUsageHighWaterMarkCodec {
+    package static func decode(_ data: Data) -> CaptureUsageHighWaterMark? {
+        if let decoded = try? JSONDecoder().decode(CaptureUsageHighWaterMark.self, from: data) {
+            return CaptureUsageHighWaterMark(
+                successfulCaptureCount: decoded.successfulCaptureCount,
+                committedRequestIDs: decoded.committedRequestIDs
+            )
+        }
+        // v1 stored only the decimal count. Preserve it as an unattributed
+        // baseline while upgrading the next successful write.
+        if let raw = String(data: data, encoding: .utf8), let value = Int(raw) {
+            return CaptureUsageHighWaterMark(successfulCaptureCount: value)
+        }
+        return nil
+    }
 }
 
 private struct CaptureUsageLedger: Codable, Equatable {
@@ -87,7 +104,7 @@ public actor CaptureDeliveryUsageStore: CaptureDeliveryAccounting {
         (try? KeychainCaptureUsageHighWaterMarkStore.shared.load().successfulCaptureCount) ?? 0
     }
 
-    init(
+    package init(
         ledgerURL: URL? = AppConstants.captureUsageURL,
         freeCaptureLimit: Int = UsageTracker.freeCaptureLimit,
         coordinator: any CaptureFileCoordinating = NSFileCoordinatorCaptureFileCoordinator.shared,
@@ -340,17 +357,7 @@ private final class KeychainCaptureUsageHighWaterMarkStore: CaptureUsageHighWate
         guard status == errSecSuccess, let data = item as? Data else {
             throw CaptureUsageKeychainError(status: status)
         }
-        if let decoded = try? JSONDecoder().decode(CaptureUsageHighWaterMark.self, from: data) {
-            return CaptureUsageHighWaterMark(
-                successfulCaptureCount: decoded.successfulCaptureCount,
-                committedRequestIDs: decoded.committedRequestIDs
-            )
-        }
-        // v1 stored only the decimal high-water count. Preserve it as an
-        // unattributed baseline while upgrading the next successful write.
-        if let raw = String(data: data, encoding: .utf8), let value = Int(raw) {
-            return CaptureUsageHighWaterMark(successfulCaptureCount: value)
-        }
+        if let decoded = CaptureUsageHighWaterMarkCodec.decode(data) { return decoded }
         throw CaptureUsageKeychainError(status: errSecDecode)
     }
 

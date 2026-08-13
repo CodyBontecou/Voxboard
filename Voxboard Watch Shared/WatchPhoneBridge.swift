@@ -153,7 +153,7 @@ enum WatchPresetSelectionState: Equatable {
     }
 }
 
-private struct PendingWatchPresetSelection: Codable, Equatable {
+struct PendingWatchPresetSelection: Codable, Equatable {
     let requestID: String
     let presetID: String
     let epoch: Int64
@@ -172,52 +172,62 @@ private struct PendingWatchPresetSelection: Codable, Equatable {
     }
 }
 
-private struct ConfirmedWatchCapturePreset: Codable, Equatable {
+struct ConfirmedWatchCapturePreset: Codable, Equatable {
     let id: String
     let displayName: String
     let snapshot: Data
 }
 
-private enum WatchConfirmedPresetStore {
-    private static let confirmedKey = "watchPresetSelection.confirmed.v1"
+enum WatchConfirmedPresetStore {
+    static let confirmedKey = "watchPresetSelection.confirmed.v1"
 
-    static func load() -> ConfirmedWatchCapturePreset? {
-        guard let data = UserDefaults.standard.data(forKey: confirmedKey) else { return nil }
+    static func load(defaults: UserDefaults = .standard) -> ConfirmedWatchCapturePreset? {
+        guard let data = defaults.data(forKey: confirmedKey) else { return nil }
         return try? JSONDecoder().decode(ConfirmedWatchCapturePreset.self, from: data)
     }
 
-    static func save(_ preset: ConfirmedWatchCapturePreset?) {
+    static func save(
+        _ preset: ConfirmedWatchCapturePreset?,
+        defaults: UserDefaults = .standard
+    ) {
         if let preset, let data = try? JSONEncoder().encode(preset) {
-            UserDefaults.standard.set(data, forKey: confirmedKey)
+            defaults.set(data, forKey: confirmedKey)
         } else {
-            UserDefaults.standard.removeObject(forKey: confirmedKey)
+            defaults.removeObject(forKey: confirmedKey)
         }
     }
 }
 
-private enum WatchPresetSelectionStore {
-    private static let pendingKey = "watchPresetSelection.pending.v1"
-    private static let epochKey = "watchPresetSelection.epoch.v1"
-    private static let sequenceKey = "watchPresetSelection.sequence.v1"
+enum WatchPresetSelectionStore {
+    static let pendingKey = "watchPresetSelection.pending.v1"
+    static let epochKey = "watchPresetSelection.epoch.v1"
+    static let sequenceKey = "watchPresetSelection.sequence.v1"
 
-    static func loadPending() -> PendingWatchPresetSelection? {
-        guard let data = UserDefaults.standard.data(forKey: pendingKey) else { return nil }
+    static func loadPending(defaults: UserDefaults = .standard) -> PendingWatchPresetSelection? {
+        guard let data = defaults.data(forKey: pendingKey) else { return nil }
         return try? JSONDecoder().decode(PendingWatchPresetSelection.self, from: data)
     }
 
-    static func savePending(_ pending: PendingWatchPresetSelection?) {
+    static func savePending(
+        _ pending: PendingWatchPresetSelection?,
+        defaults: UserDefaults = .standard
+    ) {
         if let pending, let data = try? JSONEncoder().encode(pending) {
-            UserDefaults.standard.set(data, forKey: pendingKey)
+            defaults.set(data, forKey: pendingKey)
         } else {
-            UserDefaults.standard.removeObject(forKey: pendingKey)
+            defaults.removeObject(forKey: pendingKey)
         }
     }
 
-    static func makePending(presetID: String) -> PendingWatchPresetSelection {
-        let defaults = UserDefaults.standard
+    static func makePending(
+        presetID: String,
+        defaults: UserDefaults = .standard,
+        now: Date = Date(),
+        requestID: String = UUID().uuidString
+    ) -> PendingWatchPresetSelection {
         // Physical Watch devices use arm64_32, where Swift Int is 32-bit.
         // Keep millisecond epochs and protocol counters explicitly 64-bit.
-        let timestampEpoch = max(1, Int64(Date().timeIntervalSince1970 * 1_000))
+        let timestampEpoch = max(1, Int64(now.timeIntervalSince1970 * 1_000))
         var epoch = int64(forKey: epochKey, defaults: defaults)
         if epoch <= 0 {
             epoch = timestampEpoch
@@ -234,7 +244,7 @@ private enum WatchPresetSelectionStore {
         }
         defaults.set(sequence, forKey: sequenceKey)
         return PendingWatchPresetSelection(
-            requestID: UUID().uuidString,
+            requestID: requestID,
             presetID: presetID,
             epoch: epoch,
             sequence: sequence,
@@ -582,18 +592,21 @@ struct WatchRecordingSnapshot: Equatable {
 
 enum WatchLocalSnapshotStore {
     private static let suiteName = "group.bontecou.Voxboard"
-    private static let snapshotKey = "watchLocalRecordingSnapshot"
+    static let snapshotKey = "watchLocalRecordingSnapshot"
 
     private static var defaults: UserDefaults {
         UserDefaults(suiteName: suiteName) ?? .standard
     }
 
-    static func save(_ snapshot: WatchRecordingSnapshot) {
+    static func save(
+        _ snapshot: WatchRecordingSnapshot,
+        defaults: UserDefaults = defaults
+    ) {
         defaults.set(snapshot.dictionary, forKey: snapshotKey)
         defaults.synchronize()
     }
 
-    static func load() -> WatchRecordingSnapshot? {
+    static func load(defaults: UserDefaults = defaults) -> WatchRecordingSnapshot? {
         guard let dictionary = defaults.dictionary(forKey: snapshotKey) else { return nil }
         return WatchRecordingSnapshot(dictionary: dictionary)
     }

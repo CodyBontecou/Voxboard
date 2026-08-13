@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>isQuickRecordEnabled</key>
+	<true/>
+	<key>message</key>
+	<string>Synthetic status</string>
+	<key>phase</key>
+	<string>recording</string>
+	<key>presetSelectionAvailable</key>
+	<true/>
+	<key>presetSelectionEpoch</key>
+	<integer>1700000000000</integer>
+	<key>presetSelectionSequence</key>
+	<integer>7</integer>
+	<key>queuedCount</key>
+	<integer>1</integer>
+	<key>recordingDuration</key>
+	<real>42</real>
+	<key>recordingStartedAt</key>
+	<real>1700000000</real>
+	<key>recordingStatuses</key>
+	<array>
+		<dict>
+			<key>message</key>
+			<string>Synthetic failure</string>
+			<key>phase</key>
+			<string>failed</string>
+			<key>recordingID</key>
+			<string>aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee</string>
+			<key>revision</key>
+			<integer>3</integer>
+			<key>updatedAt</key>
+			<real>1700000000</real>
+		</dict>
+	</array>
+	<key>selectedPresetID</key>
+	<string>fixture</string>
+	<key>selectedPresetName</key>
+	<string>Synthetic Fixture</string>
+	<key>selectedPresetSnapshot</key>
+	<data>
+	eyJjYXB0dXJlUHJvY2Vzc2luZ0VuYWJsZWQiOnRydWUsInN5bWJvbE5hbWUiOiJ3YXZl
+	Zm9ybSIsImlzQnVpbHRJbiI6ZmFsc2UsImlzRW5hYmxlZCI6dHJ1ZSwic3BlYWtlckRp
+	YXJpemF0aW9uRW5hYmxlZCI6dHJ1ZSwicG9zdFByb2Nlc3NpbmdNb2RlIjoibWVldGlu
+	Z05vdGVzIiwiY2FwdHVyZVByb21wdCI6IlN5bnRoZXRpYyBwcm9tcHQiLCJjYXB0dXJl
+	RGVzdGluYXRpb25JRCI6IjExMTExMTExLTIyMjItMzMzMy00NDQ0LTU1NTU1NTU1NTU1
+	NSIsImlkIjoiZml4dHVyZSIsImtpbmQiOiJjdXN0b20iLCJleHBvcnRTZXR0aW5ncyI6
+	eyJtYXJrZG93blRlbXBsYXRlTmFtZSI6IiIsImZvbGRlckJvb2ttYXJrIjoiQkFVRyIs
+	Im1hcmtkb3duVGVtcGxhdGVFbmFibGVkIjpmYWxzZSwibmV3RmlsZU5hbWVUZW1wbGF0
+	ZSI6ImZpeHR1cmUte3RpbWVzdGFtcH0iLCJtb2RlIjoibmV3RmlsZSIsImFwcGVuZEZp
+	bGVOYW1lIjoidm94Ym9hcmQtdHJhbnNjcmlwdHMiLCJ5YW1sVXNlc01hcmtkb3duRXh0
+	ZW5zaW9uIjpmYWxzZSwidXNlc0N1c3RvbUV4cG9ydFNldHRpbmdzIjp0cnVlLCJmb3Jt
+	YXQiOiJtZCIsImVtYmVkQXVkaW9Jbk1hcmtkb3duIjp0cnVlLCJhdWRpb0VtYmVkUGxh
+	Y2VtZW50IjoiYm90dG9tIiwiZm9sZGVyTmFtZSI6IlN5bnRoZXRpYyBGb2xkZXIiLCJh
+	dWRpb0ZvbGRlck5hbWUiOiIiLCJtZE9ic2lkaWFuRW5hYmxlZCI6dHJ1ZSwiZXhwb3J0
+	RW5hYmxlZCI6dHJ1ZSwieWFtbFByb3BlcnRpZXMiOlsidGV4dCIsIm1vZGVsVXNlZCIs
+	ImR1cmF0aW9uIiwibGFuZ3VhZ2UiLCJkYXRlIiwiaWQiXX0sIm1ldGFkYXRhU2NvcGUi
+	OiJkb2N1bWVudCIsImF0dGFjaG1lbnRzRm9sZGVyTmFtZSI6ImZpeHR1cmVzIiwiY2Fw
+	dHVyZVBsYWNlbWVudE92ZXJyaWRlIjp7ImtpbmQiOiJwcmVwZW5kIn0sImNhcHR1cmVF
+	bnRyeVRlbXBsYXRlSUQiOiI5OTk5OTk5OS04ODg4LTc3NzctNjY2Ni01NTU1NTU1NTU1
+	NTUiLCJ3YXRjaFJlY29yZGluZ1NldHRpbmdzIjp7ImZvbGRlckJvb2ttYXJrIjoiQ1Fn
+	SCIsImZvbGRlck5hbWUiOiJTeW50aGV0aWMgV2F0Y2ggRm9sZGVyIiwiZmlsZW5hbWVU
+	ZW1wbGF0ZSI6ImZpeHR1cmUte3RpbWVzdGFtcH0te2lkOH0ifSwibmFtZSI6IlN5bnRo
+	ZXRpYyBGaXh0dXJlIiwibG9jYXRpb25Qb2xpY3kiOnsicHJlY2lzaW9uIjoiY2l0eSIs
+	ImNvbGxlY3Rpb25LZXkiOiJsb2NhdGlvbnMiLCJvdXRwdXRNb2RlIjoic3RydWN0dXJl
+	ZCIsImFkdmFuY2VkVGVtcGxhdGUiOiIiLCJpc0VuYWJsZWQiOnRydWUsInVuYXZhaWxh
+	YmxlQmVoYXZpb3IiOiJhc2siLCJzdHJ1Y3R1cmVkRmllbGRzIjpbeyJmaWVsZCI6ImNv
+	b3JkaW5hdGVzIiwib3V0cHV0S2V5IjoiY29vcmRpbmF0ZXMifSx7ImZpZWxkIjoicGxh
+	Y2UiLCJvdXRwdXRLZXkiOiJwbGFjZSJ9LHsiZmllbGQiOiJhcHBsZU1hcHNVUkwiLCJv
+	dXRwdXRLZXkiOiJhcHBsZU1hcHNVUkwifSx7ImZpZWxkIjoidGltZXN0YW1wIiwib3V0
+	cHV0S2V5IjoidGltZXN0YW1wIn0seyJmaWVsZCI6InNvdXJjZSIsIm91dHB1dEtleSI6
+	InNvdXJjZSJ9LHsiZmllbGQiOiJpZCIsIm91dHB1dEtleSI6ImlkIn1dfSwic3RhdGlj
+	RnJvbnRtYXR0ZXIiOnsiZml4dHVyZSI6InRydWUifSwiY3VzdG9tUG9zdFByb2Nlc3Np
+	bmdJbnN0cnVjdGlvbiI6IiIsIndhdGNoT3V0cHV0TW9kZSI6InJlY29yZGluZ09ubHki
+	LCJhdWRpb1NhdmVNb2RlIjoiYXR0YWNobWVudHNGb2xkZXIifQ==
+	</data>
+	<key>sentAt</key>
+	<real>1700000000</real>
+	<key>stateEpoch</key>
+	<integer>1700000000000</integer>
+	<key>stateRevision</key>
+	<integer>3</integer>
+</dict>
+</plist>

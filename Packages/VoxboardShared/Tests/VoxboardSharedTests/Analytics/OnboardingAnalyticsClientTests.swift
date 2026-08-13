@@ -35,6 +35,83 @@ final class OnboardingAnalyticsClientTests: XCTestCase {
         XCTAssertEqual(persisted, queuedPayloads)
     }
 
+    func testPersistedQueueCompatibilityAndMalformedFallback() async throws {
+        let queueKey = "onboarding.analytics.test.compatibility"
+        let defaults = FakeOnboardingAnalyticsDefaults()
+        let payload = OnboardingAnalyticsPayload(
+            eventId: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+            eventName: "future_event_name",
+            properties: [.platform: .string("ios")]
+        )
+        var object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode([payload])) as? [[String: Any]]
+        )
+        object[0]["futureFixtureField"] = true
+        var properties = try XCTUnwrap(object[0]["properties"] as? [String: Any])
+        properties["future_property"] = properties["platform"]
+        object[0]["properties"] = properties
+        defaults.set(try JSONSerialization.data(withJSONObject: object), forKey: queueKey)
+
+        let compatible = OnboardingAnalyticsClient(
+            transport: RecordingOnboardingAnalyticsTransport(error: URLError(.notConnectedToInternet)),
+            defaults: defaults,
+            queueKey: queueKey,
+            isEnabled: true,
+            retryDelayNanoseconds: 0,
+            runtimeContextProvider: { nil }
+        )
+        let compatiblePayloads = await compatible.queuedPayloads()
+        XCTAssertEqual(compatiblePayloads.first?.eventName, "future_event_name")
+        XCTAssertNil(compatiblePayloads.first?.properties[.experimentId])
+
+        let malformed = Data("{synthetic malformed analytics queue".utf8)
+        defaults.set(malformed, forKey: queueKey)
+        let recovered = OnboardingAnalyticsClient(
+            transport: RecordingOnboardingAnalyticsTransport(),
+            defaults: defaults,
+            queueKey: queueKey,
+            isEnabled: true,
+            retryDelayNanoseconds: 0,
+            runtimeContextProvider: { nil }
+        )
+        let recoveredPayloads = await recovered.queuedPayloads()
+        XCTAssertTrue(recoveredPayloads.isEmpty)
+        XCTAssertNil(defaults.data(forKey: queueKey))
+    }
+
+    func testInstallIDStoreReusesValidAndReplacesMalformedValues() {
+        let defaults = FakeOnboardingAnalyticsDefaults()
+        let key = "onboarding.analytics.test.install-id"
+        defaults.set("AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE", forKey: key)
+        let store = OnboardingAnalyticsInstallIDStore(defaults: defaults, key: key)
+        XCTAssertEqual(store.installID(), "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee")
+
+        defaults.set("not-a-uuid", forKey: key)
+        let replacement = store.installID()
+        XCTAssertNotNil(UUID(uuidString: replacement))
+        XCTAssertNotEqual(replacement, "not-a-uuid")
+    }
+
+    func testAssignmentStoreAcceptsUnknownFieldsAndReplacesInvalidVariant() throws {
+        let defaults = FakeOnboardingAnalyticsDefaults()
+        let key = "onboarding.analytics.test.assignment"
+        defaults.set(try JSONSerialization.data(withJSONObject: [
+            "experimentId": OnboardingExperimentConfig.currentExperimentId,
+            "variantId": OnboardingExperimentConfig.baselineVariantId,
+            "assignedAt": 721_692_800,
+            "futureFixtureField": true,
+        ]), forKey: key)
+        let store = OnboardingExperimentAssignmentStore(defaults: defaults, key: key, now: { Date(timeIntervalSinceReferenceDate: 1) })
+        XCTAssertEqual(store.assignment().assignedAt, Date(timeIntervalSinceReferenceDate: 721_692_800))
+
+        defaults.set(try JSONSerialization.data(withJSONObject: [
+            "experimentId": OnboardingExperimentConfig.currentExperimentId,
+            "variantId": "future_variant",
+            "assignedAt": 721_692_800,
+        ]), forKey: key)
+        XCTAssertEqual(store.assignment().variantId, OnboardingExperimentConfig.baselineVariantId)
+    }
+
     func testSuccessfulFlushRemovesQueuedPayload() async {
         let defaults = FakeOnboardingAnalyticsDefaults()
         let transport = RecordingOnboardingAnalyticsTransport()

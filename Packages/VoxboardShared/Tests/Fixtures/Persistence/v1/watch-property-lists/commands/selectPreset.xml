@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>command</key>
+	<string>selectPreset</string>
+	<key>presetSelectionEpoch</key>
+	<integer>1700000000000</integer>
+	<key>presetSelectionRequestID</key>
+	<string>fixture-selection-request</string>
+	<key>presetSelectionSequence</key>
+	<integer>7</integer>
+	<key>requestedPresetID</key>
+	<string>fixture</string>
+	<key>sentAt</key>
+	<real>1700000000</real>
+</dict>
+</plist>

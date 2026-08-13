@@ -1,0 +1,9 @@
+{
+  "message" : "Synthetic status",
+  "phase" : "transcribing",
+  "recordingStartedAt" : 1700000000,
+  "recordingStoppedAt" : 1700000042,
+  "requestId" : "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "transcriptionProgress" : 0.5,
+  "updatedAt" : 1700000043
+}

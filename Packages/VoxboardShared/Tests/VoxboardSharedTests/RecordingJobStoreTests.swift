@@ -952,6 +952,39 @@ final class RecordingJobStoreTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: fixture.store.audioURL(for: recovered[0]).path))
     }
 
+    func test_futureManifestFailsActionablyAndRemainsPreserved() async throws {
+        let fixture = try makeFixture()
+        defer { fixture.cleanup() }
+        let itemsDirectory = fixture.queueRoot.appendingPathComponent("items", isDirectory: true)
+        try FileManager.default.createDirectory(at: itemsDirectory, withIntermediateDirectories: true)
+        let job = RecordingJob(
+            audioFilename: "future.wav",
+            duration: 1,
+            source: .iOSApp,
+            delivery: .clipboard,
+            modelID: "automatic",
+            language: "en",
+            retentionPolicy: .permanent,
+            processingPolicy: .manual
+        )
+        let encoder = JSONEncoder()
+        let current = try encoder.encode(job)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: current) as? [String: Any])
+        object["schemaVersion"] = 99
+        let future = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        let url = itemsDirectory
+            .appendingPathComponent(job.id.uuidString.lowercased())
+            .appendingPathExtension("json")
+        try future.write(to: url)
+
+        do {
+            _ = try await fixture.store.load(recoverInterrupted: false)
+            XCTFail("Expected future schema rejection")
+        } catch RecordingJobStoreError.unsupportedSchemaVersion(99) {
+            XCTAssertEqual(try Data(contentsOf: url), future)
+        }
+    }
+
     func test_legacyManifestDecodesWithoutOptionalCheckpointFields() throws {
         let original = RecordingJob(
             audioFilename: "legacy.wav",

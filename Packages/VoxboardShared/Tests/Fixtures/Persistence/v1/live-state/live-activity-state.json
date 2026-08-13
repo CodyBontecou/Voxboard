@@ -1,0 +1,7 @@
+{
+  "isSegmentActive" : true,
+  "isTranscribing" : false,
+  "segmentRequestId" : "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "segmentStartedAt" : 1700000000,
+  "transcriptionProgress" : 0.5
+}

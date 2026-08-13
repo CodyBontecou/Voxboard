@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>createdAt</key>
+	<real>1700000000</real>
+	<key>duration</key>
+	<real>42</real>
+	<key>kind</key>
+	<string>watchAudioRecording</string>
+	<key>originalFilename</key>
+	<string>fixture.m4a</string>
+	<key>recordingID</key>
+	<string>aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee</string>
+</dict>
+</plist>

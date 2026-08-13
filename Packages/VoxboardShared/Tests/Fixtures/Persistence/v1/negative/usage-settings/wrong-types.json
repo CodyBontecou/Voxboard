@@ -1,0 +1,21 @@
+{
+  "schemaVersion" : 1,
+  "values" : {
+    "hasUnlocked" : {
+      "type" : "string",
+      "value" : "not-a-boolean"
+    },
+    "totalTranscriptionSeconds" : {
+      "type" : "string",
+      "value" : "not-a-number"
+    },
+    "transcriptionUsageReceiptBaselineV1" : {
+      "type" : "string",
+      "value" : "not-a-number"
+    },
+    "transcriptionUsageReceiptsV1" : {
+      "type" : "string",
+      "value" : "not-a-dictionary"
+    }
+  }
+}

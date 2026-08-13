@@ -471,6 +471,7 @@ public enum RecordingJobStoreError: Error, Equatable, LocalizedError, Sendable {
     case jobNotFound(UUID)
     case audioMissing(UUID)
     case invalidTransition(UUID, RecordingJobPhase, RecordingJobPhase)
+    case unsupportedSchemaVersion(Int)
     case jobIsActive(UUID)
 
     public var errorDescription: String? {
@@ -487,6 +488,8 @@ public enum RecordingJobStoreError: Error, Equatable, LocalizedError, Sendable {
             return "Recording job \(id.uuidString) no longer has source audio."
         case .invalidTransition(let id, let from, let to):
             return "Recording job \(id.uuidString) cannot move from \(from.rawValue) to \(to.rawValue)."
+        case .unsupportedSchemaVersion(let version):
+            return "Recording job schema version \(version) is not supported."
         case .jobIsActive(let id):
             return "Recording job \(id.uuidString) is currently processing."
         }
@@ -1429,13 +1432,29 @@ public actor RecordingJobStore {
         ).filter { $0.pathExtension == "json" }
         var jobs: [RecordingJob] = []
         for url in urls {
-            guard let job = try? decoder.decode(RecordingJob.self, from: Data(contentsOf: url)),
-                  job.schemaVersion <= RecordingJob.currentSchemaVersion,
-                  job.audioFilename == URL(fileURLWithPath: job.audioFilename).lastPathComponent,
-                  !job.audioFilename.isEmpty else {
+            let data = try Data(contentsOf: url)
+            do {
+                let job = try decoder.decode(RecordingJob.self, from: data)
+                guard job.schemaVersion <= RecordingJob.currentSchemaVersion else {
+                    throw RecordingJobStoreError.unsupportedSchemaVersion(job.schemaVersion)
+                }
+                guard job.audioFilename == URL(fileURLWithPath: job.audioFilename).lastPathComponent,
+                      !job.audioFilename.isEmpty else {
+                    continue
+                }
+                jobs.append(job)
+            } catch let DecodingError.dataCorrupted(context)
+                where context.debugDescription.hasPrefix("Unsupported recording job schema version ") {
+                let version = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["schemaVersion"] as? Int
+                    ?? RecordingJob.currentSchemaVersion + 1
+                throw RecordingJobStoreError.unsupportedSchemaVersion(version)
+            } catch let error as RecordingJobStoreError {
+                throw error
+            } catch {
+                // Preserve malformed or malicious manifests for manual diagnosis,
+                // but do not let them hide compatible jobs in the queue.
                 continue
             }
-            jobs.append(job)
         }
         return jobs.sorted(by: Self.sortJobs)
     }

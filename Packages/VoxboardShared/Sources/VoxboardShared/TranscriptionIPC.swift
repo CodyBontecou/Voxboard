@@ -17,6 +17,22 @@ public struct TranscriptionRequest: Codable, Sendable {
         self.language = language
         self.createdAt = Date().timeIntervalSince1970
     }
+
+    /// Deterministic construction for repository-owned compatibility fixtures.
+    /// Package access keeps fixture provenance out of the public application API.
+    package init(
+        compatibilityFixtureID id: String,
+        audioFileName: String,
+        modelId: String,
+        language: String,
+        createdAt: TimeInterval
+    ) {
+        self.id = id
+        self.audioFileName = audioFileName
+        self.modelId = modelId
+        self.language = language
+        self.createdAt = createdAt
+    }
 }
 
 /// Written by the main app, read by the keyboard extension.
@@ -216,6 +232,28 @@ public struct ListeningState: Codable, Sendable {
 /// 2. Main app starts recording, writes status.json (phase=recording)
 /// 3. User switches back → keyboard sends stop command → app transcribes → keyboard inserts
 public enum TranscriptionIPC {
+    package enum CompatibilityDocument: CaseIterable, Sendable {
+        case request, response, status, command, listeningState, liveSnapshot, liveDeliveryCheckpoint
+    }
+
+    /// Executes committed fixture bytes through the same production JSON model
+    /// codecs used by the file readers without requiring a platform App Group.
+    package static func decodeCompatibilityFixture(
+        _ data: Data,
+        as document: CompatibilityDocument
+    ) -> Bool {
+        let decoder = JSONDecoder()
+        switch document {
+        case .request: return (try? decoder.decode(TranscriptionRequest.self, from: data)) != nil
+        case .response: return (try? decoder.decode(TranscriptionResponse.self, from: data)) != nil
+        case .status: return (try? decoder.decode(RecordingStatus.self, from: data)) != nil
+        case .command: return (try? decoder.decode(RecordingCommand.self, from: data)) != nil
+        case .listeningState: return (try? decoder.decode(ListeningState.self, from: data)) != nil
+        case .liveSnapshot: return (try? decoder.decode(LiveTranscriptionSnapshot.self, from: data)) != nil
+        case .liveDeliveryCheckpoint:
+            return (try? decoder.decode(LiveTranscriptionDeliveryCheckpoint.self, from: data)) != nil
+        }
+    }
 
     // MARK: - Darwin notification names
 

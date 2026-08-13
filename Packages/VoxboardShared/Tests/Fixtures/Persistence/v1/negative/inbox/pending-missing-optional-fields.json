@@ -1,0 +1,27 @@
+{
+  "createdAt" : 721692800,
+  "deliveryKind" : "standard",
+  "destinationID" : "11111111-2222-3333-4444-555555555555",
+  "frontmatter" : {
+    "fixture" : "true"
+  },
+  "id" : "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE",
+  "payloads" : [
+    {
+      "kind" : "text",
+      "text" : "Synthetic fixture text"
+    },
+    {
+      "asset" : {
+        "byteCount" : 4,
+        "contentTypeIdentifier" : "public.mpeg-4-audio",
+        "originalFilename" : "voice.m4a",
+        "relativePath" : "staging\/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\/voice.m4a"
+      },
+      "embedPlacement" : "bottom",
+      "kind" : "retainedAudio"
+    }
+  ],
+  "source" : "watch",
+  "voxProcessingState" : "applied"
+}
