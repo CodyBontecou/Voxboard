@@ -1,0 +1,53 @@
+name: Shared Rust core CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/core-rust-ci.yml'
+      - 'Packages/vox-core-rust/**'
+      - 'Packages/contracts/**'
+      - 'toolchains/android-wear-shared-core*'
+      - 'docs/architecture/android-wear-toolchain-baseline.md'
+      - 'docs/validation/evidence/m2-local-native-package-inspection.json'
+  pull_request:
+    paths:
+      - '.github/workflows/core-rust-ci.yml'
+      - 'Packages/vox-core-rust/**'
+      - 'Packages/contracts/**'
+      - 'toolchains/android-wear-shared-core*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core-rust-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  portable-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.97.1
+          components: rustfmt, clippy
+      - name: Validate exact toolchain governance
+        run: python3 Packages/contracts/scripts/validate_toolchain.py
+      - name: Format, test, lint, and binding drift
+        working-directory: Packages/vox-core-rust
+        run: |
+          cargo fmt --all -- --check
+          cargo test --workspace --locked
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          ./scripts/check-bindings.sh
+      - name: MSRV 1.87.0
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.87.0
+      - name: Test runtime crates at MSRV
+        working-directory: Packages/vox-core-rust
+        run: cargo +1.87.0 test --locked -p vox-core -p vox-core-uniffi

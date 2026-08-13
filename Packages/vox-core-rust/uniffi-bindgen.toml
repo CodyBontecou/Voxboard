@@ -1,3 +1,7 @@
+# Locate per-crate UniFFI configuration without cargo-metadata discovery.
+[crate-roots]
+vox_core_uniffi = "crates/vox-core-uniffi"
+
 [bindings.swift]
 module_name = "VoxCore"
 ffi_module_name = "VoxCoreFFI"

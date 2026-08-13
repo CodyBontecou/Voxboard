@@ -139,11 +139,12 @@ class ContractValidatorTests(unittest.TestCase):
     self.trace_mutation_rejected(rel,f,code)
  def test_artifact_plan_hash_mutation_rejected(self):
   self.trace_mutation_rejected("Packages/contracts/fixtures/artifact-plan/valid-complete.json",lambda x:x.update(planHash="f"*64),"plan.hash")
- def test_toolchain_validator_rejects_drift_and_landed_unhashed_files(self):
+ def test_toolchain_validator_rejects_pin_hash_and_binding_inventory_drift(self):
   validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py"
   p=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(p.read_text());m["rust"]["toolchain"]="stable";p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n")
   r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0)
-  self.tearDown();self.setUp();pending=self.root/"Packages/vox-core-rust/Cargo.lock";pending.write_text("# premature\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("landed without replacing",r.stderr+r.stdout)
+  self.tearDown();self.setUp();p=self.root/"Packages/vox-core-rust/scripts/check-bindings.sh";p.write_text(p.read_text()+"# drift\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("hash drift",r.stderr+r.stdout)
+  self.tearDown();self.setUp();(self.root/"Packages/vox-core-rust/generated/swift/VoxCore.swift").unlink();r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("generated binding missing",r.stderr+r.stdout)
  def test_all_wearable_integers_are_bounded(self):
   schema=json.loads((self.root/"Packages/contracts/wearable-protocol/v1/schema.json").read_text());missing=[]
   def walk(v,path="$"):

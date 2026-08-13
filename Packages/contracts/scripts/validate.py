@@ -9,7 +9,7 @@ HEALTH="c70de9201ab7cfbadf2442183dfba23c0d248478"
 FAMILIES=("capture-preparation-input","required-observations","capture-materialization-input","artifact-plan","wearable-protocol","core-api")
 MIRRORS={
  "Packages/VoxboardShared/Tests/Fixtures/Contracts/v1":"resourceOnlyPlanned",
- "Packages/vox-core-rust/tests/resources/contracts/v1":"resourceOnlyPlanned",
+ "Packages/vox-core-rust/tests/resources/contracts/v1":"required",
  "apps/android/core-bridge/src/test/resources/contracts/v1":"resourceOnlyPlanned",
 }
 LIFECYCLES={"resourceOnlyPlanned","required"}
@@ -417,7 +417,9 @@ def build_manifest(root):
   cases.append(case)
  records=[{"path":relpath(p,root),"bytes":len(p.read_bytes()),"sha256":digest(p),"category":category(p,root)} for p in files]
  mirrors=[]
- for path,lifecycle in MIRRORS.items(): mirrors.append({"path":path,"lifecycle":lifecycle,"sources":source_rels,"consumer":None,"evidence":None})
+ for path,lifecycle in MIRRORS.items():
+  required=path=="Packages/vox-core-rust/tests/resources/contracts/v1"
+  mirrors.append({"path":path,"lifecycle":lifecycle,"sources":source_rels,"consumer":"vox-core m2_core::rust_contract_mirror_is_consumed" if required else None,"evidence":"Packages/vox-core-rust/crates/vox-core/tests/m2_core.rs" if required else None})
  manifest={"schemaVersion":2,"producerRevision":CLOSURE,"healthMdPrecedent":HEALTH,"files":records,"fixtureCases":cases,"mirrors":mirrors,"producer":{"name":"vox-contract-manifest-generator","script":"Packages/contracts/scripts/validate.py","scriptSHA256":digest(base/"scripts/validate.py")}}
  (base/"manifest.json").write_bytes(canonical(manifest)); return manifest
 

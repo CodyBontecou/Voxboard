@@ -4,45 +4,139 @@
     "cargoNdkVersion": "4.1.2",
     "ndkRevision": "27.1.12297006",
     "targets": [
-      {"abi": "arm64-v8a", "apiLevel": 28, "rustTarget": "aarch64-linux-android"},
-      {"abi": "armeabi-v7a", "apiLevel": 28, "rustTarget": "armv7-linux-androideabi"},
-      {"abi": "x86_64", "apiLevel": 28, "rustTarget": "x86_64-linux-android"},
-      {"abi": "x86", "apiLevel": 28, "rustTarget": "i686-linux-android"}
+      {
+        "abi": "arm64-v8a",
+        "apiLevel": 28,
+        "rustTarget": "aarch64-linux-android"
+      },
+      {
+        "abi": "armeabi-v7a",
+        "apiLevel": 28,
+        "rustTarget": "armv7-linux-androideabi"
+      },
+      {
+        "abi": "x86_64",
+        "apiLevel": 28,
+        "rustTarget": "x86_64-linux-android"
+      },
+      {
+        "abi": "x86",
+        "apiLevel": 28,
+        "rustTarget": "i686-linux-android"
+      }
     ]
   },
   "apple": {
     "deploymentTarget": "17.6",
     "packagingTool": "xcodebuild -create-xcframework",
     "swiftVersion": "6.3.3",
-    "targets": ["aarch64-apple-ios", "aarch64-apple-ios-sim", "x86_64-apple-ios"],
+    "targets": [
+      "aarch64-apple-ios",
+      "aarch64-apple-ios-sim",
+      "x86_64-apple-ios"
+    ],
     "xcodeBuild": "17F113",
     "xcodeVersion": "26.6"
   },
   "bindingGeneration": {
-    "hashStatus": "required-before-implementation",
+    "hashStatus": "governed-implemented",
     "kotlinConfigPath": "Packages/vox-core-rust/uniffi.toml",
+    "kotlinOutputPaths": [
+      "Packages/vox-core-rust/generated/kotlin/md/vox/core/vox_core_uniffi.kt"
+    ],
     "kotlinScriptPath": "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh",
     "swiftConfigPath": "Packages/vox-core-rust/uniffi.toml",
+    "swiftOutputPaths": [
+      "Packages/vox-core-rust/generated/swift/VoxCore.swift",
+      "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h",
+      "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap"
+    ],
     "swiftScriptPath": "Packages/vox-core-rust/scripts/generate-swift-bindings.sh"
   },
-  "requiredBeforeImplementation": [
-    "Packages/vox-core-rust/Cargo.lock",
-    "Packages/vox-core-rust/scripts/generate-swift-bindings.sh",
-    "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh",
-    "Packages/vox-core-rust/scripts/build-android-cdylibs.sh",
-    "Packages/vox-core-rust/scripts/build-apple-xcframework.sh"
+  "governedImplementationFiles": [
+    {
+      "path": "Packages/vox-core-rust/Cargo.lock",
+      "sha256": "8718c94e73ce86580eeecabd481bb9ad9bcc25a4973c52bd475d12e7d14f6748"
+    },
+    {
+      "path": "Packages/vox-core-rust/uniffi.toml",
+      "sha256": "2302dcceba96dfd90b9eefa3a43b40005a4cc8e00829f41d94072d6a2efca3c4"
+    },
+    {
+      "path": "Packages/vox-core-rust/uniffi-bindgen.toml",
+      "sha256": "51fe390e43e8a7701d5096a5e33b5965d355a9a4bfcee2f99bec9a2980bcbef1"
+    },
+    {
+      "path": "Packages/vox-core-rust/crates/vox-core-uniffi/uniffi.toml",
+      "sha256": "2302dcceba96dfd90b9eefa3a43b40005a4cc8e00829f41d94072d6a2efca3c4"
+    },
+    {
+      "path": "Packages/vox-core-rust/scripts/generate-swift-bindings.sh",
+      "sha256": "f21a4ed7ad2893be6f3abb8b808acc96b300b4094e1694bad2a713acd1bfc331"
+    },
+    {
+      "path": "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh",
+      "sha256": "de60a9d8f4b8c2779882cc4664cd458d0998a93fc62175037f1f30d028d564ef"
+    },
+    {
+      "path": "Packages/vox-core-rust/scripts/normalize-kotlin-bindings.py",
+      "sha256": "f769ed9b7cdfe2002d72f8f42032cec8fe4eeac5bb62d46290547d2e9f92f364"
+    },
+    {
+      "path": "Packages/vox-core-rust/scripts/check-bindings.sh",
+      "sha256": "07b6dbcdbceb7fde425bd1afb85a29ff805e736956e84ce9344f9f1d282a2372"
+    },
+    {
+      "path": "Packages/vox-core-rust/scripts/build-android-cdylibs.sh",
+      "sha256": "605ef2fc19989c6f6fa98ba218d3d9a1af8d2967f1f61c926a88966456596fed"
+    },
+    {
+      "path": "Packages/vox-core-rust/scripts/build-apple-xcframework.sh",
+      "sha256": "2687b266e133c26e4202647dd60e8273e31bd36646b0aa68b429ec0b0734d0d7"
+    },
+    {
+      "path": "Packages/vox-core-rust/scripts/merge-apple-staticlib.sh",
+      "sha256": "3f92a188a570156c936a045074f79172f3b84d96291ab494ebf612689f0bd60d"
+    },
+    {
+      "path": "Packages/vox-core-rust/scripts/normalize-apple-xcframework.py",
+      "sha256": "df5454888e6485f46b5c720c8d41a4f845b49b6329e615c855942f66eb52897b"
+    },
+    {
+      "path": "Packages/vox-core-rust/scripts/inspect-native-packages.py",
+      "sha256": "cd62157cd207972de04c33d07801ab6b1ac0b104fd7b51e20de95e5ca85dd1a3"
+    },
+    {
+      "path": "Packages/vox-core-rust/scripts/normalize-generated-text.py",
+      "sha256": "12c91a05fa3103a2d0d09b4520105726731369d6d4f01d9d53f65b626e8a8843"
+    }
   ],
   "rust": {
     "cargoResolver": "3",
-    "components": ["clippy", "rustfmt"],
+    "components": [
+      "clippy",
+      "rustfmt"
+    ],
     "edition": "2024",
     "msrv": "1.87.0",
     "profile": "minimal",
     "rustToolchainPath": "Packages/vox-core-rust/rust-toolchain.toml",
-    "targets": ["aarch64-apple-ios", "aarch64-apple-ios-sim", "x86_64-apple-ios", "aarch64-linux-android", "armv7-linux-androideabi", "x86_64-linux-android", "i686-linux-android"],
+    "targets": [
+      "aarch64-apple-ios",
+      "aarch64-apple-ios-sim",
+      "x86_64-apple-ios",
+      "aarch64-linux-android",
+      "armv7-linux-androideabi",
+      "x86_64-linux-android",
+      "i686-linux-android"
+    ],
     "toolchain": "1.97.1"
   },
   "schemaVersion": 1,
-  "status": "m2-entry-pins-selected-no-build-claim",
-  "uniffi": {"bindgenVersion": "0.32.0", "cliVersion": "0.32.0", "libraryVersion": "0.32.0"}
+  "status": "m2-bindings-native-packaging-implemented",
+  "uniffi": {
+    "bindgenVersion": "0.32.0",
+    "cliVersion": "0.32.0",
+    "libraryVersion": "0.32.0"
+  }
 }

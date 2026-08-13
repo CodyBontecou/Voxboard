@@ -679,16 +679,16 @@
       "sha256": "4d3e4825457e6102203c2ba83ede0312b2b4fe5f283044e83d49533b25165a59"
     },
     {
-      "bytes": 37708,
+      "bytes": 37915,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate.py",
-      "sha256": "9808696daf65fb329d2d0e04bb9854138118ee862dcdf7787326de46582bc9d3"
+      "sha256": "47efdf42e3db45550fba8deb56703da6764301f21ad3eb734ff1110370f792fb"
     },
     {
-      "bytes": 4010,
+      "bytes": 4272,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_toolchain.py",
-      "sha256": "d78dc0f2f55f82fb9f2ffc4c35d2ea7f4e24ab45df179f4ab4b32cf357f21d2d"
+      "sha256": "60c6680c21545cc20047e842a1da1574e1f567c99ebb2e5f3a9d56f93d892b7a"
     },
     {
       "bytes": 29367,
@@ -697,10 +697,10 @@
       "sha256": "6e625f4ba9dee0aed8786debae3ef68f3a25626e5c28c1bbb879a54395852da0"
     },
     {
-      "bytes": 16889,
+      "bytes": 17215,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "3dcecc64acf77173bc4efe9684b842e9669f45e12b6077f4e5cf95cd55cd37ac"
+      "sha256": "8a793dfe1168c088902667a0cc6b524b49c685f74c2e0778547995878f5a3172"
     },
     {
       "bytes": 22170,
@@ -775,10 +775,10 @@
       "sha256": "e4ec1db8011c9c54d8a05fb18effdafd3023b464095ca24e615e5b6674b9a8d2"
     },
     {
-      "bytes": 1050,
+      "bytes": 1154,
       "category": "toolchainEntryStub",
       "path": "Packages/vox-core-rust/Cargo.toml",
-      "sha256": "12022fa1f0c8f2c13c76fba4d4471aa4d6f9f13484ebe673408d59ad91e8c42c"
+      "sha256": "1c36384f899a79be3a5accab658eb23a26ad37c448ff8e1857ebfb0717aed9f7"
     },
     {
       "bytes": 278,
@@ -787,10 +787,10 @@
       "sha256": "6a1f49af4d9af63384a21553941bf24d80ac79afdd60d99a4ce37d223892ac90"
     },
     {
-      "bytes": 199,
+      "bytes": 152,
       "category": "toolchainEntryStub",
       "path": "Packages/vox-core-rust/uniffi.toml",
-      "sha256": "476df59aa633d2cb3c41dbc4c98857a4afa0cf1d3de3b408681f621986fff88a"
+      "sha256": "2302dcceba96dfd90b9eefa3a43b40005a4cc8e00829f41d94072d6a2efca3c4"
     },
     {
       "bytes": 4107,
@@ -919,22 +919,28 @@
       "sha256": "bef3bb21ac0e395bbfc6ab1b90c4417e853e7cf2f4a5e14a6ca32758873f4293"
     },
     {
+      "bytes": 2931,
+      "category": "validationDocumentation",
+      "path": "docs/validation/evidence/m2-local-native-package-inspection.json",
+      "sha256": "8d4a0a4a70d7fd7d5e154380de973faf7559113e6b88a6d54d22e136e412c04e"
+    },
+    {
       "bytes": 56956,
       "category": "contractGate",
       "path": "scripts/test-project-contracts.sh",
       "sha256": "ddd50cbdb85a52ce03c44167b07c2a0dbd27a730085316ddf9f74bc3eb052bc6"
     },
     {
-      "bytes": 2083,
+      "bytes": 4673,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "96f55c253f1677f9327cc68040edc6a49c6e533b81e9daa5e6e70b3e3700a888"
+      "sha256": "524d78cdb1ba36d1b0337efe8c7cefe979a9d2dfb1498dd13526e03d570dcfd6"
     },
     {
-      "bytes": 3532,
+      "bytes": 3460,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.schema.json",
-      "sha256": "d7f5f444eeb75f6c1624c84bf624795d194b149226a980bf2fba8347d06ac618"
+      "sha256": "d295815fe2f808d1ec77b5cb3f068038b325e31e0f95a872c6cb71dd795b5e07"
     }
   ],
   "fixtureCases": [
@@ -2196,9 +2202,9 @@
       ]
     },
     {
-      "consumer": null,
-      "evidence": null,
-      "lifecycle": "resourceOnlyPlanned",
+      "consumer": "vox-core m2_core::rust_contract_mirror_is_consumed",
+      "evidence": "Packages/vox-core-rust/crates/vox-core/tests/m2_core.rs",
+      "lifecycle": "required",
       "path": "Packages/vox-core-rust/tests/resources/contracts/v1",
       "sources": [
         "capture-preparation-input/v1/contract.md",
@@ -2415,7 +2421,7 @@
   "producer": {
     "name": "vox-contract-manifest-generator",
     "script": "Packages/contracts/scripts/validate.py",
-    "scriptSHA256": "9808696daf65fb329d2d0e04bb9854138118ee862dcdf7787326de46582bc9d3"
+    "scriptSHA256": "47efdf42e3db45550fba8deb56703da6764301f21ad3eb734ff1110370f792fb"
   },
   "producerRevision": "29ec869c8bda4d511af787af394658d0274b339b",
   "schemaVersion": 2

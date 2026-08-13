@@ -179,6 +179,18 @@ fn set(root: &mut Value, path: &str, value: Value) {
 }
 
 #[test]
+fn rust_contract_mirror_is_consumed() {
+    let root =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../tests/resources/contracts/v1");
+    let canonical = root.join("fixtures/core-api/valid-expected-versions.json");
+    let bytes = std::fs::read(canonical).expect("required Rust contract mirror fixture");
+    let expected: serde_json::Value = serde_json::from_slice(&bytes).expect("valid mirror JSON");
+    assert_eq!(expected["kind"], "expectedVersions");
+    assert_eq!(expected["versions"]["coreAPIVersion"], CORE_API_VERSION);
+    assert!(root.join("core-api/v1/schema.json").is_file());
+}
+
+#[test]
 fn exact_deterministic_identity_matches_contract_vector() {
     assert_eq!(
         operation_id(uuid("11111111-1111-4111-8111-111111111111"), 0, "newNote")

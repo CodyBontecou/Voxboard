@@ -2,6 +2,7 @@
 members = [
   "crates/vox-core",
   "crates/vox-core-uniffi",
+  "xtask",
 ]
 default-members = ["crates/vox-core", "crates/vox-core-uniffi"]
 resolver = "3"
@@ -25,6 +26,13 @@ uniffi = { version = "=0.32.0", default-features = false }
 uuid = { version = "=1.16.0", features = ["serde", "v5"] }
 
 vox-core = { path = "crates/vox-core", version = "=0.1.0-alpha.1" }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "z"
+panic = "abort"
+strip = true
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

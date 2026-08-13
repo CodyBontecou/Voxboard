@@ -17,6 +17,9 @@ build/
 .build/
 Packages/VoxboardShared/.build/
 Packages/vox-core-rust/target/
+*.so
+*.a
+*.xcframework/
 
 # Secrets
 api_key.json

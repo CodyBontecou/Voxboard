@@ -1,28 +1,18 @@
-# Android/Wear M2 entry foundation audit
+# Android/Wear M2 foundation audit
 
-Status: **Foundation implemented; no Rust behavior or build claimed**
+Status: **Phase A core, exact generated bindings, and native package proof implemented**
 
-This narrow foundation resolves the reviewed prerequisites before M2 implementation.
+M2 remains open for the Apple wrapper/shadow adapter and complete performance evidence.
+This slice adds governed UniFFI 0.32.0 Swift/Kotlin generation, byte-identical drift
+checks, exact four-ABI Android API-28 builds, exact two-leaf iOS 17.6 static XCFramework
+packaging, inspection tooling/evidence, and path-filtered Rust CI.
 
-| Requirement | Artifact/evidence |
-|---|---|
-| Accepted independent API/readiness/identity/packaging decision | ADR-0017 and accepted decision index |
-| Strict core API records | `Packages/contracts/core-api/v1`, canonical schema, 7 positive and 7 typed-negative fixtures, semantic mutation tests, exact mirrors |
-| Deterministic artifact identities | `artifact-plan/v1/contract.md`, deterministic fixture producer, validator recomputation and mutation tests |
-| Exact M2 pins | strict toolchain JSON/schema, stdlib validator, Rust/Cargo/UniFFI entry stubs |
-| Fail-closed future files | five required implementation paths cause validation failure if they land before governed hashes replace the pending state |
-| Honest first-core packaging | six absolute leaf gates retained; no zero baseline; approved first artifacts become future 10% baseline |
+The local source-built inspection record is
+`docs/validation/evidence/m2-local-native-package-inspection.json`. It records actual
+nonzero leaf sizes/hashes and absolute results without inventing predecessor growth,
+approvals, or device facts. PERF-008 is not claimed because the current campaign evidence
+contract cannot represent first-core evidence without a baseline/candidate pair.
 
-Explicit non-claims: no Rust crate behavior, generated binding, binary, XCFramework, `.so`,
-Android product implementation, Apple shadow execution, size measurement, or performance
-measurement exists. M2 exit remains open.
-
-Validation commands:
-
-```sh
-python3 Packages/contracts/scripts/generate_fixtures.py
-python3 Packages/contracts/scripts/validate.py --regenerate-manifest
-./scripts/test-project-contracts.sh
-python3 Packages/contracts/scripts/validate_toolchain.py
-git diff --check
-```
+Native binaries are never committed. Generated binding source is committed. The Rust
+contract mirror alone is promoted to required through an executable Rust test consumer;
+Swift and Kotlin/Android mirrors remain planned.
