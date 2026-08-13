@@ -1,36 +1,35 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vox.md/contracts/schemas/aggregate.schema.json",
-  "title": "Validation aggregate policy or campaign aggregate",
-  "oneOf": [
-    {"$ref": "#/$defs/policy"},
-    {"$ref": "#/$defs/campaign"}
-  ],
+  "title": "Validation aggregate policy or computed campaign aggregate",
+  "oneOf": [{"$ref": "#/$defs/policy"}, {"$ref": "#/$defs/campaign"}],
   "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonPlaceholder": {"type": "string", "minLength": 2, "pattern": "(?i)^(?!.*(?:tbd|todo|unknown|placeholder|dummy|changeme|example|n/a|not[-_ ]?set)).+$"},
     "policy": {
-      "type": "object",
-      "required": ["$schema", "schemaVersion", "policyID", "statusVocabulary", "passingStatus", "requirements", "statusRules", "waiverPolicy", "requiredApprovalKinds"],
-      "additionalProperties": false,
+      "type": "object", "required": ["$schema", "schemaVersion", "policyID", "statusVocabulary", "passingStatus", "requirements", "statusRules", "waiverPolicy", "requiredApprovalKinds"], "additionalProperties": false,
       "properties": {
         "$schema": {"const": "../schemas/aggregate.schema.json"}, "schemaVersion": {"const": 1}, "policyID": {"type": "string", "minLength": 1},
         "statusVocabulary": {"const": ["passed", "failed", "blocked", "incomplete"]}, "passingStatus": {"const": "passed"},
         "requirements": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
         "statusRules": {"type": "object", "required": ["passed", "failed", "blocked", "incomplete"], "additionalProperties": false, "properties": {"passed": {"type": "string", "minLength": 1}, "failed": {"type": "string", "minLength": 1}, "blocked": {"type": "string", "minLength": 1}, "incomplete": {"type": "string", "minLength": 1}}},
-        "waiverPolicy": {"type": "object", "required": ["nonWaivableInvariantIDs", "waiverCanProducePassedCase", "requiredFields"], "additionalProperties": false, "properties": {"nonWaivableInvariantIDs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"pattern": "^INV-[A-Z0-9-]+$"}}, "waiverCanProducePassedCase": {"const": false}, "requiredFields": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}}},
-        "requiredApprovalKinds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["definition", "campaign", "releaseGate"]}}
+        "waiverPolicy": {"type": "object", "required": ["nonWaivableInvariantIDs", "waiverCanProducePassedCase", "requiredFields"], "additionalProperties": false, "properties": {"nonWaivableInvariantIDs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"pattern": "^INV-[A-Z0-9-]+$"}}, "waiverCanProducePassedCase": {"const": false}, "requiredFields": {"const": ["requirementID", "rationale", "owner", "approvedBy", "approvedAt", "expiresAt"]}}},
+        "requiredApprovalKinds": {"const": ["definition", "campaign", "releaseGate"]}
       }
     },
     "campaign": {
-      "type": "object",
-      "required": ["$schema", "schemaVersion", "campaignID", "status", "definitionHashes", "evidenceIDs", "approvalIDs", "requiredTupleCounts", "failedInvariantIDs", "generatedAt"],
-      "additionalProperties": false,
+      "type": "object", "required": ["$schema", "schemaVersion", "campaignID", "status", "definitionAggregateSha256", "evidenceAggregateSha256", "definitionHashes", "evidenceHashes", "approvalHashes", "requiredTuples", "requiredTupleCounts", "failedInvariantIDs", "generatedAt"], "additionalProperties": false,
       "properties": {
-        "$schema": {"const": "https://vox.md/contracts/schemas/aggregate.schema.json"}, "schemaVersion": {"const": 1}, "campaignID": {"type": "string", "minLength": 1}, "status": {"enum": ["passed", "failed", "blocked", "incomplete"]},
-        "definitionHashes": {"type": "array", "minItems": 4, "items": {"type": "object", "required": ["id", "sha256"], "additionalProperties": false, "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}},
-        "evidenceIDs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "approvalIDs": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
-        "requiredTupleCounts": {"type": "object", "required": ["total", "passed", "failed", "blocked", "incomplete"], "additionalProperties": false, "properties": {"total": {"type": "integer", "minimum": 0}, "passed": {"type": "integer", "minimum": 0}, "failed": {"type": "integer", "minimum": 0}, "blocked": {"type": "integer", "minimum": 0}, "incomplete": {"type": "integer", "minimum": 0}}},
+        "$schema": {"const": "https://vox.md/contracts/schemas/aggregate.schema.json"}, "schemaVersion": {"const": 1}, "campaignID": {"$ref": "#/$defs/nonPlaceholder"}, "status": {"enum": ["passed", "failed", "blocked", "incomplete"]},
+        "definitionAggregateSha256": {"$ref": "#/$defs/sha256"}, "evidenceAggregateSha256": {"$ref": "#/$defs/sha256"},
+        "definitionHashes": {"type": "array", "minItems": 7, "uniqueItems": true, "items": {"$ref": "#/$defs/hashRef"}},
+        "evidenceHashes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/hashRef"}},
+        "approvalHashes": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"$ref": "#/$defs/hashRef"}},
+        "requiredTuples": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "object", "required": ["caseID", "deviceRoleID", "providerID", "evidenceID", "status"], "additionalProperties": false, "properties": {"caseID": {"pattern": "^(REC|SAF|WEAR|PERF)-[0-9]{3}$"}, "deviceRoleID": {"type": ["string", "null"]}, "providerID": {"type": ["string", "null"]}, "evidenceID": {"type": ["string", "null"]}, "status": {"enum": ["passed", "failed", "blocked", "incomplete"]}}}},
+        "requiredTupleCounts": {"type": "object", "required": ["total", "passed", "failed", "blocked", "incomplete"], "additionalProperties": false, "properties": {"total": {"type": "integer", "minimum": 1}, "passed": {"type": "integer", "minimum": 0}, "failed": {"type": "integer", "minimum": 0}, "blocked": {"type": "integer", "minimum": 0}, "incomplete": {"type": "integer", "minimum": 0}}},
         "failedInvariantIDs": {"type": "array", "uniqueItems": true, "items": {"pattern": "^INV-[A-Z0-9-]+$"}}, "generatedAt": {"type": "string", "format": "date-time"}
       }
-    }
+    },
+    "hashRef": {"type": "object", "required": ["id", "sha256"], "additionalProperties": false, "properties": {"id": {"$ref": "#/$defs/nonPlaceholder"}, "sha256": {"$ref": "#/$defs/sha256"}}}
   }
 }

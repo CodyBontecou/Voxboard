@@ -3,31 +3,247 @@
   "schemaVersion": 1,
   "gateSetID": "android-wear-performance-gates-v1",
   "gates": [
-    {"id": "enqueue-text-link-p95", "milestone": "M3", "metric": "duration", "statistic": "p95", "operator": "lessThanOrEqual", "value": 500, "unit": "ms"},
-    {"id": "quick-capture-warm-p95", "milestone": "M3", "metric": "duration", "statistic": "p95", "operator": "lessThanOrEqual", "value": 500, "unit": "ms"},
-    {"id": "quick-capture-cold-p95", "milestone": "M3", "metric": "duration", "statistic": "p95", "operator": "lessThanOrEqual", "value": 1500, "unit": "ms"},
-    {"id": "rust-materialize-1mib-p95", "milestone": "M2", "metric": "duration", "statistic": "p95", "operator": "lessThanOrEqual", "value": 100, "unit": "ms"},
-    {"id": "rust-materialize-additional-rss", "milestone": "M2", "metric": "additionalRSS", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 67108864, "unit": "bytes"},
-    {"id": "ffi-max-chunk", "milestone": "M2", "metric": "chunkSize", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 1048576, "unit": "bytes"},
-    {"id": "materialization-max-aggregate", "milestone": "M2", "metric": "acceptedAggregateInput", "statistic": "minimum", "operator": "greaterThanOrEqual", "value": 268435456, "unit": "bytes"},
-    {"id": "saf-actionable-watchdog", "milestone": "M3", "metric": "duration", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 30000, "unit": "ms"},
-    {"id": "recorder-session-duration", "milestone": "M4", "metric": "duration", "statistic": "minimum", "operator": "greaterThanOrEqual", "value": 3600, "unit": "s"},
-    {"id": "recorder-max-prefix-loss", "milestone": "M4", "metric": "duration", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 2, "unit": "s"},
-    {"id": "asr-realtime-factor", "milestone": "M4", "metric": "ratio", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 1, "unit": "ratio"},
-    {"id": "asr-peak-rss", "milestone": "M4", "metric": "peakRSS", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 1342177280, "unit": "bytes"},
-    {"id": "asr-cancel-latency", "milestone": "M4", "metric": "duration", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 2, "unit": "s"},
-    {"id": "wear-session-duration", "milestone": "M7", "metric": "duration", "statistic": "minimum", "operator": "greaterThanOrEqual", "value": 3600, "unit": "s"},
-    {"id": "wear-battery-consumption", "milestone": "M7", "metric": "batteryConsumption", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 20, "unit": "percent"},
-    {"id": "wear-transfer-ingest", "milestone": "M7", "metric": "duration", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 600, "unit": "s"},
-    {"id": "android-core-arm64-uncompressed", "milestone": "M2", "metric": "artifactSize", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 12582912, "unit": "bytes", "scope": "arm64-v8a"},
-    {"id": "android-core-armv7-uncompressed", "milestone": "M2", "metric": "artifactSize", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 10485760, "unit": "bytes", "scope": "armeabi-v7a"},
-    {"id": "android-core-x86_64-uncompressed", "milestone": "M2", "metric": "artifactSize", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 14680064, "unit": "bytes", "scope": "x86_64"},
-    {"id": "android-core-x86-uncompressed", "milestone": "M2", "metric": "artifactSize", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 12582912, "unit": "bytes", "scope": "x86"},
-    {"id": "apple-xcframework-aggregate", "milestone": "M2", "metric": "artifactSize", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 62914560, "unit": "bytes", "scope": "xcframework-uncompressed-aggregate"},
-    {"id": "apple-xcframework-per-slice", "milestone": "M2", "metric": "artifactSize", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 15728640, "unit": "bytes", "scope": "xcframework-uncompressed-slice"},
-    {"id": "packaging-growth", "milestone": "M2", "metric": "growth", "statistic": "maximum", "operator": "lessThanOrEqual", "value": 10, "unit": "percent"}
+    {
+      "id": "enqueue-text-link-p95",
+      "milestone": "M3",
+      "metric": "duration",
+      "statistic": "p95",
+      "operator": "lessThanOrEqual",
+      "value": 500,
+      "unit": "ms"
+    },
+    {
+      "id": "quick-capture-warm-p95",
+      "milestone": "M3",
+      "metric": "duration",
+      "statistic": "p95",
+      "operator": "lessThanOrEqual",
+      "value": 500,
+      "unit": "ms"
+    },
+    {
+      "id": "quick-capture-cold-p95",
+      "milestone": "M3",
+      "metric": "duration",
+      "statistic": "p95",
+      "operator": "lessThanOrEqual",
+      "value": 1500,
+      "unit": "ms"
+    },
+    {
+      "id": "rust-materialize-1mib-p95",
+      "milestone": "M2",
+      "metric": "duration",
+      "statistic": "p95",
+      "operator": "lessThanOrEqual",
+      "value": 100,
+      "unit": "ms"
+    },
+    {
+      "id": "rust-materialize-additional-rss",
+      "milestone": "M2",
+      "metric": "additionalRSS",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 67108864,
+      "unit": "bytes"
+    },
+    {
+      "id": "ffi-max-chunk",
+      "milestone": "M2",
+      "metric": "chunkSize",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 1048576,
+      "unit": "bytes"
+    },
+    {
+      "id": "materialization-max-aggregate",
+      "milestone": "M2",
+      "metric": "acceptedAggregateInput",
+      "statistic": "minimum",
+      "operator": "greaterThanOrEqual",
+      "value": 268435456,
+      "unit": "bytes"
+    },
+    {
+      "id": "saf-actionable-watchdog",
+      "milestone": "M3",
+      "metric": "duration",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 30000,
+      "unit": "ms"
+    },
+    {
+      "id": "recorder-session-duration",
+      "milestone": "M4",
+      "metric": "duration",
+      "statistic": "minimum",
+      "operator": "greaterThanOrEqual",
+      "value": 3600,
+      "unit": "s"
+    },
+    {
+      "id": "recorder-max-prefix-loss",
+      "milestone": "M4",
+      "metric": "duration",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 2,
+      "unit": "s"
+    },
+    {
+      "id": "asr-realtime-factor",
+      "milestone": "M4",
+      "metric": "ratio",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 1,
+      "unit": "ratio"
+    },
+    {
+      "id": "asr-peak-rss",
+      "milestone": "M4",
+      "metric": "peakRSS",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 1342177280,
+      "unit": "bytes"
+    },
+    {
+      "id": "asr-cancel-latency",
+      "milestone": "M4",
+      "metric": "duration",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 2,
+      "unit": "s"
+    },
+    {
+      "id": "wear-session-duration",
+      "milestone": "M7",
+      "metric": "duration",
+      "statistic": "minimum",
+      "operator": "greaterThanOrEqual",
+      "value": 3600,
+      "unit": "s"
+    },
+    {
+      "id": "wear-battery-consumption",
+      "milestone": "M7",
+      "metric": "batteryConsumption",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 20,
+      "unit": "percent"
+    },
+    {
+      "id": "wear-transfer-ingest",
+      "milestone": "M7",
+      "metric": "duration",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 600,
+      "unit": "s"
+    },
+    {
+      "id": "android-core-arm64-uncompressed",
+      "milestone": "M2",
+      "metric": "artifactSize",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 12582912,
+      "unit": "bytes",
+      "scope": "arm64-v8a"
+    },
+    {
+      "id": "android-core-armv7-uncompressed",
+      "milestone": "M2",
+      "metric": "artifactSize",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 10485760,
+      "unit": "bytes",
+      "scope": "armeabi-v7a"
+    },
+    {
+      "id": "android-core-x86_64-uncompressed",
+      "milestone": "M2",
+      "metric": "artifactSize",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 14680064,
+      "unit": "bytes",
+      "scope": "x86_64"
+    },
+    {
+      "id": "android-core-x86-uncompressed",
+      "milestone": "M2",
+      "metric": "artifactSize",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 12582912,
+      "unit": "bytes",
+      "scope": "x86"
+    },
+    {
+      "id": "apple-xcframework-aggregate",
+      "milestone": "M2",
+      "metric": "artifactSize",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 62914560,
+      "unit": "bytes",
+      "scope": "xcframework-uncompressed-aggregate"
+    },
+    {
+      "id": "apple-xcframework-per-slice",
+      "milestone": "M2",
+      "metric": "artifactSize",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 15728640,
+      "unit": "bytes",
+      "scope": "xcframework-uncompressed-slice"
+    },
+    {
+      "id": "packaging-growth",
+      "milestone": "M2",
+      "metric": "growth",
+      "statistic": "maximum",
+      "operator": "lessThanOrEqual",
+      "value": 10,
+      "unit": "percent"
+    }
   ],
   "deferredRequiredBudgets": [
-    {"id": "local-asr-model-package", "requiredBeforeMilestone": "M4", "reason": "Select the launch model and supported tiers from measured licensing, quality, size, memory, and runtime evidence before M4 starts."}
-  ]
+    {
+      "id": "local-asr-model-package",
+      "requiredBeforeMilestone": "M4",
+      "reason": "Select the launch model and supported tiers from measured licensing, quality, size, memory, and runtime evidence before M4 starts."
+    }
+  ],
+  "packagingBaselinePolicy": {
+    "id": "m2-pre-shared-core-packaging-baseline-v1",
+    "required": true,
+    "milestone": "M2",
+    "method": "Build the planning-parent revision and candidate revision from clean checkouts with the same pinned release toolchain, target matrix, features, stripping, symbols, archive container, and uncompressed-size procedure; record each source commit, toolchain identity, artifact identity, byte count, and artifact SHA-256.",
+    "baselineRevision": "b50167aebb959e394908af3a5949f43fa88d6265",
+    "requiredIdentityFields": [
+      "baselineRevision",
+      "candidateRevision",
+      "toolchainID",
+      "targetScope",
+      "buildConfiguration",
+      "featureSet",
+      "artifactID"
+    ],
+    "requiredHashFields": [
+      "baselineArtifactSha256",
+      "candidateArtifactSha256"
+    ],
+    "growthFormula": "((candidateBytes - baselineBytes) / baselineBytes) * 100",
+    "comparisonScope": "Each candidate artifact is compared only with the identically scoped baseline artifact; the maximum scoped growth is evaluated by packaging-growth."
+  }
 }

@@ -1,23 +1,29 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vox.md/contracts/schemas/approval.schema.json",
-  "title": "Validation approval",
+  "title": "Validation approval or waiver",
   "type": "object",
-  "required": ["$schema", "schemaVersion", "approvalID", "kind", "status", "subjectID", "subjectSha256", "approvedBy", "approvedAt", "expiresAt", "rationale"],
+  "required": ["$schema", "schemaVersion", "approvalID", "kind", "status", "subjectID", "subjectSha256", "definitionAggregateSha256", "evidenceAggregateSha256", "approvedBy", "approvedAt", "expiresAt", "rationale"],
   "additionalProperties": false,
   "properties": {
     "$schema": {"const": "https://vox.md/contracts/schemas/approval.schema.json"},
     "schemaVersion": {"const": 1},
-    "approvalID": {"type": "string", "minLength": 1},
+    "approvalID": {"$ref": "#/$defs/nonPlaceholder"},
     "kind": {"enum": ["definition", "campaign", "releaseGate", "providerReplacement", "lowTierEmulatorFallback", "waiver"]},
     "status": {"enum": ["approved", "rejected", "pending", "expired"]},
-    "subjectID": {"type": "string", "minLength": 1},
-    "subjectSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "approvedBy": {"type": "string", "minLength": 1},
+    "subjectID": {"$ref": "#/$defs/nonPlaceholder"},
+    "subjectSha256": {"$ref": "#/$defs/sha256"},
+    "definitionAggregateSha256": {"$ref": "#/$defs/sha256"},
+    "evidenceAggregateSha256": {"$ref": "#/$defs/sha256"},
+    "approvedBy": {"$ref": "#/$defs/nonPlaceholder"},
     "approvedAt": {"type": "string", "format": "date-time"},
     "expiresAt": {"type": "string", "format": "date-time"},
-    "rationale": {"type": "string", "minLength": 1},
-    "requirementID": {"type": "string", "minLength": 1},
-    "owner": {"type": "string", "minLength": 1}
+    "rationale": {"$ref": "#/$defs/nonPlaceholder"},
+    "requirementID": {"type": "string", "pattern": "^(?!INV-)[A-Za-z0-9._-]+$"},
+    "owner": {"$ref": "#/$defs/nonPlaceholder"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonPlaceholder": {"type": "string", "minLength": 2, "pattern": "(?i)^(?!.*(?:tbd|todo|unknown|placeholder|dummy|changeme|example|n/a|not[-_ ]?set)).+$"}
   }
 }

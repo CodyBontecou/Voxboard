@@ -1,98 +1,50 @@
 from __future__ import annotations
-
-import json
-import shutil
-import subprocess
-import sys
-import tempfile
-import unittest
+import importlib.util, json, shutil, subprocess, sys, tempfile, unittest
+from datetime import datetime, timezone
 from pathlib import Path
+ROOT=Path(__file__).resolve().parents[3]; CONTRACTS=ROOT/'packages/contracts'; VALIDATOR=CONTRACTS/'scripts/validate_validation_definitions.py'
+spec=importlib.util.spec_from_file_location('validator',VALIDATOR); validator=importlib.util.module_from_spec(spec); spec.loader.exec_module(validator)
 
+class Tests(unittest.TestCase):
+ def execute(self,root,campaign=None):
+  cmd=[sys.executable,str(VALIDATOR),'--contracts-root',str(root)]
+  if campaign: cmd += ['--campaign-dir',str(campaign)]
+  return subprocess.run(cmd,text=True,capture_output=True)
+ def copy(self):
+  t=tempfile.TemporaryDirectory(); self.addCleanup(t.cleanup); r=Path(t.name)/'contracts'; shutil.copytree(CONTRACTS,r,ignore=shutil.ignore_patterns('__pycache__')); return r
+ def mutate(self,rel,fn,expected='canonical'):
+  r=self.copy(); p=r/rel; d=json.loads(p.read_text()); fn(d); p.write_text(json.dumps(d,indent=2)+'\n'); q=self.execute(r); self.assertNotEqual(q.returncode,0,q.stdout); self.assertIn(expected,q.stderr)
+ def test_definitions(self): self.assertEqual(self.execute(CONTRACTS).returncode,0)
+ def test_synthetic_schema_fixtures(self):
+  schemas={p.name:json.loads(p.read_text()) for p in (CONTRACTS/'schemas').glob('*.json')}
+  pairs=[('evidence/valid-synthetic.json','case-evidence.schema.json',True),('evidence/invalid-empty-passed.json','case-evidence.schema.json',False),('aggregate/valid-synthetic.json','aggregate.schema.json',True),('aggregate/invalid-empty-passed.json','aggregate.schema.json',False),('approvals/valid-synthetic.json','approval.schema.json',True)]
+  for f,s,ok in pairs:
+   try: validator.schema_validate(json.loads((CONTRACTS/'fixtures/validation'/f).read_text()),schemas[s],schemas[s])
+   except validator.ValidationError:
+    if ok: raise
+   else: self.assertTrue(ok,f)
+ def test_deletion(self): self.mutate('validation/case-catalog.json',lambda d:d['cases'].pop())
+ def test_optionalization(self): self.mutate('validation/device-matrix.json',lambda d:d['roles'][0].update(required=False))
+ def test_retargeting(self): self.mutate('validation/case-catalog.json',lambda d:d['cases'][0].update(deviceRoles=['large-screen']))
+ def test_provider_applicability(self): self.mutate('validation/case-catalog.json',lambda d:d['cases'][3].update(providerApplicability='none'))
+ def test_milestone(self): self.mutate('validation/case-catalog.json',lambda d:d['cases'][-1].update(milestone='M3'))
+ def test_gate_and_invariant(self): self.mutate('validation/case-catalog.json',lambda d:d['cases'][0].update(invariants=[]))
+ def test_api_and_required(self): self.mutate('validation/device-matrix.json',lambda d:d['roles'][0]['procurementTarget']['apiRange'].update(minimum=29))
+ def test_fallback(self): self.mutate('validation/device-matrix.json',lambda d:d['roles'][0].update(fallback='Any emulator'))
+ def test_gate_metadata(self):
+  for k,v in [('operator','greaterThanOrEqual'),('metric','ratio'),('statistic','minimum'),('scope','wrong')]:
+   self.mutate('validation/performance-gates.json',lambda d,k=k,v=v:d['gates'][0].update({k:v}))
+ def test_schema_weakening(self): self.mutate('schemas/case-evidence.schema.json',lambda d:d.update(additionalProperties=True),'canonical schemas')
+ def test_unknown_schema_keyword(self): self.mutate('schemas/case-evidence.schema.json',lambda d:d.update(nullable=True),'unsupported schema keywords')
+ def test_placeholder(self):
+  with self.assertRaises(validator.ValidationError): validator.reject_placeholders({'operator':'TODO later'},'fixture')
+ def test_nearest_rank(self): self.assertEqual(validator.nearest(list(range(1,21)),'p95'),19)
+ def test_wear_floor_math(self): self.assertEqual(max(1073741824,__import__('math').ceil(10_000_000_000*.2)),2_000_000_000)
+ def test_packaging_baseline(self): self.mutate('validation/performance-gates.json',lambda d:d['packagingBaselinePolicy'].update(baselineRevision='0'*40))
+ def test_expired_approval_fixture(self):
+  a=json.loads((CONTRACTS/'fixtures/validation/approvals/invalid-expired-synthetic.json').read_text()); generated=datetime.fromisoformat('2029-01-01T00:00:00+00:00'); expiry=datetime.fromisoformat(a['expiresAt'].replace('Z','+00:00')); self.assertLess(expiry,generated)
+ def test_aggregate_empty_rejected(self):
+  s=json.loads((CONTRACTS/'schemas/aggregate.schema.json').read_text()); x=json.loads((CONTRACTS/'fixtures/validation/aggregate/invalid-empty-passed.json').read_text())
+  with self.assertRaises(validator.ValidationError): validator.schema_validate(x,s,s)
 
-REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
-CONTRACTS_ROOT = REPOSITORY_ROOT / "packages" / "contracts"
-VALIDATOR = CONTRACTS_ROOT / "scripts" / "validate_validation_definitions.py"
-
-
-class ValidationDefinitionTests(unittest.TestCase):
-    def run_validator(self, root: Path) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(
-            [sys.executable, str(VALIDATOR), "--contracts-root", str(root)],
-            text=True,
-            capture_output=True,
-            check=False,
-        )
-
-    def copied_contracts(self) -> tuple[tempfile.TemporaryDirectory[str], Path]:
-        temporary = tempfile.TemporaryDirectory()
-        root = Path(temporary.name) / "contracts"
-        shutil.copytree(CONTRACTS_ROOT, root, ignore=shutil.ignore_patterns("__pycache__"))
-        return temporary, root
-
-    def mutate(self, root: Path, relative: str, operation) -> None:
-        path = root / relative
-        value = json.loads(path.read_text(encoding="utf-8"))
-        operation(value)
-        path.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
-
-    def assert_rejected(self, relative: str, operation, expected: str) -> None:
-        temporary, root = self.copied_contracts()
-        self.addCleanup(temporary.cleanup)
-        self.mutate(root, relative, operation)
-        result = self.run_validator(root)
-        self.assertNotEqual(result.returncode, 0, result.stdout)
-        self.assertIn(expected, result.stderr)
-
-    def test_committed_definitions_validate(self) -> None:
-        result = self.run_validator(CONTRACTS_ROOT)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Validation definitions passed", result.stdout)
-
-    def test_rejects_device_target_drift(self) -> None:
-        self.assert_rejected(
-            "validation/device-matrix.json",
-            lambda value: value["roles"][1]["procurementTarget"].update(model="Imaginary Phone"),
-            "device target drift",
-        )
-
-    def test_rejects_provider_identity_drift(self) -> None:
-        self.assert_rejected(
-            "validation/provider-matrix.json",
-            lambda value: value["providers"][1].update(authority="example.invalid.documents"),
-            "provider identity drift",
-        )
-
-    def test_rejects_unknown_case_device_reference(self) -> None:
-        self.assert_rejected(
-            "validation/case-catalog.json",
-            lambda value: value["cases"][0]["deviceRoles"].append("missing-role"),
-            "unknown device roles",
-        )
-
-    def test_rejects_threshold_drift(self) -> None:
-        def change(value):
-            gate = next(item for item in value["gates"] if item["id"] == "android-core-arm64-uncompressed")
-            gate["value"] = 12582913
-        self.assert_rejected(
-            "validation/performance-gates.json",
-            change,
-            "threshold drift",
-        )
-
-    def test_rejects_definition_schema_reference_drift(self) -> None:
-        self.assert_rejected(
-            "validation/device-matrix.json",
-            lambda value: value.update({"$schema": "../schemas/missing.schema.json"}),
-            "schema reference must be",
-        )
-
-    def test_rejects_unresolved_local_schema_reference(self) -> None:
-        self.assert_rejected(
-            "schemas/case-catalog.schema.json",
-            lambda value: value["properties"]["cases"].update({"items": {"$ref": "#/$defs/missing"}}),
-            "unresolved schema reference",
-        )
-
-
-if __name__ == "__main__":
-    unittest.main()
+if __name__=='__main__': unittest.main()

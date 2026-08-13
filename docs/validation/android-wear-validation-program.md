@@ -43,3 +43,17 @@ Use `docs/validation/android-wear-case-evidence-template.md` when conducting a c
 python3 Packages/contracts/scripts/validate_validation_definitions.py
 python3 -m unittest discover -s Packages/contracts/tests -p 'test_validation_definitions.py'
 ```
+
+## Large-screen and tuple expansion
+
+`REC-004` executes rotation, resize, split-screen, background/foreground, and state restoration on the required tablet role. `SAF-005` executes the provider picker and durable delivery across every required provider on that role. The validator expands each required case into the Cartesian product of its required device roles and catalog-approved provider applicability (`none`, `allRequired`, or `nonLocalRequired`). A required role without a case is a definition error. Operators cannot retarget evidence or invent N/A combinations.
+
+## Packaging-growth baseline
+
+The baseline is the clean source build at planning parent `b50167aebb959e394908af3a5949f43fa88d6265`. Baseline and candidate must use the same pinned release toolchain, target scope, build configuration, feature set, stripping/symbol handling, archive container, and uncompressed-size procedure. Evidence records the baseline and candidate revisions, toolchain ID, target scope, configuration, feature set, artifact ID, byte counts, and both artifact SHA-256 values. Growth is `((candidateBytes - baselineBytes) / baselineBytes) * 100`; only identically scoped artifacts are compared. A measurement or approval without those identities and hashes cannot satisfy `packaging-growth`.
+
+## Campaign validation
+
+The validator accepts `--campaign-dir <directory>`. The directory contains `evidence/*.json`, `approvals/*.json`, `aggregate.json`, and files referenced by evidence relative to the campaign root. It verifies referenced bytes, computes nearest-rank p95 (`ceil(0.95*n)` in sorted samples), minimum/maximum gates, the normal Wear free-storage floor, required invariant coverage, approval hashes/expiry, and aggregate tuple counts/status. The checked-in aggregate is an assertion only: disagreement with the computed aggregate is rejected. Safety invariants are never waivable.
+
+Files under `packages/contracts/fixtures/validation/` are explicitly synthetic schema and mutation fixtures. They are not physical-device results, inventory, signatures, or approvals.
