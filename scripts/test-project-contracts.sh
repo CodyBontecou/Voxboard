@@ -5,8 +5,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROJECT="$ROOT/Voxboard.xcodeproj/project.pbxproj"
 
 "$ROOT/scripts/validate-android-wear-m0.py"
-python3 "$ROOT/packages/contracts/scripts/validate_validation_definitions.py"
-python3 -m unittest discover -s "$ROOT/packages/contracts/tests" -p 'test_validation_definitions.py'
+python3 "$ROOT/Packages/contracts/scripts/convert_capabilities.py" --check
+python3 "$ROOT/Packages/contracts/scripts/validate.py"
+python3 "$ROOT/Packages/contracts/scripts/validate_validation_definitions.py"
+python3 -m unittest discover -s "$ROOT/Packages/contracts/tests"
 
 python3 - "$ROOT" "$PROJECT" <<'PY'
 from __future__ import annotations

@@ -430,7 +430,7 @@
       "bytes": 5083,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validation_definitions.py",
-      "sha256": "cecfc20629f0c5debb548e57cb4258e11033080c676b39e263b9e602e7815053"
+      "sha256": "a1533d8b486f2a33ccf25199580ebe9479a769fdbe8b40dad9afe703ef918ab0"
     },
     {
       "bytes": 1728,
@@ -610,7 +610,7 @@
       "bytes": 5265,
       "category": "validationDocumentation",
       "path": "docs/validation/android-wear-validation-program.md",
-      "sha256": "a35af10e11dc532c2c050eaae3da9b6074343126d9c72833b9b3f98152b7d6b4"
+      "sha256": "9a28664435b00778d9c73fbf18dc74b8ab4424569c473905a361f097258d3da7"
     }
   ],
   "fixtureCases": [

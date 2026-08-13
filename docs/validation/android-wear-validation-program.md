@@ -56,4 +56,4 @@ The baseline is the clean source build at planning parent `b50167aebb959e394908a
 
 The validator accepts `--campaign-dir <directory>`. The directory contains `evidence/*.json`, `approvals/*.json`, `aggregate.json`, and files referenced by evidence relative to the campaign root. It verifies referenced bytes, computes nearest-rank p95 (`ceil(0.95*n)` in sorted samples), minimum/maximum gates, the normal Wear free-storage floor, required invariant coverage, approval hashes/expiry, and aggregate tuple counts/status. The checked-in aggregate is an assertion only: disagreement with the computed aggregate is rejected. Safety invariants are never waivable.
 
-Files under `packages/contracts/fixtures/validation/` are explicitly synthetic schema and mutation fixtures. They are not physical-device results, inventory, signatures, or approvals.
+Files under `Packages/contracts/fixtures/validation/` are explicitly synthetic schema and mutation fixtures. They are not physical-device results, inventory, signatures, or approvals.

@@ -2,7 +2,7 @@ from __future__ import annotations
 import importlib.util, json, shutil, subprocess, sys, tempfile, unittest
 from datetime import datetime, timezone
 from pathlib import Path
-ROOT=Path(__file__).resolve().parents[3]; CONTRACTS=ROOT/'packages/contracts'; VALIDATOR=CONTRACTS/'scripts/validate_validation_definitions.py'
+ROOT=Path(__file__).resolve().parents[3]; CONTRACTS=ROOT/'Packages/contracts'; VALIDATOR=CONTRACTS/'scripts/validate_validation_definitions.py'
 spec=importlib.util.spec_from_file_location('validator',VALIDATOR); validator=importlib.util.module_from_spec(spec); spec.loader.exec_module(validator)
 
 class Tests(unittest.TestCase):
