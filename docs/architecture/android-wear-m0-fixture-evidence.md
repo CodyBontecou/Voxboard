@@ -82,9 +82,10 @@ persist-before-insert/restart reducer, and Watch terminal replay executes the
 production save-before-delete queue/audio transition and durable reload. Applicable
 cells are `executed`; inapplicable behavior has a production-format rationale.
 
-The M0 implementation and deterministic-codec commits exist. A genuine fresh-checkout
-run of the final attested revision and successful hosted Apple CI are not recorded, and
-physical-device/account gates remain external. Passing the matrix validator must
+The M0 implementation and deterministic-codec commits exist. A clean local clone of
+the final attested revision passed project contracts, fixture validation, and all
+Swift package tests without modifying tracked files. Successful hosted Apple CI is
+not yet recorded, and physical-device/account gates remain external. Passing the matrix validator must
 not be reported as product or physical-device parity.
 
 ## Provenance and regeneration

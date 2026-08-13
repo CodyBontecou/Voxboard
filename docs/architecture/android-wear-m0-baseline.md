@@ -1,6 +1,6 @@
 # Android/Wear Shared-Core M0 Baseline
 
-Status: **Candidate baseline committed; fresh-checkout and hosted CI attestation pending**
+Status: **Committed and fresh-checkout verified; hosted CI attestation pending**
 
 Implementation plan: `docs/android-wear-shared-core-implementation-plan.md`
 
