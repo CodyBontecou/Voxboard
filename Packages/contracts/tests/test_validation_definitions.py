@@ -17,12 +17,14 @@ class Tests(unittest.TestCase):
  def test_definitions(self): self.assertEqual(self.execute(CONTRACTS).returncode,0)
  def test_synthetic_schema_fixtures(self):
   schemas={p.name:json.loads(p.read_text()) for p in (CONTRACTS/'schemas').glob('*.json')}
-  pairs=[('evidence/valid-synthetic.json','case-evidence.schema.json',True),('evidence/invalid-empty-passed.json','case-evidence.schema.json',False),('aggregate/valid-synthetic.json','aggregate.schema.json',True),('aggregate/invalid-empty-passed.json','aggregate.schema.json',False),('approvals/valid-synthetic.json','approval.schema.json',True)]
+  pairs=[('definitions/valid-device-matrix.json','device-matrix.schema.json',True),('evidence/valid-synthetic.json','case-evidence.schema.json',True),('evidence/invalid-empty-passed.json','case-evidence.schema.json',False),('aggregate/valid-synthetic.json','aggregate.schema.json',True),('aggregate/invalid-empty-passed.json','aggregate.schema.json',False),('approvals/valid-synthetic.json','approval.schema.json',True)]
   for f,s,ok in pairs:
    try: validator.schema_validate(json.loads((CONTRACTS/'fixtures/validation'/f).read_text()),schemas[s],schemas[s])
    except validator.ValidationError:
     if ok: raise
    else: self.assertTrue(ok,f)
+ def test_invalid_synthetic_definition_fixture_is_semantically_rejected(self):
+  r=self.copy(); shutil.copyfile(CONTRACTS/'fixtures/validation/definitions/invalid-optionalized-role.json',r/'validation/device-matrix.json'); q=self.execute(r); self.assertNotEqual(q.returncode,0); self.assertIn('canonical devices',q.stderr)
  def test_deletion(self): self.mutate('validation/case-catalog.json',lambda d:d['cases'].pop())
  def test_optionalization(self): self.mutate('validation/device-matrix.json',lambda d:d['roles'][0].update(required=False))
  def test_retargeting(self): self.mutate('validation/case-catalog.json',lambda d:d['cases'][0].update(deviceRoles=['large-screen']))
