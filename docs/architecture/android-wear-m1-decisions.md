@@ -23,6 +23,14 @@ implementation or physical-device evidence already exists.
 | [ADR-0011](adr-0011-advanced-local-intelligence.md) | `PD-M1-LOCAL-INTELLIGENCE-001` | Advanced local intelligence completion policy |
 | [ADR-0012](adr-0012-bounded-uniffi-session-resource-policy.md) | `PD-M1-UNIFFI-BOUNDS-001` | Bounded UniFFI session and resource policy |
 | [ADR-0013](adr-0013-contract-fixture-mirror-sequencing.md) | `PD-M1-MIRROR-SEQUENCING-001` | Resource-only fixture mirror sequencing |
+| [ADR-0014](adr-0014-offline-asr-baseline.md) | `PD-M1-OFFLINE-ASR-001` | App-owned offline ASR baseline and optional system adapter |
+| [ADR-0015](adr-0015-ime-visible-activity-fallback.md) | `PD-M1-IME-FALLBACK-001` | Visible-activity fallback for unreliable direct IME capture |
+| [ADR-0016](adr-0016-vox-owned-toolchain-pinning.md) | `PD-M1-TOOLCHAIN-PINNING-001` | Vox-owned exact toolchain pins and milestone entry gates |
+
+The toolchain pin slots and mandatory update process are defined in
+[`android-wear-toolchain-baseline.md`](android-wear-toolchain-baseline.md). Exact
+Rust/Android selections are not yet established; M2/M3 remain blocked until their
+required committed pins exist.
 
 ## Change control
 

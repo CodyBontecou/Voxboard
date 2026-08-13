@@ -2,7 +2,7 @@
 
 - Status: **Accepted**
 - Product decision ID: `PD-M1-MARKDOWN-PARITY-001`
-- Required by: M2
+- Required by: M2 for new-note text/link path-and-byte parity; M5 for the remaining v1 operations unless the implementation plan assigns an operation earlier
 
 ## Context
 
@@ -17,8 +17,8 @@ and identical ordered logical relative path segments on Apple and Android. Nativ
 storage resolves those segments to bookmarks, URLs, tree URIs, or document IDs; such
 handles never participate in parity.
 
-M2 conformance fixtures freeze the current Swift oracle's exact observable details,
-including:
+The v1 design and synthetic fixtures freeze the current Swift oracle's exact observable
+details, including:
 
 - explicit calendar/timezone/date token results and lowercase UUID substitutions;
 - `.md` extension behavior, safe relative-path validation, collision suffixing, and
@@ -54,14 +54,28 @@ remain exact.
 - **Clean up the Swift oracle during M2:** rejected because migration and behavior
   changes must be separate reviewed profiles.
 
-## Executable gates
+## Milestone sequencing and executable gates
 
-- M2 golden fixtures run through the production Swift oracle and Rust consumer and
-  compare exact path-segment arrays and bytes/hashes.
-- Fixtures cover Unicode, date/calendar facts, collisions, line endings, trailing
-  newlines, frontmatter, templates, links, headings, markers, and malformed paths.
-- Property tests reject traversal and nondeterministic ordering.
-- Shadow diagnostics report only pinned versions, size buckets, and hash equality;
-  they never record content or paths.
+M1 freezes the complete v1 parity design and synthetic fixtures, including rolling and
+existing-note placement, markers, headings, frontmatter, templates, attachments, and
+their newline/link behavior. That freeze is normative design input, not a claim that a
+Rust production consumer exists or has passed parity.
 
-The exact fixture corpus is an M2 deliverable; this ADR does not fabricate its results.
+M2 implements and executes only the new-note text/link subset. Its golden fixtures run
+through the production Swift oracle and Rust consumer and compare exact ordered logical
+path-segment arrays and UTF-8 bytes/hashes. The M2 corpus covers only facts that affect
+that subset, including Unicode, explicit date/calendar inputs, collision planning, link
+escaping, line endings, trailing newlines, and malformed paths. Property tests reject
+traversal and nondeterministic ordering. Shadow diagnostics report only pinned
+versions, size buckets, and hash equality; they never record content or paths.
+
+Each remaining v1 operation acquires its Swift/Rust (and, when applicable, Kotlin)
+exact-parity executable gate only when that operation enters implementation scope.
+Under the accepted implementation plan, rolling/existing-note mutation, request-marker
+placement and replay, heading/frontmatter/template mutation, and attachment planning
+enter that gate in M5 unless the plan explicitly assigns an operation to an earlier
+milestone. The corresponding M5 fixtures must compare exact paths and bytes/hashes and
+must cover the complete M1-frozen behavior. Deferring execution does not weaken or
+convert eventual exact parity to semantic equivalence.
+
+No fixture result is claimed by this ADR.

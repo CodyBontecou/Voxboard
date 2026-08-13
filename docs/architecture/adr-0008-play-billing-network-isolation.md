@@ -32,10 +32,36 @@ existing Apple policy; a Play purchase grants Android-product access. No cross-s
 entitlement, account linking, or backend is implied. Adding one requires a separate
 approved account/backend/privacy ADR and migration.
 
-Offline access may use the last locally verified non-revoked purchase state until the
-store can refresh; it must not silently convert a pending/unverified/refunded state into
-permanent authority. The exact operational grace timing, if needed, must be frozen and
-tested before M8 release rather than invented by an implementation.
+The M1-approved restore and offline policy is:
+
+- On the same installation, the last locally verified `PURCHASED` state remains usable
+  indefinitely while Play purchase query is unavailable. The UI must visibly label the
+  entitlement stale/offline, record the last successful verification time, and provide
+  retry/restore. This is continuity of already verified authority, not promotion of an
+  unverified state.
+- On a fresh install or after local entitlement evidence is absent, corrupt, or cannot
+  be authenticated, the app remains on the free tier until Play verifies `PURCHASED`.
+  Network unavailability never manufactures an entitlement.
+- A current authoritative non-purchased result, including refund or revocation, removes
+  Unlimited entitlement for future admission only. It never deletes user content,
+  prepared artifacts, transcripts, audio, or history and never strands a job already
+  durably admitted under the prior entitlement. Already admitted jobs remain executable
+  and recoverable through their terminal outcome.
+- `PENDING` grants no Unlimited entitlement. If a previously verified same-install
+  purchase is still the last authoritative completed state and Play reports only a new
+  pending transaction, that transaction does not erase the prior purchase; otherwise
+  the user remains free while pending. The UI exposes pending status and refresh/restore.
+- User-cancelled purchase flow changes no prior verified entitlement. With no prior
+  verified purchase, cancellation leaves the user on the free tier. A cancelled flow is
+  not a revocation signal and does not affect admitted jobs or content.
+- A verified authoritative current result with no owned non-consumable is the
+  non-purchased result described above. Mere query error, timeout, disconnected service,
+  unknown product, or unverified response is `unavailable`, not proof of non-purchase.
+
+The cached evidence must be native, integrity-protected, scoped to the installation and
+product, and must distinguish verified purchase, authoritative non-purchase, pending,
+cancelled flow, unavailable, and visibly stale derived access. M8 implements and tests
+this already-approved policy; it does not choose a new grace duration.
 
 ## Compatibility and consequences
 
@@ -56,8 +82,11 @@ unavailability.
 
 ## Executable gates
 
-- Billing license tests cover purchased/acknowledged, pending, cancelled, unavailable,
-  stale offline, refund/revocation, reinstall/restore, and unknown product states.
+- Billing license tests cover purchased/acknowledged, pending with and without prior
+  verified purchase, cancelled flow with and without prior verified purchase,
+  unavailable and visibly stale same-install access, fresh-install offline behavior,
+  authoritative non-purchase, refund/revocation, reinstall/restore, and unknown product
+  states.
 - Dependency tests prove the billing module cannot import/read capture repositories and
   outbound-request inspection proves no captured fields enter billing payloads/logs.
 - Queue tests preserve staged content across every entitlement transition.

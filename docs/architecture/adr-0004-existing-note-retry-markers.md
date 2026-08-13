@@ -2,7 +2,7 @@
 
 - Status: **Accepted**
 - Product decision ID: `PD-M1-RETRY-MARKER-001`
-- Required by: M2 fixture parity and M3 provider retry behavior
+- Required by: M1 v1 design/fixture freeze; M5 exact mutation/retry parity unless the implementation plan assigns the operation earlier
 
 ## Context
 
@@ -28,8 +28,8 @@ before editing and duplicate detection; an existing exact marker returns the nor
 document unchanged; when protection is enabled, a non-empty entry is followed by one
 blank line and then the marker, while an empty wrapped entry consists of the marker;
 the resulting capture block participates in the editor's existing append, prepend, or
-beneath-heading blank-line rules. M2 exact fixtures freeze these details rather than
-re-specifying them opportunistically in Rust.
+beneath-heading blank-line rules. M1 v1 design and synthetic fixtures freeze these
+details rather than re-specifying them opportunistically in Rust.
 
 Before retrying a mutation, native code reads the current note and checks the exact
 request marker. A present marker completes/reconciles the request without a duplicate
@@ -54,11 +54,21 @@ an explicit operation/profile decision.
 - **Search by captured text:** rejected as ambiguous and privacy-invasive.
 - **Blind retry when marker read fails:** rejected because it can duplicate user data.
 
-## Executable gates
+## Milestone sequencing and executable gates
 
-- Swift/Rust exact fixtures cover lowercase syntax, placement, LF/CRLF/CR input,
-  append/prepend/heading placement, empty entry, and duplicate replay.
-- Negative fixtures reject malformed/uppercase/wrong-request markers as proof for the
-  target request.
-- Failure injection after provider mutation and before receipt proves marker-based
-  reconciliation or `unknownOutcome`, never duplicate auto-append.
+M1 freezes the v1 marker syntax, normalization, placement, replay, and ambiguous-outcome
+design in synthetic fixtures without claiming a Rust implementation or executed parity.
+M2's new-note text/link scope does not require existing-note marker or placement parity.
+M3 may implement provider-level unknown-outcome preservation for its new-note vertical
+slice, but it does not thereby claim shared-note mutation parity.
+
+When existing/rolling-note mutation enters scope—M5 under the accepted implementation
+plan unless that plan explicitly moves the operation earlier—the executable gate
+requires Swift/Rust/Kotlin exact fixtures for lowercase syntax, placement, LF/CRLF/CR
+input, append/prepend/heading placement, empty entry, and duplicate replay. Negative
+fixtures must reject malformed, uppercase, and wrong-request markers as proof for the
+target request. Failure injection after provider mutation and before receipt must prove
+marker-based reconciliation or `unknownOutcome`, never duplicate auto-append.
+
+This sequencing defers execution only; it does not weaken eventual exact marker,
+newline, heading, or placement parity.
