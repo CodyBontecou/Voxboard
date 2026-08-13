@@ -1,0 +1,21 @@
+{
+  "correlationID": "55555555-5555-4555-8555-555555555555",
+  "deviceID": "44444444-4444-4444-8444-444444444444",
+  "epoch": 1,
+  "messageID": "00000007-1111-4111-8111-111111111111",
+  "messageKind": "transferFrontier",
+  "payload": {
+    "assetID": "77777777-7777-4777-8777-777777777777",
+    "assetLength": 1048576,
+    "assetSHA256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "chunkLength": 1048577,
+    "chunkSequence": 0,
+    "durableOffset": 1048576,
+    "frontierRevision": 1
+  },
+  "protocolVersion": 1,
+  "recordingID": "11111111-1111-4111-8111-111111111111",
+  "replayRule": "newerRevisionWins",
+  "revision": 7,
+  "senderInstallationID": "33333333-3333-4333-8333-333333333333"
+}

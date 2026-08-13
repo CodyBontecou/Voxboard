@@ -16,16 +16,55 @@
         "shortcut",
         "watch",
         "wear"
-      ],
-      "type": "string"
+      ]
     },
     "contractVersion": {
       "const": 1
     },
-    "createdAt": {
+    "createdAtEpochMilliseconds": {
       "maximum": 4102444800000,
       "minimum": 0,
       "type": "integer"
+    },
+    "invocation": {
+      "additionalProperties": false,
+      "properties": {
+        "locationOutcome": {
+          "enum": [
+            "notRequested",
+            "unavailable",
+            "coordinatesFrozen",
+            "labelFrozen"
+          ]
+        },
+        "originRecordingID": {
+          "oneOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sequence": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sequence",
+        "originRecordingID",
+        "locationOutcome"
+      ],
+      "type": "object"
+    },
+    "locale": {
+      "maxLength": 35,
+      "minLength": 2,
+      "type": "string"
     },
     "operation": {
       "enum": [
@@ -34,78 +73,331 @@
         "existingNoteAppend",
         "existingNotePrepend",
         "existingNoteHeading"
-      ],
-      "type": "string"
+      ]
     },
     "payloads": {
       "items": {
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-            "type": "string"
-          },
-          "kind": {
-            "enum": [
-              "text",
-              "link",
-              "asset"
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "text"
+              },
+              "text": {
+                "maxLength": 65536,
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "text"
             ],
-            "type": "string"
+            "type": "object"
           },
-          "length": {
-            "maximum": 1073741824,
-            "minimum": 0,
-            "type": "integer"
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "link"
+              },
+              "label": {
+                "maxLength": 4096,
+                "type": "string"
+              },
+              "url": {
+                "maxLength": 8192,
+                "minLength": 1,
+                "pattern": "^https?://",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "url",
+              "label"
+            ],
+            "type": "object"
           },
-          "mediaType": {
-            "maxLength": 127,
-            "type": "string"
-          },
-          "sha256": {
-            "pattern": "^[0-9a-f]{64}$",
-            "type": "string"
-          },
-          "sourceID": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-            "type": "string"
-          },
-          "text": {
-            "maxLength": 65536,
-            "type": "string"
-          },
-          "url": {
-            "maxLength": 8192,
-            "type": "string"
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "asset"
+              },
+              "length": {
+                "maximum": 1073741824,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "mediaType": {
+                "maxLength": 127,
+                "minLength": 1,
+                "type": "string"
+              },
+              "originalNamePolicy": {
+                "enum": [
+                  "discard",
+                  "safeStem"
+                ]
+              },
+              "safeExtension": {
+                "maxLength": 16,
+                "pattern": "^[a-z0-9]*$",
+                "type": "string"
+              },
+              "sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "sourceID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "sourceID",
+              "mediaType",
+              "length",
+              "sha256",
+              "safeExtension",
+              "originalNamePolicy"
+            ],
+            "type": "object"
           }
-        },
-        "required": [
-          "id",
-          "kind"
-        ],
-        "type": "object"
+        ]
       },
       "maxItems": 128,
       "minItems": 1,
       "type": "array"
     },
+    "pins": {
+      "additionalProperties": false,
+      "properties": {
+        "coreVersion": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "modelProfileID": {
+          "oneOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "modelRevision": {
+          "oneOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "profileID": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "profileVersion": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "rendererRevision": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "coreVersion",
+        "rendererRevision",
+        "profileID",
+        "profileVersion",
+        "modelProfileID",
+        "modelRevision"
+      ],
+      "type": "object"
+    },
     "preset": {
       "additionalProperties": false,
       "properties": {
+        "destinationPolicy": {
+          "additionalProperties": false,
+          "properties": {
+            "capabilityClass": {
+              "enum": [
+                "userVault",
+                "recordingExport"
+              ]
+            },
+            "capabilityReference": {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            "expectedCaseSensitivity": {
+              "enum": [
+                "unknown",
+                "sensitive",
+                "insensitive"
+              ]
+            }
+          },
+          "required": [
+            "capabilityReference",
+            "capabilityClass",
+            "expectedCaseSensitivity"
+          ],
+          "type": "object"
+        },
         "id": {
           "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
           "type": "string"
+        },
+        "metadataPolicy": {
+          "additionalProperties": false,
+          "properties": {
+            "finalNewline": {
+              "type": "boolean"
+            },
+            "frontmatterMode": {
+              "enum": [
+                "none",
+                "merge",
+                "replace"
+              ]
+            },
+            "lineEnding": {
+              "enum": [
+                "lf",
+                "preserveExisting"
+              ]
+            },
+            "orderedFields": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "value": {
+                    "maxLength": 8192,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "value"
+                ],
+                "type": "object"
+              },
+              "maxItems": 128,
+              "minItems": 0,
+              "type": "array"
+            },
+            "templatePolicy": {
+              "enum": [
+                "none",
+                "frozenObservation"
+              ]
+            }
+          },
+          "required": [
+            "frontmatterMode",
+            "orderedFields",
+            "templatePolicy",
+            "lineEnding",
+            "finalNewline"
+          ],
+          "type": "object"
         },
         "retryMarkerPolicy": {
           "enum": [
             "none",
             "voxCaptureCommentV1"
-          ],
-          "type": "string"
+          ]
         },
         "revision": {
+          "maximum": 9223372036854775807,
           "minimum": 0,
           "type": "integer"
+        },
+        "routePolicy": {
+          "additionalProperties": false,
+          "properties": {
+            "attachmentFolder": {
+              "items": {
+                "maxLength": 255,
+                "minLength": 1,
+                "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                "type": "string"
+              },
+              "maxItems": 32,
+              "type": "array"
+            },
+            "collisionPolicy": {
+              "enum": [
+                "fail",
+                "reuseIfHashMatches",
+                "deterministicSuffix"
+              ]
+            },
+            "extensionPolicy": {
+              "const": "markdownDotMd"
+            },
+            "logicalFolder": {
+              "items": {
+                "maxLength": 255,
+                "minLength": 1,
+                "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                "type": "string"
+              },
+              "maxItems": 32,
+              "type": "array"
+            },
+            "noteNameTemplate": {
+              "maxLength": 1024,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "logicalFolder",
+            "noteNameTemplate",
+            "extensionPolicy",
+            "collisionPolicy",
+            "attachmentFolder"
+          ],
+          "type": "object"
         },
         "snapshotHash": {
           "pattern": "^[0-9a-f]{64}$",
@@ -120,41 +412,16 @@
         "revision",
         "snapshotHash",
         "templateFreezePoint",
-        "retryMarkerPolicy"
+        "retryMarkerPolicy",
+        "routePolicy",
+        "metadataPolicy",
+        "destinationPolicy"
       ],
       "type": "object"
     },
     "requestID": {
       "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "type": "string"
-    },
-    "routePolicy": {
-      "additionalProperties": false,
-      "properties": {
-        "collisionPolicy": {
-          "enum": [
-            "fail",
-            "reuseIfHashMatches",
-            "deterministicSuffix"
-          ],
-          "type": "string"
-        },
-        "logicalFolder": {
-          "items": {
-            "maxLength": 255,
-            "minLength": 1,
-            "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
-            "type": "string"
-          },
-          "maxItems": 32,
-          "type": "array"
-        }
-      },
-      "required": [
-        "logicalFolder",
-        "collisionPolicy"
-      ],
-      "type": "object"
     },
     "timezone": {
       "maxLength": 64,
@@ -166,13 +433,15 @@
     "contractVersion",
     "requestID",
     "captureSource",
-    "createdAt",
+    "createdAtEpochMilliseconds",
     "timezone",
     "calendar",
+    "locale",
     "operation",
+    "pins",
     "payloads",
     "preset",
-    "routePolicy"
+    "invocation"
   ],
   "title": "capture-preparation-input",
   "type": "object"

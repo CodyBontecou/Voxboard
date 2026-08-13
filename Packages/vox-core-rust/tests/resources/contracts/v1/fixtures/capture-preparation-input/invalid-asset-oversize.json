@@ -1,0 +1,82 @@
+{
+  "calendar": "gregorian",
+  "captureSource": "app",
+  "contractVersion": 1,
+  "createdAtEpochMilliseconds": 1700000000000,
+  "invocation": {
+    "locationOutcome": "notRequested",
+    "originRecordingID": null,
+    "sequence": 1
+  },
+  "locale": "en-US",
+  "operation": "newNote",
+  "payloads": [
+    {
+      "id": "22222222-2222-4222-8222-222222222222",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "44444444-4444-4444-8444-444444444444",
+      "kind": "link",
+      "label": "Synthetic link",
+      "url": "https://example.invalid/synthetic"
+    },
+    {
+      "id": "55555555-5555-4555-8555-555555555555",
+      "kind": "asset",
+      "length": 1073741825,
+      "mediaType": "audio/wav",
+      "originalNamePolicy": "discard",
+      "safeExtension": "wav",
+      "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "sourceID": "66666666-6666-4666-8666-666666666666"
+    }
+  ],
+  "pins": {
+    "coreVersion": "vox-core-contract-only",
+    "modelProfileID": null,
+    "modelRevision": null,
+    "profileID": "apple-parity-v1",
+    "profileVersion": 1,
+    "rendererRevision": "swift-legacy-m0"
+  },
+  "preset": {
+    "destinationPolicy": {
+      "capabilityClass": "userVault",
+      "capabilityReference": "synthetic-vault-capability",
+      "expectedCaseSensitivity": "unknown"
+    },
+    "id": "33333333-3333-4333-8333-333333333333",
+    "metadataPolicy": {
+      "finalNewline": true,
+      "frontmatterMode": "merge",
+      "lineEnding": "lf",
+      "orderedFields": [
+        {
+          "name": "source",
+          "value": "synthetic"
+        }
+      ],
+      "templatePolicy": "frozenObservation"
+    },
+    "retryMarkerPolicy": "voxCaptureCommentV1",
+    "revision": 7,
+    "routePolicy": {
+      "attachmentFolder": [
+        "Assets"
+      ],
+      "collisionPolicy": "reuseIfHashMatches",
+      "extensionPolicy": "markdownDotMd",
+      "logicalFolder": [
+        "Synthetic Vault",
+        "Inbox"
+      ],
+      "noteNameTemplate": "capture-{id}.md"
+    },
+    "snapshotHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "templateFreezePoint": "firstPreparation"
+  },
+  "requestID": "11111111-1111-4111-8111-111111111111",
+  "timezone": "America/Los_Angeles"
+}

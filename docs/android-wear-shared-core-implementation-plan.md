@@ -44,7 +44,7 @@ The recording queue has recently landed in the planning baseline after substanti
 
 ### 2.2 Add new top-level directories; do not move Apple yet
 
-Add `apps/android`, `packages/contracts`, and `packages/vox-core-rust` without relocating the current Xcode project. Move Apple under `apps/apple` only after Apple build/test CI is green and only as a behavior-free change.
+Add `apps/android`, `Packages/contracts`, and `Packages/vox-core-rust` without relocating the current Xcode project. Move Apple under `apps/apple` only after Apple build/test CI is green and only as a behavior-free change.
 
 ### 2.3 Required product decisions
 
@@ -789,7 +789,7 @@ Promote by operation/profile, not globally. Retain Swift legacy authority for at
 
 **Work**
 
-- Add `packages/contracts` manifest, capability inventory, specs, fixtures, and hash validator.
+- Add `Packages/contracts` manifest, capability inventory, specs, fixtures, and hash validator.
 - Record ADRs for ownership, versioning, prepared-plan commit barrier, retry markers, template freeze, Android backup, Wear acknowledgements, and billing isolation.
 - Convert the M0 ledger into machine-validated `product-capabilities.json`; classify each feature as shared, native, adjusted, unavailable, or deferred and retain the concrete acceptance-evidence mapping.
 - Treat unavailable/deferred as an explicit scope variance. Such a row cannot satisfy feature-complete parity unless the objective is separately amended by the product owner.
@@ -1162,7 +1162,7 @@ The Health.md paths below are normative only as committed at `c70de9201ab7cfbadf
 - `../health-md/docs/architecture/shared-core-m5-rendering-baseline.md`
 - `../health-md/docs/architecture/shared-core-m6-rollout-runbook.md`
 - `../health-md/docs/architecture/shared-core-m7-protocol-baseline.md`
-- `../health-md/packages/contracts/README.md`
+- `../health-md/Packages/contracts/README.md`
 - `docs/recording-queue-storekit-completion-audit.md`
 - `docs/recording-queue-storekit-validation.md`
 - `docs/unified-quick-capture-destinations.md`

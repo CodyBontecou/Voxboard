@@ -1,6 +1,6 @@
 # Android/Wear case evidence template
 
-Do not commit this file as proof. Create one JSON record conforming to `packages/contracts/schemas/case-evidence.schema.json` for each executed case/device/provider combination.
+Do not commit this file as proof. Create one JSON record conforming to `Packages/contracts/schemas/case-evidence.schema.json` for each executed case/device/provider combination.
 
 ## Campaign facts (required when applicable)
 

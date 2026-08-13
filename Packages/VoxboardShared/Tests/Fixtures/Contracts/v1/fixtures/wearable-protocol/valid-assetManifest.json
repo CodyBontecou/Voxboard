@@ -1,0 +1,19 @@
+{
+  "correlationID": "55555555-5555-4555-8555-555555555555",
+  "deviceID": "44444444-4444-4444-8444-444444444444",
+  "epoch": 1,
+  "messageID": "00000006-1111-4111-8111-111111111111",
+  "messageKind": "assetManifest",
+  "payload": {
+    "assetID": "77777777-7777-4777-8777-777777777777",
+    "length": 1048576,
+    "mediaType": "audio/wav",
+    "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "transport": "dataAsset"
+  },
+  "protocolVersion": 1,
+  "recordingID": "11111111-1111-4111-8111-111111111111",
+  "replayRule": "newerRevisionWins",
+  "revision": 6,
+  "senderInstallationID": "33333333-3333-4333-8333-333333333333"
+}

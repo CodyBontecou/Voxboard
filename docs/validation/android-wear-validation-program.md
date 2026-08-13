@@ -6,7 +6,7 @@ These repository-owned definitions specify the device/provider matrix, cases, nu
 
 ## Definition and evidence boundary
 
-Files under `packages/contracts/validation/` ending in `*-matrix.json`, `case-catalog.json`, and `performance-gates.json` are reviewed definitions. Campaign records use `case-evidence.schema.json`, `approval.schema.json`, and `aggregate.schema.json`.
+Files under `Packages/contracts/validation/` ending in `*-matrix.json`, `case-catalog.json`, and `performance-gates.json` are reviewed definitions. Campaign records use `case-evidence.schema.json`, `approval.schema.json`, and `aggregate.schema.json`.
 
 Never prefill serial numbers, build fingerprints, installed provider versions, build signatures, timestamps, operator identities, or results. Those values must be observed during a named campaign. Synthetic fixtures are allowed, but their committed SHA-256 values must be copied into each evidence record.
 
@@ -40,6 +40,6 @@ Write the computed aggregate beside it as `aggregate.json`. Human notes, logs, a
 Use `docs/validation/android-wear-case-evidence-template.md` when conducting a campaign. Validate definitions with:
 
 ```sh
-python3 packages/contracts/scripts/validate_validation_definitions.py
-python3 -m unittest discover -s packages/contracts/tests -p 'test_validation_definitions.py'
+python3 Packages/contracts/scripts/validate_validation_definitions.py
+python3 -m unittest discover -s Packages/contracts/tests -p 'test_validation_definitions.py'
 ```

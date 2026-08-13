@@ -1,0 +1,57 @@
+{
+  "aggregateMaximumBytes": 268435456,
+  "contractVersion": 1,
+  "observations": [
+    {
+      "id": "44444444-4444-4444-8444-444444444444",
+      "kind": "candidateOccupancy",
+      "logicalCandidates": [
+        [
+          "Synthetic Vault",
+          "Inbox",
+          "capture.md"
+        ]
+      ]
+    },
+    {
+      "id": "55555555-5555-4555-8555-555555555555",
+      "kind": "frozenTemplate",
+      "maximumBytes": 268435456,
+      "required": false,
+      "templateCapabilityReference": "synthetic-template"
+    },
+    {
+      "id": "66666666-6666-4666-8666-666666666666",
+      "kind": "existingNote",
+      "logicalPath": [
+        "Synthetic Vault",
+        "Inbox",
+        "capture.md"
+      ],
+      "maximumBytes": 268435456,
+      "required": true
+    },
+    {
+      "id": "77777777-7777-4777-8777-777777777777",
+      "kind": "stagedAssetMetadata",
+      "sourceIDs": [
+        "66666666-6666-4666-8666-666666666666"
+      ]
+    },
+    {
+      "id": "44444444-4444-4444-8444-444444444444",
+      "kind": "candidateOccupancy",
+      "logicalCandidates": [
+        [
+          "Synthetic Vault",
+          "Inbox",
+          "capture.md"
+        ]
+      ]
+    }
+  ],
+  "ordering": "listed",
+  "preparationRevision": 1,
+  "requestID": "11111111-1111-4111-8111-111111111111",
+  "snapshotHash": "0000000000000000000000000000000000000000000000000000000000000000"
+}

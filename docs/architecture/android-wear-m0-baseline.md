@@ -27,7 +27,7 @@ The following files are the M0-recorded precedent at commit
 | `docs/architecture/shared-core-m5-rendering-baseline.md` | Bounded sessions, frozen observations, artifact plans, and native commits |
 | `docs/architecture/shared-core-m6-rollout-runbook.md` | Per-operation `legacy`/`shadow`/`rust`, durable engine pins, and fail-closed rollback |
 | `docs/architecture/shared-core-m7-protocol-baseline.md` | Transport-independent protocol authority while sockets, credentials, lifecycle, persistence, and side effects remain native |
-| `packages/contracts/README.md` and `packages/contracts/manifest.json` | Independently versioned inventories, fixtures, mirrors, provenance, and drift validation |
+| `Packages/contracts/README.md` and `Packages/contracts/manifest.json` | Independently versioned inventories, fixtures, mirrors, provenance, and drift validation |
 | `packages/healthmd-core-rust/Cargo.toml` | Rust workspace/package/lint convention; Rust MSRV 1.85, edition 2024, UniFFI exactly 0.32.0 |
 | `packages/healthmd-core-rust/scripts/generate-swift-bindings.sh` | Checked, locked xtask-based Swift binding generation |
 | `packages/healthmd-core-rust/scripts/generate-kotlin-bindings.sh` | Rust 1.88.0 binding toolchain and normalized Kotlin output |

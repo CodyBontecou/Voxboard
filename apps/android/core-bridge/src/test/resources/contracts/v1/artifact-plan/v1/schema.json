@@ -6,96 +6,241 @@
   "properties": {
     "artifacts": {
       "items": {
-        "additionalProperties": false,
-        "properties": {
-          "artifactID": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-            "type": "string"
-          },
-          "commitSequence": {
-            "maximum": 128,
-            "minimum": 0,
-            "type": "integer"
-          },
-          "expectedExisting": {
-            "enum": [
-              "absent",
-              "hashMatch",
-              "any"
-            ],
-            "type": "string"
-          },
-          "expectedOriginalHash": {
-            "pattern": "^[0-9a-f]{64}$",
-            "type": "string"
-          },
-          "journalFrontier": {
-            "enum": [
-              "prepared",
-              "attachmentVerified",
-              "noteVerified"
-            ],
-            "type": "string"
-          },
-          "kind": {
-            "enum": [
-              "note",
-              "attachment"
-            ],
-            "type": "string"
-          },
-          "length": {
-            "maximum": 1073741824,
-            "minimum": 0,
-            "type": "integer"
-          },
-          "logicalPath": {
-            "items": {
-              "maxLength": 255,
-              "minLength": 1,
-              "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
-              "type": "string"
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "artifactID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "commitSequence": {
+                "maximum": 128,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "equivalenceRule": {
+                "enum": [
+                  "exactBytes",
+                  "sameSourceAndResultHash"
+                ]
+              },
+              "expectedExistingPolicy": {
+                "enum": [
+                  "absent",
+                  "hashMatch",
+                  "any"
+                ]
+              },
+              "expectedExistingSHA256": {
+                "oneOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "journalFrontier": {
+                "const": "attachmentVerified"
+              },
+              "kind": {
+                "const": "attachment"
+              },
+              "logicalPath": {
+                "items": {
+                  "maxLength": 255,
+                  "minLength": 1,
+                  "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "mediaType": {
+                "maxLength": 127,
+                "minLength": 1,
+                "type": "string"
+              },
+              "operationID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "receiptKind": {
+                "const": "attachmentCommit"
+              },
+              "resultLength": {
+                "maximum": 1073741824,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "resultSHA256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "sourceID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "sourceLength": {
+                "maximum": 1073741824,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "sourceMediaType": {
+                "maxLength": 127,
+                "minLength": 1,
+                "type": "string"
+              },
+              "sourceSHA256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              }
             },
-            "maxItems": 32,
-            "minItems": 1,
-            "type": "array"
-          },
-          "mediaType": {
-            "maxLength": 127,
-            "type": "string"
-          },
-          "operationID": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-            "type": "string"
-          },
-          "receiptKind": {
-            "enum": [
-              "attachmentCommit",
-              "noteCommit"
+            "required": [
+              "kind",
+              "artifactID",
+              "operationID",
+              "logicalPath",
+              "mediaType",
+              "resultLength",
+              "resultSHA256",
+              "commitSequence",
+              "expectedExistingPolicy",
+              "expectedExistingSHA256",
+              "equivalenceRule",
+              "sourceID",
+              "sourceMediaType",
+              "sourceLength",
+              "sourceSHA256",
+              "journalFrontier",
+              "receiptKind"
             ],
-            "type": "string"
+            "type": "object"
           },
-          "sha256": {
-            "pattern": "^[0-9a-f]{64}$",
-            "type": "string"
-          },
-          "sourceID": {
-            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
-            "type": "string"
+          {
+            "additionalProperties": false,
+            "properties": {
+              "artifactID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "commitSequence": {
+                "maximum": 128,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "equivalenceRule": {
+                "enum": [
+                  "exactBytes",
+                  "sameSourceAndResultHash"
+                ]
+              },
+              "expectedExistingPolicy": {
+                "enum": [
+                  "absent",
+                  "hashMatch",
+                  "any"
+                ]
+              },
+              "expectedExistingSHA256": {
+                "oneOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "expectedOriginalSHA256": {
+                "oneOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "journalFrontier": {
+                "const": "noteVerified"
+              },
+              "kind": {
+                "const": "note"
+              },
+              "logicalPath": {
+                "items": {
+                  "maxLength": 255,
+                  "minLength": 1,
+                  "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "mediaType": {
+                "maxLength": 127,
+                "minLength": 1,
+                "type": "string"
+              },
+              "operationID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "preparedStreamID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "receiptKind": {
+                "const": "noteCommit"
+              },
+              "resultLength": {
+                "maximum": 1073741824,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "resultSHA256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "writeMode": {
+                "enum": [
+                  "create",
+                  "replace",
+                  "append",
+                  "prepend",
+                  "insertHeading"
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "artifactID",
+              "operationID",
+              "logicalPath",
+              "mediaType",
+              "resultLength",
+              "resultSHA256",
+              "commitSequence",
+              "expectedExistingPolicy",
+              "expectedExistingSHA256",
+              "equivalenceRule",
+              "writeMode",
+              "expectedOriginalSHA256",
+              "preparedStreamID",
+              "journalFrontier",
+              "receiptKind"
+            ],
+            "type": "object"
           }
-        },
-        "required": [
-          "artifactID",
-          "operationID",
-          "kind",
-          "mediaType",
-          "length",
-          "sha256",
-          "commitSequence",
-          "journalFrontier",
-          "receiptKind"
-        ],
-        "type": "object"
+        ]
       },
       "maxItems": 129,
       "minItems": 1,
@@ -104,6 +249,40 @@
     "contractVersion": {
       "const": 1
     },
+    "diagnostics": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "materialized",
+              "existingNoteMutated",
+              "attachmentPlanned"
+            ]
+          },
+          "fieldPath": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "info",
+              "warning"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "severity",
+          "fieldPath"
+        ],
+        "type": "object"
+      },
+      "maxItems": 64,
+      "minItems": 0,
+      "type": "array"
+    },
     "operation": {
       "enum": [
         "newNote",
@@ -111,8 +290,65 @@
         "existingNoteAppend",
         "existingNotePrepend",
         "existingNoteHeading"
+      ]
+    },
+    "pins": {
+      "additionalProperties": false,
+      "properties": {
+        "coreVersion": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "modelProfileID": {
+          "oneOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "modelRevision": {
+          "oneOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "profileID": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "profileVersion": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "rendererRevision": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "coreVersion",
+        "rendererRevision",
+        "profileID",
+        "profileVersion",
+        "modelProfileID",
+        "modelRevision"
       ],
-      "type": "string"
+      "type": "object"
     },
     "planHash": {
       "pattern": "^[0-9a-f]{64}$",
@@ -138,11 +374,6 @@
       ],
       "type": "object"
     },
-    "rendererRevision": {
-      "maxLength": 64,
-      "minLength": 1,
-      "type": "string"
-    },
     "requestID": {
       "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
       "type": "string"
@@ -150,42 +381,71 @@
     "retryMarker": {
       "additionalProperties": false,
       "properties": {
+        "placement": {
+          "enum": [
+            "none",
+            "entrySuffixBeforeFinalNewline"
+          ]
+        },
         "policy": {
           "enum": [
             "none",
             "voxCaptureCommentV1"
-          ],
-          "type": "string"
+          ]
         },
         "syntax": {
-          "maxLength": 128,
-          "type": "string"
+          "enum": [
+            "",
+            "<!-- vox-capture:{lowercase-uuid} -->"
+          ]
         }
       },
       "required": [
         "policy",
-        "syntax"
+        "syntax",
+        "placement"
       ],
       "type": "object"
     },
     "warnings": {
       "items": {
-        "maxLength": 128,
-        "type": "string"
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "templateAbsent",
+              "collisionSuffixApplied",
+              "frontmatterNormalized"
+            ]
+          },
+          "fieldPath": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "fieldPath"
+        ],
+        "type": "object"
       },
       "maxItems": 64,
+      "minItems": 0,
       "type": "array"
     }
   },
   "required": [
     "contractVersion",
     "requestID",
-    "rendererRevision",
+    "pins",
     "planHash",
     "operation",
     "retryMarker",
+    "preparedByteDelivery",
     "artifacts",
-    "preparedByteDelivery"
+    "warnings",
+    "diagnostics"
   ],
   "title": "artifact-plan",
   "type": "object"
