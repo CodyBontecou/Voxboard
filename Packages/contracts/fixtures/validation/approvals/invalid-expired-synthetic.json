@@ -1,0 +1,15 @@
+{
+  "$schema": "https://vox.md/contracts/schemas/approval.schema.json",
+  "schemaVersion": 1,
+  "approvalID": "synthetic-definition-approval",
+  "kind": "definition",
+  "status": "approved",
+  "subjectID": "synthetic-definition-set",
+  "subjectSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "definitionAggregateSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "evidenceAggregateSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "approvedBy": "synthetic-reviewer",
+  "approvedAt": "2029-01-01T00:00:00Z",
+  "expiresAt": "2028-01-01T00:00:00Z",
+  "rationale": "Synthetic fixture approval for validator tests only"
+}
