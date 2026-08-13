@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vox.md/contracts/schemas/provider-matrix.schema.json",
+  "title": "SAF provider matrix definition",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "matrixID", "campaignFactsRequired", "providers", "replacementPolicy"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {"const": "../schemas/provider-matrix.schema.json"},
+    "schemaVersion": {"const": 1},
+    "matrixID": {"type": "string", "minLength": 1},
+    "campaignFactsRequired": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"enum": ["installedPackageVersion", "signingCertificateSha256"]}},
+    "providers": {"type": "array", "minItems": 3, "items": {"$ref": "#/$defs/provider"}},
+    "replacementPolicy": {"type": "object", "required": ["allowed", "requiresApproval", "requirements"], "additionalProperties": false, "properties": {"allowed": {"type": "boolean"}, "requiresApproval": {"const": true}, "requirements": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}}}
+  },
+  "$defs": {
+    "provider": {"type": "object", "required": ["id", "kind", "required", "displayName", "authority", "packageName"], "additionalProperties": false, "properties": {"id": {"type": "string", "pattern": "^[a-z0-9-]+$"}, "kind": {"enum": ["local", "nonLocal"]}, "required": {"type": "boolean"}, "displayName": {"type": "string", "minLength": 1}, "authority": {"type": "string", "pattern": "^[A-Za-z0-9_.]+$"}, "packageName": {"type": "string", "pattern": "^[A-Za-z0-9_.]+$"}}}
+  }
+}

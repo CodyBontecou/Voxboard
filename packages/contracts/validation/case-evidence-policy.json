@@ -1,0 +1,24 @@
+{
+  "$schema": "../schemas/case-evidence-requirements.schema.json",
+  "schemaVersion": 1,
+  "policyID": "android-wear-case-evidence-policy-v1",
+  "recordSchema": "../schemas/case-evidence.schema.json",
+  "statusVocabulary": ["passed", "failed", "blocked", "notRun", "notApplicable"],
+  "requiredCampaignFacts": [
+    "commitSha",
+    "contractManifestSha256",
+    "signedBuildID",
+    "buildSignatureSha256",
+    "operator",
+    "startedAt",
+    "completedAt",
+    "device.serialHash",
+    "device.osVersion",
+    "device.apiLevel",
+    "device.buildFingerprint",
+    "provider.installedPackageVersion",
+    "provider.signingCertificateSha256"
+  ],
+  "placeholderTokensRejected": ["tbd", "todo", "unknown", "placeholder"],
+  "privacyForbiddenKinds": ["noteText", "transcriptText", "audio", "filename", "path", "uri", "documentID", "bookmark", "coordinate", "rawWearPayload"]
+}

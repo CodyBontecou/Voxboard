@@ -1,0 +1,42 @@
+{
+  "$schema": "../schemas/provider-matrix.schema.json",
+  "schemaVersion": 1,
+  "matrixID": "android-documents-provider-matrix-v1",
+  "campaignFactsRequired": ["installedPackageVersion", "signingCertificateSha256"],
+  "providers": [
+    {
+      "id": "documentsui-local",
+      "kind": "local",
+      "required": true,
+      "displayName": "DocumentsUI local storage",
+      "authority": "com.android.externalstorage.documents",
+      "packageName": "com.google.android.documentsui"
+    },
+    {
+      "id": "google-drive",
+      "kind": "nonLocal",
+      "required": true,
+      "displayName": "Google Drive",
+      "authority": "com.google.android.apps.docs.storage",
+      "packageName": "com.google.android.apps.docs"
+    },
+    {
+      "id": "microsoft-onedrive",
+      "kind": "nonLocal",
+      "required": true,
+      "displayName": "Microsoft OneDrive",
+      "authority": "com.microsoft.skydrive.content.StorageAccessProvider",
+      "packageName": "com.microsoft.skydrive"
+    }
+  ],
+  "replacementPolicy": {
+    "allowed": true,
+    "requiresApproval": true,
+    "requirements": [
+      "Provider is non-local and exposes ACTION_OPEN_DOCUMENT_TREE.",
+      "Exact authority, package name, installed version, and signing-certificate SHA-256 are recorded.",
+      "The complete SAF case set is executed.",
+      "Replacement rationale demonstrates the required provider was unavailable."
+    ]
+  }
+}

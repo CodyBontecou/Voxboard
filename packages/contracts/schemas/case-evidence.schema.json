@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vox.md/contracts/schemas/case-evidence.schema.json",
+  "title": "Completed validation case evidence",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "campaignID", "evidenceID", "caseID", "status", "commitSha", "contractManifestSha256", "signedBuildID", "buildSignatureSha256", "operator", "startedAt", "completedAt", "expected", "actual", "fixtureHashes", "measurements", "invariantResults", "artifacts"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {"const": "https://vox.md/contracts/schemas/case-evidence.schema.json"},
+    "schemaVersion": {"const": 1},
+    "campaignID": {"$ref": "#/$defs/nonPlaceholder"},
+    "evidenceID": {"$ref": "#/$defs/nonPlaceholder"},
+    "caseID": {"pattern": "^(REC|SAF|WEAR|PERF)-[0-9]{3}$"},
+    "status": {"enum": ["passed", "failed", "blocked", "notRun", "notApplicable"]},
+    "notApplicableRule": {"type": "string", "minLength": 1},
+    "commitSha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "contractManifestSha256": {"$ref": "#/$defs/sha256"},
+    "signedBuildID": {"$ref": "#/$defs/nonPlaceholder"},
+    "buildSignatureSha256": {"$ref": "#/$defs/sha256"},
+    "operator": {"$ref": "#/$defs/nonPlaceholder"},
+    "startedAt": {"type": "string", "format": "date-time"},
+    "completedAt": {"type": "string", "format": "date-time"},
+    "device": {"$ref": "#/$defs/device"},
+    "provider": {"$ref": "#/$defs/provider"},
+    "expected": {"type": "string", "minLength": 1},
+    "actual": {"type": "string", "minLength": 1},
+    "fixtureHashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/hashRef"}},
+    "measurements": {"type": "array", "items": {"$ref": "#/$defs/measurement"}},
+    "invariantResults": {"type": "array", "items": {"type": "object", "required": ["invariantID", "passed"], "additionalProperties": false, "properties": {"invariantID": {"pattern": "^INV-[A-Z0-9-]+$"}, "passed": {"type": "boolean"}}}},
+    "artifacts": {"type": "array", "items": {"$ref": "#/$defs/hashRef"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nonPlaceholder": {"type": "string", "minLength": 1, "not": {"pattern": "^(?:[Tt][Bb][Dd]|[Tt][Oo][Dd][Oo]|[Uu][Nn][Kk][Nn][Oo][Ww][Nn]|[Pp][Ll][Aa][Cc][Ee][Hh][Oo][Ll][Dd][Ee][Rr]|[Nn]/[Aa])$"}},
+    "hashRef": {"type": "object", "required": ["id", "sha256"], "additionalProperties": false, "properties": {"id": {"$ref": "#/$defs/nonPlaceholder"}, "sha256": {"$ref": "#/$defs/sha256"}}},
+    "measurement": {"type": "object", "required": ["gateID", "value", "unit"], "additionalProperties": false, "properties": {"gateID": {"type": "string", "minLength": 1}, "value": {"type": "number"}, "unit": {"enum": ["ms", "s", "bytes", "ratio", "percent"]}}},
+    "device": {"type": "object", "required": ["roleID", "manufacturer", "model", "serialHash", "osVersion", "apiLevel", "buildFingerprint", "totalStorageBytes", "freeStorageBytes"], "additionalProperties": false, "properties": {"roleID": {"$ref": "#/$defs/nonPlaceholder"}, "manufacturer": {"$ref": "#/$defs/nonPlaceholder"}, "model": {"$ref": "#/$defs/nonPlaceholder"}, "serialHash": {"$ref": "#/$defs/sha256"}, "osVersion": {"$ref": "#/$defs/nonPlaceholder"}, "apiLevel": {"type": "integer", "minimum": 1}, "buildFingerprint": {"$ref": "#/$defs/nonPlaceholder"}, "totalStorageBytes": {"type": "integer", "minimum": 1}, "freeStorageBytes": {"type": "integer", "minimum": 0}}},
+    "provider": {"type": "object", "required": ["providerID", "authority", "packageName", "installedPackageVersion", "signingCertificateSha256"], "additionalProperties": false, "properties": {"providerID": {"$ref": "#/$defs/nonPlaceholder"}, "authority": {"$ref": "#/$defs/nonPlaceholder"}, "packageName": {"$ref": "#/$defs/nonPlaceholder"}, "installedPackageVersion": {"$ref": "#/$defs/nonPlaceholder"}, "signingCertificateSha256": {"$ref": "#/$defs/sha256"}}}
+  }
+}

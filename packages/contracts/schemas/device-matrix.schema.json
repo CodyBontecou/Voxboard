@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vox.md/contracts/schemas/device-matrix.schema.json",
+  "title": "Android/Wear device matrix definition",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "matrixID", "campaignFactsRequired", "roles"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {"const": "../schemas/device-matrix.schema.json"},
+    "schemaVersion": {"const": 1},
+    "matrixID": {"type": "string", "minLength": 1},
+    "campaignFactsRequired": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["serialHash", "osVersion", "apiLevel", "buildFingerprint", "signedBuildID", "buildSignatureSha256"]}},
+    "roles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/role"}}
+  },
+  "$defs": {
+    "apiRange": {"type": "object", "required": ["minimum", "maximum"], "additionalProperties": false, "properties": {"minimum": {"type": "integer", "minimum": 1}, "maximum": {"type": "integer", "minimum": 1}}},
+    "target": {"type": "object", "required": ["manufacturer", "model", "apiRange"], "additionalProperties": false, "properties": {"manufacturer": {"type": "string", "minLength": 1}, "model": {"type": "string", "minLength": 1}, "apiRange": {"$ref": "#/$defs/apiRange"}}},
+    "floor": {"type": "object", "required": ["minimumBytes", "minimumCapacityFraction", "rule"], "additionalProperties": false, "properties": {"minimumBytes": {"const": 1073741824}, "minimumCapacityFraction": {"const": 0.2}, "rule": {"const": "max"}}},
+    "role": {"type": "object", "required": ["id", "platform", "required", "procurementTarget"], "additionalProperties": false, "properties": {"id": {"type": "string", "pattern": "^[a-z0-9-]+$"}, "platform": {"enum": ["androidPhone", "androidTablet", "wearOS"]}, "required": {"type": "boolean"}, "procurementTarget": {"$ref": "#/$defs/target"}, "fallback": {"type": "string", "minLength": 1}, "freeStorageFloor": {"$ref": "#/$defs/floor"}}}
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vox.md/contracts/schemas/approval.schema.json",
+  "title": "Validation approval",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "approvalID", "kind", "status", "subjectID", "subjectSha256", "approvedBy", "approvedAt", "expiresAt", "rationale"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {"const": "https://vox.md/contracts/schemas/approval.schema.json"},
+    "schemaVersion": {"const": 1},
+    "approvalID": {"type": "string", "minLength": 1},
+    "kind": {"enum": ["definition", "campaign", "releaseGate", "providerReplacement", "lowTierEmulatorFallback", "waiver"]},
+    "status": {"enum": ["approved", "rejected", "pending", "expired"]},
+    "subjectID": {"type": "string", "minLength": 1},
+    "subjectSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "approvedBy": {"type": "string", "minLength": 1},
+    "approvedAt": {"type": "string", "format": "date-time"},
+    "expiresAt": {"type": "string", "format": "date-time"},
+    "rationale": {"type": "string", "minLength": 1},
+    "requirementID": {"type": "string", "minLength": 1},
+    "owner": {"type": "string", "minLength": 1}
+  }
+}

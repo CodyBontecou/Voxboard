@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vox.md/contracts/schemas/approval-policy.schema.json",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "policyID", "recordSchema", "requiredKinds", "statuses", "rules"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {"const": "../schemas/approval-policy.schema.json"},
+    "schemaVersion": {"const": 1},
+    "policyID": {"type": "string", "minLength": 1},
+    "recordSchema": {"const": "../schemas/approval.schema.json"},
+    "requiredKinds": {"const": ["definition", "campaign", "releaseGate"]},
+    "statuses": {"const": ["approved", "rejected", "pending", "expired"]},
+    "rules": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  }
+}

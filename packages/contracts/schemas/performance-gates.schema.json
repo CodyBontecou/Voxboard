@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vox.md/contracts/schemas/performance-gates.schema.json",
+  "title": "Performance gate definitions",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "gateSetID", "gates", "deferredRequiredBudgets"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {"const": "../schemas/performance-gates.schema.json"},
+    "schemaVersion": {"const": 1},
+    "gateSetID": {"type": "string", "minLength": 1},
+    "gates": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/gate"}},
+    "deferredRequiredBudgets": {"type": "array", "items": {"$ref": "#/$defs/deferred"}}
+  },
+  "$defs": {
+    "gate": {"type": "object", "required": ["id", "milestone", "metric", "statistic", "operator", "value", "unit"], "additionalProperties": false, "properties": {"id": {"type": "string", "pattern": "^[a-z0-9_]+(?:-[a-z0-9_]+)*$"}, "milestone": {"pattern": "^M[0-9]+$"}, "metric": {"enum": ["duration", "additionalRSS", "peakRSS", "chunkSize", "acceptedAggregateInput", "ratio", "batteryConsumption", "artifactSize", "growth"]}, "statistic": {"enum": ["p95", "maximum", "minimum"]}, "operator": {"enum": ["lessThanOrEqual", "greaterThanOrEqual"]}, "value": {"type": "number", "exclusiveMinimum": 0}, "unit": {"enum": ["ms", "s", "bytes", "ratio", "percent"]}, "scope": {"type": "string", "minLength": 1}}},
+    "deferred": {"type": "object", "required": ["id", "requiredBeforeMilestone", "reason"], "additionalProperties": false, "properties": {"id": {"type": "string", "minLength": 1}, "requiredBeforeMilestone": {"pattern": "^M[0-9]+$"}, "reason": {"type": "string", "minLength": 1}}}
+  }
+}

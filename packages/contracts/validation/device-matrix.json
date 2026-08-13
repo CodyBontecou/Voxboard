@@ -1,0 +1,78 @@
+{
+  "$schema": "../schemas/device-matrix.schema.json",
+  "schemaVersion": 1,
+  "matrixID": "android-wear-device-matrix-v1",
+  "campaignFactsRequired": [
+    "serialHash",
+    "osVersion",
+    "apiLevel",
+    "buildFingerprint",
+    "signedBuildID",
+    "buildSignatureSha256"
+  ],
+  "roles": [
+    {
+      "id": "phone-low-api28",
+      "platform": "androidPhone",
+      "required": true,
+      "procurementTarget": {
+        "manufacturer": "Google",
+        "model": "Pixel 3",
+        "apiRange": {"minimum": 28, "maximum": 30}
+      },
+      "fallback": "API 28 emulator is allowed only when maintained physical hardware is unobtainable and must be explicitly approved; recorder, battery, thermal, microphone, and physical-provider cases remain blocked."
+    },
+    {
+      "id": "phone-current-pixel",
+      "platform": "androidPhone",
+      "required": true,
+      "procurementTarget": {
+        "manufacturer": "Google",
+        "model": "Pixel 10 Pro",
+        "apiRange": {"minimum": 36, "maximum": 36}
+      }
+    },
+    {
+      "id": "phone-current-samsung",
+      "platform": "androidPhone",
+      "required": true,
+      "procurementTarget": {
+        "manufacturer": "Samsung",
+        "model": "Galaxy S26",
+        "apiRange": {"minimum": 36, "maximum": 36}
+      }
+    },
+    {
+      "id": "large-screen",
+      "platform": "androidTablet",
+      "required": true,
+      "procurementTarget": {
+        "manufacturer": "Samsung",
+        "model": "Galaxy Tab S11",
+        "apiRange": {"minimum": 35, "maximum": 36}
+      }
+    },
+    {
+      "id": "wear-reference",
+      "platform": "wearOS",
+      "required": true,
+      "procurementTarget": {
+        "manufacturer": "Google",
+        "model": "Pixel Watch 4",
+        "apiRange": {"minimum": 35, "maximum": 35}
+      },
+      "freeStorageFloor": {"minimumBytes": 1073741824, "minimumCapacityFraction": 0.2, "rule": "max"}
+    },
+    {
+      "id": "wear-samsung",
+      "platform": "wearOS",
+      "required": true,
+      "procurementTarget": {
+        "manufacturer": "Samsung",
+        "model": "Galaxy Watch8",
+        "apiRange": {"minimum": 35, "maximum": 35}
+      },
+      "freeStorageFloor": {"minimumBytes": 1073741824, "minimumCapacityFraction": 0.2, "rule": "max"}
+    }
+  ]
+}

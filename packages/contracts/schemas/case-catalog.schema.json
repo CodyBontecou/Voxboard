@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vox.md/contracts/schemas/case-catalog.schema.json",
+  "title": "Validation case catalog",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "catalogID", "statusVocabulary", "nonWaivableInvariants", "cases"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {"const": "../schemas/case-catalog.schema.json"},
+    "schemaVersion": {"const": 1},
+    "catalogID": {"type": "string", "minLength": 1},
+    "statusVocabulary": {"const": ["passed", "failed", "blocked", "notRun", "notApplicable"]},
+    "nonWaivableInvariants": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "text"], "additionalProperties": false, "properties": {"id": {"type": "string", "pattern": "^INV-[A-Z0-9-]+$"}, "text": {"type": "string", "minLength": 1}}}},
+    "cases": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/case"}}
+  },
+  "$defs": {
+    "case": {"type": "object", "required": ["id", "title", "category", "required", "deviceRoles", "providerApplicability", "invariants", "expected"], "additionalProperties": false, "properties": {"id": {"type": "string", "pattern": "^(REC|SAF|WEAR|PERF)-[0-9]{3}$"}, "title": {"type": "string", "minLength": 1}, "category": {"enum": ["REC", "SAF", "WEAR", "PERF"]}, "required": {"type": "boolean"}, "milestone": {"pattern": "^M[0-9]+$"}, "deviceRoles": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "providerApplicability": {"enum": ["none", "allRequired", "nonLocalRequired"]}, "performanceGateIDs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "invariants": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^INV-[A-Z0-9-]+$"}}, "expected": {"type": "string", "minLength": 1}}}
+  }
+}

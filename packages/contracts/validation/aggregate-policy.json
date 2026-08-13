@@ -1,0 +1,28 @@
+{
+  "$schema": "../schemas/aggregate.schema.json",
+  "schemaVersion": 1,
+  "policyID": "android-wear-aggregate-policy-v1",
+  "statusVocabulary": ["passed", "failed", "blocked", "incomplete"],
+  "passingStatus": "passed",
+  "requirements": [
+    "All definition documents validate against their declared schemas and cross-references.",
+    "Every required applicable case/device/provider tuple has current passed evidence.",
+    "Every referenced performance gate has a conforming measurement.",
+    "Every non-waivable invariant is evaluated and passed.",
+    "Every required approval is approved, unexpired, and references the exact definition/evidence aggregate hashes.",
+    "No campaign identity field is absent, placeholder, or fabricated.",
+    "No evidence or attachment violates privacy-safe diagnostics rules."
+  ],
+  "statusRules": {
+    "passed": "All requirements are true and no required tuple is failed, blocked, notRun, or unauthorized notApplicable.",
+    "failed": "Any executed required case, numerical gate, or non-waivable invariant fails.",
+    "blocked": "Execution cannot proceed because required hardware, provider, permission, model, account, or approval is unavailable.",
+    "incomplete": "Required evidence or campaign identity is missing, stale, notRun, or awaiting review."
+  },
+  "waiverPolicy": {
+    "nonWaivableInvariantIDs": ["INV-LAST-DURABLE-COPY", "INV-NO-NETWORK-INFERENCE", "INV-NO-BLIND-RETRY", "INV-BOUND-CONTENT", "INV-PRIVACY-DIAGNOSTICS", "INV-WEAR-ACK-DELETE"],
+    "waiverCanProducePassedCase": false,
+    "requiredFields": ["requirementID", "rationale", "owner", "approvedBy", "approvedAt", "expiresAt"]
+  },
+  "requiredApprovalKinds": ["definition", "campaign", "releaseGate"]
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "../schemas/approval-policy.schema.json",
+  "schemaVersion": 1,
+  "policyID": "android-wear-approval-policy-v1",
+  "recordSchema": "../schemas/approval.schema.json",
+  "requiredKinds": ["definition", "campaign", "releaseGate"],
+  "statuses": ["approved", "rejected", "pending", "expired"],
+  "rules": [
+    "Approvals reference the SHA-256 of the exact subject.",
+    "Approval identity and timestamps are observed campaign facts and are never prefilled in M1 definitions.",
+    "Expired, pending, or rejected approvals do not satisfy a gate.",
+    "No approval or waiver may override a non-waivable safety invariant."
+  ]
+}
