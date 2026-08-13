@@ -1,0 +1,665 @@
+{
+  "calendar": "gregorian",
+  "captureSource": "app",
+  "contractVersion": 1,
+  "createdAt": 1700000000000,
+  "operation": "newNote",
+  "payloads": [
+    {
+      "id": "00000001-0000-4000-8000-000000000001",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000002-0000-4000-8000-000000000002",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000003-0000-4000-8000-000000000003",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000004-0000-4000-8000-000000000004",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000005-0000-4000-8000-000000000005",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000006-0000-4000-8000-000000000006",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000007-0000-4000-8000-000000000007",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000008-0000-4000-8000-000000000008",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000009-0000-4000-8000-000000000009",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000000a-0000-4000-8000-00000000000a",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000000b-0000-4000-8000-00000000000b",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000000c-0000-4000-8000-00000000000c",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000000d-0000-4000-8000-00000000000d",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000000e-0000-4000-8000-00000000000e",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000000f-0000-4000-8000-00000000000f",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000010-0000-4000-8000-000000000010",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000011-0000-4000-8000-000000000011",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000012-0000-4000-8000-000000000012",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000013-0000-4000-8000-000000000013",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000014-0000-4000-8000-000000000014",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000015-0000-4000-8000-000000000015",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000016-0000-4000-8000-000000000016",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000017-0000-4000-8000-000000000017",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000018-0000-4000-8000-000000000018",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000019-0000-4000-8000-000000000019",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000001a-0000-4000-8000-00000000001a",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000001b-0000-4000-8000-00000000001b",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000001c-0000-4000-8000-00000000001c",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000001d-0000-4000-8000-00000000001d",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000001e-0000-4000-8000-00000000001e",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000001f-0000-4000-8000-00000000001f",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000020-0000-4000-8000-000000000020",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000021-0000-4000-8000-000000000021",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000022-0000-4000-8000-000000000022",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000023-0000-4000-8000-000000000023",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000024-0000-4000-8000-000000000024",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000025-0000-4000-8000-000000000025",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000026-0000-4000-8000-000000000026",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000027-0000-4000-8000-000000000027",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000028-0000-4000-8000-000000000028",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000029-0000-4000-8000-000000000029",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000002a-0000-4000-8000-00000000002a",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000002b-0000-4000-8000-00000000002b",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000002c-0000-4000-8000-00000000002c",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000002d-0000-4000-8000-00000000002d",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000002e-0000-4000-8000-00000000002e",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000002f-0000-4000-8000-00000000002f",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000030-0000-4000-8000-000000000030",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000031-0000-4000-8000-000000000031",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000032-0000-4000-8000-000000000032",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000033-0000-4000-8000-000000000033",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000034-0000-4000-8000-000000000034",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000035-0000-4000-8000-000000000035",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000036-0000-4000-8000-000000000036",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000037-0000-4000-8000-000000000037",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000038-0000-4000-8000-000000000038",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000039-0000-4000-8000-000000000039",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000003a-0000-4000-8000-00000000003a",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000003b-0000-4000-8000-00000000003b",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000003c-0000-4000-8000-00000000003c",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000003d-0000-4000-8000-00000000003d",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000003e-0000-4000-8000-00000000003e",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000003f-0000-4000-8000-00000000003f",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000040-0000-4000-8000-000000000040",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000041-0000-4000-8000-000000000041",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000042-0000-4000-8000-000000000042",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000043-0000-4000-8000-000000000043",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000044-0000-4000-8000-000000000044",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000045-0000-4000-8000-000000000045",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000046-0000-4000-8000-000000000046",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000047-0000-4000-8000-000000000047",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000048-0000-4000-8000-000000000048",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000049-0000-4000-8000-000000000049",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000004a-0000-4000-8000-00000000004a",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000004b-0000-4000-8000-00000000004b",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000004c-0000-4000-8000-00000000004c",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000004d-0000-4000-8000-00000000004d",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000004e-0000-4000-8000-00000000004e",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000004f-0000-4000-8000-00000000004f",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000050-0000-4000-8000-000000000050",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000051-0000-4000-8000-000000000051",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000052-0000-4000-8000-000000000052",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000053-0000-4000-8000-000000000053",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000054-0000-4000-8000-000000000054",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000055-0000-4000-8000-000000000055",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000056-0000-4000-8000-000000000056",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000057-0000-4000-8000-000000000057",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000058-0000-4000-8000-000000000058",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000059-0000-4000-8000-000000000059",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000005a-0000-4000-8000-00000000005a",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000005b-0000-4000-8000-00000000005b",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000005c-0000-4000-8000-00000000005c",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000005d-0000-4000-8000-00000000005d",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000005e-0000-4000-8000-00000000005e",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000005f-0000-4000-8000-00000000005f",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000060-0000-4000-8000-000000000060",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000061-0000-4000-8000-000000000061",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000062-0000-4000-8000-000000000062",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000063-0000-4000-8000-000000000063",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000064-0000-4000-8000-000000000064",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000065-0000-4000-8000-000000000065",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000066-0000-4000-8000-000000000066",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000067-0000-4000-8000-000000000067",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000068-0000-4000-8000-000000000068",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000069-0000-4000-8000-000000000069",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000006a-0000-4000-8000-00000000006a",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000006b-0000-4000-8000-00000000006b",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000006c-0000-4000-8000-00000000006c",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000006d-0000-4000-8000-00000000006d",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000006e-0000-4000-8000-00000000006e",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000006f-0000-4000-8000-00000000006f",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000070-0000-4000-8000-000000000070",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000071-0000-4000-8000-000000000071",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000072-0000-4000-8000-000000000072",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000073-0000-4000-8000-000000000073",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000074-0000-4000-8000-000000000074",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000075-0000-4000-8000-000000000075",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000076-0000-4000-8000-000000000076",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000077-0000-4000-8000-000000000077",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000078-0000-4000-8000-000000000078",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000079-0000-4000-8000-000000000079",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000007a-0000-4000-8000-00000000007a",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000007b-0000-4000-8000-00000000007b",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000007c-0000-4000-8000-00000000007c",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000007d-0000-4000-8000-00000000007d",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000007e-0000-4000-8000-00000000007e",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "0000007f-0000-4000-8000-00000000007f",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    },
+    {
+      "id": "00000080-0000-4000-8000-000000000080",
+      "kind": "text",
+      "text": "Synthetic capture text."
+    }
+  ],
+  "preset": {
+    "id": "33333333-3333-4333-8333-333333333333",
+    "retryMarkerPolicy": "voxCaptureCommentV1",
+    "revision": 7,
+    "snapshotHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "templateFreezePoint": "firstPreparation"
+  },
+  "requestID": "11111111-1111-4111-8111-111111111111",
+  "routePolicy": {
+    "collisionPolicy": "reuseIfHashMatches",
+    "logicalFolder": [
+      "Synthetic Vault",
+      "Inbox"
+    ]
+  },
+  "timezone": "America/Los_Angeles"
+}

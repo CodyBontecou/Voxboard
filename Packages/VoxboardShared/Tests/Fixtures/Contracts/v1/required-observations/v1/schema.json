@@ -1,0 +1,68 @@
+{
+  "$defs": {},
+  "$id": "https://vox.md/contracts/required-observations/v1/schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "contractVersion": {
+      "const": 1
+    },
+    "observations": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "candidateOccupancy",
+              "frozenTemplate",
+              "existingNote",
+              "stagedAssetMetadata"
+            ],
+            "type": "string"
+          },
+          "maximumBytes": {
+            "maximum": 268435456,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "required"
+        ],
+        "type": "object"
+      },
+      "maxItems": 256,
+      "type": "array"
+    },
+    "preparationRevision": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "requestID": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "snapshotHash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contractVersion",
+    "requestID",
+    "preparationRevision",
+    "snapshotHash",
+    "observations"
+  ],
+  "title": "required-observations",
+  "type": "object"
+}
