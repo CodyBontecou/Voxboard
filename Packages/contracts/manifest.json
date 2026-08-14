@@ -1,10 +1,10 @@
 {
   "files": [
     {
-      "bytes": 2488,
+      "bytes": 2844,
       "category": "contractWorkflow",
       "path": ".github/workflows/contracts-ci.yml",
-      "sha256": "581f96928b931c74db1c55f1fc9fc7ddebe72af030a5087dd823268d22856967"
+      "sha256": "97bf02ae3729d41b1601c25e4751434eb8e324ad41c098eaf62dfae3c9b30d82"
     },
     {
       "bytes": 2167,
@@ -580,7 +580,7 @@
       "bytes": 262281,
       "category": "capabilityInventory",
       "path": "Packages/contracts/product-capabilities.json",
-      "sha256": "1bf64026b1e3c3b47747256db47ee05f53e124f65d71eaa2978fbd49f6533377"
+      "sha256": "342baab4f9587bc73ad54d0b698ca24dce1c437b21a8bfe18f1c480046ee0452"
     },
     {
       "bytes": 751,
@@ -715,16 +715,16 @@
       "sha256": "47efdf42e3db45550fba8deb56703da6764301f21ad3eb734ff1110370f792fb"
     },
     {
-      "bytes": 11270,
+      "bytes": 13062,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_toolchain.py",
-      "sha256": "9add7c6f43cf256ad33123638818bd740cd2527de480f410581a4cdb32ef9571"
+      "sha256": "19f3ad2fbb86179026db32664a42fd7b9e65f1a2e510ee7e96f0bfc9eff8271c"
     },
     {
-      "bytes": 113067,
+      "bytes": 113342,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_validation_definitions.py",
-      "sha256": "ba7fde7fb6f5335935d09ff4495876cba902b2659be2bbe4cc441c56d9a32208"
+      "sha256": "2efe302890dcf841553348295b317b3e94f81dffddb26a9833143613b0d8974b"
     },
     {
       "bytes": 6065,
@@ -739,16 +739,16 @@
       "sha256": "65e1532465e3cd82273e0012a40606ae89ce0aa064b4d20df4cb3d2e40739b13"
     },
     {
-      "bytes": 19273,
+      "bytes": 21073,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "cd600716a2368eaae3af92f7e33fd64413e63ce21cc64bb39a5fe87dbcfdd266"
+      "sha256": "6461ddad233f8b38af1a14af003fdfcafdd060595650b2e57efe323f6eb25037"
     },
     {
-      "bytes": 80818,
+      "bytes": 83193,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validation_definitions.py",
-      "sha256": "29abb9408e101e7b736d6d9823080c22f8d2ee8c0acf002e262a042a9887a1f3"
+      "sha256": "cf481078878dd7100ae0ca972d350bdc3bd303406f78facbe4be53e5070304d1"
     },
     {
       "bytes": 2641,
@@ -763,10 +763,10 @@
       "sha256": "06bba2f99b625d5fed917124389fc5c0c5cb3a35e0c0e3e33485aa995a8ab322"
     },
     {
-      "bytes": 21359,
+      "bytes": 23859,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/case-catalog.json",
-      "sha256": "69be8928dcadca737c0745b976af49c8a69cf56afedc7d9af8cd4b2e30ef7896"
+      "sha256": "b6bed92e7f31aea5baccf8cab5fa9213906077ef328324c32326a198619d9919"
     },
     {
       "bytes": 2099,
@@ -985,10 +985,10 @@
       "sha256": "1ae7779e0f5dde8a02bd9f6dc94c2f7c4d84bed913d6484fff852f47dfb40aa2"
     },
     {
-      "bytes": 5648,
+      "bytes": 5663,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.schema.json",
-      "sha256": "ad676735646e721c2255c02b9e28fbf56731263349cf293e4ceaa3cb8f24cbab"
+      "sha256": "7665aa1ed8281f7959934685715a3f49329c3577af89b38df6801bca0c6d2734"
     }
   ],
   "fixtureCases": [

@@ -7,7 +7,9 @@ stdlib-only `Packages/contracts/scripts/validate_toolchain.py`. Native M2 pins r
 1.97.1, MSRV 1.87.0, edition 2024/resolver 3, UniFFI 0.32.0, cargo-ndk 4.1.2,
 NDK 27.1.12297006/API 28, and Xcode 26.6 (`17F113`)/Swift 6.3.3/iOS 17.6. Schema version 2
 adds the reviewed Android application entry pins and carries SHA-256 for every governed
-binding/native script plus the Android wrapper/configuration inputs.
+binding/native script plus the Android wrapper/configuration inputs. The validator admits
+one exact ordered, non-shrinkable governed path inventory and binds the complete schema by
+its canonical SHA-256; deleting an inventory row or weakening any schema rule fails closed.
 
 ## Generated bindings
 

@@ -1014,6 +1014,11 @@ def validate_campaign(root:Path,cdir:Path,docs,schemas,repository_root:Path|None
         if e["expected"]!=c["expected"]: raise ValidationError(f"expected outcome drift: {t}")
         if e["contractManifestSha256"]!=digest(root/"manifest.json"): raise ValidationError(f"contract manifest hash mismatch: {t}")
         target=c["executionTarget"]; build=e["buildIdentity"]; status=e["status"]
+        if c["milestone"]=="M3" and status=="passed":
+            raise ValidationError(
+                f"passed M3 evidence is disabled until case-specific governed typed producers, "
+                f"receipts, and exact provenance validation exist: {t[0]}"
+            )
         if status in ("passed","failed") and build is None: raise ValidationError("executed evidence requires build identity")
         if build is None:
             if target=="physicalDevice" and (e["device"] is not None or e["buildHost"] is not None): raise ValidationError("unbuilt physical evidence cannot claim target identity")
@@ -1175,7 +1180,7 @@ def validate(root:Path,campaign:Path|None=None,repository_root:Path|None=None,qu
     if campaign: validate_campaign(root,campaign,docs,schemas,repository_root,qualification,external_root,approval_verifier,hosted_identity_verifier)
     print(f"Validation definitions passed: {len(devices)} roles, {len(providers)} providers, {len(cases)} cases, {len(gates)} gates"+("; scoped campaign computed" if campaign else ""))
 
-CANONICAL_HASHES={'devices': 'ecd13c2b779065abe91824bdbc2726c3e1363368fe46558fe694aa571597d8a4', 'providers': 'd0e9a96c63213cbaa13c587e92b6318ae63f88ecd88b7387c0a441c57e0eaed2', 'cases': '6a3e5e84e2f9be739c0164e1d237ae4fc1966eee2d2408c794c55e39eaaf0120', 'gates': 'f227ffb7119ec4599a46870166b49ce9ed9a30974b3e41db1cb8097e28366559', 'aggregate': 'e99042ec440740050384ae1576c980de7f42a06b96db82d1c5d6d40c2f56ef58', 'evidencePolicy': '8446cf2b15504c7a7b5861e93b5cbbc1477682a8dfb4de8b0c968603caf994fc', 'approvalPolicy': 'c086d7b57f2a832ff6a1d9a8d4acdc0d8d52ffdbf0131a4512fe60b3c6b69e02', 'schemas': 'f147817d0dfb43c1b3de89ba8a5eedffaaca0716a4bbca4f248cc3fd3e66dd51'}
+CANONICAL_HASHES={'devices': 'ecd13c2b779065abe91824bdbc2726c3e1363368fe46558fe694aa571597d8a4', 'providers': 'd0e9a96c63213cbaa13c587e92b6318ae63f88ecd88b7387c0a441c57e0eaed2', 'cases': 'dd002172abe0f59ff784b0237d5422563811f6fb22b8f4ce92449ae9b4b77b8a', 'gates': 'f227ffb7119ec4599a46870166b49ce9ed9a30974b3e41db1cb8097e28366559', 'aggregate': 'e99042ec440740050384ae1576c980de7f42a06b96db82d1c5d6d40c2f56ef58', 'evidencePolicy': '8446cf2b15504c7a7b5861e93b5cbbc1477682a8dfb4de8b0c968603caf994fc', 'approvalPolicy': 'c086d7b57f2a832ff6a1d9a8d4acdc0d8d52ffdbf0131a4512fe60b3c6b69e02', 'schemas': 'f147817d0dfb43c1b3de89ba8a5eedffaaca0716a4bbca4f248cc3fd3e66dd51'}
 
 def main()->int:
     ap=argparse.ArgumentParser(); ap.add_argument("--contracts-root",type=Path,default=Path(__file__).resolve().parents[1]); ap.add_argument("--campaign-dir",type=Path); ap.add_argument("--repository-root",type=Path); ap.add_argument("--qualification",choices=("repositoryObservation","hostedRun","releaseGate")); ap.add_argument("--external-artifact-root",type=Path)

@@ -5397,7 +5397,7 @@
       "owner": "native",
       "parity": "exact",
       "programScope": "parity",
-      "milestone": "M3/M8",
+      "milestone": "M4/M8",
       "dependencies": [
         "dep.quota-policy"
       ],
@@ -8274,7 +8274,7 @@
       "owner": "shared",
       "parity": "exact",
       "programScope": "parity",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "dependencies": [
         "dep.artifact-plan"
       ],
@@ -8307,7 +8307,7 @@
       "owner": "shared",
       "parity": "exact",
       "programScope": "parity",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "dependencies": [
         "dep.artifact-plan"
       ],
@@ -8340,7 +8340,7 @@
       "owner": "shared",
       "parity": "exact",
       "programScope": "parity",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "dependencies": [
         "dep.artifact-plan"
       ],
@@ -8373,7 +8373,7 @@
       "owner": "shared",
       "parity": "exact",
       "programScope": "parity",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "dependencies": [
         "dep.artifact-plan"
       ],
@@ -8406,7 +8406,7 @@
       "owner": "shared",
       "parity": "exact",
       "programScope": "parity",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "dependencies": [
         "dep.artifact-plan"
       ],

@@ -5481,7 +5481,7 @@
       ],
       "id": "cap.quota.transcription",
       "legacyParity": "exact",
-      "milestone": "M3/M8",
+      "milestone": "M4/M8",
       "outcome": "15 free transcription minutes",
       "platforms": [
         "iphone",
@@ -8448,7 +8448,7 @@
       ],
       "id": "cap.preset.audio-save-off",
       "legacyParity": "exact",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "outcome": "Preset does not copy source audio into destination artifacts",
       "platforms": [
         "iphone",
@@ -8482,7 +8482,7 @@
       ],
       "id": "cap.preset.audio-save-alongside",
       "legacyParity": "exact",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "outcome": "Preset copies source audio alongside the transcript note",
       "platforms": [
         "iphone",
@@ -8516,7 +8516,7 @@
       ],
       "id": "cap.preset.audio-save-attachments",
       "legacyParity": "exact",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "outcome": "Preset copies source audio into the configured attachments folder",
       "platforms": [
         "iphone",
@@ -8550,7 +8550,7 @@
       ],
       "id": "cap.preset.audio-reference-top",
       "legacyParity": "exact",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "outcome": "Preset places the audio reference at the top of the transcript",
       "platforms": [
         "iphone",
@@ -8584,7 +8584,7 @@
       ],
       "id": "cap.preset.audio-reference-bottom",
       "legacyParity": "exact",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "outcome": "Preset places the audio reference at the bottom of the transcript",
       "platforms": [
         "iphone",
@@ -8684,6 +8684,6 @@
   "schemaVersion": 1,
   "source": {
     "path": "docs/architecture/android-wear-m0-capabilities.json",
-    "sha256": "2d9b423bcaae978cc3917535068c0c05fec71cfd98c80ea05abc532816eafe1e"
+    "sha256": "ee62cff7916b8359467edfba2e00d7308739d7a3836ec30c3f16e0d88660cf44"
   }
 }

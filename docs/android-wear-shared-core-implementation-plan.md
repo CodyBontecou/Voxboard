@@ -497,14 +497,16 @@ Handle denial, device-wide microphone disablement, lock state, interruptions, an
 | Product capability | Android/Wear implementation | Parity classification | Delivery milestone |
 |---|---|---|---|
 | Text and link capture | Compose composer + Rust materialization + SAF | Exact outcome | M3 |
-| Capture Presets | Kotlin UI/repository; portable frozen policy DTO | Exact outcome | M3/M5 |
-| New, rolling, existing-note placement | Rust logical rendering/mutation; native SAF commit | Exact outcome | M3/M5 |
-| Templates/frontmatter | Frozen native template observation + Rust renderer | Exact outcome | M3/M5 |
+| Basic composer and one fixed preset policy | Kotlin composer with one governed frozen policy DTO | Exact outcome | M3 |
+| Configurable Capture Presets | Kotlin UI/repository; portable frozen policy DTO | Exact outcome | M5 |
+| New-note placement | Rust logical rendering; native SAF commit | Exact outcome | M3 |
+| Rolling and existing-note placement | Rust logical mutation; native SAF commit | Exact outcome | M5 |
+| Configurable templates/frontmatter | Frozen native template observation + Rust renderer | Exact outcome | M5 |
 | Durable drafts/inbox/history | App-private packages + Room | Exact outcome | M3 |
 | Long voice recording | Microphone foreground service + ongoing notification | Exact outcome, native Android surface | M4 |
 | Local transcription | App-owned local backend; optional system on-device recognizer | Product-adjusted | M4 |
 | Transcript editing/search | Compose + Room/indexed metadata; content stays local | Exact outcome | M4 |
-| Markdown editor and customizable Capture Bar | Selection-aware Compose editor, ordered action configuration, undo and formatting commands | Exact outcome | M3/M5 |
+| Markdown editor and customizable Capture Bar | Selection-aware Compose editor, ordered action configuration, undo and formatting commands | Exact outcome | M5 |
 | One-shot/persistent recording modes | Recorder service with explicit session/segment state and durable segment jobs | Product-adjusted for Android lifecycle | M4 |
 | Live finalized/volatile transcription and pause detection | Backend capability contract; stream only when the selected local engine supports it; local VAD companion | Product-adjusted | M4/M9 |
 | Model picker and storage management | Explicit local model catalog, consented downloads, verification, selection, deletion, and capability state | Exact outcome | M4 |

@@ -8,6 +8,33 @@ import re
 from pathlib import Path
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[3]
+EXPECTED_SCHEMA_CANONICAL_SHA256 = "01de5acdb619087f3c516c7040ee71289f55bbcdbc42cce0592e029f69ab7027"
+EXPECTED_GOVERNED_PATHS = (
+    "Packages/vox-core-rust/Cargo.lock",
+    "Packages/vox-core-rust/uniffi.toml",
+    "Packages/vox-core-rust/uniffi-bindgen.toml",
+    "Packages/vox-core-rust/crates/vox-core-uniffi/uniffi.toml",
+    "Packages/vox-core-rust/scripts/generate-swift-bindings.sh",
+    "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh",
+    "Packages/vox-core-rust/scripts/normalize-kotlin-bindings.py",
+    "Packages/vox-core-rust/scripts/check-bindings.sh",
+    "Packages/vox-core-rust/scripts/build-android-cdylibs.sh",
+    "Packages/vox-core-rust/scripts/build-apple-xcframework.sh",
+    "Packages/vox-core-rust/scripts/merge-apple-staticlib.sh",
+    "Packages/vox-core-rust/scripts/normalize-apple-xcframework.py",
+    "Packages/vox-core-rust/scripts/inspect-native-packages.py",
+    "Packages/vox-core-rust/scripts/normalize-generated-text.py",
+    "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
+    "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
+    "apps/android/build.gradle.kts",
+    "apps/android/settings.gradle.kts",
+    "apps/android/gradle/libs.versions.toml",
+    "apps/android/gradle.properties",
+    "apps/android/gradle/wrapper/gradle-wrapper.properties",
+    "apps/android/gradle/wrapper/gradle-wrapper.jar",
+    "apps/android/gradlew",
+    "apps/android/gradlew.bat",
+)
 
 
 def fail(message):
@@ -55,6 +82,11 @@ def main(argv=None):
     root = (arguments.root or DEFAULT_ROOT).resolve()
     manifest = load(root / "toolchains/android-wear-shared-core.json")
     schema = load(root / "toolchains/android-wear-shared-core.schema.json")
+    schema_canonical = json.dumps(
+        schema, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    if hashlib.sha256(schema_canonical).hexdigest() != EXPECTED_SCHEMA_CANONICAL_SHA256:
+        fail("toolchain schema canonical hash drift")
     exact(
         manifest,
         [
@@ -182,8 +214,9 @@ def main(argv=None):
         fail("generated output inventory")
 
     governed = manifest["governedImplementationFiles"]
-    if len(governed) != len({item.get("path") for item in governed}):
-        fail("duplicate governed path")
+    governed_paths = [item.get("path") for item in governed]
+    if governed_paths != list(EXPECTED_GOVERNED_PATHS):
+        fail("governed implementation path inventory differs")
     for item in governed:
         exact(item, ["path", "sha256"], "governed file")
         path = root / item["path"]

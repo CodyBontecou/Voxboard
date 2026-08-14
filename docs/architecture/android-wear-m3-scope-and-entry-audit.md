@@ -13,18 +13,22 @@ M3 is the smallest complete phone/tablet new-note text/link slice. The M0 ledger
 only these capabilities at M3:
 
 - `cap.ai.mode-none`
+- `cap.billing.reinstall-adjustment`
 - `cap.delivery.standard`
 - `cap.entry.app`
 - `cap.history.tombstone`
 - `cap.payload.text`
 - `cap.payload.url`
+- `cap.quota.capture`
 - `cap.quota.retry-no-charge`
 - `cap.target.new`
 
-Voice-metering preferences move to M4. Editor actions, location, templates, prefix/suffix,
-frontmatter, retry markers, and rolling targets move to M5, matching the implementation
-plan and shared-core operation promotion order. This is schedule correction, not removal or
-parity reclassification.
+M3 implements successful-delivery capture quota and its product-adjusted reinstall behavior.
+Transcription quota and voice-metering preferences move to M4. Editor actions, location,
+configurable presets, templates, prefix/suffix, frontmatter, retry markers, and rolling or
+existing-note targets move to M5, matching the implementation plan and shared-core operation
+promotion order. The M3 composer uses one fixed preset policy only. These are schedule
+corrections, not removal or parity reclassification.
 
 `SAF-001` now requires exact Rust-authoritative text/link note commit/readback and no longer
 claims M5 attachments. Recording-focused `REC-004` is M4. A separate M3 large-screen
@@ -39,15 +43,23 @@ The case catalog defines, without claiming results:
 - `CORE-007`: manifest, permission, backup, and data-extraction exclusion;
 - `CORE-008`: exact-once successful-delivery quota;
 - `CORE-009`: composer acknowledgement only after durable package and Room index;
+- `CORE-010`: physical seeded backup extraction, fresh-install/device-transfer identity,
+  quota/grant non-restoration, and explicit grant repair;
+- `CORE-011`: typed ADR-0018 corrupt/truncated package, stale lease, orphan reservation,
+  and package/row/journal divergence reconciliation matrix;
 - `SAF-001`–`SAF-005`: exact new note, revoked grant, non-local behavior, commit crash
   reconciliation, and large-screen provider flow;
 - `SAF-006`: process death after every durable transition;
 - `SAF-007`: large-screen text/link lifecycle;
+- `SAF-008`: executable ADR-0019 fake/instrumented provider fault matrix and exact result
+  taxonomy;
 - `PERF-001`, `PERF-002`, and `PERF-004`: durable enqueue, Quick Capture, and SAF watchdog.
 
 M3 milestone aggregation still includes every required M0–M2 predecessor. Definitions alone
-cannot satisfy a case. Physical/provider cases remain incomplete until retained synthetic
-campaign bytes name actually observed devices and providers.
+cannot satisfy a case. Until each M3 case has a case-specific governed typed producer,
+receipt, and exact provenance validator, the validator rejects any `passed` M3 evidence.
+Physical/provider cases remain incomplete until retained synthetic campaign bytes name
+actually observed devices and providers.
 
 ## Exact Android application toolchain
 

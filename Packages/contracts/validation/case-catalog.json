@@ -134,6 +134,39 @@
       "title": "M3 composer durable acknowledgement"
     },
     {
+      "category": "CORE",
+      "deviceRoles": [
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "executionTarget": "physicalDevice",
+      "expected": "Seed capture packages, journals, Room indexes, quota records, installation identity, and provider-grant state; extracted backup and device-transfer artifacts exclude all authority and content, fresh-install and device-transfer targets create a new installation identity, restore neither quota nor grants nor content, and enter explicit vault grant repair, while the original installation's seeded local package remains unchanged.",
+      "id": "CORE-010",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "milestone": "M3",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M3 physical backup extraction and reinstall identity repair"
+    },
+    {
+      "category": "CORE",
+      "deviceRoles": [],
+      "executionTarget": "buildHost",
+      "expected": "A named typed ADR-0018 recovery producer executes corrupt package, truncated package, stale lease, orphan quota reservation, and package/row divergence in both directions plus package/journal divergence; package plus journal remains recovery authority, Room is rebuilt or quarantined without inventing success, and reservations are reconciled without double charge.",
+      "id": "CORE-011",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "milestone": "M3",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M3 ADR-0018 package journal reconciliation matrix"
+    },
+    {
       "category": "REC",
       "deviceRoles": [
         "phone-low-api28",
@@ -272,8 +305,8 @@
       ],
       "milestone": "M4",
       "performanceGateIDs": [
-        "quick-capture-warm-p95",
-        "quick-capture-cold-p95"
+        "recorder-session-duration",
+        "recorder-max-prefix-loss"
       ],
       "providerApplicability": "none",
       "required": true,
@@ -338,6 +371,22 @@
       "providerApplicability": "none",
       "required": true,
       "title": "M3 large-screen text/link lifecycle"
+    },
+    {
+      "category": "SAF",
+      "deviceRoles": [],
+      "executionTarget": "buildHost",
+      "expected": "A named executable fake or instrumented DocumentsProvider producer executes duplicate names, rename unsupported, short writes, short reads, transformed bytes, null metadata, timeout, and provider death and proves exact ADR-0019 classification as verifiedCommitted, provedNotCommitted, permissionLost, or ambiguous; ambiguous outcomes enter unknownOutcome and never invoke a blind rewrite.",
+      "id": "SAF-008",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-NO-BLIND-RETRY",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "milestone": "M3",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M3 ADR-0019 executable provider fault taxonomy"
     },
     {
       "category": "WEAR",

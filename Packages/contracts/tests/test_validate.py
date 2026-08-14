@@ -23,9 +23,15 @@ class ContractValidatorTests(unittest.TestCase):
    m.write_text(json.dumps(x,indent=2,sort_keys=True)+"\n")
  def rejected(self,result,needle): self.assertNotEqual(result.returncode,0,result.stdout+result.stderr); self.assertIn(needle,result.stdout+result.stderr)
  def test_clean_pass(self): self.assertEqual(self.run_validator().returncode,0)
- def test_m3_capability_scope_is_exact_new_note_text_link_slice(self):
-  value=json.loads((self.root/"docs/architecture/android-wear-m0-capabilities.json").read_text()); m3={item["id"] for item in value["capabilities"] if item["milestone"]=="M3"}; self.assertEqual(m3,{"cap.ai.mode-none","cap.delivery.standard","cap.entry.app","cap.history.tombstone","cap.payload.text","cap.payload.url","cap.quota.retry-no-charge","cap.target.new"})
-  milestones={item["id"]:item["milestone"] for item in value["capabilities"]}; self.assertEqual(milestones["cap.delivery.voice-meter"],"M4"); self.assertEqual(milestones["cap.editor.bold"],"M5"); self.assertEqual(milestones["cap.target.daily"],"M5")
+ def test_every_capability_whose_milestone_contains_m3_is_exact(self):
+  value=json.loads((self.root/"docs/architecture/android-wear-m0-capabilities.json").read_text()); m3={item["id"] for item in value["capabilities"] if "M3" in item["milestone"]}; self.assertEqual(m3,{"cap.ai.mode-none","cap.billing.reinstall-adjustment","cap.delivery.standard","cap.entry.app","cap.history.tombstone","cap.payload.text","cap.payload.url","cap.quota.capture","cap.quota.retry-no-charge","cap.target.new"})
+  milestones={item["id"]:item["milestone"] for item in value["capabilities"]}; self.assertEqual(milestones["cap.delivery.voice-meter"],"M4"); self.assertEqual(milestones["cap.quota.transcription"],"M4/M8"); self.assertEqual(milestones["cap.editor.bold"],"M5"); self.assertEqual(milestones["cap.target.daily"],"M5")
+  for capability_id in ("cap.preset.audio-save-off","cap.preset.audio-save-alongside","cap.preset.audio-save-attachments","cap.preset.audio-reference-top","cap.preset.audio-reference-bottom"):
+   self.assertEqual(milestones[capability_id],"M5/M7")
+ def test_contracts_workflow_covers_all_m3_governance_inputs(self):
+  workflow=(self.root/".github/workflows/contracts-ci.yml").read_text()
+  for trigger in ("apps/android/**","toolchains/**","docs/android-wear-shared-core-implementation-plan.md","docs/architecture/android-wear-m3-scope-and-entry-audit.md","docs/architecture/android-wear-toolchain-baseline.md"):
+   self.assertEqual(workflow.count("- '"+trigger+"'"),2,trigger)
  def test_manifest_hash_mutation(self):
   self.mutate("Packages/contracts/manifest.json",lambda x:x["files"][0].update(sha256="f"*64)); self.rejected(self.run_validator(),"manifest.hash")
  def test_schema_unsupported_keyword_rejected(self):
@@ -151,6 +157,10 @@ class ContractValidatorTests(unittest.TestCase):
   self.tearDown();self.setUp();p=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(p.read_text());m["androidApplication"]["sdk"]["compileSdk"]=36;p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("Android application pins differ",r.stderr+r.stdout)
   self.tearDown();self.setUp();p=self.root/"apps/android/gradle/libs.versions.toml";p.write_text(p.read_text().replace('room = "2.8.4"','room = "2.8.3"'));r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("hash drift",r.stderr+r.stdout)
   self.tearDown();self.setUp();(self.root/"apps/android/gradle/wrapper/gradle-wrapper.jar").unlink();r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("governed file missing",r.stderr+r.stdout)
+ def test_toolchain_governed_inventory_cannot_shrink(self):
+  validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py";p=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(p.read_text());m["governedImplementationFiles"].pop();p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"governed implementation path inventory differs")
+ def test_toolchain_schema_weakening_is_hash_bound(self):
+  validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py";p=self.root/"toolchains/android-wear-shared-core.schema.json";m=json.loads(p.read_text());m["properties"]["governedImplementationFiles"]["minItems"]=1;p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"toolchain schema canonical hash drift")
  def test_all_wearable_integers_are_bounded(self):
   schema=json.loads((self.root/"Packages/contracts/wearable-protocol/v1/schema.json").read_text());missing=[]
   def walk(v,path="$"):
