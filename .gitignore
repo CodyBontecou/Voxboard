@@ -32,6 +32,8 @@ node_modules/
 
 # Generated output
 output/
+apps/android/.gradle/
+apps/android/local.properties
 
 # Agent/local automation state
 .pi/

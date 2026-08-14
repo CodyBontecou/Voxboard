@@ -4,14 +4,14 @@ ROOT=Path(__file__).resolve().parents[3]; VALIDATOR=Path("Packages/contracts/scr
 class ContractValidatorTests(unittest.TestCase):
  def setUp(self):
   self.temp=tempfile.TemporaryDirectory(); self.root=Path(self.temp.name)/"repo"
-  trees=("Packages/contracts","Packages/VoxboardShared/Tests/Fixtures/Contracts","Packages/VoxboardShared/Sources/VoxCoreGenerated","Packages/VoxboardShared/Sources/VoxCoreFFI","apps/android/core-bridge/src/test/resources/contracts","docs/validation","toolchains","Packages/vox-core-rust")
+  trees=("Packages/contracts","Packages/VoxboardShared/Tests/Fixtures/Contracts","Packages/VoxboardShared/Sources/VoxCoreGenerated","Packages/VoxboardShared/Sources/VoxCoreFFI","apps/android/core-bridge/src/test/resources/contracts","apps/android/gradle","docs/validation","toolchains","Packages/vox-core-rust")
   for rel in trees:
    src=ROOT/rel; dst=self.root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst,ignore=shutil.ignore_patterns("__pycache__","target",".build"))
   (self.root/"docs/architecture").mkdir(parents=True,exist_ok=True)
   for p in (ROOT/"docs/architecture").glob("adr-*.md"): shutil.copyfile(p,self.root/"docs/architecture"/p.name)
   for name in ("android-wear-m1-decisions.md","android-wear-m0-capabilities.json"): shutil.copyfile(ROOT/"docs/architecture"/name,self.root/"docs/architecture"/name)
-  for rel in (".github/workflows/contracts-ci.yml","scripts/test-project-contracts.sh"):
-   src=ROOT/rel; dst=self.root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copyfile(src,dst)
+  for rel in (".github/workflows/contracts-ci.yml","scripts/test-project-contracts.sh","apps/android/build.gradle.kts","apps/android/settings.gradle.kts","apps/android/gradle.properties","apps/android/gradlew","apps/android/gradlew.bat"):
+   src=ROOT/rel; dst=self.root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
  def tearDown(self): self.temp.cleanup()
  def run_validator(self): return subprocess.run([sys.executable,str(VALIDATOR),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True)
  def mutate(self,rel,fn,rehash=False):
@@ -23,6 +23,9 @@ class ContractValidatorTests(unittest.TestCase):
    m.write_text(json.dumps(x,indent=2,sort_keys=True)+"\n")
  def rejected(self,result,needle): self.assertNotEqual(result.returncode,0,result.stdout+result.stderr); self.assertIn(needle,result.stdout+result.stderr)
  def test_clean_pass(self): self.assertEqual(self.run_validator().returncode,0)
+ def test_m3_capability_scope_is_exact_new_note_text_link_slice(self):
+  value=json.loads((self.root/"docs/architecture/android-wear-m0-capabilities.json").read_text()); m3={item["id"] for item in value["capabilities"] if item["milestone"]=="M3"}; self.assertEqual(m3,{"cap.ai.mode-none","cap.delivery.standard","cap.entry.app","cap.history.tombstone","cap.payload.text","cap.payload.url","cap.quota.retry-no-charge","cap.target.new"})
+  milestones={item["id"]:item["milestone"] for item in value["capabilities"]}; self.assertEqual(milestones["cap.delivery.voice-meter"],"M4"); self.assertEqual(milestones["cap.editor.bold"],"M5"); self.assertEqual(milestones["cap.target.daily"],"M5")
  def test_manifest_hash_mutation(self):
   self.mutate("Packages/contracts/manifest.json",lambda x:x["files"][0].update(sha256="f"*64)); self.rejected(self.run_validator(),"manifest.hash")
  def test_schema_unsupported_keyword_rejected(self):
@@ -145,6 +148,9 @@ class ContractValidatorTests(unittest.TestCase):
   r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0)
   self.tearDown();self.setUp();p=self.root/"Packages/vox-core-rust/scripts/check-bindings.sh";p.write_text(p.read_text()+"# drift\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("hash drift",r.stderr+r.stdout)
   self.tearDown();self.setUp();(self.root/"Packages/vox-core-rust/generated/swift/VoxCore.swift").unlink();r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("generated binding missing",r.stderr+r.stdout)
+  self.tearDown();self.setUp();p=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(p.read_text());m["androidApplication"]["sdk"]["compileSdk"]=36;p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("Android application pins differ",r.stderr+r.stdout)
+  self.tearDown();self.setUp();p=self.root/"apps/android/gradle/libs.versions.toml";p.write_text(p.read_text().replace('room = "2.8.4"','room = "2.8.3"'));r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("hash drift",r.stderr+r.stdout)
+  self.tearDown();self.setUp();(self.root/"apps/android/gradle/wrapper/gradle-wrapper.jar").unlink();r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("governed file missing",r.stderr+r.stdout)
  def test_all_wearable_integers_are_bounded(self):
   schema=json.loads((self.root/"Packages/contracts/wearable-protocol/v1/schema.json").read_text());missing=[]
   def walk(v,path="$"):

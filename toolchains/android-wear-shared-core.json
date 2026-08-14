@@ -1,5 +1,69 @@
 {
   "$schema": "android-wear-shared-core.schema.json",
+  "androidApplication": {
+    "androidGradlePluginVersion": "9.1.0",
+    "applicationID": "md.vox.android",
+    "compose": {
+      "bomVersion": "2026.08.00"
+    },
+    "configurationPaths": {
+      "gradleProperties": "apps/android/gradle.properties",
+      "rootBuild": "apps/android/build.gradle.kts",
+      "settings": "apps/android/settings.gradle.kts",
+      "versionCatalog": "apps/android/gradle/libs.versions.toml",
+      "wrapperBatchScript": "apps/android/gradlew.bat",
+      "wrapperProperties": "apps/android/gradle/wrapper/gradle-wrapper.properties",
+      "wrapperScript": "apps/android/gradlew"
+    },
+    "dependencies": {
+      "activityCompose": "1.13.0",
+      "androidxHilt": "1.4.0",
+      "androidxTest": "1.7.0",
+      "androidxTestExtJunit": "1.3.0",
+      "composeBom": "2026.08.00",
+      "coreKtx": "1.19.0",
+      "coroutines": "1.11.0",
+      "daggerHilt": "2.60.1",
+      "dataStore": "1.2.1",
+      "espresso": "3.7.0",
+      "jna": "5.17.0",
+      "junit4": "4.13.2",
+      "lifecycle": "2.11.0",
+      "navigationCompose": "2.9.8",
+      "room": "2.8.4",
+      "serialization": "1.11.0",
+      "workManager": "2.11.2"
+    },
+    "gradle": {
+      "distributionSha256": "b266d5ff6b90eada6dc3b20cb090e3731302e553a27c5d3e4df1f0d76beaff06",
+      "distributionURL": "https://services.gradle.org/distributions/gradle-9.3.1-bin.zip",
+      "version": "9.3.1",
+      "wrapperJarPath": "apps/android/gradle/wrapper/gradle-wrapper.jar",
+      "wrapperJarSha256": "b3a875ddc1f044746e1b1a55f645584505f4a10438c1afea9f15e92a7c42ec13"
+    },
+    "jdk": {
+      "distribution": "temurin",
+      "jvmTarget": "17",
+      "languageLevel": 17,
+      "version": "17.0.20+8"
+    },
+    "kotlin": {
+      "annotationProcessingPlugin": "com.android.legacy-kapt",
+      "annotationProcessingPluginVersion": "9.1.0",
+      "builtIn": true,
+      "composeCompilerPluginVersion": "2.4.10",
+      "version": "2.4.10"
+    },
+    "namespace": "md.vox.android",
+    "sdk": {
+      "buildToolsVersion": "36.0.0",
+      "compileSdk": 37,
+      "phoneMinSdk": 28,
+      "phoneTargetSdk": 36,
+      "wearMinSdk": 30,
+      "wearTargetSdk": 35
+    }
+  },
   "androidNative": {
     "cargoNdkVersion": "4.1.2",
     "ndkRevision": "27.1.12297006",
@@ -117,6 +181,38 @@
     {
       "path": "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
       "sha256": "244de24c7df3fe0650d7d284c5729fdfe3b7affd00d3d6e1efbdf3150ba4c03c"
+    },
+    {
+      "path": "apps/android/build.gradle.kts",
+      "sha256": "f81159235d555e355bcc7fa9d5c8ba12e6ad20761d0d29cdb2aea97097634c9f"
+    },
+    {
+      "path": "apps/android/settings.gradle.kts",
+      "sha256": "413bdd400e7fd46a32bc68272f940598755ed45ed847acdbdec591cb7d9dc7da"
+    },
+    {
+      "path": "apps/android/gradle/libs.versions.toml",
+      "sha256": "fa2f74da8a44beba2f530e916800fc24153a9ee796a4eb733598f312988128f5"
+    },
+    {
+      "path": "apps/android/gradle.properties",
+      "sha256": "0f8fa8b15722ddb866486b40279b92d96072d3f04aecd83dc865e814e88466c2"
+    },
+    {
+      "path": "apps/android/gradle/wrapper/gradle-wrapper.properties",
+      "sha256": "137a45811ade89eb5d35fc3df0441aa891a69c55ae65780f23303e5acaf597f7"
+    },
+    {
+      "path": "apps/android/gradle/wrapper/gradle-wrapper.jar",
+      "sha256": "b3a875ddc1f044746e1b1a55f645584505f4a10438c1afea9f15e92a7c42ec13"
+    },
+    {
+      "path": "apps/android/gradlew",
+      "sha256": "fb68debc1b1acf8ec55dc0d5e5495e1dedd0bd6b61f304bee61613eeb2bd9b92"
+    },
+    {
+      "path": "apps/android/gradlew.bat",
+      "sha256": "9ca26d733ada3a45f27b2151288f54e75c9f95b287d1f82ef942ec5cc2d4f006"
     }
   ],
   "rust": {
@@ -140,8 +236,8 @@
     ],
     "toolchain": "1.97.1"
   },
-  "schemaVersion": 1,
-  "status": "m2-bindings-native-packaging-implemented",
+  "schemaVersion": 2,
+  "status": "m3-android-application-toolchain-pinned",
   "uniffi": {
     "bindgenVersion": "0.32.0",
     "cliVersion": "0.32.0",

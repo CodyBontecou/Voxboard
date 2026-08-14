@@ -76,6 +76,64 @@
       "title": "M2 Apple shadow side-effect isolation"
     },
     {
+      "category": "CORE",
+      "deviceRoles": [],
+      "executionTarget": "artifactBuildHost",
+      "expected": "The committed generated Kotlin binding is consumed by the handwritten Android bridge, all four native ABIs load lazily, exact readiness pins are supplied independently, incompatibility fails closed, and no Kotlin renderer fallback can produce a plan.",
+      "id": "CORE-006",
+      "invariants": [
+        "INV-BOUND-CONTENT",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "milestone": "M3",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M3 Kotlin bridge and Rust authority"
+    },
+    {
+      "category": "CORE",
+      "deviceRoles": [],
+      "executionTarget": "artifactBuildHost",
+      "expected": "Android manifest, legacy backup rules, and data-extraction rules exclude every capture package, prepared byte, database, journal, receipt, provider grant, identity, quota record, model, diagnostic, and preference by default; no broad storage or media permission is present.",
+      "id": "CORE-007",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "milestone": "M3",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M3 backup and manifest exclusion"
+    },
+    {
+      "category": "CORE",
+      "deviceRoles": [],
+      "executionTarget": "buildHost",
+      "expected": "Quota reservation precedes commit, failed/retry/permission/unknown outcomes do not charge, verified success commits once by request ID, and replay or process restart cannot double-charge.",
+      "id": "CORE-008",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY"
+      ],
+      "milestone": "M3",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M3 exact-once successful-delivery quota"
+    },
+    {
+      "category": "CORE",
+      "deviceRoles": [],
+      "executionTarget": "buildHost",
+      "expected": "The composer retains the draft and does not report Saved locally or clear until request bytes are fsynced, the package is durably promoted, and its Room index row is committed; every injected earlier failure preserves editable content.",
+      "id": "CORE-009",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY"
+      ],
+      "milestone": "M3",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M3 composer durable acknowledgement"
+    },
+    {
       "category": "REC",
       "deviceRoles": [
         "phone-low-api28",
@@ -135,7 +193,7 @@
         "phone-current-samsung"
       ],
       "executionTarget": "physicalDevice",
-      "expected": "Attachments commit before note; each artifact and note is read back and length/hash verified.",
+      "expected": "The Rust-authoritative new-note text/link bytes commit once and the note is read back with exact length and SHA-256 verification.",
       "id": "SAF-001",
       "invariants": [
         "INV-LAST-DURABLE-COPY",
@@ -144,7 +202,7 @@
       "milestone": "M3",
       "providerApplicability": "allRequired",
       "required": true,
-      "title": "Create new note and attachments with verification"
+      "title": "Create new text/link note with exact verification"
     },
     {
       "category": "SAF",
@@ -189,7 +247,7 @@
         "phone-current-samsung"
       ],
       "executionTarget": "physicalDevice",
-      "expected": "Injected crashes before, during, and immediately after commit reconcile using marker/hash/receipt or require explicit inspection.",
+      "expected": "Injected crashes immediately before, during, and after new-note commit reconcile using candidate path/hash/receipt evidence or require explicit inspection; they never blindly rewrite.",
       "id": "SAF-004",
       "invariants": [
         "INV-LAST-DURABLE-COPY",
@@ -207,19 +265,19 @@
         "large-screen"
       ],
       "executionTarget": "physicalDevice",
-      "expected": "Rotation, resize, split-screen, background, and foreground transitions preserve the durable recording and editable capture state while warm and cold latency gates pass.",
+      "expected": "Rotation, resize, split-screen, background, and foreground transitions preserve the durable recording state while warm and cold latency gates pass.",
       "id": "REC-004",
       "invariants": [
         "INV-LAST-DURABLE-COPY"
       ],
-      "milestone": "M3",
+      "milestone": "M4",
       "performanceGateIDs": [
         "quick-capture-warm-p95",
         "quick-capture-cold-p95"
       ],
       "providerApplicability": "none",
       "required": true,
-      "title": "Large-screen lifecycle and responsive capture"
+      "title": "Large-screen recording lifecycle and responsiveness"
     },
     {
       "category": "SAF",
@@ -240,6 +298,46 @@
       "providerApplicability": "allRequired",
       "required": true,
       "title": "Large-screen provider picker and durable delivery"
+    },
+    {
+      "category": "SAF",
+      "deviceRoles": [
+        "phone-low-api28",
+        "phone-current-pixel",
+        "phone-current-samsung"
+      ],
+      "executionTarget": "physicalDevice",
+      "expected": "Injected process death after every durable enqueue, materialization, reservation, provider, receipt, tombstone, and cleanup transition recovers to exactly one verified note or an explicit durable actionable/unknown outcome with no duplicate charge.",
+      "id": "SAF-006",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY",
+        "INV-NO-BLIND-RETRY",
+        "INV-BOUND-CONTENT"
+      ],
+      "milestone": "M3",
+      "providerApplicability": "allRequired",
+      "required": true,
+      "title": "M3 every-transition process-death recovery"
+    },
+    {
+      "category": "SAF",
+      "deviceRoles": [
+        "large-screen"
+      ],
+      "executionTarget": "physicalDevice",
+      "expected": "Rotation, resize, split-screen, background, and foreground preserve the durable text/link draft and capture state while warm/cold UI gates pass; no recording behavior is claimed.",
+      "id": "SAF-007",
+      "invariants": [
+        "INV-LAST-DURABLE-COPY"
+      ],
+      "milestone": "M3",
+      "performanceGateIDs": [
+        "quick-capture-warm-p95",
+        "quick-capture-cold-p95"
+      ],
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M3 large-screen text/link lifecycle"
     },
     {
       "category": "WEAR",
