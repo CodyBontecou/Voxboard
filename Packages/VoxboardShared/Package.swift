@@ -10,6 +10,8 @@ let package = Package(
     ],
     products: [
         .library(name: "VoxboardCaptureCore", targets: ["VoxboardCaptureCore"]),
+        .library(name: "VoxCoreGenerated", targets: ["VoxCoreGenerated"]),
+        .library(name: "VoxCoreRust", targets: ["VoxCoreRust"]),
         .library(name: "VoxboardShared", targets: ["VoxboardShared"]),
         .executable(name: "VoxboardPersistenceFixtures", targets: ["VoxboardPersistenceFixtures"]),
         .executable(name: "VoxboardM2Oracle", targets: ["VoxboardM2Oracle"]),
@@ -19,8 +21,19 @@ let package = Package(
         .package(url: "https://github.com/CodyBontecou/ExportKit", branch: "main"),
     ],
     targets: [
+        .systemLibrary(
+            name: "VoxCoreFFI"
+        ),
+        .target(
+            name: "VoxCoreGenerated",
+            dependencies: ["VoxCoreFFI"]
+        ),
         .target(
             name: "VoxboardCaptureCore"
+        ),
+        .target(
+            name: "VoxCoreRust",
+            dependencies: ["VoxCoreGenerated", "VoxboardCaptureCore"]
         ),
         .target(
             name: "VoxboardShared",

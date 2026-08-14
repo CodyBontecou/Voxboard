@@ -1,0 +1,1 @@
+../../../vox-core-rust/generated/swift/VoxCore.swift
