@@ -36,7 +36,7 @@ class OIDCTests(unittest.TestCase):
    mutated=dict(self.claims); mutated[claim]=value
    with self.subTest(claim=claim),self.assertRaisesRegex(oidc.OIDCError,claim+' claim mismatch'): oidc.validate_token(token(mutated),self.jwks,self.expected,self.now)
  def test_signature_time_header_and_bounds_fail_closed(self):
-  good=token(self.claims); head,payload,signature=good.split('.'); raw=bytearray(base64.urlsafe_b64decode(signature+'='*(-len(signature)%4))); raw[0]^=1; bad=f'{head}.{payload}.{b64(bytes(raw))}'; self.assertRaisesRegex(oidc.OIDCError,'signature verification failed',oidc.validate_token,bad,self.jwks,self.expected,self.now)
+  good=token(self.claims); head,payload,signature=good.split('.'); raw=bytearray(base64.urlsafe_b64decode(signature+'='*(-len(signature)%4))); raw[-1]^=1; bad=f'{head}.{payload}.{b64(bytes(raw))}'; self.assertRaisesRegex(oidc.OIDCError,'signature verification failed',oidc.validate_token,bad,self.jwks,self.expected,self.now)
   expired=dict(self.claims); expired['exp']=self.now; self.assertRaisesRegex(oidc.OIDCError,'time claims',oidc.validate_token,token(expired),self.jwks,self.expected,self.now)
   missing_jti=dict(self.claims); del missing_jti['jti']; self.assertRaisesRegex(oidc.OIDCError,'jti claim',oidc.validate_token,token(missing_jti),self.jwks,self.expected,self.now)
   self.assertRaisesRegex(oidc.OIDCError,'oversized',oidc.validate_token,'x'*oidc.MAX_TOKEN_BYTES,self.jwks,self.expected,self.now)

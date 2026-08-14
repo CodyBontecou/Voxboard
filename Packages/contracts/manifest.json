@@ -727,10 +727,10 @@
       "sha256": "d81c312d360192094ac044a7e990cdca6cacd2d36500b1c0dc75e405f1d7d4f3"
     },
     {
-      "bytes": 6065,
+      "bytes": 6066,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_github_actions_oidc.py",
-      "sha256": "7aa2fa0052c83138a022630b237c2772fe3fa174acd42c12e392a384eb47fe3a"
+      "sha256": "47085c01d8e9b46ebe1820445d0e3a44764d4bac9b065ab967e93a776097862e"
     },
     {
       "bytes": 4280,
