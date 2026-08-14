@@ -1176,9 +1176,8 @@ impl MaterializationSession {
             return self.fail(CoreError::Incomplete);
         }
         let (path, bytes, request_id) = {
-            let input = match self.input.as_ref() {
-                Some(input) => input,
-                None => return self.fail(CoreError::Incomplete),
+            let Some(input) = self.input.as_ref() else {
+                return self.fail(CoreError::Incomplete);
             };
             let template = self
                 .streams
@@ -1302,9 +1301,8 @@ impl MaterializationSession {
             None => return self.fail(CoreError::Incomplete),
         };
         let plan_bytes = {
-            let input = match self.input.as_ref() {
-                Some(input) => input,
-                None => return self.fail(CoreError::Incomplete),
+            let Some(input) = self.input.as_ref() else {
+                return self.fail(CoreError::Incomplete);
             };
             let coherent = drained.kind == "drainedArtifactHashes"
                 && drained.request_id == input.request_id
