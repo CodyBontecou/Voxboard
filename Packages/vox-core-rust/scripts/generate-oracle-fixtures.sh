@@ -14,9 +14,48 @@ if [[ -n "$(git -C "$repo" status --porcelain --untracked-files=normal)" ]]; the
   echo "error: oracle generation requires a clean tree" >&2
   exit 1
 fi
-revision="$(git -C "$repo" rev-parse HEAD)"
-git -C "$repo" diff --quiet "$revision" --
-git -C "$repo" diff --cached --quiet "$revision" --
+head_revision="$(git -C "$repo" rev-parse HEAD)"
+git -C "$repo" diff --quiet "$head_revision" --
+git -C "$repo" diff --cached --quiet "$head_revision" --
+
+if [[ "$mode" == check ]]; then
+  [[ -f "$out" ]] || { echo "error: tracked oracle fixture is missing" >&2; exit 1; }
+  revision="$(python3 - "$out" <<'PY'
+import json
+import re
+import sys
+
+with open(sys.argv[1], "rb") as handle:
+    value = json.load(handle)
+revision = value.get("producer", {}).get("sourceRevision", "")
+if not isinstance(revision, str) or re.fullmatch(r"[0-9a-f]{40}", revision) is None:
+    raise SystemExit("error: tracked oracle sourceRevision is invalid")
+print(revision)
+PY
+)"
+  git -C "$repo" cat-file -e "${revision}^{commit}" 2>/dev/null || {
+    echo "error: tracked oracle sourceRevision is not a repository commit" >&2
+    exit 1
+  }
+  git -C "$repo" merge-base --is-ancestor "$revision" "$head_revision" || {
+    echo "error: tracked oracle sourceRevision is not an ancestor of HEAD" >&2
+    exit 1
+  }
+  # A fixture-only successor commit is coherent only while every output-affecting
+  # source and SwiftPM build input remains byte-identical to sourceRevision.
+  git -C "$repo" diff --quiet "$revision" "$head_revision" -- \
+    Packages/vox-core-rust/scripts/generate-oracle-fixtures.sh \
+    "$source" \
+    Packages/VoxboardShared/Package.swift \
+    Packages/VoxboardShared/Package.resolved \
+    Packages/VoxboardShared/Sources/VoxboardCaptureCore \
+    toolchains/android-wear-shared-core.json || {
+      echo "error: oracle sources changed after tracked sourceRevision" >&2
+      exit 1
+    }
+else
+  revision="$head_revision"
+fi
 
 # Bind the complete production target source set. SwiftPM compiles this full set into
 # VoxboardCaptureCore, so additions/removals are provenance-significant as well as bytes.
