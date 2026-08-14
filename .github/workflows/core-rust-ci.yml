@@ -6,14 +6,19 @@ on:
     paths:
       - '.github/workflows/core-rust-ci.yml'
       - 'Packages/vox-core-rust/**'
+      - 'Packages/VoxboardShared/Package.swift'
+      - 'Packages/VoxboardShared/Sources/VoxboardCaptureCore/**'
+      - 'Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/**'
       - 'Packages/contracts/**'
       - 'toolchains/android-wear-shared-core*'
       - 'docs/architecture/android-wear-toolchain-baseline.md'
-      - 'docs/validation/evidence/m2-local-native-package-inspection.json'
   pull_request:
     paths:
       - '.github/workflows/core-rust-ci.yml'
       - 'Packages/vox-core-rust/**'
+      - 'Packages/VoxboardShared/Package.swift'
+      - 'Packages/VoxboardShared/Sources/VoxboardCaptureCore/**'
+      - 'Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/**'
       - 'Packages/contracts/**'
       - 'toolchains/android-wear-shared-core*'
   workflow_dispatch:
@@ -51,3 +56,47 @@ jobs:
       - name: Test runtime crates at MSRV
         working-directory: Packages/vox-core-rust
         run: cargo +1.87.0 test --locked -p vox-core -p vox-core-uniffi
+
+  m2-evidence:
+    runs-on: macos-26
+    timeout-minutes: 180
+    steps:
+      - name: Checkout exact source revision
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Select governed Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '26.6'
+      - name: Install governed Rust and native targets
+        run: |
+          rustup toolchain install 1.97.1 --profile minimal
+          rustup component add --toolchain 1.97.1 rustfmt clippy
+          rustup target add --toolchain 1.97.1 aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
+          rustup target add --toolchain 1.97.1 aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+          cargo +1.97.1 install cargo-ndk --version 4.1.2 --locked
+      - name: Install governed Android NDK
+        run: |
+          sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$sdkmanager"
+          yes | "$sdkmanager" --licenses >/dev/null
+          "$sdkmanager" 'ndk;27.1.12297006'
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.1.12297006" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/27.1.12297006" >> "$GITHUB_ENV"
+      - name: Attest governed build tools
+        run: |
+          xcodebuild -version
+          swift --version
+          rustc +1.97.1 --version
+          cargo +1.97.1 ndk --version
+          python3 Packages/contracts/scripts/validate_toolchain.py
+      - name: Produce and validate M2 evidence
+        run: Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh
+      - name: Retain governed M2 evidence bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: m2-evidence
+          path: ${{ env.M2_EVIDENCE_ROOT }}
+          retention-days: 30
+          compression-level: 0

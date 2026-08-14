@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+repo="$(cd "$(dirname "$0")/../.." && pwd)"
+[[ "${GITHUB_ACTIONS:-}" == true ]] || { echo "error: hosted M2 evidence requires GitHub Actions" >&2; exit 1; }
+[[ "${GITHUB_JOB:-}" == m2-evidence ]] || { echo "error: hosted M2 evidence requires the canonical m2-evidence job" >&2; exit 1; }
+[[ "${GITHUB_WORKSPACE:-}" == "$repo" ]] || { echo "error: hosted M2 evidence workspace mismatch" >&2; exit 1; }
+[[ -z "$(git -C "$repo" status --porcelain --untracked-files=all)" ]] || { echo "error: hosted M2 evidence requires a clean checkout" >&2; exit 1; }
+root="${RUNNER_TEMP:?RUNNER_TEMP is required}/vox-m2-evidence"
+campaign="$root/campaign"; external="$root/external"
+rm -rf "$root"; mkdir -p "$campaign/evidence" "$campaign/approvals" "$campaign/artifacts" "$external"
+producer="$repo/Packages/vox-core-rust/scripts/run-m2-core-exit-evidence.py"
+python3 "$producer" execute-core --repository-root "$repo" --campaign-dir "$campaign" --external-root "$external"
+"$repo/Packages/vox-core-rust/scripts/run-m2-materialization-evidence.sh" "$campaign" "$external"
+"$repo/Packages/vox-core-rust/scripts/build-m2-native-evidence.sh" "$campaign" "$external"
+python3 "$producer" archive --repository-root "$repo" --campaign-dir "$campaign" --external-root "$external" --archive-relative archives/m2-evidence.tar
+python3 "$producer" finalize --repository-root "$repo" --campaign-dir "$campaign" --external-root "$external" --archive-relative archives/m2-evidence.tar
+python3 "$repo/Packages/contracts/scripts/validate_validation_definitions.py" \
+  --campaign-dir "$campaign" --repository-root "$repo" --qualification hostedRun --external-artifact-root "$external"
+printf 'M2_EVIDENCE_ROOT=%s\nM2_EVIDENCE_CAMPAIGN=%s\nM2_EVIDENCE_EXTERNAL=%s\n' "$root" "$campaign" "$external" >> "${GITHUB_ENV:?GITHUB_ENV is required}"
