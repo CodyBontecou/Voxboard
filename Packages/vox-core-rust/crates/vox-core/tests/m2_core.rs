@@ -98,7 +98,65 @@ fn readiness_is_exact_and_fail_closed() {
     let result = readiness(&canonical(&ready)).unwrap();
     assert!(result.session_permitted);
     assert!(result.mismatch_codes.is_empty());
-    let mut bad = ready;
+    for (path, value, expected_code) in [
+        ("operation", json!("rollingNote"), "unsupportedOperation"),
+        (
+            "versions.coreAPIVersion",
+            json!(CORE_API_VERSION + 1),
+            "unsupportedCoreAPI",
+        ),
+        (
+            "versions.capturePreparationInputVersion",
+            json!(PREPARATION_INPUT_VERSION + 1),
+            "unsupportedPreparationInput",
+        ),
+        (
+            "versions.requiredObservationsVersion",
+            json!(REQUIRED_OBSERVATIONS_VERSION + 1),
+            "unsupportedRequiredObservations",
+        ),
+        (
+            "versions.captureMaterializationInputVersion",
+            json!(MATERIALIZATION_INPUT_VERSION + 1),
+            "unsupportedMaterializationInput",
+        ),
+        (
+            "versions.artifactPlanVersion",
+            json!(ARTIFACT_PLAN_VERSION + 1),
+            "unsupportedArtifactPlan",
+        ),
+        (
+            "versions.rendererRevision",
+            json!("future-renderer"),
+            "unsupportedRenderer",
+        ),
+        (
+            "versions.profileID",
+            json!("future-profile"),
+            "unsupportedProfile",
+        ),
+        (
+            "versions.profileVersion",
+            json!(PROFILE_VERSION + 1),
+            "unsupportedProfile",
+        ),
+        (
+            "versions.toolchainManifestSHA256",
+            json!("0".repeat(64)),
+            "toolchainManifestMismatch",
+        ),
+    ] {
+        let mut bad = ready.clone();
+        set(&mut bad, path, value);
+        let rejected = readiness(&canonical(&bad)).unwrap();
+        assert_eq!(rejected.status, "incompatible", "mutation {path}");
+        assert!(
+            !rejected.session_permitted,
+            "mutation {path} must not produce a plan"
+        );
+        assert_eq!(rejected.mismatch_codes, [expected_code], "mutation {path}");
+    }
+    let mut bad = ready.clone();
     bad["operation"] = json!("rollingNote");
     bad["versions"]["profileID"] = json!("future");
     bad["versions"]["toolchainManifestSHA256"] = json!("0".repeat(64));

@@ -66,6 +66,9 @@ jobs:
         run: cargo +1.87.0 test --locked -p vox-core -p vox-core-uniffi
 
   m2-evidence:
+    permissions:
+      contents: read
+      id-token: write
     runs-on: macos-26
     timeout-minutes: 180
     steps:

@@ -42,6 +42,7 @@ CORE_BASE_SOURCES = {
     "Packages/VoxboardShared/Sources/VoxCoreRust/VoxCoreRust.swift",
     "Packages/VoxboardShared/Tests/VoxboardCaptureCoreTests/CaptureCoreEnginePolicyTests.swift",
     "Packages/contracts/manifest.json",
+    "Packages/contracts/scripts/github_actions_oidc.py",
     "Packages/contracts/validation/case-catalog.json",
     "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml",
     "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs",
@@ -50,11 +51,11 @@ CORE_BASE_SOURCES = {
     "Packages/vox-core-rust/rust-toolchain.toml", "Packages/vox-core-rust/scripts/check-bindings.sh", "Packages/vox-core-rust/scripts/generate-oracle-fixtures.sh", "Packages/vox-core-rust/scripts/run-m2-core-exit-evidence.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh", "Packages/vox-core-rust/uniffi.toml",
 }
 PERF3_SOURCES = {
-    "Packages/VoxboardShared/Package.swift", "Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/main.swift", "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap", "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
+    "Packages/contracts/scripts/github_actions_oidc.py", "Packages/VoxboardShared/Package.swift", "Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/main.swift", "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap", "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
     "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs", "Packages/vox-core-rust/crates/vox-core/Cargo.toml", "Packages/vox-core-rust/crates/vox-core/build.rs", "Packages/vox-core-rust/crates/vox-core/src/lib.rs", "Packages/vox-core-rust/generated/swift/VoxCore.swift", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap", "Packages/vox-core-rust/rust-toolchain.toml", "Packages/vox-core-rust/scripts/generate-m2-materialization-input.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh", "Packages/vox-core-rust/scripts/run-m2-materialization-evidence.sh", "Packages/vox-core-rust/uniffi.toml",
 }
 PERF8_SOURCES = {
-    "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs", "Packages/vox-core-rust/crates/vox-core/Cargo.toml", "Packages/vox-core-rust/crates/vox-core/build.rs", "Packages/vox-core-rust/crates/vox-core/src/lib.rs", "Packages/vox-core-rust/rust-toolchain.toml", "Packages/vox-core-rust/scripts/build-android-cdylibs.sh", "Packages/vox-core-rust/scripts/build-apple-xcframework.sh", "Packages/vox-core-rust/scripts/inspect-native-packages.py", "Packages/vox-core-rust/scripts/merge-apple-staticlib.sh", "Packages/vox-core-rust/scripts/normalize-apple-xcframework.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh", "Packages/vox-core-rust/uniffi.toml",
+    "Packages/contracts/scripts/github_actions_oidc.py", "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs", "Packages/vox-core-rust/crates/vox-core/Cargo.toml", "Packages/vox-core-rust/crates/vox-core/build.rs", "Packages/vox-core-rust/crates/vox-core/src/lib.rs", "Packages/vox-core-rust/rust-toolchain.toml", "Packages/vox-core-rust/scripts/build-android-cdylibs.sh", "Packages/vox-core-rust/scripts/build-apple-xcframework.sh", "Packages/vox-core-rust/scripts/inspect-native-packages.py", "Packages/vox-core-rust/scripts/merge-apple-staticlib.sh", "Packages/vox-core-rust/scripts/normalize-apple-xcframework.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh", "Packages/vox-core-rust/uniffi.toml",
 }
 
 def canonical_bytes(value: object) -> bytes:
@@ -78,15 +79,20 @@ def utc_text(value: datetime) -> str:
 def git(repo: Path, *arguments: str) -> str:
     return subprocess.run(["git", "-C", str(repo), *arguments], check=True, text=True, capture_output=True).stdout.strip()
 
-def require_hosted(repo: Path) -> tuple[str, dict]:
-    names = ("GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT", "GITHUB_SHA", "GITHUB_WORKSPACE", "GITHUB_JOB", "GITHUB_WORKFLOW_REF", "RUNNER_OS", "RUNNER_ARCH")
+def require_hosted(repo: Path, hosted_identity_verifier=None) -> tuple[str, dict]:
+    names = ("GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT", "GITHUB_SHA", "GITHUB_WORKSPACE", "GITHUB_JOB", "GITHUB_WORKFLOW_REF", "GITHUB_WORKFLOW_SHA", "GITHUB_REF", "GITHUB_EVENT_NAME", "RUNNER_OS", "RUNNER_ARCH")
     if os.environ.get("GITHUB_ACTIONS") != "true" or any(not os.environ.get(name) for name in names): raise SystemExit("hosted GitHub Actions identity is required")
     revision = git(repo, "rev-parse", "HEAD")
     if revision != os.environ["GITHUB_SHA"] or Path(os.environ["GITHUB_WORKSPACE"]).resolve() != repo.resolve() or os.environ["GITHUB_JOB"] != "m2-evidence": raise SystemExit("hosted checkout/job identity mismatch")
     if git(repo, "status", "--porcelain", "--untracked-files=all"): raise SystemExit("M2 evidence requires a clean checkout")
     workflow = repo / ".github/workflows/core-rust-ci.yml"
     qualification = {"level": "hostedRun", "runID": os.environ["GITHUB_RUN_ID"], "runAttempt": int(os.environ["GITHUB_RUN_ATTEMPT"]), "workflowRepositoryPath": ".github/workflows/core-rust-ci.yml", "workflowSha256": sha_file(workflow)}
-    hosted = {"runID": qualification["runID"], "runAttempt": qualification["runAttempt"], "workflowRepositoryPath": qualification["workflowRepositoryPath"], "workflowSha256": qualification["workflowSha256"], "checkoutRevision": revision, "runnerOS": os.environ["RUNNER_OS"], "runnerArchitecture": os.environ["RUNNER_ARCH"]}
+    sys.path.insert(0, str(repo / "Packages/contracts/scripts"))
+    import github_actions_oidc
+    try: facts=(hosted_identity_verifier or github_actions_oidc.authenticate)(repo,qualification,revision)
+    except github_actions_oidc.OIDCError as error: raise SystemExit(f"hosted GitHub Actions OIDC authentication failed: {error}") from error
+    qualification.update({key:facts[key] for key in ("repository","repositoryID","repositoryOwner","repositoryOwnerID","repositoryVisibility","oidcIssuer","oidcAudience","sourceRevision","workflowRevision","workflowReference","ref","eventName","runnerEnvironment","orchestratorRepositoryPath","orchestratorSha256")})
+    hosted = {**{key:qualification[key] for key in qualification if key not in ("level","artifactArchivePath","artifactArchiveSha256")}, "checkoutRevision": revision, "runnerOS": os.environ["RUNNER_OS"], "runnerArchitecture": os.environ["RUNNER_ARCH"]}
     return revision, {"qualification": qualification, "hosted": hosted}
 
 def host_identity() -> dict:
@@ -102,8 +108,8 @@ def host_identity() -> dict:
     if any(not values[key] for key in ("osName", "osVersion", "architecture", "cpuModel")): raise SystemExit("required build-host identity fact is empty")
     return values
 
-def execute_core(repo: Path, campaign: Path, external: Path) -> None:
-    require_hosted(repo)
+def execute_core(repo: Path, campaign: Path, external: Path, hosted_identity_verifier=None) -> None:
+    require_hosted(repo,hosted_identity_verifier)
     (campaign / "artifacts").mkdir(parents=True, exist_ok=True); (campaign / "evidence").mkdir(parents=True, exist_ok=True); (campaign / "approvals").mkdir(parents=True, exist_ok=True); (external / "executables").mkdir(parents=True, exist_ok=True)
     executable = external / "executables/core-exit-host.py"; shutil.copyfile(Path(__file__), executable); executable.chmod(0o755)
     for case_id, (_, command) in CORE_CHECKS.items():
@@ -116,6 +122,9 @@ def execute_core(repo: Path, campaign: Path, external: Path) -> None:
             output += result.stdout
             if result.returncode != 0:
                 print(output, file=sys.stderr); raise SystemExit(f"{case_id} production check failed")
+        rust_marker={"CORE-001":"swift_oracle_corpus_matches_production_sessions_and_executes_negatives","CORE-002":"readiness_is_exact_and_fail_closed","CORE-004":"build_info_exposes_exact_readiness_pins"}.get(case_id)
+        if rust_marker and f"test {rust_marker} ... ok" not in output:
+            print(output,file=sys.stderr); raise SystemExit(f"{case_id} exact named Rust test was not executed")
         if case_id == "CORE-005":
             markers = (
                 "test_shadowComparesOneFrozenInputBeforeSideEffectsAndLegacyRemainsAuthoritative",
@@ -125,6 +134,10 @@ def execute_core(repo: Path, campaign: Path, external: Path) -> None:
             )
             if any(marker not in output for marker in markers):
                 print(output, file=sys.stderr); raise SystemExit("CORE-005 named production checks were not all executed")
+        executable_sha=sha_file(executable)
+        fixture_rel=f"artifacts/{case_id.lower()}-fixture.diagnostic.json"; artifact_rel=f"artifacts/{case_id.lower()}-artifact.diagnostic.json"
+        write_json(campaign/fixture_rel,diagnostic("fixture","bounds",executable_sha))
+        write_json(campaign/artifact_rel,diagnostic("artifact",CORE_CHECKS[case_id][0],executable_sha,SHADOW_ISOLATION_CHECKS if case_id=="CORE-005" else ()))
 
 def provenance(repo: Path, external: Path, revision: str, hosted: dict, case_id: str, build: dict) -> dict:
     if case_id.startswith("CORE-"):
@@ -150,9 +163,17 @@ def measurement(gate: dict, values: list, source: str, selector: str, run_ids: l
     else: value = max(values)
     return {"gateID": gate["id"], "metric": gate["metric"], "statistic": gate["statistic"], "operator": gate["operator"], "unit": gate["unit"], "scope": gate.get("scope", gate["id"]), "samplingMethod": gate["samplingMethod"], "sampleValues": values, "value": value, "derivation": {"sourceArtifactID": source, "selector": selector, "runIDs": run_ids}}
 
-def finalize(repo: Path, campaign: Path, external: Path, archive_relative: str) -> None:
-    revision, identities = require_hosted(repo); hosted = identities["hosted"]; archive = external / archive_relative; archive_sha = sha_file(archive)
+def finalize(repo: Path, campaign: Path, external: Path, archive_relative: str, hosted_identity_verifier=None) -> None:
+    revision, identities = require_hosted(repo,hosted_identity_verifier); hosted = identities["hosted"]; archive = external / archive_relative; archive_sha = sha_file(archive)
     qualification = identities["qualification"] | {"artifactArchivePath": archive_relative, "artifactArchiveSha256": archive_sha}
+    core_executable=external/"executables/core-exit-host.py"
+    if not core_executable.is_file(): raise SystemExit("finalize requires execute-core retained executable")
+    core_executable_sha=sha_file(core_executable)
+    for case_id,(required_code,_) in CORE_CHECKS.items():
+        fixture=campaign/f"artifacts/{case_id.lower()}-fixture.diagnostic.json"; artifact=campaign/f"artifacts/{case_id.lower()}-artifact.diagnostic.json"
+        expected_fixture=canonical_bytes(diagnostic("fixture","bounds",core_executable_sha))
+        expected_artifact=canonical_bytes(diagnostic("artifact",required_code,core_executable_sha,SHADOW_ISOLATION_CHECKS if case_id=="CORE-005" else ()))
+        if not fixture.is_file() or fixture.read_bytes()!=expected_fixture or not artifact.is_file() or artifact.read_bytes()!=expected_artifact: raise SystemExit(f"finalize requires exact pre-existing {case_id} execution diagnostics")
     native_path = campaign / "artifacts/native-package-inspection.json"
     native_candidate = repo / "Packages/vox-core-rust/target/m2-evidence/native-package-candidate.json"
     native = json.loads(native_candidate.read_bytes())
@@ -174,9 +195,9 @@ def finalize(repo: Path, campaign: Path, external: Path, archive_relative: str) 
         build = {"kind": "sourceBuiltHost", "sourceRevision": revision, "sourceTreeState": "clean", "toolchainManifestSha256": sha_file(repo / "toolchains/android-wear-shared-core.json"), "buildRecipeSha256": sha_file(repo / recipe), "executableSha256": sha_file(executable)}
         prov = provenance(repo, external, revision, hosted, case_id, build); prov_rel = f"artifacts/{case_id.lower()}-provenance.json"; write_json(campaign / prov_rel, prov)
         fixture_rel = f"artifacts/{case_id.lower()}-fixture.diagnostic.json"; artifact_rel = f"artifacts/{case_id.lower()}-artifact.diagnostic.json"; required_code = CORE_CHECKS[case_id][0] if case_id in CORE_CHECKS else "performanceGate"
-        write_json(campaign / fixture_rel, diagnostic("fixture", "bounds", build["executableSha256"]))
-        additional_codes = SHADOW_ISOLATION_CHECKS if case_id == "CORE-005" else ()
-        write_json(campaign / artifact_rel, diagnostic("artifact", required_code, build["executableSha256"], additional_codes))
+        if case_id not in CORE_CHECKS:
+            write_json(campaign / fixture_rel, diagnostic("fixture", "bounds", build["executableSha256"]))
+            write_json(campaign / artifact_rel, diagnostic("artifact", required_code, build["executableSha256"]))
         measurements=[]; run_ref = package_ref = None
         if case_id == "PERF-003":
             run_ref = hash_ref(campaign, "artifacts/materialization-run-set.json")
@@ -235,7 +256,7 @@ def main() -> int:
         command=sub.add_parser(name);command.add_argument("--repository-root",type=Path,required=True);command.add_argument("--campaign-dir",type=Path,required=True);command.add_argument("--external-root",type=Path,required=True);command.add_argument("--archive-relative",default="archives/m2-evidence.tar")
     args=parser.parse_args();repo=args.repository_root.resolve();campaign=args.campaign_dir.resolve();external=args.external_root.resolve()
     if args.command=="execute-core":execute_core(repo,campaign,external)
-    elif args.command=="archive":create_archive(external,args.archive_relative)
+    elif args.command=="archive":require_hosted(repo);create_archive(external,args.archive_relative)
     else:finalize(repo,campaign,external,args.archive_relative)
     return 0
 if __name__=="__main__":raise SystemExit(main())

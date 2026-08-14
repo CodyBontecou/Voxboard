@@ -6,6 +6,9 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable
 
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+import github_actions_oidc
+
 MAX_JSON_BYTES=16*1024*1024
 MAX_RUN_SET_BYTES=16*1024*1024
 MAX_EVIDENCE_FILES=256
@@ -49,6 +52,7 @@ REQUIRED_PROVENANCE_SOURCES={
         "Packages/VoxboardShared/Sources/VoxCoreRust/VoxCoreRust.swift",
         "Packages/VoxboardShared/Tests/VoxboardCaptureCoreTests/CaptureCoreEnginePolicyTests.swift",
         "Packages/contracts/manifest.json",
+        "Packages/contracts/scripts/github_actions_oidc.py",
         "Packages/contracts/validation/case-catalog.json",
         "Packages/vox-core-rust/Cargo.lock",
         "Packages/vox-core-rust/Cargo.toml",
@@ -70,6 +74,7 @@ REQUIRED_PROVENANCE_SOURCES={
         "Packages/vox-core-rust/uniffi.toml",
     },
     "vox-core-uniffi-swift-host-v1": {
+        "Packages/contracts/scripts/github_actions_oidc.py",
         "Packages/VoxboardShared/Package.swift",
         "Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/main.swift",
         "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
@@ -91,6 +96,7 @@ REQUIRED_PROVENANCE_SOURCES={
         "Packages/vox-core-rust/uniffi.toml",
     },
     "vox-native-package-inspector-v1": {
+        "Packages/contracts/scripts/github_actions_oidc.py",
         "Packages/vox-core-rust/Cargo.lock",
         "Packages/vox-core-rust/Cargo.toml",
         "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml",
@@ -312,16 +318,20 @@ def git_output(root:Path,args:list[str],label:str)->str:
     except (OSError,subprocess.CalledProcessError) as e:
         raise ValidationError(label) from e
 
-def validate_github_hosted_environment(repository_root:Path,qualification:dict)->None:
-    required=("GITHUB_ACTIONS","GITHUB_RUN_ID","GITHUB_RUN_ATTEMPT","GITHUB_SHA","GITHUB_WORKFLOW_REF","GITHUB_WORKSPACE","GITHUB_JOB","RUNNER_OS","RUNNER_ARCH")
+def validate_github_hosted_environment(repository_root:Path,qualification:dict,hosted_identity_verifier:Callable[[Path,dict,str],dict]|None=None)->dict:
+    required=("GITHUB_ACTIONS","GITHUB_RUN_ID","GITHUB_RUN_ATTEMPT","GITHUB_SHA","GITHUB_WORKFLOW_REF","GITHUB_WORKFLOW_SHA","GITHUB_REF","GITHUB_EVENT_NAME","GITHUB_WORKSPACE","GITHUB_JOB","RUNNER_OS","RUNNER_ARCH")
     if any(not os.environ.get(name) for name in required) or os.environ["GITHUB_ACTIONS"]!="true": raise ValidationError("hosted qualification requires the bound GitHub Actions environment")
     if os.environ["GITHUB_RUN_ID"]!=qualification["runID"] or os.environ["GITHUB_RUN_ATTEMPT"]!=str(qualification["runAttempt"]): raise ValidationError("hosted qualification run environment mismatch")
-    if os.environ["GITHUB_SHA"]!=git_output(repository_root,["rev-parse","HEAD"],"hosted repository HEAD unavailable"): raise ValidationError("hosted qualification checkout environment mismatch")
-    workflow_ref=os.environ["GITHUB_WORKFLOW_REF"]; path=qualification["workflowRepositoryPath"]
-    before_ref,separator,_=workflow_ref.rpartition("@")
-    components=before_ref.split("/",2)
-    if not separator or len(components)!=3 or components[2]!=path: raise ValidationError("hosted qualification workflow environment mismatch")
+    revision=git_output(repository_root,["rev-parse","HEAD"],"hosted repository HEAD unavailable")
+    if os.environ["GITHUB_SHA"]!=revision: raise ValidationError("hosted qualification checkout environment mismatch")
     if Path(os.environ["GITHUB_WORKSPACE"]).resolve()!=repository_root.resolve(): raise ValidationError("hosted qualification workspace environment mismatch")
+    try:
+        facts=(hosted_identity_verifier or github_actions_oidc.authenticate)(repository_root,qualification,revision)
+    except github_actions_oidc.OIDCError as error:
+        raise ValidationError(f"hosted qualification OIDC authentication failed: {error}") from error
+    fact_keys=("repository","repositoryID","repositoryOwner","repositoryOwnerID","repositoryVisibility","oidcIssuer","oidcAudience","sourceRevision","workflowRevision","workflowReference","ref","eventName","runnerEnvironment","orchestratorRepositoryPath","orchestratorSha256")
+    if not isinstance(facts,dict) or any(facts.get(key)!=qualification[key] for key in fact_keys): raise ValidationError("hosted qualification authenticated identity facts mismatch")
+    return facts
 
 def validate_m2_workflow_contract(repository_root:Path,workflow:Path,scope:dict)->None:
     selected=set(CORE_REQUIRED_CHECKS)|{"PERF-003","PERF-008"} if scope["claim"]=="milestoneClosure" and milestone_number(scope["throughMilestone"])>=2 else set(scope.get("caseIDs",[]))
@@ -334,7 +344,8 @@ def validate_m2_workflow_contract(repository_root:Path,workflow:Path,scope:dict)
     if len(starts)!=1: raise ValidationError("hosted M2 workflow lacks one canonical m2-evidence job")
     start=starts[0]; end=next((index for index in range(start+1,len(lines)) if re.match(r"^  [A-Za-z0-9_-]+:\s*$",lines[index])),len(lines)); job=lines[start:end]
     required_step=["      - name: Produce and validate M2 evidence","        run: Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh"]
-    if any(line.strip().startswith("if:") for line in job) or any(job.count(line)!=1 for line in required_step) or job.index(required_step[1])!=job.index(required_step[0])+1: raise ValidationError("hosted M2 workflow job is disabled or lacks the canonical orchestration step")
+    required_permissions=["    permissions:","      contents: read","      id-token: write"]
+    if lines.count("      id-token: write")!=1 or any(line.strip().startswith("if:") for line in job) or any(job.count(line)!=1 for line in [*required_step,*required_permissions]) or job.index(required_step[1])!=job.index(required_step[0])+1: raise ValidationError("hosted M2 workflow job is disabled, lacks exclusive exact OIDC permissions, or lacks the canonical orchestration step")
     script_path="Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh"; script=repository_file(repository_root,script_path)
     if git_output(repository_root,["ls-files","--",script_path],"hosted M2 orchestration source inventory unavailable")!=script_path or script.stat().st_size==0: raise ValidationError("hosted M2 orchestration script is not a tracked nonempty source")
 
@@ -381,8 +392,9 @@ def validate_provenance(value:dict,repository_root:Path|None,qualification:dict,
     hosted=value.get("hosted")
     if level in ("hostedRun","releaseGate"):
         if not hosted or hosted["checkoutRevision"]!=value["sourceRevision"]: raise ValidationError("hosted provenance checkout mismatch")
-        for k in ("runID","runAttempt","workflowRepositoryPath","workflowSha256"):
+        for k in ("runID","runAttempt","workflowRepositoryPath","workflowSha256","repository","repositoryID","repositoryOwner","repositoryOwnerID","repositoryVisibility","oidcIssuer","oidcAudience","sourceRevision","workflowRevision","workflowReference","ref","eventName","runnerEnvironment","orchestratorRepositoryPath","orchestratorSha256"):
             if hosted[k]!=qualification[k]: raise ValidationError("hosted provenance qualification mismatch")
+        if digest(repository_file(repository_root,hosted["orchestratorRepositoryPath"]))!=hosted["orchestratorSha256"]: raise ValidationError("hosted orchestrator hash mismatch")
         if hosted["runnerOS"]!=os.environ.get("RUNNER_OS") or hosted["runnerArchitecture"]!=os.environ.get("RUNNER_ARCH"): raise ValidationError("hosted provenance runner environment mismatch")
         workflow=repository_file(repository_root,hosted["workflowRepositoryPath"])
         if digest(workflow)!=hosted["workflowSha256"]: raise ValidationError("hosted workflow hash mismatch")
@@ -856,7 +868,7 @@ def reject_placeholders(v:Any,where:str)->None:
     if isinstance(v,list):
         for x in v: reject_placeholders(x,where)
 
-def validate_campaign(root:Path,cdir:Path,docs,schemas,repository_root:Path|None,expected_qualification:str|None,external_root:Path|None,approval_verifier:Callable[[str,dict,dict],bool]|None=None)->None:
+def validate_campaign(root:Path,cdir:Path,docs,schemas,repository_root:Path|None,expected_qualification:str|None,external_root:Path|None,approval_verifier:Callable[[str,dict,dict],bool]|None=None,hosted_identity_verifier:Callable[[Path,dict,str],dict]|None=None)->None:
     if cdir.is_symlink() or not cdir.is_dir(): raise ValidationError("campaign must be a non-symlink directory")
     artifacts_dir=cdir/"artifacts"
     if artifacts_dir.is_symlink() or not artifacts_dir.is_dir(): raise ValidationError("campaign artifacts must be a non-symlink directory")
@@ -884,7 +896,7 @@ def validate_campaign(root:Path,cdir:Path,docs,schemas,repository_root:Path|None
         workflow=repository_file(repository_root,qualification["workflowRepositoryPath"])
         if digest(workflow)!=qualification["workflowSha256"]: raise ValidationError("hosted qualification workflow hash mismatch")
         if git_output(repository_root,["status","--porcelain","--untracked-files=all"],"hosted source tree status unavailable"): raise ValidationError("hosted qualification source tree is not clean")
-        validate_github_hosted_environment(repository_root,qualification); validate_m2_workflow_contract(repository_root,workflow,aggregate["scope"])
+        validate_github_hosted_environment(repository_root,qualification,hosted_identity_verifier); validate_m2_workflow_contract(repository_root,workflow,aggregate["scope"])
     devices=idx(docs["device-matrix.json"]["roles"],"id","role"); providers=idx(docs["provider-matrix.json"]["providers"],"id","provider"); cases=idx(docs["case-catalog.json"]["cases"],"id","case"); gates=idx(docs["performance-gates.json"]["gates"],"id","gate")
     required=tuples(cases,devices,providers,aggregate["scope"]); required_set=set(required); bytuple={}; evidence_ids=set(); failed_inv=set(); generated=parse_utc(aggregate["generatedAt"],"aggregate.generatedAt"); now=datetime.now(timezone.utc); validation_time=(now.replace(microsecond=0),now.microsecond*1000)
     if generated>validation_time: raise ValidationError("aggregate generation time is in the future")
@@ -1062,7 +1074,7 @@ def validate_campaign(root:Path,cdir:Path,docs,schemas,repository_root:Path|None
     for k,v in expected.items():
         if aggregate[k]!=v: raise ValidationError(f"aggregate {k} is not computed value")
 
-def validate(root:Path,campaign:Path|None=None,repository_root:Path|None=None,qualification:str|None=None,external_root:Path|None=None,approval_verifier:Callable[[str,dict,dict],bool]|None=None)->None:
+def validate(root:Path,campaign:Path|None=None,repository_root:Path|None=None,qualification:str|None=None,external_root:Path|None=None,approval_verifier:Callable[[str,dict,dict],bool]|None=None,hosted_identity_verifier:Callable[[Path,dict,str],dict]|None=None)->None:
     mapping={"device-matrix.json":"device-matrix.schema.json","provider-matrix.json":"provider-matrix.schema.json","case-catalog.json":"case-catalog.schema.json","performance-gates.json":"performance-gates.schema.json","aggregate-policy.json":"aggregate.schema.json","case-evidence-policy.json":"case-evidence-requirements.schema.json","approval-policy.json":"approval-policy.schema.json"}
     names=set(mapping.values())|{"case-evidence.schema.json","approval.schema.json","diagnostic-summary.schema.json","execution-provenance.schema.json","materialization-run-set.schema.json","native-package-inspection.schema.json","native-package-baseline.schema.json"}; schemas={}
     for n in names: schemas[n]=load(root/"schemas"/n); check_schema(schemas[n],root/"schemas"/n)
@@ -1084,10 +1096,10 @@ def validate(root:Path,campaign:Path|None=None,repository_root:Path|None=None,qu
     actual={"devices":canonical(docs["device-matrix.json"]),"providers":canonical(docs["provider-matrix.json"]),"cases":canonical(docs["case-catalog.json"]),"gates":canonical(docs["performance-gates.json"]),"aggregate":canonical(docs["aggregate-policy.json"]),"evidencePolicy":canonical(docs["case-evidence-policy.json"]),"approvalPolicy":canonical(docs["approval-policy.json"]),"schemas":canonical({n:schemas[n] for n in sorted(schemas)})}
     for k,v in actual.items():
         if CANONICAL_HASHES.get(k)!=v: raise ValidationError(f"canonical {k} definition drift")
-    if campaign: validate_campaign(root,campaign,docs,schemas,repository_root,qualification,external_root,approval_verifier)
+    if campaign: validate_campaign(root,campaign,docs,schemas,repository_root,qualification,external_root,approval_verifier,hosted_identity_verifier)
     print(f"Validation definitions passed: {len(devices)} roles, {len(providers)} providers, {len(cases)} cases, {len(gates)} gates"+("; scoped campaign computed" if campaign else ""))
 
-CANONICAL_HASHES={'devices': 'ecd13c2b779065abe91824bdbc2726c3e1363368fe46558fe694aa571597d8a4', 'providers': 'd0e9a96c63213cbaa13c587e92b6318ae63f88ecd88b7387c0a441c57e0eaed2', 'cases': '1aeba6fe680284d65e8dc4b4d714d999f7d1a6ffaf08f0073769f8e17904f503', 'gates': 'f227ffb7119ec4599a46870166b49ce9ed9a30974b3e41db1cb8097e28366559', 'aggregate': 'e99042ec440740050384ae1576c980de7f42a06b96db82d1c5d6d40c2f56ef58', 'evidencePolicy': '8446cf2b15504c7a7b5861e93b5cbbc1477682a8dfb4de8b0c968603caf994fc', 'approvalPolicy': 'c086d7b57f2a832ff6a1d9a8d4acdc0d8d52ffdbf0131a4512fe60b3c6b69e02', 'schemas': '4a807bdf2f6926c77ace26859c2a60dcc4e72f7625ddd665d207d281163ba910'}
+CANONICAL_HASHES={'devices': 'ecd13c2b779065abe91824bdbc2726c3e1363368fe46558fe694aa571597d8a4', 'providers': 'd0e9a96c63213cbaa13c587e92b6318ae63f88ecd88b7387c0a441c57e0eaed2', 'cases': '1aeba6fe680284d65e8dc4b4d714d999f7d1a6ffaf08f0073769f8e17904f503', 'gates': 'f227ffb7119ec4599a46870166b49ce9ed9a30974b3e41db1cb8097e28366559', 'aggregate': 'e99042ec440740050384ae1576c980de7f42a06b96db82d1c5d6d40c2f56ef58', 'evidencePolicy': '8446cf2b15504c7a7b5861e93b5cbbc1477682a8dfb4de8b0c968603caf994fc', 'approvalPolicy': 'c086d7b57f2a832ff6a1d9a8d4acdc0d8d52ffdbf0131a4512fe60b3c6b69e02', 'schemas': '965792aa7053b896ae7495b3feb6c978c8bf5c1371942adf1339b9bc5808001f'}
 
 def main()->int:
     ap=argparse.ArgumentParser(); ap.add_argument("--contracts-root",type=Path,default=Path(__file__).resolve().parents[1]); ap.add_argument("--campaign-dir",type=Path); ap.add_argument("--repository-root",type=Path); ap.add_argument("--qualification",choices=("repositoryObservation","hostedRun","releaseGate")); ap.add_argument("--external-artifact-root",type=Path)

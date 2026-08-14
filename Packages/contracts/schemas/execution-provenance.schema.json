@@ -145,6 +145,46 @@
           "pattern": "^[0-9a-f]{40}$",
           "type": "string"
         },
+        "eventName": {
+          "enum": [
+            "pull_request",
+            "push",
+            "workflow_dispatch"
+          ]
+        },
+        "oidcAudience": {
+          "const": "https://vox.md/m2-evidence/v1"
+        },
+        "oidcIssuer": {
+          "const": "https://token.actions.githubusercontent.com"
+        },
+        "orchestratorRepositoryPath": {
+          "const": "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh"
+        },
+        "orchestratorSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "ref": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^refs/(?:heads|tags|pull)/",
+          "type": "string"
+        },
+        "repository": {
+          "const": "CodyBontecou/vox.md"
+        },
+        "repositoryID": {
+          "const": "1153091883"
+        },
+        "repositoryOwner": {
+          "const": "CodyBontecou"
+        },
+        "repositoryOwnerID": {
+          "const": "20440899"
+        },
+        "repositoryVisibility": {
+          "const": "public"
+        },
         "runAttempt": {
           "minimum": 1,
           "type": "integer"
@@ -158,13 +198,30 @@
           "minLength": 2,
           "type": "string"
         },
+        "runnerEnvironment": {
+          "const": "github-hosted"
+        },
         "runnerOS": {
           "maxLength": 128,
           "minLength": 2,
           "type": "string"
         },
+        "sourceRevision": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "workflowReference": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^CodyBontecou/vox[.]md/[.]github/workflows/core-rust-ci[.]yml@refs/",
+          "type": "string"
+        },
         "workflowRepositoryPath": {
           "$ref": "#/$defs/path"
+        },
+        "workflowRevision": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
         },
         "workflowSha256": {
           "$ref": "#/$defs/sha256"
@@ -177,7 +234,22 @@
         "workflowSha256",
         "checkoutRevision",
         "runnerOS",
-        "runnerArchitecture"
+        "runnerArchitecture",
+        "repository",
+        "repositoryID",
+        "repositoryOwner",
+        "repositoryOwnerID",
+        "repositoryVisibility",
+        "oidcIssuer",
+        "oidcAudience",
+        "sourceRevision",
+        "workflowRevision",
+        "workflowReference",
+        "ref",
+        "eventName",
+        "runnerEnvironment",
+        "orchestratorRepositoryPath",
+        "orchestratorSha256"
       ],
       "type": "object"
     },

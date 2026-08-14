@@ -1,5 +1,6 @@
 from __future__ import annotations
 import copy, hashlib, importlib.util, json, os, plistlib, shutil, struct, subprocess, sys, tarfile, tempfile, unittest
+from unittest import mock
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]; CONTRACTS=ROOT/'Packages/contracts'; VALIDATOR=CONTRACTS/'scripts/validate_validation_definitions.py'
 spec=importlib.util.spec_from_file_location('validator',VALIDATOR); validator=importlib.util.module_from_spec(spec); spec.loader.exec_module(validator)
@@ -78,7 +79,7 @@ class Tests(unittest.TestCase):
   provenance_paths={x for value in validator.EXPECTED_PROVENANCE_PATHS.values() for x in value.values() if x is not None}; paths=set().union(*validator.REQUIRED_PROVENANCE_SOURCES.values())|provenance_paths|{'toolchains/android-wear-shared-core.json','Packages/contracts/tests/test_validation_definitions.py','.github/workflows/core-rust-ci.yml','Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh'}
   for rel in sorted(paths):
    path=root/rel; path.parent.mkdir(parents=True,exist_ok=True); content='synthetic:'+rel+'\n'
-   if rel=='.github/workflows/core-rust-ci.yml': content='name: Synthetic M2\non: workflow_dispatch\njobs:\n  m2-evidence:\n    runs-on: macos-26\n    steps:\n      - name: Produce and validate M2 evidence\n        run: Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh\n'
+   if rel=='.github/workflows/core-rust-ci.yml': content='name: Synthetic M2\non: workflow_dispatch\njobs:\n  m2-evidence:\n    permissions:\n      contents: read\n      id-token: write\n    runs-on: macos-26\n    steps:\n      - name: Produce and validate M2 evidence\n        run: Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh\n'
    path.write_text(content)
   subprocess.run(['git','init','-q'],cwd=root,check=True); subprocess.run(['git','config','user.email','synthetic@invalid.test'],cwd=root,check=True); subprocess.run(['git','config','user.name','Synthetic Contract Test'],cwd=root,check=True); subprocess.run(['git','add','.'],cwd=root,check=True); subprocess.run(['git','commit','-qm','synthetic provenance'],cwd=root,check=True)
   return root
@@ -91,6 +92,17 @@ class Tests(unittest.TestCase):
   subprocess.run(['git','add','.'],cwd=root,check=True)
   if subprocess.run(['git','diff','--cached','--quiet'],cwd=root).returncode: subprocess.run(['git','commit','-qm',message],cwd=root,check=True)
  def host(self): return {'osName':'macOS','osVersion':'synthetic-15','architecture':'arm64','cpuModel':'synthetic-cpu','logicalCPUCount':12,'totalMemoryBytes':32_000_000_000}
+ def hosted_facts(self,repository,run_id='123',run_attempt=1):
+  revision=subprocess.run(['git','rev-parse','HEAD'],cwd=repository,check=True,text=True,capture_output=True).stdout.strip()
+  return {'repository':'CodyBontecou/vox.md','repositoryID':'1153091883','repositoryOwner':'CodyBontecou','repositoryOwnerID':'20440899','repositoryVisibility':'public','oidcIssuer':validator.github_actions_oidc.ISSUER,'oidcAudience':validator.github_actions_oidc.AUDIENCE,'sourceRevision':revision,'workflowRevision':revision,'workflowReference':'CodyBontecou/vox.md/.github/workflows/core-rust-ci.yml@refs/heads/main','ref':'refs/heads/main','eventName':'push','runnerEnvironment':'github-hosted','runID':run_id,'runAttempt':run_attempt,'orchestratorRepositoryPath':'Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh','orchestratorSha256':digest(repository/'Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh')}
+ def hosted_qualification(self,repository,level='hostedRun',archive_sha='9'*64):
+  return {'level':level,'runID':'123','runAttempt':1,'workflowRepositoryPath':'.github/workflows/core-rust-ci.yml','workflowSha256':digest(repository/'.github/workflows/core-rust-ci.yml'),'artifactArchivePath':'archives/m2.tar','artifactArchiveSha256':archive_sha,**{k:v for k,v in self.hosted_facts(repository).items() if k not in ('runID','runAttempt')}}
+ def execute_hosted(self,c,external,env):
+  repository=self.campaign_repositories[str(c)]; facts=self.hosted_facts(repository)
+  try:
+   with mock.patch.dict(os.environ,env,clear=True): validator.validate(CONTRACTS,c,repository,'hostedRun',external,None,lambda root,q,revision:facts)
+  except validator.ValidationError as error: return subprocess.CompletedProcess([],1,'',f'Validation definitions failed: {error}\n')
+  return subprocess.CompletedProcess([],0,'Validation definitions passed\n','')
  def provenance(self,build,repository,case='PERF-003',hosted=None):
   consumer=validator.EXPECTED_CONSUMERS[case]; source_files=[{'repositoryPath':path,'sha256':digest(repository/path)} for path in sorted(validator.required_provenance_sources(consumer['id'],repository))]
   paths=validator.EXPECTED_PROVENANCE_PATHS[case]; generator=paths['inputGenerator']; input_generator=None if generator is None else {'id':'vox-m2-deterministic-synthetic-input-v1','version':1,'repositoryPath':generator,'sourceSha256':digest(repository/generator),'seedSha256':SYNTHETIC_SEED_SHA256}; executable_source=validator.PYTHON_EXECUTABLE_SOURCES.get(case); executable_bytes=(repository/executable_source).stat().st_size if executable_source else 1000
@@ -124,7 +136,7 @@ class Tests(unittest.TestCase):
    ids,values=computed[gid]; ms.append(self.measurement(gates[gid],packref['id'],'candidateArtifactBytes',ids,values))
   e=copy.deepcopy(common); e.update({'evidenceID':'perf-008','caseID':'PERF-008','expected':cases['PERF-008']['expected'],'buildIdentity':package_build,'measurements':ms,'executionProvenance':prov8,'materializationRunSet':None,'nativePackageInspection':packref}); dump(c/'evidence/perf-008.json',e)
   q={'level':qualification}
-  if qualification!='repositoryObservation':q.update({'runID':'123','runAttempt':1,'workflowRepositoryPath':'.github/workflows/core-rust-ci.yml','workflowSha256':'8'*64,'artifactArchivePath':'archives/m2.tar','artifactArchiveSha256':'9'*64})
+  if qualification!='repositoryObservation': q=self.hosted_qualification(repository,qualification)
   self.refresh(c,{'claim':'milestoneClosure','throughMilestone':'M2'},q)
   return c
  def refresh(self,c,scope,qualification,root=CONTRACTS):
@@ -157,7 +169,7 @@ class Tests(unittest.TestCase):
   return registry_path,approval_path,receipt_path
  def build_hosted_package_case(self):
   c=self.build_m2(); repository=self.campaign_repositories[str(c)]; external=c.parent/'external'; external.mkdir(); perf3=self.evidence(c,'PERF-003'); old=json.loads(perf3.read_text()); (c/old['executionProvenance']['id']).unlink(); (c/old['materializationRunSet']['id']).unlink(); perf3.unlink(); evidence_path=self.evidence(c,'PERF-008'); evidence=json.loads(evidence_path.read_text()); provenance_path=c/evidence['executionProvenance']['id']; provenance=json.loads(provenance_path.read_text()); package_path=c/evidence['nativePackageInspection']['id']; package=json.loads(package_path.read_text())
-  executable_path=external/'executables/package-inspector.py'; executable_path.parent.mkdir(parents=True); shutil.copyfile(repository/validator.PYTHON_EXECUTABLE_SOURCES['PERF-008'],executable_path); executable_sha=digest(executable_path); self.assertEqual(executable_sha,evidence['buildIdentity']['executableSha256']); provenance['executable']={'sha256':executable_sha,'bytes':executable_path.stat().st_size,'externalArtifactPath':'executables/package-inspector.py'}; provenance['hosted']={'runID':'123','runAttempt':1,'workflowRepositoryPath':'.github/workflows/core-rust-ci.yml','workflowSha256':digest(repository/'.github/workflows/core-rust-ci.yml'),'checkoutRevision':evidence['buildIdentity']['sourceRevision'],'runnerOS':'macOS','runnerArchitecture':'ARM64'}
+  executable_path=external/'executables/package-inspector.py'; executable_path.parent.mkdir(parents=True); shutil.copyfile(repository/validator.PYTHON_EXECUTABLE_SOURCES['PERF-008'],executable_path); executable_sha=digest(executable_path); self.assertEqual(executable_sha,evidence['buildIdentity']['executableSha256']); provenance['executable']={'sha256':executable_sha,'bytes':executable_path.stat().st_size,'externalArtifactPath':'executables/package-inspector.py'}; qualification=self.hosted_qualification(repository); provenance['hosted']={**{k:v for k,v in qualification.items() if k not in ('level','artifactArchivePath','artifactArchiveSha256')},'checkoutRevision':evidence['buildIdentity']['sourceRevision'],'runnerOS':'macOS','runnerArchitecture':'ARM64'}
   package['inspectorSha256']=executable_sha; package['retention']={'kind':'hostedArtifact','runID':'123','runAttempt':1,'artifactName':'synthetic-m2-package-evidence','archiveSha256':'0'*64,'retentionExpiresAt':'2099-01-01T00:00:00Z'}
   for leaf in package['candidateLeaves']:
    path=external/leaf['relativeArtifactPath']; path.parent.mkdir(parents=True,exist_ok=True)
@@ -170,12 +182,12 @@ class Tests(unittest.TestCase):
   archive_path=external/'archives/m2.tar'; archive_path.parent.mkdir(parents=True); retained=sorted(p for p in external.rglob('*') if p.is_file() and p!=archive_path)
   with tarfile.open(archive_path,'w',format=tarfile.USTAR_FORMAT) as handle:
    for path in retained: handle.add(path,arcname=str(path.relative_to(external)),recursive=False)
-  archive_sha=digest(archive_path); package['retention']['archiveSha256']=archive_sha; qualification={'level':'hostedRun','runID':'123','runAttempt':1,'workflowRepositoryPath':'.github/workflows/core-rust-ci.yml','workflowSha256':digest(repository/'.github/workflows/core-rust-ci.yml'),'artifactArchivePath':'archives/m2.tar','artifactArchiveSha256':archive_sha}
+  archive_sha=digest(archive_path); package['retention']['archiveSha256']=archive_sha; qualification=self.hosted_qualification(repository,archive_sha=archive_sha)
   dump(provenance_path,provenance); evidence['executionProvenance']['sha256']=digest(provenance_path); dump(package_path,package); evidence['nativePackageInspection']['sha256']=digest(package_path); gates=validator.idx(self.docs()['performance-gates.json']['gates'],'id','gate'); derived=validator.validate_package(package,evidence['buildIdentity'],qualification,external,None,evidence['buildHost']); evidence['measurements']=[]
   for gid in validator.idx(self.docs()['case-catalog.json']['cases'],'id','case')['PERF-008']['performanceGateIDs']:
    if gid=='packaging-growth': continue
    ids,values=derived[gid]; evidence['measurements'].append(self.measurement(gates[gid],evidence['nativePackageInspection']['id'],'candidateArtifactBytes',ids,values))
-  dump(evidence_path,evidence); self.refresh(c,{'claim':'caseExecution','caseIDs':['PERF-008']},qualification); env=os.environ.copy(); env.update({'GITHUB_ACTIONS':'true','GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'1','GITHUB_SHA':evidence['buildIdentity']['sourceRevision'],'GITHUB_WORKFLOW_REF':'owner/repository/.github/workflows/core-rust-ci.yml@refs/heads/main','GITHUB_WORKSPACE':str(repository),'GITHUB_JOB':'m2-evidence','RUNNER_OS':'macOS','RUNNER_ARCH':'ARM64'}); return c,external,env
+  dump(evidence_path,evidence); self.refresh(c,{'claim':'caseExecution','caseIDs':['PERF-008']},qualification); env=os.environ.copy(); env.update({'GITHUB_ACTIONS':'true','GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'1','GITHUB_SHA':evidence['buildIdentity']['sourceRevision'],'GITHUB_WORKFLOW_REF':qualification['workflowReference'],'GITHUB_WORKFLOW_SHA':qualification['workflowRevision'],'GITHUB_REF':qualification['ref'],'GITHUB_EVENT_NAME':qualification['eventName'],'GITHUB_WORKSPACE':str(repository),'GITHUB_JOB':'m2-evidence','RUNNER_OS':'macOS','RUNNER_ARCH':'ARM64'}); return c,external,env
  def test_definitions_and_scoped_m2_candidate_pass(self):
   self.assertEqual(self.execute().returncode,0); c=self.build_m2(); q=self.execute(campaign=c,qualification='repositoryObservation'); self.assertEqual(q.returncode,0,q.stdout+q.stderr); a=json.loads((c/'aggregate.json').read_text()); self.assertEqual([x['caseID'] for x in a['requiredTuples']],['CORE-001','CORE-002','CORE-003','CORE-004','CORE-005','PERF-003','PERF-008']); self.assertEqual(a['status'],'incomplete'); self.assertEqual(a['approvalHashes'],[])
  def test_core_exit_case_requires_exact_provenance_and_named_build_check(self):
@@ -297,24 +309,27 @@ class Tests(unittest.TestCase):
   c=self.build_m2();q=self.execute(campaign=c,qualification='hostedRun');self.assertIn('declared qualification',q.stderr)
  def test_hosted_requires_external_root_and_not_retained_rejected(self):
   c=self.build_m2('hostedRun'); q=self.execute(campaign=c,qualification='hostedRun'); self.assertIn('external-artifact-root',q.stderr)
-  ext=Path(tempfile.mkdtemp());self.addCleanup(lambda:shutil.rmtree(ext));q=self.execute(campaign=c,qualification='hostedRun',external=ext);self.assertIn('hosted qualification workflow hash mismatch',q.stderr)
- def test_hosted_package_case_executes_with_environment_archive_and_exact_inventory(self):
-  c,external,env=self.build_hosted_package_case(); q=self.execute(campaign=c,qualification='hostedRun',external=external,env=env); self.assertEqual(q.returncode,0,q.stdout+q.stderr); self.assertEqual(json.loads((c/'aggregate.json').read_text())['status'],'passed')
-  bad=dict(env); bad['GITHUB_RUN_ID']='124'; q=self.execute(campaign=c,qualification='hostedRun',external=external,env=bad); self.assertIn('run environment mismatch',q.stderr)
-  bad=dict(env); bad['GITHUB_WORKFLOW_REF']='owner/repository/core-rust-ci.yml@refs/heads/main'; q=self.execute(campaign=c,qualification='hostedRun',external=external,env=bad); self.assertIn('workflow environment mismatch',q.stderr)
-  extra=external/'unclaimed.log'; extra.write_text('unclaimed\n'); q=self.execute(campaign=c,qualification='hostedRun',external=external,env=env); self.assertIn('external artifact inventory differs',q.stderr); extra.unlink()
-  archive=external/'archives/m2.tar'; original_archive=archive.read_bytes(); archive.write_bytes(original_archive+b'x'); q=self.execute(campaign=c,qualification='hostedRun',external=external,env=env); self.assertIn('hosted artifact archive hash mismatch',q.stderr); archive.write_bytes(original_archive)
+  ext=Path(tempfile.mkdtemp());self.addCleanup(lambda:shutil.rmtree(ext));q=self.execute(campaign=c,qualification='hostedRun',external=ext);self.assertIn('bound GitHub Actions environment',q.stderr)
+ def test_hosted_package_case_executes_with_authenticated_verifier_archive_and_exact_inventory(self):
+  c,external,env=self.build_hosted_package_case(); q=self.execute_hosted(c,external,env); self.assertEqual(q.returncode,0,q.stdout+q.stderr); self.assertEqual(json.loads((c/'aggregate.json').read_text())['status'],'passed')
+  fake=self.execute(campaign=c,qualification='hostedRun',external=external,env=env); self.assertIn('OIDC request credentials are required',fake.stderr)
+  bad=dict(env); bad['GITHUB_RUN_ID']='124'; q=self.execute_hosted(c,external,bad); self.assertIn('run environment mismatch',q.stderr)
+  bad=dict(env); bad['GITHUB_SHA']='0'*40; q=self.execute_hosted(c,external,bad); self.assertIn('checkout environment mismatch',q.stderr)
+  extra=external/'unclaimed.log'; extra.write_text('unclaimed\n'); q=self.execute_hosted(c,external,env); self.assertIn('external artifact inventory differs',q.stderr); extra.unlink()
+  archive=external/'archives/m2.tar'; original_archive=archive.read_bytes(); archive.write_bytes(original_archive+b'x'); q=self.execute_hosted(c,external,env); self.assertIn('hosted artifact archive hash mismatch',q.stderr); archive.write_bytes(original_archive)
   def rebind_archive(data):
    archive.write_bytes(data); aggregate=json.loads((c/'aggregate.json').read_text()); qualification=aggregate['qualification']; qualification['artifactArchiveSha256']=digest(archive); evidence_path=self.evidence(c,'PERF-008'); evidence=json.loads(evidence_path.read_text()); receipt_path=c/evidence['nativePackageInspection']['id']; receipt=json.loads(receipt_path.read_text()); receipt['retention']['archiveSha256']=qualification['artifactArchiveSha256']; dump(receipt_path,receipt); evidence['nativePackageInspection']['sha256']=digest(receipt_path); dump(evidence_path,evidence); self.refresh(c,aggregate['scope'],qualification)
-  rebind_archive(original_archive+b'x'+b'\x00'*511); q=self.execute(campaign=c,qualification='hostedRun',external=external,env=env); self.assertIn('trailing payload',q.stderr); rebind_archive(original_archive)
+  rebind_archive(original_archive+b'x'+b'\x00'*511); q=self.execute_hosted(c,external,env); self.assertIn('trailing payload',q.stderr); rebind_archive(original_archive)
   pax_path=c.parent/'pax.tar'; retained=sorted(path for path in external.rglob('*') if path.is_file() and path!=archive)
   with tarfile.open(pax_path,'w',format=tarfile.PAX_FORMAT) as handle:
    for index,path in enumerate(retained):
     info=handle.gettarinfo(str(path),arcname=str(path.relative_to(external)))
     if index==0: info.pax_headers={'comment':'undeclared-extension-payload'}
     with path.open('rb') as source: handle.addfile(info,source)
-  rebind_archive(pax_path.read_bytes()); q=self.execute(campaign=c,qualification='hostedRun',external=external,env=env); self.assertIn('forbids non-USTAR regular or extension members',q.stderr); rebind_archive(original_archive)
-  executable=external/'executables/package-inspector.py'; original=executable.read_bytes(); executable.write_bytes(b'changed'); q=self.execute(campaign=c,qualification='hostedRun',external=external,env=env); self.assertIn('executable bytes/hash mismatch',q.stderr); executable.write_bytes(original)
+  rebind_archive(pax_path.read_bytes()); q=self.execute_hosted(c,external,env); self.assertIn('forbids non-USTAR regular or extension members',q.stderr); rebind_archive(original_archive)
+  executable=external/'executables/package-inspector.py'; original=executable.read_bytes(); executable.write_bytes(b'changed'); q=self.execute_hosted(c,external,env); self.assertIn('executable bytes/hash mismatch',q.stderr); executable.write_bytes(original)
+  for field,value,needle in [('repository','attacker/fork','oneOf matched 0'),('ref','refs/heads/attacker','authenticated identity facts mismatch'),('sourceRevision','0'*40,'authenticated identity facts mismatch')]:
+   aggregate=json.loads((c/'aggregate.json').read_text()); original_value=aggregate['qualification'][field]; aggregate['qualification'][field]=value; self.refresh(c,aggregate['scope'],aggregate['qualification']); q=self.execute_hosted(c,external,env); self.assertIn(needle,q.stderr); aggregate=json.loads((c/'aggregate.json').read_text()); aggregate['qualification'][field]=original_value; self.refresh(c,aggregate['scope'],aggregate['qualification'])
  def test_hosted_package_external_bytes_and_symlink_rejected(self):
   repository=self.synthetic_repository(); build=self.build_identity(repository); q={'level':'hostedRun','runID':'123','runAttempt':1,'artifactArchiveSha256':'9'*64}; receipt=self.package(build,retention={'kind':'hostedArtifact','runID':'123','runAttempt':1,'artifactName':'synthetic-packages','archiveSha256':'9'*64,'retentionExpiresAt':'2099-01-01T00:00:00Z'}); ext=Path(tempfile.mkdtemp());self.addCleanup(lambda:shutil.rmtree(ext));(ext/'packages').mkdir()
   for leaf in receipt['candidateLeaves']:
@@ -348,8 +363,8 @@ class Tests(unittest.TestCase):
   self.assertEqual(self.docs()['approval-policy.json']['qualificationRequirements']['releaseGate'],['definition','campaign','releaseGate'])
   cases=validator.idx(self.docs()['case-catalog.json']['cases'],'id','case');self.assertEqual(cases['REC-001']['executionTarget'],'physicalDevice');self.assertTrue(cases['REC-001']['deviceRoles'])
   schema=self.schemas()['case-evidence.schema.json'];valid=json.loads((CONTRACTS/'fixtures/validation/evidence/valid-synthetic.json').read_text());validator.schema_validate(valid,schema,schema);self.assertEqual(valid['buildIdentity']['kind'],'signedApplication');self.assertIsNotNone(valid['device'])
-  c=self.build_m2(); self.refresh(c,{'claim':'caseExecution','caseIDs':['PERF-003','PERF-008']},{'level':'repositoryObservation'}); a=json.loads((c/'aggregate.json').read_text()); a['qualification']={'level':'releaseGate','runID':'123','runAttempt':1,'workflowRepositoryPath':'.github/workflows/core-rust-ci.yml','workflowSha256':'8'*64,'artifactArchivePath':'archives/m2.tar','artifactArchiveSha256':'9'*64}; dump(c/'aggregate.json',a); q=self.execute(campaign=c,qualification='releaseGate',external=c/'artifacts'); self.assertIn('caseExecution scope cannot claim releaseGate',q.stderr)
-  c=self.build_m2(); a=json.loads((c/'aggregate.json').read_text()); release={'level':'releaseGate','runID':'123','runAttempt':1,'workflowRepositoryPath':'.github/workflows/core-rust-ci.yml','workflowSha256':'8'*64,'artifactArchivePath':'archives/m2.tar','artifactArchiveSha256':'9'*64}; a['qualification']=release; dump(c/'aggregate.json',a); q=self.execute(campaign=c,qualification='releaseGate',external=c/'artifacts'); self.assertIn('authenticated approval verifier',q.stderr)
+  c=self.build_m2(); self.refresh(c,{'claim':'caseExecution','caseIDs':['PERF-003','PERF-008']},{'level':'repositoryObservation'}); a=json.loads((c/'aggregate.json').read_text()); repository=self.campaign_repositories[str(c)]; a['qualification']=self.hosted_qualification(repository,'releaseGate'); dump(c/'aggregate.json',a); q=self.execute(campaign=c,qualification='releaseGate',external=c/'artifacts'); self.assertIn('caseExecution scope cannot claim releaseGate',q.stderr)
+  c=self.build_m2(); a=json.loads((c/'aggregate.json').read_text()); repository=self.campaign_repositories[str(c)]; a['qualification']=self.hosted_qualification(repository,'releaseGate'); dump(c/'aggregate.json',a); q=self.execute(campaign=c,qualification='releaseGate',external=c/'artifacts'); self.assertIn('authenticated approval verifier',q.stderr)
  def test_m3_scope_mixed_build_identities_and_blocked_wear_are_representable(self):
   docs=self.docs(); cases=validator.idx(docs['case-catalog.json']['cases'],'id','case'); devices=validator.idx(docs['device-matrix.json']['roles'],'id','device'); providers=validator.idx(docs['provider-matrix.json']['providers'],'id','provider'); scope={'claim':'milestoneClosure','throughMilestone':'M3'}; required=validator.tuples(cases,devices,providers,scope)
   identities=[]
