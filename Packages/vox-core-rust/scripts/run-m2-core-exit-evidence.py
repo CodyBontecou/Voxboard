@@ -28,34 +28,26 @@ SHADOW_ISOLATION_CHECKS = (
 )
 SEED = "9c795fa9af3eb6fa1bb450172c12a4a9abc04ac1326b76b8a6b8400d8b207ded"
 TOTAL_DOMAIN = b"vox-m2-total-input-v1\0"
+CORE_SOURCE_ROOTS = {
+    "Packages/VoxboardShared/Sources/VoxboardCaptureCore",
+    "Packages/VoxboardShared/Tests/VoxboardCaptureCoreTests",
+    "Packages/vox-core-rust/tests/resources/contracts/v1",
+}
 CORE_BASE_SOURCES = {
-    "Packages/VoxboardShared/Package.swift",
-    "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureEntryTemplateRenderer.swift",
-    "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureMarkdownRenderer.swift",
-    "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureModels.swift",
-    "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CapturePathPlanner.swift",
-    "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CapturePipeline.swift",
-    "Packages/VoxboardShared/Sources/VoxboardCaptureCore/MarkdownDocumentEditor.swift",
-    "Packages/VoxboardShared/Sources/VoxboardM2Oracle/main.swift",
-    "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
-    "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
-    "Packages/VoxboardShared/Sources/VoxCoreRust/VoxCoreRust.swift",
-    "Packages/VoxboardShared/Tests/VoxboardCaptureCoreTests/CaptureCoreEnginePolicyTests.swift",
-    "Packages/contracts/manifest.json",
-    "Packages/contracts/scripts/github_actions_oidc.py",
-    "Packages/contracts/validation/case-catalog.json",
-    "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml",
-    "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs",
-    "Packages/vox-core-rust/crates/vox-core/Cargo.toml", "Packages/vox-core-rust/crates/vox-core/build.rs", "Packages/vox-core-rust/crates/vox-core/src/lib.rs", "Packages/vox-core-rust/crates/vox-core/tests/m2_core.rs",
-    "Packages/vox-core-rust/generated/kotlin/md/vox/core/vox_core_uniffi.kt", "Packages/vox-core-rust/generated/swift/VoxCore.swift", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap",
-    "Packages/vox-core-rust/rust-toolchain.toml", "Packages/vox-core-rust/scripts/check-bindings.sh", "Packages/vox-core-rust/scripts/generate-oracle-fixtures.sh", "Packages/vox-core-rust/scripts/run-m2-core-exit-evidence.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh", "Packages/vox-core-rust/uniffi.toml",
+    "Packages/VoxboardShared/Package.swift", "Packages/VoxboardShared/Package.resolved",
+    "Packages/VoxboardShared/Sources/VoxboardM2Oracle/main.swift", "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap", "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift", "Packages/VoxboardShared/Sources/VoxCoreRust/VoxCoreRust.swift",
+    "Packages/contracts/manifest.json", "Packages/contracts/scripts/github_actions_oidc.py", "Packages/contracts/scripts/validate_toolchain.py", "Packages/contracts/validation/case-catalog.json",
+    "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs", "Packages/vox-core-rust/crates/vox-core-uniffi/uniffi.toml", "Packages/vox-core-rust/crates/vox-core/Cargo.toml", "Packages/vox-core-rust/crates/vox-core/build.rs", "Packages/vox-core-rust/crates/vox-core/src/lib.rs", "Packages/vox-core-rust/crates/vox-core/tests/m2_core.rs",
+    "Packages/vox-core-rust/generated/kotlin/md/vox/core/vox_core_uniffi.kt", "Packages/vox-core-rust/generated/swift/VoxCore.swift", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap", "Packages/vox-core-rust/rust-toolchain.toml",
+    "Packages/vox-core-rust/scripts/build-android-cdylibs.sh", "Packages/vox-core-rust/scripts/build-apple-xcframework.sh", "Packages/vox-core-rust/scripts/check-bindings.sh", "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh", "Packages/vox-core-rust/scripts/generate-oracle-fixtures.sh", "Packages/vox-core-rust/scripts/generate-swift-bindings.sh", "Packages/vox-core-rust/scripts/inspect-native-packages.py", "Packages/vox-core-rust/scripts/merge-apple-staticlib.sh", "Packages/vox-core-rust/scripts/normalize-apple-xcframework.py", "Packages/vox-core-rust/scripts/normalize-generated-text.py", "Packages/vox-core-rust/scripts/normalize-kotlin-bindings.py", "Packages/vox-core-rust/scripts/run-m2-core-exit-evidence.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh",
+    "Packages/vox-core-rust/tests/fixtures/swift-m2-oracle-v1.json", "Packages/vox-core-rust/uniffi-bindgen.toml", "Packages/vox-core-rust/uniffi.toml", "Packages/vox-core-rust/xtask/Cargo.toml", "Packages/vox-core-rust/xtask/src/bin/uniffi-bindgen.rs", "Packages/vox-core-rust/xtask/src/main.rs", "toolchains/android-wear-shared-core.schema.json",
 }
 PERF3_SOURCES = {
-    "Packages/contracts/scripts/github_actions_oidc.py", "Packages/VoxboardShared/Package.swift", "Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/main.swift", "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap", "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
+    "Packages/contracts/scripts/github_actions_oidc.py", "Packages/VoxboardShared/Package.swift", "Packages/VoxboardShared/Package.resolved", "Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/main.swift", "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap", "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
     "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs", "Packages/vox-core-rust/crates/vox-core/Cargo.toml", "Packages/vox-core-rust/crates/vox-core/build.rs", "Packages/vox-core-rust/crates/vox-core/src/lib.rs", "Packages/vox-core-rust/generated/swift/VoxCore.swift", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap", "Packages/vox-core-rust/rust-toolchain.toml", "Packages/vox-core-rust/scripts/generate-m2-materialization-input.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh", "Packages/vox-core-rust/scripts/run-m2-materialization-evidence.sh", "Packages/vox-core-rust/uniffi.toml",
 }
 PERF8_SOURCES = {
-    "Packages/contracts/scripts/github_actions_oidc.py", "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs", "Packages/vox-core-rust/crates/vox-core/Cargo.toml", "Packages/vox-core-rust/crates/vox-core/build.rs", "Packages/vox-core-rust/crates/vox-core/src/lib.rs", "Packages/vox-core-rust/rust-toolchain.toml", "Packages/vox-core-rust/scripts/build-android-cdylibs.sh", "Packages/vox-core-rust/scripts/build-apple-xcframework.sh", "Packages/vox-core-rust/scripts/inspect-native-packages.py", "Packages/vox-core-rust/scripts/merge-apple-staticlib.sh", "Packages/vox-core-rust/scripts/normalize-apple-xcframework.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh", "Packages/vox-core-rust/uniffi.toml",
+    "Packages/contracts/scripts/github_actions_oidc.py", "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs", "Packages/vox-core-rust/crates/vox-core/Cargo.toml", "Packages/vox-core-rust/crates/vox-core/build.rs", "Packages/vox-core-rust/crates/vox-core/src/lib.rs", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap", "Packages/vox-core-rust/rust-toolchain.toml", "Packages/vox-core-rust/scripts/build-android-cdylibs.sh", "Packages/vox-core-rust/scripts/build-apple-xcframework.sh", "Packages/vox-core-rust/scripts/inspect-native-packages.py", "Packages/vox-core-rust/scripts/merge-apple-staticlib.sh", "Packages/vox-core-rust/scripts/normalize-apple-xcframework.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh", "Packages/vox-core-rust/uniffi.toml",
 }
 
 def canonical_bytes(value: object) -> bytes:
@@ -142,7 +134,11 @@ def execute_core(repo: Path, campaign: Path, external: Path, hosted_identity_ver
 def provenance(repo: Path, external: Path, revision: str, hosted: dict, case_id: str, build: dict) -> dict:
     if case_id.startswith("CORE-"):
         consumer = {"id": "vox-m2-core-exit-host-v1", "language": "Python", "entryPoint": "main", "boundary": "sourceBuiltCoreExitHost"}; sources = set(CORE_BASE_SOURCES)
-        sources.update(git(repo, "ls-files", "--", "Packages/VoxboardShared/Sources/VoxboardCaptureCore").splitlines()); executable_path = "executables/core-exit-host.py"; generator = None
+        for source_root in CORE_SOURCE_ROOTS:
+            discovered = set(git(repo, "ls-files", "--", source_root).splitlines())
+            if not discovered: raise SystemExit(f"provenance source root has no tracked files: {source_root}")
+            sources.update(discovered)
+        executable_path = "executables/core-exit-host.py"; generator = None
     elif case_id == "PERF-003":
         consumer = {"id": "vox-core-uniffi-swift-host-v1", "language": "Swift", "entryPoint": "main", "boundary": "generatedUniFFIHostBinding"}; sources = PERF3_SOURCES; executable_path = "executables/vox-m2-materialization-evidence"; generator = {"id": "vox-m2-deterministic-synthetic-input-v1", "version": 1, "repositoryPath": "Packages/vox-core-rust/scripts/generate-m2-materialization-input.py", "sourceSha256": sha_file(repo / "Packages/vox-core-rust/scripts/generate-m2-materialization-input.py"), "seedSha256": SEED}
     else:

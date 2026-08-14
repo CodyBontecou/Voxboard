@@ -69,6 +69,48 @@
       ],
       "type": "object"
     },
+    "headerDescriptor": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "cHeader",
+            "moduleMap"
+          ]
+        },
+        "relativeArtifactPath": {
+          "$ref": "#/$defs/path"
+        },
+        "repositorySourcePath": {
+          "enum": [
+            "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h",
+            "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap"
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "targetScope": {
+          "enum": [
+            "xcframework-ios-device-arm64",
+            "xcframework-ios-simulator-arm64-x86_64"
+          ]
+        }
+      },
+      "required": [
+        "targetScope",
+        "kind",
+        "relativeArtifactPath",
+        "repositorySourcePath",
+        "bytes",
+        "sha256"
+      ],
+      "type": "object"
+    },
     "leaf": {
       "additionalProperties": false,
       "properties": {
@@ -298,6 +340,14 @@
     "toolchainManifestSha256": {
       "$ref": "#/$defs/sha256"
     },
+    "xcframeworkHeaders": {
+      "items": {
+        "$ref": "#/$defs/headerDescriptor"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "type": "array"
+    },
     "xcframeworkMetadata": {
       "additionalProperties": false,
       "properties": {
@@ -335,6 +385,7 @@
     "candidateLeaves",
     "appleAggregateBytes",
     "xcframeworkMetadata",
+    "xcframeworkHeaders",
     "retention"
   ],
   "title": "M2 native package inspection receipt",

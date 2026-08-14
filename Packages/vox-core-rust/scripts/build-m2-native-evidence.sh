@@ -17,8 +17,10 @@ for abi in arm64-v8a armeabi-v7a x86_64 x86; do
   cp "$android/$abi/libvox_core_uniffi.so" "$external/packages/android/$abi/libvox_core_uniffi.so"
 done
 for identifier in ios-arm64 ios-arm64_x86_64-simulator; do
-  mkdir -p "$external/packages/VoxCore.xcframework/$identifier"
+  mkdir -p "$external/packages/VoxCore.xcframework/$identifier/Headers"
   cp "$xcframework/$identifier/libVoxCoreFFI.a" "$external/packages/VoxCore.xcframework/$identifier/libVoxCoreFFI.a"
+  cp "$xcframework/$identifier/Headers/VoxCoreFFI.h" "$external/packages/VoxCore.xcframework/$identifier/Headers/VoxCoreFFI.h"
+  cp "$xcframework/$identifier/Headers/module.modulemap" "$external/packages/VoxCore.xcframework/$identifier/Headers/module.modulemap"
 done
 cp "$xcframework/Info.plist" "$external/packages/VoxCore.xcframework/Info.plist"
 
@@ -32,4 +34,5 @@ python3 "$external/executables/native-package-inspector.py" \
   --output "$workspace/target/m2-evidence/native-package-candidate.json" \
   --source-revision "$revision" \
   --toolchain-manifest "$repo/toolchains/android-wear-shared-core.json" \
-  --build-recipe "$workspace/scripts/build-m2-native-evidence.sh"
+  --build-recipe "$workspace/scripts/build-m2-native-evidence.sh" \
+  --repository-root "$repo"

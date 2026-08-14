@@ -22,6 +22,10 @@ ABIS = {
 SYMBOL = "uniffi_vox_core_uniffi_fn_func_core_build_info"
 ANDROID_CHECKS = ("architecture", "binaryFormat", "definedUniFFISymbols", "dependencyAllowlist")
 APPLE_CHECKS = (*ANDROID_CHECKS, "deploymentTarget", "archiveMembers", "xcframeworkMetadata")
+HEADER_SOURCES = {
+    "cHeader": "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h",
+    "moduleMap": "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap",
+}
 
 
 def run(*arguments: str) -> str:
@@ -71,6 +75,38 @@ def build_host() -> dict[str, object]:
 
 def check_records(codes: tuple[str, ...]) -> list[dict[str, str]]:
     return [{"code": code, "result": "passed"} for code in sorted(codes)]
+
+
+def exact_directory(path: Path, expected: set[str], label: str) -> None:
+    try:
+        entries = list(path.iterdir())
+    except OSError as error:
+        raise SystemExit(f"{label} is unreadable: {error}") from error
+    if path.is_symlink() or not path.is_dir() or {entry.name for entry in entries} != expected:
+        raise SystemExit(f"{label} inventory mismatch")
+    if any(entry.is_symlink() for entry in entries):
+        raise SystemExit(f"{label} contains a symlink")
+
+
+def header_descriptor(
+    path: Path,
+    external_root: Path,
+    target_scope: str,
+    kind: str,
+    repository_root: Path,
+) -> dict[str, object]:
+    source_relative = HEADER_SOURCES[kind]
+    source = (repository_root / source_relative).resolve(strict=True)
+    if path.read_bytes() != source.read_bytes():
+        raise SystemExit(f"XCFramework {kind} differs from tracked generated source")
+    return {
+        "targetScope": target_scope,
+        "kind": kind,
+        "relativeArtifactPath": path.relative_to(external_root).as_posix(),
+        "repositorySourcePath": source_relative,
+        "bytes": path.stat().st_size,
+        "sha256": sha256(path),
+    }
 
 
 def leaf(
@@ -126,9 +162,11 @@ def main() -> int:
     parser.add_argument("--source-revision", required=True)
     parser.add_argument("--toolchain-manifest", type=Path, required=True)
     parser.add_argument("--build-recipe", type=Path, required=True)
+    parser.add_argument("--repository-root", type=Path, required=True)
     args = parser.parse_args()
 
     external_root = args.external_root.resolve(strict=True)
+    repository_root = args.repository_root.resolve(strict=True)
     readelf, nm = ndk_tools()
     leaves: list[dict[str, object]] = []
     for abi, (machine, gate, architecture) in ABIS.items():
@@ -161,7 +199,13 @@ def main() -> int:
             )
         )
 
-    info_path = (args.xcframework / "Info.plist").resolve(strict=True)
+    xcframework_root = args.xcframework.resolve(strict=True)
+    exact_directory(
+        xcframework_root,
+        {"Info.plist", "ios-arm64", "ios-arm64_x86_64-simulator"},
+        "XCFramework root",
+    )
+    info_path = (xcframework_root / "Info.plist").resolve(strict=True)
     with info_path.open("rb") as source:
         info = plistlib.load(source)
     expected = (
@@ -181,14 +225,27 @@ def main() -> int:
     ):
         raise SystemExit("XCFramework metadata inspection failed")
     apple_bytes = 0
+    headers: list[dict[str, object]] = []
     for identifier, architectures, scope in expected:
         entry = next(
             (item for item in libraries if item.get("LibraryIdentifier") == identifier),
             None,
         )
-        if entry is None:
-            raise SystemExit(f"missing XCFramework leaf: {identifier}")
-        path = (args.xcframework / identifier / entry["LibraryPath"]).resolve(strict=True)
+        if entry is None or entry.get("LibraryPath") != "libVoxCoreFFI.a" or entry.get("HeadersPath") != "Headers":
+            raise SystemExit(f"missing or malformed XCFramework leaf: {identifier}")
+        slice_root = xcframework_root / identifier
+        exact_directory(slice_root, {"libVoxCoreFFI.a", "Headers"}, f"XCFramework slice {identifier}")
+        header_root = slice_root / "Headers"
+        exact_directory(header_root, {"VoxCoreFFI.h", "module.modulemap"}, f"XCFramework headers {identifier}")
+        header_path = (header_root / "VoxCoreFFI.h").resolve(strict=True)
+        modulemap_path = (header_root / "module.modulemap").resolve(strict=True)
+        headers.extend(
+            (
+                header_descriptor(header_path, external_root, scope, "cHeader", repository_root),
+                header_descriptor(modulemap_path, external_root, scope, "moduleMap", repository_root),
+            )
+        )
+        path = (slice_root / "libVoxCoreFFI.a").resolve(strict=True)
         actual_architectures = run("xcrun", "lipo", "-archs", str(path)).split()
         global_symbols = run("xcrun", "nm", "-gU", str(path))
         archive_members: list[str] = []
@@ -243,6 +300,7 @@ def main() -> int:
             "bytes": info_path.stat().st_size,
             "sha256": sha256(info_path),
         },
+        "xcframeworkHeaders": headers,
         "retention": {"kind": "notRetained"},
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

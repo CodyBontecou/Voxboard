@@ -661,10 +661,10 @@
       "sha256": "8f47446fae4fc2d2c2981daa1d0887894e9d829c53b3492c1988c1fbf71384a4"
     },
     {
-      "bytes": 7990,
+      "bytes": 9190,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/native-package-inspection.schema.json",
-      "sha256": "4c8888f27d17f7eb9b4aa2fb19bfe649e459e35d5f2644fccc51bae3f5300a27"
+      "sha256": "2d4455633cbacd587fe72d8620b012c00674e7c433321f5e08aa8a0026ed99f4"
     },
     {
       "bytes": 5750,
@@ -721,10 +721,10 @@
       "sha256": "60c6680c21545cc20047e842a1da1574e1f567c99ebb2e5f3a9d56f93d892b7a"
     },
     {
-      "bytes": 106913,
+      "bytes": 111086,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_validation_definitions.py",
-      "sha256": "21398c316cb6d9687ebd24c0c67b287712ceef829ade92d8f2cf3add2aaa479d"
+      "sha256": "91314f1b40e8b31899c971d870b0743ee7c0e92b62437312307287341a5d2b35"
     },
     {
       "bytes": 5492,
@@ -745,10 +745,10 @@
       "sha256": "35c5aff8feab41e24ac08883f74ada7ba7b67bdf53cb421e5ae25320ce1758c2"
     },
     {
-      "bytes": 74263,
+      "bytes": 79014,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validation_definitions.py",
-      "sha256": "dc1defc587f52f041dcf28c0c224b0d14c97ec225e7b40d0c004dbc69de84e4a"
+      "sha256": "3aa7a30c5ca6448c470df0b43b62ecc7edc82363fe88b45362853ba6fbdebd5d"
     },
     {
       "bytes": 2641,
@@ -970,7 +970,7 @@
       "bytes": 5022,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "f392e6a44c2f8c2780a75e5f28a0b2294b49cc0bb42551cb03636c83f49694b5"
+      "sha256": "ef9c354bacda74833011165318403893713cd38d0008158063a88353dcdd080e"
     },
     {
       "bytes": 3460,

@@ -104,7 +104,7 @@
     },
     {
       "path": "Packages/vox-core-rust/scripts/inspect-native-packages.py",
-      "sha256": "2e6f7be3bfddf588f4b6f5617922a9debe48dd92995a5e4588a3806cc2000c44"
+      "sha256": "0c6569c0c2e957e57f47022f10520a5169a9803f82985f9127d75304b4cdc330"
     },
     {
       "path": "Packages/vox-core-rust/scripts/normalize-generated-text.py",

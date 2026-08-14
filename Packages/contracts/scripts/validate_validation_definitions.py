@@ -36,28 +36,28 @@ EXPECTED_PROVENANCE_PATHS={
     "PERF-008": {"buildRecipe":"Packages/vox-core-rust/scripts/build-m2-native-evidence.sh","inputGenerator":None},
 }
 
-REQUIRED_PROVENANCE_SOURCE_ROOTS={"vox-m2-core-exit-host-v1":{"Packages/VoxboardShared/Sources/VoxboardCaptureCore"}}
+REQUIRED_PROVENANCE_SOURCE_ROOTS={"vox-m2-core-exit-host-v1":{
+    "Packages/VoxboardShared/Sources/VoxboardCaptureCore",
+    "Packages/VoxboardShared/Tests/VoxboardCaptureCoreTests",
+    "Packages/vox-core-rust/tests/resources/contracts/v1",
+}}
 REQUIRED_PROVENANCE_SOURCES={
     "vox-m2-core-exit-host-v1": {
         "Packages/VoxboardShared/Package.swift",
-        "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureEntryTemplateRenderer.swift",
-        "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureMarkdownRenderer.swift",
-        "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureModels.swift",
-        "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CapturePathPlanner.swift",
-        "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CapturePipeline.swift",
-        "Packages/VoxboardShared/Sources/VoxboardCaptureCore/MarkdownDocumentEditor.swift",
+        "Packages/VoxboardShared/Package.resolved",
         "Packages/VoxboardShared/Sources/VoxboardM2Oracle/main.swift",
         "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
         "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
         "Packages/VoxboardShared/Sources/VoxCoreRust/VoxCoreRust.swift",
-        "Packages/VoxboardShared/Tests/VoxboardCaptureCoreTests/CaptureCoreEnginePolicyTests.swift",
         "Packages/contracts/manifest.json",
         "Packages/contracts/scripts/github_actions_oidc.py",
+        "Packages/contracts/scripts/validate_toolchain.py",
         "Packages/contracts/validation/case-catalog.json",
         "Packages/vox-core-rust/Cargo.lock",
         "Packages/vox-core-rust/Cargo.toml",
         "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml",
         "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs",
+        "Packages/vox-core-rust/crates/vox-core-uniffi/uniffi.toml",
         "Packages/vox-core-rust/crates/vox-core/Cargo.toml",
         "Packages/vox-core-rust/crates/vox-core/build.rs",
         "Packages/vox-core-rust/crates/vox-core/src/lib.rs",
@@ -67,15 +67,31 @@ REQUIRED_PROVENANCE_SOURCES={
         "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h",
         "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap",
         "Packages/vox-core-rust/rust-toolchain.toml",
+        "Packages/vox-core-rust/scripts/build-android-cdylibs.sh",
+        "Packages/vox-core-rust/scripts/build-apple-xcframework.sh",
         "Packages/vox-core-rust/scripts/check-bindings.sh",
+        "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh",
         "Packages/vox-core-rust/scripts/generate-oracle-fixtures.sh",
+        "Packages/vox-core-rust/scripts/generate-swift-bindings.sh",
+        "Packages/vox-core-rust/scripts/inspect-native-packages.py",
+        "Packages/vox-core-rust/scripts/merge-apple-staticlib.sh",
+        "Packages/vox-core-rust/scripts/normalize-apple-xcframework.py",
+        "Packages/vox-core-rust/scripts/normalize-generated-text.py",
+        "Packages/vox-core-rust/scripts/normalize-kotlin-bindings.py",
         "Packages/vox-core-rust/scripts/run-m2-core-exit-evidence.py",
         "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh",
+        "Packages/vox-core-rust/tests/fixtures/swift-m2-oracle-v1.json",
+        "Packages/vox-core-rust/uniffi-bindgen.toml",
         "Packages/vox-core-rust/uniffi.toml",
+        "Packages/vox-core-rust/xtask/Cargo.toml",
+        "Packages/vox-core-rust/xtask/src/bin/uniffi-bindgen.rs",
+        "Packages/vox-core-rust/xtask/src/main.rs",
+        "toolchains/android-wear-shared-core.schema.json",
     },
     "vox-core-uniffi-swift-host-v1": {
         "Packages/contracts/scripts/github_actions_oidc.py",
         "Packages/VoxboardShared/Package.swift",
+        "Packages/VoxboardShared/Package.resolved",
         "Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/main.swift",
         "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
         "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
@@ -104,6 +120,8 @@ REQUIRED_PROVENANCE_SOURCES={
         "Packages/vox-core-rust/crates/vox-core/Cargo.toml",
         "Packages/vox-core-rust/crates/vox-core/build.rs",
         "Packages/vox-core-rust/crates/vox-core/src/lib.rs",
+        "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h",
+        "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap",
         "Packages/vox-core-rust/rust-toolchain.toml",
         "Packages/vox-core-rust/scripts/build-android-cdylibs.sh",
         "Packages/vox-core-rust/scripts/build-apple-xcframework.sh",
@@ -494,6 +512,12 @@ def validate_run_set(value:dict,build:dict,gates:dict,qualification:dict|None=No
     return computed
 
 PACKAGE_ORDER=[("android-core-arm64-uncompressed","arm64-v8a",["arm64"],"elf-shared-object"),("android-core-armv7-uncompressed","armeabi-v7a",["armv7"],"elf-shared-object"),("android-core-x86_64-uncompressed","x86_64",["x86_64"],"elf-shared-object"),("android-core-x86-uncompressed","x86",["x86"],"elf-shared-object"),("apple-xcframework-per-slice","xcframework-ios-device-arm64",["arm64"],"apple-static-library"),("apple-xcframework-per-slice","xcframework-ios-simulator-arm64-x86_64",["arm64","x86_64"],"apple-static-library")]
+XCFRAMEWORK_HEADER_ORDER=[
+    ("xcframework-ios-device-arm64","cHeader","ios-arm64/Headers/VoxCoreFFI.h","Packages/vox-core-rust/generated/swift/VoxCoreFFI.h"),
+    ("xcframework-ios-device-arm64","moduleMap","ios-arm64/Headers/module.modulemap","Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap"),
+    ("xcframework-ios-simulator-arm64-x86_64","cHeader","ios-arm64_x86_64-simulator/Headers/VoxCoreFFI.h","Packages/vox-core-rust/generated/swift/VoxCoreFFI.h"),
+    ("xcframework-ios-simulator-arm64-x86_64","moduleMap","ios-arm64_x86_64-simulator/Headers/module.modulemap","Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap"),
+]
 ANDROID_INSPECTION_CHECKS={"architecture","binaryFormat","definedUniFFISymbols","dependencyAllowlist"}
 APPLE_INSPECTION_CHECKS=ANDROID_INSPECTION_CHECKS|{"deploymentTarget","archiveMembers","xcframeworkMetadata"}
 APPLE_CPU_ARCH={0x0100000c:"arm64",0x01000007:"x86_64"}
@@ -666,7 +690,10 @@ def inspect_elf_semantics(path:Path,elf_class:int)->None:
             entry=dynamic_bytes[position:position+entry_size]; width=8 if elf_class==2 else 4; tag=int.from_bytes(entry[:width],endian,signed=True); value=int.from_bytes(entry[width:2*width],endian)
             if tag==0: terminated=True; break
             if tag==1: needed.append(value)
-            else: tags[tag]=value
+            else:
+                if tag in {4,5,6,10,11,0x6ffffef5} and tag in tags:
+                    raise ValidationError("external ELF has duplicate singleton loader tags")
+                tags[tag]=value
         required_tags={5,6,10,11}
         if not terminated or not required_tags<=set(tags): raise ValidationError("external ELF PT_DYNAMIC omits terminator or required loader tags")
         string_section=sections[dynsym[5]]
@@ -739,6 +766,14 @@ def inspect_external_package_leaf(path:Path,leaf:dict)->None:
     else: raise ValidationError("external package binary format mismatch")
     if found!=expected: raise ValidationError("external package architecture mismatch")
 
+def exact_directory_inventory(path:Path,expected:set[str],label:str)->None:
+    if path.is_symlink() or not path.is_dir(): raise ValidationError(f"{label} must be a non-symlink directory")
+    try: entries=list(path.iterdir())
+    except OSError as e: raise ValidationError(f"{label} is unreadable: {e}") from e
+    if {entry.name for entry in entries}!=expected: raise ValidationError(f"{label} inventory mismatch")
+    if any(entry.is_symlink() for entry in entries): raise ValidationError(f"{label} contains symlinks")
+
+
 def validate_xcframework_metadata(path:Path,external_root:Path,leaves:list[dict])->None:
     try:
         with path.open("rb") as source: value=plistlib.load(source)
@@ -752,19 +787,25 @@ def validate_xcframework_metadata(path:Path,external_root:Path,leaves:list[dict]
         architectures=library.get("SupportedArchitectures",[])
         if specification is None or identifier in observed or len(architectures)!=len(set(architectures)) or set(architectures)!=specification[0] or library.get("SupportedPlatform")!="ios" or library.get("SupportedPlatformVariant")!=specification[1]: raise ValidationError("XCFramework metadata leaf mismatch")
         library_path=library.get("LibraryPath")
-        if not isinstance(library_path,str) or safe_relative(library_path,"XCFramework library path").suffix!=".a": raise ValidationError("XCFramework metadata library path mismatch")
+        if library_path!="libVoxCoreFFI.a" or library.get("HeadersPath")!="Headers": raise ValidationError("XCFramework metadata library/header path mismatch")
         leaf=by_scope.get(specification[2]); expected_leaf=contained_file(external_root,leaf["relativeArtifactPath"],"XCFramework candidate leaf") if leaf else None; metadata_leaf=path.parent/identifier/library_path
         if expected_leaf is None or metadata_leaf.resolve()!=expected_leaf.resolve(): raise ValidationError("XCFramework metadata is not bound to the inspected candidate leaf")
         observed.add(identifier)
     if observed!=set(expected): raise ValidationError("XCFramework metadata leaf inventory mismatch")
 
-def validate_package(value:dict,build:dict,qualification:dict,external_root:Path|None,baseline_registry:dict|None,build_host:dict|None=None)->dict[str,tuple[list[str],list[float]]]:
+def validate_package(value:dict,build:dict,qualification:dict,external_root:Path|None,baseline_registry:dict|None,build_host:dict|None=None,repository_root:Path|None=None)->dict[str,tuple[list[str],list[float]]]:
     if value["sourceRevision"]!=build["sourceRevision"] or value["toolchainManifestSha256"]!=build["toolchainManifestSha256"] or value["buildRecipeSha256"]!=build["buildRecipeSha256"]: raise ValidationError("package receipt build identity mismatch")
     leaves=value["candidateLeaves"]
     actual=[(x["gateID"],x["targetScope"],x["architectures"],x["format"]) for x in leaves]
     if actual!=PACKAGE_ORDER: raise ValidationError("package exact leaf scope/order mismatch")
     ids=[x["artifactID"] for x in leaves]
     if len(ids)!=len(set(ids)): raise ValidationError("package artifact IDs must be unique")
+    headers=value["xcframeworkHeaders"]
+    metadata_relative=PurePosixPath(value["xcframeworkMetadata"]["relativeArtifactPath"])
+    xcframework_relative=metadata_relative.parent
+    expected_headers=[(scope,kind,(xcframework_relative/relative).as_posix(),source) for scope,kind,relative,source in XCFRAMEWORK_HEADER_ORDER]
+    actual_headers=[(item["targetScope"],item["kind"],item["relativeArtifactPath"],item["repositorySourcePath"]) for item in headers]
+    if actual_headers!=expected_headers: raise ValidationError("XCFramework exact header descriptor scope/order/path mismatch")
     if build_host is not None and value["buildHost"]!=build_host: raise ValidationError("package receipt build host mismatch")
     if value["inspectorSha256"]!=build["executableSha256"]: raise ValidationError("package inspector executable hash mismatch")
     for leaf in leaves:
@@ -779,9 +820,21 @@ def validate_package(value:dict,build:dict,qualification:dict,external_root:Path
         for k in ("runID","runAttempt"):
             if value["retention"][k]!=qualification[k]: raise ValidationError("hosted package retention identity mismatch")
         if value["retention"]["archiveSha256"]!=qualification["artifactArchiveSha256"]: raise ValidationError("hosted package archive identity mismatch")
+        if repository_root is None: raise ValidationError("hosted package validation requires repository source bytes")
         metadata=value["xcframeworkMetadata"]; metadata_path=contained_file(external_root,metadata["relativeArtifactPath"],"external XCFramework metadata")
         if metadata_path.stat().st_size!=metadata["bytes"] or digest(metadata_path)!=metadata["sha256"]: raise ValidationError("external XCFramework metadata bytes/hash mismatch")
+        xcframework_root=metadata_path.parent
+        exact_directory_inventory(xcframework_root,{"Info.plist","ios-arm64","ios-arm64_x86_64-simulator"},"external XCFramework root")
+        for identifier in ("ios-arm64","ios-arm64_x86_64-simulator"):
+            slice_root=xcframework_root/identifier
+            exact_directory_inventory(slice_root,{"libVoxCoreFFI.a","Headers"},f"external XCFramework slice {identifier}")
+            exact_directory_inventory(slice_root/"Headers",{"VoxCoreFFI.h","module.modulemap"},f"external XCFramework headers {identifier}")
         validate_xcframework_metadata(metadata_path,external_root,leaves)
+        for descriptor in headers:
+            header_path=contained_file(external_root,descriptor["relativeArtifactPath"],"external XCFramework header")
+            source_path=repository_file(repository_root,descriptor["repositorySourcePath"])
+            if header_path.stat().st_size!=descriptor["bytes"] or digest(header_path)!=descriptor["sha256"]: raise ValidationError("external XCFramework header bytes/hash mismatch")
+            if header_path.read_bytes()!=source_path.read_bytes(): raise ValidationError("external XCFramework header differs from tracked generated source")
         for leaf in leaves:
             p=contained_file(external_root,leaf["relativeArtifactPath"],"external package artifact")
             if p.stat().st_size!=leaf["bytes"] or digest(p)!=leaf["sha256"]: raise ValidationError("external package artifact bytes/hash mismatch")
@@ -995,9 +1048,9 @@ def validate_campaign(root:Path,cdir:Path,docs,schemas,repository_root:Path|None
                 if e["nativePackageInspection"] is None or e["materializationRunSet"] is not None: raise ValidationError("PERF-008 receipt type mismatch")
                 declared_campaign_artifacts.add(e["nativePackageInspection"]["id"]); package=canonical_receipt(cdir,e["nativePackageInspection"],schemas["native-package-inspection.schema.json"])
                 if qualification["level"] in ("hostedRun","releaseGate") and parse_utc(package["retention"]["retentionExpiresAt"],"package retention expiry")<=generated: raise ValidationError("hosted package retention expired before aggregate generation")
-                derived=validate_package(package,build,qualification,external_root,baseline_registry,e["buildHost"])
+                derived=validate_package(package,build,qualification,external_root,baseline_registry,e["buildHost"],repository_root)
                 if qualification["level"] in ("hostedRun","releaseGate"):
-                    declared_external_artifacts.update(x["relativeArtifactPath"] for x in package["candidateLeaves"]); declared_external_artifacts.add(package["xcframeworkMetadata"]["relativeArtifactPath"])
+                    declared_external_artifacts.update(x["relativeArtifactPath"] for x in package["candidateLeaves"]); declared_external_artifacts.add(package["xcframeworkMetadata"]["relativeArtifactPath"]); declared_external_artifacts.update(x["relativeArtifactPath"] for x in package["xcframeworkHeaders"])
         elif any(e[x] is not None for x in ("executionProvenance","materializationRunSet","nativePackageInspection")): raise ValidationError("unexecuted/non-M2 evidence cannot claim typed execution receipts")
         gate_ids=[x["gateID"] for x in e["measurements"]]
         if len(gate_ids)!=len(set(gate_ids)): raise ValidationError(f"duplicate gate ID: {t}")
@@ -1099,7 +1152,7 @@ def validate(root:Path,campaign:Path|None=None,repository_root:Path|None=None,qu
     if campaign: validate_campaign(root,campaign,docs,schemas,repository_root,qualification,external_root,approval_verifier,hosted_identity_verifier)
     print(f"Validation definitions passed: {len(devices)} roles, {len(providers)} providers, {len(cases)} cases, {len(gates)} gates"+("; scoped campaign computed" if campaign else ""))
 
-CANONICAL_HASHES={'devices': 'ecd13c2b779065abe91824bdbc2726c3e1363368fe46558fe694aa571597d8a4', 'providers': 'd0e9a96c63213cbaa13c587e92b6318ae63f88ecd88b7387c0a441c57e0eaed2', 'cases': '1aeba6fe680284d65e8dc4b4d714d999f7d1a6ffaf08f0073769f8e17904f503', 'gates': 'f227ffb7119ec4599a46870166b49ce9ed9a30974b3e41db1cb8097e28366559', 'aggregate': 'e99042ec440740050384ae1576c980de7f42a06b96db82d1c5d6d40c2f56ef58', 'evidencePolicy': '8446cf2b15504c7a7b5861e93b5cbbc1477682a8dfb4de8b0c968603caf994fc', 'approvalPolicy': 'c086d7b57f2a832ff6a1d9a8d4acdc0d8d52ffdbf0131a4512fe60b3c6b69e02', 'schemas': '965792aa7053b896ae7495b3feb6c978c8bf5c1371942adf1339b9bc5808001f'}
+CANONICAL_HASHES={'devices': 'ecd13c2b779065abe91824bdbc2726c3e1363368fe46558fe694aa571597d8a4', 'providers': 'd0e9a96c63213cbaa13c587e92b6318ae63f88ecd88b7387c0a441c57e0eaed2', 'cases': '1aeba6fe680284d65e8dc4b4d714d999f7d1a6ffaf08f0073769f8e17904f503', 'gates': 'f227ffb7119ec4599a46870166b49ce9ed9a30974b3e41db1cb8097e28366559', 'aggregate': 'e99042ec440740050384ae1576c980de7f42a06b96db82d1c5d6d40c2f56ef58', 'evidencePolicy': '8446cf2b15504c7a7b5861e93b5cbbc1477682a8dfb4de8b0c968603caf994fc', 'approvalPolicy': 'c086d7b57f2a832ff6a1d9a8d4acdc0d8d52ffdbf0131a4512fe60b3c6b69e02', 'schemas': 'f147817d0dfb43c1b3de89ba8a5eedffaaca0716a4bbca4f248cc3fd3e66dd51'}
 
 def main()->int:
     ap=argparse.ArgumentParser(); ap.add_argument("--contracts-root",type=Path,default=Path(__file__).resolve().parents[1]); ap.add_argument("--campaign-dir",type=Path); ap.add_argument("--repository-root",type=Path); ap.add_argument("--qualification",choices=("repositoryObservation","hostedRun","releaseGate")); ap.add_argument("--external-artifact-root",type=Path)
