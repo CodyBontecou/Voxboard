@@ -703,10 +703,10 @@
       "sha256": "4d3e4825457e6102203c2ba83ede0312b2b4fe5f283044e83d49533b25165a59"
     },
     {
-      "bytes": 11518,
+      "bytes": 11645,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/github_actions_oidc.py",
-      "sha256": "c157f638ba68253cfcf0efeb27ebc81eee070d9aae732dafcc905616b3fe671c"
+      "sha256": "e59c93ae5b3e97e86962be76f035c692d7bca23b69a8617f2f99e6280f56eb10"
     },
     {
       "bytes": 37915,

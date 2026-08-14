@@ -14,6 +14,10 @@ from typing import Any, Callable
 
 ISSUER = "https://token.actions.githubusercontent.com"
 JWKS_URL = "https://token.actions.githubusercontent.com/.well-known/jwks"
+TOKEN_ENDPOINT_HOSTS = frozenset({
+    "pipelines.actions.githubusercontent.com",
+    "vstoken.actions.githubusercontent.com",
+})
 AUDIENCE = "https://vox.md/m2-evidence/v1"
 REPOSITORY = "CodyBontecou/vox.md"
 REPOSITORY_ID = "1153091883"
@@ -47,15 +51,15 @@ def _json(data: bytes, label: str, limit: int = MAX_JSON_BYTES) -> Any:
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise OIDCError(f"{label} is invalid JSON") from error
 
-def _get(url: str, headers: dict[str, str], label: str, expected_host: str) -> bytes:
+def _get(url: str, headers: dict[str, str], label: str, expected_hosts: frozenset[str]) -> bytes:
     parsed = urllib.parse.urlsplit(url)
-    if parsed.scheme != "https" or parsed.hostname != expected_host or parsed.username is not None or parsed.password is not None or parsed.fragment:
+    if parsed.scheme != "https" or parsed.hostname not in expected_hosts or parsed.username is not None or parsed.password is not None or parsed.fragment:
         raise OIDCError(f"{label} URL is not the pinned HTTPS endpoint")
     try:
         request = urllib.request.Request(url, headers=headers, method="GET")
         with urllib.request.urlopen(request, timeout=10) as response:
             final = urllib.parse.urlsplit(response.geturl())
-            if final.scheme != "https" or final.hostname != expected_host or final.username is not None or final.password is not None:
+            if final.scheme != "https" or final.hostname not in expected_hosts or final.username is not None or final.password is not None:
                 raise OIDCError(f"{label} redirected away from the pinned HTTPS endpoint")
             if response.status != 200:
                 raise OIDCError(f"{label} returned HTTP {response.status}")
@@ -176,18 +180,18 @@ def authenticate(repository_root: Path, qualification: dict[str, Any], git_revis
         if len(request_url) > 8192 or not (32 <= len(request_token) <= 8192) or any(character in request_token for character in "\r\n"):
             raise OIDCError("GitHub Actions OIDC request credentials are outside bounds")
         parsed = urllib.parse.urlsplit(request_url)
-        if parsed.scheme != "https" or parsed.hostname != "pipelines.actions.githubusercontent.com" or parsed.username is not None or parsed.password is not None or parsed.fragment:
+        if parsed.scheme != "https" or parsed.hostname not in TOKEN_ENDPOINT_HOSTS or parsed.username is not None or parsed.password is not None or parsed.fragment:
             raise OIDCError("GitHub OIDC token URL is not the pinned HTTPS endpoint")
         query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
         if any(key == "audience" for key, _ in query):
             raise OIDCError("GitHub OIDC token URL already contains an audience")
         query.append(("audience", AUDIENCE))
         token_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urllib.parse.urlencode(query), ""))
-        response = _json(_get(token_url, {"Authorization": f"Bearer {request_token}", "Accept": "application/json"}, "GitHub OIDC token", "pipelines.actions.githubusercontent.com"), "GitHub OIDC token response")
+        response = _json(_get(token_url, {"Authorization": f"Bearer {request_token}", "Accept": "application/json"}, "GitHub OIDC token", TOKEN_ENDPOINT_HOSTS), "GitHub OIDC token response")
         if not isinstance(response, dict) or set(response) != {"value"} or not isinstance(response["value"], str):
             raise OIDCError("GitHub OIDC token response is invalid")
         token = response["value"]
-        jwks = _json(_get(JWKS_URL, {"Accept": "application/json"}, "GitHub JWKS", "token.actions.githubusercontent.com"), "GitHub JWKS")
+        jwks = _json(_get(JWKS_URL, {"Accept": "application/json"}, "GitHub JWKS", frozenset({"token.actions.githubusercontent.com"})), "GitHub JWKS")
     else:
         token, jwks = token_fetcher(AUDIENCE, JWKS_URL)
     validate_token(token, jwks, expected)
