@@ -745,10 +745,10 @@
       "sha256": "35c5aff8feab41e24ac08883f74ada7ba7b67bdf53cb421e5ae25320ce1758c2"
     },
     {
-      "bytes": 80413,
+      "bytes": 80542,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validation_definitions.py",
-      "sha256": "f363cad24b07b2fe7f65fb13fafa90f3c96ec32e39619d5bbb7a97712482b6d9"
+      "sha256": "9fcdc8d10f11b82d723c529fb82d7cceaf05e185a5b9da8391e5e95f1c752c5a"
     },
     {
       "bytes": 2641,

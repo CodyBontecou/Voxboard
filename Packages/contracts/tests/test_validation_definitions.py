@@ -80,6 +80,8 @@ class Tests(unittest.TestCase):
   if repository: cmd+=['--repository-root',str(repository)]
   if qualification: cmd+=['--qualification',qualification]
   if external: cmd+=['--external-artifact-root',str(external)]
+  if env is None:
+   env={key:value for key,value in os.environ.items() if not key.startswith(('GITHUB_','RUNNER_','ACTIONS_'))}
   return subprocess.run(cmd,text=True,capture_output=True,env=env)
  def copy_contracts(self):
   t=tempfile.TemporaryDirectory(); self.addCleanup(t.cleanup); r=Path(t.name)/'contracts'; shutil.copytree(CONTRACTS,r,ignore=shutil.ignore_patterns('__pycache__')); return r
