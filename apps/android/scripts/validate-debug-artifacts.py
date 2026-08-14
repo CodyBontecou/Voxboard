@@ -85,6 +85,9 @@ def validate_merged_manifest(path: Path) -> None:
         if tag not in COMPONENT_TAGS:
             continue
         name = android(component, "name")
+        exported = android(component, "exported")
+        if exported not in {"", "true", "false"}:
+            raise ValidationError(f"component has non-literal android:exported value: {name}={exported}")
         if name in WORKMANAGER_MARKERS or name.startswith("androidx.work."):
             raise ValidationError(f"WorkManager component is packaged: {name}")
         for metadata in component.findall(".//meta-data"):
@@ -107,9 +110,9 @@ def validate_merged_manifest(path: Path) -> None:
         )
         if is_launcher:
             launcher_count += 1
-            if name != "md.vox.android.MainActivity" or android(component, "exported") != "true":
+            if name != "md.vox.android.MainActivity" or exported != "true":
                 raise ValidationError(f"unexpected launcher component: {name}")
-        if android(component, "exported") == "true" and not is_launcher:
+        if exported == "true" and not is_launcher:
             permission = android(component, "permission")
             explicitly_reviewed = name in REVIEWED_DEBUG_EXPORTED
             permission_protected = (

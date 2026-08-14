@@ -76,6 +76,18 @@ class AndroidArtifactValidatorTests(unittest.TestCase):
         with self.assertRaisesRegex(VALIDATOR.ValidationError, "unpermissioned exported"):
             self.validate()
 
+    def test_non_literal_or_resource_exported_value_is_rejected(self):
+        for value in ("@bool/provider_exported", "TRUE", "1"):
+            with self.subTest(value=value):
+                self.write_valid_inputs()
+                text = self.manifest.read_text().replace(
+                    "</application>",
+                    f'<provider android:name="third.party.Provider" android:exported="{value}" />\n  </application>',
+                )
+                self.manifest.write_text(text)
+                with self.assertRaisesRegex(VALIDATOR.ValidationError, "non-literal android:exported"):
+                    self.validate()
+
     def test_workmanager_initializer_is_rejected(self):
         text = self.manifest.read_text().replace(
             "</application>",

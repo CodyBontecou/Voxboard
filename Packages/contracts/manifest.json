@@ -715,10 +715,10 @@
       "sha256": "47efdf42e3db45550fba8deb56703da6764301f21ad3eb734ff1110370f792fb"
     },
     {
-      "bytes": 22764,
+      "bytes": 24480,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_toolchain.py",
-      "sha256": "13960b15b648b3ecf08d375fcb12fe8f7b9e46209ec9606cf43379e5a52d0d50"
+      "sha256": "cf3394ff3e6a98361a2ea67bc5ceaa608f084c6125836a530b1def947dc9745b"
     },
     {
       "bytes": 113342,
@@ -727,10 +727,10 @@
       "sha256": "d81c312d360192094ac044a7e990cdca6cacd2d36500b1c0dc75e405f1d7d4f3"
     },
     {
-      "bytes": 4268,
+      "bytes": 4908,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_android_artifact_validator.py",
-      "sha256": "01e918dbd204165c87647f66c5c41c4f035ffff4c9d3b3921fc80c93231594ba"
+      "sha256": "4ff201c6ed6cd97874daeb03998ee54430292ec2118368793ff5130fe5c54603"
     },
     {
       "bytes": 6066,
@@ -745,10 +745,10 @@
       "sha256": "65e1532465e3cd82273e0012a40606ae89ce0aa064b4d20df4cb3d2e40739b13"
     },
     {
-      "bytes": 25111,
+      "bytes": 26401,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "1b68b32cc71e35888df2b65647af1288cd66879b6f851aa865176a39d7a0934e"
+      "sha256": "e7c4e89cca10f05b7137ce028b2b0337144a398a0f223fbbd8b282c9dd3c41e2"
     },
     {
       "bytes": 83338,
@@ -988,7 +988,7 @@
       "bytes": 13134,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "74771b1c641e3d0f2f5ef2ca12837f13c7a117516e670edab1f431558114afaa"
+      "sha256": "1ac77c26ae11bea33e749effa35e9f6e5c38a48f6f50ec0a46b8e6c205a8a124"
     },
     {
       "bytes": 10583,

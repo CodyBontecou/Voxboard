@@ -285,7 +285,7 @@
     },
     {
       "path": "apps/android/scripts/validate-debug-artifacts.py",
-      "sha256": "4a92d4653f072a9d1051f47de617e79a126c918a5c67e4a4eb3bf23baef0c204"
+      "sha256": "f0cdfa7a97a3b204ca0c4e428c6b7586aab2ae83ea5e25470cb88604d90a49fc"
     },
     {
       "path": "apps/android/core-bridge/build.gradle.kts",
@@ -321,7 +321,7 @@
     },
     {
       "path": "apps/android/gradle/verification-metadata.xml",
-      "sha256": "ac61a919d3b5d7d8bb8968ad37bdee3a7e7b1f0998d70348d550983f1f27a766"
+      "sha256": "b95e5b905ae40f2680700f0784d5b57cd17a96a2b35db9234d68bd7c8d14477b"
     },
     {
       "path": "apps/android/settings-gradle.lockfile",
