@@ -205,6 +205,27 @@ public enum CaptureCoreAdmission {
             // to parse in chrono-tz, so M2 admission fails closed.
             throw CaptureCoreAdmissionError.unsupportedTimeZone
         }
+        let renderedPath: String
+        do {
+            renderedPath = try CapturePathPlanner(calendar: calendar).relativePath(
+                for: request,
+                destination: destination
+            )
+        } catch {
+            throw CaptureCoreAdmissionError.unsupportedDestinationPolicy
+        }
+        let renderedFilename = (renderedPath as NSString).lastPathComponent as NSString
+        let renderedExtension = renderedFilename.pathExtension
+        let renderedStem = renderedFilename.deletingPathExtension
+        let finalCandidate = renderedExtension.isEmpty
+            ? "\(renderedStem)-256"
+            : "\(renderedStem)-256.\(renderedExtension)"
+        guard finalCandidate.unicodeScalars.count <= maximumPathSegmentCharacters else {
+            // Preparation publishes all 256 occupancy candidates. Bound the longest
+            // suffix, not only the first production path, to the portable 255-scalar
+            // segment contract.
+            throw CaptureCoreAdmissionError.contractBoundExceeded
+        }
 
         let payloads = try request.payloads.map { payload -> CaptureCorePayloadDTO in
             switch payload {
@@ -222,7 +243,7 @@ public enum CaptureCoreAdmission {
             case .url(let url, let title):
                 let absolute = url.absoluteString
                 let label = title ?? ""
-                guard (url.scheme?.lowercased() == "http" || url.scheme?.lowercased() == "https"),
+                guard (absolute.hasPrefix("http://") || absolute.hasPrefix("https://")),
                       (1...maximumURLCharacters).contains(absolute.unicodeScalars.count),
                       label.unicodeScalars.count <= maximumLabelCharacters else {
                     throw CaptureCoreAdmissionError.unsupportedPayload

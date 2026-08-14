@@ -458,6 +458,35 @@ final class CaptureCoreEnginePolicyTests: XCTestCase {
             calendar: calendar
         ))
 
+        var maximumCandidateName = newNoteDestination(id: destination.id)
+        maximumCandidateName.noteTarget = .newNote(pathTemplate: String(repeating: "n", count: 248))
+        XCTAssertNoThrow(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: maximumCandidateName,
+            calendar: calendar
+        ))
+        for length in [249, 253] {
+            var oversizedCandidateName = newNoteDestination(id: destination.id)
+            oversizedCandidateName.noteTarget = .newNote(pathTemplate: String(repeating: "n", count: length))
+            XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+                request: request,
+                destination: oversizedCandidateName,
+                calendar: calendar
+            )) { error in
+                XCTAssertEqual(error as? CaptureCoreAdmissionError, .contractBoundExceeded)
+            }
+        }
+
+        var uppercaseScheme = request
+        uppercaseScheme.payloads = [.url(URL(string: "HTTPS://example.invalid/path")!, title: "Example")]
+        XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+            request: uppercaseScheme,
+            destination: newNoteDestination(id: destination.id),
+            calendar: calendar
+        )) { error in
+            XCTAssertEqual(error as? CaptureCoreAdmissionError, .unsupportedPayload)
+        }
+
         var hiddenPolicy = request
         hiddenPolicy.originDraftUpdatedAt = Date(timeIntervalSince1970: 1)
         XCTAssertThrowsError(try CaptureCoreAdmission.admit(
