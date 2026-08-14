@@ -31,3 +31,31 @@ dependencies {
 
     debugImplementation(libs.compose.ui.tooling)
 }
+
+val validateDebugArtifacts by tasks.registering(Exec::class) {
+    group = "verification"
+    description = "Validates the merged debug manifest and backup exclusion artifacts."
+    dependsOn("processDebugManifest")
+    val mergedManifest = layout.buildDirectory.file(
+        "intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml",
+    )
+    inputs.file(mergedManifest)
+    inputs.files(
+        "src/main/res/xml/backup_rules.xml",
+        "src/main/res/xml/data_extraction_rules.xml",
+    )
+    commandLine(
+        "python3",
+        rootProject.file("scripts/validate-debug-artifacts.py"),
+        "--manifest",
+        mergedManifest.get().asFile,
+        "--backup-rules",
+        file("src/main/res/xml/backup_rules.xml"),
+        "--data-extraction-rules",
+        file("src/main/res/xml/data_extraction_rules.xml"),
+    )
+}
+
+tasks.named("check") {
+    dependsOn(validateDebugArtifacts)
+}

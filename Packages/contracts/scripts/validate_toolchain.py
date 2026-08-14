@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[3]
-EXPECTED_SCHEMA_CANONICAL_SHA256 = "07fa44a30f051ef575bd77f8cf8bd96e557c35f445a4125e44513206b50217ca"
+EXPECTED_SCHEMA_CANONICAL_SHA256 = "339785301b261c56d6a0325dce6d32fb191f1826bcb5c2e4d4fe758d3f8a4c19"
 EXPECTED_GOVERNED_PATHS = (
     "Packages/vox-core-rust/Cargo.lock",
     "Packages/vox-core-rust/uniffi.toml",
@@ -44,6 +44,7 @@ EXPECTED_GOVERNED_PATHS = (
     "apps/android/build-logic/gradle.lockfile",
     "apps/android/app/build.gradle.kts",
     "apps/android/app/gradle.lockfile",
+    "apps/android/scripts/validate-debug-artifacts.py",
     "apps/android/core-bridge/build.gradle.kts",
     "apps/android/core-bridge/gradle.lockfile",
     "apps/android/capture-domain/build.gradle.kts",
@@ -168,17 +169,23 @@ def main(argv=None):
             "wrapperJarPath": "apps/android/gradle/wrapper/gradle-wrapper.jar",
             "wrapperJarSha256": "b3a875ddc1f044746e1b1a55f645584505f4a10438c1afea9f15e92a7c42ec13",
         },
-        "androidGradlePluginVersion": "9.1.0",
+        "androidGradlePluginVersion": "9.1.1",
         "kotlin": {
             "version": "2.4.10", "builtIn": True,
             "composeCompilerPluginVersion": "2.4.10",
             "annotationProcessingPlugin": "com.android.legacy-kapt",
-            "annotationProcessingPluginVersion": "9.1.0",
+            "annotationProcessingPluginVersion": "9.1.1",
         },
         "sdk": {
             "compileSdk": 37, "buildToolsVersion": "36.0.0",
             "phoneMinSdk": 28, "phoneTargetSdk": 36,
             "wearMinSdk": 30, "wearTargetSdk": 35,
+        },
+        "androidCommandLineTools": {
+            "archiveVersion": "15859902",
+            "toolsVersion": "22.0",
+            "linuxURL": "https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip",
+            "linuxSha256": "4e4c464f145a7512b57d088ac6c278c03c9eea610886b35a5e0804e74eedf583",
         },
         "compose": {"bomVersion": "2026.08.00"},
         "dependencies": {
@@ -202,6 +209,7 @@ def main(argv=None):
             "androidCI": ".github/workflows/android-ci.yml",
             "buildLogicBuild": "apps/android/build-logic/build.gradle.kts",
             "buildLogicSettings": "apps/android/build-logic/settings.gradle.kts",
+            "artifactValidator": "apps/android/scripts/validate-debug-artifacts.py",
             "moduleBuilds": [
                 "apps/android/app/build.gradle.kts",
                 "apps/android/core-bridge/build.gradle.kts",
@@ -310,7 +318,7 @@ def main(argv=None):
 
     catalog_text = (root / android["versionCatalog"]).read_text()
     expected_versions = {
-        "agp": "9.1.0", "kotlin": "2.4.10", "compose-bom": "2026.08.00",
+        "agp": "9.1.1", "kotlin": "2.4.10", "compose-bom": "2026.08.00",
         "core": "1.19.0", "activity": "1.13.0", "lifecycle": "2.11.0",
         "navigation": "2.9.8", "room": "2.8.4", "datastore": "1.2.1",
         "work": "2.11.2", "hilt": "2.60.1", "androidx-hilt": "1.4.0",
@@ -343,10 +351,13 @@ def main(argv=None):
         fail("Android Phase 1 module inventory drift")
     if 'includeBuild("build-logic")' not in settings or "lockAllConfigurations()" not in root_build:
         fail("Android build logic or dependency locking drift")
+    gradle_properties = (root / android["gradleProperties"]).read_text()
+    if "android.suppressUnsupportedCompileSdk" in gradle_properties:
+        fail("Android compile SDK compatibility warning is suppressed")
 
     build_logic = (root / android["buildLogicBuild"]).read_text()
     for needle in (
-        'compileOnly("com.android.tools.build:gradle:9.1.0")',
+        'compileOnly("com.android.tools.build:gradle:9.1.1")',
         'id = "vox.android.application"', 'id = "vox.android.library"',
         'id = "vox.android.compose"', 'id = "vox.android.test"',
         "lockAllConfigurations()",
@@ -377,16 +388,48 @@ def main(argv=None):
             fail(f"Android convention plugin drift: {name}")
 
     module_builds = {Path(path).parent.name: (root / path).read_text() for path in android["moduleBuilds"]}
-    expected_module_dependencies = {
-        "app": ('project(":capture-domain")', 'project(":data")', 'project(":platform-services")'),
-        "capture-domain": ('project(":core-bridge")',),
-        "data": ('project(":capture-domain")', "libs.room.runtime", "libs.datastore.preferences", "libs.work.runtime.ktx"),
-        "platform-services": ('project(":capture-domain")',),
-        "core-bridge": ("libs.jna",),
+    expected_graph = {
+        "app": {"capture-domain", "data", "platform-services"},
+        "capture-domain": {"core-bridge"},
+        "data": {"capture-domain"},
+        "platform-services": {"capture-domain"},
+        "core-bridge": set(),
     }
-    for module, tokens in expected_module_dependencies.items():
-        if any(token not in module_builds[module] for token in tokens):
-            fail(f"Android module dependency direction drift: {module}")
+    actual_graph = {}
+    project_pattern = re.compile(r'project\s*\(\s*(?:path\s*=\s*)?"(:[a-z0-9-]+)"\s*\)')
+    for module, text in module_builds.items():
+        matches = project_pattern.findall(text)
+        if len(matches) != len(re.findall(r"\bproject\s*\(", text)):
+            fail(f"Android module graph has an unparsed project dependency: {module}")
+        if len(matches) != len(set(matches)):
+            fail(f"Android module graph has a duplicate project dependency: {module}")
+        actual_graph[module] = {path.removeprefix(":") for path in matches}
+    if actual_graph != expected_graph:
+        fail(f"Android module graph differs: {actual_graph}")
+    visiting = set()
+    visited = set()
+    def visit(module):
+        if module in visiting:
+            fail(f"Android module graph contains a cycle at {module}")
+        if module in visited:
+            return
+        visiting.add(module)
+        for dependency in actual_graph[module]:
+            if dependency not in actual_graph:
+                fail(f"Android module graph references unknown module: {dependency}")
+            visit(dependency)
+        visiting.remove(module)
+        visited.add(module)
+    for module in actual_graph:
+        visit(module)
+    app_build = module_builds["app"]
+    for token in ("validateDebugArtifacts", 'dependsOn("processDebugManifest")', 'tasks.named("check")'):
+        if token not in app_build:
+            fail(f"Android artifact validation task wiring drift: {token}")
+    data_build = module_builds["data"]
+    for dependency in ("libs.room.runtime", "libs.room.ktx", "libs.datastore.preferences", "libs.work.runtime.ktx"):
+        if f"compileOnly({dependency})" not in data_build:
+            fail(f"Android Phase 1 framework declaration must remain compileOnly: {dependency}")
     if any("org.jetbrains.kotlin.android" in text for text in module_builds.values()):
         fail("Android modules bypass AGP built-in Kotlin")
 
@@ -394,27 +437,45 @@ def main(argv=None):
     verification = (root / metadata["verificationMetadata"]).read_text()
     if "<verify-metadata>true</verify-metadata>" not in verification or "Generated by Gradle" not in verification:
         fail("Gradle dependency verification metadata drift")
+    if 'name="gradle" version="9.1.1"' not in verification or re.search(r'version="9\.1\.0"', verification):
+        fail("Gradle verification metadata has missing/stale AGP resolution")
     for lock_path in [metadata["settingsLock"], metadata["buildLogicLock"], *metadata["moduleLocks"]]:
         lock = root / lock_path
         if not lock.is_file() or "empty=" not in lock.read_text():
             fail(f"Gradle dependency lock missing or malformed: {lock_path}")
+        if re.search(r":9\.1\.0=", lock.read_text()):
+            fail(f"Gradle dependency lock retains AGP 9.1.0: {lock_path}")
+    if "com.android.tools.build:gradle:9.1.1=" not in (root / metadata["buildLogicLock"]).read_text():
+        fail("Gradle build logic lock lacks AGP 9.1.1")
 
     workflow = (root / android["androidCI"]).read_text()
+    command_line_tools = expected_android["androidCommandLineTools"]
     for needle in (
+        "runs-on: ubuntu-24.04",
         "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd",
         "actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654",
         "java-version: '17.0.20+8'", "'platforms;android-37.0'",
         "'build-tools;36.0.0'", "'ndk;27.1.12297006'",
+        command_line_tools["linuxURL"], command_line_tools["linuxSha256"],
+        'cmdline-tools/22.0/bin/sdkmanager', "sha256sum --check --strict",
         "validate_toolchain.py", "test-project-contracts.sh",
-        "test lint assembleDebug",
+        "test lint assembleDebug :app:validateDebugArtifacts",
     ):
         if needle not in workflow:
             fail(f"Android CI drift: {needle}")
+    if "ubuntu-latest" in workflow or "cmdline-tools/latest" in workflow:
+        fail("Android CI contains a floating runner or command-line tools path")
+    for action in re.findall(r"^\s*uses:\s*[^@\s]+@([^\s#]+)", workflow, flags=re.MULTILINE):
+        if re.fullmatch(r"[0-9a-f]{40}", action) is None:
+            fail(f"Android CI action is not immutable: {action}")
+    artifact_validator = root / android["artifactValidator"]
+    if not artifact_validator.is_file() or not os.access(artifact_validator, os.X_OK):
+        fail("Android artifact validator is missing or not executable")
 
     print(
         "Toolchain validation passed: "
         f"{len(governed)} governed implementation hashes, UniFFI 0.32.0 bindings, "
-        "Gradle 9.3.1/AGP 9.1.0/Kotlin 2.4.10/API 37 application pins, "
+        "Gradle 9.3.1/AGP 9.1.1/Kotlin 2.4.10/API 37 application pins, "
         "4 Android API-28 native and 3 iOS-17.6 targets."
     )
 

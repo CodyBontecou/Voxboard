@@ -49,7 +49,7 @@ Phase 0 creates no Kotlin product module and therefore does not promote the Andr
 
 ## M3 Android application entry baseline
 
-The exact application tuple is Eclipse Temurin `17.0.20+8`, Gradle `9.3.1`, AGP `9.1.0`,
+The exact application tuple is Eclipse Temurin `17.0.20+8`, Gradle `9.3.1`, AGP `9.1.1`,
 AGP built-in Kotlin `2.4.10`, Compose compiler plugin `2.4.10`, stable Compose BOM
 `2026.08.00`, compile SDK 37, and Build Tools `36.0.0`. Phone uses min SDK 28/target SDK 36;
 Wear uses min SDK 30/target SDK 35. The application namespace and ID are `md.vox.android`.
@@ -60,12 +60,12 @@ wrapper JAR SHA-256 is
 `b3a875ddc1f044746e1b1a55f645584505f4a10438c1afea9f15e92a7c42ec13`. The wrapper
 properties enable URL validation and repeat the distribution checksum.
 
-Kotlin 2.4.10's published compatibility range makes AGP 9.1 the conservative selection
-rather than newer AGP 9.3. AGP 9 built-in Kotlin replaces `org.jetbrains.kotlin.android`.
-No stable KSP/Kotlin 2.4.10 compatibility was asserted, so Room/Hilt processing is pinned
-to AGP's `com.android.legacy-kapt` 9.1.0 escape hatch until a separately reviewed KSP
-migration. Compose runtime libraries are governed by the exact stable BOM while the
-compiler plugin remains tied exactly to Kotlin.
+Kotlin 2.4.10's published compatibility range makes the exact AGP 9.1.1 patch the
+conservative selection rather than newer AGP 9.3. AGP 9 built-in Kotlin replaces
+`org.jetbrains.kotlin.android`. No stable KSP/Kotlin 2.4.10 compatibility was asserted, so
+future Room/Hilt processing is pinned to AGP's `com.android.legacy-kapt` 9.1.1 escape hatch
+until a separately reviewed KSP migration. Compose runtime libraries are governed by the
+exact stable BOM while the compiler plugin remains tied exactly to Kotlin.
 
 Direct stable dependency pins are centralized in
 `apps/android/gradle/libs.versions.toml`: Core 1.19.0, Activity 1.13.0, Lifecycle 2.11.0,
@@ -73,6 +73,15 @@ Navigation 2.9.8, Room 2.8.4, DataStore 1.2.1, WorkManager 2.11.2, Dagger/Hilt 2
 AndroidX Hilt 1.4.0, coroutines 1.11.0, serialization 1.11.0, JNA 5.17.0, and exact Android
 and JUnit test trains. Repository policy rejects project repositories. Floating, preview,
 KSP, and legacy Kotlin Android plugin aliases fail validation.
+
+Android command-line tools are pinned independently to Linux archive version `15859902`,
+tools version `22.0`, URL
+`https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip`, and
+SHA-256 `4e4c464f145a7512b57d088ac6c278c03c9eea610886b35a5e0804e74eedf583`.
+CI verifies and unpacks that archive into a controlled `RUNNER_TEMP` SDK before invoking the
+exact `cmdline-tools/22.0/bin/sdkmanager`. Action commits and installed SDK/NDK package
+versions are exact. The selected `ubuntu-24.04` hosted runner is observed infrastructure;
+its image patch is neither bit-pinned nor accepted as execution evidence.
 
 Official compatibility/release authorities are:
 
@@ -85,7 +94,10 @@ Official compatibility/release authorities are:
 - <https://developer.android.com/jetpack/androidx/versions/stable-channel>
 - <https://dagger.dev/hilt/gradle-setup>
 
-The committed root build resolves exact plugins and `./gradlew help` validates wrapper and
-plugin resolution. It is deliberately not an Android app build: Phase 1 must add modules,
-resolve dependency locks/verification metadata, build with exact SDK packages, and obtain
-separate review before product implementation claims begin.
+Phase 1 now supplies the included convention build and five phone modules, generated locks
+and SHA-256 verification metadata, and a compileable unavailable Compose shell. Room,
+DataStore, and WorkManager remain exact `compileOnly` declarations in `:data`; they are not
+runtime-packaged or initialized. A Gradle-wired stdlib validator inspects the actual merged
+debug manifest, backup references/rules, generated signature permissions, and exported
+components. These are static build-artifact checks only: they do not establish backup
+extraction, provider, emulator, physical-device, or hosted-runner evidence.

@@ -715,16 +715,22 @@
       "sha256": "47efdf42e3db45550fba8deb56703da6764301f21ad3eb734ff1110370f792fb"
     },
     {
-      "bytes": 19303,
+      "bytes": 22764,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_toolchain.py",
-      "sha256": "da77f5c24b1bcbd8906a3b22771d2fce279a18abb151972f13b18c663aea6dd8"
+      "sha256": "13960b15b648b3ecf08d375fcb12fe8f7b9e46209ec9606cf43379e5a52d0d50"
     },
     {
       "bytes": 113342,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_validation_definitions.py",
       "sha256": "d81c312d360192094ac044a7e990cdca6cacd2d36500b1c0dc75e405f1d7d4f3"
+    },
+    {
+      "bytes": 4268,
+      "category": "validatorTest",
+      "path": "Packages/contracts/tests/test_android_artifact_validator.py",
+      "sha256": "01e918dbd204165c87647f66c5c41c4f035ffff4c9d3b3921fc80c93231594ba"
     },
     {
       "bytes": 6066,
@@ -739,10 +745,10 @@
       "sha256": "65e1532465e3cd82273e0012a40606ae89ce0aa064b4d20df4cb3d2e40739b13"
     },
     {
-      "bytes": 22752,
+      "bytes": 25111,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "365b99c29c983e258286a902ec5389cbe1967d4aa873e343eea0df47681c35a7"
+      "sha256": "1b68b32cc71e35888df2b65647af1288cd66879b6f851aa865176a39d7a0934e"
     },
     {
       "bytes": 83338,
@@ -979,16 +985,16 @@
       "sha256": "ddd50cbdb85a52ce03c44167b07c2a0dbd27a730085316ddf9f74bc3eb052bc6"
     },
     {
-      "bytes": 12594,
+      "bytes": 13134,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "c995b81578a3eb3d3c4c832f3a720177261e54b542328f3eeaae0b94a8f062b0"
+      "sha256": "74771b1c641e3d0f2f5ef2ca12837f13c7a117516e670edab1f431558114afaa"
     },
     {
-      "bytes": 10099,
+      "bytes": 10583,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.schema.json",
-      "sha256": "101aa71665653a22cc45585c63591c3eda82ff91c72bdd6204c07f1365e9de5b"
+      "sha256": "64d58ac0facb8d13760391f9f1f4377a14c21c639d3d8ed3015117ab4aece0c2"
     }
   ],
   "fixtureCases": [

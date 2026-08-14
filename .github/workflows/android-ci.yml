@@ -27,8 +27,12 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # ubuntu-24.04 is an observed hosted base image, not a bit-pinned toolchain or evidence claim.
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
+    env:
+      ANDROID_HOME: ${{ runner.temp }}/android-sdk
+      ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
     steps:
       - name: Checkout exact source
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -39,14 +43,26 @@ jobs:
         with:
           distribution: temurin
           java-version: '17.0.20+8'
-      - name: Install pinned Android SDK packages
+      - name: Install exact Android command-line tools and SDK packages
         shell: bash
         run: |
           set -euo pipefail
-          sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          archive="$RUNNER_TEMP/commandlinetools-linux-15859902_latest.zip"
+          extracted="$RUNNER_TEMP/android-command-line-tools-22.0"
+          curl --fail --location --proto '=https' --tlsv1.2 \
+            --output "$archive" \
+            'https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip'
+          printf '%s  %s\n' \
+            '4e4c464f145a7512b57d088ac6c278c03c9eea610886b35a5e0804e74eedf583' \
+            "$archive" | sha256sum --check --strict
+          rm -rf "$ANDROID_SDK_ROOT" "$extracted"
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/22.0" "$extracted"
+          unzip -q "$archive" -d "$extracted"
+          mv "$extracted/cmdline-tools/"* "$ANDROID_SDK_ROOT/cmdline-tools/22.0/"
+          sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/22.0/bin/sdkmanager"
           test -x "$sdkmanager"
-          yes | "$sdkmanager" --licenses >/dev/null || true
-          "$sdkmanager" \
+          yes | "$sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null || true
+          "$sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" \
             'platforms;android-37.0' \
             'build-tools;36.0.0' \
             'ndk;27.1.12297006'
@@ -62,4 +78,4 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ./apps/android/gradlew -p apps/android --no-daemon test lint assembleDebug
+          ./apps/android/gradlew -p apps/android --no-daemon test lint assembleDebug :app:validateDebugArtifacts

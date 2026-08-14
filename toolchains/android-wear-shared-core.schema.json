@@ -147,6 +147,7 @@
         "androidGradlePluginVersion",
         "kotlin",
         "sdk",
+        "androidCommandLineTools",
         "compose",
         "dependencies",
         "configurationPaths",
@@ -177,7 +178,7 @@
           }
         },
         "androidGradlePluginVersion": {
-          "const": "9.1.0"
+          "const": "9.1.1"
         },
         "kotlin": {
           "const": {
@@ -185,7 +186,7 @@
             "builtIn": true,
             "composeCompilerPluginVersion": "2.4.10",
             "annotationProcessingPlugin": "com.android.legacy-kapt",
-            "annotationProcessingPluginVersion": "9.1.0"
+            "annotationProcessingPluginVersion": "9.1.1"
           }
         },
         "sdk": {
@@ -242,7 +243,8 @@
               "apps/android/capture-domain/build.gradle.kts",
               "apps/android/data/build.gradle.kts",
               "apps/android/platform-services/build.gradle.kts"
-            ]
+            ],
+            "artifactValidator": "apps/android/scripts/validate-debug-artifacts.py"
           }
         },
         "dependencyMetadataPaths": {
@@ -257,6 +259,14 @@
               "apps/android/data/gradle.lockfile",
               "apps/android/platform-services/gradle.lockfile"
             ]
+          }
+        },
+        "androidCommandLineTools": {
+          "const": {
+            "archiveVersion": "15859902",
+            "toolsVersion": "22.0",
+            "linuxURL": "https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip",
+            "linuxSha256": "4e4c464f145a7512b57d088ac6c278c03c9eea610886b35a5e0804e74eedf583"
           }
         }
       }
@@ -341,8 +351,8 @@
     },
     "governedImplementationFiles": {
       "type": "array",
-      "minItems": 44,
-      "maxItems": 44,
+      "minItems": 45,
+      "maxItems": 45,
       "uniqueItems": true,
       "items": {
         "type": "object",

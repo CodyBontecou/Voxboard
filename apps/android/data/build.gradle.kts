@@ -9,8 +9,8 @@ android {
 
 dependencies {
     implementation(project(":capture-domain"))
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    implementation(libs.datastore.preferences)
-    implementation(libs.work.runtime.ktx)
+    compileOnly(libs.room.runtime)
+    compileOnly(libs.room.ktx)
+    compileOnly(libs.datastore.preferences)
+    compileOnly(libs.work.runtime.ktx)
 }

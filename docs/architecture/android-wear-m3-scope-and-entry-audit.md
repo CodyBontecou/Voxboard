@@ -72,9 +72,10 @@ pins are unchanged. The new application baseline is:
 | Namespace/application ID | `md.vox.android` |
 | Build JDK | Eclipse Temurin `17.0.20+8`; Java language/JVM target 17 |
 | Gradle | `9.3.1`; wrapper distribution and JAR SHA-256 pinned |
-| Android Gradle Plugin | `9.1.0` |
+| Android Gradle Plugin | `9.1.1` |
 | Kotlin / Compose compiler plugin | `2.4.10` / `2.4.10`; AGP built-in Kotlin |
-| Annotation processing | `com.android.legacy-kapt` `9.1.0`; no unverified KSP claim |
+| Annotation processing | `com.android.legacy-kapt` `9.1.1`; no unverified KSP claim |
+| Android command-line tools | Linux archive `15859902`, tools `22.0`, exact URL and SHA-256 pinned |
 | Android platform/build tools | compile SDK 37; Build Tools `36.0.0` |
 | Phone | min SDK 28; target SDK 36 |
 | Wear | min SDK 30; target SDK 35 |
@@ -93,21 +94,28 @@ confined to `:app`.
 
 The single-activity Compose shell navigates among onboarding, vault setup, Quick Capture,
 inbox, and history. Every product surface says unavailable/not implemented and makes no
-durability, SAF, native-load, or delivery claim. The manifest declares no permissions,
-sets `allowBackup=false`, and references defense-in-depth legacy and modern rules excluding
-all storage domains at their roots for cloud backup and device transfer. Static JVM tests
-parse these source contracts. `:data` declares the exact Room, DataStore, and WorkManager
-dependencies without persistence behavior; `:core-bridge` declares exact JNA without a
-native-load claim.
+durability, SAF, native-load, or delivery claim. Phase 1 adds no sensitive, network,
+storage/media, microphone, or location permission. It sets `allowBackup=false` and
+references defense-in-depth legacy and modern rules excluding all storage domains at their
+roots for cloud backup and device transfer. Static source tests and the Gradle-wired artifact
+validator parse the actual merged debug manifest, reject unreviewed exported transitive
+components and WorkManager startup, and recheck both backup rule resources. These are static
+build-artifact limits, not backup extraction or device-transfer evidence.
+
+`:data` retains the exact Room, DataStore, and WorkManager declarations as `compileOnly`, so
+none is runtime-packaged or initialized before behavior exists. `:core-bridge` declares exact
+JNA without a native-load claim.
 
 Generated dependency locks and SHA-256 verification metadata cover the configurations
 actually resolved by `test lint assembleDebug`. The authoritative root, included-build,
-convention-plugin, module-build, lock/verification, wrapper, and immutable Android CI inputs
-are hash-governed by the toolchain manifest and validator.
+convention-plugin, module-build, artifact-validator, lock/verification, wrapper, and Android
+CI workflow are hash-governed. CI pins action commits, Temurin, command-line-tools archive,
+SDK packages, and tool hashes exactly. The `ubuntu-24.04` hosted runner image is observed
+infrastructure, not a bit-pinned toolchain or an evidence claim.
 
 ## Compatibility rationale
 
-- Android's AGP 9.1 release notes establish API 37, Gradle 9.3.1, Build Tools 36.0.0,
+- Android's AGP 9.1.1 release notes establish API 37, Gradle 9.3.1, Build Tools 36.0.0,
   and JDK 17 compatibility:
   <https://developer.android.com/build/releases/agp-9-1-0-release-notes>
 - Kotlin's compatibility and release pages establish Kotlin 2.4.10 and the conservative
