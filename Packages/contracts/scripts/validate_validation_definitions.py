@@ -524,7 +524,7 @@ def inspect_macho_object(handle,start:int,size:int,expected_platform:int)->tuple
     if arch is None: raise ValidationError("external Apple archive member is not a supported Mach-O object")
     endian="little" if header[:4]==b"\xcf\xfa\xed\xfe" else "big"; file_type=int.from_bytes(header[12:16],endian); command_count=int.from_bytes(header[16:20],endian); command_bytes=int.from_bytes(header[20:24],endian)
     if file_type!=1 or command_count<1 or command_count>4096 or command_bytes>size-32: raise ValidationError("external Apple Mach-O header/load-command mismatch")
-    handle.seek(start+32); commands=handle.read(command_bytes); position=0; build_versions=0; build_version_commands=0; symtab=None; sections=[]; dylib_commands={0xc,0x18|0x80000000,0x1f|0x80000000,0x23|0x80000000}
+    handle.seek(start+32); commands=handle.read(command_bytes); position=0; build_versions=0; build_version_commands=0; symtab=None; sections=[]; dylib_commands={0xc,0x20,0x18|0x80000000,0x1f|0x80000000,0x23|0x80000000}
     for _ in range(command_count):
         if position+8>len(commands): raise ValidationError("external Apple Mach-O load command truncated")
         command=int.from_bytes(commands[position:position+4],endian); command_size=int.from_bytes(commands[position+4:position+8],endian)
