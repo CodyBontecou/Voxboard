@@ -140,9 +140,9 @@ impl From<vox_core::CoreError> for VoxCoreError {
 }
 
 fn guard<T>(call: impl FnOnce() -> Result<T, VoxCoreError>) -> Result<T, VoxCoreError> {
-    // Containment never replaces the host's process-global panic hook. Product builds
-    // use panic=abort, while unwind-capable test/debug hosts retain their own hook policy.
-    // The returned boundary error is static and never includes panic or user payloads.
+    // The governed release profile unwinds so every exported facade can contain a
+    // panic here. Containment does not replace the host's process-global panic hook,
+    // and the returned boundary error never includes panic or user payloads.
     catch_unwind(AssertUnwindSafe(call)).unwrap_or(Err(VoxCoreError::InternalPanic))
 }
 
@@ -314,14 +314,15 @@ fn uuid_from_string(value: &str) -> Result<uuid::Uuid, VoxCoreError> {
 }
 
 #[cfg(test)]
+#[test]
+fn panic_is_contained() {
+    let result: Result<(), VoxCoreError> = guard(|| panic!("private panic value"));
+    assert_eq!(result, Err(VoxCoreError::InternalPanic));
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn panic_is_contained() {
-        let result: Result<(), VoxCoreError> = guard(|| panic!("private panic value"));
-        assert_eq!(result, Err(VoxCoreError::InternalPanic));
-    }
 
     fn canonical(value: &serde_json::Value) -> Vec<u8> {
         vox_core::canonical_bytes(value).unwrap()

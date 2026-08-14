@@ -242,6 +242,8 @@ final class CaptureCoreEnginePolicyTests: XCTestCase {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!
         calendar.locale = Locale(identifier: "en_US_POSIX")
+        calendar.firstWeekday = 2
+        calendar.minimumDaysInFirstWeek = 4
         let destinationID = UUID(uuidString: "22222222-2222-4222-8222-222222222222")!
         let request = CaptureRequest(
             source: .shareExtension,
@@ -266,6 +268,102 @@ final class CaptureCoreEnginePolicyTests: XCTestCase {
             destination: shared,
             calendar: calendar
         ))
+    }
+
+    func test_admissionNarrowsCalendarAndWeekSemanticsAndRejectsUnsupportedTimezones() throws {
+        let destinationID = UUID(uuidString: "22222222-2222-4222-8222-222222222222")!
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destinationID,
+            payloads: [.text("payload")]
+        )
+
+        var dated = newNoteDestination(id: destinationID)
+        dated.entryPrefix = "Captured {date}\n"
+        var gregorian = Calendar(identifier: .gregorian)
+        gregorian.timeZone = TimeZone(identifier: "UTC")!
+        gregorian.locale = Locale(identifier: "en_US_POSIX")
+        XCTAssertNoThrow(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: dated,
+            calendar: gregorian
+        ))
+
+        var buddhist = Calendar(identifier: .buddhist)
+        buddhist.timeZone = TimeZone(identifier: "UTC")!
+        buddhist.locale = Locale(identifier: "en_US_POSIX")
+        XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: dated,
+            calendar: buddhist
+        )) { error in
+            XCTAssertEqual(error as? CaptureCoreAdmissionError, .unsupportedCalendarSemantics)
+        }
+        XCTAssertNoThrow(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: newNoteDestination(id: destinationID),
+            calendar: buddhist
+        ))
+
+        var week = newNoteDestination(id: destinationID)
+        week.entryPrefix = "Week {week}\n"
+        XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: week,
+            calendar: gregorian
+        )) { error in
+            XCTAssertEqual(error as? CaptureCoreAdmissionError, .unsupportedWeekRules)
+        }
+        gregorian.firstWeekday = 2
+        gregorian.minimumDaysInFirstWeek = 4
+        XCTAssertNoThrow(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: week,
+            calendar: gregorian
+        ))
+
+        var fixedOffset = gregorian
+        fixedOffset.timeZone = TimeZone(secondsFromGMT: 3_600)!
+        XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: newNoteDestination(id: destinationID),
+            calendar: fixedOffset
+        )) { error in
+            XCTAssertEqual(error as? CaptureCoreAdmissionError, .unsupportedTimeZone)
+        }
+    }
+
+    func test_shadowCalendarAdmissionFailureFallsBackBeforeSideEffects() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        var destination = newNoteDestination()
+        destination.entryPrefix = "{date}\n"
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("legacy")]
+        )
+        let accounting = EngineRecordingAccounting()
+        let noteURL = root.appendingPathComponent("Inbox/note.md")
+        let probe = EngineComparisonProbe(
+            accounting: accounting,
+            observedNoteURL: noteURL,
+            comparison: exactComparison
+        )
+        var buddhist = Calendar(identifier: .buddhist)
+        buddhist.timeZone = TimeZone(identifier: "UTC")!
+
+        _ = try await CapturePipeline(
+            pathPlanner: CapturePathPlanner(calendar: buddhist),
+            deliveryAccounting: accounting,
+            enginePolicy: .shadow(using: probe)
+        ).capture(request, destination: destination, rootURL: root)
+
+        let snapshot = await probe.snapshot()
+        let events = await accounting.events
+        XCTAssertEqual(snapshot.comparisonCount, 0)
+        XCTAssertEqual(events, ["reserve", "commit"])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: noteURL.path))
     }
 
     func test_admissionUsesPortableScalarAndPathBoundsAndRejectsHiddenPolicy() throws {

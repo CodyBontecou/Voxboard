@@ -1525,11 +1525,11 @@ fn materialize_buffered(
         Some(BufferedObservation::Bytes(bytes)) => materialize(input, Some(bytes)),
         Some(BufferedObservation::Uniform { byte: None, .. }) => materialize(input, Some(&[])),
         Some(BufferedObservation::Uniform {
-            byte: Some(b'\n' | b'\r'),
+            byte: Some(b'\n' | b'\r' | b'\x0b' | b'\x0c'),
             ..
         }) => {
-            // A uniform CR/LF template normalizes to only LF and is removed by the
-            // production boundary-newline policy. Preserve that exact result without
+            // A uniform ASCII newline template is removed by the production
+            // boundary-newline policy. Preserve that exact result without
             // retaining or expanding a potentially 256 MiB observation.
             materialize(input, Some(&[]))
         }
@@ -1578,7 +1578,7 @@ pub fn materialize(
     for payload in &input.payloads {
         match payload {
             Payload::Text { text, .. } => {
-                let text = text.trim_matches(['\r', '\n']);
+                let text = text.trim_matches(is_foundation_newline);
                 if !text.trim().is_empty() {
                     blocks.push(text.to_owned());
                 }
@@ -1660,7 +1660,14 @@ fn normalize_newlines(value: &str) -> String {
 }
 
 fn trim_boundary_newlines(value: &str) -> String {
-    value.trim_matches('\n').to_owned()
+    value.trim_matches(is_foundation_newline).to_owned()
+}
+
+fn is_foundation_newline(character: char) -> bool {
+    matches!(
+        character,
+        '\u{000a}' | '\u{000b}' | '\u{000c}' | '\u{000d}' | '\u{0085}' | '\u{2028}' | '\u{2029}'
+    )
 }
 
 fn split_leading_frontmatter(markdown: &str) -> (Vec<String>, String) {

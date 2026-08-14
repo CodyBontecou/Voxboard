@@ -31,7 +31,8 @@ vox-core = { path = "crates/vox-core", version = "=0.1.0-alpha.1" }
 codegen-units = 1
 lto = true
 opt-level = "z"
-panic = "abort"
+# UniFFI exports contain panics with catch_unwind and map them to InternalPanic.
+panic = "unwind"
 strip = true
 
 [workspace.lints.rust]

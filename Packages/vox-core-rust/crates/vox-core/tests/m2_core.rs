@@ -363,32 +363,67 @@ fn aggregate_limit_constant_and_streaming_state_are_bounded() {
 }
 
 #[test]
-fn repeated_newline_template_materializes_without_expanding_the_prefix() {
-    let template = vec![b'\n'; 4 * MAX_CHUNK_BYTES];
-    let value = mat_value(Some(&template));
-    let mut session = MaterializationSession::new(&canonical(&value)).unwrap();
-    let id = uuid("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
-    for (sequence, chunk) in template.chunks(MAX_CHUNK_BYTES).enumerate() {
-        session
-            .push_observation(
-                id,
-                u32::try_from(sequence).unwrap(),
-                chunk,
-                sequence + 1 == template.len() / MAX_CHUNK_BYTES,
-            )
+fn repeated_ascii_newline_template_materializes_without_expanding_the_prefix() {
+    for byte in *b"\n\r\x0b\x0c" {
+        let template = vec![byte; 4 * MAX_CHUNK_BYTES];
+        let value = mat_value(Some(&template));
+        let mut session = MaterializationSession::new(&canonical(&value)).unwrap();
+        let id = uuid("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+        for (sequence, chunk) in template.chunks(MAX_CHUNK_BYTES).enumerate() {
+            session
+                .push_observation(
+                    id,
+                    u32::try_from(sequence).unwrap(),
+                    chunk,
+                    sequence + 1 == template.len() / MAX_CHUNK_BYTES,
+                )
+                .unwrap();
+        }
+        drop(template);
+        let descriptor = session.seal().unwrap().artifacts.remove(0);
+        assert!(descriptor.length < 1024);
+        let output = session
+            .drain(descriptor.artifact_id, 0, MAX_CHUNK_BYTES as u64)
             .unwrap();
+        assert!(output.eof);
+        assert!(
+            String::from_utf8(output.bytes)
+                .unwrap()
+                .starts_with("---\nsource:")
+        );
     }
-    drop(template);
+}
+
+#[test]
+fn foundation_newline_boundaries_are_trimmed_and_internal_scalars_are_preserved() {
+    let template = "\u{2028}\u{000b}Prefix\u{0085}Inside\u{000c}\u{2029}";
+    let mut value = mat_value(Some(template.as_bytes()));
+    value["payloads"] = json!([{
+        "id":"22222222-2222-4222-8222-222222222222",
+        "kind":"text",
+        "text":"\n\u{000b}Alpha\u{2028}Beta\u{0085}Gamma\u{000c}\u{2029}\r"
+    }]);
+    value["preset"]["metadataPolicy"]["orderedFields"] = json!([]);
+    value["preset"]["metadataPolicy"]["finalNewline"] = json!(false);
+    value["preset"]["retryMarkerPolicy"] = json!("none");
+    resnapshot_materialization(&mut value);
+
+    let mut session = MaterializationSession::new(&canonical(&value)).unwrap();
+    session
+        .push_observation(
+            uuid("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"),
+            0,
+            template.as_bytes(),
+            true,
+        )
+        .unwrap();
     let descriptor = session.seal().unwrap().artifacts.remove(0);
-    assert!(descriptor.length < 1024);
     let output = session
         .drain(descriptor.artifact_id, 0, MAX_CHUNK_BYTES as u64)
         .unwrap();
-    assert!(output.eof);
-    assert!(
-        String::from_utf8(output.bytes)
-            .unwrap()
-            .starts_with("---\nsource:")
+    assert_eq!(
+        String::from_utf8(output.bytes).unwrap(),
+        "Prefix\u{0085}Inside\u{000c}\u{2029}Alpha\u{2028}Beta\u{0085}Gamma"
     );
 }
 

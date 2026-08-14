@@ -76,6 +76,9 @@ public enum CaptureCoreAdmissionError: String, Error, Equatable, LocalizedError,
     case unsupportedLogicalFolderToken
     case unsupportedNoteNameToken
     case unsupportedEntrySourceToken
+    case unsupportedCalendarSemantics
+    case unsupportedWeekRules
+    case unsupportedTimeZone
     case aggregateControlBoundExceeded
     case contractBoundExceeded
 
@@ -105,6 +108,10 @@ public enum CaptureCoreAdmission {
         "{period}", "{timestamp}", "{date}", "{time}", "{year}", "{YR}",
         "{month}", "{day}", "{week}", "{hour}", "{minute}", "{second}",
         "{id}", "{id8}",
+    ]
+    private static let calendarTokens = [
+        "{timestamp}", "{date}", "{time}", "{year}", "{YR}", "{month}",
+        "{day}", "{week}", "{hour}", "{minute}", "{second}",
     ]
     private static let maximumPathTokenReplacementBytes = [
         "{timestamp}": 19, "{date}": 10, "{time}": 6, "{year}": 4, "{YR}": 2,
@@ -176,6 +183,28 @@ public enum CaptureCoreAdmission {
             throw CaptureCoreAdmissionError.unsupportedEntrySourceToken
         }
 
+        let outputTemplates = [noteNameTemplate, destination.entryPrefix]
+        let usesCalendar = outputTemplates.contains { template in
+            calendarTokens.contains { template.contains($0) }
+        }
+        let usesWeek = outputTemplates.contains { $0.contains("{week}") }
+        if usesCalendar,
+           calendar.identifier != .gregorian,
+           calendar.identifier != .iso8601 {
+            throw CaptureCoreAdmissionError.unsupportedCalendarSemantics
+        }
+        if usesWeek,
+           (calendar.firstWeekday != 2 || calendar.minimumDaysInFirstWeek != 4) {
+            throw CaptureCoreAdmissionError.unsupportedWeekRules
+        }
+        let timezone = calendar.timeZone.identifier
+        if timezone != "UTC",
+           !TimeZone.knownTimeZoneIdentifiers.contains(timezone) {
+            // Fixed-offset and other Foundation-only identifiers are not guaranteed
+            // to parse in chrono-tz, so M2 admission fails closed.
+            throw CaptureCoreAdmissionError.unsupportedTimeZone
+        }
+
         let payloads = try request.payloads.map { payload -> CaptureCorePayloadDTO in
             switch payload {
             case .text(let text):
@@ -218,7 +247,6 @@ public enum CaptureCoreAdmission {
               milliseconds <= 4_102_444_800_000 else {
             throw CaptureCoreAdmissionError.contractBoundExceeded
         }
-        let timezone = calendar.timeZone.identifier
         let locale = calendar.locale?.identifier ?? "en_US_POSIX"
         guard (1...64).contains(timezone.unicodeScalars.count),
               (2...35).contains(locale.unicodeScalars.count) else {

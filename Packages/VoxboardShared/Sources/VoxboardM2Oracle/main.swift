@@ -161,6 +161,30 @@ let seeds: [Seed] = [
         expectedError: nil
     ),
     .init(
+        id: "m2-positive-foundation-newline-boundaries",
+        request: .init(
+            requestID: fixedID,
+            createdAtEpochMilliseconds: 0,
+            timezone: "UTC",
+            source: "keyboard",
+            payloads: [.init(
+                kind: "text",
+                text: "\n\u{000B}Alpha\u{2028}Beta\u{0085}Gamma\u{000C}\u{2029}\r",
+                url: nil,
+                label: nil
+            )],
+            logicalFolder: ["Inbox"],
+            noteNameTemplate: "foundation-newlines",
+            occupiedPaths: [],
+            entryPrefix: "\u{2028}\u{000B}Prefix\u{0085}Inside\u{000C}\u{2029}",
+            entrySuffix: "",
+            frontmatter: [],
+            retryMarker: false,
+            finalNewline: false
+        ),
+        expectedError: nil
+    ),
+    .init(
         id: "m2-positive-ordered-frontmatter",
         request: .init(
             requestID: fixedID,
