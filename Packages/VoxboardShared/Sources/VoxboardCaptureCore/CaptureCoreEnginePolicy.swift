@@ -82,14 +82,15 @@ public enum CaptureCoreAdmissionError: String, Error, Equatable, LocalizedError,
 
 public enum CaptureCoreAdmission {
     private static let maximumPayloads = 128
-    private static let maximumTextBytes = 65_536
-    private static let maximumURLBytes = 8_192
-    private static let maximumLabelBytes = 4_096
+    private static let maximumTextCharacters = 65_536
+    private static let maximumURLCharacters = 8_192
+    private static let maximumLabelCharacters = 4_096
     private static let maximumPathSegments = 32
-    private static let maximumNoteTemplateBytes = 1_024
+    private static let maximumPathSegmentCharacters = 255
+    private static let maximumNoteTemplateCharacters = 1_024
     private static let maximumFrontmatterFields = 128
-    private static let maximumFrontmatterNameBytes = 128
-    private static let maximumFrontmatterValueBytes = 8_192
+    private static let maximumFrontmatterNameCharacters = 128
+    private static let maximumFrontmatterValueCharacters = 8_192
     private static let maximumTemplateBytes = 256 * 1_024 * 1_024
 
     public static func admit(
@@ -100,7 +101,10 @@ public enum CaptureCoreAdmission {
         guard request.destinationID == destination.id else {
             throw CaptureCoreAdmissionError.destinationMismatch
         }
-        guard request.relativeNotePathOverride == nil,
+        guard request.deliveryKind == .standard,
+              request.voxProcessingState == .notRequested,
+              request.originDraftUpdatedAt == nil,
+              request.relativeNotePathOverride == nil,
               request.placementOverride == nil,
               request.entryTemplateIDOverride == nil,
               request.attachmentsFolderNameOverride == nil,
@@ -110,6 +114,7 @@ public enum CaptureCoreAdmission {
             throw CaptureCoreAdmissionError.unsupportedRequestPolicy
         }
         guard destination.entrySuffix.isEmpty,
+              destination.entryTemplateID == nil,
               destination.markdownTemplatePath == nil,
               destination.placement == .append else {
             throw CaptureCoreAdmissionError.unsupportedDestinationPolicy
@@ -125,10 +130,14 @@ public enum CaptureCoreAdmission {
         }
 
         let pathParts = pathTemplate.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
+        let logicalFolder = Array(pathParts.dropLast())
         guard !pathParts.isEmpty,
-              pathParts.count <= maximumPathSegments,
+              logicalFolder.count < maximumPathSegments,
+              logicalFolder.allSatisfy({
+                  (1...maximumPathSegmentCharacters).contains($0.unicodeScalars.count)
+              }),
               let noteNameTemplate = pathParts.last,
-              noteNameTemplate.utf8.count <= maximumNoteTemplateBytes else {
+              (1...maximumNoteTemplateCharacters).contains(noteNameTemplate.unicodeScalars.count) else {
             throw CaptureCoreAdmissionError.contractBoundExceeded
         }
         do {
@@ -140,16 +149,16 @@ public enum CaptureCoreAdmission {
         let payloads = try request.payloads.map { payload -> CaptureCorePayloadDTO in
             switch payload {
             case .text(let text):
-                guard text.utf8.count <= maximumTextBytes else {
+                guard text.unicodeScalars.count <= maximumTextCharacters else {
                     throw CaptureCoreAdmissionError.contractBoundExceeded
                 }
                 return .text(text: text)
             case .url(let url, let title):
                 let absolute = url.absoluteString
                 let label = title ?? ""
-                guard (url.scheme == "http" || url.scheme == "https"),
-                      (1...maximumURLBytes).contains(absolute.utf8.count),
-                      label.utf8.count <= maximumLabelBytes else {
+                guard (url.scheme?.lowercased() == "http" || url.scheme?.lowercased() == "https"),
+                      (1...maximumURLCharacters).contains(absolute.unicodeScalars.count),
+                      label.unicodeScalars.count <= maximumLabelCharacters else {
                     throw CaptureCoreAdmissionError.unsupportedPayload
                 }
                 return .link(url: absolute, label: label)
@@ -160,8 +169,8 @@ public enum CaptureCoreAdmission {
 
         let orderedFrontmatter = try request.frontmatter.keys.sorted().map { key in
             let value = request.frontmatter[key] ?? ""
-            guard (1...maximumFrontmatterNameBytes).contains(key.utf8.count),
-                  value.utf8.count <= maximumFrontmatterValueBytes,
+            guard (1...maximumFrontmatterNameCharacters).contains(key.unicodeScalars.count),
+                  value.unicodeScalars.count <= maximumFrontmatterValueCharacters,
                   !key.contains("\n"),
                   !key.contains("\r") else {
                 throw CaptureCoreAdmissionError.contractBoundExceeded
@@ -181,8 +190,8 @@ public enum CaptureCoreAdmission {
         }
         let timezone = calendar.timeZone.identifier
         let locale = calendar.locale?.identifier ?? "en_US_POSIX"
-        guard (1...64).contains(timezone.utf8.count),
-              (2...35).contains(locale.utf8.count) else {
+        guard (1...64).contains(timezone.unicodeScalars.count),
+              (2...35).contains(locale.unicodeScalars.count) else {
             throw CaptureCoreAdmissionError.contractBoundExceeded
         }
 
@@ -193,7 +202,7 @@ public enum CaptureCoreAdmission {
             timezone: timezone,
             locale: locale,
             destinationID: destination.id,
-            logicalFolder: Array(pathParts.dropLast()),
+            logicalFolder: logicalFolder,
             noteNameTemplate: noteNameTemplate,
             payloads: payloads,
             entryPrefix: destination.entryPrefix,

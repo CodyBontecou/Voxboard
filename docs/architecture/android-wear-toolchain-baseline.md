@@ -13,8 +13,10 @@ SHA-256 for every binding/native implementation script and the lock/configuratio
 `Packages/vox-core-rust/scripts/generate-swift-bindings.sh` and
 `generate-kotlin-bindings.sh` run the locked UniFFI 0.32.0 library-mode bindgen through
 the governed `xtask`. Committed outputs are under `Packages/vox-core-rust/generated`.
-`check-bindings.sh` regenerates both into a temporary directory and requires byte identity.
-No Swift or Kotlin product consumer is claimed in this slice.
+`check-bindings.sh` regenerates both into a temporary directory and requires byte identity,
+including the committed SwiftPM `VoxCoreGenerated` copy. `VoxCoreRust` is the handwritten
+owned-value wrapper; the hosted materialization executable links the source-built static
+library without committing a binary. Kotlin product authority remains outside M2.
 
 ## Source-built native packages
 
@@ -23,21 +25,19 @@ No Swift or Kotlin product consumer is claimed in this slice.
 - `build-apple-xcframework.sh` builds static device arm64 and simulator arm64/x86_64
   libraries at iOS 17.6, combines each architecture into a single relocatable archive,
   and packages exactly two XCFramework leaves with `xcodebuild -create-xcframework`.
-- `inspect-native-packages.py` checks ELF class/machine/shared type/dynamic dependencies
-  and UniFFI export; XCFramework plist, architectures, static archive content, UniFFI
-  export, and deployment target; plus bytes, SHA-256, and absolute gates.
+- `inspect-native-packages.py` executes over the exact retained leaves, checks ELF
+  class/machine/shared type/dependency allowlist and UniFFI export plus XCFramework plist,
+  architectures, static members/export/deployment target, and emits the current typed
+  `initialCandidate` receipt. The independent campaign validator then parses loader-visible
+  ELF, Mach-O, archive, and XCFramework structure directly before accepting the receipt.
 
-`.so`, `.a`, and XCFramework binaries remain uncommitted build outputs. The privacy-safe
-local inspection record is `docs/validation/evidence/m2-local-native-package-inspection.json`.
-It binds the exact committed source revision and toolchain-manifest hash used by the
-recorded build. All six leaves and the Apple aggregate pass absolute
-limits. Percentage growth is correctly not applicable because no approved nonzero
-predecessor exists.
-
-The record is deliberately not PERF-008 campaign evidence. The current campaign schema
-requires baseline/candidate pairs and cannot represent the first-core no-predecessor case;
-that validator gap must be repaired before PERF-008 can pass. No approval, physical
-hardware, or campaign fact is inferred from this local build.
+`.so`, `.a`, and XCFramework binaries remain uncommitted source-built outputs. The former
+local inspection JSON was removed because its source revision was not reproducible and a
+manifest cannot establish execution. `PERF-008` is representable without a fabricated
+predecessor: the first package uses six absolute leaves, an Apple aggregate, null baselines,
+and no percentage-growth claim. It passes only inside the canonical hosted campaign after
+retained bytes and the exact raw USTAR archive are rehashed. No approval, physical hardware,
+or campaign fact is inferred from repository or local build bytes.
 
 The Rust contract mirror is now `required`: `m2_core::rust_contract_mirror_is_consumed`
 loads the mirrored expected-versions fixture in production Rust tests. Swift and Android

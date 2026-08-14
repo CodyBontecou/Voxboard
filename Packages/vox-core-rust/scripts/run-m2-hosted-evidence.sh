@@ -7,6 +7,11 @@ repo="$(cd "$(dirname "$0")/../.." && pwd)"
 [[ -z "$(git -C "$repo" status --porcelain --untracked-files=all)" ]] || { echo "error: hosted M2 evidence requires a clean checkout" >&2; exit 1; }
 root="${RUNNER_TEMP:?RUNNER_TEMP is required}/vox-m2-evidence"
 campaign="$root/campaign"; external="$root/external"
+export VOX_M2_EVIDENCE_STARTED_AT="$(python3 - <<'PY'
+from datetime import datetime, timezone
+print(datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'))
+PY
+)"
 rm -rf "$root"; mkdir -p "$campaign/evidence" "$campaign/approvals" "$campaign/artifacts" "$external"
 producer="$repo/Packages/vox-core-rust/scripts/run-m2-core-exit-evidence.py"
 python3 "$producer" execute-core --repository-root "$repo" --campaign-dir "$campaign" --external-root "$external"

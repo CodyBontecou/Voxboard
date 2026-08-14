@@ -18,6 +18,7 @@ SYNTHETIC_STREAM_DOMAIN=b"vox-m2-synthetic-stream-byte-v1\0"
 REPEATED_DIGEST_CACHE={}
 
 CORE_REQUIRED_CHECKS={"CORE-001":"swiftRustParity","CORE-002":"unsupportedVersionFailClosed","CORE-003":"bindingDrift","CORE-004":"readinessPins","CORE-005":"shadowSideEffects"}
+SHADOW_ISOLATION_CHECKS={"shadowFrozenInputCompared","shadowLegacyAuthorityReturned","shadowNoDestinationWrites","shadowNoAttachmentCopies","shadowNoQuotaMutations","shadowNoQueueMutations","shadowNoSuccessReports","shadowNoContentPathLogs"}
 
 CORE_CONSUMER={"id":"vox-m2-core-exit-host-v1","language":"Python","entryPoint":"main","boundary":"sourceBuiltCoreExitHost"}
 EXPECTED_CONSUMERS={
@@ -43,6 +44,10 @@ REQUIRED_PROVENANCE_SOURCES={
         "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CapturePipeline.swift",
         "Packages/VoxboardShared/Sources/VoxboardCaptureCore/MarkdownDocumentEditor.swift",
         "Packages/VoxboardShared/Sources/VoxboardM2Oracle/main.swift",
+        "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
+        "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
+        "Packages/VoxboardShared/Sources/VoxCoreRust/VoxCoreRust.swift",
+        "Packages/VoxboardShared/Tests/VoxboardCaptureCoreTests/CaptureCoreEnginePolicyTests.swift",
         "Packages/contracts/manifest.json",
         "Packages/contracts/validation/case-catalog.json",
         "Packages/vox-core-rust/Cargo.lock",
@@ -67,6 +72,8 @@ REQUIRED_PROVENANCE_SOURCES={
     "vox-core-uniffi-swift-host-v1": {
         "Packages/VoxboardShared/Package.swift",
         "Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/main.swift",
+        "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
+        "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
         "Packages/vox-core-rust/Cargo.lock",
         "Packages/vox-core-rust/Cargo.toml",
         "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml",
@@ -1006,16 +1013,17 @@ def validate_campaign(root:Path,cdir:Path,docs,schemas,repository_root:Path|None
         if status in ("passed","failed") and t[1] and role["platform"]=="wearOS" and c["id"]!="WEAR-004":
             floor=max(role["freeStorageFloor"]["minimumBytes"],math.ceil(e["device"]["totalStorageBytes"]*role["freeStorageFloor"]["minimumCapacityFraction"]))
             if e["device"]["freeStorageBytes"]<floor: raise ValidationError(f"Wear storage floor not met: {t}")
-        core_check_observed=False
+        core_build_bound_checks=set()
         if "INV-PRIVACY-DIAGNOSTICS" in c["invariants"] or t[0] in ("PERF-003","PERF-008"):
             for list_name,kind in (("fixtureHashes","fixture"),("artifacts","artifact")):
                 for h in e[list_name]:
                     validate_diagnostic_summary(cdir,h["id"],schemas["diagnostic-summary.schema.json"]); summary=load(campaign_file(cdir,h["id"]))
                     if summary["kind"]!=kind or summary["resultCode"]!=status: raise ValidationError("privacy diagnostic kind/status mismatch")
-                    required_check=CORE_REQUIRED_CHECKS.get(t[0])
-                    if list_name=="artifacts" and required_check and any(x["code"]==required_check and x["result"]==status and x["count"]>0 for x in summary["checks"]):
-                        core_check_observed={"role":"build","sha256":build["executableSha256"]} in summary["referencedHashes"]
-        if status in ("passed","failed") and t[0] in CORE_REQUIRED_CHECKS and not core_check_observed: raise ValidationError("executed M2 core exit case lacks its build-bound named production check")
+                    if list_name=="artifacts" and build is not None and {"role":"build","sha256":build["executableSha256"]} in summary["referencedHashes"]:
+                        core_build_bound_checks.update(x["code"] for x in summary["checks"] if x["result"]==status and x["count"]>0)
+        required_check=CORE_REQUIRED_CHECKS.get(t[0])
+        if status in ("passed","failed") and required_check and required_check not in core_build_bound_checks: raise ValidationError("executed M2 core exit case lacks its build-bound named production check")
+        if status=="passed" and t[0]=="CORE-005" and not SHADOW_ISOLATION_CHECKS<=core_build_bound_checks: raise ValidationError("CORE-005 lacks complete build-bound shadow isolation observations")
         if status=="failed" and not (failed_here or failed_gates): raise ValidationError(f"failed evidence requires observed failure: {t}")
     identities={(e["campaignID"],e["contractManifestSha256"],e["buildIdentity"]["sourceRevision"],e["buildIdentity"]["sourceTreeState"],e["buildIdentity"]["toolchainManifestSha256"]) for e in evidence if e["buildIdentity"] is not None}
     if len(identities)>1: raise ValidationError("campaign source/toolchain identity mismatch")
@@ -1079,7 +1087,7 @@ def validate(root:Path,campaign:Path|None=None,repository_root:Path|None=None,qu
     if campaign: validate_campaign(root,campaign,docs,schemas,repository_root,qualification,external_root,approval_verifier)
     print(f"Validation definitions passed: {len(devices)} roles, {len(providers)} providers, {len(cases)} cases, {len(gates)} gates"+("; scoped campaign computed" if campaign else ""))
 
-CANONICAL_HASHES={'devices': 'ecd13c2b779065abe91824bdbc2726c3e1363368fe46558fe694aa571597d8a4', 'providers': 'd0e9a96c63213cbaa13c587e92b6318ae63f88ecd88b7387c0a441c57e0eaed2', 'cases': '1aeba6fe680284d65e8dc4b4d714d999f7d1a6ffaf08f0073769f8e17904f503', 'gates': 'f227ffb7119ec4599a46870166b49ce9ed9a30974b3e41db1cb8097e28366559', 'aggregate': 'e99042ec440740050384ae1576c980de7f42a06b96db82d1c5d6d40c2f56ef58', 'evidencePolicy': '218e8d0d5e8a3749325cb44defbf1d62c1843e92cf4f723e428ceaa526eb98ca', 'approvalPolicy': 'c086d7b57f2a832ff6a1d9a8d4acdc0d8d52ffdbf0131a4512fe60b3c6b69e02', 'schemas': 'af56913e672703c48881bba9b5d62e810a6360536a01769d736aecad8d9645be'}
+CANONICAL_HASHES={'devices': 'ecd13c2b779065abe91824bdbc2726c3e1363368fe46558fe694aa571597d8a4', 'providers': 'd0e9a96c63213cbaa13c587e92b6318ae63f88ecd88b7387c0a441c57e0eaed2', 'cases': '1aeba6fe680284d65e8dc4b4d714d999f7d1a6ffaf08f0073769f8e17904f503', 'gates': 'f227ffb7119ec4599a46870166b49ce9ed9a30974b3e41db1cb8097e28366559', 'aggregate': 'e99042ec440740050384ae1576c980de7f42a06b96db82d1c5d6d40c2f56ef58', 'evidencePolicy': '8446cf2b15504c7a7b5861e93b5cbbc1477682a8dfb4de8b0c968603caf994fc', 'approvalPolicy': 'c086d7b57f2a832ff6a1d9a8d4acdc0d8d52ffdbf0131a4512fe60b3c6b69e02', 'schemas': '4a807bdf2f6926c77ace26859c2a60dcc4e72f7625ddd665d207d281163ba910'}
 
 def main()->int:
     ap=argparse.ArgumentParser(); ap.add_argument("--contracts-root",type=Path,default=Path(__file__).resolve().parents[1]); ap.add_argument("--campaign-dir",type=Path); ap.add_argument("--repository-root",type=Path); ap.add_argument("--qualification",choices=("repositoryObservation","hostedRun","releaseGate")); ap.add_argument("--external-artifact-root",type=Path)

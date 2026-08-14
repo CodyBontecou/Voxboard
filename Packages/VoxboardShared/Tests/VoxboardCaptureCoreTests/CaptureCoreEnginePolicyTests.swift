@@ -166,6 +166,53 @@ final class CaptureCoreEnginePolicyTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: noteURL.path))
     }
 
+    func test_admissionUsesPortableScalarAndPathBoundsAndRejectsHiddenPolicy() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        let folder = Array(repeating: "folder", count: 31).joined(separator: "/")
+        let destination = CaptureDestination(
+            name: "M2 bounds",
+            rootBookmark: Data([1]),
+            rootName: "Vault",
+            noteTarget: .newNote(pathTemplate: folder + "/note")
+        )
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text(String(repeating: "é", count: 65_536))]
+        )
+        let admitted = try CaptureCoreAdmission.admit(
+            request: request,
+            destination: destination,
+            calendar: calendar
+        )
+        XCTAssertEqual(admitted.payloads.count, 1)
+        XCTAssertEqual(admitted.logicalFolder.count, 31)
+
+        var hiddenPolicy = request
+        hiddenPolicy.originDraftUpdatedAt = Date(timeIntervalSince1970: 1)
+        XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+            request: hiddenPolicy,
+            destination: destination,
+            calendar: calendar
+        )) { error in
+            XCTAssertEqual(error as? CaptureCoreAdmissionError, .unsupportedRequestPolicy)
+        }
+
+        var tooDeep = destination
+        tooDeep.noteTarget = .newNote(
+            pathTemplate: Array(repeating: "folder", count: 32).joined(separator: "/") + "/note"
+        )
+        XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: tooDeep,
+            calendar: calendar
+        )) { error in
+            XCTAssertEqual(error as? CaptureCoreAdmissionError, .contractBoundExceeded)
+        }
+    }
+
     private var exactComparison: CaptureCoreComparison {
         CaptureCoreComparison(
             readinessMatched: true,

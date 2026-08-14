@@ -13,8 +13,8 @@ mkdir -p "$campaign/artifacts" "$external/executables" "$external/materializatio
 VOX_CORE_SOURCE_REVISION="$revision" cargo build --manifest-path "$workspace/Cargo.toml" --locked --release --package vox-core-uniffi
 static_library="$workspace/target/release/libvox_core_uniffi.a"
 [[ -s "$static_library" ]] || { echo "error: host static library missing" >&2; exit 1; }
-VOX_CORE_SOURCE_REVISION="$revision" swift build --package-path "$repo/Packages/VoxboardShared" --configuration release --product VoxboardM2MaterializationEvidence -Xlinker "$static_library"
-bin_dir="$(swift build --package-path "$repo/Packages/VoxboardShared" --configuration release --show-bin-path)"
+VOX_CORE_SOURCE_REVISION="$revision" VOX_M2_ENABLE_NATIVE_HOST=1 swift build --package-path "$repo/Packages/VoxboardShared" --configuration release --product VoxboardM2MaterializationEvidence -Xlinker "$static_library"
+bin_dir="$(VOX_M2_ENABLE_NATIVE_HOST=1 swift build --package-path "$repo/Packages/VoxboardShared" --configuration release --show-bin-path)"
 host="$bin_dir/VoxboardM2MaterializationEvidence"
 [[ -x "$host" ]] || { echo "error: materialization host executable missing" >&2; exit 1; }
 cp "$host" "$external/executables/vox-m2-materialization-evidence"

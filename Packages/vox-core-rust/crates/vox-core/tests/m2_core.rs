@@ -8,7 +8,7 @@ use vox_core::{
     DrainedHashes, MATERIALIZATION_INPUT_VERSION, MAX_AGGREGATE_BYTES, MAX_CHUNK_BYTES,
     MAX_PREPARED_CHUNK_SEQUENCE, MaterializationSession, PREPARATION_INPUT_VERSION, PROFILE_ID,
     PROFILE_VERSION, RENDERER_REVISION, REQUIRED_OBSERVATIONS_VERSION, TOOLCHAIN_MANIFEST_SHA256,
-    canonical_bytes, operation_id, parse_control, prepare, readiness, sha256_hex,
+    build_info, canonical_bytes, operation_id, parse_control, prepare, readiness, sha256_hex,
 };
 
 fn canonical(value: &Value) -> Vec<u8> {
@@ -115,6 +115,24 @@ fn readiness_is_exact_and_fail_closed() {
     assert_eq!(
         readiness(&canonical(&unknown)),
         Err(CoreError::UnknownField)
+    );
+}
+
+#[test]
+fn build_info_exposes_exact_readiness_pins() {
+    let info = build_info();
+    assert_eq!(info.kind, "buildInfo");
+    assert_eq!(info.core_api_version, CORE_API_VERSION);
+    assert_eq!(info.core_version, CORE_VERSION);
+    assert_eq!(info.toolchain_manifest_sha256, TOOLCHAIN_MANIFEST_SHA256);
+    assert_eq!(info.supported_operations, ["newNoteTextLink"]);
+    assert_eq!(info.supported_profile_ids, [PROFILE_ID]);
+    assert!(matches!(info.build_configuration, "debug" | "release"));
+    assert_eq!(info.source_revision.len(), 40);
+    assert!(
+        info.source_revision
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
     );
 }
 

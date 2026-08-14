@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 DOMAIN = b"vox-m2-synthetic-stream-byte-v1\0"
@@ -38,7 +39,7 @@ def main() -> int:
     args = parser.parse_args()
     if not 1 <= args.stream_bytes <= MAX_STREAM_BYTES:
         raise SystemExit("stream byte count is outside 1..268435456")
-    if not args.run_id or len(args.run_id) > 64 or not args.run_id[0].isalpha():
+    if re.fullmatch(r"[a-z][a-z0-9-]{1,63}", args.run_id) is None:
         raise SystemExit("run ID is invalid")
     value = stream_byte(args.seed_sha256)
     control = {

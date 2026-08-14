@@ -1,4 +1,5 @@
 // swift-tools-version: 5.9
+import Foundation
 import PackageDescription
 
 let package = Package(
@@ -76,3 +77,21 @@ let package = Package(
         ),
     ]
 )
+
+// The native host is source-present but excluded from ordinary binary-free SwiftPM
+// builds. The governed evidence recipe opts in only after building the exact Rust
+// static library and supplies it to the linker explicitly.
+if ProcessInfo.processInfo.environment["VOX_M2_ENABLE_NATIVE_HOST"] == "1" {
+    package.products.append(
+        .executable(
+            name: "VoxboardM2MaterializationEvidence",
+            targets: ["VoxboardM2MaterializationEvidence"]
+        )
+    )
+    package.targets.append(
+        .executableTarget(
+            name: "VoxboardM2MaterializationEvidence",
+            dependencies: ["VoxCoreGenerated"]
+        )
+    )
+}

@@ -637,10 +637,10 @@
       "sha256": "18d045e5567805422ffe399e03a406cc820abd5a156cc81d6497cc79337ad05b"
     },
     {
-      "bytes": 1730,
+      "bytes": 1954,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/diagnostic-summary.schema.json",
-      "sha256": "5042076287f4bacfe856aceaddff5fdccb2e8adecfe85b4a148d6821c3849511"
+      "sha256": "37c7c9ba56fd30b75eab8fc5a3e85a5b0efea7c21a2e3c509cc41980cd65df1a"
     },
     {
       "bytes": 6432,
@@ -715,22 +715,22 @@
       "sha256": "60c6680c21545cc20047e842a1da1574e1f567c99ebb2e5f3a9d56f93d892b7a"
     },
     {
-      "bytes": 104356,
+      "bytes": 105253,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_validation_definitions.py",
-      "sha256": "3493d1a42d4d0660c4212e77fcba5a385dd06fbaddf1cb966ceb29fe8945224c"
+      "sha256": "2900f01d37e46225de1dc98e6440d27dbe513ede8363936be71352d6ebf8aa74"
     },
     {
-      "bytes": 17215,
+      "bytes": 17311,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "8a793dfe1168c088902667a0cc6b524b49c685f74c2e0778547995878f5a3172"
+      "sha256": "35c5aff8feab41e24ac08883f74ada7ba7b67bdf53cb421e5ae25320ce1758c2"
     },
     {
-      "bytes": 70017,
+      "bytes": 71850,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validation_definitions.py",
-      "sha256": "15f258f81ab4446edc1f761202ac56441dabd60a4439eefc5119a3c55b117a8e"
+      "sha256": "0cb6effdbee94c945adc52486247ed5efbb5348b5af2d1b24a6bde4beab12bab"
     },
     {
       "bytes": 2641,
@@ -751,10 +751,10 @@
       "sha256": "961b7b16401b65fa7b53f916d340b93361e0767c218e9666e84540803bf7e26e"
     },
     {
-      "bytes": 2088,
+      "bytes": 2099,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/case-evidence-policy.json",
-      "sha256": "baab253e81f1bbb447f04444538c951bc2bf40d704a971c024ac4df426bcd773"
+      "sha256": "f67e9c97c502c80bc4a3968ef31305ed2ebef8279f848a0c3c778a02b541ffff"
     },
     {
       "bytes": 2259,
@@ -949,10 +949,10 @@
       "sha256": "ddd50cbdb85a52ce03c44167b07c2a0dbd27a730085316ddf9f74bc3eb052bc6"
     },
     {
-      "bytes": 4673,
+      "bytes": 5022,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "41d2f72147a778b72403efbc635e8ca1fc820253df049394f11471472113e4d5"
+      "sha256": "f392e6a44c2f8c2780a75e5f28a0b2294b49cc0bb42551cb03636c83f49694b5"
     },
     {
       "bytes": 3460,

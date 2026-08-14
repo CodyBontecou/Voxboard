@@ -18,9 +18,14 @@ CORE_CHECKS = {
     "CORE-001": ("swiftRustParity", ["cargo", "test", "--manifest-path", "Packages/vox-core-rust/Cargo.toml", "--locked", "-p", "vox-core", "swift_oracle_corpus_matches_production_sessions_and_executes_negatives", "--", "--exact"]),
     "CORE-002": ("unsupportedVersionFailClosed", ["cargo", "test", "--manifest-path", "Packages/vox-core-rust/Cargo.toml", "--locked", "-p", "vox-core", "readiness_is_exact_and_fail_closed", "--", "--exact"]),
     "CORE-003": ("bindingDrift", ["Packages/vox-core-rust/scripts/check-bindings.sh"]),
-    "CORE-004": ("readinessPins", ["bash", "-c", "cargo test --manifest-path Packages/vox-core-rust/Cargo.toml --locked -p vox-core readiness_is_exact_and_fail_closed -- --exact && python3 Packages/contracts/scripts/validate_toolchain.py"]),
-    "CORE-005": ("shadowSideEffects", ["swift", "test", "--package-path", "Packages/VoxboardShared", "--filter", "M2Shadow"]),
+    "CORE-004": ("readinessPins", ["cargo", "test", "--manifest-path", "Packages/vox-core-rust/Cargo.toml", "--locked", "-p", "vox-core", "build_info_exposes_exact_readiness_pins", "--", "--exact"]),
+    "CORE-005": ("shadowSideEffects", ["swift", "test", "--package-path", "Packages/VoxboardShared", "--filter", "CaptureCoreEnginePolicyTests"]),
 }
+SHADOW_ISOLATION_CHECKS = (
+    "shadowFrozenInputCompared", "shadowLegacyAuthorityReturned", "shadowNoDestinationWrites",
+    "shadowNoAttachmentCopies", "shadowNoQuotaMutations", "shadowNoQueueMutations",
+    "shadowNoSuccessReports", "shadowNoContentPathLogs",
+)
 SEED = "9c795fa9af3eb6fa1bb450172c12a4a9abc04ac1326b76b8a6b8400d8b207ded"
 TOTAL_DOMAIN = b"vox-m2-total-input-v1\0"
 CORE_BASE_SOURCES = {
@@ -32,6 +37,10 @@ CORE_BASE_SOURCES = {
     "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CapturePipeline.swift",
     "Packages/VoxboardShared/Sources/VoxboardCaptureCore/MarkdownDocumentEditor.swift",
     "Packages/VoxboardShared/Sources/VoxboardM2Oracle/main.swift",
+    "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
+    "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
+    "Packages/VoxboardShared/Sources/VoxCoreRust/VoxCoreRust.swift",
+    "Packages/VoxboardShared/Tests/VoxboardCaptureCoreTests/CaptureCoreEnginePolicyTests.swift",
     "Packages/contracts/manifest.json",
     "Packages/contracts/validation/case-catalog.json",
     "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml",
@@ -41,7 +50,7 @@ CORE_BASE_SOURCES = {
     "Packages/vox-core-rust/rust-toolchain.toml", "Packages/vox-core-rust/scripts/check-bindings.sh", "Packages/vox-core-rust/scripts/generate-oracle-fixtures.sh", "Packages/vox-core-rust/scripts/run-m2-core-exit-evidence.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh", "Packages/vox-core-rust/uniffi.toml",
 }
 PERF3_SOURCES = {
-    "Packages/VoxboardShared/Package.swift", "Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/main.swift",
+    "Packages/VoxboardShared/Package.swift", "Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/main.swift", "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap", "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
     "Packages/vox-core-rust/Cargo.lock", "Packages/vox-core-rust/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/Cargo.toml", "Packages/vox-core-rust/crates/vox-core-uniffi/src/lib.rs", "Packages/vox-core-rust/crates/vox-core/Cargo.toml", "Packages/vox-core-rust/crates/vox-core/build.rs", "Packages/vox-core-rust/crates/vox-core/src/lib.rs", "Packages/vox-core-rust/generated/swift/VoxCore.swift", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h", "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap", "Packages/vox-core-rust/rust-toolchain.toml", "Packages/vox-core-rust/scripts/generate-m2-materialization-input.py", "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh", "Packages/vox-core-rust/scripts/run-m2-materialization-evidence.sh", "Packages/vox-core-rust/uniffi.toml",
 }
 PERF8_SOURCES = {
@@ -63,6 +72,9 @@ def sha_file(path: Path) -> str:
 def write_json(path: Path, value: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True); path.write_bytes(canonical_bytes(value))
 
+def utc_text(value: datetime) -> str:
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
 def git(repo: Path, *arguments: str) -> str:
     return subprocess.run(["git", "-C", str(repo), *arguments], check=True, text=True, capture_output=True).stdout.strip()
 
@@ -78,19 +90,41 @@ def require_hosted(repo: Path) -> tuple[str, dict]:
     return revision, {"qualification": qualification, "hosted": hosted}
 
 def host_identity() -> dict:
-    def command(args: list[str], fallback: str) -> str:
-        try: return subprocess.run(args, check=True, text=True, capture_output=True).stdout.strip()
-        except Exception: return fallback
-    return {"osName": platform.system(), "osVersion": platform.mac_ver()[0] or platform.release(), "architecture": platform.machine(), "cpuModel": command(["sysctl", "-n", "machdep.cpu.brand_string"], command(["sysctl", "-n", "hw.model"], "Apple runner CPU")), "logicalCPUCount": os.cpu_count() or 1, "totalMemoryBytes": int(command(["sysctl", "-n", "hw.memsize"], "1"))}
+    def command(args: list[str]) -> str:
+        value = subprocess.run(args, check=True, text=True, capture_output=True).stdout.strip()
+        if not value: raise SystemExit("required build-host fact is empty")
+        return value
+    try: cpu = command(["sysctl", "-n", "machdep.cpu.brand_string"])
+    except subprocess.CalledProcessError: cpu = command(["sysctl", "-n", "hw.model"])
+    logical = os.cpu_count(); memory = int(command(["sysctl", "-n", "hw.memsize"]))
+    if not logical or logical < 1 or memory < 1: raise SystemExit("required build-host capacity fact is invalid")
+    values = {"osName": platform.system(), "osVersion": platform.mac_ver()[0] or platform.release(), "architecture": platform.machine(), "cpuModel": cpu, "logicalCPUCount": logical, "totalMemoryBytes": memory}
+    if any(not values[key] for key in ("osName", "osVersion", "architecture", "cpuModel")): raise SystemExit("required build-host identity fact is empty")
+    return values
 
 def execute_core(repo: Path, campaign: Path, external: Path) -> None:
     require_hosted(repo)
     (campaign / "artifacts").mkdir(parents=True, exist_ok=True); (campaign / "evidence").mkdir(parents=True, exist_ok=True); (campaign / "approvals").mkdir(parents=True, exist_ok=True); (external / "executables").mkdir(parents=True, exist_ok=True)
     executable = external / "executables/core-exit-host.py"; shutil.copyfile(Path(__file__), executable); executable.chmod(0o755)
     for case_id, (_, command) in CORE_CHECKS.items():
-        result = subprocess.run(command, cwd=repo, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if result.returncode != 0 or (case_id == "CORE-005" and "M2Shadow" not in result.stdout):
-            print(result.stdout, file=sys.stderr); raise SystemExit(f"{case_id} production check failed")
+        commands = [command]
+        if case_id == "CORE-001": commands.append(["Packages/vox-core-rust/scripts/generate-oracle-fixtures.sh"])
+        if case_id == "CORE-004": commands.append(["python3", "Packages/contracts/scripts/validate_toolchain.py"])
+        output = ""
+        for production_command in commands:
+            result = subprocess.run(production_command, cwd=repo, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            output += result.stdout
+            if result.returncode != 0:
+                print(output, file=sys.stderr); raise SystemExit(f"{case_id} production check failed")
+        if case_id == "CORE-005":
+            markers = (
+                "test_shadowComparesOneFrozenInputBeforeSideEffectsAndLegacyRemainsAuthoritative",
+                "test_shadowAdmissionFailureDoesNotInvokeComparatorOrAlterLegacyOutcome",
+                "test_testOnlyRustFailsClosedOnUnsupportedAdmissionBeforeSideEffects",
+                "test_testOnlyRustStopsAtCommitBarrierWithoutLegacyFallback",
+            )
+            if any(marker not in output for marker in markers):
+                print(output, file=sys.stderr); raise SystemExit("CORE-005 named production checks were not all executed")
 
 def provenance(repo: Path, external: Path, revision: str, hosted: dict, case_id: str, build: dict) -> dict:
     if case_id.startswith("CORE-"):
@@ -106,8 +140,9 @@ def provenance(repo: Path, external: Path, revision: str, hosted: dict, case_id:
 def hash_ref(campaign: Path, relative: str) -> dict:
     return {"id": relative, "sha256": sha_file(campaign / relative)}
 
-def diagnostic(kind: str, code: str, executable_sha: str) -> dict:
-    return {"schemaVersion": 1, "format": "vox-validation-diagnostic-summary", "kind": kind, "resultCode": "passed", "checks": [{"code": code, "result": "passed", "count": 1}], "referencedHashes": [{"role": "build", "sha256": executable_sha}]}
+def diagnostic(kind: str, code: str, executable_sha: str, additional_codes: tuple[str, ...] = ()) -> dict:
+    checks = [{"code": value, "result": "passed", "count": 1} for value in (code, *additional_codes)]
+    return {"schemaVersion": 1, "format": "vox-validation-diagnostic-summary", "kind": kind, "resultCode": "passed", "checks": checks, "referencedHashes": [{"role": "build", "sha256": executable_sha}]}
 
 def measurement(gate: dict, values: list, source: str, selector: str, run_ids: list[str]) -> dict:
     if gate["statistic"] == "p95": value = sorted(values)[max(0, math.ceil(0.95 * len(values)) - 1)]
@@ -118,16 +153,30 @@ def measurement(gate: dict, values: list, source: str, selector: str, run_ids: l
 def finalize(repo: Path, campaign: Path, external: Path, archive_relative: str) -> None:
     revision, identities = require_hosted(repo); hosted = identities["hosted"]; archive = external / archive_relative; archive_sha = sha_file(archive)
     qualification = identities["qualification"] | {"artifactArchivePath": archive_relative, "artifactArchiveSha256": archive_sha}
-    native_path = campaign / "artifacts/native-package-inspection.json"; native = json.loads(native_path.read_bytes()); native["retention"] = {"kind": "hostedArtifact", "runID": qualification["runID"], "runAttempt": qualification["runAttempt"], "artifactName": "m2-evidence", "archiveSha256": archive_sha, "retentionExpiresAt": (datetime.now(timezone.utc) + timedelta(days=30)).replace(microsecond=0).isoformat().replace("+00:00", "Z")}; write_json(native_path, native)
+    native_path = campaign / "artifacts/native-package-inspection.json"
+    native_candidate = repo / "Packages/vox-core-rust/target/m2-evidence/native-package-candidate.json"
+    native = json.loads(native_candidate.read_bytes())
+    native["retention"] = {"kind": "hostedArtifact", "runID": qualification["runID"], "runAttempt": qualification["runAttempt"], "artifactName": "m2-evidence", "archiveSha256": archive_sha, "retentionExpiresAt": utc_text(datetime.now(timezone.utc) + timedelta(days=30))}
+    write_json(native_path, native)
     catalog = {item["id"]: item for item in json.loads((repo / "Packages/contracts/validation/case-catalog.json").read_bytes())["cases"]}; gates = {item["id"]: item for item in json.loads((repo / "Packages/contracts/validation/performance-gates.json").read_bytes())["gates"]}; run_set = json.loads((campaign / "artifacts/materialization-run-set.json").read_bytes()); runs = {item["runID"]: item for item in run_set["runs"]}; manifest_sha = sha_file(repo / "Packages/contracts/manifest.json"); host = host_identity(); campaign_id = f"m2-hosted-{qualification['runID']}-{qualification['runAttempt']}"
-    now = datetime.now(timezone.utc).replace(microsecond=0); started = (now - timedelta(seconds=2)).isoformat().replace("+00:00", "Z"); completed = (now - timedelta(seconds=1)).isoformat().replace("+00:00", "Z")
+    started = os.environ.get("VOX_M2_EVIDENCE_STARTED_AT", "")
+    try:
+        started_at = datetime.fromisoformat(started.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise SystemExit("valid observed M2 evidence start time is required") from error
+    completed_at = datetime.now(timezone.utc)
+    if started_at.tzinfo is None or started_at > completed_at:
+        raise SystemExit("observed M2 evidence chronology is invalid")
+    completed = utc_text(completed_at)
     for case_id in [*CORE_CHECKS, "PERF-003", "PERF-008"]:
         recipe = "Packages/vox-core-rust/scripts/run-m2-core-exit-evidence.py" if case_id in CORE_CHECKS else "Packages/vox-core-rust/scripts/run-m2-materialization-evidence.sh" if case_id == "PERF-003" else "Packages/vox-core-rust/scripts/build-m2-native-evidence.sh"
         executable = external / ("executables/core-exit-host.py" if case_id in CORE_CHECKS else "executables/vox-m2-materialization-evidence" if case_id == "PERF-003" else "executables/native-package-inspector.py")
         build = {"kind": "sourceBuiltHost", "sourceRevision": revision, "sourceTreeState": "clean", "toolchainManifestSha256": sha_file(repo / "toolchains/android-wear-shared-core.json"), "buildRecipeSha256": sha_file(repo / recipe), "executableSha256": sha_file(executable)}
         prov = provenance(repo, external, revision, hosted, case_id, build); prov_rel = f"artifacts/{case_id.lower()}-provenance.json"; write_json(campaign / prov_rel, prov)
         fixture_rel = f"artifacts/{case_id.lower()}-fixture.diagnostic.json"; artifact_rel = f"artifacts/{case_id.lower()}-artifact.diagnostic.json"; required_code = CORE_CHECKS[case_id][0] if case_id in CORE_CHECKS else "performanceGate"
-        write_json(campaign / fixture_rel, diagnostic("fixture", "bounds", build["executableSha256"])); write_json(campaign / artifact_rel, diagnostic("artifact", required_code, build["executableSha256"]))
+        write_json(campaign / fixture_rel, diagnostic("fixture", "bounds", build["executableSha256"]))
+        additional_codes = SHADOW_ISOLATION_CHECKS if case_id == "CORE-005" else ()
+        write_json(campaign / artifact_rel, diagnostic("artifact", required_code, build["executableSha256"], additional_codes))
         measurements=[]; run_ref = package_ref = None
         if case_id == "PERF-003":
             run_ref = hash_ref(campaign, "artifacts/materialization-run-set.json")
@@ -154,7 +203,7 @@ def finalize(repo: Path, campaign: Path, external: Path, archive_relative: str) 
     evidence_paths=sorted((campaign/"evidence").glob("*.json")); evidence_hashes=[{"id":str(path.relative_to(campaign)),"sha256":sha_file(path)} for path in evidence_paths]
     scope={"claim":"milestoneClosure","throughMilestone":"M2"}; definition_aggregate=canonical_hash({"scope":scope,"qualification":qualification,"definitions":definitions}); evidence_aggregate=canonical_hash({"scope":scope,"qualification":qualification,"evidence":evidence_hashes})
     rows=[{"caseID":case_id,"deviceRoleID":None,"providerID":None,"evidenceID":f"{campaign_id}-{case_id.lower()}","status":"passed"} for case_id in [*CORE_CHECKS,"PERF-003","PERF-008"]]
-    aggregate={"$schema":"https://vox.md/contracts/schemas/aggregate.schema.json","schemaVersion":2,"campaignID":campaign_id,"scope":scope,"qualification":qualification,"status":"passed","definitionAggregateSha256":definition_aggregate,"evidenceAggregateSha256":evidence_aggregate,"definitionHashes":definitions,"evidenceHashes":evidence_hashes,"approvalHashes":[],"requiredTuples":rows,"requiredTupleCounts":{"total":7,"passed":7,"failed":0,"blocked":0,"incomplete":0},"failedInvariantIDs":[],"generatedAt":now.isoformat().replace("+00:00","Z")}
+    aggregate={"$schema":"https://vox.md/contracts/schemas/aggregate.schema.json","schemaVersion":2,"campaignID":campaign_id,"scope":scope,"qualification":qualification,"status":"passed","definitionAggregateSha256":definition_aggregate,"evidenceAggregateSha256":evidence_aggregate,"definitionHashes":definitions,"evidenceHashes":evidence_hashes,"approvalHashes":[],"requiredTuples":rows,"requiredTupleCounts":{"total":7,"passed":7,"failed":0,"blocked":0,"incomplete":0},"failedInvariantIDs":[],"generatedAt":utc_text(datetime.now(timezone.utc))}
     write_json(campaign/"aggregate.json",aggregate)
 
 def tar_field(value: int, length: int) -> bytes:

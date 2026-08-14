@@ -84,7 +84,7 @@
     },
     {
       "path": "Packages/vox-core-rust/scripts/check-bindings.sh",
-      "sha256": "07b6dbcdbceb7fde425bd1afb85a29ff805e736956e84ce9344f9f1d282a2372"
+      "sha256": "afd0c646c41cf80b37da5504fc8c4b68b828dd70caca743150bb621e65e9821c"
     },
     {
       "path": "Packages/vox-core-rust/scripts/build-android-cdylibs.sh",
@@ -104,11 +104,19 @@
     },
     {
       "path": "Packages/vox-core-rust/scripts/inspect-native-packages.py",
-      "sha256": "cd62157cd207972de04c33d07801ab6b1ac0b104fd7b51e20de95e5ca85dd1a3"
+      "sha256": "2e6f7be3bfddf588f4b6f5617922a9debe48dd92995a5e4588a3806cc2000c44"
     },
     {
       "path": "Packages/vox-core-rust/scripts/normalize-generated-text.py",
       "sha256": "12c91a05fa3103a2d0d09b4520105726731369d6d4f01d9d53f65b626e8a8843"
+    },
+    {
+      "path": "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
+      "sha256": "9f456ea8362af384dd2be972d029da13eef58a99a3cabab76b1c07c3eb323b38"
+    },
+    {
+      "path": "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
+      "sha256": "244de24c7df3fe0650d7d284c5729fdfe3b7affd00d3d6e1efbdf3150ba4c03c"
     }
   ],
   "rust": {

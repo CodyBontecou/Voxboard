@@ -43,7 +43,7 @@
     "transcriptText",
     "audio",
     "filename",
-    "path",
+    "userContentPath",
     "uri",
     "documentID",
     "bookmark",
