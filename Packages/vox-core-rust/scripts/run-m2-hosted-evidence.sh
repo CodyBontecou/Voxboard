@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-repo="$(cd "$(dirname "$0")/../.." && pwd)"
+workspace="$(cd "$(dirname "$0")/.." && pwd)"
+repo="$(cd "$workspace/../.." && pwd)"
 [[ "${GITHUB_ACTIONS:-}" == true ]] || { echo "error: hosted M2 evidence requires GitHub Actions" >&2; exit 1; }
 [[ "${GITHUB_JOB:-}" == m2-evidence ]] || { echo "error: hosted M2 evidence requires the canonical m2-evidence job" >&2; exit 1; }
 [[ "${GITHUB_WORKSPACE:-}" == "$repo" ]] || { echo "error: hosted M2 evidence workspace mismatch" >&2; exit 1; }
