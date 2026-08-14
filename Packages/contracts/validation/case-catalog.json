@@ -155,7 +155,7 @@
       "category": "CORE",
       "deviceRoles": [],
       "executionTarget": "buildHost",
-      "expected": "A named typed ADR-0018 recovery producer executes corrupt package, truncated package, stale lease, orphan quota reservation, and package/row divergence in both directions plus package/journal divergence; package plus journal remains recovery authority, Room is rebuilt or quarantined without inventing success, and reservations are reconciled without double charge.",
+      "expected": "A named typed ADR-0018 recovery producer executes duplicate request, temporary package, corrupt package, truncated package, stale lease, completed package, orphan quota reservation, and package-without-row, row-without-package, and package/journal divergence; package plus journal remains recovery authority, Room is rebuilt or quarantined without inventing success, and reservations are reconciled without double charge.",
       "id": "CORE-011",
       "invariants": [
         "INV-LAST-DURABLE-COPY",
@@ -298,7 +298,7 @@
         "large-screen"
       ],
       "executionTarget": "physicalDevice",
-      "expected": "Rotation, resize, split-screen, background, and foreground transitions preserve the durable recording state while warm and cold latency gates pass.",
+      "expected": "Rotation, resize, split-screen, background, and foreground transitions preserve the durable recording state for the governed session duration with no more than the governed maximum durable-prefix loss.",
       "id": "REC-004",
       "invariants": [
         "INV-LAST-DURABLE-COPY"
@@ -310,7 +310,7 @@
       ],
       "providerApplicability": "none",
       "required": true,
-      "title": "Large-screen recording lifecycle and responsiveness"
+      "title": "Large-screen recording lifecycle durability"
     },
     {
       "category": "SAF",

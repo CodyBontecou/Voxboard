@@ -724,7 +724,7 @@
       "bytes": 113342,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_validation_definitions.py",
-      "sha256": "2efe302890dcf841553348295b317b3e94f81dffddb26a9833143613b0d8974b"
+      "sha256": "d81c312d360192094ac044a7e990cdca6cacd2d36500b1c0dc75e405f1d7d4f3"
     },
     {
       "bytes": 6065,
@@ -745,10 +745,10 @@
       "sha256": "6461ddad233f8b38af1a14af003fdfcafdd060595650b2e57efe323f6eb25037"
     },
     {
-      "bytes": 83193,
+      "bytes": 83338,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validation_definitions.py",
-      "sha256": "cf481078878dd7100ae0ca972d350bdc3bd303406f78facbe4be53e5070304d1"
+      "sha256": "02178dbb16cbee5720eb061a16112d4ba9997dcdcf4e9751b37feeb7fb5b7f89"
     },
     {
       "bytes": 2641,
@@ -763,10 +763,10 @@
       "sha256": "06bba2f99b625d5fed917124389fc5c0c5cb3a35e0c0e3e33485aa995a8ab322"
     },
     {
-      "bytes": 23859,
+      "bytes": 23961,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/case-catalog.json",
-      "sha256": "b6bed92e7f31aea5baccf8cab5fa9213906077ef328324c32326a198619d9919"
+      "sha256": "c04215eb49038d15cf1bb88b7aa938f128b4b4f02a84674fb10861850519aaa5"
     },
     {
       "bytes": 2099,
