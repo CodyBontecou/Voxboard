@@ -21,6 +21,7 @@ REPOSITORY_ID = "1153091883"
 OWNER = "CodyBontecou"
 OWNER_ID = "20440899"
 VISIBILITY = "public"
+SUBJECT_REPOSITORY_PREFIX = "repo:CodyBontecou@20440899/vox.md@1153091883"
 WORKFLOW_PATH = ".github/workflows/core-rust-ci.yml"
 ORCHESTRATOR_PATH = "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh"
 MAX_TOKEN_BYTES = 16 * 1024
@@ -137,9 +138,9 @@ def validate_token(token: str, jwks: dict[str, Any], expected: dict[str, Any], n
     if claims["exp"] <= current or claims["nbf"] > current + 30 or claims["iat"] > current + 30 or claims["iat"] < current - 600 or claims["exp"] - claims["iat"] > 900:
         raise OIDCError("JWT time claims are expired, future, or outside bounds")
     expected_subject = (
-        f"repo:{REPOSITORY}:pull_request"
+        f"{SUBJECT_REPOSITORY_PREFIX}:pull_request"
         if expected["eventName"] == "pull_request"
-        else f"repo:{REPOSITORY}:ref:{expected['ref']}"
+        else f"{SUBJECT_REPOSITORY_PREFIX}:ref:{expected['ref']}"
     )
     if not isinstance(claims.get("jti"), str) or not (1 <= len(claims["jti"]) <= 256):
         raise OIDCError("JWT jti claim is missing or invalid")
