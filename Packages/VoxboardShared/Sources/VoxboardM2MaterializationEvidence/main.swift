@@ -74,7 +74,11 @@ private func residentBytes() -> UInt64 {
 }
 
 private final class RSSSampler: @unchecked Sendable {
-    private let queue = DispatchQueue(label: "md.vox.m2-rss-sampler")
+    private let queue = DispatchQueue(
+        label: "md.vox.m2-rss-sampler",
+        qos: .userInteractive,
+        autoreleaseFrequency: .workItem
+    )
     private let start: UInt64
     private var timer: DispatchSourceTimer?
     private var values: [[String: Any]] = []
@@ -85,7 +89,14 @@ private final class RSSSampler: @unchecked Sendable {
         baseline = residentBytes()
         values = [["elapsedNanoseconds": 0, "residentBytes": baseline]]
         let source = DispatchSource.makeTimerSource(queue: queue)
-        source.schedule(deadline: .now() + .milliseconds(2), repeating: .milliseconds(2))
+        // The evidence contract permits at most 10 ms between observed samples.
+        // Sample at 0.5 ms with zero timer leeway so a loaded hosted runner retains
+        // ample scheduling margin without inventing intermediate observations.
+        source.schedule(
+            deadline: .now() + .microseconds(500),
+            repeating: .microseconds(500),
+            leeway: .nanoseconds(0)
+        )
         source.setEventHandler { [weak self] in self?.appendSample() }
         timer = source
         source.resume()
