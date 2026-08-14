@@ -1,27 +1,69 @@
 import FluidAudio
 import Foundation
 
-public enum SpeakerDiarizationError: Error, LocalizedError, Equatable, Sendable {
-    case audioTooLarge
+public struct RecordingVoiceProcessingConfiguration: Codable, Equatable, Sendable {
+    public let presetID: String
+    public let speakerDiarizationEnabled: Bool
+
+    public init(presetID: String, speakerDiarizationEnabled: Bool) {
+        self.presetID = presetID
+        self.speakerDiarizationEnabled = speakerDiarizationEnabled
+    }
+
+    public init(preset: CapturePreset) {
+        self.init(
+            presetID: preset.id,
+            speakerDiarizationEnabled: preset.speakerDiarizationEnabled
+        )
+    }
+}
+
+public enum SpeakerDiarizationSkipReason: String, Codable, Equatable, Sendable {
     case timestampsUnavailable
     case incompleteTimestamps
     case noSpeakersDetected
     case storageUnavailable
+    case modelPreparationFailed
+    case processingFailed
 
-    public var errorDescription: String? {
+    public var displayText: String {
         switch self {
-        case .audioTooLarge:
-            return "The recording is too large for on-device speaker identification."
         case .timestampsUnavailable:
-            return "The transcription backend did not return timestamps for speaker identification."
+            return String(localized: "Speaker identification was skipped because this transcript has no timing information.")
         case .incompleteTimestamps:
-            return "The transcription timestamps do not cover the complete transcript."
+            return String(localized: "Speaker identification was skipped because timing information did not cover the complete transcript.")
         case .noSpeakersDetected:
-            return "No distinct speakers were detected."
+            return String(localized: "Speaker identification was skipped because no distinct speakers were detected.")
         case .storageUnavailable:
-            return "Speaker identification model storage is unavailable."
+            return String(localized: "Speaker identification was skipped because model storage was unavailable.")
+        case .modelPreparationFailed:
+            return String(localized: "Speaker identification was skipped because its model could not be prepared.")
+        case .processingFailed:
+            return String(localized: "Speaker identification could not process this recording.")
         }
     }
+}
+
+public enum SpeakerDiarizationError: Error, LocalizedError, Equatable, Sendable {
+    case timestampsUnavailable
+    case incompleteTimestamps
+    case noSpeakersDetected
+    case storageUnavailable
+    case modelPreparationFailed
+    case processingFailed
+
+    public var skipReason: SpeakerDiarizationSkipReason {
+        switch self {
+        case .timestampsUnavailable: .timestampsUnavailable
+        case .incompleteTimestamps: .incompleteTimestamps
+        case .noSpeakersDetected: .noSpeakersDetected
+        case .storageUnavailable: .storageUnavailable
+        case .modelPreparationFailed: .modelPreparationFailed
+        case .processingFailed: .processingFailed
+        }
+    }
+
+    public var errorDescription: String? { skipReason.displayText }
 }
 
 public struct SpeakerDiarizationOutput: Equatable, Sendable {
@@ -39,22 +81,105 @@ public struct SpeakerDiarizationOutput: Equatable, Sendable {
     }
 }
 
+public struct SpeakerDiarizationResolution: Equatable, Sendable {
+    public let text: String
+    public let turns: [TranscriptSpeakerTurn]?
+    public let skipReason: SpeakerDiarizationSkipReason?
+
+    public init(
+        text: String,
+        turns: [TranscriptSpeakerTurn]? = nil,
+        skipReason: SpeakerDiarizationSkipReason? = nil
+    ) {
+        self.text = text
+        self.turns = turns
+        self.skipReason = skipReason
+    }
+}
+
+protocol OfflineSpeakerDiarizationEngine: Sendable {
+    func prepareModels(directory: URL) async throws
+    func process(_ url: URL) async throws -> [SpeakerDiarizationSegment]
+}
+
+private final class FluidAudioOfflineSpeakerDiarizationEngine: OfflineSpeakerDiarizationEngine, @unchecked Sendable {
+    private let manager = OfflineDiarizerManager(config: .init())
+
+    func prepareModels(directory: URL) async throws {
+        try await manager.prepareModels(directory: directory)
+    }
+
+    func process(_ url: URL) async throws -> [SpeakerDiarizationSegment] {
+        let result = try await manager.process(url)
+        return result.segments.map {
+            SpeakerDiarizationSegment(
+                speakerID: $0.speakerId,
+                startTime: TimeInterval($0.startTimeSeconds),
+                endTime: TimeInterval($0.endTimeSeconds)
+            )
+        }
+    }
+}
+
 /// Best-effort on-device speaker identification for completed recordings.
 ///
-/// The service mirrors Rescript's mobile pipeline: transcription first provides
-/// timed text, Pyannote-style diarization identifies who spoke when, and each
-/// text unit is assigned to the overlapping (or nearest) speaker segment. Model
-/// assets are downloaded only after a user enables the per-preset opt-in.
+/// FluidAudio's URL-based offline pipeline converts and streams through a
+/// disk-backed sample source. Model assets download only after a user enables
+/// the per-preset opt-in.
 public actor SpeakerDiarizationService {
-    public static let audioByteLimit: UInt64 = 120 * 1024 * 1024
-
-    private let manager: OfflineDiarizerManager
+    private let engine: any OfflineSpeakerDiarizationEngine
+    private let modelsDirectoryProvider: @Sendable () -> URL?
+    private let processingGate = AsyncExclusiveGate()
     private var modelsArePrepared = false
-    private var isProcessing = false
-    private var processingWaiters: [CheckedContinuation<Void, Never>] = []
 
     public init() {
-        manager = OfflineDiarizerManager(config: .init())
+        engine = FluidAudioOfflineSpeakerDiarizationEngine()
+        modelsDirectoryProvider = { AppConstants.modelsDirectoryURL }
+    }
+
+    init(
+        engine: any OfflineSpeakerDiarizationEngine,
+        modelsDirectoryProvider: @escaping @Sendable () -> URL?
+    ) {
+        self.engine = engine
+        self.modelsDirectoryProvider = modelsDirectoryProvider
+    }
+
+    /// Applies speaker identification when enabled. A non-cancellation failure
+    /// is represented as a typed warning while preserving the valid ASR text.
+    public func resolve(
+        audioURL: URL,
+        transcription: OnDeviceTranscriptionResult,
+        configuration: RecordingVoiceProcessingConfiguration?
+    ) async throws -> SpeakerDiarizationResolution {
+        guard configuration?.speakerDiarizationEnabled == true else {
+            return SpeakerDiarizationResolution(text: transcription.text)
+        }
+
+        do {
+            let output = try await diarize(
+                audioURL: audioURL,
+                transcriptText: transcription.text,
+                transcriptionSegments: transcription.segments
+            )
+            return SpeakerDiarizationResolution(
+                text: output.renderedText,
+                turns: output.turns
+            )
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let error as SpeakerDiarizationError {
+            return SpeakerDiarizationResolution(
+                text: transcription.text,
+                skipReason: error.skipReason
+            )
+        } catch {
+            Self.logFailure(stage: "resolution", error: error, audioURL: audioURL)
+            return SpeakerDiarizationResolution(
+                text: transcription.text,
+                skipReason: .processingFailed
+            )
+        }
     }
 
     public func diarize(
@@ -62,8 +187,20 @@ public actor SpeakerDiarizationService {
         transcriptText: String,
         transcriptionSegments: [TimedTranscriptionSegment]
     ) async throws -> SpeakerDiarizationOutput {
-        await acquireProcessingSlot()
-        defer { releaseProcessingSlot() }
+        try await processingGate.withExclusiveAccess { [self] in
+            try await self.diarizeExclusively(
+                audioURL: audioURL,
+                transcriptText: transcriptText,
+                transcriptionSegments: transcriptionSegments
+            )
+        }
+    }
+
+    private func diarizeExclusively(
+        audioURL: URL,
+        transcriptText: String,
+        transcriptionSegments: [TimedTranscriptionSegment]
+    ) async throws -> SpeakerDiarizationOutput {
         try Task.checkCancellation()
         guard !transcriptionSegments.isEmpty else {
             throw SpeakerDiarizationError.timestampsUnavailable
@@ -74,34 +211,47 @@ public actor SpeakerDiarizationService {
         ) else {
             throw SpeakerDiarizationError.incompleteTimestamps
         }
-        guard Self.fileSize(at: audioURL) <= Self.audioByteLimit else {
-            throw SpeakerDiarizationError.audioTooLarge
-        }
-        guard let baseDirectory = AppConstants.modelsDirectoryURL else {
+        guard let baseDirectory = modelsDirectoryProvider() else {
             throw SpeakerDiarizationError.storageUnavailable
         }
         let modelDirectory = baseDirectory
             .appendingPathComponent("SpeakerDiarization", isDirectory: true)
-        try FileManager.default.createDirectory(
-            at: modelDirectory,
-            withIntermediateDirectories: true
-        )
+        do {
+            try FileManager.default.createDirectory(
+                at: modelDirectory,
+                withIntermediateDirectories: true
+            )
+        } catch {
+            try Task.checkCancellation()
+            Self.logFailure(stage: "model storage", error: error, audioURL: audioURL)
+            throw SpeakerDiarizationError.storageUnavailable
+        }
 
         if !modelsArePrepared {
-            try await manager.prepareModels(directory: modelDirectory)
-            modelsArePrepared = true
+            do {
+                try await engine.prepareModels(directory: modelDirectory)
+                modelsArePrepared = true
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                try Task.checkCancellation()
+                Self.logFailure(stage: "model preparation", error: error, audioURL: audioURL)
+                throw SpeakerDiarizationError.modelPreparationFailed
+            }
         }
 
         try Task.checkCancellation()
-        let result = try await manager.process(audioURL)
-        try Task.checkCancellation()
-        let speakerSegments = result.segments.map {
-            SpeakerDiarizationSegment(
-                speakerID: $0.speakerId,
-                startTime: TimeInterval($0.startTimeSeconds),
-                endTime: TimeInterval($0.endTimeSeconds)
-            )
+        let speakerSegments: [SpeakerDiarizationSegment]
+        do {
+            speakerSegments = try await engine.process(audioURL)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            try Task.checkCancellation()
+            Self.logFailure(stage: "audio processing", error: error, audioURL: audioURL)
+            throw SpeakerDiarizationError.processingFailed
         }
+        try Task.checkCancellation()
         let turns = SpeakerDiarizationAttribution.turns(
             transcriptionSegments: transcriptionSegments,
             speakerSegments: speakerSegments
@@ -112,27 +262,10 @@ public actor SpeakerDiarizationService {
         return SpeakerDiarizationOutput(turns: turns)
     }
 
-    private func acquireProcessingSlot() async {
-        if !isProcessing {
-            isProcessing = true
-            return
-        }
-        await withCheckedContinuation { continuation in
-            processingWaiters.append(continuation)
-        }
-    }
-
-    private func releaseProcessingSlot() {
-        if processingWaiters.isEmpty {
-            isProcessing = false
-        } else {
-            processingWaiters.removeFirst().resume()
-        }
-    }
-
-    private nonisolated static func fileSize(at url: URL) -> UInt64 {
-        ((try? FileManager.default.attributesOfItem(atPath: url.path)[.size]) as? NSNumber)?
-            .uint64Value ?? 0
+    private nonisolated static func logFailure(stage: String, error: Error, audioURL: URL) {
+        KeyboardDebugLog.shared.log(
+            "[SpeakerDiarizationService] \(stage) failed for \(audioURL.lastPathComponent): \(String(reflecting: error))"
+        )
     }
 }
 
@@ -147,10 +280,19 @@ enum SpeakerDiarizationAttribution {
         transcriptText: String,
         transcriptionSegments: [TimedTranscriptionSegment]
     ) -> Bool {
+        let nonemptySegments = transcriptionSegments.filter {
+            !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        guard !nonemptySegments.isEmpty,
+              nonemptySegments.allSatisfy({
+                  $0.startTime.isFinite
+                      && $0.endTime.isFinite
+                      && $0.endTime > $0.startTime
+              }) else {
+            return false
+        }
         let complete = normalizedCoverageText(transcriptText)
-        let timed = normalizedCoverageText(
-            transcriptionSegments.map(\.text).joined()
-        )
+        let timed = normalizedCoverageText(nonemptySegments.map(\.text).joined())
         return !complete.isEmpty && complete == timed
     }
 

@@ -248,6 +248,7 @@
           <li><strong>Send Immediately is selected by default</strong> in the iOS and Mac capture workspaces. Opening the iOS voice action through <code>voxboard://capture?action=voice</code> switches that recording to Add to Draft.</li>
           <li>The <strong>Audio</strong> option retains the source recording as part of a draft when requested.</li>
           <li><strong>Import audio</strong> accepts audio or movie files and uses the same local transcription pipeline.</li>
+          <li><strong>Identify Speakers</strong> is an opt-in Capture Preset voice-processing step for recordings and imported audio. It prepares a separate speaker model on first use, adds anonymous best-effort labels locally, and preserves the plain transcript with a visible History reason when it cannot run.</li>
           <li>Automatic can show finalized and tentative Apple Speech text while recording. Explicit Whisper and Parakeet models transcribe after recording stops.</li>
           <li>A failed transcription does not destroy the source recording; it remains recoverable.</li>
           <li>Persistent keyboard listening is kept across launches only when explicitly enabled. A one-shot app recording returns the audio session to idle.</li>
