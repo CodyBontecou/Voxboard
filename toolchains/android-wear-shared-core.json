@@ -213,7 +213,7 @@
     },
     {
       "path": ".github/workflows/android-ci.yml",
-      "sha256": "94546aae076ff877fc293f0b45725d18eaafac0f2a7bf2af2a7bf193fc60011d"
+      "sha256": "abab563ccdba82e7cc5f7a95501d89fa22cbd3e538348831e8f4911f010a9822"
     },
     {
       "path": "apps/android/build.gradle.kts",
