@@ -68,6 +68,12 @@ pub enum VoxCoreError {
     ControlTooLarge,
     #[error("control input is invalid")]
     InvalidControl,
+    #[error("a string exceeds its contract bound")]
+    StringTooLarge,
+    #[error("an array exceeds its contract bound")]
+    ArrayTooLarge,
+    #[error("an integer is outside its contract bound")]
+    IntegerOutOfRange,
     #[error("control input contains an unknown field")]
     UnknownField,
     #[error("control input is not canonical")]
@@ -95,10 +101,10 @@ impl From<vox_core::CoreError> for VoxCoreError {
         use vox_core::CoreError as Source;
         match value {
             Source::ControlTooLarge => Self::ControlTooLarge,
+            Source::StringTooLarge => Self::StringTooLarge,
+            Source::ArrayTooLarge => Self::ArrayTooLarge,
+            Source::IntegerOutOfRange => Self::IntegerOutOfRange,
             Source::InvalidControl
-            | Source::StringTooLarge
-            | Source::ArrayTooLarge
-            | Source::IntegerOutOfRange
             | Source::InvalidEnum
             | Source::InvalidHash
             | Source::InvalidPath
@@ -123,7 +129,9 @@ impl From<vox_core::CoreError> for VoxCoreError {
             Source::InvalidObservationStream | Source::ObservationSequence | Source::Incomplete => {
                 Self::InvalidObservation
             }
-            Source::ChunkTooLarge | Source::AggregateTooLarge => Self::LimitExceeded,
+            Source::ChunkTooLarge
+            | Source::PreparedChunkSequenceOutOfRange
+            | Source::AggregateTooLarge => Self::LimitExceeded,
             Source::DescriptorMismatch | Source::DrainedHashMismatch => Self::VerificationFailed,
             Source::SessionTerminal => Self::SessionTerminal,
             Source::Cancelled => Self::Cancelled,
@@ -132,18 +140,10 @@ impl From<vox_core::CoreError> for VoxCoreError {
 }
 
 fn guard<T>(call: impl FnOnce() -> Result<T, VoxCoreError>) -> Result<T, VoxCoreError> {
-    // The boundary deliberately suppresses the hook while catching so panic payloads
-    // and source locations cannot escape to stderr. Hook replacement/restoration is
-    // serialized because the hook is process-global.
-    static PANIC_HOOK_LOCK: Mutex<()> = Mutex::new(());
-    let _lock = PANIC_HOOK_LOCK
-        .lock()
-        .unwrap_or_else(std::sync::PoisonError::into_inner);
-    let previous = std::panic::take_hook();
-    std::panic::set_hook(Box::new(|_| {}));
-    let result = catch_unwind(AssertUnwindSafe(call));
-    std::panic::set_hook(previous);
-    result.unwrap_or(Err(VoxCoreError::InternalPanic))
+    // Containment never replaces the host's process-global panic hook. Product builds
+    // use panic=abort, while unwind-capable test/debug hosts retain their own hook policy.
+    // The returned boundary error is static and never includes panic or user payloads.
+    catch_unwind(AssertUnwindSafe(call)).unwrap_or(Err(VoxCoreError::InternalPanic))
 }
 
 #[uniffi::export]
@@ -321,6 +321,73 @@ mod tests {
     fn panic_is_contained() {
         let result: Result<(), VoxCoreError> = guard(|| panic!("private panic value"));
         assert_eq!(result, Err(VoxCoreError::InternalPanic));
+    }
+
+    fn canonical(value: &serde_json::Value) -> Vec<u8> {
+        vox_core::canonical_bytes(value).unwrap()
+    }
+
+    fn valid_preparation() -> serde_json::Value {
+        serde_json::json!({
+          "calendar":"gregorian","captureSource":"app","contractVersion":1,
+          "createdAtEpochMilliseconds":1_700_000_000_000_i64,
+          "invocation":{"locationOutcome":"notRequested","originRecordingID":serde_json::Value::Null,"sequence":1},
+          "locale":"en-US","operation":"newNote",
+          "payloads":[{"id":"22222222-2222-4222-8222-222222222222","kind":"text","text":"First"}],
+          "pins":{"coreVersion":vox_core::CORE_VERSION,"modelProfileID":serde_json::Value::Null,"modelRevision":serde_json::Value::Null,"profileID":vox_core::PROFILE_ID,"profileVersion":vox_core::PROFILE_VERSION,"rendererRevision":vox_core::RENDERER_REVISION},
+          "preset":{"destinationPolicy":{"capabilityClass":"userVault","capabilityReference":"synthetic","expectedCaseSensitivity":"sensitive"},"id":"33333333-3333-4333-8333-333333333333","metadataPolicy":{"finalNewline":true,"frontmatterMode":"merge","lineEnding":"lf","orderedFields":[],"templatePolicy":"none"},"retryMarkerPolicy":"none","revision":1,"routePolicy":{"attachmentFolder":[],"collisionPolicy":"deterministicSuffix","extensionPolicy":"markdownDotMd","logicalFolder":["Inbox"],"noteNameTemplate":"note"},"snapshotHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","templateFreezePoint":"firstPreparation"},
+          "requestID":"11111111-1111-4111-8111-111111111111","timezone":"UTC"
+        })
+    }
+
+    #[test]
+    fn typed_contract_bounds_survive_exported_boundary() {
+        let mut string = valid_preparation();
+        string["payloads"][0]["text"] = serde_json::json!("x".repeat(65_537));
+        assert_eq!(
+            core_prepare(&canonical(&string)),
+            Err(VoxCoreError::StringTooLarge)
+        );
+
+        let mut array = valid_preparation();
+        array["preset"]["metadataPolicy"]["orderedFields"] = serde_json::json!(
+            (0..129)
+                .map(|index| serde_json::json!({"name":format!("f{index}"),"value":"v"}))
+                .collect::<Vec<_>>()
+        );
+        assert_eq!(
+            core_prepare(&canonical(&array)),
+            Err(VoxCoreError::ArrayTooLarge)
+        );
+
+        let mut integer = valid_preparation();
+        integer["createdAtEpochMilliseconds"] = serde_json::json!(4_102_444_800_001_i64);
+        assert_eq!(
+            core_prepare(&canonical(&integer)),
+            Err(VoxCoreError::IntegerOutOfRange)
+        );
+
+        assert_eq!(
+            VoxCoreError::from(vox_core::CoreError::StringTooLarge),
+            VoxCoreError::StringTooLarge
+        );
+        assert_eq!(
+            VoxCoreError::from(vox_core::CoreError::ArrayTooLarge),
+            VoxCoreError::ArrayTooLarge
+        );
+        assert_eq!(
+            VoxCoreError::from(vox_core::CoreError::IntegerOutOfRange),
+            VoxCoreError::IntegerOutOfRange
+        );
+    }
+
+    #[test]
+    fn product_source_never_mutates_the_process_panic_hook() {
+        let source = include_str!("lib.rs");
+        let setter = format!("panic::{}{}", "set_", "hook");
+        let taker = format!("panic::{}{}", "take_", "hook");
+        assert!(!source.contains(&setter));
+        assert!(!source.contains(&taker));
     }
 
     #[test]

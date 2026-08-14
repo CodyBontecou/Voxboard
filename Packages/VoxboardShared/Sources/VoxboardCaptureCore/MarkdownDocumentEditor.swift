@@ -3,6 +3,7 @@ import Foundation
 public enum MarkdownDocumentEditorError: Error, Equatable, LocalizedError, Sendable {
     case headingNotFound(CaptureHeadingSelector)
     case invalidHeadingLevel(Int)
+    case duplicateFrontmatterKey
 
     public var errorDescription: String? {
         switch self {
@@ -10,7 +11,19 @@ public enum MarkdownDocumentEditorError: Error, Equatable, LocalizedError, Senda
             return "The Markdown heading \"\(selector.title)\" was not found."
         case .invalidHeadingLevel(let level):
             return "Markdown heading level \(level) is invalid."
+        case .duplicateFrontmatterKey:
+            return "Ordered capture frontmatter contains a duplicate key."
         }
+    }
+}
+
+public struct MarkdownOrderedFrontmatterField: Equatable, Sendable {
+    public var name: String
+    public var value: String
+
+    public init(name: String, value: String) {
+        self.name = name
+        self.value = value
     }
 }
 
@@ -21,10 +34,16 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
     public var entryPrefix: String
     public var entrySuffix: String
     public var frontmatter: [String: String]
+    /// Contract-order metadata used only by the bounded M2 adapter. Existing
+    /// dictionary callers remain byte-compatible through `frontmatter`.
+    public var orderedFrontmatter: [MarkdownOrderedFrontmatterField]?
     /// A typed location item appended to its request-ID keyed frontmatter
     /// collection. Nil preserves all legacy mutation behavior.
     public var locationMetadata: CaptureLocationRenderedMetadata?
     public var retryProtectionEnabled: Bool
+    /// Applies the bounded M2/new-note trailing-LF policy at the production writer seam.
+    /// Existing callers default to the established no-final-LF behavior.
+    public var finalNewline: Bool
     /// Production pipeline writes include an authorized root and relative path
     /// so the writer can use descriptor-relative, no-symlink I/O.
     public var destinationRootURL: URL?
@@ -37,8 +56,10 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
         entryPrefix: String = "",
         entrySuffix: String = "",
         frontmatter: [String: String] = [:],
+        orderedFrontmatter: [MarkdownOrderedFrontmatterField]? = nil,
         locationMetadata: CaptureLocationRenderedMetadata? = nil,
         retryProtectionEnabled: Bool = false,
+        finalNewline: Bool = false,
         destinationRootURL: URL? = nil,
         relativeNotePath: String? = nil
     ) {
@@ -48,10 +69,23 @@ public struct MarkdownCaptureMutation: Equatable, Sendable {
         self.entryPrefix = entryPrefix
         self.entrySuffix = entrySuffix
         self.frontmatter = frontmatter
+        self.orderedFrontmatter = orderedFrontmatter
         self.locationMetadata = locationMetadata
         self.retryProtectionEnabled = retryProtectionEnabled
+        self.finalNewline = finalNewline
         self.destinationRootURL = destinationRootURL
         self.relativeNotePath = relativeNotePath
+    }
+}
+
+/// Applies the final-newline policy used by coordinated Markdown writes.
+///
+/// M2 calls this production seam directly so parity covers the same bytes the writer
+/// persists rather than oracle-only post-processing.
+public enum CaptureMarkdownWritePolicy: Sendable {
+    public static func applyingFinalNewline(_ finalNewline: Bool, to document: String) -> String {
+        let withoutTrailingNewlines = document.trimmingCharacters(in: .newlines)
+        return finalNewline ? withoutTrailingNewlines + "\n" : withoutTrailingNewlines
     }
 }
 
@@ -62,7 +96,10 @@ public struct MarkdownDocumentEditor: Sendable {
         let normalizedDocument = normalizeNewlines(document)
         let marker = CaptureRequestMarker.text(for: mutation.requestID)
         if CaptureRequestMarker.isPresent(in: normalizedDocument, requestID: mutation.requestID) {
-            return normalizedDocument
+            return CaptureMarkdownWritePolicy.applyingFinalNewline(
+                mutation.finalNewline,
+                to: normalizedDocument
+            )
         }
 
         var documentParts = splitLeadingFrontmatter(normalizedDocument)
@@ -76,7 +113,8 @@ public struct MarkdownDocumentEditor: Sendable {
                 + trimBoundaryNewlines(entryParts.body)
                 + normalizeNewlines(mutation.entrySuffix)
         )
-        let voxFrontmatter = try structuredFrontmatterLines(mutation.frontmatter)
+        let voxFrontmatter = try mutation.orderedFrontmatter.map(structuredFrontmatterLines)
+            ?? structuredFrontmatterLines(mutation.frontmatter)
         documentParts.frontmatter = mergeFrontmatter(
             existing: mergeFrontmatter(
                 existing: mergeFrontmatter(
@@ -117,7 +155,10 @@ public struct MarkdownDocumentEditor: Sendable {
             )
         }
 
-        return assemble(frontmatter: documentParts.frontmatter, body: editedBody)
+        return CaptureMarkdownWritePolicy.applyingFinalNewline(
+            mutation.finalNewline,
+            to: assemble(frontmatter: documentParts.frontmatter, body: editedBody)
+        )
     }
 
     private func inserting(
@@ -375,8 +416,21 @@ public struct MarkdownDocumentEditor: Sendable {
 
     private func structuredFrontmatterLines(_ values: [String: String]) throws -> [String]? {
         guard !values.isEmpty else { return nil }
-        return values.keys.sorted().map { key in
-            "\(yamlKey(key)): \(yamlScalar(values[key] ?? ""))"
+        return try structuredFrontmatterLines(values.keys.sorted().map {
+            MarkdownOrderedFrontmatterField(name: $0, value: values[$0] ?? "")
+        })
+    }
+
+    private func structuredFrontmatterLines(
+        _ values: [MarkdownOrderedFrontmatterField]
+    ) throws -> [String]? {
+        guard !values.isEmpty else { return nil }
+        var names = Set<String>()
+        return try values.map { field in
+            guard names.insert(field.name).inserted else {
+                throw MarkdownDocumentEditorError.duplicateFrontmatterKey
+            }
+            return "\(yamlKey(field.name)): \(yamlScalar(field.value))"
         }
     }
 

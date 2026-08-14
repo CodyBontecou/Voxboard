@@ -229,6 +229,58 @@ final class MarkdownDocumentEditorTests: XCTestCase {
         XCTAssertFalse(result.contains("vox-capture"))
     }
 
+    func test_orderedFrontmatterPreservesContractOrderWithoutChangingDictionaryOrder() throws {
+        let ordered = try MarkdownDocumentEditor().applying(
+            MarkdownCaptureMutation(
+                requestID: requestID,
+                entry: "Captured",
+                placement: .append,
+                orderedFrontmatter: [
+                    .init(name: "zeta", value: "two"),
+                    .init(name: "alpha", value: "one"),
+                ]
+            ),
+            to: ""
+        )
+        let dictionary = try MarkdownDocumentEditor().applying(
+            MarkdownCaptureMutation(
+                requestID: requestID,
+                entry: "Captured",
+                placement: .append,
+                frontmatter: ["zeta": "two", "alpha": "one"]
+            ),
+            to: ""
+        )
+
+        XCTAssertTrue(ordered.contains("zeta: \"two\"\nalpha: \"one\""))
+        XCTAssertTrue(dictionary.contains("alpha: \"one\"\nzeta: \"two\""))
+    }
+
+    func test_productionWritePolicyAppliesExactlyOneFinalLF() throws {
+        let withLF = try MarkdownDocumentEditor().applying(
+            MarkdownCaptureMutation(
+                requestID: requestID,
+                entry: "Captured\n\n",
+                placement: .append,
+                finalNewline: true
+            ),
+            to: ""
+        )
+        let withoutLF = try MarkdownDocumentEditor().applying(
+            MarkdownCaptureMutation(
+                requestID: requestID,
+                entry: "Captured\n\n",
+                placement: .append,
+                finalNewline: false
+            ),
+            to: ""
+        )
+
+        XCTAssertEqual(withLF, "Captured\n")
+        XCTAssertFalse(withLF.hasSuffix("\n\n"))
+        XCTAssertEqual(withoutLF, "Captured")
+    }
+
     private func edit(
         _ document: String,
         entry: String,

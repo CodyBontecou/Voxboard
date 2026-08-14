@@ -1812,6 +1812,24 @@ sealed class VoxCoreException: kotlin.Exception() {
             get() = ""
     }
 
+    class StringTooLarge(
+        ) : VoxCoreException() {
+        override val message
+            get() = ""
+    }
+
+    class ArrayTooLarge(
+        ) : VoxCoreException() {
+        override val message
+            get() = ""
+    }
+
+    class IntegerOutOfRange(
+        ) : VoxCoreException() {
+        override val message
+            get() = ""
+    }
+
     class UnknownField(
         ) : VoxCoreException() {
         override val message
@@ -1893,16 +1911,19 @@ public object FfiConverterTypeVoxCoreError : FfiConverterRustBuffer<VoxCoreExcep
         return when(buf.getInt()) {
             1 -> VoxCoreException.ControlTooLarge()
             2 -> VoxCoreException.InvalidControl()
-            3 -> VoxCoreException.UnknownField()
-            4 -> VoxCoreException.NonCanonicalControl()
-            5 -> VoxCoreException.Unsupported()
-            6 -> VoxCoreException.Correlation()
-            7 -> VoxCoreException.InvalidObservation()
-            8 -> VoxCoreException.LimitExceeded()
-            9 -> VoxCoreException.VerificationFailed()
-            10 -> VoxCoreException.SessionTerminal()
-            11 -> VoxCoreException.Cancelled()
-            12 -> VoxCoreException.InternalPanic()
+            3 -> VoxCoreException.StringTooLarge()
+            4 -> VoxCoreException.ArrayTooLarge()
+            5 -> VoxCoreException.IntegerOutOfRange()
+            6 -> VoxCoreException.UnknownField()
+            7 -> VoxCoreException.NonCanonicalControl()
+            8 -> VoxCoreException.Unsupported()
+            9 -> VoxCoreException.Correlation()
+            10 -> VoxCoreException.InvalidObservation()
+            11 -> VoxCoreException.LimitExceeded()
+            12 -> VoxCoreException.VerificationFailed()
+            13 -> VoxCoreException.SessionTerminal()
+            14 -> VoxCoreException.Cancelled()
+            15 -> VoxCoreException.InternalPanic()
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
     }
@@ -1914,6 +1935,18 @@ public object FfiConverterTypeVoxCoreError : FfiConverterRustBuffer<VoxCoreExcep
                 4UL
             )
             is VoxCoreException.InvalidControl -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VoxCoreException.StringTooLarge -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VoxCoreException.ArrayTooLarge -> (
+                // Add the size for the Int that specifies the variant plus the size needed for all fields
+                4UL
+            )
+            is VoxCoreException.IntegerOutOfRange -> (
                 // Add the size for the Int that specifies the variant plus the size needed for all fields
                 4UL
             )
@@ -1970,44 +2003,56 @@ public object FfiConverterTypeVoxCoreError : FfiConverterRustBuffer<VoxCoreExcep
                 buf.putInt(2)
                 Unit
             }
-            is VoxCoreException.UnknownField -> {
+            is VoxCoreException.StringTooLarge -> {
                 buf.putInt(3)
                 Unit
             }
-            is VoxCoreException.NonCanonicalControl -> {
+            is VoxCoreException.ArrayTooLarge -> {
                 buf.putInt(4)
                 Unit
             }
-            is VoxCoreException.Unsupported -> {
+            is VoxCoreException.IntegerOutOfRange -> {
                 buf.putInt(5)
                 Unit
             }
-            is VoxCoreException.Correlation -> {
+            is VoxCoreException.UnknownField -> {
                 buf.putInt(6)
                 Unit
             }
-            is VoxCoreException.InvalidObservation -> {
+            is VoxCoreException.NonCanonicalControl -> {
                 buf.putInt(7)
                 Unit
             }
-            is VoxCoreException.LimitExceeded -> {
+            is VoxCoreException.Unsupported -> {
                 buf.putInt(8)
                 Unit
             }
-            is VoxCoreException.VerificationFailed -> {
+            is VoxCoreException.Correlation -> {
                 buf.putInt(9)
                 Unit
             }
-            is VoxCoreException.SessionTerminal -> {
+            is VoxCoreException.InvalidObservation -> {
                 buf.putInt(10)
                 Unit
             }
-            is VoxCoreException.Cancelled -> {
+            is VoxCoreException.LimitExceeded -> {
                 buf.putInt(11)
                 Unit
             }
-            is VoxCoreException.InternalPanic -> {
+            is VoxCoreException.VerificationFailed -> {
                 buf.putInt(12)
+                Unit
+            }
+            is VoxCoreException.SessionTerminal -> {
+                buf.putInt(13)
+                Unit
+            }
+            is VoxCoreException.Cancelled -> {
+                buf.putInt(14)
+                Unit
+            }
+            is VoxCoreException.InternalPanic -> {
+                buf.putInt(15)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }

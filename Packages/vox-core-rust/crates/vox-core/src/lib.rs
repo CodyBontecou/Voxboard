@@ -24,6 +24,7 @@ pub const PROFILE_VERSION: u32 = 1;
 pub const MAX_CONTROL_BYTES: usize = 1_048_576;
 pub const MAX_CHUNK_BYTES: usize = 1_048_576;
 pub const MAX_AGGREGATE_BYTES: u64 = 268_435_456;
+pub const MAX_PREPARED_CHUNK_SEQUENCE: u32 = 262_143;
 pub const TOOLCHAIN_MANIFEST_SHA256: &str = env!("VOX_TOOLCHAIN_MANIFEST_SHA256");
 pub const SOURCE_REVISION: &str = env!("VOX_CORE_SOURCE_REVISION");
 const ZERO_HASH: &str = "0000000000000000000000000000000000000000000000000000000000000000";
@@ -83,6 +84,8 @@ pub enum CoreError {
     ObservationSequence,
     #[error("chunk exceeds the size limit")]
     ChunkTooLarge,
+    #[error("prepared chunk sequence exceeds the contract limit")]
+    PreparedChunkSequenceOutOfRange,
     #[error("aggregate input exceeds the size limit")]
     AggregateTooLarge,
     #[error("session input is incomplete")]
@@ -133,6 +136,7 @@ impl CoreError {
             Self::InvalidObservationStream => "invalidObservationStream",
             Self::ObservationSequence => "observationSequence",
             Self::ChunkTooLarge => "chunkTooLarge",
+            Self::PreparedChunkSequenceOutOfRange => "preparedChunkSequenceOutOfRange",
             Self::AggregateTooLarge => "aggregateTooLarge",
             Self::Incomplete => "incomplete",
             Self::DescriptorMismatch => "descriptorMismatch",
@@ -283,6 +287,7 @@ pub enum Payload {
     #[serde(rename = "asset")]
     Asset {
         id: Uuid,
+        #[serde(rename = "sourceID")]
         source_id: Uuid,
         media_type: String,
         length: u64,
@@ -1173,6 +1178,9 @@ impl MaterializationSession {
         if descriptor_artifact_id != artifact_id || sequence != self.drain_sequence {
             return self.fail(CoreError::DescriptorMismatch);
         }
+        if sequence > MAX_PREPARED_CHUNK_SEQUENCE {
+            return self.fail(CoreError::PreparedChunkSequenceOutOfRange);
+        }
         let Ok(maximum_bytes) = usize::try_from(maximum_bytes) else {
             return self.fail(CoreError::ChunkTooLarge);
         };
@@ -1201,8 +1209,15 @@ impl MaterializationSession {
             eof,
         };
         self.drain_offset = end;
-        self.drain_sequence += 1;
-        self.state = if eof { State::Drained } else { State::Draining };
+        if eof {
+            self.state = State::Drained;
+        } else {
+            let Some(next_sequence) = self.drain_sequence.checked_add(1) else {
+                return self.fail(CoreError::PreparedChunkSequenceOutOfRange);
+            };
+            self.drain_sequence = next_sequence;
+            self.state = State::Draining;
+        }
         Ok(chunk)
     }
 

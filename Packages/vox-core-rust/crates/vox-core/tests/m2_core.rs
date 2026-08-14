@@ -6,9 +6,9 @@ use uuid::Uuid;
 use vox_core::{
     ARTIFACT_PLAN_VERSION, CORE_API_VERSION, CORE_VERSION, CoreError, DrainedArtifactHash,
     DrainedHashes, MATERIALIZATION_INPUT_VERSION, MAX_AGGREGATE_BYTES, MAX_CHUNK_BYTES,
-    MaterializationSession, PREPARATION_INPUT_VERSION, PROFILE_ID, PROFILE_VERSION,
-    RENDERER_REVISION, REQUIRED_OBSERVATIONS_VERSION, TOOLCHAIN_MANIFEST_SHA256, canonical_bytes,
-    operation_id, parse_control, prepare, readiness, sha256_hex,
+    MAX_PREPARED_CHUNK_SEQUENCE, MaterializationSession, PREPARATION_INPUT_VERSION, PROFILE_ID,
+    PROFILE_VERSION, RENDERER_REVISION, REQUIRED_OBSERVATIONS_VERSION, TOOLCHAIN_MANIFEST_SHA256,
+    canonical_bytes, operation_id, parse_control, prepare, readiness, sha256_hex,
 };
 
 fn canonical(value: &Value) -> Vec<u8> {
@@ -157,7 +157,7 @@ fn preparation_plans_candidates_and_rejects_unshipped_semantics() {
         assert_eq!(prepare(&canonical(&x)), Err(error));
     }
     let mut asset = prep;
-    asset["payloads"][0] = json!({"id":"22222222-2222-4222-8222-222222222222","kind":"asset","length":1,"mediaType":"image/png","originalNamePolicy":"discard","safeExtension":"png","sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","sourceId":"55555555-5555-4555-8555-555555555555"});
+    asset["payloads"][0] = json!({"id":"22222222-2222-4222-8222-222222222222","kind":"asset","length":1,"mediaType":"image/png","originalNamePolicy":"discard","safeExtension":"png","sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","sourceID":"55555555-5555-4555-8555-555555555555"});
     assert_eq!(
         prepare(&canonical(&asset)),
         Err(CoreError::UnsupportedOperation)
@@ -313,6 +313,36 @@ fn failed_seal_is_terminal_and_drain_honors_caller_bound() {
     let chunk = bounded.drain(descriptor.artifact_id, 0, 7).unwrap();
     assert!(chunk.bytes.len() <= 7);
     assert!(!chunk.eof);
+}
+
+#[test]
+fn prepared_chunk_sequence_boundary_fails_before_invalid_metadata() {
+    let mut input = mat_value(None);
+    input["payloads"] = json!(
+        (0..5)
+            .map(|index| json!({
+                "id": format!("00000000-0000-4000-8000-{index:012}"),
+                "kind": "text",
+                "text": "x".repeat(65_536)
+            }))
+            .collect::<Vec<_>>()
+    );
+    resnapshot_materialization(&mut input);
+    let mut session = MaterializationSession::new(&canonical(&input)).unwrap();
+    let descriptor = session.seal().unwrap().artifacts.remove(0);
+    for sequence in 0..=MAX_PREPARED_CHUNK_SEQUENCE {
+        let chunk = session.drain(descriptor.artifact_id, sequence, 1).unwrap();
+        assert_eq!(chunk.sequence, sequence);
+        assert!(!chunk.eof);
+    }
+    assert_eq!(
+        session.drain(descriptor.artifact_id, MAX_PREPARED_CHUNK_SEQUENCE + 1, 1,),
+        Err(CoreError::PreparedChunkSequenceOutOfRange)
+    );
+    assert_eq!(
+        session.drain(descriptor.artifact_id, MAX_PREPARED_CHUNK_SEQUENCE + 1, 1,),
+        Err(CoreError::SessionTerminal)
+    );
 }
 
 #[test]
@@ -637,15 +667,40 @@ fn swift_oracle_corpus_matches_production_sessions_and_executes_negatives() {
         corpus.producer.toolchain_manifest_sha256,
         sha256_hex(&fs::read(root.join("toolchains/android-wear-shared-core.json")).unwrap())
     );
-    assert_eq!(corpus.producer.production_consumers.len(), 4);
+    let mut expected_consumer_paths =
+        fs::read_dir(root.join("Packages/VoxboardShared/Sources/VoxboardCaptureCore"))
+            .unwrap()
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| {
+                path.extension()
+                    .is_some_and(|extension| extension == "swift")
+            })
+            .map(|path| {
+                path.strip_prefix(&root)
+                    .unwrap()
+                    .to_string_lossy()
+                    .into_owned()
+            })
+            .collect::<Vec<_>>();
+    expected_consumer_paths.sort();
+    assert_eq!(
+        corpus
+            .producer
+            .production_consumers
+            .iter()
+            .map(|consumer| consumer.path.clone())
+            .collect::<Vec<_>>(),
+        expected_consumer_paths
+    );
     for consumer in &corpus.producer.production_consumers {
-        assert!(matches!(
-            consumer.name.as_str(),
-            "CapturePathPlanner"
-                | "CaptureMarkdownRenderer"
-                | "CaptureEntryTemplateRenderer"
-                | "MarkdownDocumentEditor"
-        ));
+        assert_eq!(
+            consumer.name,
+            std::path::Path::new(&consumer.path)
+                .file_stem()
+                .unwrap()
+                .to_string_lossy()
+        );
         assert_eq!(
             consumer.sha256,
             sha256_hex(&fs::read(root.join(&consumer.path)).unwrap())

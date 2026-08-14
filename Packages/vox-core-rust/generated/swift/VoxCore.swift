@@ -1111,6 +1111,9 @@ enum VoxCoreError: Swift.Error, Equatable, Hashable, Foundation.LocalizedError {
 
     case ControlTooLarge
     case InvalidControl
+    case StringTooLarge
+    case ArrayTooLarge
+    case IntegerOutOfRange
     case UnknownField
     case NonCanonicalControl
     case Unsupported
@@ -1152,16 +1155,19 @@ public struct FfiConverterTypeVoxCoreError: FfiConverterRustBuffer {
 
         case 1: return .ControlTooLarge
         case 2: return .InvalidControl
-        case 3: return .UnknownField
-        case 4: return .NonCanonicalControl
-        case 5: return .Unsupported
-        case 6: return .Correlation
-        case 7: return .InvalidObservation
-        case 8: return .LimitExceeded
-        case 9: return .VerificationFailed
-        case 10: return .SessionTerminal
-        case 11: return .Cancelled
-        case 12: return .InternalPanic
+        case 3: return .StringTooLarge
+        case 4: return .ArrayTooLarge
+        case 5: return .IntegerOutOfRange
+        case 6: return .UnknownField
+        case 7: return .NonCanonicalControl
+        case 8: return .Unsupported
+        case 9: return .Correlation
+        case 10: return .InvalidObservation
+        case 11: return .LimitExceeded
+        case 12: return .VerificationFailed
+        case 13: return .SessionTerminal
+        case 14: return .Cancelled
+        case 15: return .InternalPanic
 
          default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -1182,44 +1188,56 @@ public struct FfiConverterTypeVoxCoreError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(2))
 
 
-        case .UnknownField:
+        case .StringTooLarge:
             writeInt(&buf, Int32(3))
 
 
-        case .NonCanonicalControl:
+        case .ArrayTooLarge:
             writeInt(&buf, Int32(4))
 
 
-        case .Unsupported:
+        case .IntegerOutOfRange:
             writeInt(&buf, Int32(5))
 
 
-        case .Correlation:
+        case .UnknownField:
             writeInt(&buf, Int32(6))
 
 
-        case .InvalidObservation:
+        case .NonCanonicalControl:
             writeInt(&buf, Int32(7))
 
 
-        case .LimitExceeded:
+        case .Unsupported:
             writeInt(&buf, Int32(8))
 
 
-        case .VerificationFailed:
+        case .Correlation:
             writeInt(&buf, Int32(9))
 
 
-        case .SessionTerminal:
+        case .InvalidObservation:
             writeInt(&buf, Int32(10))
 
 
-        case .Cancelled:
+        case .LimitExceeded:
             writeInt(&buf, Int32(11))
 
 
-        case .InternalPanic:
+        case .VerificationFailed:
             writeInt(&buf, Int32(12))
+
+
+        case .SessionTerminal:
+            writeInt(&buf, Int32(13))
+
+
+        case .Cancelled:
+            writeInt(&buf, Int32(14))
+
+
+        case .InternalPanic:
+            writeInt(&buf, Int32(15))
 
         }
     }

@@ -173,7 +173,7 @@ let seeds: [Seed] = [
             occupiedPaths: [],
             entryPrefix: "",
             entrySuffix: "",
-            frontmatter: [.init(name: "alpha", value: "one"), .init(name: "zeta", value: "two")],
+            frontmatter: [.init(name: "zeta", value: "two"), .init(name: "alpha", value: "one")],
             retryMarker: false,
             finalNewline: false
         ),
@@ -248,8 +248,7 @@ func makeRequest(_ value: OracleRequest) throws -> (CaptureRequest, CaptureDesti
         createdAt: Date(timeIntervalSince1970: Double(value.createdAtEpochMilliseconds) / 1_000),
         source: source,
         destinationID: destinationID,
-        payloads: payloads,
-        frontmatter: Dictionary(uniqueKeysWithValues: value.frontmatter.map { ($0.name, $0.value) })
+        payloads: payloads
     )
     let pathTemplate = (value.logicalFolder + [value.noteNameTemplate]).joined(separator: "/")
     let destination = CaptureDestination(
@@ -281,11 +280,14 @@ func produce(_ value: OracleRequest) throws -> Expected {
         placement: .append,
         entryPrefix: template.render(destination.entryPrefix, for: request),
         entrySuffix: template.render(destination.entrySuffix, for: request),
-        frontmatter: request.frontmatter,
-        retryProtectionEnabled: value.retryMarker
+        frontmatter: [:],
+        orderedFrontmatter: value.frontmatter.map {
+            MarkdownOrderedFrontmatterField(name: $0.name, value: $0.value)
+        },
+        retryProtectionEnabled: value.retryMarker,
+        finalNewline: value.finalNewline
     )
-    var document = try MarkdownDocumentEditor().applying(mutation, to: "")
-    if value.finalNewline && !document.hasSuffix("\n") { document.append("\n") }
+    let document = try MarkdownDocumentEditor().applying(mutation, to: "")
     let bytes = Data(document.utf8)
     return Expected(
         logicalPath: path.split(separator: "/", omittingEmptySubsequences: false).map(String.init),
@@ -318,13 +320,20 @@ let cases = seeds.map { seed -> Case in
     }
 }
 
-let consumerNames = [
-    ("CapturePathPlanner", "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CapturePathPlanner.swift", "VOX_M2_CAPTURE_PATH_PLANNER_SHA256"),
-    ("CaptureMarkdownRenderer", "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureMarkdownRenderer.swift", "VOX_M2_CAPTURE_MARKDOWN_RENDERER_SHA256"),
-    ("CaptureEntryTemplateRenderer", "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureEntryTemplateRenderer.swift", "VOX_M2_CAPTURE_ENTRY_TEMPLATE_RENDERER_SHA256"),
-    ("MarkdownDocumentEditor", "Packages/VoxboardShared/Sources/VoxboardCaptureCore/MarkdownDocumentEditor.swift", "VOX_M2_MARKDOWN_DOCUMENT_EDITOR_SHA256"),
-]
-let consumers = consumerNames.map { Consumer(name: $0.0, path: $0.1, sha256: requiredEnvironment($0.2)) }
+let consumerPaths = requiredEnvironment("VOX_M2_PRODUCTION_CONSUMER_PATHS")
+    .split(separator: "\n")
+    .map(String.init)
+let consumers = consumerPaths.map { path in
+    Consumer(
+        name: URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent,
+        path: path,
+        sha256: requiredEnvironment("VOX_M2_CONSUMER_SHA256_" + path.replacingOccurrences(
+            of: "[^A-Za-z0-9]",
+            with: "_",
+            options: .regularExpression
+        ))
+    )
+}
 let corpus = Corpus(
     corpusVersion: 1,
     producer: .init(

@@ -56,7 +56,7 @@
   "governedImplementationFiles": [
     {
       "path": "Packages/vox-core-rust/Cargo.lock",
-      "sha256": "8718c94e73ce86580eeecabd481bb9ad9bcc25a4973c52bd475d12e7d14f6748"
+      "sha256": "cc91097c57bf683bb863f5a998d623e01dab611dc6ca70d871edef471593375f"
     },
     {
       "path": "Packages/vox-core-rust/uniffi.toml",
