@@ -7,7 +7,17 @@
       "bomVersion": "2026.08.00"
     },
     "configurationPaths": {
+      "androidCI": ".github/workflows/android-ci.yml",
+      "buildLogicBuild": "apps/android/build-logic/build.gradle.kts",
+      "buildLogicSettings": "apps/android/build-logic/settings.gradle.kts",
       "gradleProperties": "apps/android/gradle.properties",
+      "moduleBuilds": [
+        "apps/android/app/build.gradle.kts",
+        "apps/android/core-bridge/build.gradle.kts",
+        "apps/android/capture-domain/build.gradle.kts",
+        "apps/android/data/build.gradle.kts",
+        "apps/android/platform-services/build.gradle.kts"
+      ],
       "rootBuild": "apps/android/build.gradle.kts",
       "settings": "apps/android/settings.gradle.kts",
       "versionCatalog": "apps/android/gradle/libs.versions.toml",
@@ -33,6 +43,18 @@
       "room": "2.8.4",
       "serialization": "1.11.0",
       "workManager": "2.11.2"
+    },
+    "dependencyMetadataPaths": {
+      "buildLogicLock": "apps/android/build-logic/gradle.lockfile",
+      "moduleLocks": [
+        "apps/android/app/gradle.lockfile",
+        "apps/android/core-bridge/gradle.lockfile",
+        "apps/android/capture-domain/gradle.lockfile",
+        "apps/android/data/gradle.lockfile",
+        "apps/android/platform-services/gradle.lockfile"
+      ],
+      "settingsLock": "apps/android/settings-gradle.lockfile",
+      "verificationMetadata": "apps/android/gradle/verification-metadata.xml"
     },
     "gradle": {
       "distributionSha256": "b266d5ff6b90eada6dc3b20cb090e3731302e553a27c5d3e4df1f0d76beaff06",
@@ -183,12 +205,16 @@
       "sha256": "244de24c7df3fe0650d7d284c5729fdfe3b7affd00d3d6e1efbdf3150ba4c03c"
     },
     {
+      "path": ".github/workflows/android-ci.yml",
+      "sha256": "c66ce0018aa1ea65c1a6a81fe976097079221e0968720db42715331083952e30"
+    },
+    {
       "path": "apps/android/build.gradle.kts",
-      "sha256": "f81159235d555e355bcc7fa9d5c8ba12e6ad20761d0d29cdb2aea97097634c9f"
+      "sha256": "ab6ace0dcbabac2f07e284b45813306d8851df243d225da45e00d21c73da1348"
     },
     {
       "path": "apps/android/settings.gradle.kts",
-      "sha256": "413bdd400e7fd46a32bc68272f940598755ed45ed847acdbdec591cb7d9dc7da"
+      "sha256": "9a7e01a0c5e5544b3357c10bbaf5e0b735eb42b1c5fc2eb8810b21044300b048"
     },
     {
       "path": "apps/android/gradle/libs.versions.toml",
@@ -196,7 +222,7 @@
     },
     {
       "path": "apps/android/gradle.properties",
-      "sha256": "0f8fa8b15722ddb866486b40279b92d96072d3f04aecd83dc865e814e88466c2"
+      "sha256": "65f091d659ab4522609ae4b5ba27056a95995c18070c70b7c25eacbb498b5b1c"
     },
     {
       "path": "apps/android/gradle/wrapper/gradle-wrapper.properties",
@@ -213,6 +239,82 @@
     {
       "path": "apps/android/gradlew.bat",
       "sha256": "9ca26d733ada3a45f27b2151288f54e75c9f95b287d1f82ef942ec5cc2d4f006"
+    },
+    {
+      "path": "apps/android/build-logic/build.gradle.kts",
+      "sha256": "2d70194e22d8068a010c4c96ee10f32ae34f084c1c8596e638c13fc91cc1fdb6"
+    },
+    {
+      "path": "apps/android/build-logic/settings.gradle.kts",
+      "sha256": "cdbe8caa34c90eda3ea7a651af41636ab43aecbac353969ca8b5a51be7b6a8a7"
+    },
+    {
+      "path": "apps/android/build-logic/src/main/kotlin/AndroidApplicationConventionPlugin.kt",
+      "sha256": "bab8d63e8bd8c0be39ec0cc3347b77b7a90c51087e6ec51e2e022fa528e913be"
+    },
+    {
+      "path": "apps/android/build-logic/src/main/kotlin/AndroidLibraryConventionPlugin.kt",
+      "sha256": "fe6e97c3e7e384f3f07fdfdb85bde479909a2ffca4637f17f03e27b90e365434"
+    },
+    {
+      "path": "apps/android/build-logic/src/main/kotlin/AndroidComposeConventionPlugin.kt",
+      "sha256": "c77c561ac7387156140a890680bdd402539d92c8a05a0ade6b491cfc0fabbf39"
+    },
+    {
+      "path": "apps/android/build-logic/src/main/kotlin/AndroidTestConventionPlugin.kt",
+      "sha256": "31ce046593f33147a8e6fc7b8427461fec4708395106e56e23d54a0895c69fd1"
+    },
+    {
+      "path": "apps/android/build-logic/gradle.lockfile",
+      "sha256": "7c9d37c181a906241e5781b9a984ec56b730be9aed830d26cffd0fce9d81d112"
+    },
+    {
+      "path": "apps/android/app/build.gradle.kts",
+      "sha256": "2bb37dba89bef9dfb687d325d10f4d52e0689fc5d269d7aec55c80a0ca4e1ae1"
+    },
+    {
+      "path": "apps/android/app/gradle.lockfile",
+      "sha256": "b94fe99fcaf1df56463db5eece31f00b5563b7c41e94a8c7ccff4af3249c8e72"
+    },
+    {
+      "path": "apps/android/core-bridge/build.gradle.kts",
+      "sha256": "c3e4deedc50a25584ed3461ce49934afb7e0582c63d88f47dd54e46163b1056c"
+    },
+    {
+      "path": "apps/android/core-bridge/gradle.lockfile",
+      "sha256": "26690d14a61db140a3d978a9e70be6251d0d3a6852e35b86468488d2cd3f97f1"
+    },
+    {
+      "path": "apps/android/capture-domain/build.gradle.kts",
+      "sha256": "8d4aea30eb71021a91366a767bb32382c69416314dbfb6e200639be94a249745"
+    },
+    {
+      "path": "apps/android/capture-domain/gradle.lockfile",
+      "sha256": "887e27c5b57dbc2b73fd91025dd32f978929f9a502f967e8a44503c2c47e711c"
+    },
+    {
+      "path": "apps/android/data/build.gradle.kts",
+      "sha256": "e825f4d3d70fef49d77793032de24437e312550248017e473b8edecfe0d7b44b"
+    },
+    {
+      "path": "apps/android/data/gradle.lockfile",
+      "sha256": "5b846a7632c183e1c757c8d2cd454b6e0c1b4f86ff394777496dc6bd6eb9b248"
+    },
+    {
+      "path": "apps/android/platform-services/build.gradle.kts",
+      "sha256": "a4bd032e4d5569450fd433bf7b6606ad3e45b8ad645caf7213da79c6ebc15da3"
+    },
+    {
+      "path": "apps/android/platform-services/gradle.lockfile",
+      "sha256": "887e27c5b57dbc2b73fd91025dd32f978929f9a502f967e8a44503c2c47e711c"
+    },
+    {
+      "path": "apps/android/gradle/verification-metadata.xml",
+      "sha256": "52084102bf8f8a321bb51ecb3d2c71a2a168c70519ea69934337d397cb80adf2"
+    },
+    {
+      "path": "apps/android/settings-gradle.lockfile",
+      "sha256": "e58bb2ed80db9f829601a658d7c33b9802eb7d2191c31e79c28e01f14c225926"
     }
   ],
   "rust": {

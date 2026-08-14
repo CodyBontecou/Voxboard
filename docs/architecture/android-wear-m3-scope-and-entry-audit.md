@@ -1,11 +1,12 @@
 # Android/Wear M3 scope and entry audit
 
-Status: **M3 Phase 0 entry governance implemented; product implementation not started**
+Status: **M3 Phase 1 Android build foundation and backup defense implemented; vertical slice not started**
 
 M2 is qualified at `450abcaab4f09f5a4803d535ee843d1c058f099b`. This audit
-establishes the machine-consistent M3 boundary and exact Android application toolchain.
-It claims no Android app, provider result, physical device, process-death result, package,
-Room migration, SAF commit, quota outcome, or M3 exit.
+retains the machine-consistent M3 boundary and exact Android application toolchain while
+recording the first compileable phone/tablet foundation. It claims no provider result,
+physical device, process-death result, durable package, Room migration, SAF commit, quota
+outcome, Kotlin binding consumption, native library load, or M3 exit.
 
 ## Approved M3 product scope
 
@@ -84,9 +85,25 @@ All direct Android dependency versions required for the initial architecture are
 compiler remains the independently pinned Kotlin plugin. No `+`, `latest`, preview,
 `org.jetbrains.kotlin.android`, or unreviewed KSP alias is admitted.
 
-The repository contains only root settings, plugin aliases, version catalog, Gradle
-properties, and the verified wrapper. No Android product module exists at this phase.
-`./gradlew help` proves wrapper/plugin resolution only and is not an app build.
+The repository now contains an included `apps/android/build-logic` build with application,
+library, Compose, and JVM-test convention plugins plus `:app`, `:core-bridge`,
+`:capture-domain`, `:data`, and `:platform-services`. There is deliberately no Wear module.
+AGP built-in Kotlin is used; module dependencies point inward and manual concrete wiring is
+confined to `:app`.
+
+The single-activity Compose shell navigates among onboarding, vault setup, Quick Capture,
+inbox, and history. Every product surface says unavailable/not implemented and makes no
+durability, SAF, native-load, or delivery claim. The manifest declares no permissions,
+sets `allowBackup=false`, and references defense-in-depth legacy and modern rules excluding
+all storage domains at their roots for cloud backup and device transfer. Static JVM tests
+parse these source contracts. `:data` declares the exact Room, DataStore, and WorkManager
+dependencies without persistence behavior; `:core-bridge` declares exact JNA without a
+native-load claim.
+
+Generated dependency locks and SHA-256 verification metadata cover the configurations
+actually resolved by `test lint assembleDebug`. The authoritative root, included-build,
+convention-plugin, module-build, lock/verification, wrapper, and immutable Android CI inputs
+are hash-governed by the toolchain manifest and validator.
 
 ## Compatibility rationale
 
@@ -126,12 +143,11 @@ ADR-0019 defines native-only SAF ownership and the exact result taxonomy:
 
 ## Remaining M3 blockers
 
-- Create and resolve Gradle convention/product modules and dependency locks/verification
-  metadata using this exact toolchain.
 - Implement the Kotlin bridge and promote the Kotlin mirror only after its named executable
-  fixture consumer runs.
-- Implement durable packages, Room/DataStore/WorkManager, quota, backup defense, SAF, and
-  the Compose shell.
+  fixture consumer runs; it remains `resourceOnlyPlanned` in Phase 1.
+- Implement durable packages, actual Room/DataStore/WorkManager behavior, quota, SAF,
+  provider reconciliation, and the text/link vertical slice. The current UI is only an
+  explicitly unavailable shell and backup defense is only statically established.
 - Run process-death instrumentation and exact artifact inspection.
 - Execute local plus two named non-local DocumentsProvider campaigns on actual required
   devices. Do not fabricate unavailable providers or measurements.

@@ -1,0 +1,65 @@
+name: Android foundation CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-ci.yml'
+      - 'apps/android/**'
+      - 'Packages/contracts/**'
+      - 'toolchains/android-wear-shared-core*'
+      - 'scripts/test-project-contracts.sh'
+  pull_request:
+    paths:
+      - '.github/workflows/android-ci.yml'
+      - 'apps/android/**'
+      - 'Packages/contracts/**'
+      - 'toolchains/android-wear-shared-core*'
+      - 'scripts/test-project-contracts.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-foundation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Select exact Temurin JDK
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          distribution: temurin
+          java-version: '17.0.20+8'
+      - name: Install pinned Android SDK packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$sdkmanager"
+          yes | "$sdkmanager" --licenses >/dev/null || true
+          "$sdkmanager" \
+            'platforms;android-37.0' \
+            'build-tools;36.0.0' \
+            'ndk;27.1.12297006'
+      - name: Validate wrapper, toolchain, contracts, and project gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./apps/android/gradlew -p apps/android help
+          python3 Packages/contracts/scripts/validate_toolchain.py
+          python3 Packages/contracts/scripts/validate.py
+          ./scripts/test-project-contracts.sh
+      - name: Test, lint, and assemble debug application
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./apps/android/gradlew -p apps/android --no-daemon test lint assembleDebug

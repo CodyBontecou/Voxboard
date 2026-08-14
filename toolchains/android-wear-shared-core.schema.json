@@ -2,33 +2,366 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "additionalProperties": false,
-  "required": ["$schema", "schemaVersion", "status", "rust", "uniffi", "androidNative", "androidApplication", "apple", "bindingGeneration", "governedImplementationFiles"],
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "status",
+    "rust",
+    "uniffi",
+    "androidNative",
+    "androidApplication",
+    "apple",
+    "bindingGeneration",
+    "governedImplementationFiles"
+  ],
   "properties": {
-    "$schema": {"const": "android-wear-shared-core.schema.json"},
-    "schemaVersion": {"const": 2},
-    "status": {"const": "m3-android-application-toolchain-pinned"},
-    "rust": {"type":"object","additionalProperties":false,"required":["toolchain","msrv","edition","cargoResolver","profile","components","targets","rustToolchainPath"],"properties":{"toolchain":{"const":"1.97.1"},"msrv":{"const":"1.87.0"},"edition":{"const":"2024"},"cargoResolver":{"const":"3"},"profile":{"const":"minimal"},"components":{"const":["clippy","rustfmt"]},"targets":{"const":["aarch64-apple-ios","aarch64-apple-ios-sim","x86_64-apple-ios","aarch64-linux-android","armv7-linux-androideabi","x86_64-linux-android","i686-linux-android"]},"rustToolchainPath":{"const":"Packages/vox-core-rust/rust-toolchain.toml"}}},
-    "uniffi": {"type":"object","additionalProperties":false,"required":["libraryVersion","bindgenVersion","cliVersion"],"properties":{"libraryVersion":{"const":"0.32.0"},"bindgenVersion":{"const":"0.32.0"},"cliVersion":{"const":"0.32.0"}}},
-    "androidNative": {"type":"object","additionalProperties":false,"required":["ndkRevision","cargoNdkVersion","targets"],"properties":{"ndkRevision":{"const":"27.1.12297006"},"cargoNdkVersion":{"const":"4.1.2"},"targets":{"const":[{"abi":"arm64-v8a","apiLevel":28,"rustTarget":"aarch64-linux-android"},{"abi":"armeabi-v7a","apiLevel":28,"rustTarget":"armv7-linux-androideabi"},{"abi":"x86_64","apiLevel":28,"rustTarget":"x86_64-linux-android"},{"abi":"x86","apiLevel":28,"rustTarget":"i686-linux-android"}]}}},
+    "$schema": {
+      "const": "android-wear-shared-core.schema.json"
+    },
+    "schemaVersion": {
+      "const": 2
+    },
+    "status": {
+      "const": "m3-android-application-toolchain-pinned"
+    },
+    "rust": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "toolchain",
+        "msrv",
+        "edition",
+        "cargoResolver",
+        "profile",
+        "components",
+        "targets",
+        "rustToolchainPath"
+      ],
+      "properties": {
+        "toolchain": {
+          "const": "1.97.1"
+        },
+        "msrv": {
+          "const": "1.87.0"
+        },
+        "edition": {
+          "const": "2024"
+        },
+        "cargoResolver": {
+          "const": "3"
+        },
+        "profile": {
+          "const": "minimal"
+        },
+        "components": {
+          "const": [
+            "clippy",
+            "rustfmt"
+          ]
+        },
+        "targets": {
+          "const": [
+            "aarch64-apple-ios",
+            "aarch64-apple-ios-sim",
+            "x86_64-apple-ios",
+            "aarch64-linux-android",
+            "armv7-linux-androideabi",
+            "x86_64-linux-android",
+            "i686-linux-android"
+          ]
+        },
+        "rustToolchainPath": {
+          "const": "Packages/vox-core-rust/rust-toolchain.toml"
+        }
+      }
+    },
+    "uniffi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "libraryVersion",
+        "bindgenVersion",
+        "cliVersion"
+      ],
+      "properties": {
+        "libraryVersion": {
+          "const": "0.32.0"
+        },
+        "bindgenVersion": {
+          "const": "0.32.0"
+        },
+        "cliVersion": {
+          "const": "0.32.0"
+        }
+      }
+    },
+    "androidNative": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ndkRevision",
+        "cargoNdkVersion",
+        "targets"
+      ],
+      "properties": {
+        "ndkRevision": {
+          "const": "27.1.12297006"
+        },
+        "cargoNdkVersion": {
+          "const": "4.1.2"
+        },
+        "targets": {
+          "const": [
+            {
+              "abi": "arm64-v8a",
+              "apiLevel": 28,
+              "rustTarget": "aarch64-linux-android"
+            },
+            {
+              "abi": "armeabi-v7a",
+              "apiLevel": 28,
+              "rustTarget": "armv7-linux-androideabi"
+            },
+            {
+              "abi": "x86_64",
+              "apiLevel": 28,
+              "rustTarget": "x86_64-linux-android"
+            },
+            {
+              "abi": "x86",
+              "apiLevel": 28,
+              "rustTarget": "i686-linux-android"
+            }
+          ]
+        }
+      }
+    },
     "androidApplication": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["namespace", "applicationID", "jdk", "gradle", "androidGradlePluginVersion", "kotlin", "sdk", "compose", "dependencies", "configurationPaths"],
+      "required": [
+        "namespace",
+        "applicationID",
+        "jdk",
+        "gradle",
+        "androidGradlePluginVersion",
+        "kotlin",
+        "sdk",
+        "compose",
+        "dependencies",
+        "configurationPaths",
+        "dependencyMetadataPaths"
+      ],
       "properties": {
-        "namespace": {"const": "md.vox.android"},
-        "applicationID": {"const": "md.vox.android"},
-        "jdk": {"const": {"distribution":"temurin","version":"17.0.20+8","languageLevel":17,"jvmTarget":"17"}},
-        "gradle": {"const": {"version":"9.3.1","distributionURL":"https://services.gradle.org/distributions/gradle-9.3.1-bin.zip","distributionSha256":"b266d5ff6b90eada6dc3b20cb090e3731302e553a27c5d3e4df1f0d76beaff06","wrapperJarPath":"apps/android/gradle/wrapper/gradle-wrapper.jar","wrapperJarSha256":"b3a875ddc1f044746e1b1a55f645584505f4a10438c1afea9f15e92a7c42ec13"}},
-        "androidGradlePluginVersion": {"const": "9.1.0"},
-        "kotlin": {"const": {"version":"2.4.10","builtIn":true,"composeCompilerPluginVersion":"2.4.10","annotationProcessingPlugin":"com.android.legacy-kapt","annotationProcessingPluginVersion":"9.1.0"}},
-        "sdk": {"const": {"compileSdk":37,"buildToolsVersion":"36.0.0","phoneMinSdk":28,"phoneTargetSdk":36,"wearMinSdk":30,"wearTargetSdk":35}},
-        "compose": {"const": {"bomVersion":"2026.08.00"}},
-        "dependencies": {"const": {"activityCompose":"1.13.0","androidxHilt":"1.4.0","androidxTest":"1.7.0","androidxTestExtJunit":"1.3.0","composeBom":"2026.08.00","coreKtx":"1.19.0","coroutines":"1.11.0","dataStore":"1.2.1","daggerHilt":"2.60.1","espresso":"3.7.0","jna":"5.17.0","junit4":"4.13.2","lifecycle":"2.11.0","navigationCompose":"2.9.8","room":"2.8.4","serialization":"1.11.0","workManager":"2.11.2"}},
-        "configurationPaths": {"const": {"rootBuild":"apps/android/build.gradle.kts","settings":"apps/android/settings.gradle.kts","versionCatalog":"apps/android/gradle/libs.versions.toml","gradleProperties":"apps/android/gradle.properties","wrapperProperties":"apps/android/gradle/wrapper/gradle-wrapper.properties","wrapperScript":"apps/android/gradlew","wrapperBatchScript":"apps/android/gradlew.bat"}}
+        "namespace": {
+          "const": "md.vox.android"
+        },
+        "applicationID": {
+          "const": "md.vox.android"
+        },
+        "jdk": {
+          "const": {
+            "distribution": "temurin",
+            "version": "17.0.20+8",
+            "languageLevel": 17,
+            "jvmTarget": "17"
+          }
+        },
+        "gradle": {
+          "const": {
+            "version": "9.3.1",
+            "distributionURL": "https://services.gradle.org/distributions/gradle-9.3.1-bin.zip",
+            "distributionSha256": "b266d5ff6b90eada6dc3b20cb090e3731302e553a27c5d3e4df1f0d76beaff06",
+            "wrapperJarPath": "apps/android/gradle/wrapper/gradle-wrapper.jar",
+            "wrapperJarSha256": "b3a875ddc1f044746e1b1a55f645584505f4a10438c1afea9f15e92a7c42ec13"
+          }
+        },
+        "androidGradlePluginVersion": {
+          "const": "9.1.0"
+        },
+        "kotlin": {
+          "const": {
+            "version": "2.4.10",
+            "builtIn": true,
+            "composeCompilerPluginVersion": "2.4.10",
+            "annotationProcessingPlugin": "com.android.legacy-kapt",
+            "annotationProcessingPluginVersion": "9.1.0"
+          }
+        },
+        "sdk": {
+          "const": {
+            "compileSdk": 37,
+            "buildToolsVersion": "36.0.0",
+            "phoneMinSdk": 28,
+            "phoneTargetSdk": 36,
+            "wearMinSdk": 30,
+            "wearTargetSdk": 35
+          }
+        },
+        "compose": {
+          "const": {
+            "bomVersion": "2026.08.00"
+          }
+        },
+        "dependencies": {
+          "const": {
+            "activityCompose": "1.13.0",
+            "androidxHilt": "1.4.0",
+            "androidxTest": "1.7.0",
+            "androidxTestExtJunit": "1.3.0",
+            "composeBom": "2026.08.00",
+            "coreKtx": "1.19.0",
+            "coroutines": "1.11.0",
+            "dataStore": "1.2.1",
+            "daggerHilt": "2.60.1",
+            "espresso": "3.7.0",
+            "jna": "5.17.0",
+            "junit4": "4.13.2",
+            "lifecycle": "2.11.0",
+            "navigationCompose": "2.9.8",
+            "room": "2.8.4",
+            "serialization": "1.11.0",
+            "workManager": "2.11.2"
+          }
+        },
+        "configurationPaths": {
+          "const": {
+            "rootBuild": "apps/android/build.gradle.kts",
+            "settings": "apps/android/settings.gradle.kts",
+            "versionCatalog": "apps/android/gradle/libs.versions.toml",
+            "gradleProperties": "apps/android/gradle.properties",
+            "wrapperProperties": "apps/android/gradle/wrapper/gradle-wrapper.properties",
+            "wrapperScript": "apps/android/gradlew",
+            "wrapperBatchScript": "apps/android/gradlew.bat",
+            "androidCI": ".github/workflows/android-ci.yml",
+            "buildLogicBuild": "apps/android/build-logic/build.gradle.kts",
+            "buildLogicSettings": "apps/android/build-logic/settings.gradle.kts",
+            "moduleBuilds": [
+              "apps/android/app/build.gradle.kts",
+              "apps/android/core-bridge/build.gradle.kts",
+              "apps/android/capture-domain/build.gradle.kts",
+              "apps/android/data/build.gradle.kts",
+              "apps/android/platform-services/build.gradle.kts"
+            ]
+          }
+        },
+        "dependencyMetadataPaths": {
+          "const": {
+            "verificationMetadata": "apps/android/gradle/verification-metadata.xml",
+            "settingsLock": "apps/android/settings-gradle.lockfile",
+            "buildLogicLock": "apps/android/build-logic/gradle.lockfile",
+            "moduleLocks": [
+              "apps/android/app/gradle.lockfile",
+              "apps/android/core-bridge/gradle.lockfile",
+              "apps/android/capture-domain/gradle.lockfile",
+              "apps/android/data/gradle.lockfile",
+              "apps/android/platform-services/gradle.lockfile"
+            ]
+          }
+        }
       }
     },
-    "apple": {"type":"object","additionalProperties":false,"required":["xcodeVersion","xcodeBuild","swiftVersion","deploymentTarget","targets","packagingTool"],"properties":{"xcodeVersion":{"const":"26.6"},"xcodeBuild":{"const":"17F113"},"swiftVersion":{"const":"6.3.3"},"deploymentTarget":{"const":"17.6"},"packagingTool":{"const":"xcodebuild -create-xcframework"},"targets":{"const":["aarch64-apple-ios","aarch64-apple-ios-sim","x86_64-apple-ios"]}}},
-    "bindingGeneration": {"type":"object","additionalProperties":false,"required":["swiftConfigPath","kotlinConfigPath","swiftScriptPath","kotlinScriptPath","swiftOutputPaths","kotlinOutputPaths","hashStatus"],"properties":{"swiftConfigPath":{"const":"Packages/vox-core-rust/uniffi.toml"},"kotlinConfigPath":{"const":"Packages/vox-core-rust/uniffi.toml"},"swiftScriptPath":{"const":"Packages/vox-core-rust/scripts/generate-swift-bindings.sh"},"kotlinScriptPath":{"const":"Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh"},"swiftOutputPaths":{"const":["Packages/vox-core-rust/generated/swift/VoxCore.swift","Packages/vox-core-rust/generated/swift/VoxCoreFFI.h","Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap"]},"kotlinOutputPaths":{"const":["Packages/vox-core-rust/generated/kotlin/md/vox/core/vox_core_uniffi.kt"]},"hashStatus":{"const":"governed-implemented"}}},
-    "governedImplementationFiles": {"type":"array","minItems":24,"maxItems":24,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["path","sha256"],"properties":{"path":{"type":"string","minLength":1},"sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"}}}}
+    "apple": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "xcodeVersion",
+        "xcodeBuild",
+        "swiftVersion",
+        "deploymentTarget",
+        "targets",
+        "packagingTool"
+      ],
+      "properties": {
+        "xcodeVersion": {
+          "const": "26.6"
+        },
+        "xcodeBuild": {
+          "const": "17F113"
+        },
+        "swiftVersion": {
+          "const": "6.3.3"
+        },
+        "deploymentTarget": {
+          "const": "17.6"
+        },
+        "packagingTool": {
+          "const": "xcodebuild -create-xcframework"
+        },
+        "targets": {
+          "const": [
+            "aarch64-apple-ios",
+            "aarch64-apple-ios-sim",
+            "x86_64-apple-ios"
+          ]
+        }
+      }
+    },
+    "bindingGeneration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "swiftConfigPath",
+        "kotlinConfigPath",
+        "swiftScriptPath",
+        "kotlinScriptPath",
+        "swiftOutputPaths",
+        "kotlinOutputPaths",
+        "hashStatus"
+      ],
+      "properties": {
+        "swiftConfigPath": {
+          "const": "Packages/vox-core-rust/uniffi.toml"
+        },
+        "kotlinConfigPath": {
+          "const": "Packages/vox-core-rust/uniffi.toml"
+        },
+        "swiftScriptPath": {
+          "const": "Packages/vox-core-rust/scripts/generate-swift-bindings.sh"
+        },
+        "kotlinScriptPath": {
+          "const": "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh"
+        },
+        "swiftOutputPaths": {
+          "const": [
+            "Packages/vox-core-rust/generated/swift/VoxCore.swift",
+            "Packages/vox-core-rust/generated/swift/VoxCoreFFI.h",
+            "Packages/vox-core-rust/generated/swift/VoxCoreFFI.modulemap"
+          ]
+        },
+        "kotlinOutputPaths": {
+          "const": [
+            "Packages/vox-core-rust/generated/kotlin/md/vox/core/vox_core_uniffi.kt"
+          ]
+        },
+        "hashStatus": {
+          "const": "governed-implemented"
+        }
+      }
+    },
+    "governedImplementationFiles": {
+      "type": "array",
+      "minItems": 44,
+      "maxItems": 44,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    }
   }
 }

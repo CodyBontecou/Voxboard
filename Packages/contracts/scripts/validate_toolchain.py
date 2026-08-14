@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[3]
-EXPECTED_SCHEMA_CANONICAL_SHA256 = "01de5acdb619087f3c516c7040ee71289f55bbcdbc42cce0592e029f69ab7027"
+EXPECTED_SCHEMA_CANONICAL_SHA256 = "07fa44a30f051ef575bd77f8cf8bd96e557c35f445a4125e44513206b50217ca"
 EXPECTED_GOVERNED_PATHS = (
     "Packages/vox-core-rust/Cargo.lock",
     "Packages/vox-core-rust/uniffi.toml",
@@ -26,6 +26,7 @@ EXPECTED_GOVERNED_PATHS = (
     "Packages/vox-core-rust/scripts/normalize-generated-text.py",
     "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
     "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
+    ".github/workflows/android-ci.yml",
     "apps/android/build.gradle.kts",
     "apps/android/settings.gradle.kts",
     "apps/android/gradle/libs.versions.toml",
@@ -34,6 +35,25 @@ EXPECTED_GOVERNED_PATHS = (
     "apps/android/gradle/wrapper/gradle-wrapper.jar",
     "apps/android/gradlew",
     "apps/android/gradlew.bat",
+    "apps/android/build-logic/build.gradle.kts",
+    "apps/android/build-logic/settings.gradle.kts",
+    "apps/android/build-logic/src/main/kotlin/AndroidApplicationConventionPlugin.kt",
+    "apps/android/build-logic/src/main/kotlin/AndroidLibraryConventionPlugin.kt",
+    "apps/android/build-logic/src/main/kotlin/AndroidComposeConventionPlugin.kt",
+    "apps/android/build-logic/src/main/kotlin/AndroidTestConventionPlugin.kt",
+    "apps/android/build-logic/gradle.lockfile",
+    "apps/android/app/build.gradle.kts",
+    "apps/android/app/gradle.lockfile",
+    "apps/android/core-bridge/build.gradle.kts",
+    "apps/android/core-bridge/gradle.lockfile",
+    "apps/android/capture-domain/build.gradle.kts",
+    "apps/android/capture-domain/gradle.lockfile",
+    "apps/android/data/build.gradle.kts",
+    "apps/android/data/gradle.lockfile",
+    "apps/android/platform-services/build.gradle.kts",
+    "apps/android/platform-services/gradle.lockfile",
+    "apps/android/gradle/verification-metadata.xml",
+    "apps/android/settings-gradle.lockfile",
 )
 
 
@@ -179,6 +199,28 @@ def main(argv=None):
             "wrapperProperties": "apps/android/gradle/wrapper/gradle-wrapper.properties",
             "wrapperScript": "apps/android/gradlew",
             "wrapperBatchScript": "apps/android/gradlew.bat",
+            "androidCI": ".github/workflows/android-ci.yml",
+            "buildLogicBuild": "apps/android/build-logic/build.gradle.kts",
+            "buildLogicSettings": "apps/android/build-logic/settings.gradle.kts",
+            "moduleBuilds": [
+                "apps/android/app/build.gradle.kts",
+                "apps/android/core-bridge/build.gradle.kts",
+                "apps/android/capture-domain/build.gradle.kts",
+                "apps/android/data/build.gradle.kts",
+                "apps/android/platform-services/build.gradle.kts",
+            ],
+        },
+        "dependencyMetadataPaths": {
+            "verificationMetadata": "apps/android/gradle/verification-metadata.xml",
+            "settingsLock": "apps/android/settings-gradle.lockfile",
+            "buildLogicLock": "apps/android/build-logic/gradle.lockfile",
+            "moduleLocks": [
+                "apps/android/app/gradle.lockfile",
+                "apps/android/core-bridge/gradle.lockfile",
+                "apps/android/capture-domain/gradle.lockfile",
+                "apps/android/data/gradle.lockfile",
+                "apps/android/platform-services/gradle.lockfile",
+            ],
         },
     }
     if manifest["androidApplication"] != expected_android:
@@ -292,6 +334,82 @@ def main(argv=None):
     settings = (root / android["settings"]).read_text()
     if "RepositoriesMode.FAIL_ON_PROJECT_REPOS" not in settings:
         fail("Android repository policy drift")
+    expected_modules = {
+        'include(":app")', 'include(":core-bridge")',
+        'include(":capture-domain")', 'include(":data")',
+        'include(":platform-services")',
+    }
+    if not expected_modules.issubset(set(settings.splitlines())) or 'include(":wear")' in settings:
+        fail("Android Phase 1 module inventory drift")
+    if 'includeBuild("build-logic")' not in settings or "lockAllConfigurations()" not in root_build:
+        fail("Android build logic or dependency locking drift")
+
+    build_logic = (root / android["buildLogicBuild"]).read_text()
+    for needle in (
+        'compileOnly("com.android.tools.build:gradle:9.1.0")',
+        'id = "vox.android.application"', 'id = "vox.android.library"',
+        'id = "vox.android.compose"', 'id = "vox.android.test"',
+        "lockAllConfigurations()",
+    ):
+        if needle not in build_logic:
+            fail(f"Android build logic drift: {needle}")
+    convention_tokens = {
+        "AndroidApplicationConventionPlugin.kt": (
+            'pluginManager.apply("com.android.application")', "compileSdk = 37",
+            'buildToolsVersion = "36.0.0"', "minSdk = 28", "targetSdk = 36",
+        ),
+        "AndroidLibraryConventionPlugin.kt": (
+            'pluginManager.apply("com.android.library")', "compileSdk = 37",
+            'buildToolsVersion = "36.0.0"', "minSdk = 28",
+        ),
+        "AndroidComposeConventionPlugin.kt": (
+            'pluginManager.apply("org.jetbrains.kotlin.plugin.compose")',
+            "buildFeatures.compose = true",
+        ),
+        "AndroidTestConventionPlugin.kt": (
+            'add("testImplementation", "junit:junit:4.13.2")', "useJUnit()",
+        ),
+    }
+    convention_root = root / "apps/android/build-logic/src/main/kotlin"
+    for name, tokens in convention_tokens.items():
+        text = (convention_root / name).read_text()
+        if any(token not in text for token in tokens):
+            fail(f"Android convention plugin drift: {name}")
+
+    module_builds = {Path(path).parent.name: (root / path).read_text() for path in android["moduleBuilds"]}
+    expected_module_dependencies = {
+        "app": ('project(":capture-domain")', 'project(":data")', 'project(":platform-services")'),
+        "capture-domain": ('project(":core-bridge")',),
+        "data": ('project(":capture-domain")', "libs.room.runtime", "libs.datastore.preferences", "libs.work.runtime.ktx"),
+        "platform-services": ('project(":capture-domain")',),
+        "core-bridge": ("libs.jna",),
+    }
+    for module, tokens in expected_module_dependencies.items():
+        if any(token not in module_builds[module] for token in tokens):
+            fail(f"Android module dependency direction drift: {module}")
+    if any("org.jetbrains.kotlin.android" in text for text in module_builds.values()):
+        fail("Android modules bypass AGP built-in Kotlin")
+
+    metadata = expected_android["dependencyMetadataPaths"]
+    verification = (root / metadata["verificationMetadata"]).read_text()
+    if "<verify-metadata>true</verify-metadata>" not in verification or "Generated by Gradle" not in verification:
+        fail("Gradle dependency verification metadata drift")
+    for lock_path in [metadata["settingsLock"], metadata["buildLogicLock"], *metadata["moduleLocks"]]:
+        lock = root / lock_path
+        if not lock.is_file() or "empty=" not in lock.read_text():
+            fail(f"Gradle dependency lock missing or malformed: {lock_path}")
+
+    workflow = (root / android["androidCI"]).read_text()
+    for needle in (
+        "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd",
+        "actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654",
+        "java-version: '17.0.20+8'", "'platforms;android-37.0'",
+        "'build-tools;36.0.0'", "'ndk;27.1.12297006'",
+        "validate_toolchain.py", "test-project-contracts.sh",
+        "test lint assembleDebug",
+    ):
+        if needle not in workflow:
+            fail(f"Android CI drift: {needle}")
 
     print(
         "Toolchain validation passed: "

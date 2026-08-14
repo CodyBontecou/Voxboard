@@ -6,3 +6,9 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.hilt) apply false
 }
+
+allprojects {
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+}

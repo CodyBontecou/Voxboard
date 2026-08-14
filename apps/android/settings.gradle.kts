@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -21,3 +22,9 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "vox-android"
+
+include(":app")
+include(":core-bridge")
+include(":capture-domain")
+include(":data")
+include(":platform-services")

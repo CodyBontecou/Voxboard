@@ -48,3 +48,6 @@ whisper.xcframework/
 app-store-output/
 # Node dependencies for the self-contained App Store image tool
 scripts/app-store-images/node_modules/
+
+# Nested Gradle build state
+apps/android/**/.gradle/

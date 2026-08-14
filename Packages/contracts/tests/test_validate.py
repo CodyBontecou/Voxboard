@@ -4,13 +4,13 @@ ROOT=Path(__file__).resolve().parents[3]; VALIDATOR=Path("Packages/contracts/scr
 class ContractValidatorTests(unittest.TestCase):
  def setUp(self):
   self.temp=tempfile.TemporaryDirectory(); self.root=Path(self.temp.name)/"repo"
-  trees=("Packages/contracts","Packages/VoxboardShared/Tests/Fixtures/Contracts","Packages/VoxboardShared/Sources/VoxCoreGenerated","Packages/VoxboardShared/Sources/VoxCoreFFI","apps/android/core-bridge/src/test/resources/contracts","apps/android/gradle","docs/validation","toolchains","Packages/vox-core-rust")
+  trees=("Packages/contracts","Packages/VoxboardShared/Tests/Fixtures/Contracts","Packages/VoxboardShared/Sources/VoxCoreGenerated","Packages/VoxboardShared/Sources/VoxCoreFFI","apps/android/core-bridge/src/test/resources/contracts","apps/android/build-logic","apps/android/gradle","docs/validation","toolchains","Packages/vox-core-rust")
   for rel in trees:
-   src=ROOT/rel; dst=self.root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst,ignore=shutil.ignore_patterns("__pycache__","target",".build"))
+   src=ROOT/rel; dst=self.root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst,ignore=shutil.ignore_patterns("__pycache__","target",".build","build",".gradle"))
   (self.root/"docs/architecture").mkdir(parents=True,exist_ok=True)
   for p in (ROOT/"docs/architecture").glob("adr-*.md"): shutil.copyfile(p,self.root/"docs/architecture"/p.name)
   for name in ("android-wear-m1-decisions.md","android-wear-m0-capabilities.json"): shutil.copyfile(ROOT/"docs/architecture"/name,self.root/"docs/architecture"/name)
-  for rel in (".github/workflows/contracts-ci.yml","scripts/test-project-contracts.sh","apps/android/build.gradle.kts","apps/android/settings.gradle.kts","apps/android/gradle.properties","apps/android/gradlew","apps/android/gradlew.bat"):
+  for rel in (".github/workflows/contracts-ci.yml",".github/workflows/android-ci.yml","scripts/test-project-contracts.sh","apps/android/build.gradle.kts","apps/android/settings.gradle.kts","apps/android/gradle.properties","apps/android/gradlew","apps/android/gradlew.bat","apps/android/settings-gradle.lockfile","apps/android/app/build.gradle.kts","apps/android/app/gradle.lockfile","apps/android/core-bridge/build.gradle.kts","apps/android/core-bridge/gradle.lockfile","apps/android/capture-domain/build.gradle.kts","apps/android/capture-domain/gradle.lockfile","apps/android/data/build.gradle.kts","apps/android/data/gradle.lockfile","apps/android/platform-services/build.gradle.kts","apps/android/platform-services/gradle.lockfile"):
    src=ROOT/rel; dst=self.root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
  def tearDown(self): self.temp.cleanup()
  def run_validator(self): return subprocess.run([sys.executable,str(VALIDATOR),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True)
@@ -159,6 +159,13 @@ class ContractValidatorTests(unittest.TestCase):
   self.tearDown();self.setUp();(self.root/"apps/android/gradle/wrapper/gradle-wrapper.jar").unlink();r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.assertNotEqual(r.returncode,0);self.assertIn("governed file missing",r.stderr+r.stdout)
  def test_toolchain_governed_inventory_cannot_shrink(self):
   validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py";p=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(p.read_text());m["governedImplementationFiles"].pop();p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"governed implementation path inventory differs")
+ def test_android_ci_build_logic_and_dependency_metadata_are_governed(self):
+  validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py"
+  for rel in (".github/workflows/android-ci.yml","apps/android/build-logic/src/main/kotlin/AndroidComposeConventionPlugin.kt","apps/android/app/gradle.lockfile","apps/android/gradle/verification-metadata.xml"):
+   with self.subTest(path=rel):
+    self.tearDown();self.setUp();p=self.root/rel;p.write_text(p.read_text()+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"hash drift")
+ def test_android_dependency_metadata_path_inventory_is_exact(self):
+  validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py";p=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(p.read_text());m["androidApplication"]["dependencyMetadataPaths"]["moduleLocks"].pop();p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"Android application pins differ")
  def test_toolchain_schema_weakening_is_hash_bound(self):
   validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py";p=self.root/"toolchains/android-wear-shared-core.schema.json";m=json.loads(p.read_text());m["properties"]["governedImplementationFiles"]["minItems"]=1;p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"toolchain schema canonical hash drift")
  def test_all_wearable_integers_are_bounded(self):
