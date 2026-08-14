@@ -310,7 +310,7 @@
           </table>
         </div>
         <p>At document scope, each result is appended to the configured frontmatter collection and keyed by Capture ID. One note can retain multiple locations, while an idempotent retry cannot append the same location twice. At entry scope, selected structured fields render as <code>key:: value</code> beside that captured entry.</p>
-        <p>Place, city, region, and country use Apple’s system reverse geocoder only when selected. The service is free and requires no API key, but may use a network connection; if lookup fails, Capture continues with coordinate-only metadata. Creating a provider link does not contact Apple, Google, or OpenStreetMap. Opening one discloses the same exact or rounded coordinates stored in the link to that provider.</p>
+        <p>Place, city, region, and country use Apple’s system reverse geocoder only when selected. The service is free and requires no API key, but may use a network connection; if lookup fails, Capture continues with coordinate-only metadata. Entry prefixes, suffixes, and vault Markdown templates can use <code>{location}</code> to insert a clickable Google Maps link from the preset’s available privacy-adjusted snapshot; the token is empty when no usable opted-in location is available. Creating a provider link does not contact Apple, Google, or OpenStreetMap. Opening one discloses the same exact or rounded coordinates stored in the link to that provider.</p>
         <div class="docs-callout docs-callout-neutral">
           <strong>Unavailable location</strong>
           <p>Interactive surfaces can retry, cancel, send once without location, or choose <em>Always Send Without Location</em> for that preset. Reset that saved choice in the preset’s Location Metadata settings. An unattended <em>Ask</em> capture persists its unavailable origin-time outcome until you decide; retry and recovery never reacquire a later location.</p>
@@ -329,7 +329,7 @@
           <li><strong>Bottom</strong> appends; <strong>Top</strong> prepends; <strong>Heading</strong> inserts beneath a chosen heading from level 1 through 6.</li>
           <li>If a heading is missing, choose <strong>Show Error</strong> or <strong>Create Heading</strong>.</li>
           <li>Use a live Markdown template file from the vault, a reusable Entry Template, or custom prefix and suffix text.</li>
-          <li>Entry formatting supports <code>{date}</code>, <code>{time}</code>, <code>{timestamp}</code>, <code>{year}</code>, <code>{YR}</code>, <code>{month}</code>, <code>{day}</code>, <code>{week}</code>, <code>{source}</code>, <code>{id8}</code>, and <code>{id}</code>.</li>
+          <li>Entry formatting supports <code>{date}</code>, <code>{time}</code>, <code>{hour}</code>, <code>{minute}</code>, <code>{second}</code>, <code>{timestamp}</code>, <code>{year}</code>, <code>{YR}</code>, <code>{month}</code>, <code>{day}</code>, <code>{week}</code>, <code>{source}</code>, <code>{id8}</code>, <code>{id}</code>, and <code>{location}</code>.</li>
           <li>The default attachments subfolder is <code>attachments</code>.</li>
           <li><strong>Retry Protection</strong>, off by default, writes a visible <code>vox-capture</code> HTML comment so duplicate retries can be detected.</li>
           <li>Vox.md rejects absolute paths, backslashes, traversal, unsafe names, and symlink escapes.</li>
