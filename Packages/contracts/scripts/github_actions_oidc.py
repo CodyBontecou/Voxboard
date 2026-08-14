@@ -47,10 +47,16 @@ def _json(data: bytes, label: str, limit: int = MAX_JSON_BYTES) -> Any:
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise OIDCError(f"{label} is invalid JSON") from error
 
-def _get(url: str, headers: dict[str, str], label: str) -> bytes:
+def _get(url: str, headers: dict[str, str], label: str, expected_host: str) -> bytes:
+    parsed = urllib.parse.urlsplit(url)
+    if parsed.scheme != "https" or parsed.hostname != expected_host or parsed.username is not None or parsed.password is not None or parsed.fragment:
+        raise OIDCError(f"{label} URL is not the pinned HTTPS endpoint")
     try:
         request = urllib.request.Request(url, headers=headers, method="GET")
         with urllib.request.urlopen(request, timeout=10) as response:
+            final = urllib.parse.urlsplit(response.geturl())
+            if final.scheme != "https" or final.hostname != expected_host or final.username is not None or final.password is not None:
+                raise OIDCError(f"{label} redirected away from the pinned HTTPS endpoint")
             if response.status != 200:
                 raise OIDCError(f"{label} returned HTTP {response.status}")
             data = response.read(MAX_JSON_BYTES + 1)
@@ -75,7 +81,7 @@ def _decode(segment: str, label: str) -> bytes:
 
 def _integer(value: str, label: str) -> int:
     data = _decode(value, label)
-    if not data or len(data) > 1024:
+    if not data or len(data) > 1024 or data[0] == 0:
         raise OIDCError(f"JWKS {label} is invalid")
     return int.from_bytes(data, "big")
 
@@ -88,7 +94,7 @@ def validate_token(token: str, jwks: dict[str, Any], expected: dict[str, Any], n
     allowed_header={"alg","kid","typ","x5t"}
     if not isinstance(header, dict) or not {"alg","kid","typ"} <= set(header) <= allowed_header or header["alg"] != "RS256" or header["typ"] != "JWT" or not isinstance(header["kid"], str) or not (1 <= len(header["kid"]) <= 256) or ("x5t" in header and (not isinstance(header["x5t"],str) or not (1<=len(header["x5t"])<=256))):
         raise OIDCError("JWT header is not a bounded RS256 header")
-    if not isinstance(claims,dict): raise OIDCError("JWT payload must be an object")
+    if not isinstance(claims,dict) or len(claims) > 128: raise OIDCError("JWT payload must be a bounded object")
     keys = jwks.get("keys") if isinstance(jwks, dict) and set(jwks) == {"keys"} else None
     if not isinstance(keys, list) or not (1 <= len(keys) <= MAX_KEYS):
         raise OIDCError("GitHub JWKS key inventory is invalid")
@@ -99,12 +105,13 @@ def validate_token(token: str, jwks: dict[str, Any], expected: dict[str, Any], n
     if key.get("kty") != "RSA" or key.get("use") != "sig" or key.get("alg") not in (None, "RS256") or not isinstance(key.get("n"), str) or not isinstance(key.get("e"), str):
         raise OIDCError("JWT signing key is not an allowed RSA signing key")
     modulus = _integer(key["n"], "modulus"); exponent = _integer(key["e"], "exponent")
-    if modulus.bit_length() < 2048 or modulus.bit_length() > 8192 or exponent < 3 or exponent % 2 == 0:
+    if modulus.bit_length() < 2048 or modulus.bit_length() > 8192 or exponent < 3 or exponent > 0xffffffff or exponent % 2 == 0:
         raise OIDCError("JWT RSA key parameters are outside bounds")
     signature = _decode(encoded_signature, "signature"); width = (modulus.bit_length() + 7) // 8
-    if len(signature) != width:
-        raise OIDCError("JWT RSA signature length mismatch")
-    decoded = pow(int.from_bytes(signature, "big"), exponent, modulus).to_bytes(width, "big")
+    signature_integer = int.from_bytes(signature, "big")
+    if len(signature) != width or signature_integer >= modulus:
+        raise OIDCError("JWT RSA signature length or representative mismatch")
+    decoded = pow(signature_integer, exponent, modulus).to_bytes(width, "big")
     digest_info = bytes.fromhex("3031300d060960864801650304020105000420") + hashlib.sha256(f"{encoded_header}.{encoded_payload}".encode()).digest()
     padding = width - len(digest_info) - 3
     if padding < 8 or decoded != b"\x00\x01" + b"\xff" * padding + b"\x00" + digest_info:
@@ -115,8 +122,16 @@ def validate_token(token: str, jwks: dict[str, Any], expected: dict[str, Any], n
             raise OIDCError(f"JWT {name} claim is missing or invalid")
     if claims["exp"] <= current or claims["nbf"] > current + 30 or claims["iat"] > current + 30 or claims["iat"] < current - 600 or claims["exp"] - claims["iat"] > 900:
         raise OIDCError("JWT time claims are expired, future, or outside bounds")
+    expected_subject = (
+        f"repo:{REPOSITORY}:pull_request"
+        if expected["eventName"] == "pull_request"
+        else f"repo:{REPOSITORY}:ref:{expected['ref']}"
+    )
+    if not isinstance(claims.get("jti"), str) or not (1 <= len(claims["jti"]) <= 256):
+        raise OIDCError("JWT jti claim is missing or invalid")
     exact = {
-        "iss": ISSUER, "aud": AUDIENCE, "repository": REPOSITORY,
+        "iss": ISSUER, "aud": AUDIENCE, "sub": expected_subject,
+        "repository": REPOSITORY,
         "repository_id": REPOSITORY_ID, "repository_owner": OWNER,
         "repository_owner_id": OWNER_ID, "repository_visibility": VISIBILITY,
         "sha": expected["sourceRevision"], "workflow_sha": expected["workflowRevision"],
@@ -158,12 +173,21 @@ def authenticate(repository_root: Path, qualification: dict[str, Any], git_revis
         request_token = os.environ.get("ACTIONS_ID_TOKEN_REQUEST_TOKEN")
         if not request_url or not request_token:
             raise OIDCError("GitHub Actions OIDC request credentials are required")
-        separator = "&" if "?" in request_url else "?"
-        response = _json(_get(request_url + separator + urllib.parse.urlencode({"audience": AUDIENCE}), {"Authorization": f"Bearer {request_token}", "Accept": "application/json"}, "GitHub OIDC token"), "GitHub OIDC token response")
+        if len(request_url) > 8192 or not (32 <= len(request_token) <= 8192) or any(character in request_token for character in "\r\n"):
+            raise OIDCError("GitHub Actions OIDC request credentials are outside bounds")
+        parsed = urllib.parse.urlsplit(request_url)
+        if parsed.scheme != "https" or parsed.hostname != "pipelines.actions.githubusercontent.com" or parsed.username is not None or parsed.password is not None or parsed.fragment:
+            raise OIDCError("GitHub OIDC token URL is not the pinned HTTPS endpoint")
+        query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
+        if any(key == "audience" for key, _ in query):
+            raise OIDCError("GitHub OIDC token URL already contains an audience")
+        query.append(("audience", AUDIENCE))
+        token_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urllib.parse.urlencode(query), ""))
+        response = _json(_get(token_url, {"Authorization": f"Bearer {request_token}", "Accept": "application/json"}, "GitHub OIDC token", "pipelines.actions.githubusercontent.com"), "GitHub OIDC token response")
         if not isinstance(response, dict) or set(response) != {"value"} or not isinstance(response["value"], str):
             raise OIDCError("GitHub OIDC token response is invalid")
         token = response["value"]
-        jwks = _json(_get(JWKS_URL, {"Accept": "application/json"}, "GitHub JWKS"), "GitHub JWKS")
+        jwks = _json(_get(JWKS_URL, {"Accept": "application/json"}, "GitHub JWKS", "token.actions.githubusercontent.com"), "GitHub JWKS")
     else:
         token, jwks = token_fetcher(AUDIENCE, JWKS_URL)
     validate_token(token, jwks, expected)
