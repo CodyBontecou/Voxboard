@@ -205,6 +205,66 @@ final class CaptureCoreEnginePolicyTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: noteURL.path))
     }
 
+    func test_testOnlyRustRejectsAmbiguousFrontmatterCompositionBeforeSideEffects() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = newNoteDestination()
+        let noteURL = root.appendingPathComponent("Inbox/note.md")
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("---\nuser: owned\n---\nbody")]
+        )
+        let accounting = EngineRecordingAccounting()
+        let probe = EngineComparisonProbe(
+            accounting: accounting,
+            observedNoteURL: noteURL,
+            comparison: exactComparison
+        )
+
+        do {
+            _ = try await CapturePipeline(
+                deliveryAccounting: accounting,
+                enginePolicy: .rust(using: probe)
+            ).capture(request, destination: destination, rootURL: root)
+            XCTFail("Expected ambiguous payload frontmatter to remain legacy-only")
+        } catch let error as CaptureCoreAdmissionError {
+            XCTAssertEqual(error, .unsupportedFrontmatterComposition)
+        }
+
+        let snapshot = await probe.snapshot()
+        let events = await accounting.events
+        XCTAssertEqual(snapshot.comparisonCount, 0)
+        XCTAssertEqual(events, [])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: noteURL.path))
+
+        var prefixed = destination
+        prefixed.entryPrefix = "---\ntemplate: true\n---\n"
+        var metadataRequest = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("body")]
+        )
+        metadataRequest.frontmatter = ["request": "metadata"]
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+            request: metadataRequest,
+            destination: prefixed,
+            calendar: calendar
+        )) { error in
+            XCTAssertEqual(error as? CaptureCoreAdmissionError, .unsupportedFrontmatterComposition)
+        }
+
+        metadataRequest.frontmatter = [:]
+        XCTAssertNoThrow(try CaptureCoreAdmission.admit(
+            request: metadataRequest,
+            destination: prefixed,
+            calendar: calendar
+        ))
+    }
+
     func test_admissionRejectsPathTokensThatDifferBetweenRenderers() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!

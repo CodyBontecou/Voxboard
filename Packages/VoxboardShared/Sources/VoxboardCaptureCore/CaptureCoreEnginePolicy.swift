@@ -79,6 +79,7 @@ public enum CaptureCoreAdmissionError: String, Error, Equatable, LocalizedError,
     case unsupportedCalendarSemantics
     case unsupportedWeekRules
     case unsupportedTimeZone
+    case unsupportedFrontmatterComposition
     case aggregateControlBoundExceeded
     case contractBoundExceeded
 
@@ -211,6 +212,12 @@ public enum CaptureCoreAdmission {
                 guard text.unicodeScalars.count <= maximumTextCharacters else {
                     throw CaptureCoreAdmissionError.contractBoundExceeded
                 }
+                // Production hoists payload-leading frontmatter before applying the
+                // destination prefix and request metadata. The M2 Rust profile owns a
+                // different merge order, so that broader composition stays legacy-only.
+                guard !hasLeadingFrontmatter(text, trimmingBoundaryNewlines: true) else {
+                    throw CaptureCoreAdmissionError.unsupportedFrontmatterComposition
+                }
                 return .text(text: text)
             case .url(let url, let title):
                 let absolute = url.absoluteString
@@ -239,6 +246,12 @@ public enum CaptureCoreAdmission {
         guard orderedFrontmatter.count <= maximumFrontmatterFields,
               destination.entryPrefix.utf8.count <= maximumTemplateBytes else {
             throw CaptureCoreAdmissionError.contractBoundExceeded
+        }
+        // Swift merges request metadata before prefix frontmatter, while M2 Rust
+        // begins with prefix frontmatter. Avoid claiming byte parity for that order.
+        if !orderedFrontmatter.isEmpty,
+           hasLeadingFrontmatter(destination.entryPrefix, trimmingBoundaryNewlines: false) {
+            throw CaptureCoreAdmissionError.unsupportedFrontmatterComposition
         }
 
         let milliseconds = request.createdAt.timeIntervalSince1970 * 1_000
@@ -296,6 +309,30 @@ public enum CaptureCoreAdmission {
 
     private static func containsOutputAffectingPathToken(_ segment: String) -> Bool {
         pathRenderedTokens.contains { segment.contains($0) }
+    }
+
+    private static func hasLeadingFrontmatter(
+        _ value: String,
+        trimmingBoundaryNewlines: Bool
+    ) -> Bool {
+        let normalized = value
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
+        let candidate = trimmingBoundaryNewlines
+            ? normalized.trimmingCharacters(in: .newlines)
+            : normalized
+        let lines = candidate.split(separator: "\n", omittingEmptySubsequences: false)
+        guard lines.first == "---",
+              let closing = lines.indices.dropFirst().first(where: { lines[$0] == "---" }) else {
+            return false
+        }
+        return lines[1..<closing].contains { rawLine in
+            guard rawLine.first != " ", rawLine.first != "\t", !rawLine.hasPrefix("#"),
+                  let colon = rawLine.firstIndex(of: ":") else {
+                return false
+            }
+            return !String(rawLine[..<colon]).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
     }
 
     /// Upper-bounds canonical JSON control bytes rather than relying on the looser

@@ -220,6 +220,7 @@ def main() -> int:
     if (
         not isinstance(libraries, list)
         or len(libraries) != 2
+        or set(info) != {"AvailableLibraries", "CFBundlePackageType", "XCFrameworkFormatVersion"}
         or info.get("CFBundlePackageType") != "XFWK"
         or info.get("XCFrameworkFormatVersion") != "1.0"
     ):
@@ -231,7 +232,23 @@ def main() -> int:
             (item for item in libraries if item.get("LibraryIdentifier") == identifier),
             None,
         )
-        if entry is None or entry.get("LibraryPath") != "libVoxCoreFFI.a" or entry.get("HeadersPath") != "Headers":
+        expected_keys = {
+            "BinaryPath", "HeadersPath", "LibraryIdentifier", "LibraryPath",
+            "SupportedArchitectures", "SupportedPlatform",
+        }
+        if "simulator" in identifier:
+            expected_keys.add("SupportedPlatformVariant")
+        if (
+            entry is None
+            or set(entry) != expected_keys
+            or entry.get("LibraryPath") != "libVoxCoreFFI.a"
+            or entry.get("BinaryPath") != entry.get("LibraryPath")
+            or entry.get("HeadersPath") != "Headers"
+            or set(entry.get("SupportedArchitectures", [])) != set(architectures)
+            or len(entry.get("SupportedArchitectures", [])) != len(architectures)
+            or entry.get("SupportedPlatform") != "ios"
+            or entry.get("SupportedPlatformVariant") != ("simulator" if "simulator" in identifier else None)
+        ):
             raise SystemExit(f"missing or malformed XCFramework leaf: {identifier}")
         slice_root = xcframework_root / identifier
         exact_directory(slice_root, {"libVoxCoreFFI.a", "Headers"}, f"XCFramework slice {identifier}")

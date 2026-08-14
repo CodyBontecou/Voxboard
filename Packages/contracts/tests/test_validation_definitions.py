@@ -21,6 +21,16 @@ def chunk_manifest(items):
   h.update(item['sequence'].to_bytes(4,'big')); h.update(item['bytes'].to_bytes(8,'big')); h.update(bytes.fromhex(item['sha256']))
  return h.hexdigest()
 
+def write_ustar(path,external,retained):
+ with path.open('wb') as output:
+  for source in retained:
+   relative=source.relative_to(external).as_posix(); output.write(validator.canonical_ustar_header(relative,source))
+   with source.open('rb') as handle:
+    while block:=handle.read(1024*1024): output.write(block)
+   padding=(-source.stat().st_size)%512
+   if padding: output.write(b'\0'*padding)
+  output.write(b'\0'*1024)
+
 def elf_library(arch):
  elf_class=2 if arch in ('arm64','x86_64') else 1; machine={'arm64':183,'armv7':40,'x86_64':62,'x86':3}[arch]; symbol=validator.UNIFFI_BUILD_INFO_SYMBOL.encode(); dynstr=b'\0'+symbol+b'\0libc.so\0libdl.so\0'; symbol_name=1; libc=dynstr.index(b'libc.so'); libdl=dynstr.index(b'libdl.so'); header_size=64 if elf_class==2 else 52; program_size=56 if elf_class==2 else 32; program_offset=header_size; dynstr_offset=header_size+2*program_size
  if elf_class==2: dynsym=b'\0'*24+struct.pack('<IBBHQQ',symbol_name,0x12,0,4,0,0); symbol_size=24; dynamic_size=16; section_size=64
@@ -188,10 +198,9 @@ class Tests(unittest.TestCase):
   package['appleAggregateBytes']=sum(x['bytes'] for x in package['candidateLeaves'][-2:])
   for descriptor in package['xcframeworkHeaders']:
    path=external/descriptor['relativeArtifactPath']; path.parent.mkdir(parents=True,exist_ok=True); shutil.copyfile(repository/descriptor['repositorySourcePath'],path); descriptor['bytes']=path.stat().st_size; descriptor['sha256']=digest(path)
-  metadata_path=external/package['xcframeworkMetadata']['relativeArtifactPath']; metadata={'CFBundlePackageType':'XFWK','XCFrameworkFormatVersion':'1.0','AvailableLibraries':[{'LibraryIdentifier':'ios-arm64','LibraryPath':'libVoxCoreFFI.a','HeadersPath':'Headers','SupportedArchitectures':['arm64'],'SupportedPlatform':'ios'},{'LibraryIdentifier':'ios-arm64_x86_64-simulator','LibraryPath':'libVoxCoreFFI.a','HeadersPath':'Headers','SupportedArchitectures':['arm64','x86_64'],'SupportedPlatform':'ios','SupportedPlatformVariant':'simulator'}]}; metadata_path.write_bytes(plistlib.dumps(metadata,fmt=plistlib.FMT_XML,sort_keys=True)); package['xcframeworkMetadata']['bytes']=metadata_path.stat().st_size; package['xcframeworkMetadata']['sha256']=digest(metadata_path)
+  metadata_path=external/package['xcframeworkMetadata']['relativeArtifactPath']; metadata={'CFBundlePackageType':'XFWK','XCFrameworkFormatVersion':'1.0','AvailableLibraries':[{'BinaryPath':'libVoxCoreFFI.a','LibraryIdentifier':'ios-arm64','LibraryPath':'libVoxCoreFFI.a','HeadersPath':'Headers','SupportedArchitectures':['arm64'],'SupportedPlatform':'ios'},{'BinaryPath':'libVoxCoreFFI.a','LibraryIdentifier':'ios-arm64_x86_64-simulator','LibraryPath':'libVoxCoreFFI.a','HeadersPath':'Headers','SupportedArchitectures':['arm64','x86_64'],'SupportedPlatform':'ios','SupportedPlatformVariant':'simulator'}]}; metadata_path.write_bytes(plistlib.dumps(metadata,fmt=plistlib.FMT_XML,sort_keys=True)); package['xcframeworkMetadata']['bytes']=metadata_path.stat().st_size; package['xcframeworkMetadata']['sha256']=digest(metadata_path)
   archive_path=external/'archives/m2.tar'; archive_path.parent.mkdir(parents=True); retained=sorted(p for p in external.rglob('*') if p.is_file() and p!=archive_path)
-  with tarfile.open(archive_path,'w',format=tarfile.USTAR_FORMAT) as handle:
-   for path in retained: handle.add(path,arcname=str(path.relative_to(external)),recursive=False)
+  write_ustar(archive_path,external,retained)
   archive_sha=digest(archive_path); package['retention']['archiveSha256']=archive_sha; qualification=self.hosted_qualification(repository,archive_sha=archive_sha)
   dump(provenance_path,provenance); evidence['executionProvenance']['sha256']=digest(provenance_path); dump(package_path,package); evidence['nativePackageInspection']['sha256']=digest(package_path); gates=validator.idx(self.docs()['performance-gates.json']['gates'],'id','gate'); derived=validator.validate_package(package,evidence['buildIdentity'],qualification,external,None,evidence['buildHost'],repository); evidence['measurements']=[]
   for gid in validator.idx(self.docs()['case-catalog.json']['cases'],'id','case')['PERF-008']['performanceGateIDs']:
@@ -335,7 +344,9 @@ class Tests(unittest.TestCase):
   archive=external/'archives/m2.tar'; original_archive=archive.read_bytes(); archive.write_bytes(original_archive+b'x'); q=self.execute_hosted(c,external,env); self.assertIn('hosted artifact archive hash mismatch',q.stderr); archive.write_bytes(original_archive)
   def rebind_archive(data):
    archive.write_bytes(data); aggregate=json.loads((c/'aggregate.json').read_text()); qualification=aggregate['qualification']; qualification['artifactArchiveSha256']=digest(archive); evidence_path=self.evidence(c,'PERF-008'); evidence=json.loads(evidence_path.read_text()); receipt_path=c/evidence['nativePackageInspection']['id']; receipt=json.loads(receipt_path.read_text()); receipt['retention']['archiveSha256']=qualification['artifactArchiveSha256']; dump(receipt_path,receipt); evidence['nativePackageInspection']['sha256']=digest(receipt_path); dump(evidence_path,evidence); self.refresh(c,aggregate['scope'],qualification)
-  rebind_archive(original_archive+b'x'+b'\x00'*511); q=self.execute_hosted(c,external,env); self.assertIn('trailing payload',q.stderr); rebind_archive(original_archive)
+  rebind_archive(original_archive+b'x'+b'\x00'*511); q=self.execute_hosted(c,external,env); self.assertIn('termination mismatch',q.stderr); rebind_archive(original_archive)
+  noncanonical=bytearray(original_archive); noncanonical[136:148]=b'00000000001\0'; noncanonical[148:156]=b'        '; noncanonical[148:156]=f'{sum(noncanonical[:512]):06o}'.encode()+b'\0 '; rebind_archive(bytes(noncanonical)); q=self.execute_hosted(c,external,env); self.assertIn('header or member order is noncanonical',q.stderr); rebind_archive(original_archive)
+  rebind_archive(original_archive+b'\0'*512); q=self.execute_hosted(c,external,env); self.assertIn('termination mismatch',q.stderr); rebind_archive(original_archive)
   pax_path=c.parent/'pax.tar'; retained=sorted(path for path in external.rglob('*') if path.is_file() and path!=archive)
   with tarfile.open(pax_path,'w',format=tarfile.PAX_FORMAT) as handle:
    for index,path in enumerate(retained):
@@ -360,7 +371,8 @@ class Tests(unittest.TestCase):
   receipt['appleAggregateBytes']=sum(x['bytes'] for x in receipt['candidateLeaves'][-2:])
   for descriptor in receipt['xcframeworkHeaders']:
    header=ext/descriptor['relativeArtifactPath']; header.parent.mkdir(parents=True,exist_ok=True); shutil.copyfile(repository/descriptor['repositorySourcePath'],header); descriptor.update(bytes=header.stat().st_size,sha256=digest(header))
-  metadata_path=ext/receipt['xcframeworkMetadata']['relativeArtifactPath']; metadata_path.write_bytes(plistlib.dumps({'CFBundlePackageType':'XFWK','XCFrameworkFormatVersion':'1.0','AvailableLibraries':[{'LibraryIdentifier':'ios-arm64','LibraryPath':'libVoxCoreFFI.a','HeadersPath':'Headers','SupportedArchitectures':['arm64'],'SupportedPlatform':'ios'},{'LibraryIdentifier':'ios-arm64_x86_64-simulator','LibraryPath':'libVoxCoreFFI.a','HeadersPath':'Headers','SupportedArchitectures':['arm64','x86_64'],'SupportedPlatform':'ios','SupportedPlatformVariant':'simulator'}]},fmt=plistlib.FMT_XML,sort_keys=True)); receipt['xcframeworkMetadata'].update(bytes=metadata_path.stat().st_size,sha256=digest(metadata_path))
+  metadata_path=ext/receipt['xcframeworkMetadata']['relativeArtifactPath']; metadata_path.write_bytes(plistlib.dumps({'CFBundlePackageType':'XFWK','XCFrameworkFormatVersion':'1.0','AvailableLibraries':[{'BinaryPath':'libVoxCoreFFI.a','LibraryIdentifier':'ios-arm64','LibraryPath':'libVoxCoreFFI.a','HeadersPath':'Headers','SupportedArchitectures':['arm64'],'SupportedPlatform':'ios'},{'BinaryPath':'libVoxCoreFFI.a','LibraryIdentifier':'ios-arm64_x86_64-simulator','LibraryPath':'libVoxCoreFFI.a','HeadersPath':'Headers','SupportedArchitectures':['arm64','x86_64'],'SupportedPlatform':'ios','SupportedPlatformVariant':'simulator'}]},fmt=plistlib.FMT_XML,sort_keys=True)); receipt['xcframeworkMetadata'].update(bytes=metadata_path.stat().st_size,sha256=digest(metadata_path))
+  original_metadata=metadata_path.read_bytes(); unexpected=plistlib.loads(original_metadata); unexpected['UnexpectedPath']='undeclared'; metadata_path.write_bytes(plistlib.dumps(unexpected,fmt=plistlib.FMT_XML,sort_keys=True)); self.assertRaisesRegex(validator.ValidationError,'format/leaf inventory mismatch',validator.validate_xcframework_metadata,metadata_path,ext,receipt['candidateLeaves']); metadata_path.write_bytes(original_metadata)
   self.assertRaisesRegex(validator.ValidationError,'binary format',validator.validate_package,receipt,build,q,ext,None,None,repository)
   leaf=receipt['candidateLeaves'][0]; path=ext/leaf['relativeArtifactPath']; leaf['bytes']=path.stat().st_size; leaf['sha256']=digest(path); path.write_bytes(b'changed');self.assertRaisesRegex(validator.ValidationError,'bytes/hash mismatch',validator.validate_package,receipt,build,q,ext,None,None,repository)
   path.unlink();path.symlink_to(ext/receipt['candidateLeaves'][1]['relativeArtifactPath']);self.assertRaisesRegex(validator.ValidationError,'symlinks',validator.validate_package,receipt,build,q,ext,None,None,repository)

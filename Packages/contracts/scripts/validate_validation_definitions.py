@@ -779,15 +779,16 @@ def validate_xcframework_metadata(path:Path,external_root:Path,leaves:list[dict]
         with path.open("rb") as source: value=plistlib.load(source)
     except (OSError,plistlib.InvalidFileException) as e: raise ValidationError("XCFramework metadata is not a readable property list") from e
     libraries=value.get("AvailableLibraries") if isinstance(value,dict) else None
-    if not isinstance(libraries,list) or len(libraries)!=2 or value.get("CFBundlePackageType")!="XFWK" or value.get("XCFrameworkFormatVersion")!="1.0": raise ValidationError("XCFramework metadata format/leaf inventory mismatch")
+    if not isinstance(libraries,list) or len(libraries)!=2 or set(value)!={"AvailableLibraries","CFBundlePackageType","XCFrameworkFormatVersion"} or value.get("CFBundlePackageType")!="XFWK" or value.get("XCFrameworkFormatVersion")!="1.0": raise ValidationError("XCFramework metadata format/leaf inventory mismatch")
     expected={"ios-arm64":({"arm64"},None,"xcframework-ios-device-arm64"),"ios-arm64_x86_64-simulator":({"arm64","x86_64"},"simulator","xcframework-ios-simulator-arm64-x86_64")}; observed=set(); by_scope={leaf["targetScope"]:leaf for leaf in leaves}
     for library in libraries:
         if not isinstance(library,dict): raise ValidationError("XCFramework metadata leaf mismatch")
         identifier=library.get("LibraryIdentifier"); specification=expected.get(identifier)
+        expected_keys={"BinaryPath","HeadersPath","LibraryIdentifier","LibraryPath","SupportedArchitectures","SupportedPlatform"}|({"SupportedPlatformVariant"} if specification and specification[1] is not None else set())
         architectures=library.get("SupportedArchitectures",[])
-        if specification is None or identifier in observed or len(architectures)!=len(set(architectures)) or set(architectures)!=specification[0] or library.get("SupportedPlatform")!="ios" or library.get("SupportedPlatformVariant")!=specification[1]: raise ValidationError("XCFramework metadata leaf mismatch")
+        if specification is None or set(library)!=expected_keys or identifier in observed or len(architectures)!=len(set(architectures)) or set(architectures)!=specification[0] or library.get("SupportedPlatform")!="ios" or library.get("SupportedPlatformVariant")!=specification[1]: raise ValidationError("XCFramework metadata leaf mismatch")
         library_path=library.get("LibraryPath")
-        if library_path!="libVoxCoreFFI.a" or library.get("HeadersPath")!="Headers": raise ValidationError("XCFramework metadata library/header path mismatch")
+        if library_path!="libVoxCoreFFI.a" or library.get("BinaryPath")!=library_path or library.get("HeadersPath")!="Headers": raise ValidationError("XCFramework metadata library/header path mismatch")
         leaf=by_scope.get(specification[2]); expected_leaf=contained_file(external_root,leaf["relativeArtifactPath"],"XCFramework candidate leaf") if leaf else None; metadata_leaf=path.parent/identifier/library_path
         if expected_leaf is None or metadata_leaf.resolve()!=expected_leaf.resolve(): raise ValidationError("XCFramework metadata is not bound to the inspected candidate leaf")
         observed.add(identifier)
@@ -866,10 +867,30 @@ def validate_package(value:dict,build:dict,qualification:dict,external_root:Path
     if growth is not None: computed["packaging-growth"]=([],growth)
     return computed
 
+def ustar_numeric_field(value:int,length:int)->bytes:
+    text=f"{value:0{length-1}o}".encode()
+    if len(text)>=length: raise ValidationError("hosted artifact USTAR numeric field overflow")
+    return text+b"\0"
+
+def canonical_ustar_header(relative:str,source:Path)->bytes:
+    encoded=relative.encode("utf-8"); name=encoded; prefix=b""
+    if len(name)>100:
+        split=encoded.rfind(b"/")
+        if split<1: raise ValidationError("hosted artifact USTAR path is too long")
+        prefix,name=encoded[:split],encoded[split+1:]
+    if len(name)>100 or len(prefix)>155: raise ValidationError("hosted artifact USTAR path is too long")
+    header=bytearray(512); header[:len(name)]=name
+    header[100:108]=ustar_numeric_field(0o755 if os.access(source,os.X_OK) else 0o644,8)
+    header[108:116]=ustar_numeric_field(0,8); header[116:124]=ustar_numeric_field(0,8)
+    header[124:136]=ustar_numeric_field(source.stat().st_size,12); header[136:148]=ustar_numeric_field(0,12)
+    header[148:156]=b"        "; header[156:157]=b"0"; header[257:263]=b"ustar\0"; header[263:265]=b"00"; header[345:345+len(prefix)]=prefix
+    header[148:156]=f"{sum(header):06o}".encode()+b"\0 "
+    return bytes(header)
+
 def validate_retained_archive(archive:Path,external_root:Path,expected_paths:set[str])->None:
     archive_size=archive.stat().st_size
     if archive.suffix!=".tar" or archive_size>MAX_ARCHIVE_BYTES or archive_size%512: raise ValidationError("hosted artifact archive must be an uncompressed bounded block-aligned .tar")
-    observed=set(); terminated=False
+    observed=set(); terminated=False; ordered_expected=sorted(expected_paths); member_index=0
     try:
         with archive.open("rb") as raw:
             while raw.tell()<archive_size:
@@ -877,11 +898,13 @@ def validate_retained_archive(archive:Path,external_root:Path,expected_paths:set
                 if len(header)!=512: raise ValidationError("hosted artifact tar header truncated")
                 if not any(header):
                     second=raw.read(512)
-                    if len(second)!=512 or any(second): raise ValidationError("hosted artifact tar termination mismatch")
-                    while block:=raw.read(HASH_BLOCK_BYTES):
-                        if any(block): raise ValidationError("hosted artifact archive has trailing payload")
+                    if len(second)!=512 or any(second) or raw.read(1): raise ValidationError("hosted artifact tar termination mismatch")
                     terminated=True; break
                 if header[257:263]!=b"ustar\0" or header[263:265]!=b"00" or header[156:157] not in (b"0",b"\0"): raise ValidationError("hosted artifact archive forbids non-USTAR regular or extension members")
+                if member_index>=len(ordered_expected): raise ValidationError("hosted artifact archive member inventory mismatch")
+                expected_relative=ordered_expected[member_index]; expected_source=contained_file(external_root,expected_relative,"hosted archive source artifact")
+                if header!=canonical_ustar_header(expected_relative,expected_source): raise ValidationError("hosted artifact USTAR header or member order is noncanonical")
+                member_index+=1
                 checksum_field=header[148:156].rstrip(b"\0 ")
                 try: stored_checksum=int(checksum_field,8)
                 except ValueError as e: raise ValidationError("hosted artifact tar checksum encoding mismatch") from e
