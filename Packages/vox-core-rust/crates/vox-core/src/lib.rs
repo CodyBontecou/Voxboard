@@ -948,13 +948,67 @@ enum State {
 }
 
 #[derive(Clone, Debug)]
+enum BufferedObservation {
+    Uniform { byte: Option<u8>, length: usize },
+    Bytes(Vec<u8>),
+}
+
+impl BufferedObservation {
+    fn append(&mut self, bytes: &[u8]) -> Result<(), CoreError> {
+        if bytes.is_empty() {
+            return Ok(());
+        }
+        match self {
+            Self::Uniform { byte, length } => {
+                let candidate = bytes[0];
+                let remains_uniform = bytes.iter().all(|value| *value == candidate)
+                    && byte.is_none_or(|value| value == candidate);
+                let next_length = length
+                    .checked_add(bytes.len())
+                    .ok_or(CoreError::AggregateTooLarge)?;
+                if remains_uniform {
+                    *byte = Some(candidate);
+                    *length = next_length;
+                    return Ok(());
+                }
+                let mut expanded = Vec::new();
+                expanded
+                    .try_reserve_exact(next_length)
+                    .map_err(|_| CoreError::AggregateTooLarge)?;
+                if let Some(value) = byte {
+                    expanded.resize(*length, *value);
+                }
+                expanded.extend_from_slice(bytes);
+                *self = Self::Bytes(expanded);
+                Ok(())
+            }
+            Self::Bytes(buffered) => {
+                buffered
+                    .try_reserve_exact(bytes.len())
+                    .map_err(|_| CoreError::AggregateTooLarge)?;
+                buffered.extend_from_slice(bytes);
+                Ok(())
+            }
+        }
+    }
+
+    #[cfg(test)]
+    fn retained_bytes(&self) -> usize {
+        match self {
+            Self::Uniform { .. } => 0,
+            Self::Bytes(bytes) => bytes.len(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
 struct InputStream {
     id: Uuid,
     expected_length: u64,
     expected_sha256: String,
     length: u64,
     hasher: Sha256,
-    template: Option<Vec<u8>>,
+    template: Option<BufferedObservation>,
     next_sequence: u32,
     eof: bool,
 }
@@ -1037,7 +1091,10 @@ impl MaterializationSession {
                     length: 0,
                     hasher: Sha256::new(),
                     template: matches!(observation, ObservationResult::FrozenTemplate { .. })
-                        .then(Vec::new),
+                        .then_some(BufferedObservation::Uniform {
+                            byte: None,
+                            length: 0,
+                        }),
                     next_sequence: 0,
                     eof: false,
                 });
@@ -1088,9 +1145,10 @@ impl MaterializationSession {
             return self.fail(CoreError::InvalidObservationStream);
         }
         stream.hasher.update(bytes);
-        if let Some(template) = &mut stream.template {
-            template.extend_from_slice(bytes);
-        }
+        let buffering = stream
+            .template
+            .as_mut()
+            .map_or(Ok(()), |template| template.append(bytes));
         let Some(next_sequence) = stream.next_sequence.checked_add(1) else {
             return self.fail(CoreError::ObservationSequence);
         };
@@ -1103,6 +1161,9 @@ impl MaterializationSession {
                 return self.fail(CoreError::InvalidObservationStream);
             }
             self.next_stream += 1;
+        }
+        if let Err(error) = buffering {
+            return self.fail(error);
         }
         Ok(())
     }
@@ -1117,8 +1178,8 @@ impl MaterializationSession {
         let template = self
             .streams
             .iter()
-            .find_map(|stream| stream.template.as_deref());
-        let (path, bytes) = match materialize(&self.input, template) {
+            .find_map(|stream| stream.template.as_ref());
+        let (path, bytes) = match materialize_buffered(&self.input, template) {
             Ok(value) => value,
             Err(error) => return self.fail(error),
         };
@@ -1453,6 +1514,45 @@ fn selected_path(input: &MaterializationInput) -> Result<Vec<String>, CoreError>
         .into_iter()
         .find(|candidate| !occupied.contains(candidate))
         .ok_or(CoreError::InvalidPath)
+}
+
+fn materialize_buffered(
+    input: &MaterializationInput,
+    template: Option<&BufferedObservation>,
+) -> Result<(Vec<String>, Vec<u8>), CoreError> {
+    match template {
+        None => materialize(input, None),
+        Some(BufferedObservation::Bytes(bytes)) => materialize(input, Some(bytes)),
+        Some(BufferedObservation::Uniform { byte: None, .. }) => materialize(input, Some(&[])),
+        Some(BufferedObservation::Uniform {
+            byte: Some(b'\n' | b'\r'),
+            ..
+        }) => {
+            // A uniform CR/LF template normalizes to only LF and is removed by the
+            // production boundary-newline policy. Preserve that exact result without
+            // retaining or expanding a potentially 256 MiB observation.
+            materialize(input, Some(&[]))
+        }
+        Some(BufferedObservation::Uniform {
+            byte: Some(byte),
+            length,
+        }) => {
+            if !byte.is_ascii() {
+                return Err(CoreError::InvalidRendering);
+            }
+            // Every shipped preparation has at least one nonempty payload block, so a
+            // full-limit non-newline prefix cannot produce an in-contract artifact.
+            if *length as u64 >= MAX_AGGREGATE_BYTES {
+                return Err(CoreError::AggregateTooLarge);
+            }
+            let mut expanded = Vec::new();
+            expanded
+                .try_reserve_exact(*length)
+                .map_err(|_| CoreError::AggregateTooLarge)?;
+            expanded.resize(*length, *byte);
+            materialize(input, Some(&expanded))
+        }
+    }
 }
 
 pub fn materialize(
@@ -1842,6 +1942,27 @@ mod tests {
         )
         .unwrap();
         assert!(rendered.starts_with("Cafe\u{301}-"));
+    }
+
+    #[test]
+    fn uniform_observations_do_not_accumulate_chunk_bytes() {
+        let mut buffered = BufferedObservation::Uniform {
+            byte: None,
+            length: 0,
+        };
+        buffered.append(&[b'\n'; 1024]).unwrap();
+        buffered.append(&[b'\n'; 1024]).unwrap();
+        assert_eq!(buffered.retained_bytes(), 0);
+        assert!(matches!(
+            buffered,
+            BufferedObservation::Uniform {
+                byte: Some(b'\n'),
+                length: 2048
+            }
+        ));
+
+        buffered.append(b"\nnot-uniform").unwrap();
+        assert_eq!(buffered.retained_bytes(), 2060);
     }
 
     #[test]

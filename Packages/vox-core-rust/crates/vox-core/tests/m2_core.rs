@@ -287,6 +287,36 @@ fn aggregate_limit_constant_and_streaming_state_are_bounded() {
 }
 
 #[test]
+fn repeated_newline_template_materializes_without_expanding_the_prefix() {
+    let template = vec![b'\n'; 4 * MAX_CHUNK_BYTES];
+    let value = mat_value(Some(&template));
+    let mut session = MaterializationSession::new(&canonical(&value)).unwrap();
+    let id = uuid("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+    for (sequence, chunk) in template.chunks(MAX_CHUNK_BYTES).enumerate() {
+        session
+            .push_observation(
+                id,
+                u32::try_from(sequence).unwrap(),
+                chunk,
+                sequence + 1 == template.len() / MAX_CHUNK_BYTES,
+            )
+            .unwrap();
+    }
+    drop(template);
+    let descriptor = session.seal().unwrap().artifacts.remove(0);
+    assert!(descriptor.length < 1024);
+    let output = session
+        .drain(descriptor.artifact_id, 0, MAX_CHUNK_BYTES as u64)
+        .unwrap();
+    assert!(output.eof);
+    assert!(
+        String::from_utf8(output.bytes)
+            .unwrap()
+            .starts_with("---\nsource:")
+    );
+}
+
+#[test]
 fn failed_seal_is_terminal_and_drain_honors_caller_bound() {
     let mut invalid = mat_value(None);
     invalid["payloads"][0]["text"] = json!("\n\r\n");
