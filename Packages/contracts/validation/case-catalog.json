@@ -2,17 +2,93 @@
   "$schema": "../schemas/case-catalog.schema.json",
   "cases": [
     {
+      "category": "CORE",
+      "deviceRoles": [],
+      "executionTarget": "buildHost",
+      "expected": "The production Swift oracle and Rust core produce byte-identical logical paths, Markdown bytes, and hashes for every governed new-note text/link fixture, including the production final-newline consumer path.",
+      "id": "CORE-001",
+      "invariants": [
+        "INV-BOUND-CONTENT",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "milestone": "M2",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M2 exact Swift and Rust parity"
+    },
+    {
+      "category": "CORE",
+      "deviceRoles": [],
+      "executionTarget": "buildHost",
+      "expected": "Unsupported contract, profile, operation, version, or hash inputs fail with the specified typed incompatibility and produce no admissible plan or native side effect.",
+      "id": "CORE-002",
+      "invariants": [
+        "INV-BOUND-CONTENT",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "milestone": "M2",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M2 unsupported versions fail closed"
+    },
+    {
+      "category": "CORE",
+      "deviceRoles": [],
+      "executionTarget": "artifactBuildHost",
+      "expected": "Regenerating committed Swift and Kotlin UniFFI bindings from the pinned source and generator produces a zero-byte diff.",
+      "id": "CORE-003",
+      "invariants": [
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "milestone": "M2",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M2 generated binding drift"
+    },
+    {
+      "category": "CORE",
+      "deviceRoles": [],
+      "executionTarget": "buildHost",
+      "expected": "Readiness reports every independently versioned contract/profile/hash pin, and every mismatch makes the complete operation incompatible before materialization.",
+      "id": "CORE-004",
+      "invariants": [
+        "INV-BOUND-CONTENT",
+        "INV-PRIVACY-DIAGNOSTICS"
+      ],
+      "milestone": "M2",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M2 readiness pin completeness"
+    },
+    {
+      "category": "CORE",
+      "deviceRoles": [],
+      "executionTarget": "buildHost",
+      "expected": "Apple shadow mode returns legacy authority and performs no write, attachment copy, quota reservation, queue mutation, success reporting, or content/path logging while comparing the same frozen input.",
+      "id": "CORE-005",
+      "invariants": [
+        "INV-PRIVACY-DIAGNOSTICS",
+        "INV-SHADOW-NO-SIDE-EFFECTS"
+      ],
+      "milestone": "M2",
+      "providerApplicability": "none",
+      "required": true,
+      "title": "M2 Apple shadow side-effect isolation"
+    },
+    {
       "category": "REC",
       "deviceRoles": [
         "phone-low-api28",
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "After abrupt process kill and explicit relaunch, the durable prefix is recoverable with no more than two seconds lost.",
       "id": "REC-001",
       "invariants": [
         "INV-LAST-DURABLE-COPY"
       ],
+      "milestone": "M4",
       "providerApplicability": "none",
       "required": true,
       "title": "Abrupt process kill preserves recorder prefix"
@@ -24,11 +100,13 @@
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Explicit relaunch offers finalize, recover, or discard for the last durable prefix; continuous recording is not claimed.",
       "id": "REC-002",
       "invariants": [
         "INV-LAST-DURABLE-COPY"
       ],
+      "milestone": "M4",
       "providerApplicability": "none",
       "required": true,
       "title": "Force-stop and reboot recovery"
@@ -39,11 +117,13 @@
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Call interruption, device mic toggle, permission revocation, and zero input become distinct actionable durable states without deleting audio.",
       "id": "REC-003",
       "invariants": [
         "INV-LAST-DURABLE-COPY"
       ],
+      "milestone": "M4",
       "providerApplicability": "none",
       "required": true,
       "title": "Interruption, mic revoke, and zero-input handling"
@@ -54,12 +134,14 @@
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Attachments commit before note; each artifact and note is read back and length/hash verified.",
       "id": "SAF-001",
       "invariants": [
         "INV-LAST-DURABLE-COPY",
         "INV-BOUND-CONTENT"
       ],
+      "milestone": "M3",
       "providerApplicability": "allRequired",
       "required": true,
       "title": "Create new note and attachments with verification"
@@ -70,11 +152,13 @@
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Revoked permission enters needsPermission and the staged package remains recoverable through re-selection.",
       "id": "SAF-002",
       "invariants": [
         "INV-LAST-DURABLE-COPY"
       ],
+      "milestone": "M3",
       "providerApplicability": "allRequired",
       "required": true,
       "title": "Revoked grant preserves queue"
@@ -85,6 +169,7 @@
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "The operation completes or reaches durable retry/unknownOutcome within the watchdog without blocking UI or duplicating content.",
       "id": "SAF-003",
       "invariants": [
@@ -92,6 +177,7 @@
         "INV-NO-BLIND-RETRY",
         "INV-PRIVACY-DIAGNOSTICS"
       ],
+      "milestone": "M3",
       "providerApplicability": "nonLocalRequired",
       "required": true,
       "title": "Offline, slow, and eventually consistent provider"
@@ -102,6 +188,7 @@
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Injected crashes before, during, and immediately after commit reconcile using marker/hash/receipt or require explicit inspection.",
       "id": "SAF-004",
       "invariants": [
@@ -109,6 +196,7 @@
         "INV-NO-BLIND-RETRY",
         "INV-PRIVACY-DIAGNOSTICS"
       ],
+      "milestone": "M3",
       "providerApplicability": "allRequired",
       "required": true,
       "title": "Crash-window reconciliation"
@@ -118,6 +206,7 @@
       "deviceRoles": [
         "large-screen"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Rotation, resize, split-screen, background, and foreground transitions preserve the durable recording and editable capture state while warm and cold latency gates pass.",
       "id": "REC-004",
       "invariants": [
@@ -137,6 +226,7 @@
       "deviceRoles": [
         "large-screen"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Expanded, split-screen, and resized provider flows preserve staged content and finish or enter a durable actionable state without duplicate delivery.",
       "id": "SAF-005",
       "invariants": [
@@ -157,12 +247,14 @@
         "wear-reference",
         "wear-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Ten synthetic recordings remain recoverable through 72 hours disconnected and reconcile when the phone returns.",
       "id": "WEAR-001",
       "invariants": [
         "INV-LAST-DURABLE-COPY",
         "INV-WEAR-ACK-DELETE"
       ],
+      "milestone": "M7",
       "providerApplicability": "none",
       "required": true,
       "title": "Disconnected 72-hour and ten-recording retention"
@@ -173,6 +265,7 @@
         "wear-reference",
         "wear-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Duplicate/corrupt chunks are rejected or deduplicated and transfer resumes from durable frontiers with checksum verification.",
       "id": "WEAR-002",
       "invariants": [
@@ -180,6 +273,7 @@
         "INV-WEAR-ACK-DELETE",
         "INV-BOUND-CONTENT"
       ],
+      "milestone": "M7",
       "providerApplicability": "none",
       "required": true,
       "title": "Duplicate, corrupt, and resumed transfer"
@@ -190,12 +284,14 @@
         "wear-reference",
         "wear-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Phone reinstall cannot cause silent watch deletion; outstanding IDs and acknowledgements reconcile explicitly.",
       "id": "WEAR-003",
       "invariants": [
         "INV-LAST-DURABLE-COPY",
         "INV-WEAR-ACK-DELETE"
       ],
+      "milestone": "M7",
       "providerApplicability": "none",
       "required": true,
       "title": "Phone reinstall and acknowledgement reconciliation"
@@ -206,12 +302,14 @@
         "wear-reference",
         "wear-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Below the normal free-space floor, the watch offers explicit recovery/discard and never silently weakens acknowledgement-based deletion.",
       "id": "WEAR-004",
       "invariants": [
         "INV-LAST-DURABLE-COPY",
         "INV-WEAR-ACK-DELETE"
       ],
+      "milestone": "M7",
       "providerApplicability": "none",
       "required": true,
       "title": "Storage-pressure retention frontier"
@@ -221,11 +319,13 @@
       "deviceRoles": [
         "phone-low-api28"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Saved locally is not shown before the package is durable and p95 meets the gate.",
       "id": "PERF-001",
       "invariants": [
         "INV-LAST-DURABLE-COPY"
       ],
+      "milestone": "M3",
       "performanceGateIDs": [
         "enqueue-text-link-p95"
       ],
@@ -239,9 +339,11 @@
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Editable UI latency meets warm and cold gates.",
       "id": "PERF-002",
       "invariants": [],
+      "milestone": "M3",
       "performanceGateIDs": [
         "quick-capture-warm-p95",
         "quick-capture-cold-p95"
@@ -252,10 +354,9 @@
     },
     {
       "category": "PERF",
-      "deviceRoles": [
-        "phone-low-api28"
-      ],
-      "expected": "Streamed materialization meets latency, memory, chunk, and aggregate gates.",
+      "deviceRoles": [],
+      "executionTarget": "buildHost",
+      "expected": "The generated UniFFI Swift host consumer completes exact 1, 16, and 256 MiB streamed materializations with bounded complete chunks, verified output, twenty-sample 1 MiB latency, and unfiltered 256 MiB additional RSS within gates.",
       "id": "PERF-003",
       "invariants": [
         "INV-BOUND-CONTENT"
@@ -277,12 +378,14 @@
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Provider operation finishes or enters durable actionable state within the watchdog.",
       "id": "PERF-004",
       "invariants": [
         "INV-NO-BLIND-RETRY",
         "INV-PRIVACY-DIAGNOSTICS"
       ],
+      "milestone": "M3",
       "performanceGateIDs": [
         "saf-actionable-watchdog"
       ],
@@ -297,6 +400,7 @@
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "A 60-minute recording has bounded prefix loss, no thermal warning, and no unbounded memory growth.",
       "id": "PERF-005",
       "invariants": [
@@ -318,6 +422,7 @@
         "phone-current-pixel",
         "phone-current-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Declared launch model meets RTF, memory, and cancellation gates without network inference.",
       "id": "PERF-006",
       "invariants": [
@@ -339,6 +444,7 @@
         "wear-reference",
         "wear-samsung"
       ],
+      "executionTarget": "physicalDevice",
       "expected": "Recording endurance, battery, integrity, and stable-connection transfer gates pass.",
       "id": "PERF-007",
       "invariants": [
@@ -358,7 +464,8 @@
     {
       "category": "PERF",
       "deviceRoles": [],
-      "expected": "Source-built core artifacts remain within absolute and growth budgets.",
+      "executionTarget": "artifactBuildHost",
+      "expected": "Source-built core artifacts pass all six absolute leaf gates for an initial candidate; packaging growth applies only to a later identically scoped candidate compared with a governed approved baseline.",
       "id": "PERF-008",
       "invariants": [],
       "milestone": "M2",
@@ -399,11 +506,15 @@
       "text": "Privacy-governed evidence contains no captured content or storage handles because actual is structured vocabulary and every fixture/artifact is a strict canonical diagnostic summary with only allowlisted fields, enums, counts, and hashes."
     },
     {
+      "id": "INV-SHADOW-NO-SIDE-EFFECTS",
+      "text": "Shadow comparison cannot write files, copy attachments, reserve quota, mutate queues, alter success, or log captured content or logical/storage paths."
+    },
+    {
       "id": "INV-WEAR-ACK-DELETE",
       "text": "Wear source deletion requires durable correlated sourceDeletionAuthorized after vaultCommitted; storage pressure cannot silently weaken the threshold."
     }
   ],
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "statusVocabulary": [
     "passed",
     "failed",

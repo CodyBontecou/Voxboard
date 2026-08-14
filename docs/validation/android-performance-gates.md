@@ -1,92 +1,49 @@
 # Android/Wear performance gates
 
-Status: **M1 thresholds frozen; execution evidence belongs to dependent milestones**
+Status: **M2 evidence contract executable; no real M2 performance campaign recorded**
 
-The machine-readable authority is
-[`Packages/contracts/validation/performance-gates.json`](../../Packages/contracts/validation/performance-gates.json),
-validated against `performance-gates.schema.json` by
-`validate_validation_definitions.py`. This document explains the frozen values; it does
-not claim that an Android, Wear, Rust, provider, or physical-device run has occurred.
-Changing a threshold, method, scope, or required sample count requires a reviewed ADR
-before the dependent implementation begins.
+The machine authority is [`Packages/contracts/validation/performance-gates.json`](../../Packages/contracts/validation/performance-gates.json). Definition validation does not attest execution.
 
-## Measurement rules
+## Measurement derivation
 
-- Duration uses monotonic elapsed time around the named production path. Setup outside
-  that path is excluded only where the gate says so.
-- A p95 gate uses at least 20 independent runs after one untimed warm-up and the
-  nearest-rank value `sortedSamples[ceil(0.95 * n) - 1]`. The complete bounded sample
-  set is retained; outliers are not removed.
-- Maximum/minimum gates retain every value from the complete bounded run.
-- RSS is additional or peak resident bytes as named, sampled by the platform-appropriate
-  process metric. Thermal warnings and unbounded growth remain correctness failures,
-  not values hidden by the numerical aggregate.
-- A blocked/not-run campaign records no fabricated measurement and cannot pass an
-  applicable required gate.
+Executed measurements are summaries of strict typed receipts, never independent numeric assertions. The validator reloads the receipt named by each measurement derivation, derives the complete ordered samples, recomputes nearest-rank p95/minimum/maximum, and requires exact equality.
 
-## Frozen latency and resource thresholds
+M2 materialization uses the named generated-UniFFI host consumer `vox-core-uniffi-swift-host-v1`. Receipts bind clean source revision, executable, toolchain, exact recipe, deterministic synthetic generator, canonical per-run control document, generator-derived repeated-byte input stream, full ordered ingress/drain chunks, descriptor/output hashes, and completed drain. The validator derives control/input hashes from the governed seed instead of trusting arbitrary retained bytes. Chunks are 1..1,048,576 bytes, sequences start at zero and are contiguous through at most 262143, and every governed chunk contributes to `ffi-max-chunk`.
 
-| Gate ID | Milestone | Frozen threshold |
-|---|---:|---|
-| `enqueue-text-link-p95` | M3 | p95 ≤ 500 ms from Send to durable **Saved locally** for text/link on the low phone tier |
-| `quick-capture-warm-p95` | M3 | warm p95 ≤ 500 ms to editable UI |
-| `quick-capture-cold-p95` | M3 | cold p95 ≤ 1,500 ms to editable UI |
-| `rust-materialize-1mib-p95` | M2 | p95 ≤ 100 ms for 1 MiB new-note materialization |
-| `rust-materialize-additional-rss` | M2 | additional RSS ≤ 64 MiB |
-| `ffi-max-chunk` | M2 | every FFI chunk ≤ 1 MiB |
-| `materialization-max-aggregate` | M2 | accepted streamed aggregate ≥ 256 MiB; tests cover 1, 16, and 256 MiB inputs |
-| `saf-actionable-watchdog` | M3 | provider work completes or reaches durable actionable retry/`unknownOutcome` within 30 s, with no UI-thread provider I/O |
-| `recorder-session-duration` | M4 | continuous test duration ≥ 3,600 s |
-| `recorder-max-prefix-loss` | M4 | abrupt-process-loss durable prefix ≤ 2 s |
-| `asr-realtime-factor` | M4 | launch local model real-time factor ≤ 1.0 |
-| `asr-peak-rss` | M4 | peak RSS ≤ 1.25 GiB |
-| `asr-cancel-latency` | M4 | cancellation completes ≤ 2 s |
-| `wear-session-duration` | M7 | recording test duration ≥ 3,600 s |
-| `wear-battery-consumption` | M7 | normalized consumption ≤ 20% on every launch watch |
-| `wear-transfer-ingest` | M7 | transfer and phone ingest ≤ 600 s once stable connectivity is available |
+- `rust-materialize-1mib-p95`: at least twenty completed 1 MiB timed runs after exactly one first, uncounted warmup; nearest-rank p95 <= 100 ms.
+- `materialization-max-aggregate`: maximum over the **exact** successful set 1,048,576, 16,777,216, and 268,435,456 bytes; maximum >= 256 MiB. Missing, duplicate, or extra aggregate-coverage sizes fail.
+- `rust-materialize-additional-rss`: a dedicated completed 256 MiB production run. On macOS, `macosMachTaskResidentSizeSampled` starts at elapsed zero and retains every <=10 ms sample through a final verified-drain sample. Baseline is resident bytes immediately before opening the session; additional bytes are `max(0, max(baseline, all samples) - baseline)` and must be <=64 MiB.
 
-Recorder evidence also fails on a platform thermal warning, storage corruption, or
-unbounded memory growth. Wear evidence also fails on thermal warning or corruption.
-SAF campaigns record p50 and p95 for every required provider even though the hard
-watchdog is a maximum gate.
+Hosted validation additionally verifies the active GitHub Actions run/workflow/workspace, rehashes the retained executable and receipt-declared raw synthetic control/input/output, and rejects undeclared files under the non-symlink external artifact root.
 
-## Packaging budgets
+## Packaging baseline modes
 
-M1 freezes pre-implementation uncompressed release-artifact ceilings:
+Exactly six ordered nonzero leaves are required: four Android ABIs, iOS device arm64, and combined iOS Simulator arm64+x86_64. Candidate bytes and SHA-256 are derived from the native inspection receipt; Apple aggregate is the sum of its two leaves. Hosted reinspection parses ELF section/dynamic-symbol/dependency tables, Mach-O build-version/symbol/load commands inside bounded archives and fat slices, and the retained XCFramework `Info.plist`; receipt check labels cannot substitute for those observations.
 
-| Scope/gate | Maximum bytes |
-|---|---:|
-| Android `arm64-v8a` (`android-core-arm64-uncompressed`) | 12 MiB |
-| Android `armeabi-v7a` (`android-core-armv7-uncompressed`) | 10 MiB |
-| Android `x86_64` (`android-core-x86_64-uncompressed`) | 14 MiB |
-| Android `x86` (`android-core-x86-uncompressed`) | 12 MiB |
-| Apple XCFramework aggregate (`apple-xcframework-aggregate`) | 60 MiB |
-| Apple individual/combined library slice (`apple-xcframework-per-slice`) | 15 MiB |
-| Each identically scoped artifact (`packaging-growth`) | unexplained growth ≤ 10% |
+- `initialCandidate`: candidate-only and allowed only while no governed registry exists. It passes the absolute gates and forbids baseline or growth data. It does not become an approved future baseline merely by passing.
+- `approvedBaselineComparison`: requires a separate governed, really approved baseline registry. Baseline identity must match every scope, toolchain, configuration, feature set, byte count, hash, and source revision. The unchanged growth gate is maximum `((candidate-baseline)/baseline)*100 <= 10` across all six leaves.
 
-The exact Apple leaf set is iOS device arm64 and one combined iOS Simulator
-arm64+x86_64 library slice. Packaging evidence binds clean baseline and candidate files,
-source revisions, pinned toolchain, configuration, features, artifact identity, actual
-byte counts, and SHA-256. The first M2 core has no honest predecessor artifact. Its six nonzero artifacts must
-pass these exact absolute gates without a percentage comparison; a zero-byte or
-planning-parent pseudo-artifact is forbidden. Once approved, that exact first-core
-artifact set becomes the future identically scoped percentage baseline. Every later
-artifact must pass both its absolute gate and the unchanged 10% growth gate.
+No registry is committed by this contract-only slice because no real baseline has been adopted.
 
-## Deferred launch-model package budget
+## Scope and qualification
 
-`local-asr-model-package` is intentionally the sole deferred required budget. Before M4
-starts, an accepted model/tier decision must freeze package size using measured license,
-quality, runtime, memory, and supported-device evidence. Deferral of this numerical
-budget does not permit remote inference or a silent unsupported tier.
+A `milestoneClosure` aggregate derives all required cases through its milestone. M2 selects `CORE-001` through `CORE-005`, `PERF-003`, and `PERF-008`; a `caseExecution` aggregate is a shard/rerun and cannot claim closure. Therefore package/performance evidence alone is explicitly incomplete.
 
-## Executable gate
+Qualification is independent of technical status:
+
+1. `repositoryObservation`: canonical committed receipts validate; unretained binaries are not independently rehashed. Empty approvals are required.
+2. `hostedRun`: exact workflow/run identity is bound and external retained artifacts are rehashed. Empty approvals are allowed.
+3. `releaseGate`: hosted facts plus real, unexpired definition/campaign/release approvals bound to exact hashes.
+
+A technically passed repository observation is not hosted or release qualification. M2 exit requires a real hosted M2-closure campaign.
+
+## Remaining gates
+
+All M3+ duration, recorder, SAF, ASR, Wear battery/transfer, physical-device, provider, and thermal requirements remain unchanged and require their real target identities. Blocked/not-run evidence records no fabricated samples.
+
+## Commands
 
 ```sh
 python3 Packages/contracts/scripts/validate_validation_definitions.py
 python3 -m unittest discover -s Packages/contracts/tests -p 'test_validation_definitions.py' -v
 ```
-
-Campaign evidence later runs the same validator with `--campaign-dir`. The validator
-checks declared sampling methods/counts, computes the statistic, binds packaging files
-and hashes, and recomputes aggregate status.

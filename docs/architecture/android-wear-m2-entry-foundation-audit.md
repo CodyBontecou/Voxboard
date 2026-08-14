@@ -7,11 +7,11 @@ This slice adds governed UniFFI 0.32.0 Swift/Kotlin generation, byte-identical d
 checks, exact four-ABI Android API-28 builds, exact two-leaf iOS 17.6 static XCFramework
 packaging, inspection tooling/evidence, and path-filtered Rust CI.
 
-The local source-built inspection record is
-`docs/validation/evidence/m2-local-native-package-inspection.json`. It records actual
-nonzero leaf sizes/hashes and absolute results without inventing predecessor growth,
-approvals, or device facts. PERF-008 is not claimed because the current campaign evidence
-contract cannot represent first-core evidence without a baseline/candidate pair.
+The former detached local inspection record was removed because it was not a canonical
+campaign receipt and referenced an unreproducible source revision. The evidence contract
+now represents a first core honestly as `initialCandidate`, with six absolute leaves and no
+predecessor or growth assertion. No real `PERF-008` campaign is claimed until the tracked
+producer emits the typed receipt in a bound hosted run with retained source-built artifacts.
 
 Native binaries are never committed. Generated binding source is committed. The Rust
 contract mirror alone is promoted to required through an executable Rust test consumer;

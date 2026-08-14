@@ -10,10 +10,19 @@
       "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
   ],
-  "buildSignatureSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "buildHost": null,
+  "buildIdentity": {
+    "buildRecipeSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "buildSignatureSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "executableSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "kind": "signedApplication",
+    "signedBuildID": "synthetic-signed-build",
+    "sourceRevision": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "sourceTreeState": "clean",
+    "toolchainManifestSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
   "campaignID": "synthetic-campaign",
   "caseID": "REC-001",
-  "commitSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "completedAt": "2029-01-01T00:01:00Z",
   "contractManifestSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "device": {
@@ -29,6 +38,7 @@
   },
   "deviceRoleID": "phone-low-api28",
   "evidenceID": "synthetic-rec-001",
+  "executionProvenance": null,
   "expected": "Synthetic durable prefix expectation",
   "fixtureHashes": [
     {
@@ -42,12 +52,13 @@
       "passed": true
     }
   ],
+  "materializationRunSet": null,
   "measurements": [],
+  "nativePackageInspection": null,
   "operator": "synthetic-operator",
   "provider": null,
   "providerID": null,
-  "schemaVersion": 1,
-  "signedBuildID": "synthetic-signed-build",
+  "schemaVersion": 2,
   "startedAt": "2029-01-01T00:00:00Z",
   "status": "passed"
 }

@@ -1,17 +1,104 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://vox.md/contracts/schemas/case-evidence-requirements.schema.json",
-  "type": "object",
-  "required": ["$schema", "schemaVersion", "policyID", "recordSchema", "statusVocabulary", "requiredCampaignFacts", "placeholderTokensRejected", "privacyForbiddenKinds"],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
-    "$schema": {"const": "../schemas/case-evidence-requirements.schema.json"},
-    "schemaVersion": {"const": 1},
-    "policyID": {"type": "string", "minLength": 1},
-    "recordSchema": {"const": "../schemas/case-evidence.schema.json"},
-    "statusVocabulary": {"const": ["passed", "failed", "blocked", "notRun", "notApplicable"]},
-    "requiredCampaignFacts": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
-    "placeholderTokensRejected": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
-    "privacyForbiddenKinds": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
-  }
+    "$schema": {
+      "const": "../schemas/case-evidence-requirements.schema.json"
+    },
+    "buildHostRequiredFacts": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "hostedRequiredFacts": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "physicalDeviceRequiredFacts": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "placeholderTokensRejected": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "policyID": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "privacyForbiddenKinds": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "recordSchema": {
+      "const": "../schemas/case-evidence.schema.json"
+    },
+    "schemaVersion": {
+      "const": 2
+    },
+    "statusVocabulary": {
+      "const": [
+        "passed",
+        "failed",
+        "blocked",
+        "notRun",
+        "notApplicable"
+      ]
+    },
+    "typedReceiptRequirements": {
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "policyID",
+    "recordSchema",
+    "statusVocabulary",
+    "buildHostRequiredFacts",
+    "physicalDeviceRequiredFacts",
+    "hostedRequiredFacts",
+    "typedReceiptRequirements",
+    "placeholderTokensRejected",
+    "privacyForbiddenKinds"
+  ],
+  "title": "Conditional case evidence fact policy",
+  "type": "object"
 }

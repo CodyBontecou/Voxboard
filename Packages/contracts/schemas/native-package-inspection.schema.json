@@ -1,0 +1,342 @@
+{
+  "$defs": {
+    "baseline": {
+      "additionalProperties": false,
+      "properties": {
+        "approvedRegistrySha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "artifactSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "sourceRevision": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "approvedRegistrySha256",
+        "sourceRevision",
+        "bytes",
+        "artifactSha256"
+      ],
+      "type": "object"
+    },
+    "buildHost": {
+      "additionalProperties": false,
+      "properties": {
+        "architecture": {
+          "maxLength": 64,
+          "minLength": 2,
+          "type": "string"
+        },
+        "cpuModel": {
+          "maxLength": 256,
+          "minLength": 2,
+          "type": "string"
+        },
+        "logicalCPUCount": {
+          "maximum": 4096,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "osName": {
+          "maxLength": 64,
+          "minLength": 2,
+          "type": "string"
+        },
+        "osVersion": {
+          "maxLength": 128,
+          "minLength": 2,
+          "type": "string"
+        },
+        "totalMemoryBytes": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "osName",
+        "osVersion",
+        "architecture",
+        "cpuModel",
+        "logicalCPUCount",
+        "totalMemoryBytes"
+      ],
+      "type": "object"
+    },
+    "leaf": {
+      "additionalProperties": false,
+      "properties": {
+        "architectures": {
+          "items": {
+            "enum": [
+              "arm64",
+              "armv7",
+              "x86",
+              "x86_64"
+            ]
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "artifactID": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$",
+          "type": "string"
+        },
+        "baseline": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/baseline"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "format": {
+          "enum": [
+            "elf-shared-object",
+            "apple-static-library"
+          ]
+        },
+        "gateID": {
+          "enum": [
+            "android-core-arm64-uncompressed",
+            "android-core-armv7-uncompressed",
+            "android-core-x86_64-uncompressed",
+            "android-core-x86-uncompressed",
+            "apple-xcframework-per-slice"
+          ]
+        },
+        "inspectionChecks": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "enum": [
+                  "architecture",
+                  "binaryFormat",
+                  "definedUniFFISymbols",
+                  "dependencyAllowlist",
+                  "deploymentTarget",
+                  "archiveMembers",
+                  "xcframeworkMetadata"
+                ]
+              },
+              "result": {
+                "const": "passed"
+              }
+            },
+            "required": [
+              "code",
+              "result"
+            ],
+            "type": "object"
+          },
+          "maxItems": 16,
+          "minItems": 3,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "relativeArtifactPath": {
+          "$ref": "#/$defs/path"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "targetScope": {
+          "enum": [
+            "arm64-v8a",
+            "armeabi-v7a",
+            "x86_64",
+            "x86",
+            "xcframework-ios-device-arm64",
+            "xcframework-ios-simulator-arm64-x86_64"
+          ]
+        }
+      },
+      "required": [
+        "artifactID",
+        "relativeArtifactPath",
+        "gateID",
+        "targetScope",
+        "architectures",
+        "format",
+        "bytes",
+        "sha256",
+        "inspectionChecks",
+        "baseline"
+      ],
+      "type": "object"
+    },
+    "path": {
+      "maxLength": 512,
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*//)(?!.*[/]$)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\x00-\\x1f\\x7f\\\\]).+$",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://vox.md/contracts/schemas/native-package-inspection.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "appleAggregateBytes": {
+      "minimum": 2,
+      "type": "integer"
+    },
+    "buildConfiguration": {
+      "const": "release-stripped"
+    },
+    "buildHost": {
+      "$ref": "#/$defs/buildHost"
+    },
+    "buildRecipeSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "candidateLeaves": {
+      "items": {
+        "$ref": "#/$defs/leaf"
+      },
+      "maxItems": 6,
+      "minItems": 6,
+      "type": "array"
+    },
+    "comparisonMode": {
+      "enum": [
+        "initialCandidate",
+        "approvedBaselineComparison"
+      ]
+    },
+    "featureSet": {
+      "const": "default-features"
+    },
+    "format": {
+      "const": "vox-m2-native-package-inspection-v1"
+    },
+    "inspectorSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "retention": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "notRetained"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "archiveSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "artifactName": {
+              "maxLength": 256,
+              "minLength": 2,
+              "type": "string"
+            },
+            "kind": {
+              "const": "hostedArtifact"
+            },
+            "retentionExpiresAt": {
+              "format": "date-time",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$",
+              "type": "string"
+            },
+            "runAttempt": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "runID": {
+              "pattern": "^[1-9][0-9]{0,19}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "runID",
+            "runAttempt",
+            "artifactName",
+            "archiveSha256",
+            "retentionExpiresAt"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "sourceRevision": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "sourceTreeState": {
+      "const": "clean"
+    },
+    "toolchainManifestSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "xcframeworkMetadata": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "relativeArtifactPath": {
+          "$ref": "#/$defs/path"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "relativeArtifactPath",
+        "bytes",
+        "sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "format",
+    "comparisonMode",
+    "sourceRevision",
+    "sourceTreeState",
+    "toolchainManifestSha256",
+    "buildRecipeSha256",
+    "inspectorSha256",
+    "buildHost",
+    "buildConfiguration",
+    "featureSet",
+    "candidateLeaves",
+    "appleAggregateBytes",
+    "xcframeworkMetadata",
+    "retention"
+  ],
+  "title": "M2 native package inspection receipt",
+  "type": "object"
+}

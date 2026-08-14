@@ -12,7 +12,8 @@
           "type": "string"
         },
         "requiredBeforeMilestone": {
-          "pattern": "^M[0-9]+$"
+          "pattern": "^M(?:[0-9]|10)$",
+          "type": "string"
         }
       },
       "required": [
@@ -43,9 +44,11 @@
           ]
         },
         "milestone": {
-          "pattern": "^M[0-9]+$"
+          "pattern": "^M(?:[0-9]|10)$",
+          "type": "string"
         },
         "minimumSamples": {
+          "maximum": 1000000,
           "minimum": 1,
           "type": "integer"
         },
@@ -54,6 +57,16 @@
             "lessThanOrEqual",
             "greaterThanOrEqual"
           ]
+        },
+        "requiredSampleValues": {
+          "items": {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
         },
         "samplingMethod": {
           "minLength": 20,
@@ -104,6 +117,9 @@
           "minLength": 80,
           "type": "string"
         },
+        "growthAppliesWhen": {
+          "const": "approvedBaselineComparison"
+        },
         "id": {
           "const": "m2-first-core-packaging-baseline-v1"
         },
@@ -153,6 +169,7 @@
         "initializationMode",
         "initializationRule",
         "futureGrowthRule",
+        "growthAppliesWhen",
         "requiredIdentityFields",
         "requiredHashFields",
         "requiredLeafScopes"
@@ -200,6 +217,7 @@
       "items": {
         "$ref": "#/$defs/deferred"
       },
+      "maxItems": 32,
       "type": "array"
     },
     "gateSetID": {
@@ -210,6 +228,7 @@
       "items": {
         "$ref": "#/$defs/gate"
       },
+      "maxItems": 128,
       "minItems": 1,
       "type": "array"
     },
@@ -217,7 +236,7 @@
       "$ref": "#/$defs/packagingBaselinePolicy"
     },
     "schemaVersion": {
-      "const": 1
+      "const": 2
     }
   },
   "required": [

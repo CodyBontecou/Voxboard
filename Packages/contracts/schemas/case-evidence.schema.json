@@ -1,5 +1,129 @@
 {
   "$defs": {
+    "buildHost": {
+      "additionalProperties": false,
+      "properties": {
+        "architecture": {
+          "maxLength": 64,
+          "minLength": 2,
+          "type": "string"
+        },
+        "cpuModel": {
+          "maxLength": 256,
+          "minLength": 2,
+          "type": "string"
+        },
+        "logicalCPUCount": {
+          "maximum": 4096,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "osName": {
+          "maxLength": 64,
+          "minLength": 2,
+          "type": "string"
+        },
+        "osVersion": {
+          "maxLength": 128,
+          "minLength": 2,
+          "type": "string"
+        },
+        "totalMemoryBytes": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "osName",
+        "osVersion",
+        "architecture",
+        "cpuModel",
+        "logicalCPUCount",
+        "totalMemoryBytes"
+      ],
+      "type": "object"
+    },
+    "buildIdentity": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "buildRecipeSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "executableSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "kind": {
+              "const": "sourceBuiltHost"
+            },
+            "sourceRevision": {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": "string"
+            },
+            "sourceTreeState": {
+              "const": "clean"
+            },
+            "toolchainManifestSha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "required": [
+            "kind",
+            "sourceRevision",
+            "sourceTreeState",
+            "toolchainManifestSha256",
+            "buildRecipeSha256",
+            "executableSha256"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "buildRecipeSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "buildSignatureSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "executableSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "kind": {
+              "const": "signedApplication"
+            },
+            "signedBuildID": {
+              "$ref": "#/$defs/nonPlaceholder"
+            },
+            "sourceRevision": {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": "string"
+            },
+            "sourceTreeState": {
+              "const": "clean"
+            },
+            "toolchainManifestSha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "required": [
+            "kind",
+            "sourceRevision",
+            "sourceTreeState",
+            "toolchainManifestSha256",
+            "buildRecipeSha256",
+            "executableSha256",
+            "signedBuildID",
+            "buildSignatureSha256"
+          ],
+          "type": "object"
+        }
+      ]
+    },
     "device": {
       "additionalProperties": false,
       "properties": {
@@ -51,7 +175,7 @@
       "additionalProperties": false,
       "properties": {
         "id": {
-          "$ref": "#/$defs/nonPlaceholder"
+          "$ref": "#/$defs/safePath"
         },
         "sha256": {
           "$ref": "#/$defs/sha256"
@@ -66,6 +190,39 @@
     "measurement": {
       "additionalProperties": false,
       "properties": {
+        "derivation": {
+          "additionalProperties": false,
+          "properties": {
+            "runIDs": {
+              "items": {
+                "pattern": "^[a-z][a-z0-9-]{1,63}$",
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "selector": {
+              "enum": [
+                "durationMilliseconds",
+                "additionalRSSBytes",
+                "ffiChunkBytes",
+                "acceptedAggregateInputBytes",
+                "candidateArtifactBytes",
+                "packagingGrowthPercent"
+              ]
+            },
+            "sourceArtifactID": {
+              "$ref": "#/$defs/safePath"
+            }
+          },
+          "required": [
+            "sourceArtifactID",
+            "selector",
+            "runIDs"
+          ],
+          "type": "object"
+        },
         "gateID": {
           "$ref": "#/$defs/nonPlaceholder"
         },
@@ -82,6 +239,7 @@
           "items": {
             "type": "number"
           },
+          "maxItems": 1000000,
           "minItems": 1,
           "type": "array"
         },
@@ -120,79 +278,21 @@
         "unit",
         "scope",
         "sampleValues",
-        "samplingMethod"
+        "samplingMethod",
+        "derivation"
       ],
       "type": "object"
     },
     "nonPlaceholder": {
       "minLength": 2,
-      "pattern": "(?i)^(?!.*(?:tbd|todo|placeholder|dummy|changeme|example|n/a|not[-_ ]?set)).+$",
+      "pattern": "^(?!.*(?:[Tt][Bb][Dd]|[Tt][Oo][Dd][Oo]|[Uu][Nn][Kk][Nn][Oo][Ww][Nn]|[Pp][Ll][Aa][Cc][Ee][Hh][Oo][Ll][Dd][Ee][Rr]|[Dd][Uu][Mm][Mm][Yy]|[Cc][Hh][Aa][Nn][Gg][Ee][Mm][Ee]|[Ee][Xx][Aa][Mm][Pp][Ll][Ee]|[Nn]/[Aa]|[Nn][Oo][Tt][-_ ]?[Ss][Ee][Tt])).+$",
       "type": "string"
     },
-    "packagingBaseline": {
-      "additionalProperties": false,
-      "properties": {
-        "artifactID": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "baselineArtifactSha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "baselineBytes": {
-          "minimum": 1,
-          "type": "integer"
-        },
-        "baselineRevision": {
-          "pattern": "^[0-9a-f]{40}$",
-          "type": "string"
-        },
-        "buildConfiguration": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "candidateArtifactSha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "candidateBytes": {
-          "minimum": 1,
-          "type": "integer"
-        },
-        "candidateRevision": {
-          "pattern": "^[0-9a-f]{40}$",
-          "type": "string"
-        },
-        "featureSet": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "gateID": {
-          "pattern": "^[a-z0-9_]+(?:-[a-z0-9_]+)*$",
-          "type": "string"
-        },
-        "policyID": {
-          "const": "m2-first-core-packaging-baseline-v1"
-        },
-        "targetScope": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "toolchainID": {
-          "$ref": "#/$defs/nonPlaceholder"
-        }
-      },
-      "required": [
-        "policyID",
-        "gateID",
-        "baselineRevision",
-        "candidateRevision",
-        "toolchainID",
-        "targetScope",
-        "buildConfiguration",
-        "featureSet",
-        "artifactID",
-        "baselineBytes",
-        "candidateBytes",
-        "baselineArtifactSha256",
-        "candidateArtifactSha256"
-      ],
-      "type": "object"
+    "safePath": {
+      "maxLength": 512,
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*//)(?!.*[/]$)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\x00-\\x1f\\x7f\\\\]).+$",
+      "type": "string"
     },
     "sha256": {
       "pattern": "^[0-9a-f]{64}$",
@@ -238,21 +338,29 @@
       "items": {
         "$ref": "#/$defs/hashRef"
       },
+      "maxItems": 128,
       "minItems": 1,
       "type": "array",
       "uniqueItems": true
     },
-    "buildSignatureSha256": {
-      "$ref": "#/$defs/sha256"
+    "buildHost": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/buildHost"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "buildIdentity": {
+      "$ref": "#/$defs/buildIdentity"
     },
     "campaignID": {
       "$ref": "#/$defs/nonPlaceholder"
     },
     "caseID": {
-      "pattern": "^(REC|SAF|WEAR|PERF)-[0-9]{3}$"
-    },
-    "commitSha": {
-      "pattern": "^[0-9a-f]{40}$",
+      "pattern": "^(CORE|REC|SAF|WEAR|PERF)-[0-9]{3}$",
       "type": "string"
     },
     "completedAt": {
@@ -283,6 +391,16 @@
     "evidenceID": {
       "$ref": "#/$defs/nonPlaceholder"
     },
+    "executionProvenance": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/hashRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "expected": {
       "$ref": "#/$defs/nonPlaceholder"
     },
@@ -290,6 +408,7 @@
       "items": {
         "$ref": "#/$defs/hashRef"
       },
+      "maxItems": 128,
       "minItems": 1,
       "type": "array",
       "uniqueItems": true
@@ -299,7 +418,8 @@
         "additionalProperties": false,
         "properties": {
           "invariantID": {
-            "pattern": "^INV-[A-Z0-9-]+$"
+            "pattern": "^INV-[A-Z0-9-]+$",
+            "type": "string"
           },
           "passed": {
             "type": "boolean"
@@ -311,15 +431,37 @@
         ],
         "type": "object"
       },
+      "maxItems": 32,
       "type": "array",
       "uniqueItems": true
+    },
+    "materializationRunSet": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/hashRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "measurements": {
       "items": {
         "$ref": "#/$defs/measurement"
       },
+      "maxItems": 32,
       "type": "array",
       "uniqueItems": true
+    },
+    "nativePackageInspection": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/hashRef"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "notApplicableRule": {
       "minLength": 1,
@@ -328,43 +470,39 @@
     "operator": {
       "$ref": "#/$defs/nonPlaceholder"
     },
-    "packagingBaselines": {
-      "items": {
-        "$ref": "#/$defs/packagingBaseline"
-      },
-      "maxItems": 16,
-      "minItems": 1,
-      "type": "array"
-    },
     "provider": {
-      "additionalProperties": false,
-      "properties": {
-        "authority": {
-          "$ref": "#/$defs/nonPlaceholder"
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "authority": {
+              "$ref": "#/$defs/nonPlaceholder"
+            },
+            "installedPackageVersion": {
+              "$ref": "#/$defs/nonPlaceholder"
+            },
+            "packageName": {
+              "$ref": "#/$defs/nonPlaceholder"
+            },
+            "providerID": {
+              "$ref": "#/$defs/nonPlaceholder"
+            },
+            "signingCertificateSha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "required": [
+            "providerID",
+            "authority",
+            "packageName",
+            "installedPackageVersion",
+            "signingCertificateSha256"
+          ],
+          "type": "object"
         },
-        "installedPackageVersion": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "packageName": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "providerID": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "signingCertificateSha256": {
-          "$ref": "#/$defs/sha256"
+        {
+          "type": "null"
         }
-      },
-      "required": [
-        "providerID",
-        "authority",
-        "packageName",
-        "installedPackageVersion",
-        "signingCertificateSha256"
-      ],
-      "type": [
-        "object",
-        "null"
       ]
     },
     "providerID": {
@@ -375,10 +513,7 @@
       ]
     },
     "schemaVersion": {
-      "const": 1
-    },
-    "signedBuildID": {
-      "$ref": "#/$defs/nonPlaceholder"
+      "const": 2
     },
     "startedAt": {
       "format": "date-time",
@@ -404,20 +539,23 @@
     "deviceRoleID",
     "providerID",
     "status",
-    "commitSha",
     "contractManifestSha256",
-    "signedBuildID",
-    "buildSignatureSha256",
+    "buildIdentity",
     "operator",
     "startedAt",
     "completedAt",
     "device",
+    "buildHost",
+    "provider",
     "expected",
     "actual",
     "fixtureHashes",
     "measurements",
     "invariantResults",
-    "artifacts"
+    "artifacts",
+    "executionProvenance",
+    "materializationRunSet",
+    "nativePackageInspection"
   ],
   "title": "Completed synthetic or physical validation case evidence",
   "type": "object"

@@ -1,17 +1,29 @@
 {
   "$schema": "../schemas/case-evidence-requirements.schema.json",
-  "schemaVersion": 1,
-  "policyID": "android-wear-case-evidence-policy-v1",
-  "recordSchema": "../schemas/case-evidence.schema.json",
-  "statusVocabulary": ["passed", "failed", "blocked", "notRun", "notApplicable"],
-  "requiredCampaignFacts": [
-    "commitSha",
-    "contractManifestSha256",
-    "signedBuildID",
-    "buildSignatureSha256",
-    "operator",
-    "startedAt",
-    "completedAt",
+  "buildHostRequiredFacts": [
+    "buildIdentity.sourceRevision",
+    "buildIdentity.sourceTreeState",
+    "buildIdentity.toolchainManifestSha256",
+    "buildIdentity.buildRecipeSha256",
+    "buildIdentity.executableSha256",
+    "buildHost.osName",
+    "buildHost.osVersion",
+    "buildHost.architecture",
+    "buildHost.cpuModel",
+    "buildHost.logicalCPUCount",
+    "buildHost.totalMemoryBytes"
+  ],
+  "hostedRequiredFacts": [
+    "qualification.runID",
+    "qualification.runAttempt",
+    "qualification.workflowRepositoryPath",
+    "qualification.workflowSha256",
+    "qualification.artifactArchivePath",
+    "qualification.artifactArchiveSha256"
+  ],
+  "physicalDeviceRequiredFacts": [
+    "buildIdentity.signedBuildID",
+    "buildIdentity.buildSignatureSha256",
     "device.serialHash",
     "device.osVersion",
     "device.apiLevel",
@@ -19,6 +31,39 @@
     "provider.installedPackageVersion",
     "provider.signingCertificateSha256"
   ],
-  "placeholderTokensRejected": ["tbd", "todo", "unknown", "placeholder"],
-  "privacyForbiddenKinds": ["noteText", "transcriptText", "audio", "filename", "path", "uri", "documentID", "bookmark", "coordinate", "rawWearPayload"]
+  "placeholderTokensRejected": [
+    "tbd",
+    "todo",
+    "unknown",
+    "placeholder"
+  ],
+  "policyID": "android-wear-case-evidence-policy-v2",
+  "privacyForbiddenKinds": [
+    "noteText",
+    "transcriptText",
+    "audio",
+    "filename",
+    "path",
+    "uri",
+    "documentID",
+    "bookmark",
+    "coordinate",
+    "rawWearPayload"
+  ],
+  "recordSchema": "../schemas/case-evidence.schema.json",
+  "schemaVersion": 2,
+  "statusVocabulary": [
+    "passed",
+    "failed",
+    "blocked",
+    "notRun",
+    "notApplicable"
+  ],
+  "typedReceiptRequirements": [
+    "CORE-001 through CORE-005 require named production-test artifacts before M2 closure can pass.",
+    "PERF-003 requires execution provenance and materialization run-set receipts when executed.",
+    "PERF-008 requires execution provenance and native package inspection receipts when executed.",
+    "Every executed measurement derives its complete numeric samples from its referenced typed receipt.",
+    "Hosted qualification rehashes declared external artifacts before they are removed."
+  ]
 }

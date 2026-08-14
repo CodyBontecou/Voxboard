@@ -20,7 +20,7 @@
         "required": ["code", "result", "count"],
         "additionalProperties": false,
         "properties": {
-          "code": {"enum": ["durability", "integrity", "bounds", "privacyFormat", "providerReceipt", "wearAcknowledgement", "performanceGate"]},
+          "code": {"enum": ["durability", "integrity", "bounds", "privacyFormat", "providerReceipt", "wearAcknowledgement", "performanceGate", "swiftRustParity", "unsupportedVersionFailClosed", "bindingDrift", "readinessPins", "shadowSideEffects"]},
           "result": {"enum": ["passed", "failed", "blocked", "notRun", "notApplicable"]},
           "count": {"type": "integer", "minimum": 0, "maximum": 1000000}
         }

@@ -1,10 +1,21 @@
 {
   "$schema": "https://vox.md/contracts/schemas/aggregate.schema.json",
-  "schemaVersion": 1,
+  "approvalHashes": [
+    {
+      "id": "approval-0",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "approval-1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    {
+      "id": "approval-2",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
   "campaignID": "synthetic-campaign",
-  "status": "incomplete",
   "definitionAggregateSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-  "evidenceAggregateSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "definitionHashes": [
     {
       "id": "definition-0",
@@ -35,29 +46,27 @@
       "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     }
   ],
+  "evidenceAggregateSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "evidenceHashes": [],
-  "approvalHashes": [
-    {
-      "id": "approval-0",
-      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    },
-    {
-      "id": "approval-1",
-      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    },
-    {
-      "id": "approval-2",
-      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    }
-  ],
-  "requiredTuples": [],
-  "requiredTupleCounts": {
-    "total": 1,
-    "passed": 1,
-    "failed": 0,
-    "blocked": 0,
-    "incomplete": 0
-  },
   "failedInvariantIDs": [],
-  "generatedAt": "2029-01-01T01:00:00Z"
+  "generatedAt": "2029-01-01T01:00:00Z",
+  "qualification": {
+    "level": "repositoryObservation"
+  },
+  "requiredTupleCounts": {
+    "blocked": 0,
+    "failed": 0,
+    "incomplete": 0,
+    "passed": 1,
+    "total": 1
+  },
+  "requiredTuples": [],
+  "schemaVersion": 2,
+  "scope": {
+    "caseIDs": [
+      "REC-001"
+    ],
+    "claim": "caseExecution"
+  },
+  "status": "incomplete"
 }

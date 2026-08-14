@@ -1,0 +1,403 @@
+{
+  "$defs": {
+    "chunk": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "maximum": 1048576,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "sequence": {
+          "maximum": 262143,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "sequence",
+        "bytes",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "controlDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "operation": {
+          "const": "newNoteTextLink"
+        },
+        "profileVersion": {
+          "const": "apple-parity-v1"
+        },
+        "purpose": {
+          "enum": [
+            "warmup",
+            "latency",
+            "aggregateCoverage",
+            "resource"
+          ]
+        },
+        "runID": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "type": "string"
+        },
+        "streamBytes": {
+          "maximum": 268435456,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "syntheticSeedSha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "operation",
+        "profileVersion",
+        "runID",
+        "purpose",
+        "streamBytes",
+        "syntheticSeedSha256"
+      ],
+      "type": "object"
+    },
+    "path": {
+      "maxLength": 512,
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*//)(?!.*[/]$)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\x00-\\x1f\\x7f\\\\]).+$",
+      "type": "string"
+    },
+    "rss": {
+      "additionalProperties": false,
+      "properties": {
+        "additionalBytes": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "baselineBytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "baselineDefinition": {
+          "const": "resident bytes immediately before opening the measured production session"
+        },
+        "method": {
+          "const": "macosMachTaskResidentSizeSampled"
+        },
+        "peakBytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "sampleIntervalNanoseconds": {
+          "maximum": 10000000,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "samples": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "elapsedNanoseconds": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "residentBytes": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "elapsedNanoseconds",
+              "residentBytes"
+            ],
+            "type": "object"
+          },
+          "maxItems": 1000000,
+          "minItems": 2,
+          "type": "array"
+        }
+      },
+      "required": [
+        "method",
+        "baselineDefinition",
+        "baselineBytes",
+        "sampleIntervalNanoseconds",
+        "samples",
+        "peakBytes",
+        "additionalBytes"
+      ],
+      "type": "object"
+    },
+    "run": {
+      "additionalProperties": false,
+      "properties": {
+        "controlBytes": {
+          "maximum": 1048576,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "controlDocument": {
+          "$ref": "#/$defs/controlDocument"
+        },
+        "controlSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "controlArtifactPath": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/path"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "drainChunkManifestSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "drainChunks": {
+          "items": {
+            "$ref": "#/$defs/chunk"
+          },
+          "maxItems": 262144,
+          "minItems": 1,
+          "type": "array"
+        },
+        "durationNanoseconds": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "ingressChunkManifestSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "ingressChunks": {
+          "items": {
+            "$ref": "#/$defs/chunk"
+          },
+          "maxItems": 262144,
+          "minItems": 1,
+          "type": "array"
+        },
+        "inputArtifactPath": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/path"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "outputArtifactPath": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/path"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "outputBytes": {
+          "maximum": 268435456,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "outputSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "purpose": {
+          "enum": [
+            "warmup",
+            "latency",
+            "aggregateCoverage",
+            "resource"
+          ]
+        },
+        "rss": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/rss"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "runID": {
+          "pattern": "^[a-z][a-z0-9-]{1,63}$",
+          "type": "string"
+        },
+        "status": {
+          "const": "completed"
+        },
+        "streamBytes": {
+          "maximum": 268435456,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "streamSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "totalInputBytes": {
+          "maximum": 269484032,
+          "minimum": 2,
+          "type": "integer"
+        },
+        "totalInputSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "verifiedDrain": {
+          "additionalProperties": false,
+          "properties": {
+            "descriptorOutputBytes": {
+              "maximum": 268435456,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "descriptorOutputSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "terminalState": {
+              "const": "completed"
+            }
+          },
+          "required": [
+            "descriptorOutputBytes",
+            "descriptorOutputSha256",
+            "terminalState"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "runID",
+        "purpose",
+        "status",
+        "controlDocument",
+        "controlBytes",
+        "controlSha256",
+        "controlArtifactPath",
+        "streamBytes",
+        "streamSha256",
+        "totalInputBytes",
+        "totalInputSha256",
+        "ingressChunks",
+        "ingressChunkManifestSha256",
+        "inputArtifactPath",
+        "outputBytes",
+        "outputSha256",
+        "outputArtifactPath",
+        "drainChunks",
+        "drainChunkManifestSha256",
+        "verifiedDrain",
+        "durationNanoseconds",
+        "rss"
+      ],
+      "type": "object"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://vox.md/contracts/schemas/materialization-run-set.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "executableSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "format": {
+      "const": "vox-m2-materialization-run-set-v1"
+    },
+    "gateBindings": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "gateID": {
+            "enum": [
+              "rust-materialize-1mib-p95",
+              "rust-materialize-additional-rss",
+              "ffi-max-chunk",
+              "materialization-max-aggregate"
+            ]
+          },
+          "runIDs": {
+            "items": {
+              "pattern": "^[a-z][a-z0-9-]{1,63}$",
+              "type": "string"
+            },
+            "maxItems": 1024,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "gateID",
+          "runIDs"
+        ],
+        "type": "object"
+      },
+      "maxItems": 4,
+      "minItems": 4,
+      "type": "array"
+    },
+    "operation": {
+      "const": "newNoteTextLink"
+    },
+    "productionConsumerID": {
+      "const": "vox-core-uniffi-swift-host-v1"
+    },
+    "profileVersion": {
+      "const": "apple-parity-v1"
+    },
+    "runs": {
+      "items": {
+        "$ref": "#/$defs/run"
+      },
+      "maxItems": 2048,
+      "minItems": 25,
+      "type": "array"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "sourceRevision": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "toolchainManifestSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "warmupRunIDs": {
+      "items": {
+        "pattern": "^[a-z][a-z0-9-]{1,63}$",
+        "type": "string"
+      },
+      "maxItems": 1,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "format",
+    "operation",
+    "profileVersion",
+    "productionConsumerID",
+    "sourceRevision",
+    "executableSha256",
+    "toolchainManifestSha256",
+    "warmupRunIDs",
+    "gateBindings",
+    "runs"
+  ],
+  "title": "M2 bounded materialization execution receipt",
+  "type": "object"
+}

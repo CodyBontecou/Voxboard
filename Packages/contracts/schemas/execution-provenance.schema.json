@@ -1,0 +1,281 @@
+{
+  "$defs": {
+    "path": {
+      "maxLength": 512,
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*//)(?!.*[/]$)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\x00-\\x1f\\x7f\\\\]).+$",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://vox.md/contracts/schemas/execution-provenance.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "buildRecipe": {
+      "additionalProperties": false,
+      "properties": {
+        "repositoryPath": {
+          "$ref": "#/$defs/path"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "repositoryPath",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "consumer": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "boundary": {
+              "const": "sourceBuiltCoreExitHost"
+            },
+            "entryPoint": {
+              "const": "main"
+            },
+            "id": {
+              "const": "vox-m2-core-exit-host-v1"
+            },
+            "language": {
+              "const": "Python"
+            }
+          },
+          "required": [
+            "id",
+            "language",
+            "entryPoint",
+            "boundary"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "boundary": {
+              "const": "generatedUniFFIHostBinding"
+            },
+            "entryPoint": {
+              "const": "main"
+            },
+            "id": {
+              "const": "vox-core-uniffi-swift-host-v1"
+            },
+            "language": {
+              "const": "Swift"
+            }
+          },
+          "required": [
+            "id",
+            "language",
+            "entryPoint",
+            "boundary"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "boundary": {
+              "const": "sourceBuiltPackageInspector"
+            },
+            "entryPoint": {
+              "const": "main"
+            },
+            "id": {
+              "const": "vox-native-package-inspector-v1"
+            },
+            "language": {
+              "const": "Python"
+            }
+          },
+          "required": [
+            "id",
+            "language",
+            "entryPoint",
+            "boundary"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "executable": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "externalArtifactPath": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/path"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "sha256",
+        "bytes",
+        "externalArtifactPath"
+      ],
+      "type": "object"
+    },
+    "format": {
+      "const": "vox-execution-provenance-v1"
+    },
+    "hosted": {
+      "additionalProperties": false,
+      "properties": {
+        "checkoutRevision": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "runAttempt": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "runID": {
+          "pattern": "^[1-9][0-9]{0,19}$",
+          "type": "string"
+        },
+        "runnerArchitecture": {
+          "maxLength": 64,
+          "minLength": 2,
+          "type": "string"
+        },
+        "runnerOS": {
+          "maxLength": 128,
+          "minLength": 2,
+          "type": "string"
+        },
+        "workflowRepositoryPath": {
+          "$ref": "#/$defs/path"
+        },
+        "workflowSha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "runID",
+        "runAttempt",
+        "workflowRepositoryPath",
+        "workflowSha256",
+        "checkoutRevision",
+        "runnerOS",
+        "runnerArchitecture"
+      ],
+      "type": "object"
+    },
+    "inputGenerator": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "const": "vox-m2-deterministic-synthetic-input-v1"
+            },
+            "repositoryPath": {
+              "const": "Packages/vox-core-rust/scripts/generate-m2-materialization-input.py"
+            },
+            "seedSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "sourceSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "version": {
+              "const": 1
+            }
+          },
+          "required": [
+            "id",
+            "version",
+            "repositoryPath",
+            "sourceSha256",
+            "seedSha256"
+          ],
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "sourceFiles": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "repositoryPath": {
+            "$ref": "#/$defs/path"
+          },
+          "sha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        },
+        "required": [
+          "repositoryPath",
+          "sha256"
+        ],
+        "type": "object"
+      },
+      "maxItems": 1024,
+      "minItems": 1,
+      "type": "array"
+    },
+    "sourceRevision": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "sourceTreeState": {
+      "const": "clean"
+    },
+    "toolchainManifest": {
+      "additionalProperties": false,
+      "properties": {
+        "repositoryPath": {
+          "const": "toolchains/android-wear-shared-core.json"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "required": [
+        "repositoryPath",
+        "sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "format",
+    "sourceRevision",
+    "sourceTreeState",
+    "toolchainManifest",
+    "buildRecipe",
+    "consumer",
+    "executable",
+    "sourceFiles",
+    "inputGenerator"
+  ],
+  "title": "M2 production consumer execution provenance",
+  "type": "object"
+}
