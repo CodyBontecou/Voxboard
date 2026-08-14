@@ -176,6 +176,43 @@
     },
     {
       "expected" : {
+        "bytesBase64" : "UHJlZml4woVJbnNpZGUM4oCpQWxwaGHigKhCZXRhwoVHYW1tYQ==",
+        "logicalPath" : [
+          "Inbox",
+          "foundation-newlines.md"
+        ],
+        "sha256" : "e5885fa3da41f95a634f587a80de033ab130bf27ed6880236759d17c7d6ae720"
+      },
+      "id" : "m2-positive-foundation-newline-boundaries",
+      "request" : {
+        "createdAtEpochMilliseconds" : 0,
+        "entryPrefix" : " \u000bPrefixInside\f ",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "foundation-newlines",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "\n\u000bAlpha BetaGamma\f \r"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "keyboard",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expected" : {
         "bytesBase64" : "LS0tCnpldGE6ICJ0d28iCmFscGhhOiAib25lIgotLS0KCm9yZGVyZWQ=",
         "logicalPath" : [
           "Inbox",
@@ -461,7 +498,7 @@
   "corpusVersion" : 1,
   "producer" : {
     "name" : "VoxboardM2Oracle",
-    "oracleSourceSHA256" : "6e5921a3d2443a9be2169a875bf3c5c627100364cc78988d8ceb83bbcd2e2394",
+    "oracleSourceSHA256" : "47f8cdaf187ca1aeaebda7effb05031ee529b7367d677224a02248751cef73b8",
     "productionConsumers" : [
       {
         "name" : "ActivityStatsStore",
@@ -486,7 +523,7 @@
       {
         "name" : "CaptureCoreEnginePolicy",
         "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureCoreEnginePolicy.swift",
-        "sha256" : "a68c4e7b01d6df9d96ac70f7baa4b989d26e6bdf626fa00840ed327699ee50f9"
+        "sha256" : "ac15445c3658858a1d120a51bf35a928a9112776f29a65a804cb984286c20caa"
       },
       {
         "name" : "CaptureDateTokenValues",
@@ -604,9 +641,9 @@
         "sha256" : "dda9b75f64b106eb544de201f599122d75abc483c5b156bba6c05c0f956dbc3c"
       }
     ],
-    "sourceRevision" : "5d1b2904085d4fd342bc64901fe4b2c482e962be",
+    "sourceRevision" : "35ef5120cff87f80855ccb8ff38ac22cbcefa60d",
     "swiftCompilerIdentity" : "Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101) Target: arm64-apple-macosx26.0",
-    "toolchainManifestSHA256" : "f392e6a44c2f8c2780a75e5f28a0b2294b49cc0bb42551cb03636c83f49694b5",
+    "toolchainManifestSHA256" : "ef9c354bacda74833011165318403893713cd38d0008158063a88353dcdd080e",
     "xcodeIdentity" : "Xcode 26.6 Build version 17F113"
   }
 }
