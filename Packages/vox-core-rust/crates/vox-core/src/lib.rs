@@ -1540,11 +1540,11 @@ fn materialize_buffered(
             if !byte.is_ascii() {
                 return Err(CoreError::InvalidRendering);
             }
-            // Every shipped preparation has at least one nonempty payload block, so a
-            // full-limit non-newline prefix cannot produce an in-contract artifact.
-            if *length as u64 >= MAX_AGGREGATE_BYTES {
-                return Err(CoreError::AggregateTooLarge);
-            }
+            // Compute the bytes that cannot be removed by template normalization before
+            // expanding a potentially 256 MiB observation. A repeated non-newline byte
+            // contributes its full length to the final document.
+            let (_, unavoidable) = materialize(input, None)?;
+            ensure_uniform_materialization_fits(*length, unavoidable.len())?;
             let mut expanded = Vec::new();
             expanded
                 .try_reserve_exact(*length)
@@ -1552,6 +1552,20 @@ fn materialize_buffered(
             expanded.resize(*length, *byte);
             materialize(input, Some(&expanded))
         }
+    }
+}
+
+fn ensure_uniform_materialization_fits(
+    uniform_length: usize,
+    unavoidable_length: usize,
+) -> Result<(), CoreError> {
+    let materialized_length = (uniform_length as u64)
+        .checked_add(unavoidable_length as u64)
+        .ok_or(CoreError::AggregateTooLarge)?;
+    if materialized_length > MAX_AGGREGATE_BYTES {
+        Err(CoreError::AggregateTooLarge)
+    } else {
+        Ok(())
     }
 }
 
@@ -1942,6 +1956,16 @@ mod tests {
         )
         .unwrap();
         assert!(rendered.starts_with("Cafe\u{301}-"));
+    }
+
+    #[test]
+    fn uniform_materialization_preflight_rejects_overflow_without_expansion() {
+        let nearly_full = usize::try_from(MAX_AGGREGATE_BYTES - 1).unwrap();
+        assert_eq!(
+            ensure_uniform_materialization_fits(nearly_full, 2),
+            Err(CoreError::AggregateTooLarge)
+        );
+        assert_eq!(ensure_uniform_materialization_fits(nearly_full, 1), Ok(()));
     }
 
     #[test]

@@ -166,6 +166,108 @@ final class CaptureCoreEnginePolicyTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: noteURL.path))
     }
 
+    func test_testOnlyRustRejectsAggregateControlBeforeComparatorOrSideEffects() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let destination = newNoteDestination()
+        let individuallyValid = String(repeating: "a", count: 65_536)
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [
+                .text(individuallyValid),
+                .text(individuallyValid),
+                .text(individuallyValid),
+            ]
+        )
+        let accounting = EngineRecordingAccounting()
+        let noteURL = root.appendingPathComponent("Inbox/note.md")
+        let probe = EngineComparisonProbe(
+            accounting: accounting,
+            observedNoteURL: noteURL,
+            comparison: exactComparison
+        )
+
+        do {
+            _ = try await CapturePipeline(
+                deliveryAccounting: accounting,
+                enginePolicy: .rust(using: probe)
+            ).capture(request, destination: destination, rootURL: root)
+            XCTFail("Expected aggregate control admission to fail")
+        } catch let error as CaptureCoreAdmissionError {
+            XCTAssertEqual(error, .aggregateControlBoundExceeded)
+        }
+
+        let snapshot = await probe.snapshot()
+        let events = await accounting.events
+        XCTAssertEqual(snapshot.comparisonCount, 0)
+        XCTAssertEqual(events, [])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: noteURL.path))
+    }
+
+    func test_admissionRejectsPathTokensThatDifferBetweenRenderers() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: UUID(uuidString: "22222222-2222-4222-8222-222222222222")!,
+            payloads: [.text("payload")]
+        )
+
+        var folderToken = newNoteDestination(id: request.destinationID)
+        folderToken.noteTarget = .newNote(pathTemplate: "Archive/{date}/note")
+        XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: folderToken,
+            calendar: calendar
+        )) { error in
+            XCTAssertEqual(error as? CaptureCoreAdmissionError, .unsupportedLogicalFolderToken)
+        }
+
+        for template in ["Inbox/{period}", "Inbox/{source}"] {
+            var noteToken = newNoteDestination(id: request.destinationID)
+            noteToken.noteTarget = .newNote(pathTemplate: template)
+            XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+                request: request,
+                destination: noteToken,
+                calendar: calendar
+            )) { error in
+                XCTAssertEqual(error as? CaptureCoreAdmissionError, .unsupportedNoteNameToken)
+            }
+        }
+    }
+
+    func test_admissionRejectsAmbiguousShareSourceEntryTokenButPreservesSharedTokens() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        let destinationID = UUID(uuidString: "22222222-2222-4222-8222-222222222222")!
+        let request = CaptureRequest(
+            source: .shareExtension,
+            destinationID: destinationID,
+            payloads: [.text("payload")]
+        )
+        var ambiguous = newNoteDestination(id: destinationID)
+        ambiguous.entryPrefix = "From {source}\n"
+        XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: ambiguous,
+            calendar: calendar
+        )) { error in
+            XCTAssertEqual(error as? CaptureCoreAdmissionError, .unsupportedEntrySourceToken)
+        }
+
+        var shared = newNoteDestination(id: destinationID)
+        shared.entryPrefix = "{timestamp} {date} {time} {year} {YR} {month} {day} {week} "
+            + "{hour} {minute} {second} {id} {id8}\n"
+        XCTAssertNoThrow(try CaptureCoreAdmission.admit(
+            request: request,
+            destination: shared,
+            calendar: calendar
+        ))
+    }
+
     func test_admissionUsesPortableScalarAndPathBoundsAndRejectsHiddenPolicy() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!
@@ -180,7 +282,7 @@ final class CaptureCoreEnginePolicyTests: XCTestCase {
         let request = CaptureRequest(
             source: .app,
             destinationID: destination.id,
-            payloads: [.text(String(repeating: "é", count: 65_536))]
+            payloads: [.text("within the aggregate control budget")]
         )
         let admitted = try CaptureCoreAdmission.admit(
             request: request,
@@ -189,6 +291,14 @@ final class CaptureCoreEnginePolicyTests: XCTestCase {
         )
         XCTAssertEqual(admitted.payloads.count, 1)
         XCTAssertEqual(admitted.logicalFolder.count, 31)
+
+        var maximumScalarPayload = request
+        maximumScalarPayload.payloads = [.text(String(repeating: "é", count: 65_536))]
+        XCTAssertNoThrow(try CaptureCoreAdmission.admit(
+            request: maximumScalarPayload,
+            destination: newNoteDestination(id: destination.id),
+            calendar: calendar
+        ))
 
         var hiddenPolicy = request
         hiddenPolicy.originDraftUpdatedAt = Date(timeIntervalSince1970: 1)
@@ -222,8 +332,9 @@ final class CaptureCoreEnginePolicyTests: XCTestCase {
         )
     }
 
-    private func newNoteDestination() -> CaptureDestination {
+    private func newNoteDestination(id: UUID = UUID()) -> CaptureDestination {
         CaptureDestination(
+            id: id,
             name: "M2",
             rootBookmark: Data([1]),
             rootName: "Vault",

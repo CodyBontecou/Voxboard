@@ -73,6 +73,10 @@ public enum CaptureCoreAdmissionError: String, Error, Equatable, LocalizedError,
     case unsupportedPayload
     case unsupportedRequestPolicy
     case unsupportedDestinationPolicy
+    case unsupportedLogicalFolderToken
+    case unsupportedNoteNameToken
+    case unsupportedEntrySourceToken
+    case aggregateControlBoundExceeded
     case contractBoundExceeded
 
     public var errorDescription: String? {
@@ -92,6 +96,21 @@ public enum CaptureCoreAdmission {
     private static let maximumFrontmatterNameCharacters = 128
     private static let maximumFrontmatterValueCharacters = 8_192
     private static let maximumTemplateBytes = 256 * 1_024 * 1_024
+    private static let maximumControlBytes = 1_048_576
+    private static let controlFixedOverheadBytes = 65_536
+    private static let controlPerPayloadOverheadBytes = 128
+    private static let controlPerFrontmatterFieldOverheadBytes = 96
+    private static let materializationCandidateCount = 256
+    private static let pathRenderedTokens = [
+        "{period}", "{timestamp}", "{date}", "{time}", "{year}", "{YR}",
+        "{month}", "{day}", "{week}", "{hour}", "{minute}", "{second}",
+        "{id}", "{id8}",
+    ]
+    private static let maximumPathTokenReplacementBytes = [
+        "{timestamp}": 19, "{date}": 10, "{time}": 6, "{year}": 4, "{YR}": 2,
+        "{month}": 2, "{day}": 2, "{week}": 8, "{hour}": 2, "{minute}": 2,
+        "{second}": 2, "{id}": 36, "{id8}": 8,
+    ]
 
     public static func admit(
         request: CaptureRequest,
@@ -145,6 +164,17 @@ public enum CaptureCoreAdmission {
         } catch {
             throw CaptureCoreAdmissionError.unsupportedDestinationPolicy
         }
+        guard !logicalFolder.contains(where: containsOutputAffectingPathToken) else {
+            throw CaptureCoreAdmissionError.unsupportedLogicalFolderToken
+        }
+        guard !noteNameTemplate.contains("{period}"),
+              !noteNameTemplate.contains("{source}") else {
+            throw CaptureCoreAdmissionError.unsupportedNoteNameToken
+        }
+        if request.source == .shareExtension,
+           destination.entryPrefix.contains("{source}") {
+            throw CaptureCoreAdmissionError.unsupportedEntrySourceToken
+        }
 
         let payloads = try request.payloads.map { payload -> CaptureCorePayloadDTO in
             switch payload {
@@ -194,6 +224,18 @@ public enum CaptureCoreAdmission {
               (2...35).contains(locale.unicodeScalars.count) else {
             throw CaptureCoreAdmissionError.contractBoundExceeded
         }
+        guard controlBudget(
+            captureSource: captureSource,
+            timezone: timezone,
+            locale: locale,
+            logicalFolder: logicalFolder,
+            noteNameTemplate: noteNameTemplate,
+            payloads: payloads,
+            entryPrefix: destination.entryPrefix,
+            orderedFrontmatter: orderedFrontmatter
+        ) < maximumControlBytes else {
+            throw CaptureCoreAdmissionError.aggregateControlBoundExceeded
+        }
 
         return CaptureCoreAdmittedInput(
             requestID: request.id,
@@ -221,6 +263,76 @@ public enum CaptureCoreAdmission {
             return "share"
         case .mac, .deepLink, .fileImport, .voice:
             return nil
+        }
+    }
+
+    private static func containsOutputAffectingPathToken(_ segment: String) -> Bool {
+        pathRenderedTokens.contains { segment.contains($0) }
+    }
+
+    /// Upper-bounds canonical JSON control bytes rather than relying on the looser
+    /// per-field scalar limits. JSON escaping can expand one UTF-8 byte to six bytes,
+    /// and candidate occupancy may repeat every path 256 times in materialization.
+    private static func controlBudget(
+        captureSource: String,
+        timezone: String,
+        locale: String,
+        logicalFolder: [String],
+        noteNameTemplate: String,
+        payloads: [CaptureCorePayloadDTO],
+        entryPrefix: String,
+        orderedFrontmatter: [CaptureCoreFrontmatterFieldDTO]
+    ) -> Int {
+        var total = controlFixedOverheadBytes
+
+        func addJSONEscapedByteCount(_ byteCount: Int, repetitions: Int = 1) {
+            let (escapedBytes, escapedOverflow) = byteCount.multipliedReportingOverflow(by: 6)
+            let (repeatedBytes, repeatedOverflow) = escapedBytes.multipliedReportingOverflow(by: repetitions)
+            let (next, additionOverflow) = total.addingReportingOverflow(repeatedBytes)
+            total = escapedOverflow || repeatedOverflow || additionOverflow ? .max : next
+        }
+
+        func addJSONEscaped(_ value: String, repetitions: Int = 1) {
+            addJSONEscapedByteCount(value.utf8.count, repetitions: repetitions)
+        }
+
+        addJSONEscaped(captureSource)
+        addJSONEscaped(timezone)
+        addJSONEscaped(locale)
+        // The preset contains the path once and a worst-case occupancy observation
+        // can contain all 256 candidates. Candidate note names use rendered token sizes.
+        let pathRepetitions = materializationCandidateCount + 1
+        logicalFolder.forEach { addJSONEscaped($0, repetitions: pathRepetitions) }
+        addJSONEscaped(noteNameTemplate)
+        addJSONEscapedByteCount(
+            renderedNoteNameByteUpperBound(noteNameTemplate),
+            repetitions: materializationCandidateCount
+        )
+        addJSONEscaped(entryPrefix)
+
+        for payload in payloads {
+            total = total.addingReportingOverflow(controlPerPayloadOverheadBytes).partialValue
+            switch payload {
+            case .text(let text):
+                addJSONEscaped(text)
+            case .link(let url, let label):
+                addJSONEscaped(url)
+                addJSONEscaped(label)
+            }
+        }
+        for field in orderedFrontmatter {
+            total = total.addingReportingOverflow(controlPerFrontmatterFieldOverheadBytes).partialValue
+            addJSONEscaped(field.name)
+            addJSONEscaped(field.value)
+        }
+        return total
+    }
+
+    private static func renderedNoteNameByteUpperBound(_ template: String) -> Int {
+        maximumPathTokenReplacementBytes.reduce(template.utf8.count) { result, item in
+            let occurrences = template.components(separatedBy: item.key).count - 1
+            let expansion = max(0, item.value - item.key.utf8.count)
+            return result + occurrences * expansion
         }
     }
 
