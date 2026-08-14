@@ -265,6 +265,29 @@ final class CaptureCoreEnginePolicyTests: XCTestCase {
         ))
     }
 
+    func test_admissionRejectsBoundaryWhitespaceInEveryPathSegment() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        calendar.locale = Locale(identifier: "en_US_POSIX")
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: UUID(uuidString: "22222222-2222-4222-8222-222222222222")!,
+            payloads: [.text("payload")]
+        )
+
+        for template in ["Inbox/ note ", "Inbox/ note", " Inbox/note", "Inbox /note"] {
+            var destination = newNoteDestination(id: request.destinationID)
+            destination.noteTarget = .newNote(pathTemplate: template)
+            XCTAssertThrowsError(try CaptureCoreAdmission.admit(
+                request: request,
+                destination: destination,
+                calendar: calendar
+            )) { error in
+                XCTAssertEqual(error as? CaptureCoreAdmissionError, .unsupportedDestinationPolicy)
+            }
+        }
+    }
+
     func test_admissionRejectsPathTokensThatDifferBetweenRenderers() throws {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "UTC")!

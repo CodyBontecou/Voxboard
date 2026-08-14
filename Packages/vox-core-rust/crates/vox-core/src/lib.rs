@@ -1015,7 +1015,7 @@ struct InputStream {
 
 #[derive(Clone, Debug)]
 pub struct MaterializationSession {
-    input: MaterializationInput,
+    input: Option<MaterializationInput>,
     state: State,
     streams: Vec<InputStream>,
     next_stream: usize,
@@ -1101,7 +1101,7 @@ impl MaterializationSession {
             }
         }
         Ok(Self {
-            input,
+            input: Some(input),
             state: State::Input,
             streams,
             next_stream: 0,
@@ -1175,19 +1175,30 @@ impl MaterializationSession {
         if self.next_stream != self.streams.len() {
             return self.fail(CoreError::Incomplete);
         }
-        let template = self
-            .streams
-            .iter()
-            .find_map(|stream| stream.template.as_ref());
-        let (path, bytes) = match materialize_buffered(&self.input, template) {
-            Ok(value) => value,
-            Err(error) => return self.fail(error),
+        let (path, bytes, request_id) = {
+            let input = match self.input.as_ref() {
+                Some(input) => input,
+                None => return self.fail(CoreError::Incomplete),
+            };
+            let template = self
+                .streams
+                .iter()
+                .find_map(|stream| stream.template.as_ref());
+            let (path, bytes) = match materialize_buffered(input, template) {
+                Ok(value) => value,
+                Err(error) => return self.fail(error),
+            };
+            (path, bytes, input.request_id)
         };
+        // Once materialization succeeds, streamed observations have been consumed.
+        // Drop their hashers and any non-uniform captured template bytes before the
+        // output drain begins instead of retaining both input and output buffers.
+        self.streams = Vec::new();
         if bytes.len() as u64 > MAX_AGGREGATE_BYTES {
             return self.fail(CoreError::AggregateTooLarge);
         }
         let hash = sha256_hex(&bytes);
-        let operation_id = match operation_id(self.input.request_id, 0, "newNote") {
+        let operation_id = match operation_id(request_id, 0, "newNote") {
             Ok(value) => value,
             Err(error) => return self.fail(error),
         };
@@ -1215,7 +1226,7 @@ impl MaterializationSession {
         self.state = State::Sealed;
         Ok(ArtifactDescriptors {
             kind: "expectedArtifactDescriptors",
-            request_id: self.input.request_id,
+            request_id,
             artifacts: vec![descriptor],
         })
     }
@@ -1286,30 +1297,52 @@ impl MaterializationSession {
         if self.state != State::Drained {
             return self.terminal_error();
         }
-        let descriptor = self.descriptor.as_ref().ok_or(CoreError::Incomplete)?;
-        let coherent = drained.kind == "drainedArtifactHashes"
-            && drained.request_id == self.input.request_id
-            && drained.artifacts.as_slice()
-                == [DrainedArtifactHash {
-                    artifact_id: descriptor.artifact_id,
-                    stream_id: descriptor.stream_id,
-                    length: descriptor.length,
-                    result_sha256: descriptor.result_sha256.clone(),
-                }];
-        if !coherent {
-            return self.fail(CoreError::DrainedHashMismatch);
-        }
-        let path = selected_path(&self.input)?;
-        let plan = plan_value(&self.input, descriptor, &path)?;
+        let descriptor = match self.descriptor.as_ref() {
+            Some(descriptor) => descriptor.clone(),
+            None => return self.fail(CoreError::Incomplete),
+        };
+        let plan_bytes = {
+            let input = match self.input.as_ref() {
+                Some(input) => input,
+                None => return self.fail(CoreError::Incomplete),
+            };
+            let coherent = drained.kind == "drainedArtifactHashes"
+                && drained.request_id == input.request_id
+                && drained.artifacts.as_slice()
+                    == [DrainedArtifactHash {
+                        artifact_id: descriptor.artifact_id,
+                        stream_id: descriptor.stream_id,
+                        length: descriptor.length,
+                        result_sha256: descriptor.result_sha256.clone(),
+                    }];
+            if !coherent {
+                return self.fail(CoreError::DrainedHashMismatch);
+            }
+            let path = match selected_path(input) {
+                Ok(path) => path,
+                Err(error) => return self.fail(error),
+            };
+            let plan = match plan_value(input, &descriptor, &path) {
+                Ok(plan) => plan,
+                Err(error) => return self.fail(error),
+            };
+            match canonical_bytes(&plan) {
+                Ok(bytes) => bytes,
+                Err(error) => return self.fail(error),
+            }
+        };
         self.state = State::Finalized;
-        canonical_bytes(&plan)
+        self.release_captured_resources();
+        Ok(plan_bytes)
     }
 
     pub fn cancel(&mut self) {
         if !matches!(self.state, State::Finalized | State::Failed) {
             self.state = State::Cancelled;
-            self.output = None;
         }
+        // Cancellation is idempotent and also guarantees cleanup if a caller uses it
+        // defensively after another terminal transition.
+        self.release_captured_resources();
     }
 
     pub const fn aggregate_bytes(&self) -> u64 {
@@ -1334,8 +1367,15 @@ impl MaterializationSession {
 
     fn fail<T>(&mut self, error: CoreError) -> Result<T, CoreError> {
         self.state = State::Failed;
-        self.output = None;
+        self.release_captured_resources();
         Err(error)
+    }
+
+    fn release_captured_resources(&mut self) {
+        self.input = None;
+        self.streams = Vec::new();
+        self.output = None;
+        self.descriptor = None;
     }
 }
 
@@ -1923,6 +1963,148 @@ fn classify_json_error(error: &serde_json::Error) -> CoreError {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn retained_session(state: State) -> MaterializationSession {
+        let request_id = Uuid::parse_str("11111111-1111-4111-8111-111111111111").unwrap();
+        let descriptor = ArtifactDescriptor {
+            artifact_id: Uuid::parse_str("22222222-2222-4222-8222-222222222222").unwrap(),
+            operation_id: Uuid::parse_str("33333333-3333-4333-8333-333333333333").unwrap(),
+            stream_id: Uuid::parse_str("44444444-4444-4444-8444-444444444444").unwrap(),
+            commit_sequence: 0,
+            kind: "note",
+            media_type: "text/markdown; charset=utf-8",
+            length: 16,
+            result_sha256: ZERO_HASH.to_owned(),
+            receipt_kind: "noteCommit",
+        };
+        MaterializationSession {
+            input: Some(MaterializationInput {
+                contract_version: MATERIALIZATION_INPUT_VERSION,
+                request_id,
+                capture_source: "app".to_owned(),
+                created_at_epoch_milliseconds: 0,
+                timezone: "UTC".to_owned(),
+                calendar: "gregorian".to_owned(),
+                locale: "en-US".to_owned(),
+                operation: "newNote".to_owned(),
+                pins: Pins {
+                    core_version: CORE_VERSION.to_owned(),
+                    renderer_revision: RENDERER_REVISION.to_owned(),
+                    profile_id: PROFILE_ID.to_owned(),
+                    profile_version: PROFILE_VERSION,
+                    model_profile_id: None,
+                    model_revision: None,
+                },
+                payloads: vec![Payload::Text {
+                    id: Uuid::parse_str("55555555-5555-4555-8555-555555555555").unwrap(),
+                    text: "captured payload".to_owned(),
+                }],
+                preset: Preset {
+                    id: Uuid::parse_str("66666666-6666-4666-8666-666666666666").unwrap(),
+                    revision: 1,
+                    snapshot_hash: ZERO_HASH.to_owned(),
+                    template_freeze_point: "firstPreparation".to_owned(),
+                    retry_marker_policy: "none".to_owned(),
+                    route_policy: RoutePolicy {
+                        logical_folder: vec!["Inbox".to_owned()],
+                        note_name_template: "note".to_owned(),
+                        extension_policy: "markdownDotMd".to_owned(),
+                        collision_policy: "deterministicSuffix".to_owned(),
+                        attachment_folder: vec![],
+                    },
+                    metadata_policy: MetadataPolicy {
+                        frontmatter_mode: "merge".to_owned(),
+                        ordered_fields: vec![],
+                        template_policy: "frozenObservation".to_owned(),
+                        line_ending: "lf".to_owned(),
+                        final_newline: false,
+                    },
+                    destination_policy: DestinationPolicy {
+                        capability_reference: "synthetic".to_owned(),
+                        capability_class: "userVault".to_owned(),
+                        expected_case_sensitivity: "sensitive".to_owned(),
+                    },
+                },
+                preparation_revision: 1,
+                snapshot_hash: ZERO_HASH.to_owned(),
+                control_byte_count: 1,
+                observations: vec![ObservationResult::CandidateOccupancy {
+                    observation_id: Uuid::nil(),
+                    status: "present".to_owned(),
+                    logical_paths: vec![],
+                    ordered_set_hash: ZERO_HASH.to_owned(),
+                }],
+                session: SessionPolicy {
+                    maximum_chunk_bytes: MAX_CHUNK_BYTES as u64,
+                    maximum_aggregate_observation_bytes: MAX_AGGREGATE_BYTES,
+                    input_ordering: "observation-list-then-sequence".to_owned(),
+                    single_seal: true,
+                    single_finalize: true,
+                },
+                invocation: Invocation {
+                    sequence: 1,
+                    origin_recording_id: None,
+                    location_outcome: "notRequested".to_owned(),
+                },
+            }),
+            state,
+            streams: vec![InputStream {
+                id: Uuid::nil(),
+                expected_length: 16,
+                expected_sha256: ZERO_HASH.to_owned(),
+                length: 16,
+                hasher: Sha256::new(),
+                template: Some(BufferedObservation::Bytes(b"captured template".to_vec())),
+                next_sequence: 1,
+                eof: true,
+            }],
+            next_stream: 1,
+            aggregate: 16,
+            output: Some(b"captured output".to_vec()),
+            descriptor: Some(descriptor),
+            drain_offset: 16,
+            drain_sequence: 0,
+        }
+    }
+
+    fn assert_captured_resources_released(session: &MaterializationSession) {
+        assert!(session.input.is_none());
+        assert!(session.streams.is_empty());
+        assert!(session.output.is_none());
+        assert!(session.descriptor.is_none());
+    }
+
+    #[test]
+    fn terminal_transitions_release_all_captured_resources() {
+        let mut finalized = retained_session(State::Drained);
+        let descriptor = finalized.descriptor.clone().unwrap();
+        let drained = DrainedHashes {
+            kind: "drainedArtifactHashes".to_owned(),
+            request_id: finalized.input.as_ref().unwrap().request_id,
+            artifacts: vec![DrainedArtifactHash {
+                artifact_id: descriptor.artifact_id,
+                stream_id: descriptor.stream_id,
+                length: descriptor.length,
+                result_sha256: descriptor.result_sha256,
+            }],
+        };
+        assert!(finalized.finalize(&drained).is_ok());
+        assert_eq!(finalized.state, State::Finalized);
+        assert_captured_resources_released(&finalized);
+        finalized.cancel();
+        assert_captured_resources_released(&finalized);
+
+        let mut cancelled = retained_session(State::Input);
+        cancelled.cancel();
+        assert_eq!(cancelled.state, State::Cancelled);
+        assert_captured_resources_released(&cancelled);
+
+        let mut failed = retained_session(State::Input);
+        let result: Result<(), CoreError> = failed.fail(CoreError::InvalidObservationStream);
+        assert_eq!(result, Err(CoreError::InvalidObservationStream));
+        assert_eq!(failed.state, State::Failed);
+        assert_captured_resources_released(&failed);
+    }
 
     #[test]
     fn uuid_namespace_uses_sha1_v5() {

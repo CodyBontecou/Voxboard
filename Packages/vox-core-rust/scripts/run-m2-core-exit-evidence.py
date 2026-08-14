@@ -108,6 +108,7 @@ def execute_core(repo: Path, campaign: Path, external: Path, hosted_identity_ver
         commands = [command]
         if case_id == "CORE-001": commands.append(["Packages/vox-core-rust/scripts/generate-oracle-fixtures.sh"])
         if case_id == "CORE-004": commands.append(["python3", "Packages/contracts/scripts/validate_toolchain.py"])
+        if case_id == "CORE-005": commands.append(["cargo", "test", "--manifest-path", "Packages/vox-core-rust/Cargo.toml", "--locked", "-p", "vox-core", "--lib", "tests::terminal_transitions_release_all_captured_resources", "--", "--exact"])
         output = ""
         for production_command in commands:
             result = subprocess.run(production_command, cwd=repo, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -123,6 +124,8 @@ def execute_core(repo: Path, campaign: Path, external: Path, hosted_identity_ver
                 "test_shadowAdmissionFailureDoesNotInvokeComparatorOrAlterLegacyOutcome",
                 "test_testOnlyRustFailsClosedOnUnsupportedAdmissionBeforeSideEffects",
                 "test_testOnlyRustStopsAtCommitBarrierWithoutLegacyFallback",
+                "test_admissionRejectsBoundaryWhitespaceInEveryPathSegment",
+                "test tests::terminal_transitions_release_all_captured_resources ... ok",
             )
             if any(marker not in output for marker in markers):
                 print(output, file=sys.stderr); raise SystemExit("CORE-005 named production checks were not all executed")

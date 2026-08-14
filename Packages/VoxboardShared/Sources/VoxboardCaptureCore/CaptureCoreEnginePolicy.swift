@@ -167,6 +167,15 @@ public enum CaptureCoreAdmission {
               (1...maximumNoteTemplateCharacters).contains(noteNameTemplate.unicodeScalars.count) else {
             throw CaptureCoreAdmissionError.contractBoundExceeded
         }
+        let boundaryWhitespace = CharacterSet.whitespacesAndNewlines
+        guard pathParts.allSatisfy({
+            $0 == $0.trimmingCharacters(in: boundaryWhitespace)
+        }) else {
+            // Foundation trims the complete rendered path while the portable core
+            // trims the filename segment. Boundary whitespace therefore remains
+            // legacy-only instead of entering shadow comparison with divergent bytes.
+            throw CaptureCoreAdmissionError.unsupportedDestinationPolicy
+        }
         do {
             try CapturePathValidation.validateRelativePath(pathTemplate)
         } catch {
