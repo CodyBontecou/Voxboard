@@ -171,6 +171,12 @@ class ContractValidatorTests(unittest.TestCase):
   for mutate in mutations:
    with self.subTest(mutate=mutate):
     self.tearDown();self.setUp();p=self.root/rel;p.write_text(mutate(p.read_text()));manifest=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(manifest.read_text());next(item for item in m["governedImplementationFiles"] if item["path"]==rel)["sha256"]=hashlib.sha256(p.read_bytes()).hexdigest();manifest.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"AAPT2 artifact missing/drifted")
+ def test_android_linux_coroutines_bom_verification_metadata_is_exact(self):
+  validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py";rel="apps/android/gradle/verification-metadata.xml"
+  component='''      <component group="org.jetbrains.kotlinx" name="kotlinx-coroutines-bom" version="1.8.0">\n         <artifact name="kotlinx-coroutines-bom-1.8.0.pom">\n            <sha256 value="1239e9dbe1397cd5971342956b2511bc3ace7b641842e4372a088dcfa8b9ad55" origin="Downloaded from Maven Central and independently SHA-256 verified for Linux CI"/>\n         </artifact>\n      </component>\n'''
+  for mutate in (lambda text:text.replace(component,""),lambda text:text.replace("1239e9dbe1397cd5971342956b2511bc3ace7b641842e4372a088dcfa8b9ad55","f"*64)):
+   with self.subTest(mutate=mutate):
+    self.tearDown();self.setUp();p=self.root/rel;p.write_text(mutate(p.read_text()));manifest=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(manifest.read_text());next(item for item in m["governedImplementationFiles"] if item["path"]==rel)["sha256"]=hashlib.sha256(p.read_bytes()).hexdigest();manifest.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"coroutines BOM")
  def test_android_dependency_metadata_path_inventory_is_exact(self):
   validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py";p=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(p.read_text());m["androidApplication"]["dependencyMetadataPaths"]["moduleLocks"].pop();p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"Android application pins differ")
  def test_android_command_line_tools_pin_is_exact(self):
