@@ -40,10 +40,15 @@ class OIDCTests(unittest.TestCase):
   expired=dict(self.claims); expired['exp']=self.now; self.assertRaisesRegex(oidc.OIDCError,'time claims',oidc.validate_token,token(expired),self.jwks,self.expected,self.now)
   missing_jti=dict(self.claims); del missing_jti['jti']; self.assertRaisesRegex(oidc.OIDCError,'jti claim',oidc.validate_token,token(missing_jti),self.jwks,self.expected,self.now)
   self.assertRaisesRegex(oidc.OIDCError,'oversized',oidc.validate_token,'x'*oidc.MAX_TOKEN_BYTES,self.jwks,self.expected,self.now)
+ def test_token_request_host_is_bounded_to_github_actions_domain(self):
+  for host in ('pipelines.actions.githubusercontent.com','vstoken.actions.githubusercontent.com','pipelinesghubeus25.actions.githubusercontent.com'):
+   self.assertTrue(oidc._is_token_endpoint_host(host),host)
+  for host in (None,'actions.githubusercontent.com','attacker.invalid','vstoken.actions.githubusercontent.com.attacker.invalid','-bad.actions.githubusercontent.com','bad..actions.githubusercontent.com'):
+   self.assertFalse(oidc._is_token_endpoint_host(host),host)
  def test_token_request_url_is_pinned_before_network_access(self):
   environment={'GITHUB_REF':'refs/heads/main','GITHUB_EVENT_NAME':'push','GITHUB_WORKFLOW_REF':self.expected['workflowReference'],'GITHUB_WORKFLOW_SHA':self.expected['workflowRevision'],'ACTIONS_ID_TOKEN_REQUEST_URL':'https://attacker.invalid/token','ACTIONS_ID_TOKEN_REQUEST_TOKEN':'x'*32}
   qualification={'runID':'123','runAttempt':2}
-  with mock.patch.dict(os.environ,environment,clear=True),self.assertRaisesRegex(oidc.OIDCError,'pinned HTTPS endpoint'):
+  with mock.patch.dict(os.environ,environment,clear=True),self.assertRaisesRegex(oidc.OIDCError,'pinned GitHub Actions HTTPS endpoint'):
    oidc.authenticate(ROOT,qualification,self.expected['sourceRevision'])
 
 if __name__=='__main__': unittest.main()

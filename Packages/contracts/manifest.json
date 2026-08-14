@@ -703,10 +703,10 @@
       "sha256": "4d3e4825457e6102203c2ba83ede0312b2b4fe5f283044e83d49533b25165a59"
     },
     {
-      "bytes": 11645,
+      "bytes": 12176,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/github_actions_oidc.py",
-      "sha256": "e59c93ae5b3e97e86962be76f035c692d7bca23b69a8617f2f99e6280f56eb10"
+      "sha256": "b2f89670dfeb010d625e50678073c1da20065d5af3bf594efbba7103c28494c9"
     },
     {
       "bytes": 37915,
@@ -727,10 +727,10 @@
       "sha256": "34290f9ece20ebbd786d7fc7a76abd030c48ec33f675528c7d8261ab41f0444d"
     },
     {
-      "bytes": 5492,
+      "bytes": 6054,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_github_actions_oidc.py",
-      "sha256": "08756e5059703b9504f17093dead280b831fe36769eb562de1ccab74c7383a42"
+      "sha256": "5bca70aa02924763cd7febb0e2cee98a1bbf84ec47f82f5f9b6b5a225292dfb5"
     },
     {
       "bytes": 4280,

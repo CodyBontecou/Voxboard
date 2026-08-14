@@ -14,10 +14,7 @@ from typing import Any, Callable
 
 ISSUER = "https://token.actions.githubusercontent.com"
 JWKS_URL = "https://token.actions.githubusercontent.com/.well-known/jwks"
-TOKEN_ENDPOINT_HOSTS = frozenset({
-    "pipelines.actions.githubusercontent.com",
-    "vstoken.actions.githubusercontent.com",
-})
+TOKEN_ENDPOINT_SUFFIX = ".actions.githubusercontent.com"
 AUDIENCE = "https://vox.md/m2-evidence/v1"
 REPOSITORY = "CodyBontecou/vox.md"
 REPOSITORY_ID = "1153091883"
@@ -33,6 +30,19 @@ MAX_KEYS = 64
 
 class OIDCError(Exception):
     pass
+
+def _is_token_endpoint_host(host: str | None) -> bool:
+    if host is None or len(host) > 253 or not host.endswith(TOKEN_ENDPOINT_SUFFIX) or host == TOKEN_ENDPOINT_SUFFIX[1:]:
+        return False
+    labels = host.split(".")
+    return all(
+        label
+        and len(label) <= 63
+        and label[0] != "-"
+        and label[-1] != "-"
+        and all(character.isascii() and (character.isalnum() or character == "-") for character in label)
+        for label in labels
+    )
 
 def _json(data: bytes, label: str, limit: int = MAX_JSON_BYTES) -> Any:
     if len(data) > limit:
@@ -180,14 +190,21 @@ def authenticate(repository_root: Path, qualification: dict[str, Any], git_revis
         if len(request_url) > 8192 or not (32 <= len(request_token) <= 8192) or any(character in request_token for character in "\r\n"):
             raise OIDCError("GitHub Actions OIDC request credentials are outside bounds")
         parsed = urllib.parse.urlsplit(request_url)
-        if parsed.scheme != "https" or parsed.hostname not in TOKEN_ENDPOINT_HOSTS or parsed.username is not None or parsed.password is not None or parsed.fragment:
-            raise OIDCError("GitHub OIDC token URL is not the pinned HTTPS endpoint")
+        token_host = parsed.hostname
+        if (
+            parsed.scheme != "https"
+            or not _is_token_endpoint_host(token_host)
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.fragment
+        ):
+            raise OIDCError("GitHub OIDC token URL is not a pinned GitHub Actions HTTPS endpoint")
         query = urllib.parse.parse_qsl(parsed.query, keep_blank_values=True)
         if any(key == "audience" for key, _ in query):
             raise OIDCError("GitHub OIDC token URL already contains an audience")
         query.append(("audience", AUDIENCE))
         token_url = urllib.parse.urlunsplit((parsed.scheme, parsed.netloc, parsed.path, urllib.parse.urlencode(query), ""))
-        response = _json(_get(token_url, {"Authorization": f"Bearer {request_token}", "Accept": "application/json"}, "GitHub OIDC token", TOKEN_ENDPOINT_HOSTS), "GitHub OIDC token response")
+        response = _json(_get(token_url, {"Authorization": f"Bearer {request_token}", "Accept": "application/json"}, "GitHub OIDC token", frozenset({token_host})), "GitHub OIDC token response")
         if not isinstance(response, dict) or set(response) != {"value"} or not isinstance(response["value"], str):
             raise OIDCError("GitHub OIDC token response is invalid")
         token = response["value"]
