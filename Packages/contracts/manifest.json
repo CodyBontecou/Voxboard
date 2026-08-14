@@ -817,10 +817,10 @@
       "sha256": "e4ec1db8011c9c54d8a05fb18effdafd3023b464095ca24e615e5b6674b9a8d2"
     },
     {
-      "bytes": 1154,
+      "bytes": 1236,
       "category": "toolchainEntryStub",
       "path": "Packages/vox-core-rust/Cargo.toml",
-      "sha256": "1c36384f899a79be3a5accab658eb23a26ad37c448ff8e1857ebfb0717aed9f7"
+      "sha256": "d03737b6f025f4ee9331cbf3b2178e023652087d954e8f84204885a72ef71c26"
     },
     {
       "bytes": 278,
