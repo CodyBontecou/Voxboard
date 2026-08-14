@@ -474,27 +474,31 @@ def main(argv=None):
     for artifact, expected_checksum in expected_aapt.items():
         if aapt_artifacts.get(artifact) != expected_checksum:
             fail(f"Gradle verification metadata AAPT2 artifact missing/drifted: {artifact}")
-    coroutines_bom_components = [
-        component for component in verification_root.findall(".//v:component", namespace)
-        if component.attrib == {
-            "group": "org.jetbrains.kotlinx",
-            "name": "kotlinx-coroutines-bom",
-            "version": "1.8.0",
-        }
-    ]
-    if len(coroutines_bom_components) != 1:
-        fail("Gradle verification metadata lacks the Linux-resolved coroutines BOM")
-    bom_artifacts = coroutines_bom_components[0].findall("v:artifact", namespace)
-    if len(bom_artifacts) != 1 or bom_artifacts[0].attrib != {
-        "name": "kotlinx-coroutines-bom-1.8.0.pom",
-    }:
-        fail("Gradle verification metadata coroutines BOM artifact shape drift")
-    bom_checksums = bom_artifacts[0].findall("v:sha256", namespace)
-    if len(bom_checksums) != 1 or bom_checksums[0].attrib != {
-        "value": "1239e9dbe1397cd5971342956b2511bc3ace7b641842e4372a088dcfa8b9ad55",
-        "origin": "Downloaded from Maven Central and independently SHA-256 verified for Linux CI",
-    }:
-        fail("Gradle verification metadata coroutines BOM checksum drift")
+    linux_origin = "Downloaded from Maven Central and independently SHA-256 verified for Linux CI"
+    expected_linux_metadata = (
+        ("org.jetbrains.kotlinx", "kotlinx-coroutines-bom", "1.8.0", "kotlinx-coroutines-bom-1.8.0.pom", "1239e9dbe1397cd5971342956b2511bc3ace7b641842e4372a088dcfa8b9ad55"),
+        ("com.google.guava", "guava-parent", "33.3.1-jre", "guava-parent-33.3.1-jre.pom", "55441db27e8869dfefe053059bdf478bdc7e95585642bf391f0023345fd56287"),
+        ("org.junit", "junit-bom", "5.10.2", "junit-bom-5.10.2.module", "de23b114b3e4119a8fe6eb17bed5a3852816698bace67071579d6d927ebb080a"),
+        ("org.junit", "junit-bom", "5.11.0-M2", "junit-bom-5.11.0-M2.module", "86477abcf490d6ca059aa9973cb108d22a506f49d1a5569bb32cc6cbf43c2cce"),
+        ("org.junit", "junit-bom", "5.9.2", "junit-bom-5.9.2.module", "ab137ba5a8e32c9b066bf9126a1c76dd5614b724ba5c0b02549772b5e9f4cf1f"),
+    )
+    all_components = verification_root.findall(".//v:component", namespace)
+    for group, name, version, artifact_name, checksum in expected_linux_metadata:
+        components = [
+            component for component in all_components
+            if component.attrib == {"group": group, "name": name, "version": version}
+        ]
+        if len(components) != 1:
+            fail(f"Gradle verification metadata lacks Linux-resolved component: {group}:{name}:{version}")
+        artifacts = [
+            artifact for artifact in components[0].findall("v:artifact", namespace)
+            if artifact.attrib == {"name": artifact_name}
+        ]
+        if len(artifacts) != 1:
+            fail(f"Gradle verification metadata lacks Linux-resolved artifact: {artifact_name}")
+        checksums = artifacts[0].findall("v:sha256", namespace)
+        if len(checksums) != 1 or checksums[0].attrib != {"value": checksum, "origin": linux_origin}:
+            fail(f"Gradle verification metadata Linux-resolved checksum drift: {artifact_name}")
     for lock_path in [metadata["settingsLock"], metadata["buildLogicLock"], *metadata["moduleLocks"]]:
         lock = root / lock_path
         if not lock.is_file() or "empty=" not in lock.read_text():
