@@ -16,7 +16,15 @@ public abstract class CaptureDatabase extends RoomDatabase {
 
     public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override public void migrate(@NonNull SupportSQLiteDatabase db) {
-            db.execSQL("ALTER TABLE capture_projection ADD COLUMN attemptCount INTEGER NOT NULL DEFAULT 0");
+            // Rebuild instead of ALTER ADD COLUMN: SQLite retains the forced
+            // DEFAULT clause on ALTER-added NOT NULL columns, which diverges
+            // from Room's expected v2 schema (no default) and fails runtime
+            // TableInfo validation on migrated devices. A table rebuild makes
+            // the migrated schema byte-equivalent to a fresh v2 create.
+            db.execSQL("CREATE TABLE IF NOT EXISTS capture_projection_v2 (requestID TEXT NOT NULL, packageVersion INTEGER NOT NULL, journalVersion INTEGER NOT NULL, journalRevision INTEGER NOT NULL, state TEXT NOT NULL, createdAtEpochMillis INTEGER NOT NULL, updatedAtEpochMillis INTEGER NOT NULL, attemptCount INTEGER NOT NULL, PRIMARY KEY(requestID))");
+            db.execSQL("INSERT INTO capture_projection_v2 (requestID, packageVersion, journalVersion, journalRevision, state, createdAtEpochMillis, updatedAtEpochMillis, attemptCount) SELECT requestID, packageVersion, journalVersion, journalRevision, state, createdAtEpochMillis, updatedAtEpochMillis, 0 FROM capture_projection");
+            db.execSQL("DROP TABLE capture_projection");
+            db.execSQL("ALTER TABLE capture_projection_v2 RENAME TO capture_projection");
             db.execSQL("CREATE TABLE IF NOT EXISTS capture_lease (requestID TEXT NOT NULL, token TEXT NOT NULL, expiresAtEpochMillis INTEGER NOT NULL, PRIMARY KEY(requestID))");
             db.execSQL("CREATE TABLE IF NOT EXISTS lease_clock (singletonID INTEGER NOT NULL, maxObservedEpochMillis INTEGER NOT NULL, PRIMARY KEY(singletonID))");
             db.execSQL("CREATE TABLE IF NOT EXISTS installation_identity (singletonID INTEGER NOT NULL, installationID TEXT NOT NULL, createdAtEpochMillis INTEGER NOT NULL, PRIMARY KEY(singletonID))");

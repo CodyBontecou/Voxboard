@@ -5,10 +5,10 @@ Status: **M3 Phase 1–4 foundations hosted-qualified; vertical slice incomplete
 M2 is qualified at `450abcaab4f09f5a4803d535ee843d1c058f099b`. This audit
 retains the machine-consistent M3 boundary and exact Android application toolchain while
 recording the first compileable phone/tablet foundation, the hosted-qualified Phase 2–4
-foundations, and the Phase 4 lazy UniFFI packaging slice. It claims no provider result,
-physical-device or process-death result, physical
-durability or Room migration qualification, SAF commit, quota outcome, target-executed native
-library load, or M3 exit.
+foundations, the Phase 4 lazy UniFFI packaging slice, and the first physical-target
+execution of the native bridge and Room migration on one Pixel 7. It claims no provider
+result, process-death campaign, physical directory-fsync result, SAF commit, quota outcome,
+on-target materialization markdown, multi-device coverage, or M3 exit.
 
 ## Approved M3 product scope
 
@@ -187,8 +187,40 @@ Debug and release native outputs are variant-isolated and source-built for the f
 API-28 ABIs. Static APK validation requires each Vox library plus JNA's Android runtime at the
 same four ABIs and validates ELF class/machine.
 A compiled instrumentation consumer calls generated build-info, readiness, and prepare with
-governed fixture assets. Neither that consumer nor native loading has been executed on an
-Android target; mirror lifecycle and physical/runtime claims therefore remain unchanged.
+governed fixture assets.
+
+## Phase 4.1 first target-executed evidence
+
+On 2026-08-15 the instrumentation suites were executed on a physical Pixel 7
+(`panther`, Android 17, `arm64-v8a`) after the hosted Phase 4 qualification. Results:
+
+- `:core-bridge:connectedDebugAndroidTest` — 1/1 passed. The source-built
+  `libvox_core_uniffi.so` loaded on-target through the lazy bridge; generated
+  build-info, readiness, and prepare executed through UniFFI. On-device checks
+  now cover: live `CORE_VERSION` reporting; the readiness manifest gate failing
+  closed on a synthetic zero digest (`toolchainManifestMismatch`, session not
+  permitted) and passing only with the runtime digest from build-info; and
+  prepare returning the canonical content-free `RequiredObservations` control
+  (payload text/URLs are not echoed).
+- `:data:connectedDebugAndroidTest` — 6/6 passed, including the v1→v2 Room
+  migration equivalence, terminal transaction rollback/idempotency, lease, and
+  quota instrumentation consumers.
+
+First-execution findings were fixed in the same session: the instrumented test
+previously asserted the synthetic schema-fixture version (`0.1.0-m2-foundation`)
+and a zero manifest digest against live runtime output, and misread the prepare
+result as rendered markdown; and `MIGRATION_1_2` had used `ALTER TABLE ADD
+COLUMN … DEFAULT 0`, which leaves a `DEFAULT` clause that diverges from Room's
+expected v2 schema and would fail runtime `TableInfo` validation on migrated
+devices. The migration now rebuilds `capture_projection` to be byte-equivalent
+to a fresh v2 create. This is exactly the class of defect that only target
+execution reveals; hosted compilation could not catch it.
+
+Bounded claims: native load + UniFFI control calls, Room migration/rollback/
+quota behavior, and schema equivalence are now device-evidenced on one physical
+target. Not yet claimed: materialization-session markdown on-target, SAF
+provider behavior, process-death campaigns, backup/device-transfer extraction,
+performance gates, or any passed M3 campaign case.
 
 ## Phase 4 hosted qualification
 

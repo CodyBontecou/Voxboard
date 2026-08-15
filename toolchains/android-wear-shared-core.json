@@ -326,7 +326,7 @@
     },
     {
       "path": "apps/android/core-bridge/src/androidTest/kotlin/md/vox/android/corebridge/GeneratedCoreBridgeInstrumentationTest.kt",
-      "sha256": "12da9b97cca26458e16692eb1534824d71f97bfee084fecdc894a983352afaba"
+      "sha256": "755cd5a36cb1010eb5ce8879adcc202f12206eec76f6b8051103401d69a453b5"
     },
     {
       "path": "apps/android/capture-domain/build.gradle.kts",
@@ -378,7 +378,7 @@
     },
     {
       "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureDatabase.java",
-      "sha256": "1b501c69c9be4165ce763ee71a027401f6af81b28f80e3ceae337d272d4c34ac"
+      "sha256": "e1e45bfbf79d1e1d962793334c52bc58e1095a1e307a25b4ae70ff52dba2e226"
     },
     {
       "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureLeaseEntity.java",
