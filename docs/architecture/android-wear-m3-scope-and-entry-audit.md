@@ -1,6 +1,6 @@
 # Android/Wear M3 scope and entry audit
 
-Status: **M3 Phase 1 and Phase 2 hosted-qualified; Phase 3 durability substrate implemented locally; vertical slice incomplete**
+Status: **M3 Phase 1–3 durability foundations hosted-qualified; vertical slice incomplete**
 
 M2 is qualified at `450abcaab4f09f5a4803d535ee843d1c058f099b`. This audit
 retains the machine-consistent M3 boundary and exact Android application toolchain while
@@ -174,6 +174,39 @@ storage, quota transaction ordering, and cleanup crash behavior.
 ADR-0019 defines native-only SAF ownership and the exact result taxonomy:
 `verifiedCommitted`, `provedNotCommitted`, `permissionLost`, and `ambiguous`. Restart from
 `committing` without a receipt reconciles only; it never blindly invokes the normal writer.
+
+## Phase 3 hosted qualification
+
+The reviewed Phase 3 implementation revision is
+`b1cb02e6c89fe244a9ee73ed4448a2858fd3c777`; its clean-source oracle successor and hosted
+source revision is `2549a83f9792226f49f9178cbac9c4871e709ef7`. GitHub Actions passed:
+
+- [Android foundation CI `31889908157`](https://github.com/CodyBontecou/vox.md/actions/runs/31889908157),
+  job `95024541014`, including 72 governed implementation hashes, 87 project-contract tests,
+  all JVM durability/planner tests, lint, instrumentation APK assembly, and static artifact
+  validation on `ubuntu-24.04`;
+- [Portable contracts CI `31889908113`](https://github.com/CodyBontecou/vox.md/actions/runs/31889908113),
+  job `95024541021`;
+- [Shared Rust core CI `31889908104`](https://github.com/CodyBontecou/vox.md/actions/runs/31889908104),
+  jobs `95024540909` and `95024540883`; and
+- [Apple CI `31889908130`](https://github.com/CodyBontecou/vox.md/actions/runs/31889908130),
+  attempt 2, whose iOS, repository-contract, macOS, Watch, and shared-package jobs all passed.
+
+Apple attempt 1 terminated during an unrelated M0 inspiration-cache test with a simulator
+process allocator error after all listed source changes were Android/governance-only. The
+exact same source revision passed the complete Apple workflow on rerun; the failed attempt
+is retained as flaky runtime history, not passing evidence.
+
+Independent blocker/high review drove fixes for continuous root-lock lease fencing, typed
+replacement uncertainty, exact revision replay, persisted rollback defense, conservative
+quota classification, Room transaction rollback, migration equivalence, bounded concurrency,
+and production-bypass governance. Final independent follow-up returned PASS with no remaining
+blocker/high finding.
+
+This qualifies host/JVM behavior, generated Room compilation/schema validation, and static
+artifacts only. Instrumentation was assembled but not executed on an Android target. Physical
+atomic replacement, directory fsync, locking, Room migration, clock/reboot, process-death,
+backup/device-transfer, quota product flow, and provider behavior remain unqualified.
 
 ## Phase 2 hosted qualification
 
