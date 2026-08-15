@@ -775,10 +775,10 @@
       "sha256": "6e40ea0676c186a7e445f03b677240ed60a4fa8575589c860d737ae98d502269"
     },
     {
-      "bytes": 35343,
+      "bytes": 40084,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_toolchain.py",
-      "sha256": "77ff732312ebb2a99d64094060b8d1e64ff2967279b722946a1d7d3282f9ec8a"
+      "sha256": "cd9d33a6c870e9716abe98262631f4867ad0400a86d74e2879cd3d23b7c96a6c"
     },
     {
       "bytes": 113342,
@@ -787,10 +787,10 @@
       "sha256": "d81c312d360192094ac044a7e990cdca6cacd2d36500b1c0dc75e405f1d7d4f3"
     },
     {
-      "bytes": 4908,
+      "bytes": 7179,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_android_artifact_validator.py",
-      "sha256": "4ff201c6ed6cd97874daeb03998ee54430292ec2118368793ff5130fe5c54603"
+      "sha256": "220d7da0a0e45a418dfa31e476a280fe0a2d72a058a4b9afabb7f9f212d5f8f9"
     },
     {
       "bytes": 6066,
@@ -805,10 +805,10 @@
       "sha256": "65e1532465e3cd82273e0012a40606ae89ce0aa064b4d20df4cb3d2e40739b13"
     },
     {
-      "bytes": 31688,
+      "bytes": 36047,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "ea5eb5d6b1b564467d5cbadd16d4f4d433fca518a9005246bdde26dbd860661c"
+      "sha256": "c015b57c19d4a6a55a14569bf66f7309bfb2cfdb3a2e777b49f1aa460e4ad26f"
     },
     {
       "bytes": 83338,
@@ -895,10 +895,10 @@
       "sha256": "6a1f49af4d9af63384a21553941bf24d80ac79afdd60d99a4ce37d223892ac90"
     },
     {
-      "bytes": 152,
+      "bytes": 175,
       "category": "toolchainEntryStub",
       "path": "Packages/vox-core-rust/uniffi.toml",
-      "sha256": "2302dcceba96dfd90b9eefa3a43b40005a4cc8e00829f41d94072d6a2efca3c4"
+      "sha256": "1bcdf4efc4d51e66d59512c5399d4c536637afb5686bdb26978c5a6d181bf9e1"
     },
     {
       "bytes": 4107,
@@ -1027,6 +1027,12 @@
       "sha256": "941779423628bf086f7fa0b939cdf3720a4d17452d602dc6568db7d6322ba524"
     },
     {
+      "bytes": 3741,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0022-android-lazy-uniffi-native-packaging.md",
+      "sha256": "0c7ee3af354276fe62e7c28d65c0f161eb3fcf7c26a3521b12e54b0f5fe2f3c3"
+    },
+    {
       "bytes": 3806,
       "category": "acceptedDecision",
       "path": "docs/architecture/android-wear-m1-decisions.md",
@@ -1057,16 +1063,16 @@
       "sha256": "ddd50cbdb85a52ce03c44167b07c2a0dbd27a730085316ddf9f74bc3eb052bc6"
     },
     {
-      "bytes": 18336,
+      "bytes": 19747,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "018789f3f65f5eebefe20765bef5a595498b19fad34931e317cf76a361e93e7f"
+      "sha256": "7953c54e0fedc959e54eb4b21e8f87118da91c7cdc245a1812fe78a0e8e01223"
     },
     {
-      "bytes": 10583,
+      "bytes": 10626,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.schema.json",
-      "sha256": "64d58ac0facb8d13760391f9f1f4377a14c21c639d3d8ed3015117ab4aece0c2"
+      "sha256": "46800914af3b308bc2554200548d4b1f1a998d2067f72ac784570294fb0561c6"
     }
   ],
   "fixtureCases": [

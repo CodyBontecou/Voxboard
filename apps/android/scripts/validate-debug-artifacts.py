@@ -6,6 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 import xml.etree.ElementTree as ET
+import zipfile
 
 ANDROID = "{http://schemas.android.com/apk/res/android}"
 EXPECTED_DOMAINS = {
@@ -23,6 +24,14 @@ COMPONENT_TAGS = {"activity", "activity-alias", "service", "receiver", "provider
 WORKMANAGER_MARKERS = {"androidx.work.WorkManagerInitializer"}
 REVIEWED_DEBUG_EXPORTED = {"androidx.compose.ui.tooling.PreviewActivity"}
 REVIEWED_PLATFORM_COMPONENT_PERMISSIONS = {"android.permission.DUMP"}
+VOX_ELF_TARGETS = {
+    "arm64-v8a": (2, 183),
+    "armeabi-v7a": (1, 40),
+    "x86_64": (2, 62),
+    "x86": (1, 3),
+}
+VOX_LIBRARY = "libvox_core_uniffi.so"
+JNA_LIBRARY = "libjnidispatch.so"
 
 
 class ValidationError(Exception):
@@ -125,6 +134,34 @@ def validate_merged_manifest(path: Path) -> None:
         raise ValidationError(f"expected one launcher, found {launcher_count}")
 
 
+def validate_vox_native_libraries(apk_path: Path) -> None:
+    if not apk_path.is_file():
+        raise ValidationError(f"missing APK input: {apk_path}")
+    try:
+        with zipfile.ZipFile(apk_path) as apk:
+            names = apk.namelist()
+            if len(names) != len(set(names)):
+                raise ValidationError("APK contains duplicate ZIP entries")
+            for label, library in (("Vox", VOX_LIBRARY), ("JNA", JNA_LIBRARY)):
+                actual = {name for name in names if name.endswith("/" + library)}
+                expected = {f"lib/{abi}/{library}" for abi in VOX_ELF_TARGETS}
+                if actual != expected:
+                    raise ValidationError(
+                        f"{label} native ABI set differs: expected {sorted(expected)}, found {sorted(actual)}"
+                    )
+                for abi, (expected_class, expected_machine) in VOX_ELF_TARGETS.items():
+                    data = apk.read(f"lib/{abi}/{library}")
+                    if len(data) < 20 or data[:4] != b"\x7fELF":
+                        raise ValidationError(f"{abi} {label} library is not ELF")
+                    if data[4] != expected_class or data[5] != 1:
+                        raise ValidationError(f"{abi} {label} ELF class/endianness differs")
+                    machine = int.from_bytes(data[18:20], "little")
+                    if machine != expected_machine:
+                        raise ValidationError(f"{abi} {label} ELF machine differs: {machine}")
+    except zipfile.BadZipFile as error:
+        raise ValidationError(f"invalid APK ZIP: {error}") from error
+
+
 def excluded_domains(parent: ET.Element) -> set[str]:
     domains = set()
     for exclude in parent.findall("exclude"):
@@ -152,14 +189,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--backup-rules", required=True, type=Path)
     parser.add_argument("--data-extraction-rules", required=True, type=Path)
+    parser.add_argument("--apk", required=True, type=Path)
     arguments = parser.parse_args(argv)
     try:
         validate_merged_manifest(arguments.manifest)
         validate_backup_rules(arguments.backup_rules, arguments.data_extraction_rules)
+        validate_vox_native_libraries(arguments.apk)
     except ValidationError as error:
         print(f"Android artifact validation failed: {error}", file=sys.stderr)
         return 1
-    print("Android artifact validation passed: merged permissions/components and backup defenses are closed.")
+    print("Android artifact validation passed: merged permissions/components, backup defenses, and four Vox/JNA ELF targets are closed.")
     return 0
 
 

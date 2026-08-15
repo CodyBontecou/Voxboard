@@ -7,6 +7,7 @@ on:
       - '.github/workflows/android-ci.yml'
       - 'apps/android/**'
       - 'Packages/contracts/**'
+      - 'Packages/vox-core-rust/**'
       - 'toolchains/android-wear-shared-core*'
       - 'scripts/test-project-contracts.sh'
   pull_request:
@@ -14,6 +15,7 @@ on:
       - '.github/workflows/android-ci.yml'
       - 'apps/android/**'
       - 'Packages/contracts/**'
+      - 'Packages/vox-core-rust/**'
       - 'toolchains/android-wear-shared-core*'
       - 'scripts/test-project-contracts.sh'
   workflow_dispatch:
@@ -46,6 +48,14 @@ jobs:
         with:
           distribution: temurin
           java-version: '17.0.20+8'
+      - name: Install exact governed Rust and Android targets
+        uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
+        with:
+          toolchain: 1.97.1
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+      - name: Install exact cargo-ndk
+        shell: bash
+        run: cargo +1.97.1 install cargo-ndk --version 4.1.2 --locked
       - name: Install exact Android command-line tools and SDK packages
         shell: bash
         run: |

@@ -70,7 +70,8 @@ exact stable BOM while the compiler plugin remains tied exactly to Kotlin.
 Direct stable dependency pins are centralized in
 `apps/android/gradle/libs.versions.toml`: Core 1.19.0, Activity 1.13.0, Lifecycle 2.11.0,
 Navigation 2.9.8, Room 2.8.4, DataStore 1.2.1, WorkManager 2.11.2, Dagger/Hilt 2.60.1,
-AndroidX Hilt 1.4.0, coroutines 1.11.0, serialization 1.11.0, JNA 5.17.0, and exact Android
+AndroidX Annotation 1.7.0, AndroidX Hilt 1.4.0, coroutines 1.11.0, serialization 1.11.0,
+JNA 5.17.0, and exact Android
 and JUnit test trains. Repository policy rejects project repositories. Floating, preview,
 KSP, and legacy Kotlin Android plugin aliases fail validation.
 

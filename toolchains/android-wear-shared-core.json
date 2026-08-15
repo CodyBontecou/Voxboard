@@ -34,6 +34,7 @@
     },
     "dependencies": {
       "activityCompose": "1.13.0",
+      "androidxAnnotation": "1.7.0",
       "androidxHilt": "1.4.0",
       "androidxTest": "1.7.0",
       "androidxTestExtJunit": "1.3.0",
@@ -153,15 +154,15 @@
     },
     {
       "path": "Packages/vox-core-rust/uniffi.toml",
-      "sha256": "2302dcceba96dfd90b9eefa3a43b40005a4cc8e00829f41d94072d6a2efca3c4"
+      "sha256": "1bcdf4efc4d51e66d59512c5399d4c536637afb5686bdb26978c5a6d181bf9e1"
     },
     {
       "path": "Packages/vox-core-rust/uniffi-bindgen.toml",
-      "sha256": "51fe390e43e8a7701d5096a5e33b5965d355a9a4bfcee2f99bec9a2980bcbef1"
+      "sha256": "e12fef4671477f5f084fcd95b29510878e3809b617a4428290337794d8c031d8"
     },
     {
       "path": "Packages/vox-core-rust/crates/vox-core-uniffi/uniffi.toml",
-      "sha256": "2302dcceba96dfd90b9eefa3a43b40005a4cc8e00829f41d94072d6a2efca3c4"
+      "sha256": "1bcdf4efc4d51e66d59512c5399d4c536637afb5686bdb26978c5a6d181bf9e1"
     },
     {
       "path": "Packages/vox-core-rust/scripts/generate-swift-bindings.sh",
@@ -173,7 +174,11 @@
     },
     {
       "path": "Packages/vox-core-rust/scripts/normalize-kotlin-bindings.py",
-      "sha256": "f769ed9b7cdfe2002d72f8f42032cec8fe4eeac5bb62d46290547d2e9f92f364"
+      "sha256": "2dd4c7c058fda3b16523102722552b86afadd60f22f61883bb625af7605592ba"
+    },
+    {
+      "path": "Packages/vox-core-rust/generated/kotlin/md/vox/core/vox_core_uniffi.kt",
+      "sha256": "d88f02f72aadf9d1914b3de7299f3f23726246e5eeefac9369b87faf7f733d0b"
     },
     {
       "path": "Packages/vox-core-rust/scripts/check-bindings.sh",
@@ -217,7 +222,7 @@
     },
     {
       "path": ".github/workflows/android-ci.yml",
-      "sha256": "d146ffb665ebbaf93f1599bca0eed9f4b3bd461d7407e475a2ab6b0f928729f7"
+      "sha256": "4e83bbb33ad4139bd6c35a95853d9bd52b711c36b503bc4d50f7dff3213d73e0"
     },
     {
       "path": ".github/workflows/contracts-ci.yml",
@@ -233,7 +238,7 @@
     },
     {
       "path": "apps/android/gradle/libs.versions.toml",
-      "sha256": "88089f546b90854277ded17d1bfa4772b28dd6443bf8e70af384e4e3057009cb"
+      "sha256": "bf8626f85164bfc130fdd8b88bfed7f363900b37611c6fa3aa5b58d4e00f7148"
     },
     {
       "path": "apps/android/gradle.properties",
@@ -285,23 +290,43 @@
     },
     {
       "path": "apps/android/app/build.gradle.kts",
-      "sha256": "b8ae2d9bb790e389df664c77b099bab72c40f3417b32e4e94b2644b26c622350"
+      "sha256": "d5ea1fd7d918fc5085109458fabdc534e39c014fcd5ac8f5db309b078e6e3b3e"
     },
     {
       "path": "apps/android/app/gradle.lockfile",
       "sha256": "c7832e0363c544d7db2fd47e5df5a404e0611341a1213227c76feb1dbdf23aaa"
     },
     {
+      "path": "apps/android/app/src/main/kotlin/md/vox/android/VoxApplication.kt",
+      "sha256": "19edd177d40a9016014f09ed3a96d6b47358eca58bec01d94ce71265af6192cf"
+    },
+    {
       "path": "apps/android/scripts/validate-debug-artifacts.py",
-      "sha256": "f0cdfa7a97a3b204ca0c4e428c6b7586aab2ae83ea5e25470cb88604d90a49fc"
+      "sha256": "fe6f92a13b34fd4c9429492ce175414fa176e21816747aaf0fab7d086d3e3d1f"
     },
     {
       "path": "apps/android/core-bridge/build.gradle.kts",
-      "sha256": "c3e4deedc50a25584ed3461ce49934afb7e0582c63d88f47dd54e46163b1056c"
+      "sha256": "ac31836b17db9c0adefbc6f34b52b86395fc3b6c537f1f141129fc7e9da34880"
     },
     {
       "path": "apps/android/core-bridge/gradle.lockfile",
-      "sha256": "8042f4913ccf3e918298fa109265456df27a4a6798892d6d42fbd299c8b4522d"
+      "sha256": "107a1e429203fcdedc88aa1ebb0eaf365972f33f0c731f639cad651d224b7902"
+    },
+    {
+      "path": "apps/android/core-bridge/src/main/kotlin/md/vox/android/corebridge/CoreBridge.kt",
+      "sha256": "d1eaae0533b3e9598359b7c8d65d0e07515fc89531174a44203283607d79ec66"
+    },
+    {
+      "path": "apps/android/core-bridge/src/main/kotlin/md/vox/android/corebridge/GeneratedNativeCoreAdapter.kt",
+      "sha256": "b467b51f41d4f5e2963291cac00e17f2cf406345a79748ed36be63a940355415"
+    },
+    {
+      "path": "apps/android/core-bridge/src/test/kotlin/md/vox/android/corebridge/CoreBridgeTest.kt",
+      "sha256": "64693f635ac2cecd760730c8a344fa6f8b6d21c0a02892e58fcb160198e97fef"
+    },
+    {
+      "path": "apps/android/core-bridge/src/androidTest/kotlin/md/vox/android/corebridge/GeneratedCoreBridgeInstrumentationTest.kt",
+      "sha256": "12da9b97cca26458e16692eb1534824d71f97bfee084fecdc894a983352afaba"
     },
     {
       "path": "apps/android/capture-domain/build.gradle.kts",
@@ -309,7 +334,7 @@
     },
     {
       "path": "apps/android/capture-domain/gradle.lockfile",
-      "sha256": "e105a02843b002685ce773a014bbba076d1f1ef354d8622c027b53a4519183f0"
+      "sha256": "4de8dd21c0e5065f329bf2419b39eac0370529a211ed595bc4a07d95e826585b"
     },
     {
       "path": "apps/android/data/build.gradle.kts",
@@ -420,16 +445,20 @@
       "sha256": "941779423628bf086f7fa0b939cdf3720a4d17452d602dc6568db7d6322ba524"
     },
     {
+      "path": "docs/architecture/adr-0022-android-lazy-uniffi-native-packaging.md",
+      "sha256": "0c7ee3af354276fe62e7c28d65c0f161eb3fcf7c26a3521b12e54b0f5fe2f3c3"
+    },
+    {
       "path": "apps/android/platform-services/build.gradle.kts",
       "sha256": "a4bd032e4d5569450fd433bf7b6606ad3e45b8ad645caf7213da79c6ebc15da3"
     },
     {
       "path": "apps/android/platform-services/gradle.lockfile",
-      "sha256": "e105a02843b002685ce773a014bbba076d1f1ef354d8622c027b53a4519183f0"
+      "sha256": "4de8dd21c0e5065f329bf2419b39eac0370529a211ed595bc4a07d95e826585b"
     },
     {
       "path": "apps/android/gradle/verification-metadata.xml",
-      "sha256": "df7d4c72ff42e4cf75138defa56f502dafe099084ea41815cd75e5c5f4a4f8d6"
+      "sha256": "6303e49be19e47ba8755c5677a87bce6b48afd97850cacf4e5446191da4466a2"
     },
     {
       "path": "apps/android/settings-gradle.lockfile",

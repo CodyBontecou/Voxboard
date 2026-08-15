@@ -4,11 +4,11 @@ Status: **M3 Phase 1–3 durability foundations hosted-qualified; vertical slice
 
 M2 is qualified at `450abcaab4f09f5a4803d535ee843d1c058f099b`. This audit
 retains the machine-consistent M3 boundary and exact Android application toolchain while
-recording the first compileable phone/tablet foundation, the hosted-qualified Phase 2
-durable-enqueue foundation, and the locally implemented Phase 3 durability substrate. It
-claims no provider result, physical-device or process-death
-result, physical durability or Room migration qualification, SAF commit, quota outcome,
-Kotlin binding consumption, native library load, or M3 exit.
+recording the first compileable phone/tablet foundation, the hosted-qualified Phase 2 and
+Phase 3 durability foundations, and the locally implemented Phase 4 lazy UniFFI packaging
+slice. It claims no provider result, physical-device or process-death result, physical
+durability or Room migration qualification, SAF commit, quota outcome, target-executed native
+library load, or M3 exit.
 
 ## Approved M3 product scope
 
@@ -174,6 +174,21 @@ storage, quota transaction ordering, and cleanup crash behavior.
 ADR-0019 defines native-only SAF ownership and the exact result taxonomy:
 `verifiedCommitted`, `provedNotCommitted`, `permissionLost`, and `ambiguous`. Restart from
 `committing` without a receipt reconciles only; it never blindly invokes the normal writer.
+
+## Local Phase 4 lazy bridge and native packaging status
+
+ADR-0022 consumes the committed Kotlin binding as `core-bridge` production source and adds a
+handwritten lazy, fail-closed, bounded owned-value API. Production delegates only to generated
+UniFFI; fake adapters are test-only. The application composition root intentionally remains
+`NOT_WIRED`, so this slice grants no capture, persistence, provider, quota, or success
+authority and has no Kotlin rendering fallback.
+
+Debug and release native outputs are variant-isolated and source-built for the four governed
+API-28 ABIs. Static APK validation requires each Vox library plus JNA's Android runtime at the
+same four ABIs and validates ELF class/machine.
+A compiled instrumentation consumer calls generated build-info, readiness, and prepare with
+governed fixture assets. Neither that consumer nor native loading has been executed on an
+Android target; mirror lifecycle and physical/runtime claims therefore remain unchanged.
 
 ## Phase 3 hosted qualification
 

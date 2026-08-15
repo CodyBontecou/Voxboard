@@ -9,7 +9,7 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[3]
-EXPECTED_SCHEMA_CANONICAL_SHA256 = "339785301b261c56d6a0325dce6d32fb191f1826bcb5c2e4d4fe758d3f8a4c19"
+EXPECTED_SCHEMA_CANONICAL_SHA256 = "4a6a94f75f173e23538d7e97f48cdc0349f280e45293712f9cf8908c835021ea"
 EXPECTED_GOVERNED_PATHS = (
     "Packages/vox-core-rust/Cargo.lock",
     "Packages/vox-core-rust/uniffi.toml",
@@ -18,6 +18,7 @@ EXPECTED_GOVERNED_PATHS = (
     "Packages/vox-core-rust/scripts/generate-swift-bindings.sh",
     "Packages/vox-core-rust/scripts/generate-kotlin-bindings.sh",
     "Packages/vox-core-rust/scripts/normalize-kotlin-bindings.py",
+    "Packages/vox-core-rust/generated/kotlin/md/vox/core/vox_core_uniffi.kt",
     "Packages/vox-core-rust/scripts/check-bindings.sh",
     "Packages/vox-core-rust/scripts/build-android-cdylibs.sh",
     "Packages/vox-core-rust/scripts/build-apple-xcframework.sh",
@@ -47,9 +48,14 @@ EXPECTED_GOVERNED_PATHS = (
     "apps/android/build-logic/gradle.lockfile",
     "apps/android/app/build.gradle.kts",
     "apps/android/app/gradle.lockfile",
+    "apps/android/app/src/main/kotlin/md/vox/android/VoxApplication.kt",
     "apps/android/scripts/validate-debug-artifacts.py",
     "apps/android/core-bridge/build.gradle.kts",
     "apps/android/core-bridge/gradle.lockfile",
+    "apps/android/core-bridge/src/main/kotlin/md/vox/android/corebridge/CoreBridge.kt",
+    "apps/android/core-bridge/src/main/kotlin/md/vox/android/corebridge/GeneratedNativeCoreAdapter.kt",
+    "apps/android/core-bridge/src/test/kotlin/md/vox/android/corebridge/CoreBridgeTest.kt",
+    "apps/android/core-bridge/src/androidTest/kotlin/md/vox/android/corebridge/GeneratedCoreBridgeInstrumentationTest.kt",
     "apps/android/capture-domain/build.gradle.kts",
     "apps/android/capture-domain/gradle.lockfile",
     "apps/android/data/build.gradle.kts",
@@ -79,6 +85,7 @@ EXPECTED_GOVERNED_PATHS = (
     "apps/android/data/schemas/md.vox.android.data.CaptureDatabase/1.json",
     "apps/android/data/schemas/md.vox.android.data.CaptureDatabase/2.json",
     "docs/architecture/adr-0021-android-journal-replacement-lease-quota-room-v2.md",
+    "docs/architecture/adr-0022-android-lazy-uniffi-native-packaging.md",
     "apps/android/platform-services/build.gradle.kts",
     "apps/android/platform-services/gradle.lockfile",
     "apps/android/gradle/verification-metadata.xml",
@@ -217,7 +224,8 @@ def main(argv=None):
         },
         "compose": {"bomVersion": "2026.08.00"},
         "dependencies": {
-            "activityCompose": "1.13.0", "androidxHilt": "1.4.0",
+            "activityCompose": "1.13.0", "androidxAnnotation": "1.7.0",
+            "androidxHilt": "1.4.0",
             "androidxTest": "1.7.0", "androidxTestExtJunit": "1.3.0",
             "composeBom": "2026.08.00", "coreKtx": "1.19.0",
             "coroutines": "1.11.0", "dataStore": "1.2.1",
@@ -306,6 +314,33 @@ def main(argv=None):
         if not (root / path).is_file():
             fail(f"generated binding missing: {path}")
 
+    for config_path in (
+        "Packages/vox-core-rust/uniffi.toml",
+        "Packages/vox-core-rust/uniffi-bindgen.toml",
+        "Packages/vox-core-rust/crates/vox-core-uniffi/uniffi.toml",
+    ):
+        config = (root / config_path).read_text()
+        if "[bindings.kotlin]" not in config or "android_cleaner = true" not in config:
+            fail(f"Android-safe UniFFI cleaner configuration drift: {config_path}")
+    kotlin_binding = (root / "Packages/vox-core-rust/generated/kotlin/md/vox/core/vox_core_uniffi.kt").read_text()
+    for declaration in (
+        "internal open class CoreMaterializationSession",
+        "internal data class CoreBuildInfo",
+        "internal sealed class VoxCoreException",
+        "internal fun `corePrepare`",
+    ):
+        if declaration not in kotlin_binding:
+            fail(f"generated Kotlin module-internal surface drift: {declaration}")
+    kotlin_declaration = (
+        r"(?:(?:open|abstract|data|enum|sealed|value|annotation|inline|const|lateinit|suspend)\s+)*"
+        r"(?:class|interface|object|fun|typealias|val|var)"
+    )
+    if re.search(rf"(?m)^(?:public\s+)?{kotlin_declaration}\b", kotlin_binding) or re.search(
+        r"(?m)^\s+(?:@Throws\([^\n)]+::class\) )?(?:public )?fun `core[A-Za-z0-9]+`",
+        kotlin_binding,
+    ):
+        fail("generated Kotlin exposes a public top-level declaration")
+
     cargo = (root / "Packages/vox-core-rust/Cargo.toml").read_text()
     lock = (root / "Packages/vox-core-rust/Cargo.lock").read_text()
     rust_toolchain = (root / expected_rust["rustToolchainPath"]).read_text()
@@ -351,7 +386,7 @@ def main(argv=None):
         "navigation": "2.9.8", "room": "2.8.4", "datastore": "1.2.1",
         "work": "2.11.2", "hilt": "2.60.1", "androidx-hilt": "1.4.0",
         "coroutines": "1.11.0", "serialization": "1.11.0", "jna": "5.17.0",
-        "androidx-test": "1.7.0", "androidx-test-ext-junit": "1.3.0",
+        "androidx-annotation": "1.7.0", "androidx-test": "1.7.0", "androidx-test-ext-junit": "1.3.0",
         "espresso": "3.7.0", "junit4": "4.13.2",
     }
     if version_catalog(catalog_text) != expected_versions:
@@ -451,7 +486,7 @@ def main(argv=None):
     for module in actual_graph:
         visit(module)
     app_build = module_builds["app"]
-    for token in ("validateDebugArtifacts", 'dependsOn("processDebugManifest")', 'tasks.named("check")'):
+    for token in ("validateDebugArtifacts", 'dependsOn("processDebugManifest", "assembleDebug")', '"--apk"', 'tasks.named("check")'):
         if token not in app_build:
             fail(f"Android artifact validation task wiring drift: {token}")
     data_build = module_builds["data"]
@@ -574,11 +609,16 @@ def main(argv=None):
         "runs-on: ubuntu-24.04",
         "actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd",
         "actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654",
+        "dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772",
+        "toolchain: 1.97.1",
+        "targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android",
+        "cargo +1.97.1 install cargo-ndk --version 4.1.2 --locked",
         "java-version: '17.0.20+8'", "'platforms;android-37.0'",
         "'build-tools;36.0.0'", "'ndk;27.1.12297006'",
         command_line_tools["linuxURL"], command_line_tools["linuxSha256"],
         'cmdline-tools/22.0/bin/sdkmanager', "sha256sum --check --strict",
         "validate_toolchain.py", "test-project-contracts.sh",
+        "'Packages/vox-core-rust/**'",
         "test lint assembleDebug assembleDebugAndroidTest :app:validateDebugArtifacts",
     ):
         if needle not in workflow:
@@ -595,6 +635,49 @@ def main(argv=None):
         for action in actions:
             if re.fullmatch(r"[0-9a-f]{40}", action) is None:
                 fail(f"{workflow_label} action is not immutable: {action}")
+    phase4_build = (root / "apps/android/core-bridge/build.gradle.kts").read_text()
+    phase4_bridge = (root / "apps/android/core-bridge/src/main/kotlin/md/vox/android/corebridge/CoreBridge.kt").read_text()
+    phase4_generated = (root / "apps/android/core-bridge/src/main/kotlin/md/vox/android/corebridge/GeneratedNativeCoreAdapter.kt").read_text()
+    phase4_app = (root / "apps/android/app/src/main/kotlin/md/vox/android/VoxApplication.kt").read_text()
+    for needle in (
+        "Packages/vox-core-rust/generated/kotlin",
+        "generated/vox-native/debug/jniLibs",
+        "generated/vox-native/release/jniLibs",
+        "build-android-cdylibs.sh",
+    ):
+        if needle not in phase4_build:
+            fail(f"Android Phase 4 native packaging drift: {needle}")
+    for needle in (
+        "MAX_CONTROL_BYTES = 1_048_576",
+        "MAX_CHUNK_BYTES = 1_048_576UL",
+        "fun productionCoreBridge(): CoreBridge = LazyCoreBridge { GeneratedNativeCoreAdapter() }",
+        "CoreAvailability.LAZY_NOT_PROBED",
+    ):
+        if needle not in phase4_bridge:
+            fail(f"Android Phase 4 bridge policy drift: {needle}")
+    if (
+        "md.vox.core" not in phase4_generated
+        or "withOwnedDirectBytes(bytes) { corePrepare(it) }" not in phase4_generated
+        or "ByteBuffer.wrap" in phase4_generated
+        or "bytes.fill(0)" not in phase4_generated
+    ):
+        fail("Android Phase 4 generated-only direct-buffer adapter drift")
+    if "unwiredCoreBridge()" not in phase4_app or "productionCoreBridge" in phase4_app:
+        fail("Android Phase 4 application wiring widened")
+    adapter_path = root / "apps/android/core-bridge/src/main/kotlin/md/vox/android/corebridge/GeneratedNativeCoreAdapter.kt"
+    production_source_paths = []
+    android_root = root / "apps/android"
+    for source_path in sorted(android_root.glob("*/src/*/**/*")):
+        if not source_path.is_file() or source_path.suffix not in {".kt", ".java"}:
+            continue
+        relative_parts = source_path.relative_to(android_root).parts
+        source_set = relative_parts[2].lower()
+        if source_set.startswith("test") or "androidtest" in source_set or "unittest" in source_set:
+            continue
+        production_source_paths.append(source_path)
+        if source_path != adapter_path and re.search(r"\bmd\.vox\.core\b", source_path.read_text()):
+            fail(f"Android production source bypasses the handwritten core bridge: {source_path.relative_to(root)}")
+
     phase3_domain = (root / "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/CaptureDurability.kt").read_text()
     phase3_store = (root / "apps/android/data/src/main/kotlin/md/vox/android/data/DurableCaptureStore.kt").read_text()
     phase3_database = (root / "apps/android/data/src/main/java/md/vox/android/data/CaptureDatabase.java").read_text()
@@ -618,11 +701,7 @@ def main(argv=None):
         fail("Android lease operations do not share the root mutation lock")
     if "internal fun mutateJournal(" not in phase3_store or "private fun mutateJournalUnderRootLock(" not in phase3_store:
         fail("Android journal mutation can bypass the internal fenced coordinator boundary")
-    main_source_paths = [
-        path for path in (root / "apps/android").glob("*/src/main/**/*")
-        if path.is_file() and path.suffix in {".kt", ".java"}
-    ]
-    main_source = "\n".join(path.read_text() for path in main_source_paths)
+    main_source = "\n".join(path.read_text() for path in production_source_paths)
     if len(re.findall(r"\bRoomCaptureCoordination\b", main_source)) != 1:
         fail("Android raw Room lease coordination has a production caller")
     if "internal fun commitTerminal" not in phase3_quota:

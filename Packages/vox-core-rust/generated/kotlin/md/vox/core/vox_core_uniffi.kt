@@ -30,6 +30,8 @@ import java.nio.CharBuffer
 import java.nio.charset.CodingErrorAction
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.ConcurrentHashMap
+import android.os.Build
+import androidx.annotation.RequiresApi
 import java.util.concurrent.atomic.AtomicBoolean
 
 // This is a helper for safely working with byte buffers returned from the Rust code.
@@ -40,7 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @suppress
  */
 @Structure.FieldOrder("capacity", "len", "data")
-open class RustBuffer : Structure() {
+internal open class RustBuffer : Structure() {
     // Note: `capacity` and `len` are actually `ULong` values, but JVM only supports signed values.
     // When dealing with these fields, make sure to call `toULong()`.
     @JvmField var capacity: Long = 0
@@ -144,7 +146,7 @@ internal object FfiConverterByRefBytes : FfiConverter<java.nio.ByteBuffer, Forei
  *
  * @suppress
  */
-public interface FfiConverter<KotlinType, FfiType> {
+internal interface FfiConverter<KotlinType, FfiType> {
     // Convert an FFI type to a Kotlin type
     fun lift(value: FfiType): KotlinType
 
@@ -211,7 +213,7 @@ public interface FfiConverter<KotlinType, FfiType> {
  *
  * @suppress
  */
-public interface FfiConverterRustBuffer<KotlinType>: FfiConverter<KotlinType, RustBuffer.ByValue> {
+internal interface FfiConverterRustBuffer<KotlinType>: FfiConverter<KotlinType, RustBuffer.ByValue> {
     override fun lift(value: RustBuffer.ByValue) = liftFromRustBuffer(value)
     override fun lower(value: KotlinType) = lowerIntoRustBuffer(value)
 }
@@ -251,14 +253,14 @@ internal open class UniffiRustCallStatus : Structure() {
     }
 }
 
-class InternalException(message: String) : kotlin.Exception(message)
+internal class InternalException(message: String) : kotlin.Exception(message)
 
 /**
  * Each top-level error class has a companion object that can lift the error from the call status's rust buffer
  *
  * @suppress
  */
-interface UniffiRustCallStatusErrorHandler<E> {
+internal interface UniffiRustCallStatusErrorHandler<E> {
     fun lift(error_buf: RustBuffer.ByValue): E;
 }
 
@@ -299,7 +301,7 @@ private fun<E: kotlin.Exception> uniffiCheckCallStatus(errorHandler: UniffiRustC
  *
  * @suppress
  */
-object UniffiNullRustCallStatusErrorHandler: UniffiRustCallStatusErrorHandler<InternalException> {
+internal object UniffiNullRustCallStatusErrorHandler: UniffiRustCallStatusErrorHandler<InternalException> {
     override fun lift(error_buf: RustBuffer.ByValue): InternalException {
         RustBuffer.free(error_buf)
         return InternalException("Unexpected CALL_ERROR")
@@ -882,7 +884,7 @@ private fun uniffiCheckApiChecksums(lib: IntegrityCheckingUniffiLib) {
 /**
  * @suppress
  */
-public fun uniffiEnsureInitialized() {
+internal fun uniffiEnsureInitialized() {
     IntegrityCheckingUniffiLib
     // UniffiLib() initialized as objects are used, but we still need to explicitly
     // reference it so initialization across crates works as expected.
@@ -902,7 +904,7 @@ public fun uniffiEnsureInitialized() {
 //
 // The easiest way to ensure this method is called is to use the `.use`
 // helper method to execute a block and destroy the object at the end.
-interface Disposable {
+internal interface Disposable {
     fun destroy()
     companion object {
         fun destroy(vararg args: Any?) {
@@ -940,7 +942,7 @@ interface Disposable {
 /**
  * @suppress
  */
-inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
+internal inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
     try {
         block(this)
     } finally {
@@ -961,14 +963,14 @@ inline fun <T : Disposable?, R> T.use(block: (T) -> R) =
  *
  * @suppress
  * */
-object UniffiWithHandle
+internal object UniffiWithHandle
 
 /**
  * Used to instantiate an interface without an actual pointer, for fakes in tests, mostly.
  *
  * @suppress
  * */
-object NoHandle
+internal object NoHandle
 /**
  * The cleaner interface for Object finalization code to run.
  * This is the entry point to any implementation that we're using.
@@ -979,7 +981,7 @@ object NoHandle
  *
  * @suppress
  */
-interface UniffiCleaner {
+internal interface UniffiCleaner {
     interface Cleanable {
         fun clean()
     }
@@ -1008,28 +1010,28 @@ private class UniffiJnaCleanable(
 // using Android or not.
 // There are further runtime checks to chose the correct implementation
 // of the cleaner.
+
+
 private fun UniffiCleaner.Companion.create(): UniffiCleaner =
-    try {
-        // For safety's sake: if the library hasn't been run in android_cleaner = true
-        // mode, but is being run on Android, then we still need to think about
-        // Android API versions.
-        // So we check if java.lang.ref.Cleaner is there, and use that…
-        java.lang.Class.forName("java.lang.ref.Cleaner")
-        JavaLangRefCleaner()
-    } catch (e: ClassNotFoundException) {
-        // … otherwise, fallback to the JNA cleaner.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        AndroidSystemCleaner()
+    } else {
         UniffiJnaCleaner()
     }
 
-private class JavaLangRefCleaner : UniffiCleaner {
-    val cleaner = java.lang.ref.Cleaner.create()
+// The SystemCleaner, available from API Level 33.
+// Some API Level 33 OSes do not support using it, so we require API Level 34.
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+private class AndroidSystemCleaner : UniffiCleaner {
+    val cleaner = android.system.SystemCleaner.cleaner()
 
     override fun register(value: Any, cleanUpTask: Runnable): UniffiCleaner.Cleanable =
-        JavaLangRefCleanable(cleaner.register(value, cleanUpTask))
+        AndroidSystemCleanable(cleaner.register(value, cleanUpTask))
 }
 
-private class JavaLangRefCleanable(
-    val cleanable: java.lang.ref.Cleaner.Cleanable
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+private class AndroidSystemCleanable(
+    private val cleanable: java.lang.ref.Cleaner.Cleanable,
 ) : UniffiCleaner.Cleanable {
     override fun clean() = cleanable.clean()
 }
@@ -1037,7 +1039,7 @@ private class JavaLangRefCleanable(
 /**
  * @suppress
  */
-public object FfiConverterUInt: FfiConverter<UInt, Int> {
+internal object FfiConverterUInt: FfiConverter<UInt, Int> {
     override fun lift(value: Int): UInt {
         return value.toUInt()
     }
@@ -1060,7 +1062,7 @@ public object FfiConverterUInt: FfiConverter<UInt, Int> {
 /**
  * @suppress
  */
-public object FfiConverterULong: FfiConverter<ULong, Long> {
+internal object FfiConverterULong: FfiConverter<ULong, Long> {
     override fun lift(value: Long): ULong {
         return value.toULong()
     }
@@ -1083,7 +1085,7 @@ public object FfiConverterULong: FfiConverter<ULong, Long> {
 /**
  * @suppress
  */
-public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
+internal object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
     override fun lift(value: Byte): Boolean {
         return value.toInt() != 0
     }
@@ -1106,7 +1108,7 @@ public object FfiConverterBoolean: FfiConverter<Boolean, Byte> {
 /**
  * @suppress
  */
-public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
+internal object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
     // Note: we don't inherit from FfiConverterRustBuffer, because we use a
     // special encoding when lowering/lifting.  We can use `RustBuffer.len` to
     // store our length and avoid writing it out to the buffer.
@@ -1163,7 +1165,7 @@ public object FfiConverterString: FfiConverter<String, RustBuffer.ByValue> {
 /**
  * @suppress
  */
-public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
+internal object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
     override fun read(buf: ByteBuffer): ByteArray {
         val len = buf.getInt()
         val byteArr = ByteArray(len)
@@ -1275,7 +1277,7 @@ public object FfiConverterByteArray: FfiConverterRustBuffer<ByteArray> {
 //
 
 
-public interface CoreMaterializationSessionInterface {
+internal interface CoreMaterializationSessionInterface {
 
     fun `cancel`()
 
@@ -1290,7 +1292,7 @@ public interface CoreMaterializationSessionInterface {
     companion object
 }
 
-open class CoreMaterializationSession: Disposable, AutoCloseable, CoreMaterializationSessionInterface
+internal open class CoreMaterializationSession: Disposable, AutoCloseable, CoreMaterializationSessionInterface
 {
 
     @Suppress("UNUSED_PARAMETER")
@@ -1484,7 +1486,7 @@ open class CoreMaterializationSession: Disposable, AutoCloseable, CoreMaterializ
 /**
  * @suppress
  */
-public object FfiConverterTypeCoreMaterializationSession: FfiConverter<CoreMaterializationSession, Long> {
+internal object FfiConverterTypeCoreMaterializationSession: FfiConverter<CoreMaterializationSession, Long> {
     override fun lower(value: CoreMaterializationSession): Long {
         return value.uniffiCloneHandle()
     }
@@ -1506,7 +1508,7 @@ public object FfiConverterTypeCoreMaterializationSession: FfiConverter<CoreMater
 
 
 
-data class CoreArtifactDescriptor (
+internal data class CoreArtifactDescriptor (
     var `artifactId`: kotlin.String
     ,
     var `operationId`: kotlin.String
@@ -1537,7 +1539,7 @@ data class CoreArtifactDescriptor (
 /**
  * @suppress
  */
-public object FfiConverterTypeCoreArtifactDescriptor: FfiConverterRustBuffer<CoreArtifactDescriptor> {
+internal object FfiConverterTypeCoreArtifactDescriptor: FfiConverterRustBuffer<CoreArtifactDescriptor> {
     override fun read(buf: ByteBuffer): CoreArtifactDescriptor {
         return CoreArtifactDescriptor(
             FfiConverterString.read(buf),
@@ -1579,7 +1581,7 @@ public object FfiConverterTypeCoreArtifactDescriptor: FfiConverterRustBuffer<Cor
 
 
 
-data class CoreArtifactDescriptors (
+internal data class CoreArtifactDescriptors (
     var `requestId`: kotlin.String
     ,
     var `artifacts`: List<CoreArtifactDescriptor>
@@ -1596,7 +1598,7 @@ data class CoreArtifactDescriptors (
 /**
  * @suppress
  */
-public object FfiConverterTypeCoreArtifactDescriptors: FfiConverterRustBuffer<CoreArtifactDescriptors> {
+internal object FfiConverterTypeCoreArtifactDescriptors: FfiConverterRustBuffer<CoreArtifactDescriptors> {
     override fun read(buf: ByteBuffer): CoreArtifactDescriptors {
         return CoreArtifactDescriptors(
             FfiConverterString.read(buf),
@@ -1617,7 +1619,7 @@ public object FfiConverterTypeCoreArtifactDescriptors: FfiConverterRustBuffer<Co
 
 
 
-data class CoreBuildInfo (
+internal data class CoreBuildInfo (
     var `kind`: kotlin.String
     ,
     var `coreApiVersion`: kotlin.UInt
@@ -1646,7 +1648,7 @@ data class CoreBuildInfo (
 /**
  * @suppress
  */
-public object FfiConverterTypeCoreBuildInfo: FfiConverterRustBuffer<CoreBuildInfo> {
+internal object FfiConverterTypeCoreBuildInfo: FfiConverterRustBuffer<CoreBuildInfo> {
     override fun read(buf: ByteBuffer): CoreBuildInfo {
         return CoreBuildInfo(
             FfiConverterString.read(buf),
@@ -1685,7 +1687,7 @@ public object FfiConverterTypeCoreBuildInfo: FfiConverterRustBuffer<CoreBuildInf
 
 
 
-data class CorePreparedChunk (
+internal data class CorePreparedChunk (
     var `artifactId`: kotlin.String
     ,
     var `streamId`: kotlin.String
@@ -1712,7 +1714,7 @@ data class CorePreparedChunk (
 /**
  * @suppress
  */
-public object FfiConverterTypeCorePreparedChunk: FfiConverterRustBuffer<CorePreparedChunk> {
+internal object FfiConverterTypeCorePreparedChunk: FfiConverterRustBuffer<CorePreparedChunk> {
     override fun read(buf: ByteBuffer): CorePreparedChunk {
         return CorePreparedChunk(
             FfiConverterString.read(buf),
@@ -1748,7 +1750,7 @@ public object FfiConverterTypeCorePreparedChunk: FfiConverterRustBuffer<CorePrep
 
 
 
-data class CoreReadiness (
+internal data class CoreReadiness (
     var `kind`: kotlin.String
     ,
     var `status`: kotlin.String
@@ -1769,7 +1771,7 @@ data class CoreReadiness (
 /**
  * @suppress
  */
-public object FfiConverterTypeCoreReadiness: FfiConverterRustBuffer<CoreReadiness> {
+internal object FfiConverterTypeCoreReadiness: FfiConverterRustBuffer<CoreReadiness> {
     override fun read(buf: ByteBuffer): CoreReadiness {
         return CoreReadiness(
             FfiConverterString.read(buf),
@@ -1798,7 +1800,7 @@ public object FfiConverterTypeCoreReadiness: FfiConverterRustBuffer<CoreReadines
 
 
 
-sealed class VoxCoreException: kotlin.Exception() {
+internal sealed class VoxCoreException: kotlin.Exception() {
 
     class ControlTooLarge(
         ) : VoxCoreException() {
@@ -1904,7 +1906,7 @@ sealed class VoxCoreException: kotlin.Exception() {
 /**
  * @suppress
  */
-public object FfiConverterTypeVoxCoreError : FfiConverterRustBuffer<VoxCoreException> {
+internal object FfiConverterTypeVoxCoreError : FfiConverterRustBuffer<VoxCoreException> {
     override fun read(buf: ByteBuffer): VoxCoreException {
 
 
@@ -2066,7 +2068,7 @@ public object FfiConverterTypeVoxCoreError : FfiConverterRustBuffer<VoxCoreExcep
 /**
  * @suppress
  */
-public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.String>> {
+internal object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.String>> {
     override fun read(buf: ByteBuffer): List<kotlin.String> {
         val len = buf.getInt()
         return List<kotlin.String>(len) {
@@ -2094,7 +2096,7 @@ public object FfiConverterSequenceString: FfiConverterRustBuffer<List<kotlin.Str
 /**
  * @suppress
  */
-public object FfiConverterSequenceTypeCoreArtifactDescriptor: FfiConverterRustBuffer<List<CoreArtifactDescriptor>> {
+internal object FfiConverterSequenceTypeCoreArtifactDescriptor: FfiConverterRustBuffer<List<CoreArtifactDescriptor>> {
     override fun read(buf: ByteBuffer): List<CoreArtifactDescriptor> {
         val len = buf.getInt()
         return List<CoreArtifactDescriptor>(len) {
@@ -2115,7 +2117,7 @@ public object FfiConverterSequenceTypeCoreArtifactDescriptor: FfiConverterRustBu
         }
     }
 }
-    @Throws(VoxCoreException::class) fun `coreBuildInfo`(): CoreBuildInfo {
+    @Throws(VoxCoreException::class) internal fun `coreBuildInfo`(): CoreBuildInfo {
             return FfiConverterTypeCoreBuildInfo.lift(
     uniffiRustCallWithError(VoxCoreException) { _status ->
     UniffiLib.uniffi_vox_core_uniffi_fn_func_core_build_info(
@@ -2126,7 +2128,7 @@ public object FfiConverterSequenceTypeCoreArtifactDescriptor: FfiConverterRustBu
     }
 
 
-    @Throws(VoxCoreException::class) fun `corePrepare`(`preparationJson`: java.nio.ByteBuffer): kotlin.ByteArray {
+    @Throws(VoxCoreException::class) internal fun `corePrepare`(`preparationJson`: java.nio.ByteBuffer): kotlin.ByteArray {
             return FfiConverterByteArray.lift(
     uniffiRustCallWithError(VoxCoreException) { _status ->
     UniffiLib.uniffi_vox_core_uniffi_fn_func_core_prepare(
@@ -2138,7 +2140,7 @@ public object FfiConverterSequenceTypeCoreArtifactDescriptor: FfiConverterRustBu
     }
 
 
-    @Throws(VoxCoreException::class) fun `coreReadiness`(`expectedVersionsJson`: java.nio.ByteBuffer): CoreReadiness {
+    @Throws(VoxCoreException::class) internal fun `coreReadiness`(`expectedVersionsJson`: java.nio.ByteBuffer): CoreReadiness {
             return FfiConverterTypeCoreReadiness.lift(
     uniffiRustCallWithError(VoxCoreException) { _status ->
     UniffiLib.uniffi_vox_core_uniffi_fn_func_core_readiness(
@@ -2150,7 +2152,7 @@ public object FfiConverterSequenceTypeCoreArtifactDescriptor: FfiConverterRustBu
     }
 
 
-    @Throws(VoxCoreException::class) fun `coreStartMaterialization`(`controlJson`: java.nio.ByteBuffer): CoreMaterializationSession {
+    @Throws(VoxCoreException::class) internal fun `coreStartMaterialization`(`controlJson`: java.nio.ByteBuffer): CoreMaterializationSession {
             return FfiConverterTypeCoreMaterializationSession.lift(
     uniffiRustCallWithError(VoxCoreException) { _status ->
     UniffiLib.uniffi_vox_core_uniffi_fn_func_core_start_materialization(
