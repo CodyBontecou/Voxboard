@@ -1,6 +1,6 @@
 # Android/Wear M3 scope and entry audit
 
-Status: **M3 Phase 1 Android build foundation and backup defense implemented; vertical slice not started**
+Status: **M3 Phase 1 Android build foundation and backup defense hosted-qualified; vertical slice not started**
 
 M2 is qualified at `450abcaab4f09f5a4803d535ee843d1c058f099b`. This audit
 retains the machine-consistent M3 boundary and exact Android application toolchain while
@@ -149,6 +149,33 @@ ADR-0019 defines native-only SAF ownership and the exact result taxonomy:
 `verifiedCommitted`, `provedNotCommitted`, `permissionLost`, and `ambiguous`. Restart from
 `committing` without a receipt reconciles only; it never blindly invokes the normal writer.
 
+## Phase 1 hosted qualification
+
+The final Phase 1 source revision is
+`7de3c0ae1512eff9b4427dea5e62ca1c4e4e2475`. GitHub Actions run
+[`31852058850`](https://github.com/CodyBontecou/vox.md/actions/runs/31852058850), job
+`94929526814`, passed on `ubuntu-24.04`. The hosted job:
+
+- downloaded command-line tools archive `15859902` and passed the exact Linux SHA-256
+  check before installing API 37, Build Tools 36.0.0, and NDK 27.1.12297006;
+- passed wrapper startup, all 45 governed implementation hashes, contract validation, and
+  83 project-contract tests;
+- completed `test lint assembleDebug :app:validateDebugArtifacts` with 237 actionable
+  Gradle tasks; and
+- passed merged-manifest, permission/export, WorkManager-startup, and backup-defense
+  artifact validation.
+
+The hosted run initially exposed Linux-only Gradle metadata variants absent from the macOS
+resolution. A temporary, closed, never-merged diagnostic PR ran Gradle's metadata writer on
+Linux; every added Maven Central byte was then independently downloaded and SHA-256 checked
+before admission. The governed validator and mutation tests now require those exact Linux
+artifacts. Failed discovery runs and the diagnostic run are retained as troubleshooting
+history, not passing evidence. Independent Phase 1 build and security reviews both returned
+PASS with no blocker/high finding.
+
+This qualifies only the Phase 1 build/static-defense foundation. It is not physical-device,
+provider, backup-extraction, process-death, performance, or M3 product evidence.
+
 ## Remaining M3 blockers
 
 - Implement the Kotlin bridge and promote the Kotlin mirror only after its named executable
@@ -159,4 +186,3 @@ ADR-0019 defines native-only SAF ownership and the exact result taxonomy:
 - Run process-death instrumentation and exact artifact inspection.
 - Execute local plus two named non-local DocumentsProvider campaigns on actual required
   devices. Do not fabricate unavailable providers or measurements.
-- Obtain independent implementation review and clean hosted Android CI.
