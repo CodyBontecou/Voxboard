@@ -161,8 +161,9 @@ internal class LazyCoreBridge(
     } catch (_: LinkageError) {
         status = CoreAvailability.UNAVAILABLE
         CoreResult.Failure(CoreErrorCode.NATIVE_UNAVAILABLE)
-    } catch (_: RuntimeException) {
-        // Generated-binding/JNA failures are compatibility failures, not product errors.
+    } catch (_: Exception) {
+        // Generated InternalException and other binding failures are compatibility failures,
+        // not product errors; exception text never crosses the boundary.
         status = CoreAvailability.UNAVAILABLE
         CoreResult.Failure(CoreErrorCode.NATIVE_UNAVAILABLE)
     }
@@ -200,7 +201,7 @@ private class OwnedCoreSession(private val native: NativeCoreSession) : CoreMate
         } catch (_: LinkageError) {
             releaseAfterFailure()
             CoreResult.Failure(CoreErrorCode.NATIVE_UNAVAILABLE)
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             releaseAfterFailure()
             CoreResult.Failure(CoreErrorCode.INTERNAL_FAILURE)
         }
@@ -238,9 +239,23 @@ private class OwnedCoreSession(private val native: NativeCoreSession) : CoreMate
 
     @Synchronized
     override fun cancel(): CoreResult<Unit> {
-        val result = invoke { cancel() }
-        release()
-        return result
+        if (released.get()) return CoreResult.Failure(CoreErrorCode.RELEASED)
+        return try {
+            // Cancellation is a single native attempt. If it throws, close the handle without
+            // issuing a second cancel call.
+            native.cancel()
+            release()
+            CoreResult.Success(Unit)
+        } catch (error: NativeCoreFailure) {
+            releaseAfterFailureWithoutCancel()
+            CoreResult.Failure(error.code)
+        } catch (_: LinkageError) {
+            releaseAfterFailureWithoutCancel()
+            CoreResult.Failure(CoreErrorCode.NATIVE_UNAVAILABLE)
+        } catch (_: Exception) {
+            releaseAfterFailureWithoutCancel()
+            CoreResult.Failure(CoreErrorCode.INTERNAL_FAILURE)
+        }
     }
 
     @Synchronized
@@ -263,6 +278,10 @@ private class OwnedCoreSession(private val native: NativeCoreSession) : CoreMate
         }
     }
 
+    private fun releaseAfterFailureWithoutCancel() {
+        if (released.compareAndSet(false, true)) cleanup { native.close() }
+    }
+
     private fun release() {
         if (released.compareAndSet(false, true)) cleanup { native.close() }
     }
@@ -272,7 +291,7 @@ private class OwnedCoreSession(private val native: NativeCoreSession) : CoreMate
             block()
         } catch (_: LinkageError) {
             // Cleanup is terminal and error details must not cross the boundary.
-        } catch (_: RuntimeException) {
+        } catch (_: Exception) {
             // Cleanup is terminal and error details must not cross the boundary.
         }
     }

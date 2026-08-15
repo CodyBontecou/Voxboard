@@ -37,8 +37,9 @@ Control and observation inputs are copied and bounded to 1 MiB; identifiers are 
 short-lived direct `ByteBuffer` borrows as required by the generated converter, then clears both
 the direct storage and its private input copy. Heap `ByteBuffer.wrap` is forbidden. Sessions
 expose owned values only. Local bound rejection, cancellation, finalization, explicit close, and
-native failures release the generated session. Error results contain only an enum code and never
-exception text or user content.
+native failures release the generated session; a failing cancellation makes exactly one native
+cancellation attempt and then closes the handle without retrying. Error results contain only an
+enum code and never exception text or user content.
 
 Every Android variant source-builds its own output directory using Rust `1.97.1`, cargo-ndk
 `4.1.2`, NDK `27.1.12297006`, API 28, and exactly `arm64-v8a`, `armeabi-v7a`, `x86_64`, and

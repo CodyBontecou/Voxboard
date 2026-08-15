@@ -314,7 +314,7 @@
     },
     {
       "path": "apps/android/core-bridge/src/main/kotlin/md/vox/android/corebridge/CoreBridge.kt",
-      "sha256": "d1eaae0533b3e9598359b7c8d65d0e07515fc89531174a44203283607d79ec66"
+      "sha256": "8e28137d971270dccb2ce7971301c097b7722ec4a500f152bff965a59fbe5b3c"
     },
     {
       "path": "apps/android/core-bridge/src/main/kotlin/md/vox/android/corebridge/GeneratedNativeCoreAdapter.kt",
@@ -322,7 +322,7 @@
     },
     {
       "path": "apps/android/core-bridge/src/test/kotlin/md/vox/android/corebridge/CoreBridgeTest.kt",
-      "sha256": "64693f635ac2cecd760730c8a344fa6f8b6d21c0a02892e58fcb160198e97fef"
+      "sha256": "f2a501607cbe44db3813ea0ab4461b37b0467b24670903df976758bca24245c3"
     },
     {
       "path": "apps/android/core-bridge/src/androidTest/kotlin/md/vox/android/corebridge/GeneratedCoreBridgeInstrumentationTest.kt",
@@ -446,7 +446,7 @@
     },
     {
       "path": "docs/architecture/adr-0022-android-lazy-uniffi-native-packaging.md",
-      "sha256": "0c7ee3af354276fe62e7c28d65c0f161eb3fcf7c26a3521b12e54b0f5fe2f3c3"
+      "sha256": "1c6005314ebff7a50bc7d9f9674d685cd467cfd05d9131529736d335ebd79b68"
     },
     {
       "path": "apps/android/platform-services/build.gradle.kts",

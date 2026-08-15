@@ -125,6 +125,30 @@ class CoreBridgeTest {
     }
 
     @Test
+    fun cancelFailureAttemptsNativeCancellationExactlyOnce() {
+        val native = FakeSession(failure = CoreErrorCode.CANCELLED)
+        val bridge = LazyCoreBridge { FakeAdapter(session = native) }
+        val session = (bridge.startMaterialization(byteArrayOf(1)) as CoreResult.Success).value
+
+        assertEquals(CoreResult.Failure(CoreErrorCode.CANCELLED), session.cancel())
+        assertEquals(1, native.cancelCount)
+        assertEquals(1, native.closeCount)
+        assertEquals(CoreResult.Failure(CoreErrorCode.RELEASED), session.cancel())
+    }
+
+    @Test
+    fun checkedCancelFailureIsContainedAndReleasesExactlyOnce() {
+        val native = FakeSession(checkedFailure = true)
+        val bridge = LazyCoreBridge { FakeAdapter(session = native) }
+        val session = (bridge.startMaterialization(byteArrayOf(1)) as CoreResult.Success).value
+
+        assertEquals(CoreResult.Failure(CoreErrorCode.INTERNAL_FAILURE), session.cancel())
+        assertEquals(1, native.cancelCount)
+        assertEquals(1, native.closeCount)
+        assertEquals(CoreResult.Failure(CoreErrorCode.RELEASED), session.cancel())
+    }
+
+    @Test
     fun nativeSessionFailureReleasesAndReturnsOnlyCode() {
         val native = FakeSession(failure = CoreErrorCode.VERIFICATION_FAILED)
         val bridge = LazyCoreBridge { FakeAdapter(session = native) }
@@ -134,6 +158,8 @@ class CoreBridgeTest {
         assertEquals(1, native.cancelCount)
     }
 }
+
+private class CheckedNativeFailure : Exception("must not cross boundary")
 
 private class FakeAdapter(
     private val failure: CoreErrorCode? = null,
@@ -166,10 +192,16 @@ private class FakeAdapter(
     }
 }
 
-private class FakeSession(private val failure: CoreErrorCode? = null) : NativeCoreSession {
+private class FakeSession(
+    private val failure: CoreErrorCode? = null,
+    private val checkedFailure: Boolean = false,
+) : NativeCoreSession {
     var cancelCount = 0
     var closeCount = 0
-    private fun fail() { failure?.let { throw NativeCoreFailure(it) } }
+    private fun fail() {
+        failure?.let { throw NativeCoreFailure(it) }
+        if (checkedFailure) throw CheckedNativeFailure()
+    }
     override fun pushObservation(streamId: String, sequence: UInt, bytes: ByteArray, eof: Boolean) = fail()
     override fun seal(): List<CoreArtifactDescriptor> { fail(); return emptyList() }
     override fun drain(artifactId: String, sequence: UInt, maximumBytes: ULong): CorePreparedChunk {

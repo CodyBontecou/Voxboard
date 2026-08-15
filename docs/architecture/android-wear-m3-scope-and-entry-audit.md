@@ -281,8 +281,10 @@ provider, backup-extraction, process-death, performance, or M3 product evidence.
 
 ## Remaining M3 blockers
 
-- Implement the Rust Kotlin bridge and promote the core-contract Kotlin mirror only after
-  its named executable fixture consumer runs; it remains `resourceOnlyPlanned`.
+- Execute the packaged generated Kotlin/native bridge consumer on an actual Android target.
+  The core-bridge contract-resource mirror remains `resourceOnlyPlanned` until a named
+  executable consumer runs against that exact mirror; target execution must not be inferred
+  from APK assembly.
 - Execute the generated Room migration/coordination instrumentation consumers, then connect
   quota only at the future verified-receipt barrier and implement prepared artifacts,
   SAF/provider reconciliation, composer wiring, and the complete text/link
