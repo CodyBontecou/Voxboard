@@ -222,7 +222,7 @@
     },
     {
       "path": ".github/workflows/android-ci.yml",
-      "sha256": "4e83bbb33ad4139bd6c35a95853d9bd52b711c36b503bc4d50f7dff3213d73e0"
+      "sha256": "162374c459e20e4f3a77534926ceb8b0f86eb7e81dc1394bb970430165bdbafd"
     },
     {
       "path": ".github/workflows/contracts-ci.yml",

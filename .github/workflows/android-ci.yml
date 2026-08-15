@@ -79,6 +79,10 @@ jobs:
             'platforms;android-37.0' \
             'build-tools;36.0.0' \
             'ndk;27.1.12297006'
+          ndk_path="$ANDROID_SDK_ROOT/ndk/27.1.12297006"
+          test -f "$ndk_path/source.properties"
+          echo "ANDROID_NDK_HOME=$ndk_path" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ndk_path" >> "$GITHUB_ENV"
       - name: Validate wrapper, toolchain, contracts, and project gates
         shell: bash
         run: |

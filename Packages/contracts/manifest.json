@@ -775,10 +775,10 @@
       "sha256": "6e40ea0676c186a7e445f03b677240ed60a4fa8575589c860d737ae98d502269"
     },
     {
-      "bytes": 40084,
+      "bytes": 40266,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_toolchain.py",
-      "sha256": "cd9d33a6c870e9716abe98262631f4867ad0400a86d74e2879cd3d23b7c96a6c"
+      "sha256": "c4271986694800891a46d104da9588deb98242554f036b739b865b28601ba632"
     },
     {
       "bytes": 113342,
@@ -1066,7 +1066,7 @@
       "bytes": 19747,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "2c3884c34edbb6686bc9ce70c1582926397632eff9fde6afa582a34efeaa8214"
+      "sha256": "c21b7c1bdf1f5f3b1c7c95595e570d360b111ba5cad70a235674c03725bffcde"
     },
     {
       "bytes": 10626,
