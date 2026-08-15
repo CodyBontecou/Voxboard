@@ -1,6 +1,6 @@
 # Android/Wear M3 scope and entry audit
 
-Status: **M3 Phase 1 hosted-qualified; Phase 2 durable-enqueue foundation implemented locally; vertical slice incomplete**
+Status: **M3 Phase 1 and Phase 2 durable-enqueue foundation hosted-qualified; vertical slice incomplete**
 
 M2 is qualified at `450abcaab4f09f5a4803d535ee843d1c058f099b`. This audit
 retains the machine-consistent M3 boundary and exact Android application toolchain while
@@ -170,6 +170,35 @@ storage, quota transaction ordering, and cleanup crash behavior.
 ADR-0019 defines native-only SAF ownership and the exact result taxonomy:
 `verifiedCommitted`, `provedNotCommitted`, `permissionLost`, and `ambiguous`. Restart from
 `committing` without a receipt reconciles only; it never blindly invokes the normal writer.
+
+## Phase 2 hosted qualification
+
+The reviewed Phase 2 implementation revision is
+`8ab3c926f4202047eed4b549ddc224a2a0df1153`; its clean-source oracle successor and hosted
+source revision is `db01ca1771401a477e427ff822a79bcf3d3749c8`. GitHub Actions passed:
+
+- [Android foundation CI `31885964682`](https://github.com/CodyBontecou/vox.md/actions/runs/31885964682),
+  job `95015192535`, including 59 governed implementation hashes, 85 project-contract tests,
+  `test lint assembleDebug assembleDebugAndroidTest :app:validateDebugArtifacts`, and actual
+  merged-manifest/backup artifact validation on `ubuntu-24.04`;
+- [Portable contracts CI `31885964590`](https://github.com/CodyBontecou/vox.md/actions/runs/31885964590);
+- [Shared Rust core CI `31885964684`](https://github.com/CodyBontecou/vox.md/actions/runs/31885964684),
+  jobs `95015192685` and `95015192616`, including the exact governed Android M3 fixture through
+  Rust production `prepare`, binding drift, MSRV tests, and retained M2 evidence regeneration;
+  and
+- [Apple CI `31885964628`](https://github.com/CodyBontecou/vox.md/actions/runs/31885964628),
+  whose macOS, Watch, iOS, shared-package, and repository-contract jobs all passed.
+
+Independent blocker/high review accepted the durability, codec, reducer, Room, and
+governance substance but found two audit/workflow governance issues. Those were fixed by
+commit-pinning and hash-governing Portable Contracts checkout with adversarial mutation
+coverage, and by narrowing this audit's durability disclaimer. Independent follow-up review
+returned PASS with no remaining blocker/high finding.
+
+This hosted qualification proves compilation, deterministic consumers, JVM fault injection,
+instrumentation APK assembly, and static artifact defenses. It does **not** prove on-device
+Room execution, physical directory-fsync or lock behavior, process death, provider behavior,
+backup extraction/device transfer, or any passed M3 case.
 
 ## Phase 1 hosted qualification
 
