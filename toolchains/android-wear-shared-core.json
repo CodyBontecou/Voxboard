@@ -313,7 +313,7 @@
     },
     {
       "path": "apps/android/data/build.gradle.kts",
-      "sha256": "a681bb5c40eda9d173dbfe87f0dfc343e17cfd2339cc63c0d3ca0fa5e521c719"
+      "sha256": "10374341c089f91e0f732b6a38d53d09bb820e53847cd3399c81b45642cbe44c"
     },
     {
       "path": "apps/android/data/gradle.lockfile",
@@ -321,11 +321,19 @@
     },
     {
       "path": "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/DurableCapture.kt",
-      "sha256": "cc091581f5ef79b071e4ad49bd80b08011598db85e2ec818ddccda56f99a1f5f"
+      "sha256": "2ab092445532df19b2f7229f8c02408ab63853587782ce518aa7632c334c8f78"
+    },
+    {
+      "path": "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/CaptureDurability.kt",
+      "sha256": "dde110281950493a3c47b25009a1a2dc4620949eb47bb61631f5d6f5388a8e44"
     },
     {
       "path": "apps/android/capture-domain/src/test/kotlin/md/vox/android/capturedomain/CaptureJournalReducerTest.kt",
       "sha256": "55c5eb7638381fd6f12e8a408830d43864b405cb886db9cfaa33a6c9c2d1cfa8"
+    },
+    {
+      "path": "apps/android/capture-domain/src/test/kotlin/md/vox/android/capturedomain/CaptureDurabilityPlannerTest.kt",
+      "sha256": "83432a7d6752bf30a2698fefe991c44086f27bfb2b1a31712e8fd32668350e7f"
     },
     {
       "path": "apps/android/data/src/main/kotlin/md/vox/android/data/CapturePackageCodec.kt",
@@ -333,23 +341,59 @@
     },
     {
       "path": "apps/android/data/src/main/kotlin/md/vox/android/data/DurableCaptureStore.kt",
-      "sha256": "724f54922461b28777dfbc38f16f6e635e68de31b2b9f9fe4a540d0dc2820d43"
+      "sha256": "6e85802bf62cac8b5f437ca4de9620b50272d1bd703ccc67024d051bdcda0e39"
     },
     {
       "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionEntity.java",
-      "sha256": "6a263193cc350cb5dcb87fb621f76a77123d7775b0997b402558e9eabbc756bf"
+      "sha256": "86187afc69093f0ce2f8c46d018989634bb37b2f852f9da1ab82e1f5060a076f"
     },
     {
       "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionDao.java",
-      "sha256": "6d052d49c60ebd71fceb4c58bfb4884c8052a52e4b445d82072653867c726820"
+      "sha256": "6f85381e0ec9661229d39c4e037685b42f36d2969bbcf2889e40dfb0d501df93"
     },
     {
       "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureDatabase.java",
-      "sha256": "cae4f1256f8266f615ef1d38c4514704437865afe4faeef9f6f8f315ffb305bb"
+      "sha256": "1b501c69c9be4165ce763ee71a027401f6af81b28f80e3ceae337d272d4c34ac"
+    },
+    {
+      "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureLeaseEntity.java",
+      "sha256": "fbd3f16fea0aedf5c042cead2e4fe55046e2eafc9b116e6e3badeac813f44ba5"
+    },
+    {
+      "path": "apps/android/data/src/main/java/md/vox/android/data/LeaseClockEntity.java",
+      "sha256": "6226942a74d5fbf2ce21d281f281f8c4bb17c3f0584500d3ddc6313a76623e09"
+    },
+    {
+      "path": "apps/android/data/src/main/java/md/vox/android/data/InstallationIdentityEntity.java",
+      "sha256": "4dd96e33baa4a11ed81cba93128cd98ac7d013e6b04788048b9d3fced05d9c7b"
+    },
+    {
+      "path": "apps/android/data/src/main/java/md/vox/android/data/QuotaReservationEntity.java",
+      "sha256": "c8a4d4e3cdafb42d6e29a3c57a764ad252c0f75a4d959fe6b465ed9635e746b7"
+    },
+    {
+      "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureTombstoneEntity.java",
+      "sha256": "760e230910572c455339f8fe3c5d1c7549ea07eb772e1965736d5da4bc434406"
+    },
+    {
+      "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureCoordinationDao.java",
+      "sha256": "8163608780bef7cbac0cc1a87dd1ac94f1476e91d6782582fce057c5fdd32783"
     },
     {
       "path": "apps/android/data/src/main/kotlin/md/vox/android/data/RoomCaptureIndex.kt",
-      "sha256": "67252f1ed762a195f3a58deae8e5eef1d2ea6d99940dabb9b2bea7df273bae35"
+      "sha256": "8b75be28caa44e3dff16f3f32679f24443299da89f4a1f6c8d2b89ad9e88c370"
+    },
+    {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/RoomCaptureCoordination.kt",
+      "sha256": "3a1906ccda98e4c682623f1e16865f535fe74305dc17c452343e2c819f82d804"
+    },
+    {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/RoomQuotaLedger.kt",
+      "sha256": "ada5c4a85aec1978bc8afada3b534f3bb7d75baeb1e29b3c87c47bbeb848ed4b"
+    },
+    {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/CaptureDurabilityCoordinator.kt",
+      "sha256": "c98e81092fe794ac7a92add0621d423c66b4955248f5c157e14d3f8b8af1bf01"
     },
     {
       "path": "apps/android/data/src/test/kotlin/md/vox/android/data/CapturePackageFixtureConsumerTest.kt",
@@ -357,15 +401,23 @@
     },
     {
       "path": "apps/android/data/src/test/kotlin/md/vox/android/data/DurableCapturePackageStoreTest.kt",
-      "sha256": "8b60763a4b44f255d981863d307dbee855001ded47d93233b222ad40ebf54ec7"
+      "sha256": "68e66a9ad2d28b6ae65648a7e480248fb1c655d89a66dace99f6084abb7f6abe"
     },
     {
       "path": "apps/android/data/src/androidTest/kotlin/md/vox/android/data/CaptureDatabaseInstrumentationTest.kt",
-      "sha256": "ea6b9686191c845bb2b02e72a9cc830aefd44c0b84469f31f6270db6f5d939d0"
+      "sha256": "6c03045efe3574f8c29faabfafdde4e6ad69ef97579a1ea6939cac76b9f98ce8"
     },
     {
       "path": "apps/android/data/schemas/md.vox.android.data.CaptureDatabase/1.json",
       "sha256": "811834e1058c798edd1ad997f33e4b1939218851241139be8cb81325710259b0"
+    },
+    {
+      "path": "apps/android/data/schemas/md.vox.android.data.CaptureDatabase/2.json",
+      "sha256": "a054aad932ab84214a8de23d11d1f69e268271e36ea26b3961b3ebc4bd15172f"
+    },
+    {
+      "path": "docs/architecture/adr-0021-android-journal-replacement-lease-quota-room-v2.md",
+      "sha256": "941779423628bf086f7fa0b939cdf3720a4d17452d602dc6568db7d6322ba524"
     },
     {
       "path": "apps/android/platform-services/build.gradle.kts",

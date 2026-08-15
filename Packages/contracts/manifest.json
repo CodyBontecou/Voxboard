@@ -775,10 +775,10 @@
       "sha256": "6e40ea0676c186a7e445f03b677240ed60a4fa8575589c860d737ae98d502269"
     },
     {
-      "bytes": 30790,
+      "bytes": 35343,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_toolchain.py",
-      "sha256": "0dc635b46f76738f9a418d2097b38445416fb18e74086fcbc821f12a3e24f201"
+      "sha256": "77ff732312ebb2a99d64094060b8d1e64ff2967279b722946a1d7d3282f9ec8a"
     },
     {
       "bytes": 113342,
@@ -805,10 +805,10 @@
       "sha256": "65e1532465e3cd82273e0012a40606ae89ce0aa064b4d20df4cb3d2e40739b13"
     },
     {
-      "bytes": 29277,
+      "bytes": 31688,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "7e2e35274305fcac3ab8359ffeee3a1c75ebcd08355f240a294020964f16226d"
+      "sha256": "ea5eb5d6b1b564467d5cbadd16d4f4d433fca518a9005246bdde26dbd860661c"
     },
     {
       "bytes": 83338,
@@ -1015,10 +1015,16 @@
       "sha256": "fc3731530f915b855961ffbf821ce76b30dc7784f64765ba222b1b60a1ce8e15"
     },
     {
-      "bytes": 6093,
+      "bytes": 6347,
       "category": "acceptedDecision",
       "path": "docs/architecture/adr-0020-android-capture-package-codec-v1.md",
-      "sha256": "f3d5ae1c5c66cacd470b80ff1e2ccb7ab2dd7458f0329f0464e77500d9598f94"
+      "sha256": "4b8f02437806b7f36651e863bb440f5a8cbddc353dbf3634f4ee691db427d66b"
+    },
+    {
+      "bytes": 4750,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0021-android-journal-replacement-lease-quota-room-v2.md",
+      "sha256": "941779423628bf086f7fa0b939cdf3720a4d17452d602dc6568db7d6322ba524"
     },
     {
       "bytes": 3806,
@@ -1051,10 +1057,10 @@
       "sha256": "ddd50cbdb85a52ce03c44167b07c2a0dbd27a730085316ddf9f74bc3eb052bc6"
     },
     {
-      "bytes": 15807,
+      "bytes": 18336,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "68e1c8a1248918abc8ddca7689c8fd65a94839ec282e402c931fae9bb90a75b5"
+      "sha256": "018789f3f65f5eebefe20765bef5a595498b19fad34931e317cf76a361e93e7f"
     },
     {
       "bytes": 10583,

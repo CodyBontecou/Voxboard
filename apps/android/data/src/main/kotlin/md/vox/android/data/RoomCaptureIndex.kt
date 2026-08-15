@@ -19,9 +19,9 @@ class RoomCaptureIndex(private val database: CaptureDatabase) : CaptureIndex {
                 existing == null -> IndexWriteResult.CONFLICT
                 existing.packageVersion != entity.packageVersion || existing.journalVersion != entity.journalVersion || existing.createdAtEpochMillis != entity.createdAtEpochMillis -> IndexWriteResult.CONFLICT
                 existing.journalRevision > entity.journalRevision -> IndexWriteResult.PROJECTION_AHEAD
-                existing.journalRevision == entity.journalRevision && existing.state == entity.state && existing.updatedAtEpochMillis == entity.updatedAtEpochMillis -> IndexWriteResult.IDENTICAL
+                existing.journalRevision == entity.journalRevision && existing.state == entity.state && existing.updatedAtEpochMillis == entity.updatedAtEpochMillis && existing.attemptCount == entity.attemptCount -> IndexWriteResult.IDENTICAL
                 existing.journalRevision == entity.journalRevision -> IndexWriteResult.CONFLICT
-                dao.repairOlder(entity.requestID, entity.packageVersion, entity.journalVersion, entity.journalRevision, entity.state, entity.updatedAtEpochMillis) == 1 -> IndexWriteResult.REPAIRED_OLDER
+                dao.repairOlder(entity.requestID, entity.packageVersion, entity.journalVersion, entity.journalRevision, entity.state, entity.updatedAtEpochMillis, entity.attemptCount) == 1 -> IndexWriteResult.REPAIRED_OLDER
                 else -> IndexWriteResult.CONFLICT
             }
         }
@@ -31,8 +31,8 @@ class RoomCaptureIndex(private val database: CaptureDatabase) : CaptureIndex {
 
 private fun CaptureProjectionEntity.projection() = CaptureIndexProjection(
     requestID, packageVersion, journalVersion, journalRevision,
-    CaptureState.entries.first { it.name == state }, createdAtEpochMillis, updatedAtEpochMillis,
+    CaptureState.entries.first { it.name == state }, createdAtEpochMillis, updatedAtEpochMillis, attemptCount,
 )
 private fun CaptureIndexProjection.entity() = CaptureProjectionEntity(
-    requestID, packageVersion, journalVersion, journalRevision, state.name, createdAtEpochMillis, updatedAtEpochMillis,
+    requestID, packageVersion, journalVersion, journalRevision, state.name, createdAtEpochMillis, updatedAtEpochMillis, attemptCount,
 )

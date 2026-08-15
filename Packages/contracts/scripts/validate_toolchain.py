@@ -55,17 +55,30 @@ EXPECTED_GOVERNED_PATHS = (
     "apps/android/data/build.gradle.kts",
     "apps/android/data/gradle.lockfile",
     "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/DurableCapture.kt",
+    "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/CaptureDurability.kt",
     "apps/android/capture-domain/src/test/kotlin/md/vox/android/capturedomain/CaptureJournalReducerTest.kt",
+    "apps/android/capture-domain/src/test/kotlin/md/vox/android/capturedomain/CaptureDurabilityPlannerTest.kt",
     "apps/android/data/src/main/kotlin/md/vox/android/data/CapturePackageCodec.kt",
     "apps/android/data/src/main/kotlin/md/vox/android/data/DurableCaptureStore.kt",
     "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionEntity.java",
     "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionDao.java",
     "apps/android/data/src/main/java/md/vox/android/data/CaptureDatabase.java",
+    "apps/android/data/src/main/java/md/vox/android/data/CaptureLeaseEntity.java",
+    "apps/android/data/src/main/java/md/vox/android/data/LeaseClockEntity.java",
+    "apps/android/data/src/main/java/md/vox/android/data/InstallationIdentityEntity.java",
+    "apps/android/data/src/main/java/md/vox/android/data/QuotaReservationEntity.java",
+    "apps/android/data/src/main/java/md/vox/android/data/CaptureTombstoneEntity.java",
+    "apps/android/data/src/main/java/md/vox/android/data/CaptureCoordinationDao.java",
     "apps/android/data/src/main/kotlin/md/vox/android/data/RoomCaptureIndex.kt",
+    "apps/android/data/src/main/kotlin/md/vox/android/data/RoomCaptureCoordination.kt",
+    "apps/android/data/src/main/kotlin/md/vox/android/data/RoomQuotaLedger.kt",
+    "apps/android/data/src/main/kotlin/md/vox/android/data/CaptureDurabilityCoordinator.kt",
     "apps/android/data/src/test/kotlin/md/vox/android/data/CapturePackageFixtureConsumerTest.kt",
     "apps/android/data/src/test/kotlin/md/vox/android/data/DurableCapturePackageStoreTest.kt",
     "apps/android/data/src/androidTest/kotlin/md/vox/android/data/CaptureDatabaseInstrumentationTest.kt",
     "apps/android/data/schemas/md.vox.android.data.CaptureDatabase/1.json",
+    "apps/android/data/schemas/md.vox.android.data.CaptureDatabase/2.json",
+    "docs/architecture/adr-0021-android-journal-replacement-lease-quota-room-v2.md",
     "apps/android/platform-services/build.gradle.kts",
     "apps/android/platform-services/gradle.lockfile",
     "apps/android/gradle/verification-metadata.xml",
@@ -457,7 +470,7 @@ def main(argv=None):
     if re.search(r"^import\s+(android|androidx)\.", domain_source, flags=re.MULTILINE):
         fail("capture-domain imports an Android framework type")
     store_source = (root / "apps/android/data/src/main/kotlin/md/vox/android/data/DurableCaptureStore.kt").read_text()
-    for forbidden in ("renameTo(", ".writeText(", ".writeBytes(", "REPLACE_EXISTING", "ContentResolver", "WorkManager", "DataStore"):
+    for forbidden in ("renameTo(", ".writeText(", ".writeBytes(", "ContentResolver", "WorkManager", "DataStore"):
         if forbidden in store_source:
             fail(f"durable package store contains forbidden API/fallback: {forbidden}")
     for required in ("FileOutputStream", "stream.fd.sync()", "Os.fsync", "StandardCopyOption.ATOMIC_MOVE", "FileAlreadyExistsException"):
@@ -582,6 +595,47 @@ def main(argv=None):
         for action in actions:
             if re.fullmatch(r"[0-9a-f]{40}", action) is None:
                 fail(f"{workflow_label} action is not immutable: {action}")
+    phase3_domain = (root / "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/CaptureDurability.kt").read_text()
+    phase3_store = (root / "apps/android/data/src/main/kotlin/md/vox/android/data/DurableCaptureStore.kt").read_text()
+    phase3_database = (root / "apps/android/data/src/main/java/md/vox/android/data/CaptureDatabase.java").read_text()
+    phase3_quota = (root / "apps/android/data/src/main/kotlin/md/vox/android/data/RoomQuotaLedger.kt").read_text()
+    phase3_coordination = (root / "apps/android/data/src/main/kotlin/md/vox/android/data/RoomCaptureCoordination.kt").read_text()
+    phase3_coordinator = (root / "apps/android/data/src/main/kotlin/md/vox/android/data/CaptureDurabilityCoordinator.kt").read_text()
+    for needle in ("MIN_DURATION_MILLIS = 1_000L", "MAX_DURATION_MILLIS = 600_000L", "FREE_CAPACITY = 10"):
+        if needle not in phase3_domain:
+            fail(f"Android durability policy drift: {needle}")
+    if phase3_store.count("StandardCopyOption.REPLACE_EXISTING") != 1:
+        fail("Android replacement option must be journal-only")
+    for needle in ("StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING", "beforePackageDirectorySync", "afterPackageDirectorySync"):
+        if needle not in phase3_store:
+            fail(f"Android journal replacement drift: {needle}")
+    for needle in ("version = 2", "MIGRATION_1_2", '"capture-index-v1.db"', ".addMigrations(MIGRATION_1_2)"):
+        if needle not in phase3_database:
+            fail(f"Android Room v2 migration drift: {needle}")
+    if "internal class RoomCaptureCoordination" not in phase3_coordination or "internal interface CaptureLeasePersistence" not in phase3_coordination:
+        fail("Android raw Room lease coordination is not internal")
+    if phase3_coordinator.count("store.withRootMutationLock") != 5 or "store.mutateJournal(command)" not in phase3_coordinator:
+        fail("Android lease operations do not share the root mutation lock")
+    if "internal fun mutateJournal(" not in phase3_store or "private fun mutateJournalUnderRootLock(" not in phase3_store:
+        fail("Android journal mutation can bypass the internal fenced coordinator boundary")
+    main_source_paths = [
+        path for path in (root / "apps/android").glob("*/src/main/**/*")
+        if path.is_file() and path.suffix in {".kt", ".java"}
+    ]
+    main_source = "\n".join(path.read_text() for path in main_source_paths)
+    if len(re.findall(r"\bRoomCaptureCoordination\b", main_source)) != 1:
+        fail("Android raw Room lease coordination has a production caller")
+    if "internal fun commitTerminal" not in phase3_quota:
+        fail("Android terminal quota primitive is not internal")
+    if len(re.findall(r"\bmutateJournal\b", main_source)) != 2:
+        fail("Android journal mutation has a production caller outside the fenced coordinator")
+    if len(re.findall(r"\bcommitTerminal\b", main_source)) != 1:
+        fail("Android terminal quota primitive has a production call site")
+    tombstone = (root / "apps/android/data/src/main/java/md/vox/android/data/CaptureTombstoneEntity.java").read_text()
+    for forbidden in ("text", "url", "filename", "logicalPath", "uri", "documentID", "artifactHash", "noteHash"):
+        if re.search(rf"\b{re.escape(forbidden)}\b", tombstone, flags=re.IGNORECASE):
+            fail(f"Android tombstone contains forbidden field: {forbidden}")
+
     artifact_validator = root / android["artifactValidator"]
     if not artifact_validator.is_file() or not os.access(artifact_validator, os.X_OK):
         fail("Android artifact validator is missing or not executable")

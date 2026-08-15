@@ -17,6 +17,6 @@ public interface CaptureProjectionDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     long insert(CaptureProjectionEntity entity);
 
-    @Query("UPDATE capture_projection SET packageVersion = :packageVersion, journalVersion = :journalVersion, journalRevision = :journalRevision, state = :state, updatedAtEpochMillis = :updatedAt WHERE requestID = :requestID AND journalRevision < :journalRevision")
-    int repairOlder(String requestID, int packageVersion, int journalVersion, int journalRevision, String state, long updatedAt);
+    @Query("UPDATE capture_projection SET packageVersion = :packageVersion, journalVersion = :journalVersion, journalRevision = :journalRevision, state = :state, updatedAtEpochMillis = :updatedAt, attemptCount = :attemptCount WHERE requestID = :requestID AND journalRevision < :journalRevision")
+    int repairOlder(String requestID, int packageVersion, int journalVersion, int journalRevision, String state, long updatedAt, int attemptCount);
 }

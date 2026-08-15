@@ -1,0 +1,301 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "b88c185297b8c19304f4180d25f19ad1",
+    "entities": [
+      {
+        "tableName": "capture_projection",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`requestID` TEXT NOT NULL, `packageVersion` INTEGER NOT NULL, `journalVersion` INTEGER NOT NULL, `journalRevision` INTEGER NOT NULL, `state` TEXT NOT NULL, `createdAtEpochMillis` INTEGER NOT NULL, `updatedAtEpochMillis` INTEGER NOT NULL, `attemptCount` INTEGER NOT NULL, PRIMARY KEY(`requestID`))",
+        "fields": [
+          {
+            "fieldPath": "requestID",
+            "columnName": "requestID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageVersion",
+            "columnName": "packageVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "journalVersion",
+            "columnName": "journalVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "journalRevision",
+            "columnName": "journalRevision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtEpochMillis",
+            "columnName": "createdAtEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtEpochMillis",
+            "columnName": "updatedAtEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attemptCount",
+            "columnName": "attemptCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "requestID"
+          ]
+        }
+      },
+      {
+        "tableName": "capture_lease",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`requestID` TEXT NOT NULL, `token` TEXT NOT NULL, `expiresAtEpochMillis` INTEGER NOT NULL, PRIMARY KEY(`requestID`))",
+        "fields": [
+          {
+            "fieldPath": "requestID",
+            "columnName": "requestID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "token",
+            "columnName": "token",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "expiresAtEpochMillis",
+            "columnName": "expiresAtEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "requestID"
+          ]
+        }
+      },
+      {
+        "tableName": "lease_clock",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`singletonID` INTEGER NOT NULL, `maxObservedEpochMillis` INTEGER NOT NULL, PRIMARY KEY(`singletonID`))",
+        "fields": [
+          {
+            "fieldPath": "singletonID",
+            "columnName": "singletonID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxObservedEpochMillis",
+            "columnName": "maxObservedEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "singletonID"
+          ]
+        }
+      },
+      {
+        "tableName": "installation_identity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`singletonID` INTEGER NOT NULL, `installationID` TEXT NOT NULL, `createdAtEpochMillis` INTEGER NOT NULL, PRIMARY KEY(`singletonID`))",
+        "fields": [
+          {
+            "fieldPath": "singletonID",
+            "columnName": "singletonID",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "installationID",
+            "columnName": "installationID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAtEpochMillis",
+            "columnName": "createdAtEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "singletonID"
+          ]
+        }
+      },
+      {
+        "tableName": "quota_reservation",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`requestID` TEXT NOT NULL, `reservationToken` TEXT NOT NULL, `installationID` TEXT NOT NULL, `reservedAtEpochMillis` INTEGER NOT NULL, `updatedAtEpochMillis` INTEGER NOT NULL, PRIMARY KEY(`requestID`))",
+        "fields": [
+          {
+            "fieldPath": "requestID",
+            "columnName": "requestID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reservationToken",
+            "columnName": "reservationToken",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "installationID",
+            "columnName": "installationID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reservedAtEpochMillis",
+            "columnName": "reservedAtEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtEpochMillis",
+            "columnName": "updatedAtEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "requestID"
+          ]
+        }
+      },
+      {
+        "tableName": "capture_tombstone",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`requestID` TEXT NOT NULL, `installationID` TEXT NOT NULL, `state` TEXT NOT NULL, `completedAtEpochMillis` INTEGER NOT NULL, `destinationID` TEXT NOT NULL, `receiptID` TEXT NOT NULL, `packageVersion` INTEGER NOT NULL, `journalVersion` INTEGER NOT NULL, `requestContractVersion` INTEGER NOT NULL, `finalJournalRevision` INTEGER NOT NULL, `coreVersion` TEXT NOT NULL, `rendererVersion` TEXT NOT NULL, `profileID` TEXT NOT NULL, `profileVersion` INTEGER NOT NULL, `quotaUnits` INTEGER NOT NULL, PRIMARY KEY(`requestID`))",
+        "fields": [
+          {
+            "fieldPath": "requestID",
+            "columnName": "requestID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "installationID",
+            "columnName": "installationID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedAtEpochMillis",
+            "columnName": "completedAtEpochMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "destinationID",
+            "columnName": "destinationID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "receiptID",
+            "columnName": "receiptID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageVersion",
+            "columnName": "packageVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "journalVersion",
+            "columnName": "journalVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestContractVersion",
+            "columnName": "requestContractVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finalJournalRevision",
+            "columnName": "finalJournalRevision",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "coreVersion",
+            "columnName": "coreVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rendererVersion",
+            "columnName": "rendererVersion",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profileID",
+            "columnName": "profileID",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profileVersion",
+            "columnName": "profileVersion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "quotaUnits",
+            "columnName": "quotaUnits",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "requestID"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b88c185297b8c19304f4180d25f19ad1')"
+    ]
+  }
+}

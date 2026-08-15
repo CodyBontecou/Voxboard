@@ -150,6 +150,7 @@ data class CaptureIndexProjection(
     val state: CaptureState,
     val createdAtEpochMillis: Long,
     val updatedAtEpochMillis: Long,
+    val attemptCount: Int = 0,
 )
 
 interface CaptureIndex {

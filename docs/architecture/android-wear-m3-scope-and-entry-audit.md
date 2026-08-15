@@ -1,11 +1,12 @@
 # Android/Wear M3 scope and entry audit
 
-Status: **M3 Phase 1 and Phase 2 durable-enqueue foundation hosted-qualified; vertical slice incomplete**
+Status: **M3 Phase 1 and Phase 2 hosted-qualified; Phase 3 durability substrate implemented locally; vertical slice incomplete**
 
 M2 is qualified at `450abcaab4f09f5a4803d535ee843d1c058f099b`. This audit
 retains the machine-consistent M3 boundary and exact Android application toolchain while
-recording the first compileable phone/tablet foundation and the locally implemented Phase 2
-durable-enqueue foundation. It claims no provider result, physical-device or process-death
+recording the first compileable phone/tablet foundation, the hosted-qualified Phase 2
+durable-enqueue foundation, and the locally implemented Phase 3 durability substrate. It
+claims no provider result, physical-device or process-death
 result, physical durability or Room migration qualification, SAF commit, quota outcome,
 Kotlin binding consumption, native library load, or M3 exit.
 
@@ -140,7 +141,7 @@ range conservatively ends at AGP 9.1. KSP was not selected because an exact Kotl
 compatible stable KSP release was not established. These may change only through a reviewed
 pin update with a resolved build and regenerated locks/verification metadata.
 
-## Phase 2 durable-enqueue implementation status
+## Phase 2 durable-enqueue and local Phase 3 substrate status
 
 ADR-0020 defines capture-package codec v1, byte-bound journal v1, the exact M3 text/link
 admission profile, duplicate correlation, and no-downgrade fsync/atomic-promotion semantics.
@@ -156,10 +157,13 @@ Room sources and the instrumentation APK compile. This is local build and fault-
 evidence only: instrumentation has not run on an emulator/device, directory fsync and file
 locking have not been physically qualified, and no M3 case is `passed`.
 
-Stale leases, completed-package cleanup, reservations, and journal replacement are not
-implemented. Composer acknowledgement, quota, SAF/provider commit, WorkManager execution,
-DataStore runtime, prepared artifacts, and the Rust Kotlin/native bridge are not connected
-in this slice.
+ADR-0021 now adds locally implemented, production-unwired journal replacement, root-lock-routed
+opaque lease fencing with persisted rollback defense, Room-v2 migration, and request-idempotent
+quota primitives. Its terminal quota/tombstone
+transaction is internal and has no production caller before a future governed verified
+receipt. Completed-package cleanup, composer acknowledgement, SAF/provider commit,
+WorkManager execution, DataStore runtime, prepared artifacts, and the Rust Kotlin/native
+bridge remain unconnected.
 
 ## Persistence and SAF authority
 
@@ -231,8 +235,9 @@ provider, backup-extraction, process-death, performance, or M3 product evidence.
 
 - Implement the Rust Kotlin bridge and promote the core-contract Kotlin mirror only after
   its named executable fixture consumer runs; it remains `resourceOnlyPlanned`.
-- Execute the generated Room instrumentation consumer, then implement quota, prepared
-  artifacts, SAF/provider reconciliation, composer wiring, and the complete text/link
+- Execute the generated Room migration/coordination instrumentation consumers, then connect
+  quota only at the future verified-receipt barrier and implement prepared artifacts,
+  SAF/provider reconciliation, composer wiring, and the complete text/link
   vertical slice. DataStore and WorkManager runtime remain intentionally inactive. The
   current UI is still an explicitly unavailable shell.
 - Run process-death instrumentation and exact artifact inspection.

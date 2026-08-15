@@ -13,9 +13,10 @@ public final class CaptureProjectionEntity {
     @NonNull public String state;
     public long createdAtEpochMillis;
     public long updatedAtEpochMillis;
+    public int attemptCount;
 
     public CaptureProjectionEntity(@NonNull String requestID, int packageVersion, int journalVersion,
-            int journalRevision, @NonNull String state, long createdAtEpochMillis, long updatedAtEpochMillis) {
+            int journalRevision, @NonNull String state, long createdAtEpochMillis, long updatedAtEpochMillis, int attemptCount) {
         this.requestID = requestID;
         this.packageVersion = packageVersion;
         this.journalVersion = journalVersion;
@@ -23,5 +24,6 @@ public final class CaptureProjectionEntity {
         this.state = state;
         this.createdAtEpochMillis = createdAtEpochMillis;
         this.updatedAtEpochMillis = updatedAtEpochMillis;
+        this.attemptCount = attemptCount;
     }
 }

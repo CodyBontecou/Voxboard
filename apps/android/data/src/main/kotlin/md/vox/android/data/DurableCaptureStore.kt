@@ -12,14 +12,18 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+private val JOURNAL_TEMP_PATTERN = Regex("^\\.delivery-journal\\.[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\.tmp$")
+
 interface DurableFileOps {
     fun ensureDirectory(directory: File)
     fun createDirectory(directory: File)
     fun writeFileDurably(file: File, bytes: ByteArray, checkpoint: (String) -> Unit)
+    fun writeNewFileDurably(file: File, bytes: ByteArray, checkpoint: (String) -> Unit)
     fun readBounded(file: File, maximumBytes: Int): ByteArray
     fun syncDirectory(directory: File)
     fun <T> withPromotionLock(root: File, action: () -> T): T
     fun promoteDirectoryNoReplace(source: File, target: File)
+    fun replaceFileAtomically(source: File, target: File)
     fun list(directory: File): List<File>
     fun exists(file: File): Boolean
     fun isDirectoryNoFollow(file: File): Boolean
@@ -27,6 +31,7 @@ interface DurableFileOps {
     fun isSymlink(file: File): Boolean
     fun length(file: File): Long
     fun deleteOwnedTemporary(directory: File)
+    fun deleteOwnedFile(file: File)
     fun checkpoint(name: String) {}
 }
 
@@ -36,8 +41,12 @@ class AndroidDurableFileOps : DurableFileOps {
         if (!isDirectoryNoFollow(directory) || isSymlink(directory)) error("notDirectory")
     }
     override fun createDirectory(directory: File) { if (!directory.mkdir() || !isDirectoryNoFollow(directory)) error("mkdirFailed") }
-    override fun writeFileDurably(file: File, bytes: ByteArray, checkpoint: (String) -> Unit) {
-        val stream = FileOutputStream(file)
+    override fun writeFileDurably(file: File, bytes: ByteArray, checkpoint: (String) -> Unit) = writeStream(FileOutputStream(file), bytes, checkpoint)
+    override fun writeNewFileDurably(file: File, bytes: ByteArray, checkpoint: (String) -> Unit) {
+        val descriptor = Os.open(file.absolutePath, OsConstants.O_CREAT or OsConstants.O_EXCL or OsConstants.O_WRONLY or OsConstants.O_NOFOLLOW, 0x180)
+        writeStream(FileOutputStream(descriptor), bytes, checkpoint)
+    }
+    private fun writeStream(stream: FileOutputStream, bytes: ByteArray, checkpoint: (String) -> Unit) {
         var primary: Throwable? = null
         try {
             checkpoint("beforeWrite"); stream.write(bytes); checkpoint("afterWrite")
@@ -82,6 +91,10 @@ class AndroidDurableFileOps : DurableFileOps {
         if (Files.exists(target.toPath(), LinkOption.NOFOLLOW_LINKS)) throw FileAlreadyExistsException(target.path)
         Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE)
     }
+    override fun replaceFileAtomically(source: File, target: File) {
+        if (!isRegularFileNoFollow(source) || isSymlink(source) || !isRegularFileNoFollow(target) || isSymlink(target)) error("unsafeAtomicReplace")
+        Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+    }
     override fun list(directory: File): List<File> = directory.listFiles()?.toList() ?: error("listFailed")
     override fun exists(file: File) = Files.exists(file.toPath(), LinkOption.NOFOLLOW_LINKS)
     override fun isDirectoryNoFollow(file: File) = Files.isDirectory(file.toPath(), LinkOption.NOFOLLOW_LINKS)
@@ -89,6 +102,7 @@ class AndroidDurableFileOps : DurableFileOps {
     override fun isSymlink(file: File) = Files.isSymbolicLink(file.toPath())
     override fun length(file: File) = Files.size(file.toPath())
     override fun deleteOwnedTemporary(directory: File) { Files.walk(directory.toPath()).use { paths -> paths.sorted(Comparator.reverseOrder()).forEach(Files::deleteIfExists) } }
+    override fun deleteOwnedFile(file: File) { if (!isRegularFileNoFollow(file) || isSymlink(file)) error("unsafeOwnedFile"); Files.delete(file.toPath()) }
     private companion object { val processLocks = ConcurrentHashMap<String, ReentrantLock>() }
 }
 
@@ -153,6 +167,98 @@ class DurableCapturePackageStore(
         catch (_: Exception) { return EnqueueResult.DurabilityFailure(requestID, "durabilityFailure") }
     }
 
+    internal fun mutateJournal(command: JournalMutationCommand, leaseValidator: ((String) -> Boolean)? = null): JournalMutationResult {
+        var completed: JournalMutationResult? = null
+        return try {
+            withRootMutationLock {
+                mutateJournalUnderRootLock(command, leaseValidator).also { completed = it }
+            }
+        } catch (_: Exception) {
+            when (completed) {
+                is JournalMutationResult.Applied,
+                is JournalMutationResult.AlreadyApplied,
+                is JournalMutationResult.PersistedIndexPending,
+                is JournalMutationResult.DurabilityUncertain,
+                -> JournalMutationResult.DurabilityUncertain("journalLockReleaseOutcomeUnknown")
+                else -> JournalMutationResult.CoordinationFailure("journalLockFailure")
+            }
+        }
+    }
+
+    /** Caller must hold [withRootMutationLock]; used only by the coordinator for a continuous fence/CAS lock. */
+    private fun mutateJournalUnderRootLock(command: JournalMutationCommand, leaseValidator: ((String) -> Boolean)? = null): JournalMutationResult {
+        if (!UUID_PATTERN.matches(command.requestID) || command.expectedRevision !in 0..1022 ||
+            command.event.revision != command.expectedRevision + 1
+        ) return JournalMutationResult.ReducerRejected("commandFrontierMismatch")
+        val token = command.leaseToken
+        if (command.event.code.requiresWorkerLease() && token == null) return JournalMutationResult.LeaseLost
+        if (token != null) {
+            if (!UUID_PATTERN.matches(token) || leaseValidator == null) return JournalMutationResult.LeaseLost
+            val current = try { leaseValidator(token) } catch (_: Exception) {
+                return JournalMutationResult.CoordinationFailure("leaseCheckFailed")
+            }
+            if (!current) return JournalMutationResult.LeaseLost
+        }
+        val directory = File(root, command.requestID)
+        var replacementAttempted = false
+        var canonicalValidated = false
+        return try {
+            removeOwnedJournalTemp(directory)
+            val prior = validatePackage(directory)
+            canonicalValidated = true
+            val current = prior.snapshot
+            if (current.revision == command.event.revision && current.events.last() == command.event) {
+                return projectMutation(prior, already = true)
+            }
+            if (current.revision != command.expectedRevision) return JournalMutationResult.FrontierConflict(current.revision)
+            val reduction = CaptureJournalReducer.reduce(command.requestID, current, command.event)
+            if (reduction is JournalReduction.Rejected) return JournalMutationResult.ReducerRejected(reduction.reason)
+            val next = (reduction as JournalReduction.Accepted).snapshot
+            val bytes = CapturePackageCodec.encodeJournal(next, prior.requestBytes, prior.assetsBytes)
+            val temporary = File(directory, ".delivery-journal.${UUID.randomUUID()}.tmp")
+            fileOps.writeNewFileDurably(temporary, bytes) { phase -> fileOps.checkpoint("$phase:journalReplacement") }
+            fileOps.checkpoint("beforeJournalTempReopen")
+            val reopened = fileOps.readBounded(temporary, CONTROL_LIMIT_BYTES)
+            fileOps.checkpoint("afterJournalTempReopen")
+            if (!reopened.contentEquals(bytes) || CapturePackageCodec.sha256(reopened) != CapturePackageCodec.sha256(bytes)) throw PackageCodecException("reopenMismatch")
+            val decoded = CapturePackageCodec.decodeJournal(reopened); CapturePackageCodec.verifyBinding(decoded, prior.requestBytes, prior.assetsBytes)
+            if (decoded.snapshot != next) throw PackageCodecException("journalReplayMismatch")
+            fileOps.checkpoint("beforeJournalReplace")
+            replacementAttempted = true
+            fileOps.replaceFileAtomically(temporary, File(directory, "delivery-journal.json"))
+            fileOps.checkpoint("afterJournalReplace")
+            val verified = validatePackage(directory)
+            if (verified.snapshot != next) throw PackageCodecException("journalReplaceMismatch")
+            fileOps.checkpoint("beforePackageDirectorySync")
+            fileOps.syncDirectory(directory)
+            fileOps.checkpoint("afterPackageDirectorySync")
+            projectMutation(verified, already = false)
+        } catch (_: AtomicMoveNotSupportedException) {
+            JournalMutationResult.DurabilityUncertain("atomicReplacementUnsupported")
+        } catch (error: PackageCodecException) {
+            when {
+                replacementAttempted -> JournalMutationResult.DurabilityUncertain(error.coarseCode)
+                canonicalValidated -> JournalMutationResult.CoordinationFailure(error.coarseCode)
+                else -> JournalMutationResult.PackageCorrupt(error.coarseCode)
+            }
+        } catch (_: Exception) {
+            if (replacementAttempted) JournalMutationResult.DurabilityUncertain("journalReplacementOutcomeUnknown")
+            else JournalMutationResult.CoordinationFailure("journalReplacementFailed")
+        }
+    }
+
+    /** One app-private lock order: root filesystem lock before any Room transaction. */
+    internal fun <T> withRootMutationLock(action: () -> T): T {
+        ensureSafeRoot()
+        fileOps.checkpoint("beforeJournalLockAcquire")
+        val result = fileOps.withPromotionLock(root) {
+            fileOps.checkpoint("afterJournalLockAcquire")
+            action()
+        }
+        fileOps.checkpoint("afterJournalLockRelease")
+        return result
+    }
+
     fun reconcile(): List<ReconciliationResult> {
         val results = mutableListOf<ReconciliationResult>(); val presentPackageIDs = mutableSetOf<String>()
         if (fileOps.exists(root)) {
@@ -162,10 +268,12 @@ class DurableCapturePackageStore(
                 .forEach { results += ReconciliationResult.CorruptPackage(it.name, "unsafePromotionLock") }
             entries.filter { it.name != ".promotion.lock" && !it.name.startsWith(".tmp-") && !UUID_PATTERN.matches(it.name) }
                 .forEach { results += ReconciliationResult.CorruptPackage(it.name, "unexpectedRootEntry") }
-            entries.filter { it.name.startsWith(".tmp-") }.forEach { temporary -> results += reconcileTemporary(temporary) }
+            entries.filter { it.name.startsWith(".tmp-") }.forEach { temporary ->
+                results += try { fileOps.withPromotionLock(root) { reconcileTemporary(temporary) } } catch (_: Exception) { ReconciliationResult.SuspiciousTemporaryPackage(temporary.name, "temporaryLockFailed") }
+            }
             entries.filter { UUID_PATTERN.matches(it.name) }.forEach { directory ->
                 presentPackageIDs += directory.name
-                val verified = try { validatePackage(directory) } catch (error: Exception) { results += ReconciliationResult.CorruptPackage(directory.name, (error as? PackageCodecException)?.coarseCode ?: "invalidPackage"); return@forEach }
+                val verified = try { fileOps.withPromotionLock(root) { removeOwnedJournalTemp(directory); validatePackage(directory) } } catch (error: Exception) { results += ReconciliationResult.CorruptPackage(directory.name, (error as? PackageCodecException)?.coarseCode ?: "invalidPackage"); return@forEach }
                 val write = try { index.insertOrRepair(verified.projection) } catch (_: Exception) { results += ReconciliationResult.IndexFailure(directory.name, "indexWriteFailed"); return@forEach }
                 results += when (write) {
                     IndexWriteResult.INSERTED, IndexWriteResult.REPAIRED_OLDER -> ReconciliationResult.IndexedPackage(directory.name)
@@ -187,14 +295,24 @@ class DurableCapturePackageStore(
         phase("beforeRootParentSync", "afterRootParentSync") { fileOps.syncDirectory(noBackupFilesDir) }
     }
 
-    private fun duplicate(directory: File, requestBytes: ByteArray, assetsBytes: ByteArray): EnqueueResult {
-        val verified = try { validatePackage(directory) } catch (error: Exception) { return EnqueueResult.ExistingPackageCorrupt(directory.name, (error as? PackageCodecException)?.coarseCode ?: "invalidPackage") }
+    private fun duplicate(directory: File, requestBytes: ByteArray, assetsBytes: ByteArray): EnqueueResult = try {
+        fileOps.withPromotionLock(root) { duplicateLocked(directory, requestBytes, assetsBytes) }
+    } catch (_: Exception) { EnqueueResult.DurabilityFailure(directory.name, "durabilityFailure") }
+
+    private fun duplicateLocked(directory: File, requestBytes: ByteArray, assetsBytes: ByteArray): EnqueueResult {
+        val verified = try { removeOwnedJournalTemp(directory); validatePackage(directory) } catch (error: Exception) { return EnqueueResult.ExistingPackageCorrupt(directory.name, (error as? PackageCodecException)?.coarseCode ?: "invalidPackage") }
         if (!verified.requestBytes.contentEquals(requestBytes) || !verified.assetsBytes.contentEquals(assetsBytes)) return EnqueueResult.CorrelationConflict(directory.name)
         try { phase("beforeDuplicateCapturesParentSync", "afterDuplicateCapturesParentSync") { fileOps.syncDirectory(root) } } catch (_: Exception) { return EnqueueResult.DurabilityFailure(directory.name, "durabilityFailure") }
         val write = indexWrite(verified.projection) ?: return EnqueueResult.IndexFailure(directory.name, "indexWriteFailed")
         if (write !in setOf(IndexWriteResult.INSERTED, IndexWriteResult.IDENTICAL, IndexWriteResult.REPAIRED_OLDER)) return EnqueueResult.IndexFailure(directory.name, "indexConflict")
         fileOps.checkpoint("postIndexPreResult")
         return EnqueueResult.SavedLocally(directory.name)
+    }
+
+    private fun projectMutation(verified: VerifiedPackage, already: Boolean): JournalMutationResult {
+        val write = indexWrite(verified.projection) ?: return JournalMutationResult.PersistedIndexPending(verified.projection)
+        if (write !in setOf(IndexWriteResult.INSERTED, IndexWriteResult.IDENTICAL, IndexWriteResult.REPAIRED_OLDER)) return JournalMutationResult.PersistedIndexPending(verified.projection)
+        return if (already) JournalMutationResult.AlreadyApplied(verified.projection) else JournalMutationResult.Applied(verified.projection)
     }
 
     private fun indexWrite(projection: CaptureIndexProjection): IndexWriteResult? = try { fileOps.checkpoint("beforeIndexCall"); val result = index.insertOrRepair(projection); fileOps.checkpoint("afterIndexCall"); fileOps.checkpoint("afterIndexResult"); result } catch (_: Exception) { null }
@@ -217,7 +335,17 @@ class DurableCapturePackageStore(
         return try { fileOps.deleteOwnedTemporary(directory); ReconciliationResult.TemporaryPackageDeleted(directory.name) } catch (_: Exception) { ReconciliationResult.SuspiciousTemporaryPackage(directory.name, "temporaryDeleteFailed") }
     }
 
-    private data class VerifiedPackage(val requestBytes: ByteArray, val assetsBytes: ByteArray, val projection: CaptureIndexProjection)
+    private fun removeOwnedJournalTemp(directory: File) {
+        if (!fileOps.exists(directory)) return
+        val candidates = fileOps.list(directory).filter { JOURNAL_TEMP_PATTERN.matches(it.name) }
+        if (candidates.size > 1) throw PackageCodecException("journalTempInventory")
+        val temporary = candidates.singleOrNull() ?: return
+        if (fileOps.isSymlink(temporary) || !fileOps.isRegularFileNoFollow(temporary) || fileOps.length(temporary) !in 0..CONTROL_LIMIT_BYTES.toLong()) throw PackageCodecException("unsafeJournalTemp")
+        fileOps.checkpoint("beforeJournalTempDelete"); fileOps.deleteOwnedFile(temporary); fileOps.checkpoint("afterJournalTempDelete")
+        fileOps.syncDirectory(directory)
+    }
+
+    private data class VerifiedPackage(val requestBytes: ByteArray, val assetsBytes: ByteArray, val snapshot: JournalSnapshot, val projection: CaptureIndexProjection)
     private fun validatePackage(directory: File): VerifiedPackage {
         if (fileOps.isSymlink(directory) || !fileOps.isDirectoryNoFollow(directory) || !UUID_PATTERN.matches(directory.name)) throw PackageCodecException("packagePath")
         val entries = fileOps.list(directory)
@@ -228,6 +356,7 @@ class DurableCapturePackageStore(
         CapturePackageCodec.verifyBinding(decoded, request, assets)
         val snapshot = decoded.snapshot
         if (admitted.requestID != directory.name || assetManifest.requestID != directory.name || snapshot.requestID != directory.name) throw PackageCodecException("correlation")
-        return VerifiedPackage(request, assets, CaptureIndexProjection(directory.name, decoded.binding.packageVersion, 1, snapshot.revision, snapshot.state, admitted.createdAtEpochMillis, snapshot.events.last().occurredAtEpochMillis))
+        val attempts = snapshot.events.count { it.code == JournalCode.PREPARATION_STARTED }
+        return VerifiedPackage(request, assets, snapshot, CaptureIndexProjection(directory.name, decoded.binding.packageVersion, 1, snapshot.revision, snapshot.state, admitted.createdAtEpochMillis, snapshot.events.last().occurredAtEpochMillis, attempts))
     }
 }
