@@ -25,9 +25,11 @@ EXPECTED_GOVERNED_PATHS = (
     "Packages/vox-core-rust/scripts/normalize-apple-xcframework.py",
     "Packages/vox-core-rust/scripts/inspect-native-packages.py",
     "Packages/vox-core-rust/scripts/normalize-generated-text.py",
+    "Packages/vox-core-rust/crates/vox-core/tests/m2_core.rs",
     "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
     "Packages/VoxboardShared/Sources/VoxCoreFFI/module.modulemap",
     ".github/workflows/android-ci.yml",
+    ".github/workflows/contracts-ci.yml",
     "apps/android/build.gradle.kts",
     "apps/android/settings.gradle.kts",
     "apps/android/gradle/libs.versions.toml",
@@ -52,6 +54,18 @@ EXPECTED_GOVERNED_PATHS = (
     "apps/android/capture-domain/gradle.lockfile",
     "apps/android/data/build.gradle.kts",
     "apps/android/data/gradle.lockfile",
+    "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/DurableCapture.kt",
+    "apps/android/capture-domain/src/test/kotlin/md/vox/android/capturedomain/CaptureJournalReducerTest.kt",
+    "apps/android/data/src/main/kotlin/md/vox/android/data/CapturePackageCodec.kt",
+    "apps/android/data/src/main/kotlin/md/vox/android/data/DurableCaptureStore.kt",
+    "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionEntity.java",
+    "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionDao.java",
+    "apps/android/data/src/main/java/md/vox/android/data/CaptureDatabase.java",
+    "apps/android/data/src/main/kotlin/md/vox/android/data/RoomCaptureIndex.kt",
+    "apps/android/data/src/test/kotlin/md/vox/android/data/CapturePackageFixtureConsumerTest.kt",
+    "apps/android/data/src/test/kotlin/md/vox/android/data/DurableCapturePackageStoreTest.kt",
+    "apps/android/data/src/androidTest/kotlin/md/vox/android/data/CaptureDatabaseInstrumentationTest.kt",
+    "apps/android/data/schemas/md.vox.android.data.CaptureDatabase/1.json",
     "apps/android/platform-services/build.gradle.kts",
     "apps/android/platform-services/gradle.lockfile",
     "apps/android/gradle/verification-metadata.xml",
@@ -428,11 +442,44 @@ def main(argv=None):
         if token not in app_build:
             fail(f"Android artifact validation task wiring drift: {token}")
     data_build = module_builds["data"]
-    for dependency in ("libs.room.runtime", "libs.room.ktx", "libs.datastore.preferences", "libs.work.runtime.ktx"):
+    for dependency in ("libs.room.runtime", "libs.room.ktx"):
+        if f"implementation({dependency})" not in data_build or f"compileOnly({dependency})" in data_build:
+            fail(f"Android M3 Room runtime activation drift: {dependency}")
+    for dependency in ("libs.datastore.preferences", "libs.work.runtime.ktx"):
         if f"compileOnly({dependency})" not in data_build:
-            fail(f"Android Phase 1 framework declaration must remain compileOnly: {dependency}")
+            fail(f"Inactive Android framework must remain compileOnly: {dependency}")
+    for token in ("libs.plugins.android.legacy.kapt", "kapt(libs.room.compiler)", "room.schemaLocation"):
+        if token not in data_build:
+            fail(f"Android Room compiler/schema governance drift: {token}")
     if any("org.jetbrains.kotlin.android" in text for text in module_builds.values()):
         fail("Android modules bypass AGP built-in Kotlin")
+    domain_source = (root / "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/DurableCapture.kt").read_text()
+    if re.search(r"^import\s+(android|androidx)\.", domain_source, flags=re.MULTILINE):
+        fail("capture-domain imports an Android framework type")
+    store_source = (root / "apps/android/data/src/main/kotlin/md/vox/android/data/DurableCaptureStore.kt").read_text()
+    for forbidden in ("renameTo(", ".writeText(", ".writeBytes(", "REPLACE_EXISTING", "ContentResolver", "WorkManager", "DataStore"):
+        if forbidden in store_source:
+            fail(f"durable package store contains forbidden API/fallback: {forbidden}")
+    for required in ("FileOutputStream", "stream.fd.sync()", "Os.fsync", "StandardCopyOption.ATOMIC_MOVE", "FileAlreadyExistsException"):
+        if required not in store_source:
+            fail(f"durable package store ordering primitive missing: {required}")
+    database_source = "\n".join((root / path).read_text() for path in (
+        "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionEntity.java",
+        "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionDao.java",
+        "apps/android/data/src/main/java/md/vox/android/data/CaptureDatabase.java",
+        "apps/android/data/src/main/kotlin/md/vox/android/data/RoomCaptureIndex.kt",
+    ))
+    for forbidden in ("content", "url", "filename", "path", "uri", "document", "provider", "sha256"):
+        if re.search(rf"(?:\bval\s+{forbidden}\w*\s*:|\b(?:String|long|int)\s+{forbidden}\w*\s*[;,)])", database_source, flags=re.IGNORECASE):
+            fail(f"Room projection contains forbidden content/authority field: {forbidden}")
+    for forbidden in ("fallbackToDestructiveMigration", "allowMainThreadQueries"):
+        if forbidden in database_source:
+            fail(f"Room database contains forbidden policy: {forbidden}")
+    room_schema = load(root / "apps/android/data/schemas/md.vox.android.data.CaptureDatabase/1.json")
+    entities = room_schema.get("database", {}).get("entities", [])
+    expected_columns = ["requestID", "packageVersion", "journalVersion", "journalRevision", "state", "createdAtEpochMillis", "updatedAtEpochMillis"]
+    if len(entities) != 1 or entities[0].get("tableName") != "capture_projection" or [field.get("columnName") for field in entities[0].get("fields", [])] != expected_columns:
+        fail("Room content-free schema inventory drift")
 
     metadata = expected_android["dependencyMetadataPaths"]
     verification = (root / metadata["verificationMetadata"]).read_text()
@@ -519,15 +566,22 @@ def main(argv=None):
         command_line_tools["linuxURL"], command_line_tools["linuxSha256"],
         'cmdline-tools/22.0/bin/sdkmanager', "sha256sum --check --strict",
         "validate_toolchain.py", "test-project-contracts.sh",
-        "test lint assembleDebug :app:validateDebugArtifacts",
+        "test lint assembleDebug assembleDebugAndroidTest :app:validateDebugArtifacts",
     ):
         if needle not in workflow:
             fail(f"Android CI drift: {needle}")
     if "ubuntu-latest" in workflow or "cmdline-tools/latest" in workflow:
         fail("Android CI contains a floating runner or command-line tools path")
-    for action in re.findall(r"^\s*uses:\s*[^@\s]+@([^\s#]+)", workflow, flags=re.MULTILINE):
-        if re.fullmatch(r"[0-9a-f]{40}", action) is None:
-            fail(f"Android CI action is not immutable: {action}")
+    for workflow_label, workflow_text in (
+        ("Android CI", workflow),
+        ("Contracts CI", (root / ".github/workflows/contracts-ci.yml").read_text()),
+    ):
+        actions = re.findall(r"^\s*uses:\s*[^@\s]+@([^\s#]+)", workflow_text, flags=re.MULTILINE)
+        if not actions:
+            fail(f"{workflow_label} has no action references")
+        for action in actions:
+            if re.fullmatch(r"[0-9a-f]{40}", action) is None:
+                fail(f"{workflow_label} action is not immutable: {action}")
     artifact_validator = root / android["artifactValidator"]
     if not artifact_validator.is_file() or not os.access(artifact_validator, os.X_OK):
         fail("Android artifact validator is missing or not executable")

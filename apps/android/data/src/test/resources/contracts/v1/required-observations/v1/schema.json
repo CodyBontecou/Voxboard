@@ -1,0 +1,179 @@
+{
+  "$defs": {},
+  "$id": "https://vox.md/contracts/required-observations/v1/schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "aggregateMaximumBytes": {
+      "const": 268435456
+    },
+    "contractVersion": {
+      "const": 1
+    },
+    "observations": {
+      "items": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "candidateOccupancy"
+              },
+              "logicalCandidates": {
+                "items": {
+                  "items": {
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                    "type": "string"
+                  },
+                  "maxItems": 32,
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "maxItems": 256,
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "logicalCandidates"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "frozenTemplate"
+              },
+              "maximumBytes": {
+                "const": 268435456
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "templateCapabilityReference": {
+                "maxLength": 128,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "required",
+              "maximumBytes",
+              "templateCapabilityReference"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "existingNote"
+              },
+              "logicalPath": {
+                "items": {
+                  "maxLength": 255,
+                  "minLength": 1,
+                  "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "maximumBytes": {
+                "const": 268435456
+              },
+              "required": {
+                "const": true
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "required",
+              "maximumBytes",
+              "logicalPath"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "stagedAssetMetadata"
+              },
+              "sourceIDs": {
+                "items": {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                "maxItems": 128,
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "sourceIDs"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "maxItems": 256,
+      "minItems": 0,
+      "type": "array"
+    },
+    "ordering": {
+      "const": "listed"
+    },
+    "preparationRevision": {
+      "maximum": 9223372036854775807,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "requestID": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "snapshotHash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contractVersion",
+    "requestID",
+    "preparationRevision",
+    "snapshotHash",
+    "observations",
+    "aggregateMaximumBytes",
+    "ordering"
+  ],
+  "title": "required-observations",
+  "type": "object"
+}

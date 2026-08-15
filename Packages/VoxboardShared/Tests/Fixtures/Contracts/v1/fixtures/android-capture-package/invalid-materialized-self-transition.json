@@ -1,0 +1,49 @@
+{
+  "assetManifestByteCount": 115,
+  "assetManifestSHA256": "a5839dbf338953dca7511e759a42ed97590cc661bfa9742f0bd86e5acaa8ddc9",
+  "assetManifestVersion": 1,
+  "events": [
+    {
+      "code": "enqueued",
+      "fromState": null,
+      "occurredAtEpochMillis": 1700000000000,
+      "receiptID": null,
+      "resumeState": null,
+      "revision": 0,
+      "state": "queued"
+    },
+    {
+      "code": "preparationStarted",
+      "fromState": "queued",
+      "occurredAtEpochMillis": 1700000000001,
+      "receiptID": null,
+      "resumeState": null,
+      "revision": 1,
+      "state": "preparing"
+    },
+    {
+      "code": "materialized",
+      "fromState": "preparing",
+      "occurredAtEpochMillis": 1700000000002,
+      "receiptID": null,
+      "resumeState": null,
+      "revision": 2,
+      "state": "materialized"
+    },
+    {
+      "code": "materialized",
+      "fromState": "materialized",
+      "occurredAtEpochMillis": 1700000000003,
+      "receiptID": null,
+      "resumeState": null,
+      "revision": 3,
+      "state": "materialized"
+    }
+  ],
+  "journalVersion": 1,
+  "packageVersion": 1,
+  "requestByteCount": 1753,
+  "requestContractVersion": 1,
+  "requestID": "11111111-1111-4111-8111-111111111111",
+  "requestSHA256": "be9ed1a23b61a303c1f16daf223631ae1bc5aa11004959dcc37cf854f926d2e9"
+}

@@ -1,0 +1,79 @@
+{
+  "artifacts": [
+    {
+      "artifactID": "554250c4-e8dc-51c0-8b4e-daca6fd1ab4e",
+      "commitSequence": 0,
+      "equivalenceRule": "sameSourceAndResultHash",
+      "expectedExistingPolicy": "absent",
+      "expectedExistingSHA256": null,
+      "journalFrontier": "attachmentVerified",
+      "kind": "attachment",
+      "logicalPath": [
+        "Synthetic Vault",
+        "Assets",
+        "audio.wav"
+      ],
+      "mediaType": "audio/wav",
+      "operationID": "0b506bbe-39de-56c2-a1fc-912fb375d02b",
+      "receiptKind": "attachmentCommit",
+      "resultLength": 32,
+      "resultSHA256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "sourceID": "66666666-6666-4666-8666-666666666666",
+      "sourceLength": 32,
+      "sourceMediaType": "audio/wav",
+      "sourceSHA256": "1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    {
+      "artifactID": "092b8435-ea25-54a3-8824-d76adb80a2a1",
+      "commitSequence": 1,
+      "equivalenceRule": "exactBytes",
+      "expectedExistingPolicy": "hashMatch",
+      "expectedExistingSHA256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "expectedOriginalSHA256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "journalFrontier": "noteVerified",
+      "kind": "note",
+      "logicalPath": [
+        "Synthetic Vault",
+        "Inbox",
+        "capture.md"
+      ],
+      "mediaType": "text/markdown; charset=utf-8",
+      "operationID": "84ad1460-9d3d-5734-bfa5-1de91c32de4b",
+      "preparedStreamID": "e180bdd2-e290-5641-aebc-d63332f95237",
+      "receiptKind": "noteCommit",
+      "resultLength": 25,
+      "resultSHA256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "writeMode": "append"
+    }
+  ],
+  "contractVersion": 1,
+  "diagnostics": [
+    {
+      "code": "materialized",
+      "fieldPath": "$",
+      "severity": "info"
+    }
+  ],
+  "operation": "existingNoteAppend",
+  "pins": {
+    "coreVersion": "vox-core-contract-only",
+    "modelProfileID": null,
+    "modelRevision": null,
+    "profileID": "apple-parity-v1",
+    "profileVersion": 1,
+    "rendererRevision": "swift-legacy-m0"
+  },
+  "planHash": "f4646f448570c81927e5568bbc0d56aeb606698d2013fc592c2e2c8bca72c22f",
+  "preparedByteDelivery": {
+    "finalJSONDuplicatesBytes": false,
+    "maximumChunkBytes": 1048576,
+    "mode": "drainedImmutableArtifacts"
+  },
+  "requestID": "11111111-1111-4111-8111-111111111111",
+  "retryMarker": {
+    "placement": "entrySuffixBeforeFinalNewline",
+    "policy": "voxCaptureCommentV1",
+    "syntax": "<!-- vox-capture:{lowercase-uuid} -->"
+  },
+  "warnings": []
+}

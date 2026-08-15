@@ -267,6 +267,20 @@ fn rust_contract_mirror_is_consumed() {
 }
 
 #[test]
+fn governed_android_m3_request_prepares_through_production_core() {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(
+        "../../tests/resources/contracts/v1/fixtures/capture-preparation-input/valid-android-m3-text-link.json",
+    );
+    let bytes = std::fs::read(path).expect("governed Android M3 preparation fixture");
+    let required = prepare(&bytes).expect("exact governed bytes must prepare");
+    assert_eq!(
+        required.request_id,
+        uuid("11111111-1111-4111-8111-111111111111")
+    );
+    assert_eq!(required.observations.len(), 1);
+}
+
+#[test]
 fn exact_deterministic_identity_matches_contract_vector() {
     assert_eq!(
         operation_id(uuid("11111111-1111-4111-8111-111111111111"), 0, "newNote")

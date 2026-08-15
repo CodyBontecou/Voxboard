@@ -6,11 +6,12 @@ from pathlib import Path, PurePosixPath
 
 CLOSURE="29ec869c8bda4d511af787af394658d0274b339b"
 HEALTH="c70de9201ab7cfbadf2442183dfba23c0d248478"
-FAMILIES=("capture-preparation-input","required-observations","capture-materialization-input","artifact-plan","wearable-protocol","core-api")
+FAMILIES=("capture-preparation-input","required-observations","capture-materialization-input","artifact-plan","wearable-protocol","core-api","android-capture-package")
 MIRRORS={
  "Packages/VoxboardShared/Tests/Fixtures/Contracts/v1":"resourceOnlyPlanned",
  "Packages/vox-core-rust/tests/resources/contracts/v1":"required",
  "apps/android/core-bridge/src/test/resources/contracts/v1":"resourceOnlyPlanned",
+ "apps/android/data/src/test/resources/contracts/v1":"required",
 }
 LIFECYCLES={"resourceOnlyPlanned","required"}
 SCHEMA_KEYWORDS={"$schema","$id","$defs","$ref","title","description","type","const","enum","oneOf","anyOf","allOf","not","if","then","else","properties","required","additionalProperties","minProperties","maxProperties","items","minItems","maxItems","uniqueItems","minLength","maxLength","pattern","minimum","maximum"}
@@ -21,7 +22,15 @@ class ContractError(Exception):
  def __init__(self,code,path,message): self.code,self.path,self.message=code,path,message; super().__init__(f"{code} at {path}: {message}")
 def reject(code,path,message): raise ContractError(code,path,message)
 def load(path):
- try: return json.loads(path.read_text(encoding="utf-8"))
+ def pairs(values):
+  result={}
+  for key,value in values:
+   if key in result: reject("json.duplicate","$",f"{path}: duplicate key {key}")
+   result[key]=value
+  return result
+ def nonfinite(value): reject("json.nonFinite","$",f"{path}: {value}")
+ try: return json.loads(path.read_text(encoding="utf-8"),object_pairs_hook=pairs,parse_constant=nonfinite)
+ except ContractError: raise
  except Exception as e: reject("json.invalid","$",f"{path}: {e}")
 def canonical(v): return (json.dumps(v,ensure_ascii=False,indent=2,sort_keys=True)+"\n").encode()
 def sha(data): return hashlib.sha256(data).hexdigest()
@@ -152,7 +161,41 @@ def schema_validate(value,schema,path="$",schema_file=None,root_schema=None,cont
  if isinstance(value,(int,float)) and not isinstance(value,bool):
   if value<schema.get("minimum",float("-inf")) or value>schema.get("maximum",float("inf")): reject("schema.numericBounds",path,"number out of bounds")
 
+def validate_android_capture_package(obj):
+ if "assetCount" in obj:
+  if obj["assetCount"]!=0 or obj["assets"]!=[]: reject("package.assetsProfile","$","M3 assets must be exactly empty")
+  return
+ if "events" in obj:
+  terminal={"completed","permanentFailure","discarded"}; prior=None; resume=None
+  for index,event in enumerate(obj["events"]):
+   path=f"$.events[{index}]"; state=event["state"]; code=event["code"]
+   if index==0:
+    if event["revision"]!=0 or event["fromState"] is not None or state!="queued" or code!="enqueued" or event["resumeState"] is not None or event["receiptID"] is not None: reject("package.initialEvent",path,"invalid initial frontier")
+   else:
+    if prior in terminal: reject("package.terminalTransition",path,"terminal state has successor")
+    if event["revision"]!=index or event["fromState"]!=prior: reject("package.frontier",path,"revision/fromState mismatch")
+    expected_resume=("committing" if prior=="unknownOutcome" else prior) if state=="needsPermission" else None
+    if event["resumeState"]!=expected_resume: reject("package.resumeFrontier",path,"resume state mismatch")
+    allowed={
+     "queued":{("preparing","preparationStarted"),("discarded","userDiscarded")},
+     "preparing":{("materialized","materialized"),("retryableFailure","retryableFailure"),("needsPermission","permissionLost"),("needsUserAction","userActionRequired"),("permanentFailure","permanentFailure"),("discarded","userDiscarded")},
+     "materialized":{("preparing","preparationStarted"),("committing","commitStarted"),("retryableFailure","retryableFailure"),("needsPermission","permissionLost"),("needsUserAction","userActionRequired"),("permanentFailure","permanentFailure"),("discarded","userDiscarded")},
+     "committing":{("completed","verifiedCommitted"),("retryableFailure","provedNotCommitted"),("needsPermission","permissionLost"),("unknownOutcome","commitAmbiguous")},
+     "retryableFailure":{("preparing","preparationStarted"),("discarded","userDiscarded")},
+     "needsPermission":{(resume,"permissionRestored"),("discarded","userDiscarded")},
+     "unknownOutcome":{("completed","verifiedCommitted"),("retryableFailure","provedNotCommitted"),("needsPermission","permissionLost"),("discarded","userDiscarded")},
+     "needsUserAction":{("discarded","userDiscarded")},
+    }
+    if (state,code) not in allowed.get(prior,set()): reject("package.illegalTransition",path,"transition/code is not legal")
+   if state=="completed":
+    if event["receiptID"] is None: reject("package.receipt",path,"completed requires receipt")
+   elif event["receiptID"] is not None: reject("package.receipt",path,"receipt only allowed for completed")
+   resume=event["resumeState"] if state=="needsPermission" else resume
+   prior=state
+  return
+
 def semantic(family,obj,context=None):
+ if family=="android-capture-package": validate_android_capture_package(obj)
  if family=="required-observations":
   ids=[x["id"] for x in obj["observations"]]
   if len(ids)!=len(set(ids)): reject("observation.duplicateID","$.observations","observation IDs must be unique")
@@ -376,6 +419,7 @@ def case_family(path): return path.parent.name
 
 def validate_case(root,case,schemas):
  path=root/case["path"]; data=path.read_bytes(); obj=load(path)
+ if case["family"]=="android-capture-package" and len(data)>1048576: reject("package.controlBounds","$",case["path"])
  if canonical(obj)!=data: reject("fixture.nonCanonical","$",f"{case['path']} is not canonical")
  for pattern in PRIVACY:
   if pattern.search(data.decode()): reject("fixture.privacy","$",case["path"])
@@ -392,6 +436,22 @@ def validate_case(root,case,schemas):
   if not error: reject("fixture.negativeAccepted","$",case["path"])
   expected=case.get("expectedError",{})
   if error.code!=expected.get("code") or error.path!=expected.get("path"): reject("fixture.wrongTypedError","$",f"{case['path']}: got {error.code} {error.path}")
+
+def validate_android_package_fixture_binding(root):
+ base=root/"Packages/contracts/fixtures"
+ request_path=base/"capture-preparation-input/valid-android-m3-text-link.json"
+ assets_path=base/"android-capture-package/valid-assets.json"
+ request_bytes=request_path.read_bytes(); assets_bytes=assets_path.read_bytes()
+ request=load(request_path); assets=load(assets_path)
+ if request["requestID"]!=assets["requestID"]: reject("package.fixtureCorrelation","$","request/assets IDs differ")
+ preset=copy.deepcopy(request["preset"]); claimed=preset["snapshotHash"]; preset["snapshotHash"]="0"*64
+ if claimed!=sha(canonical(preset)): reject("package.fixturePresetHash","$.preset.snapshotHash","fixed preset hash is not derived from canonical zeroed snapshot")
+ if request["pins"]!={"coreVersion":"0.1.0-alpha.1","modelProfileID":None,"modelRevision":None,"profileID":"apple-parity-v1","profileVersion":1,"rendererRevision":"swift-legacy-m0"}: reject("package.fixturePins","$.pins","M3 fixture pins drift")
+ if request["preset"]["id"]!="33333333-3333-4333-8333-333333333333" or request["preset"]["destinationPolicy"]["expectedCaseSensitivity"]!="sensitive": reject("package.fixtureProfile","$.preset","M3 fixed preset/case profile drift")
+ for name in ("valid-queued-journal.json","valid-journal.json"):
+  journal=load(base/"android-capture-package"/name)
+  expected={"requestByteCount":len(request_bytes),"requestSHA256":sha(request_bytes),"assetManifestByteCount":len(assets_bytes),"assetManifestSHA256":sha(assets_bytes),"requestID":request["requestID"]}
+  if any(journal[key]!=value for key,value in expected.items()): reject("package.fixtureBinding","$",f"{name} does not bind governed request/assets bytes")
 
 def build_manifest(root):
  base=root/"Packages/contracts"; files=governed(root)
@@ -415,11 +475,16 @@ def build_manifest(root):
    except ContractError as e: case["expectedError"]={"code":e.code,"path":e.path}
    else: reject("fixture.negativeAccepted","$",relpath(p,root))
   cases.append(case)
+ validate_android_package_fixture_binding(root)
  records=[{"path":relpath(p,root),"bytes":len(p.read_bytes()),"sha256":digest(p),"category":category(p,root)} for p in files]
  mirrors=[]
  for path,lifecycle in MIRRORS.items():
   required=path=="Packages/vox-core-rust/tests/resources/contracts/v1"
-  mirrors.append({"path":path,"lifecycle":lifecycle,"sources":source_rels,"consumer":"vox-core m2_core::rust_contract_mirror_is_consumed" if required else None,"evidence":"Packages/vox-core-rust/crates/vox-core/tests/m2_core.rs" if required else None})
+  if path=="apps/android/data/src/test/resources/contracts/v1":
+   consumer="CapturePackageFixtureConsumerTest.production_codec_consumes_governed_fixtures"; evidence="apps/android/data/src/test/kotlin/md/vox/android/data/CapturePackageFixtureConsumerTest.kt"
+  else:
+   consumer="vox-core m2_core::rust_contract_mirror_is_consumed" if required else None; evidence="Packages/vox-core-rust/crates/vox-core/tests/m2_core.rs" if required else None
+  mirrors.append({"path":path,"lifecycle":lifecycle,"sources":source_rels,"consumer":consumer,"evidence":evidence})
  manifest={"schemaVersion":2,"producerRevision":CLOSURE,"healthMdPrecedent":HEALTH,"files":records,"fixtureCases":cases,"mirrors":mirrors,"producer":{"name":"vox-contract-manifest-generator","script":"Packages/contracts/scripts/validate.py","scriptSHA256":digest(base/"scripts/validate.py")}}
  (base/"manifest.json").write_bytes(canonical(manifest)); return manifest
 
@@ -438,6 +503,7 @@ def validate(root):
  fixtures={relpath(p,root) for p in (base/"fixtures").glob("*/*.json")}; cases=manifest.get("fixtureCases",[])
  if {c.get("path") for c in cases}!=fixtures or len(cases)!=len(fixtures): reject("manifest.fixtureSet","$.fixtureCases","fixture coverage differs")
  for case in cases: validate_case(root,case,schemas)
+ validate_android_package_fixture_binding(root)
  res=resources(root); rels=[p.relative_to(base).as_posix() for p in res]; seen=set()
  for mirror in manifest.get("mirrors",[]):
   path=mirror.get("path"); lifecycle=mirror.get("lifecycle")

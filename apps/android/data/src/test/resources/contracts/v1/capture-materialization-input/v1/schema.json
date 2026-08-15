@@ -1,0 +1,705 @@
+{
+  "$defs": {},
+  "$id": "https://vox.md/contracts/capture-materialization-input/v1/schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "calendar": {
+      "const": "gregorian"
+    },
+    "captureSource": {
+      "enum": [
+        "app",
+        "share",
+        "keyboard",
+        "widget",
+        "shortcut",
+        "watch",
+        "wear"
+      ]
+    },
+    "contractVersion": {
+      "const": 1
+    },
+    "controlByteCount": {
+      "maximum": 1048576,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "createdAtEpochMilliseconds": {
+      "maximum": 4102444800000,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "invocation": {
+      "additionalProperties": false,
+      "properties": {
+        "locationOutcome": {
+          "enum": [
+            "notRequested",
+            "unavailable",
+            "coordinatesFrozen",
+            "labelFrozen"
+          ]
+        },
+        "originRecordingID": {
+          "oneOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sequence": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sequence",
+        "originRecordingID",
+        "locationOutcome"
+      ],
+      "type": "object"
+    },
+    "locale": {
+      "maxLength": 35,
+      "minLength": 2,
+      "type": "string"
+    },
+    "observations": {
+      "items": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "const": "candidateOccupancy"
+              },
+              "logicalPaths": {
+                "items": {
+                  "items": {
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                    "type": "string"
+                  },
+                  "maxItems": 32,
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "maxItems": 256,
+                "minItems": 0,
+                "type": "array"
+              },
+              "observationID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "orderedSetHash": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "status": {
+                "const": "present"
+              }
+            },
+            "required": [
+              "kind",
+              "observationID",
+              "status",
+              "logicalPaths",
+              "orderedSetHash"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "byteStreamID": {
+                "oneOf": [
+                  {
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "kind": {
+                "const": "frozenTemplate"
+              },
+              "length": {
+                "maximum": 268435456,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "observationID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "present",
+                  "absent"
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "observationID",
+              "status",
+              "length",
+              "sha256",
+              "byteStreamID"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "byteStreamID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "existingNote"
+              },
+              "length": {
+                "maximum": 268435456,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "logicalPath": {
+                "items": {
+                  "maxLength": 255,
+                  "minLength": 1,
+                  "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "observationID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "status": {
+                "const": "present"
+              }
+            },
+            "required": [
+              "kind",
+              "observationID",
+              "status",
+              "logicalPath",
+              "length",
+              "sha256",
+              "byteStreamID"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "assets": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "length": {
+                      "maximum": 1073741824,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "mediaType": {
+                      "maxLength": 127,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "sha256": {
+                      "pattern": "^[0-9a-f]{64}$",
+                      "type": "string"
+                    },
+                    "sourceID": {
+                      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "sourceID",
+                    "mediaType",
+                    "length",
+                    "sha256"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 128,
+                "minItems": 1,
+                "type": "array"
+              },
+              "kind": {
+                "const": "stagedAssetMetadata"
+              },
+              "observationID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "orderedSetHash": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "status": {
+                "const": "present"
+              }
+            },
+            "required": [
+              "kind",
+              "observationID",
+              "status",
+              "assets",
+              "orderedSetHash"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "maxItems": 256,
+      "minItems": 0,
+      "type": "array"
+    },
+    "operation": {
+      "enum": [
+        "newNote",
+        "rollingNote",
+        "existingNoteAppend",
+        "existingNotePrepend",
+        "existingNoteHeading"
+      ]
+    },
+    "payloads": {
+      "items": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "text"
+              },
+              "text": {
+                "maxLength": 65536,
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "text"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "link"
+              },
+              "label": {
+                "maxLength": 4096,
+                "type": "string"
+              },
+              "url": {
+                "maxLength": 8192,
+                "minLength": 1,
+                "pattern": "^https?://",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "url",
+              "label"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "kind": {
+                "const": "asset"
+              },
+              "length": {
+                "maximum": 1073741824,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "mediaType": {
+                "maxLength": 127,
+                "minLength": 1,
+                "type": "string"
+              },
+              "originalNamePolicy": {
+                "enum": [
+                  "discard",
+                  "safeStem"
+                ]
+              },
+              "safeExtension": {
+                "maxLength": 16,
+                "pattern": "^[a-z0-9]*$",
+                "type": "string"
+              },
+              "sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "sourceID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "id",
+              "sourceID",
+              "mediaType",
+              "length",
+              "sha256",
+              "safeExtension",
+              "originalNamePolicy"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "maxItems": 128,
+      "minItems": 1,
+      "type": "array"
+    },
+    "pins": {
+      "additionalProperties": false,
+      "properties": {
+        "coreVersion": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "modelProfileID": {
+          "oneOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "modelRevision": {
+          "oneOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "profileID": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "profileVersion": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "rendererRevision": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "coreVersion",
+        "rendererRevision",
+        "profileID",
+        "profileVersion",
+        "modelProfileID",
+        "modelRevision"
+      ],
+      "type": "object"
+    },
+    "preparationRevision": {
+      "maximum": 9223372036854775807,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "preset": {
+      "additionalProperties": false,
+      "properties": {
+        "destinationPolicy": {
+          "additionalProperties": false,
+          "properties": {
+            "capabilityClass": {
+              "enum": [
+                "userVault",
+                "recordingExport"
+              ]
+            },
+            "capabilityReference": {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            "expectedCaseSensitivity": {
+              "enum": [
+                "unknown",
+                "sensitive",
+                "insensitive"
+              ]
+            }
+          },
+          "required": [
+            "capabilityReference",
+            "capabilityClass",
+            "expectedCaseSensitivity"
+          ],
+          "type": "object"
+        },
+        "id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "metadataPolicy": {
+          "additionalProperties": false,
+          "properties": {
+            "finalNewline": {
+              "type": "boolean"
+            },
+            "frontmatterMode": {
+              "enum": [
+                "none",
+                "merge",
+                "replace"
+              ]
+            },
+            "lineEnding": {
+              "enum": [
+                "lf",
+                "preserveExisting"
+              ]
+            },
+            "orderedFields": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "name": {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "value": {
+                    "maxLength": 8192,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "value"
+                ],
+                "type": "object"
+              },
+              "maxItems": 128,
+              "minItems": 0,
+              "type": "array"
+            },
+            "templatePolicy": {
+              "enum": [
+                "none",
+                "frozenObservation"
+              ]
+            }
+          },
+          "required": [
+            "frontmatterMode",
+            "orderedFields",
+            "templatePolicy",
+            "lineEnding",
+            "finalNewline"
+          ],
+          "type": "object"
+        },
+        "retryMarkerPolicy": {
+          "enum": [
+            "none",
+            "voxCaptureCommentV1"
+          ]
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "routePolicy": {
+          "additionalProperties": false,
+          "properties": {
+            "attachmentFolder": {
+              "items": {
+                "maxLength": 255,
+                "minLength": 1,
+                "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                "type": "string"
+              },
+              "maxItems": 32,
+              "type": "array"
+            },
+            "collisionPolicy": {
+              "enum": [
+                "fail",
+                "reuseIfHashMatches",
+                "deterministicSuffix"
+              ]
+            },
+            "extensionPolicy": {
+              "const": "markdownDotMd"
+            },
+            "logicalFolder": {
+              "items": {
+                "maxLength": 255,
+                "minLength": 1,
+                "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                "type": "string"
+              },
+              "maxItems": 32,
+              "type": "array"
+            },
+            "noteNameTemplate": {
+              "maxLength": 1024,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "logicalFolder",
+            "noteNameTemplate",
+            "extensionPolicy",
+            "collisionPolicy",
+            "attachmentFolder"
+          ],
+          "type": "object"
+        },
+        "snapshotHash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "templateFreezePoint": {
+          "const": "firstPreparation"
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "snapshotHash",
+        "templateFreezePoint",
+        "retryMarkerPolicy",
+        "routePolicy",
+        "metadataPolicy",
+        "destinationPolicy"
+      ],
+      "type": "object"
+    },
+    "requestID": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "session": {
+      "additionalProperties": false,
+      "properties": {
+        "inputOrdering": {
+          "const": "observation-list-then-sequence"
+        },
+        "maximumAggregateObservationBytes": {
+          "const": 268435456
+        },
+        "maximumChunkBytes": {
+          "const": 1048576
+        },
+        "singleFinalize": {
+          "const": true
+        },
+        "singleSeal": {
+          "const": true
+        }
+      },
+      "required": [
+        "maximumChunkBytes",
+        "maximumAggregateObservationBytes",
+        "inputOrdering",
+        "singleSeal",
+        "singleFinalize"
+      ],
+      "type": "object"
+    },
+    "snapshotHash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "timezone": {
+      "maxLength": 64,
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "required": [
+    "contractVersion",
+    "requestID",
+    "captureSource",
+    "createdAtEpochMilliseconds",
+    "timezone",
+    "calendar",
+    "locale",
+    "operation",
+    "pins",
+    "payloads",
+    "preset",
+    "preparationRevision",
+    "snapshotHash",
+    "controlByteCount",
+    "observations",
+    "session",
+    "invocation"
+  ],
+  "title": "capture-materialization-input",
+  "type": "object"
+}

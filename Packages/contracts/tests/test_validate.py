@@ -4,7 +4,7 @@ ROOT=Path(__file__).resolve().parents[3]; VALIDATOR=Path("Packages/contracts/scr
 class ContractValidatorTests(unittest.TestCase):
  def setUp(self):
   self.temp=tempfile.TemporaryDirectory(); self.root=Path(self.temp.name)/"repo"
-  trees=("Packages/contracts","Packages/VoxboardShared/Tests/Fixtures/Contracts","Packages/VoxboardShared/Sources/VoxCoreGenerated","Packages/VoxboardShared/Sources/VoxCoreFFI","apps/android/core-bridge/src/test/resources/contracts","apps/android/build-logic","apps/android/gradle","docs/validation","toolchains","Packages/vox-core-rust")
+  trees=("Packages/contracts","Packages/VoxboardShared/Tests/Fixtures/Contracts","Packages/VoxboardShared/Sources/VoxCoreGenerated","Packages/VoxboardShared/Sources/VoxCoreFFI","apps/android/core-bridge/src/test/resources/contracts","apps/android/capture-domain/src","apps/android/data/src","apps/android/data/schemas","apps/android/build-logic","apps/android/gradle","docs/validation","toolchains","Packages/vox-core-rust")
   for rel in trees:
    src=ROOT/rel; dst=self.root/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copytree(src,dst,ignore=shutil.ignore_patterns("__pycache__","target",".build","build",".gradle"))
   (self.root/"docs/architecture").mkdir(parents=True,exist_ok=True)
@@ -34,6 +34,13 @@ class ContractValidatorTests(unittest.TestCase):
    self.assertEqual(workflow.count("- '"+trigger+"'"),2,trigger)
  def test_manifest_hash_mutation(self):
   self.mutate("Packages/contracts/manifest.json",lambda x:x["files"][0].update(sha256="f"*64)); self.rejected(self.run_validator(),"manifest.hash")
+ def test_android_package_fixture_bindings_and_fixed_profile_are_semantic(self):
+  rel="Packages/contracts/fixtures/android-capture-package/valid-queued-journal.json"
+  self.mutate(rel,lambda x:x.update(requestSHA256="f"*64),True); self.rejected(self.run_validator(),"package.fixtureBinding")
+  self.tearDown();self.setUp();rel="Packages/contracts/fixtures/capture-preparation-input/valid-android-m3-text-link.json"
+  def drift_preset(x):
+   x["preset"]["id"]="55555555-5555-4555-8555-555555555555"; snapshot=json.loads(json.dumps(x["preset"])); snapshot["snapshotHash"]="0"*64; x["preset"]["snapshotHash"]=hashlib.sha256((json.dumps(snapshot,ensure_ascii=False,indent=2,sort_keys=True)+"\n").encode()).hexdigest()
+  self.mutate(rel,drift_preset,True); self.rejected(self.run_validator(),"package.fixtureProfile")
  def test_schema_unsupported_keyword_rejected(self):
   self.mutate("Packages/contracts/artifact-plan/v1/schema.json",lambda x:x.update(contains={}),True); self.rejected(self.run_validator(),"schema.unsupportedKeyword")
  def test_typed_negative_expectation_is_enforced(self):
@@ -161,9 +168,11 @@ class ContractValidatorTests(unittest.TestCase):
   validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py";p=self.root/"toolchains/android-wear-shared-core.json";m=json.loads(p.read_text());m["governedImplementationFiles"].pop();p.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"governed implementation path inventory differs")
  def test_android_ci_build_logic_and_dependency_metadata_are_governed(self):
   validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py"
-  for rel in (".github/workflows/android-ci.yml","apps/android/build-logic/src/main/kotlin/AndroidComposeConventionPlugin.kt","apps/android/app/gradle.lockfile","apps/android/gradle/verification-metadata.xml"):
+  for rel in (".github/workflows/android-ci.yml",".github/workflows/contracts-ci.yml","apps/android/build-logic/src/main/kotlin/AndroidComposeConventionPlugin.kt","apps/android/app/gradle.lockfile","apps/android/gradle/verification-metadata.xml"):
    with self.subTest(path=rel):
     self.tearDown();self.setUp();p=self.root/rel;p.write_text(p.read_text()+"\n");r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True);self.rejected(r,"hash drift")
+ def test_governed_ci_actions_require_immutable_revisions(self):
+  validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py"; rel=".github/workflows/contracts-ci.yml"; p=self.root/rel; p.write_text(p.read_text().replace("actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd", "actions/checkout@v6")); manifest=self.root/"toolchains/android-wear-shared-core.json"; m=json.loads(manifest.read_text()); next(item for item in m["governedImplementationFiles"] if item["path"]==rel)["sha256"]=hashlib.sha256(p.read_bytes()).hexdigest(); manifest.write_text(json.dumps(m,indent=2,sort_keys=True)+"\n"); r=subprocess.run([sys.executable,str(validator),"--root",str(self.root)],cwd=self.root,text=True,capture_output=True); self.rejected(r,"Contracts CI action is not immutable")
  def test_android_aapt2_linux_verification_metadata_is_exact(self):
   validator=ROOT/"Packages/contracts/scripts/validate_toolchain.py";rel="apps/android/gradle/verification-metadata.xml"
   linux='''         <artifact name="aapt2-9.1.1-14792394-linux.jar">\n            <sha256 value="e7ae17af6e4093c771243e82d66462353de87befaac206bfb43e557ac1c34440" origin="Manually verified from pinned Google Maven URL"/>\n         </artifact>\n'''

@@ -81,4 +81,4 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ./apps/android/gradlew -p apps/android --no-daemon test lint assembleDebug :app:validateDebugArtifacts
+          ./apps/android/gradlew -p apps/android --no-daemon test lint assembleDebug assembleDebugAndroidTest :app:validateDebugArtifacts

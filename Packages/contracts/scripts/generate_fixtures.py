@@ -162,3 +162,35 @@ x=copy.deepcopy(plan);x['artifacts'][0]['kind']='note';dump('artifact-plan','inv
 x=copy.deepcopy(plan);x['retryMarker']['syntax']='<!-- vox-operation:{lowercase-uuid} -->';dump('artifact-plan','invalid-marker-syntax.json',x)
 x=copy.deepcopy(plan);x['artifacts'][1]['commitSequence']=0;dump('artifact-plan','invalid-commit-order.json',x)
 x=copy.deepcopy(plan);x['preparedByteDelivery']['finalJSONDuplicatesBytes']=True;dump('artifact-plan','invalid-final-json-byte-duplication.json',x)
+
+# Exact M3 text/link input shared by Kotlin enqueue and the existing Rust core.
+m3_preset={
+ 'destinationPolicy':{'capabilityClass':'userVault','capabilityReference':'synthetic-vault-capability','expectedCaseSensitivity':'sensitive'},
+ 'id':'33333333-3333-4333-8333-333333333333',
+ 'metadataPolicy':{'finalNewline':True,'frontmatterMode':'none','lineEnding':'lf','orderedFields':[],'templatePolicy':'none'},
+ 'retryMarkerPolicy':'none','revision':1,
+ 'routePolicy':{'attachmentFolder':[],'collisionPolicy':'deterministicSuffix','extensionPolicy':'markdownDotMd','logicalFolder':['Inbox'],'noteNameTemplate':'capture-{id}.md'},
+ 'snapshotHash':'0'*64,'templateFreezePoint':'firstPreparation'}
+m3_preset['snapshotHash']=hashlib.sha256(canonical_bytes(m3_preset)).hexdigest()
+m3={'calendar':'gregorian','captureSource':'app','contractVersion':1,'createdAtEpochMilliseconds':1700000000000,
+ 'invocation':{'locationOutcome':'notRequested','originRecordingID':None,'sequence':1},'locale':'en-US','operation':'newNote',
+ 'payloads':[{'id':U[1],'kind':'text','text':'Synthetic capture text.'},{'id':U[3],'kind':'link','label':'Synthetic link','url':'https://example.invalid/synthetic'}],
+ 'pins':{'coreVersion':'0.1.0-alpha.1','modelProfileID':None,'modelRevision':None,'profileID':'apple-parity-v1','profileVersion':1,'rendererRevision':'swift-legacy-m0'},
+ 'preset':m3_preset,'requestID':U[0],'timezone':'America/Los_Angeles'}
+dump('capture-preparation-input','valid-android-m3-text-link.json',m3)
+
+# Android package envelopes are all derived here from the exact governed request/assets bytes.
+assets={'assetCount':0,'assets':[],'requestID':U[0],'schemaVersion':1}
+request_bytes=canonical_bytes(m3); asset_bytes=canonical_bytes(assets)
+def je(revision,from_state,state,code,receipt=None,resume=None):
+ return {'code':code,'fromState':from_state,'occurredAtEpochMillis':1700000000000+revision,'receiptID':receipt,'resumeState':resume,'revision':revision,'state':state}
+def journal(events):
+ return {'assetManifestByteCount':len(asset_bytes),'assetManifestSHA256':hashlib.sha256(asset_bytes).hexdigest(),'assetManifestVersion':1,'events':events,'journalVersion':1,'packageVersion':1,'requestByteCount':len(request_bytes),'requestID':U[0],'requestSHA256':hashlib.sha256(request_bytes).hexdigest(),'requestContractVersion':1}
+valid_events=[je(0,None,'queued','enqueued'),je(1,'queued','preparing','preparationStarted'),je(2,'preparing','materialized','materialized'),je(3,'materialized','committing','commitStarted'),je(4,'committing','unknownOutcome','commitAmbiguous'),je(5,'unknownOutcome','completed','verifiedCommitted',U[6])]
+dump('android-capture-package','valid-assets.json',assets)
+dump('android-capture-package','valid-queued-journal.json',journal(valid_events[:1]))
+dump('android-capture-package','valid-journal.json',journal(valid_events))
+x=copy.deepcopy(assets);x['schemaVersion']=2;dump('android-capture-package','invalid-version.json',x)
+dump('android-capture-package','invalid-transition.json',journal([valid_events[0],je(1,'queued','completed','verifiedCommitted',U[6])]))
+dump('android-capture-package','invalid-terminal-successor.json',journal(valid_events+[je(6,'completed','discarded','userDiscarded')]))
+dump('android-capture-package','invalid-materialized-self-transition.json',journal(valid_events[:3]+[je(3,'materialized','materialized','materialized')]))

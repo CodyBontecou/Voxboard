@@ -1,16 +1,28 @@
 {
   "files": [
     {
-      "bytes": 2844,
+      "bytes": 2891,
       "category": "contractWorkflow",
       "path": ".github/workflows/contracts-ci.yml",
-      "sha256": "97bf02ae3729d41b1601c25e4751434eb8e324ad41c098eaf62dfae3c9b30d82"
+      "sha256": "03af9650a195419722fb21295fb530ebad3f3918ddbc79e7d7f440ccc6712215"
     },
     {
       "bytes": 2167,
       "category": "contractReadme",
       "path": "Packages/contracts/README.md",
       "sha256": "7375b7994424f9c9538cfe2af1c1472e1327d204718eaf73b31a5a6e5edd85b3"
+    },
+    {
+      "bytes": 566,
+      "category": "contractSource",
+      "path": "Packages/contracts/android-capture-package/v1/contract.md",
+      "sha256": "a06941fd2a201f3ecf66d2f613b15e534b805e865b32ed1223242a3d7330d9c5"
+    },
+    {
+      "bytes": 5346,
+      "category": "contractSource",
+      "path": "Packages/contracts/android-capture-package/v1/schema.json",
+      "sha256": "1c49aa8b998bb6c331eecc7855f61a47c0cd9d1e5f81f419e82b11202056f2fa"
     },
     {
       "bytes": 2282,
@@ -59,6 +71,48 @@
       "category": "contractSource",
       "path": "Packages/contracts/core-api/v1/schema.json",
       "sha256": "2df6b246ae9177ba327300e161127abac4ad6123767ee387d5b9b6cdefc3ff88"
+    },
+    {
+      "bytes": 1305,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-materialized-self-transition.json",
+      "sha256": "5f4440dcaf02960459c68bf5a2ca355a518037ef1a2e384bcc7c929acf2a0ccf"
+    },
+    {
+      "bytes": 2021,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-terminal-successor.json",
+      "sha256": "7868a3c1c6b1b6dfd0b16efc6a784f07b9a6b1c87ae970d9a07a34da40cefbdd"
+    },
+    {
+      "bytes": 887,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-transition.json",
+      "sha256": "84df013041ea96358410f637f005490a1194d602c2d813dee157c3c3e5127cc3"
+    },
+    {
+      "bytes": 115,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-version.json",
+      "sha256": "954212511ad2e41cfb6913a324af6d965497fd3028b94dbe4a584b306d84c090"
+    },
+    {
+      "bytes": 115,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-assets.json",
+      "sha256": "a5839dbf338953dca7511e759a42ed97590cc661bfa9742f0bd86e5acaa8ddc9"
+    },
+    {
+      "bytes": 1799,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-journal.json",
+      "sha256": "d7e34aac8d9a46b759cda9e6361b233cbe716d0941468f61409b849ea08cab59"
+    },
+    {
+      "bytes": 630,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-queued-journal.json",
+      "sha256": "64fab7cd27078b5353ddfab010b70888d82eec08c9693c634733855c7957210a"
     },
     {
       "bytes": 2652,
@@ -143,6 +197,12 @@
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/capture-preparation-input/invalid-unsafe-path.json",
       "sha256": "59e1745097c776ffbaaf246387f576181dc6415ba9a4ead3dafffd99223ba8dc"
+    },
+    {
+      "bytes": 1753,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/capture-preparation-input/valid-android-m3-text-link.json",
+      "sha256": "be9ed1a23b61a303c1f16daf223631ae1bc5aa11004959dcc37cf854f926d2e9"
     },
     {
       "bytes": 2275,
@@ -697,10 +757,10 @@
       "sha256": "019fc4b10d58c28957ebf47c9283238ebc78dad8f6b4f6c7dd41cbf6d4bbcd7b"
     },
     {
-      "bytes": 26373,
+      "bytes": 29746,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/generate_fixtures.py",
-      "sha256": "4d3e4825457e6102203c2ba83ede0312b2b4fe5f283044e83d49533b25165a59"
+      "sha256": "c401342bf02f3e886c3a6940085cfbbc7453579d9caa10b28fad5933fc6640e2"
     },
     {
       "bytes": 12271,
@@ -709,16 +769,16 @@
       "sha256": "4dc48dcd39defed8639accb27ed3c2388da30dc9e4fb12b404411fd1317776ae"
     },
     {
-      "bytes": 37915,
+      "bytes": 43394,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate.py",
-      "sha256": "47efdf42e3db45550fba8deb56703da6764301f21ad3eb734ff1110370f792fb"
+      "sha256": "6e40ea0676c186a7e445f03b677240ed60a4fa8575589c860d737ae98d502269"
     },
     {
-      "bytes": 26414,
+      "bytes": 30790,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_toolchain.py",
-      "sha256": "39b4fc8c18606a1efde306ba6325503482579b7b3f0ddc80e2321e582dd568e6"
+      "sha256": "0dc635b46f76738f9a418d2097b38445416fb18e74086fcbc821f12a3e24f201"
     },
     {
       "bytes": 113342,
@@ -745,10 +805,10 @@
       "sha256": "65e1532465e3cd82273e0012a40606ae89ce0aa064b4d20df4cb3d2e40739b13"
     },
     {
-      "bytes": 27556,
+      "bytes": 29277,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "c3a8ff87c2f9653a5b8bd9a871e1fb135a5d1a1278d7b14567f10fa11750ade9"
+      "sha256": "7e2e35274305fcac3ab8359ffeee3a1c75ebcd08355f240a294020964f16226d"
     },
     {
       "bytes": 83338,
@@ -955,6 +1015,12 @@
       "sha256": "fc3731530f915b855961ffbf821ce76b30dc7784f64765ba222b1b60a1ce8e15"
     },
     {
+      "bytes": 6093,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0020-android-capture-package-codec-v1.md",
+      "sha256": "f3d5ae1c5c66cacd470b80ff1e2ccb7ab2dd7458f0329f0464e77500d9598f94"
+    },
+    {
       "bytes": 3806,
       "category": "acceptedDecision",
       "path": "docs/architecture/android-wear-m1-decisions.md",
@@ -985,10 +1051,10 @@
       "sha256": "ddd50cbdb85a52ce03c44167b07c2a0dbd27a730085316ddf9f74bc3eb052bc6"
     },
     {
-      "bytes": 13134,
+      "bytes": 15807,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "20c48bbbe1b1e049d7dc97bfba8e5b49ca303a7461efe8f443c06ad9f196bb08"
+      "sha256": "68e1c8a1248918abc8ddca7689c8fd65a94839ec282e402c931fae9bb90a75b5"
     },
     {
       "bytes": 10583,
@@ -998,6 +1064,99 @@
     }
   ],
   "fixtureCases": [
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "package.illegalTransition",
+        "path": "$.events[3]"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-materialized-self-transition.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "package.terminalTransition",
+        "path": "$.events[6]"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-terminal-successor.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "package.illegalTransition",
+        "path": "$.events[1]"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-transition.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "schema.oneOf",
+        "path": "$"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-version.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-assets.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-journal.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-queued-journal.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
     {
       "expect": "invalid",
       "expectedError": {
@@ -1193,6 +1352,17 @@
       },
       "family": "capture-preparation-input",
       "path": "Packages/contracts/fixtures/capture-preparation-input/invalid-unsafe-path.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "capture-preparation-input",
+      "path": "Packages/contracts/fixtures/capture-preparation-input/valid-android-m3-text-link.json",
       "producer": {
         "name": "vox-contract-fixture-generator",
         "revision": "m1-v1",
@@ -2167,6 +2337,15 @@
         "wearable-protocol/v1/trace.schema.json",
         "core-api/v1/contract.md",
         "core-api/v1/schema.json",
+        "android-capture-package/v1/contract.md",
+        "android-capture-package/v1/schema.json",
+        "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-terminal-successor.json",
+        "fixtures/android-capture-package/invalid-transition.json",
+        "fixtures/android-capture-package/invalid-version.json",
+        "fixtures/android-capture-package/valid-assets.json",
+        "fixtures/android-capture-package/valid-journal.json",
+        "fixtures/android-capture-package/valid-queued-journal.json",
         "fixtures/artifact-plan/invalid-commit-order.json",
         "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
         "fixtures/artifact-plan/invalid-marker-syntax.json",
@@ -2181,6 +2360,7 @@
         "fixtures/capture-preparation-input/invalid-tag-payload-mismatch.json",
         "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
         "fixtures/capture-preparation-input/invalid-unsafe-path.json",
+        "fixtures/capture-preparation-input/valid-android-m3-text-link.json",
         "fixtures/capture-preparation-input/valid-complete.json",
         "fixtures/core-api/invalid-chunk-oversize.json",
         "fixtures/core-api/invalid-descriptor-order.json",
@@ -2275,6 +2455,15 @@
         "wearable-protocol/v1/trace.schema.json",
         "core-api/v1/contract.md",
         "core-api/v1/schema.json",
+        "android-capture-package/v1/contract.md",
+        "android-capture-package/v1/schema.json",
+        "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-terminal-successor.json",
+        "fixtures/android-capture-package/invalid-transition.json",
+        "fixtures/android-capture-package/invalid-version.json",
+        "fixtures/android-capture-package/valid-assets.json",
+        "fixtures/android-capture-package/valid-journal.json",
+        "fixtures/android-capture-package/valid-queued-journal.json",
         "fixtures/artifact-plan/invalid-commit-order.json",
         "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
         "fixtures/artifact-plan/invalid-marker-syntax.json",
@@ -2289,6 +2478,7 @@
         "fixtures/capture-preparation-input/invalid-tag-payload-mismatch.json",
         "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
         "fixtures/capture-preparation-input/invalid-unsafe-path.json",
+        "fixtures/capture-preparation-input/valid-android-m3-text-link.json",
         "fixtures/capture-preparation-input/valid-complete.json",
         "fixtures/core-api/invalid-chunk-oversize.json",
         "fixtures/core-api/invalid-descriptor-order.json",
@@ -2383,6 +2573,15 @@
         "wearable-protocol/v1/trace.schema.json",
         "core-api/v1/contract.md",
         "core-api/v1/schema.json",
+        "android-capture-package/v1/contract.md",
+        "android-capture-package/v1/schema.json",
+        "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-terminal-successor.json",
+        "fixtures/android-capture-package/invalid-transition.json",
+        "fixtures/android-capture-package/invalid-version.json",
+        "fixtures/android-capture-package/valid-assets.json",
+        "fixtures/android-capture-package/valid-journal.json",
+        "fixtures/android-capture-package/valid-queued-journal.json",
         "fixtures/artifact-plan/invalid-commit-order.json",
         "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
         "fixtures/artifact-plan/invalid-marker-syntax.json",
@@ -2397,6 +2596,125 @@
         "fixtures/capture-preparation-input/invalid-tag-payload-mismatch.json",
         "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
         "fixtures/capture-preparation-input/invalid-unsafe-path.json",
+        "fixtures/capture-preparation-input/valid-android-m3-text-link.json",
+        "fixtures/capture-preparation-input/valid-complete.json",
+        "fixtures/core-api/invalid-chunk-oversize.json",
+        "fixtures/core-api/invalid-descriptor-order.json",
+        "fixtures/core-api/invalid-duplicate-drained-artifact.json",
+        "fixtures/core-api/invalid-incompatible-no-mismatch.json",
+        "fixtures/core-api/invalid-ready-not-permitted.json",
+        "fixtures/core-api/invalid-unknown-field.json",
+        "fixtures/core-api/invalid-unsupported-profile.json",
+        "fixtures/core-api/valid-build-info.json",
+        "fixtures/core-api/valid-drained-hashes.json",
+        "fixtures/core-api/valid-expected-artifacts.json",
+        "fixtures/core-api/valid-expected-versions.json",
+        "fixtures/core-api/valid-prepared-chunk.json",
+        "fixtures/core-api/valid-readiness-incompatible.json",
+        "fixtures/core-api/valid-readiness-ready.json",
+        "fixtures/required-observations/invalid-duplicate-id.json",
+        "fixtures/required-observations/invalid-tag-request-mismatch.json",
+        "fixtures/required-observations/valid-all-kinds.json",
+        "fixtures/wearable-protocol/invalid-deletion-threshold.json",
+        "fixtures/wearable-protocol/invalid-frontier-chunk-oversize.json",
+        "fixtures/wearable-protocol/invalid-kind-payload-cross-contamination.json",
+        "fixtures/wearable-protocol/invalid-recording-mode-policy.json",
+        "fixtures/wearable-protocol/valid-assetManifest.json",
+        "fixtures/wearable-protocol/valid-capabilityHello.json",
+        "fixtures/wearable-protocol/valid-discard.json",
+        "fixtures/wearable-protocol/valid-discarded.json",
+        "fixtures/wearable-protocol/valid-phoneIngested.json",
+        "fixtures/wearable-protocol/valid-presetInventory.json",
+        "fixtures/wearable-protocol/valid-presetSnapshot.json",
+        "fixtures/wearable-protocol/valid-reassign.json",
+        "fixtures/wearable-protocol/valid-reconciliationSummary.json",
+        "fixtures/wearable-protocol/valid-recordingMetadata.json",
+        "fixtures/wearable-protocol/valid-retry.json",
+        "fixtures/wearable-protocol/valid-sourceDeletionAuthorized.json",
+        "fixtures/wearable-protocol/valid-terminalFailure.json",
+        "fixtures/wearable-protocol/valid-transferFrontier.json",
+        "fixtures/wearable-protocol/valid-transferReceipt.json",
+        "fixtures/wearable-protocol/valid-unsupportedVersion.json",
+        "fixtures/wearable-protocol/valid-vaultCommitted.json",
+        "fixtures/wearable-protocol-trace/invalid-asset-replacement-after-ingest.json",
+        "fixtures/wearable-protocol-trace/invalid-cross-correlation-vault.json",
+        "fixtures/wearable-protocol-trace/invalid-cross-recording-ingest.json",
+        "fixtures/wearable-protocol-trace/invalid-delete-before-vault.json",
+        "fixtures/wearable-protocol-trace/invalid-delete-correlation.json",
+        "fixtures/wearable-protocol-trace/invalid-disposition.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-asset.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-exceeds-asset.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-progression.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-revision.json",
+        "fixtures/wearable-protocol-trace/invalid-frozen-policy-reassignment.json",
+        "fixtures/wearable-protocol-trace/invalid-future-retry.json",
+        "fixtures/wearable-protocol-trace/invalid-ingest-hash.json",
+        "fixtures/wearable-protocol-trace/invalid-message-id-collision.json",
+        "fixtures/wearable-protocol-trace/invalid-metadata-preset.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-duplicate-recording.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-last-revision.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-pending-correlation.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-recording-mismatch.json",
+        "fixtures/wearable-protocol-trace/invalid-recording-only-mode-policy.json",
+        "fixtures/wearable-protocol-trace/invalid-retired-installation-switchback.json",
+        "fixtures/wearable-protocol-trace/invalid-terminal-followup.json",
+        "fixtures/wearable-protocol-trace/invalid-transcript-recording-only-policy.json",
+        "fixtures/wearable-protocol-trace/invalid-unsupported-followup.json",
+        "fixtures/wearable-protocol-trace/invalid-vault-correlation.json",
+        "fixtures/wearable-protocol-trace/valid-duplicate-stale-noop.json",
+        "fixtures/wearable-protocol-trace/valid-explicit-discard.json",
+        "fixtures/wearable-protocol-trace/valid-negotiation-preset-reconciliation.json",
+        "fixtures/wearable-protocol-trace/valid-reassign-retry.json",
+        "fixtures/wearable-protocol-trace/valid-recording-only.json",
+        "fixtures/wearable-protocol-trace/valid-reinstall-reconciliation.json",
+        "fixtures/wearable-protocol-trace/valid-terminal-failure-retains-media.json",
+        "fixtures/wearable-protocol-trace/valid-transcript-ingest-commit-delete.json"
+      ]
+    },
+    {
+      "consumer": "CapturePackageFixtureConsumerTest.production_codec_consumes_governed_fixtures",
+      "evidence": "apps/android/data/src/test/kotlin/md/vox/android/data/CapturePackageFixtureConsumerTest.kt",
+      "lifecycle": "required",
+      "path": "apps/android/data/src/test/resources/contracts/v1",
+      "sources": [
+        "capture-preparation-input/v1/contract.md",
+        "capture-preparation-input/v1/schema.json",
+        "required-observations/v1/contract.md",
+        "required-observations/v1/schema.json",
+        "capture-materialization-input/v1/contract.md",
+        "capture-materialization-input/v1/schema.json",
+        "artifact-plan/v1/contract.md",
+        "artifact-plan/v1/schema.json",
+        "wearable-protocol/v1/contract.md",
+        "wearable-protocol/v1/schema.json",
+        "wearable-protocol/v1/trace-contract.md",
+        "wearable-protocol/v1/trace.schema.json",
+        "core-api/v1/contract.md",
+        "core-api/v1/schema.json",
+        "android-capture-package/v1/contract.md",
+        "android-capture-package/v1/schema.json",
+        "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-terminal-successor.json",
+        "fixtures/android-capture-package/invalid-transition.json",
+        "fixtures/android-capture-package/invalid-version.json",
+        "fixtures/android-capture-package/valid-assets.json",
+        "fixtures/android-capture-package/valid-journal.json",
+        "fixtures/android-capture-package/valid-queued-journal.json",
+        "fixtures/artifact-plan/invalid-commit-order.json",
+        "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
+        "fixtures/artifact-plan/invalid-marker-syntax.json",
+        "fixtures/artifact-plan/invalid-tag-artifact-mismatch.json",
+        "fixtures/artifact-plan/valid-complete.json",
+        "fixtures/capture-materialization-input/invalid-control-oversize.json",
+        "fixtures/capture-materialization-input/invalid-present-template-null-stream.json",
+        "fixtures/capture-materialization-input/invalid-session-chunk-limit.json",
+        "fixtures/capture-materialization-input/invalid-tag-observation-mismatch.json",
+        "fixtures/capture-materialization-input/valid-complete.json",
+        "fixtures/capture-preparation-input/invalid-asset-oversize.json",
+        "fixtures/capture-preparation-input/invalid-tag-payload-mismatch.json",
+        "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
+        "fixtures/capture-preparation-input/invalid-unsafe-path.json",
+        "fixtures/capture-preparation-input/valid-android-m3-text-link.json",
         "fixtures/capture-preparation-input/valid-complete.json",
         "fixtures/core-api/invalid-chunk-oversize.json",
         "fixtures/core-api/invalid-descriptor-order.json",
@@ -2475,7 +2793,7 @@
   "producer": {
     "name": "vox-contract-manifest-generator",
     "script": "Packages/contracts/scripts/validate.py",
-    "scriptSHA256": "47efdf42e3db45550fba8deb56703da6764301f21ad3eb734ff1110370f792fb"
+    "scriptSHA256": "6e40ea0676c186a7e445f03b677240ed60a4fa8575589c860d737ae98d502269"
   },
   "producerRevision": "29ec869c8bda4d511af787af394658d0274b339b",
   "schemaVersion": 2

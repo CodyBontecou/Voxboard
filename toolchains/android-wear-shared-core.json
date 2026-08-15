@@ -204,6 +204,10 @@
       "sha256": "12c91a05fa3103a2d0d09b4520105726731369d6d4f01d9d53f65b626e8a8843"
     },
     {
+      "path": "Packages/vox-core-rust/crates/vox-core/tests/m2_core.rs",
+      "sha256": "deb5e3c01667648a6215a095dd0845044f074d2b84587758feed1ec6759a0c0f"
+    },
+    {
       "path": "Packages/VoxboardShared/Sources/VoxCoreGenerated/VoxCore.swift",
       "sha256": "9f456ea8362af384dd2be972d029da13eef58a99a3cabab76b1c07c3eb323b38"
     },
@@ -213,7 +217,11 @@
     },
     {
       "path": ".github/workflows/android-ci.yml",
-      "sha256": "abab563ccdba82e7cc5f7a95501d89fa22cbd3e538348831e8f4911f010a9822"
+      "sha256": "d146ffb665ebbaf93f1599bca0eed9f4b3bd461d7407e475a2ab6b0f928729f7"
+    },
+    {
+      "path": ".github/workflows/contracts-ci.yml",
+      "sha256": "03af9650a195419722fb21295fb530ebad3f3918ddbc79e7d7f440ccc6712215"
     },
     {
       "path": "apps/android/build.gradle.kts",
@@ -225,7 +233,7 @@
     },
     {
       "path": "apps/android/gradle/libs.versions.toml",
-      "sha256": "ebe252ba9fc7151d7ede0f4fbc76a76b38e0aea34fc3390fde13ea1ce54df1b9"
+      "sha256": "88089f546b90854277ded17d1bfa4772b28dd6443bf8e70af384e4e3057009cb"
     },
     {
       "path": "apps/android/gradle.properties",
@@ -281,7 +289,7 @@
     },
     {
       "path": "apps/android/app/gradle.lockfile",
-      "sha256": "d5341fead3a4a2fe96c15b6df82d0e83510e350ac81f3fac60b3b735556b34f2"
+      "sha256": "c7832e0363c544d7db2fd47e5df5a404e0611341a1213227c76feb1dbdf23aaa"
     },
     {
       "path": "apps/android/scripts/validate-debug-artifacts.py",
@@ -305,11 +313,59 @@
     },
     {
       "path": "apps/android/data/build.gradle.kts",
-      "sha256": "f3286c456e8331b7045b29a931372f14fb98277894057c2b677a29383d09335c"
+      "sha256": "a681bb5c40eda9d173dbfe87f0dfc343e17cfd2339cc63c0d3ca0fa5e521c719"
     },
     {
       "path": "apps/android/data/gradle.lockfile",
-      "sha256": "be80990e21fb7e30ea621e7d0193087f547abf83f301f016e16f5bb0cc01e3c5"
+      "sha256": "c2dfa83823f4f927cc9009a95a26ca92151a7742ac531b1bbafae44c619a33c0"
+    },
+    {
+      "path": "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/DurableCapture.kt",
+      "sha256": "cc091581f5ef79b071e4ad49bd80b08011598db85e2ec818ddccda56f99a1f5f"
+    },
+    {
+      "path": "apps/android/capture-domain/src/test/kotlin/md/vox/android/capturedomain/CaptureJournalReducerTest.kt",
+      "sha256": "55c5eb7638381fd6f12e8a408830d43864b405cb886db9cfaa33a6c9c2d1cfa8"
+    },
+    {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/CapturePackageCodec.kt",
+      "sha256": "38a057ec3dd2b8c1e2325b2c74e60638fbbe287e2474bbe400d4190c903f7d12"
+    },
+    {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/DurableCaptureStore.kt",
+      "sha256": "724f54922461b28777dfbc38f16f6e635e68de31b2b9f9fe4a540d0dc2820d43"
+    },
+    {
+      "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionEntity.java",
+      "sha256": "6a263193cc350cb5dcb87fb621f76a77123d7775b0997b402558e9eabbc756bf"
+    },
+    {
+      "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionDao.java",
+      "sha256": "6d052d49c60ebd71fceb4c58bfb4884c8052a52e4b445d82072653867c726820"
+    },
+    {
+      "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureDatabase.java",
+      "sha256": "cae4f1256f8266f615ef1d38c4514704437865afe4faeef9f6f8f315ffb305bb"
+    },
+    {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/RoomCaptureIndex.kt",
+      "sha256": "67252f1ed762a195f3a58deae8e5eef1d2ea6d99940dabb9b2bea7df273bae35"
+    },
+    {
+      "path": "apps/android/data/src/test/kotlin/md/vox/android/data/CapturePackageFixtureConsumerTest.kt",
+      "sha256": "e12dbba3eea03c17aecd6dc81afd98004ee9cbf6e46519ff12d68c391d873e36"
+    },
+    {
+      "path": "apps/android/data/src/test/kotlin/md/vox/android/data/DurableCapturePackageStoreTest.kt",
+      "sha256": "8b60763a4b44f255d981863d307dbee855001ded47d93233b222ad40ebf54ec7"
+    },
+    {
+      "path": "apps/android/data/src/androidTest/kotlin/md/vox/android/data/CaptureDatabaseInstrumentationTest.kt",
+      "sha256": "ea6b9686191c845bb2b02e72a9cc830aefd44c0b84469f31f6270db6f5d939d0"
+    },
+    {
+      "path": "apps/android/data/schemas/md.vox.android.data.CaptureDatabase/1.json",
+      "sha256": "811834e1058c798edd1ad997f33e4b1939218851241139be8cb81325710259b0"
     },
     {
       "path": "apps/android/platform-services/build.gradle.kts",
@@ -321,7 +377,7 @@
     },
     {
       "path": "apps/android/gradle/verification-metadata.xml",
-      "sha256": "76ae3e4b1a5ec34dfcd5a56c42cf36ea3870f1d7283d1d8314c30fff213a7e16"
+      "sha256": "df7d4c72ff42e4cf75138defa56f502dafe099084ea41815cd75e5c5f4a4f8d6"
     },
     {
       "path": "apps/android/settings-gradle.lockfile",
