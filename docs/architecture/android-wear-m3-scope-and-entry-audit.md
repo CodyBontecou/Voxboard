@@ -1,12 +1,12 @@
 # Android/Wear M3 scope and entry audit
 
-Status: **M3 Phase 1–3 durability foundations hosted-qualified; vertical slice incomplete**
+Status: **M3 Phase 1–4 foundations hosted-qualified; vertical slice incomplete**
 
 M2 is qualified at `450abcaab4f09f5a4803d535ee843d1c058f099b`. This audit
 retains the machine-consistent M3 boundary and exact Android application toolchain while
-recording the first compileable phone/tablet foundation, the hosted-qualified Phase 2 and
-Phase 3 durability foundations, and the locally implemented Phase 4 lazy UniFFI packaging
-slice. It claims no provider result, physical-device or process-death result, physical
+recording the first compileable phone/tablet foundation, the hosted-qualified Phase 2–4
+foundations, and the Phase 4 lazy UniFFI packaging slice. It claims no provider result,
+physical-device or process-death result, physical
 durability or Room migration qualification, SAF commit, quota outcome, target-executed native
 library load, or M3 exit.
 
@@ -189,6 +189,32 @@ same four ABIs and validates ELF class/machine.
 A compiled instrumentation consumer calls generated build-info, readiness, and prepare with
 governed fixture assets. Neither that consumer nor native loading has been executed on an
 Android target; mirror lifecycle and physical/runtime claims therefore remain unchanged.
+
+## Phase 4 hosted qualification
+
+The reviewed Phase 4 implementation revision and hosted source revision are
+`4c0b45716c9ffc2cf1167af62b60ed0158a44283`. GitHub Actions passed:
+
+- [Android foundation CI `31895160525`](https://github.com/CodyBontecou/vox.md/actions/runs/31895160525),
+  job `95037247247`, including 79 governed implementation hashes, 94 fixtures, 94 project-contract
+  tests, source-built Rust/NDK native outputs for all four API-28 ABIs, JVM tests, lint, debug and
+  instrumentation APK assembly, and static merged-artifact/ELF/backup validation;
+- [Portable contracts CI `31895160434`](https://github.com/CodyBontecou/vox.md/actions/runs/31895160434),
+  job `95037246716`;
+- [Shared Rust core CI `31895160465`](https://github.com/CodyBontecou/vox.md/actions/runs/31895160465),
+  jobs `95037246774` and `95037246713`; and
+- [Apple CI `31895160478`](https://github.com/CodyBontecou/vox.md/actions/runs/31895160478),
+  all five jobs.
+
+The first Phase 4 Android run `31894694804` failed because the hosted SDK installed the governed
+NDK but the build did not export its side-by-side path; commit `7e415c8` added an explicit path
+assertion/export and the exact source rerun passed. The failed run is retained as discovery history,
+not passing evidence.
+
+This qualifies hosted source compilation, generated binding compilation, four-ABI packaging,
+JVM behavior, and static artifact/governance checks. It does **not** qualify native loading,
+UniFFI execution on a target, cancellation under process death, Room/device migration,
+provider behavior, backup extraction/device transfer, performance, or any passed M3 case.
 
 ## Phase 3 hosted qualification
 
