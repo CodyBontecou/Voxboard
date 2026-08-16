@@ -57,6 +57,7 @@ struct MetaSettingsView: View {
                     switch RootDestination.localizationScreenshotStory {
                     case "06-privacy-local": proxy.scrollTo("settings-about", anchor: .center)
                     case "07-keyboard": proxy.scrollTo("settings-keyboard", anchor: .center)
+                    case "09-app-language-row": proxy.scrollTo("settings-app-language", anchor: .center)
                     default: break
                     }
                 }
@@ -281,7 +282,63 @@ struct MetaSettingsView: View {
             ) {
                 CaptureToolbarSettingsView(preferences: captureToolbarPreferences)
             }
+
+            GeistDivider()
+
+            appLanguageRow
+                .id("settings-app-language")
         }
+    }
+
+    // MARK: - App Language Row
+
+    private var appLanguageRow: some View {
+        NavigationLink {
+            AppLanguageSettingsView()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "globe")
+                    .font(.system(.body, weight: .medium))
+                    .foregroundColor(Geist.text)
+                    .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("App Language")
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
+                    Text("Choose which language Vox.md uses")
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
+                }
+
+                Spacer()
+
+                Text(currentLanguageLabel)
+                    .font(Geist.caption())
+                    .foregroundColor(Geist.muted)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(.caption, weight: .semibold))
+                    .foregroundColor(Geist.muted)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(Geist.bg)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Trailing value on the App Language row: the override's native name,
+    /// or the device language when following the system.
+    private var currentLanguageLabel: String {
+        let selection = AppLanguagePreference.current()
+        guard selection == .system else { return selection.nativeDisplayName }
+        if let preferred = Locale.preferredLanguages.first,
+           let deviceLanguage = AppLanguage.matching(languageIdentifier: preferred) {
+            return deviceLanguage.nativeDisplayName
+        }
+        return String(localized: "Use System Language")
     }
 
     private func settingsNavigationRow<Destination: View>(

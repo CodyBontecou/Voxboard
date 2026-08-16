@@ -9,6 +9,7 @@ enum RootDestination: Hashable {
     case settings
     case models
     case capturePresets
+    case appLanguage
 
     #if DEBUG
     static var localizationScreenshotStory: String? {
@@ -21,9 +22,10 @@ enum RootDestination: Hashable {
     static var localizationScreenshotDestination: RootDestination? {
         switch localizationScreenshotStory {
         case "02-history": .history
-        case "03-settings", "06-privacy-local", "07-keyboard": .settings
+        case "03-settings", "06-privacy-local", "07-keyboard", "09-app-language-row": .settings
         case "04-models": .models
         case "05-capture-presets": .capturePresets
+        case "08-app-language": .appLanguage
         default: nil
         }
     }
@@ -86,6 +88,8 @@ struct RootView: View {
             ModelTabView()
         case .capturePresets:
             CapturePresetSettingsView()
+        case .appLanguage:
+            AppLanguageSettingsView()
         }
     }
 

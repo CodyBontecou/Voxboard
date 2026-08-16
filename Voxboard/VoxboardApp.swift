@@ -29,6 +29,13 @@ struct VoxboardApp: App {
     @State private var pendingWidgetRecord = false
 
     init() {
+        // Reconcile AppleLanguages with any stored in-app language override
+        // before the first view resolves localized strings. The system pins
+        // the launch language at process spawn, so a new selection applies
+        // on the next launch; this also repairs drift between the shared
+        // override and the app's standard defaults (e.g. after an update).
+        AppLanguagePreference.applyAtLaunch()
+
         if #available(iOS 18.0, *) {
             VoxboardShortcutsProvider.updateAppShortcutParameters()
         }

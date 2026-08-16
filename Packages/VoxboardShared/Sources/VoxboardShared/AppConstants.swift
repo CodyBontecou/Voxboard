@@ -177,6 +177,10 @@ public enum AppConstants: Sendable {
     // Keyboard haptic feedback. Defaults to true when unset.
     public static let hapticsEnabledKey = "hapticsEnabled"
 
+    // In-app interface language override. Unset follows the device language;
+    // otherwise an AppLanguage code mirrored into AppleLanguages at launch.
+    public static let appLanguageOverrideKey = "appLanguageOverride"
+
     // Persistent keyboard-listening preference. One-shot recordings deliberately
     // leave this off so the app returns to an idle audio session when done.
     public static let autoListenEnabledKey = "autoListenEnabled"
