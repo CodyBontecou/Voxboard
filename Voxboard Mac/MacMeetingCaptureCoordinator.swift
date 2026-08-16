@@ -30,6 +30,24 @@ final class MacMeetingCaptureCoordinator: NSObject, MacMeetingCaptureCoordinatin
         let manifest: MeetingCaptureManifest
     }
 
+    /// Identity of the capture session currently in flight (preparing,
+    /// recording, or finalizing). Recovery scans must skip this session's
+    /// directory: its manifest is still live and its chunks are still being
+    /// written and finalized.
+    struct ActiveSession: Equatable, Sendable {
+        let sessionID: UUID
+        let directoryURL: URL
+    }
+
+    /// The in-flight capture session, or `nil` when no capture is preparing,
+    /// recording, or stopping. Directories left over from completed, failed, or
+    /// interrupted sessions remain eligible for recovery.
+    var activeSession: ActiveSession? {
+        guard let directoryURL,
+              state == .preparing || state == .recording || state == .stopping else { return nil }
+        return ActiveSession(sessionID: sessionID, directoryURL: directoryURL)
+    }
+
     private(set) var state: State = .idle
     private(set) var selectedApplicationName: String?
     private(set) var selectedApplicationBundleIdentifier: String?

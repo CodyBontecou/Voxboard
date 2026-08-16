@@ -676,8 +676,18 @@ final class MacRecorder {
                 at: recordings,
                 includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey]
               ) else { return }
+        let activeSessionDirectory = meetingCapture.activeSession?.directoryURL
         for directory in directories where isSafeMeetingDirectory(directory, under: recordings) {
-            Task { @MainActor [weak self] in await self?.recoverMeetingSession(at: directory) }
+            // Never reconcile the live (or finalizing) meeting: its manifest is
+            // `.recording` with chunks as soon as the first chunk finalizes, so
+            // it would otherwise look recoverable and its staging could be
+            // normalized or cleaned while capture is still writing to it.
+            if directory == activeSessionDirectory { continue }
+            Task { @MainActor [weak self] in
+                guard let self,
+                      self.meetingCapture.activeSession?.directoryURL != directory else { return }
+                await self.recoverMeetingSession(at: directory)
+            }
         }
     }
 
