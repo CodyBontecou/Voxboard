@@ -34,6 +34,12 @@ enum MacRecordingCompletionMode: Equatable, Sendable {
     }
 }
 
+private struct MacMeetingNormalizedArtifacts: Sendable {
+    let microphoneURL: URL?
+    let systemURL: URL?
+    let mixURL: URL
+}
+
 enum MacCaptureDraftRecordingEvent: Sendable {
     case origin(
         source: CaptureSource,
@@ -64,6 +70,7 @@ final class MacRecorder {
     #endif
 
     var isRecording = false
+    var isMeetingRecording = false
     var isTranscribing = false
     var isExporting = false
     var isResolvingLocation = false
@@ -76,6 +83,7 @@ final class MacRecorder {
     var needsUnlock = false
 
     private let recorder = AudioRecorder()
+    let meetingCapture = MacMeetingCaptureCoordinator()
     private let transcriptStore: TranscriptStore
     private let usageTracker: UsageTracker
     private let transcriptEnricher: TranscriptEnricher?
@@ -83,6 +91,7 @@ final class MacRecorder {
     private let liveTranscriptInvalidationHandler: MacLiveTranscriptInvalidationHandler?
     private let pendingCaptureRetryHandler: MacPendingCaptureRetryHandler?
     private let transcriptionService: OnDeviceTranscriptionService
+    private let speakerDiarizationService = SpeakerDiarizationService()
     private(set) var recordingQueue: RecordingJobQueue!
     private var activeCompletionMode: MacRecordingCompletionMode?
     private var activeDraftRequestID: UUID?
@@ -93,6 +102,10 @@ final class MacRecorder {
     private var acceptsLivePreview = false
     private var durationTimer: Timer?
     private var progressRequestID: UUID?
+    private var isCaptureStarting = false
+    private var isMeetingCaptureFinalizing = false
+    private var activeCaptureLease: RecordingJobQueue.CaptureLease?
+    private var meetingWasInterruptedDuringStart = false
 
     init(
         transcriptStore: TranscriptStore,
@@ -126,6 +139,58 @@ final class MacRecorder {
             guard let self else { throw CancellationError() }
             return try await self.executeQueuedJob(job, audioURL: audioURL, onProgress: progress)
         }
+        meetingCapture.interruptionHandler = { [weak self] message in
+            self?.handleMeetingInterruption(message)
+        }
+    }
+
+    func startMeetingRecording(
+        modelManager: ModelManager,
+        flowId: String,
+        completionMode: MacRecordingCompletionMode,
+        draftRequestID: UUID? = nil
+    ) async {
+        guard !isRecording, !isCaptureStarting, !isMeetingCaptureFinalizing else { return }
+        isCaptureStarting = true
+        defer { isCaptureStarting = false }
+        guard !usageTracker.isAtLimit else {
+            needsUnlock = true
+            lastError = String(localized: "Free limit reached — unlock Vox.md to keep recording.")
+            return
+        }
+        guard validateSelectedModel(modelManager) else { return }
+        lastError = nil
+        lastTranscriptionResult = nil
+        lastRecoveryAudioURL = nil
+        meetingWasInterruptedDuringStart = false
+        activeCompletionMode = completionMode
+        activeDraftRequestID = draftRequestID
+        activeRecordingJobID = UUID()
+        do {
+            try await meetingCapture.presentApplicationPicker(
+                delivery: completionMode.recordingJobDelivery,
+                modelID: modelManager.selectedModelId,
+                fallbackModelID: modelManager.preferredFallbackModelID,
+                language: modelManager.selectedLanguage,
+                draftRequestID: draftRequestID
+            )
+            guard !meetingWasInterruptedDuringStart else { return }
+            isRecording = true
+            isMeetingRecording = true
+            activeCaptureLease = recordingQueue.beginCaptureLease()
+            recordingDuration = 0
+            startDurationTimer()
+            CapturePresetStore.selectFlow(id: flowId)
+        } catch MacMeetingCaptureCoordinator.CaptureError.pickerCancelled {
+            activeCompletionMode = nil
+            activeDraftRequestID = nil
+            activeRecordingJobID = nil
+        } catch {
+            activeCompletionMode = nil
+            activeDraftRequestID = nil
+            activeRecordingJobID = nil
+            lastError = "Meeting recording could not start: \(error.localizedDescription)"
+        }
     }
 
     func startRecording(
@@ -134,7 +199,7 @@ final class MacRecorder {
         completionMode: MacRecordingCompletionMode? = nil,
         draftRequestID: UUID? = nil
     ) {
-        guard !isRecording else { return }
+        guard !isRecording, !isCaptureStarting, !isMeetingCaptureFinalizing else { return }
         guard !usageTracker.isAtLimit else {
             needsUnlock = true
             lastError = String(localized: "Free limit reached — unlock Vox.md to keep recording.")
@@ -151,7 +216,7 @@ final class MacRecorder {
             let recordingJobID = UUID()
             activeRecordingJobID = recordingJobID
             isRecording = true
-            recordingQueue.setCaptureActive(true)
+            activeCaptureLease = recordingQueue.beginCaptureLease()
             recordingDuration = 0
             startLivePreviewIfSupported(
                 language: modelManager.selectedLanguage,
@@ -167,6 +232,10 @@ final class MacRecorder {
 
     func stopAndTranscribe(modelManager: ModelManager, flowId: String) {
         guard isRecording else { return }
+        if isMeetingRecording {
+            stopMeetingAndTranscribe(modelManager: modelManager, flowId: flowId)
+            return
+        }
         stopDurationTimer()
         isRecording = false
 
@@ -174,12 +243,14 @@ final class MacRecorder {
         let completionMode = activeCompletionMode ?? .runPreset(flow: presetSnapshot(id: flowId))
         let draftRequestID = activeDraftRequestID
         let recordingJobID = activeRecordingJobID ?? UUID()
+        let captureLease = activeCaptureLease
+        activeCaptureLease = nil
         activeCompletionMode = nil
         activeDraftRequestID = nil
         activeRecordingJobID = nil
         stopLivePreview()
         guard let recordedURL = recorder.stopRecording() else {
-            recordingQueue.setCaptureActive(false)
+            if let captureLease { recordingQueue.endCaptureLease(captureLease) }
             if case .captureDraft = completionMode {
                 Task { await captureDraftEventHandler?(.cancelLiveTranscript(sessionID: recordingJobID)) }
             }
@@ -190,7 +261,7 @@ final class MacRecorder {
         guard let recordingsDirectoryURL = AppConstants.recordingsDirectoryURL else {
             lastRecoveryAudioURL = recordedURL
             lastError = String(localized: "The recording handoff could not be preserved. The original audio was preserved.")
-            recordingQueue.setCaptureActive(false)
+            if let captureLease { recordingQueue.endCaptureLease(captureLease) }
             return
         }
         let modelID = modelManager.selectedModelId
@@ -225,7 +296,7 @@ final class MacRecorder {
         } catch {
             lastRecoveryAudioURL = recordedURL
             lastError = String(localized: "The recording handoff could not be preserved. The original audio was preserved.")
-            recordingQueue.setCaptureActive(false)
+            if let captureLease { recordingQueue.endCaptureLease(captureLease) }
             return
         }
         let originLocation = beginOriginLocationResolution(
@@ -261,12 +332,13 @@ final class MacRecorder {
                     liveSessionID: recordingJobID,
                     captureSource: originSnapshot?.source,
                     locationOutcome: originSnapshot?.outcome,
-                    queueConfiguration: configuration
+                    queueConfiguration: configuration,
+                    captureLease: captureLease
                 )
             } catch {
                 self.lastRecoveryAudioURL = recordedURL
                 self.lastError = String(localized: "The recording could not be queued. \(error.localizedDescription) The original audio was preserved.")
-                self.recordingQueue.setCaptureActive(false)
+                if let captureLease { self.recordingQueue.endCaptureLease(captureLease) }
             }
         }
     }
@@ -278,7 +350,7 @@ final class MacRecorder {
         completionMode requestedCompletionMode: MacRecordingCompletionMode? = nil,
         draftRequestID: UUID? = nil
     ) {
-        guard !isRecording else {
+        guard !isRecording, !isCaptureStarting, !isMeetingCaptureFinalizing else {
             lastError = String(localized: "Finish the current recording before importing audio.")
             return
         }
@@ -342,7 +414,7 @@ final class MacRecorder {
                     configuration: configuration
                 )
             try RecordingJobHandoffIntentStore(recordingsDirectoryURL: dir).save(stagedIntent)
-            recordingQueue.setCaptureActive(true)
+            let captureLease = recordingQueue.beginCaptureLease()
             // File selection is the import's origin boundary. Use the retained
             // app-owned copy as a stable journal key before conversion begins.
             let originLocation = beginOriginLocationResolution(
@@ -432,7 +504,8 @@ final class MacRecorder {
                             jobID: jobID,
                             captureSource: originSnapshot?.source ?? .fileImport,
                             locationOutcome: originSnapshot?.outcome,
-                            queueConfiguration: configuration
+                            queueConfiguration: configuration,
+                            captureLease: captureLease
                         )
                     }
                 } catch {
@@ -451,7 +524,7 @@ final class MacRecorder {
                         self.lastError = String(localized: "Could not import audio: \(error.localizedDescription). The imported source was preserved.")
                         self.lastTranscriptionResult = nil
                         self.lastRecoveryAudioURL = sourceCopy
-                        self.recordingQueue.setCaptureActive(false)
+                        self.recordingQueue.endCaptureLease(captureLease)
                     }
                 }
             }
@@ -593,7 +666,131 @@ final class MacRecorder {
     }
 
     func resumeRecordingQueue(includeIdle: Bool = true) {
+        recoverInterruptedMeetingSessions()
         recordingQueue.resume(includeIdle: includeIdle)
+    }
+
+    private func recoverInterruptedMeetingSessions() {
+        guard let recordings = AppConstants.recordingsDirectoryURL,
+              let directories = try? FileManager.default.contentsOfDirectory(
+                at: recordings,
+                includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey]
+              ) else { return }
+        for directory in directories where isSafeMeetingDirectory(directory, under: recordings) {
+            Task { @MainActor [weak self] in await self?.recoverMeetingSession(at: directory) }
+        }
+    }
+
+    private func recoverMeetingSession(at directory: URL) async {
+        guard let recordings = AppConstants.recordingsDirectoryURL,
+              isSafeMeetingDirectory(directory, under: recordings) else { return }
+        let manifestURL = directory.appendingPathComponent("manifest.json")
+        guard isSafeRegularFile(manifestURL, in: directory),
+              let data = try? Data(contentsOf: manifestURL),
+              var manifest = try? JSONDecoder().decode(MeetingCaptureManifest.self, from: data),
+              manifest.hasSafeRecoveryMetadata,
+              manifest.state != .consumed,
+              let delivery = manifest.delivery, let modelID = manifest.modelID, let language = manifest.language else { return }
+        if recoverFinalizedChunkReceipts(into: &manifest, directory: directory) {
+            try? persistMeetingManifest(manifest, to: manifestURL)
+        }
+        var durableExisting = recordingQueue.jobs.first(where: { $0.id == manifest.sessionID })
+        if durableExisting == nil {
+            let durableJobs = try? await recordingQueue.store.load(recoverInterrupted: false)
+            durableExisting = durableJobs?.first(where: { $0.id == manifest.sessionID })
+        }
+        if let existing = durableExisting {
+            manifest.state = existing.phase == .completed || existing.phase == .discarded ? .consumed : .queued
+            manifest.queuedAt = manifest.queuedAt ?? Date()
+            try? persistMeetingManifest(manifest, to: manifestURL)
+            if manifest.state == .consumed {
+                try? FileManager.default.removeItem(at: directory)
+            } else {
+                cleanupMeetingStagingDirectory(directory, preserving: manifestURL)
+            }
+            return
+        }
+        guard manifest.isRecoverable else { return }
+        if manifest.state == .preparing || manifest.state == .recording {
+            manifest.state = .interrupted
+            if !manifest.warnings.contains("Recovered after Vox.md was interrupted.") { manifest.warnings.append("Recovered after Vox.md was interrupted.") }
+        }
+        do {
+            try await normalizeAndEnqueueMeeting(manifest: &manifest, directory: directory, manifestURL: manifestURL, delivery: delivery, modelID: modelID, language: language)
+        } catch {
+            lastError = "An interrupted meeting remains recoverable: \(error.localizedDescription)"
+        }
+    }
+
+    private func recoverFinalizedChunkReceipts(
+        into manifest: inout MeetingCaptureManifest,
+        directory: URL
+    ) -> Bool {
+        let receiptURLs = ((try? FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        )) ?? []).filter { $0.lastPathComponent.hasSuffix(".m4a.chunk.json") }
+        var changed = false
+        for receiptURL in receiptURLs {
+            guard isSafeRegularFile(receiptURL, in: directory),
+                  let data = try? Data(contentsOf: receiptURL),
+                  let receipt = try? JSONDecoder().decode(MeetingCaptureChunkReceipt.self, from: data),
+                  receiptURL.lastPathComponent == receipt.chunk.filename + ".chunk.json",
+                  receipt.chunk.filename == URL(fileURLWithPath: receipt.chunk.filename).lastPathComponent,
+                  receipt.chunk.startTime.isFinite,
+                  receipt.chunk.endTime.isFinite,
+                  receipt.chunk.startTime >= 0,
+                  receipt.chunk.endTime >= receipt.chunk.startTime else { continue }
+            let chunkURL = directory.appendingPathComponent(receipt.chunk.filename)
+            guard isSafeRegularFile(chunkURL, in: directory),
+                  let size = (try? chunkURL.resourceValues(forKeys: [.fileSizeKey]).fileSize),
+                  size > 0,
+                  (receipt.chunk.byteCount == 0 || UInt64(size) == receipt.chunk.byteCount),
+                  (AudioFileConverter.duration(of: chunkURL) ?? 0) > 0 else { continue }
+            guard !manifest.chunks.contains(where: { $0.filename == receipt.chunk.filename }) else { continue }
+            var recoveredChunk = receipt.chunk
+            recoveredChunk.byteCount = UInt64(size)
+            manifest.chunks.append(recoveredChunk)
+            manifest.events.append(contentsOf: receipt.events)
+            for warning in receipt.warnings where !manifest.warnings.contains(warning) {
+                manifest.warnings.append(warning)
+            }
+            manifest.duration = max(manifest.duration, recoveredChunk.endTime)
+            changed = true
+        }
+        return changed
+    }
+
+    private func isSafeMeetingDirectory(_ directory: URL, under recordings: URL) -> Bool {
+        guard directory.lastPathComponent.hasPrefix("meeting-"),
+              directory.deletingLastPathComponent().standardizedFileURL == recordings.standardizedFileURL,
+              let values = try? directory.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey]),
+              values.isDirectory == true,
+              values.isSymbolicLink != true else { return false }
+        let resolvedRoot = recordings.resolvingSymlinksInPath().standardizedFileURL
+        let resolvedDirectory = directory.resolvingSymlinksInPath().standardizedFileURL
+        return resolvedDirectory.deletingLastPathComponent() == resolvedRoot
+    }
+
+    private func isSafeRegularFile(_ url: URL, in directory: URL) -> Bool {
+        guard url.deletingLastPathComponent().standardizedFileURL == directory.standardizedFileURL,
+              let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey]),
+              values.isRegularFile == true,
+              values.isSymbolicLink != true else { return false }
+        return url.resolvingSymlinksInPath().standardizedFileURL.deletingLastPathComponent()
+            == directory.resolvingSymlinksInPath().standardizedFileURL
+    }
+
+    private func cleanupMeetingStagingDirectory(_ directory: URL, preserving manifestURL: URL) {
+        guard let recordings = AppConstants.recordingsDirectoryURL,
+              isSafeMeetingDirectory(directory, under: recordings) else { return }
+        for url in (try? FileManager.default.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: nil
+        )) ?? [] where url.standardizedFileURL != manifestURL.standardizedFileURL {
+            try? FileManager.default.removeItem(at: url)
+        }
     }
 
     #if DEBUG
@@ -677,6 +874,129 @@ final class MacRecorder {
     }
     #endif
 
+    private func handleMeetingInterruption(_ message: String) {
+        guard isMeetingRecording || isCaptureStarting else { return }
+        if isCaptureStarting { meetingWasInterruptedDuringStart = true }
+        lastError = message
+        stopMeetingAndTranscribe(modelManager: nil, flowId: CapturePresetStore.selectedFlowId())
+    }
+
+    private func stopMeetingAndTranscribe(modelManager: ModelManager?, flowId: String) {
+        guard !isMeetingCaptureFinalizing else { return }
+        isMeetingCaptureFinalizing = true
+        stopDurationTimer()
+        isRecording = false
+        isMeetingRecording = false
+        let completionMode = activeCompletionMode ?? .runPreset(flow: presetSnapshot(id: flowId))
+        let draftRequestID = activeDraftRequestID
+        let captureLease = activeCaptureLease
+        activeCaptureLease = nil
+        activeCompletionMode = nil
+        activeDraftRequestID = nil
+        activeRecordingJobID = nil
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer {
+                if let captureLease { self.recordingQueue.endCaptureLease(captureLease) }
+                self.isMeetingCaptureFinalizing = false
+            }
+            guard let result = await meetingCapture.stop() else {
+                lastError = "The meeting recording could not be finalized. Any completed chunks remain in Recordings."
+                return
+            }
+            var manifest = result.manifest
+            if !manifest.warnings.isEmpty { lastError = "Incomplete meeting recording: \(manifest.warnings.joined(separator: " "))" }
+            guard !manifest.chunks.isEmpty else {
+                lastError = "No meeting audio was captured."
+                return
+            }
+            do {
+                try await normalizeAndEnqueueMeeting(
+                    manifest: &manifest, directory: result.directoryURL, manifestURL: result.manifestURL,
+                    delivery: completionMode.recordingJobDelivery,
+                    modelID: modelManager?.selectedModelId ?? manifest.modelID ?? "automatic",
+                    language: modelManager?.selectedLanguage ?? manifest.language ?? "en",
+                    fallbackModelID: modelManager?.preferredFallbackModelID ?? manifest.fallbackModelID,
+                    draftRequestID: draftRequestID
+                )
+            } catch {
+                lastError = "The meeting was preserved but could not enter the processing queue: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    private func normalizeAndEnqueueMeeting(
+        manifest: inout MeetingCaptureManifest,
+        directory: URL,
+        manifestURL: URL,
+        delivery: RecordingJobDelivery,
+        modelID: String,
+        language: String,
+        fallbackModelID: String? = nil,
+        draftRequestID: UUID? = nil
+    ) async throws {
+        manifest.state = .normalizing
+        manifest.delivery = delivery
+        manifest.modelID = modelID
+        manifest.fallbackModelID = fallbackModelID ?? manifest.fallbackModelID
+        manifest.language = language
+        manifest.draftRequestID = draftRequestID ?? manifest.draftRequestID
+        try persistMeetingManifest(manifest, to: manifestURL)
+        let manifestSnapshot = manifest
+        let normalized = try await Task.detached(priority: .userInitiated) {
+            func normalize(_ source: MeetingAudioSource, name: String) throws -> URL? {
+                let chunks = manifestSnapshot.orderedChunks(for: source)
+                guard !chunks.isEmpty else { return nil }
+                let output = directory.appendingPathComponent(name)
+                return try AudioFileConverter.normalizeMeetingStem(
+                    chunks: chunks.map {
+                        (directory.appendingPathComponent($0.filename), $0.startTime, $0.endTime)
+                    },
+                    outputURL: output
+                )
+            }
+            let microphoneURL = try normalize(.microphone, name: "microphone-normalized.wav")
+            let systemURL = try normalize(.system, name: "system-normalized.wav")
+            let mixURL = directory.appendingPathComponent("meeting-mix.wav")
+            _ = try AudioFileConverter.mixWhisperWAVStreaming(
+                microphoneURL: microphoneURL,
+                systemURL: systemURL,
+                outputURL: mixURL
+            )
+            return MacMeetingNormalizedArtifacts(
+                microphoneURL: microphoneURL,
+                systemURL: systemURL,
+                mixURL: mixURL
+            )
+        }.value
+        // Publish final warning/state snapshot as the queue timeline artifact.
+        try persistMeetingManifest(manifest, to: manifestURL)
+        var sources: [(role: RecordingArtifactRole, url: URL)] = [
+            (.playbackMix, normalized.mixURL),
+            (.meetingTimeline, manifestURL),
+        ]
+        if let microphoneURL = normalized.microphoneURL { sources.append((.meetingMicrophone, microphoneURL)) }
+        if let systemURL = normalized.systemURL { sources.append((.meetingSystem, systemURL)) }
+        _ = try await recordingQueue.enqueueBundle(
+            sources: sources, id: manifest.sessionID, draftRequestID: manifest.draftRequestID,
+            liveSessionID: manifest.sessionID, captureSource: .mac, duration: manifest.duration,
+            source: .macApp, delivery: delivery, modelID: modelID,
+            fallbackModelID: manifest.fallbackModelID, language: language,
+            removeSourcesAfterCommit: false
+        )
+        // Publish the queue receipt before removing any staging member. A
+        // relaunch can reconcile either side of this boundary by session ID.
+        manifest.state = .queued
+        manifest.queuedAt = Date()
+        try persistMeetingManifest(manifest, to: manifestURL)
+        cleanupMeetingStagingDirectory(directory, preserving: manifestURL)
+    }
+
+    private func persistMeetingManifest(_ manifest: MeetingCaptureManifest, to url: URL) throws {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(manifest).write(to: url, options: .atomic)
+    }
+
     private func enqueueRecording(
         audioURL: URL,
         modelId: String,
@@ -691,15 +1011,16 @@ final class MacRecorder {
         captureSource: CaptureSource? = nil,
         locationOutcome: CaptureLocationOutcome? = nil,
         queueConfiguration: RecordingQueueConfiguration? = nil,
-        finishCaptureHandoff: Bool = true
+        finishCaptureHandoff: Bool = true,
+        captureLease: RecordingJobQueue.CaptureLease? = nil
     ) {
         lastError = nil
         lastRecoveryAudioURL = nil
         Task { @MainActor [weak self] in
             guard let self else { return }
             defer {
-                if finishCaptureHandoff {
-                    self.recordingQueue.setCaptureActive(false)
+                if finishCaptureHandoff, let captureLease {
+                    self.recordingQueue.endCaptureLease(captureLease)
                 }
             }
             do {
@@ -756,6 +1077,9 @@ final class MacRecorder {
         }
 
         do {
+            if job.resolvedArtifacts.contains(where: { $0.role == .meetingMicrophone || $0.role == .meetingSystem }) {
+                return try await executeMeetingJob(job, completionMode: completionMode, fallbackAudioURL: audioURL, onProgress: onProgress)
+            }
             let result = try await transcriptionService.transcribeResult(
                 audioURL: audioURL,
                 modelID: job.modelID,
@@ -829,6 +1153,100 @@ final class MacRecorder {
             lastError = "\(error.localizedDescription) The recording was preserved in the queue."
             throw error
         }
+    }
+
+    private func executeMeetingJob(
+        _ job: RecordingJob,
+        completionMode: MacRecordingCompletionMode,
+        fallbackAudioURL: URL,
+        onProgress: @escaping RecordingJobProgressHandler
+    ) async throws -> RecordingJobExecutionResult {
+        let queuedArtifacts = Dictionary(
+            uniqueKeysWithValues: zip(job.resolvedArtifacts.map(\.role), recordingQueue.store.artifactURLs(for: job))
+        )
+        func url(_ role: RecordingArtifactRole) -> URL? { queuedArtifacts[role] }
+        var warnings: [String] = []
+        let meetingManifest: MeetingCaptureManifest? = url(.meetingTimeline).flatMap { timelineURL in
+            guard let decoded = try? JSONDecoder().decode(
+                MeetingCaptureManifest.self,
+                from: Data(contentsOf: timelineURL)
+            ), decoded.hasSafeRecoveryMetadata else { return nil }
+            return decoded
+        }
+        warnings.append(contentsOf: meetingManifest?.warnings ?? [])
+        var units: [MeetingTimedText] = []
+        var backendNames: [String] = []
+        var language = job.language
+        var remoteResult: OnDeviceTranscriptionResult?
+        for (role, source) in [(RecordingArtifactRole.meetingMicrophone, MeetingAudioSource.microphone), (.meetingSystem, .system)] {
+            guard let stem = url(role) else { warnings.append(source == .microphone ? "Microphone audio unavailable." : "System audio unavailable."); continue }
+            do {
+                let result = try await transcriptionService.transcribeResult(
+                    audioURL: stem, modelID: job.modelID, fallbackModelID: job.fallbackModelID, language: job.language,
+                    onProgress: { progress in Task { @MainActor in onProgress(progress) } }
+                )
+                backendNames.append(result.backendName); language = result.language
+                if source == .system { remoteResult = result }
+                if result.segments.isEmpty {
+                    units.append(MeetingTimedText(source: source, text: result.text, startTime: 0, endTime: job.duration))
+                } else if let meetingManifest {
+                    units.append(contentsOf: MeetingTranscriptAssembler.mapToMeetingTimeline(
+                        segments: result.segments, source: source, manifest: meetingManifest
+                    ))
+                } else {
+                    warnings.append("Meeting timeline metadata was unavailable; source timestamps may be incomplete.")
+                    units.append(contentsOf: result.segments.map { MeetingTimedText(source: source, text: $0.text, startTime: $0.startTime, endTime: $0.endTime) })
+                }
+            } catch { warnings.append("\(source == .microphone ? "Microphone" : "System") transcription failed: \(error.localizedDescription)") }
+        }
+        guard !units.isEmpty else { throw MacRecordingHandoffError.transcriptStagingFailed }
+        var turns = MeetingTranscriptAssembler.turns(from: units)
+        guard !turns.isEmpty else { throw MacRecordingHandoffError.transcriptStagingFailed }
+        if case .runPreset(let preset) = completionMode, preset.speakerDiarizationEnabled,
+           let remoteResult, let systemURL = url(.meetingSystem), !remoteResult.segments.isEmpty {
+            do {
+                let diarization = try await speakerDiarizationService.diarize(audioURL: systemURL, transcriptText: remoteResult.text, transcriptionSegments: remoteResult.segments)
+                let remoteTurns = diarization.turns.map { turn in
+                    TranscriptSpeakerTurn(speaker: turn.speaker + 1, text: turn.text, startTime: turn.startTime, endTime: turn.endTime, role: .remoteAnonymous)
+                }
+                turns = (turns.filter { $0.role == .local } + remoteTurns).sorted { $0.startTime < $1.startTime }
+            } catch { warnings.append("Remote speaker identification was skipped: \(error.localizedDescription)") }
+        }
+        let rendered = MeetingTranscriptAssembler.renderedText(from: turns)
+        let text = warnings.isEmpty ? rendered : "⚠️ Incomplete meeting capture: \(warnings.joined(separator: " "))\n\n\(rendered)"
+        let mixURL = url(.playbackMix) ?? fallbackAudioURL
+        if completionMode == .transcriptionOnly {
+            try await recordingQueue.recordTranscriptCheckpoint(id: job.id, text: text)
+            transcriptStore.add(Transcript(
+                id: job.id,
+                text: text,
+                date: Date(),
+                duration: job.duration,
+                modelUsed: backendNames.joined(separator: " + "),
+                language: language,
+                speakerTurns: turns
+            ))
+            if let persistenceError = transcriptStore.lastPersistenceError {
+                throw persistenceError
+            }
+        }
+        let shouldCopyAutomatically = MeetingClipboardPolicy.shouldCopyAutomatically(
+            delivery: job.delivery,
+            initialPolicy: job.initialProcessingPolicy ?? job.processingPolicy,
+            attemptedAt: job.automaticClipboardDeliveryAttemptedAt
+        )
+        if shouldCopyAutomatically { try await recordingQueue.markAutomaticClipboardDeliveryAttempted(id: job.id) }
+        try await finishSuccessfulTranscription(
+            text: text, duration: job.duration, modelName: backendNames.joined(separator: " + "), language: language,
+            completionMode: completionMode, audioURL: mixURL, sourceAudioURL: mixURL, locationOutcome: job.locationOutcome,
+            captureSource: .mac, cleanupWorkingAudio: false, copiesToClipboard: shouldCopyAutomatically, transcriptID: job.id,
+            draftRequestID: job.draftRequestID, liveSessionID: job.liveSessionID,
+            exportedNotePath: job.exportedNotePath, exportedAudioPath: job.exportedAudioPath,
+            audioReferenceAttachedAt: job.audioReferenceAttachedAt, speakerTurns: turns
+        )
+        return RecordingJobExecutionResult(
+            transcriptText: completionMode == .transcriptionOnly && !shouldCopyAutomatically ? text : nil
+        )
     }
 
     private func transcribe(
@@ -993,7 +1411,8 @@ final class MacRecorder {
         liveSessionID: UUID? = nil,
         exportedNotePath: String? = nil,
         exportedAudioPath: String? = nil,
-        audioReferenceAttachedAt: Date? = nil
+        audioReferenceAttachedAt: Date? = nil,
+        speakerTurns: [TranscriptSpeakerTurn]? = nil
     ) async throws {
         if case .transcriptionOnly = completionMode {
             var copied = true
@@ -1028,7 +1447,8 @@ final class MacRecorder {
             date: Date(),
             duration: duration,
             modelUsed: modelName,
-            language: language
+            language: language,
+            speakerTurns: speakerTurns
         )
 
         if case .captureDraft(let attachAudio) = completionMode {

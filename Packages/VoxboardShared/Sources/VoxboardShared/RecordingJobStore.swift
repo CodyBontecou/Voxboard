@@ -356,7 +356,7 @@ public enum RecordingQueuePreferences {
 }
 
 public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
-    public static let currentSchemaVersion = 1
+    public static let currentSchemaVersion = 2
 
     public var schemaVersion: Int
     public var id: UUID
@@ -368,6 +368,9 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
     public var captureSource: CaptureSource?
     public var locationOutcome: CaptureLocationOutcome?
     public var audioFilename: String
+    /// Fixed-role artifacts for schema v2. Legacy schema-v1 jobs decode nil and
+    /// are treated as one `.primaryAudio` artifact.
+    public var artifacts: [RecordingArtifact]?
     public var originalFilename: String?
     public var createdAt: Date
     public var updatedAt: Date
@@ -402,6 +405,7 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
         captureSource: CaptureSource? = nil,
         locationOutcome: CaptureLocationOutcome? = nil,
         audioFilename: String,
+        artifacts: [RecordingArtifact]? = nil,
         originalFilename: String? = nil,
         createdAt: Date = Date(),
         updatedAt: Date? = nil,
@@ -428,7 +432,7 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
         audioDeletionDate: Date? = nil,
         audioDeletedAt: Date? = nil
     ) {
-        self.schemaVersion = Self.currentSchemaVersion
+        self.schemaVersion = artifacts == nil ? 1 : Self.currentSchemaVersion
         self.id = id
         self.requestID = requestID
         self.draftRequestID = draftRequestID
@@ -436,6 +440,7 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
         self.captureSource = captureSource
         self.locationOutcome = locationOutcome
         self.audioFilename = audioFilename
+        self.artifacts = artifacts
         self.originalFilename = originalFilename
         self.createdAt = createdAt
         self.updatedAt = updatedAt ?? createdAt
@@ -462,6 +467,100 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
         self.audioDeletionDate = audioDeletionDate
         self.audioDeletedAt = audioDeletedAt
     }
+
+    public var resolvedArtifacts: [RecordingArtifact] {
+        if schemaVersion == 1 {
+            return [RecordingArtifact(role: .primaryAudio, filename: audioFilename, originalFilename: originalFilename)]
+        }
+        return artifacts ?? []
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case schemaVersion, id, requestID, draftRequestID, liveSessionID, captureSource, locationOutcome
+        case audioFilename, artifacts, originalFilename, createdAt, updatedAt, duration, source, delivery
+        case modelID, fallbackModelID, language, retentionPolicy, processingPolicy, initialProcessingPolicy
+        case phase, failureStage, statusMessage, attemptCount, revision, transcriptText
+        case automaticClipboardDeliveryAttemptedAt, exportedNotePath, exportedAudioPath
+        case audioReferenceAttachedAt, completedAt, audioDeletionDate, audioDeletedAt
+    }
+
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try c.decode(Int.self, forKey: .schemaVersion)
+        guard schemaVersion == 1 || schemaVersion == Self.currentSchemaVersion else {
+            throw DecodingError.dataCorruptedError(forKey: .schemaVersion, in: c, debugDescription: "Unsupported recording job schema version \(schemaVersion)")
+        }
+        id = try c.decode(UUID.self, forKey: .id)
+        requestID = try c.decodeIfPresent(String.self, forKey: .requestID)
+        draftRequestID = try c.decodeIfPresent(UUID.self, forKey: .draftRequestID)
+        liveSessionID = try c.decodeIfPresent(UUID.self, forKey: .liveSessionID)
+        captureSource = try c.decodeIfPresent(CaptureSource.self, forKey: .captureSource)
+        locationOutcome = try c.decodeIfPresent(CaptureLocationOutcome.self, forKey: .locationOutcome)
+        audioFilename = try c.decode(String.self, forKey: .audioFilename)
+        artifacts = try c.decodeIfPresent([RecordingArtifact].self, forKey: .artifacts)
+        originalFilename = try c.decodeIfPresent(String.self, forKey: .originalFilename)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+        updatedAt = try c.decode(Date.self, forKey: .updatedAt)
+        duration = try c.decode(TimeInterval.self, forKey: .duration)
+        source = try c.decode(RecordingJobSource.self, forKey: .source)
+        delivery = try c.decode(RecordingJobDelivery.self, forKey: .delivery)
+        modelID = try c.decode(String.self, forKey: .modelID)
+        fallbackModelID = try c.decodeIfPresent(String.self, forKey: .fallbackModelID)
+        language = try c.decode(String.self, forKey: .language)
+        retentionPolicy = try c.decode(SourceAudioRetentionPolicy.self, forKey: .retentionPolicy)
+        processingPolicy = try c.decode(RecordingJobProcessingPolicy.self, forKey: .processingPolicy)
+        initialProcessingPolicy = try c.decodeIfPresent(RecordingJobProcessingPolicy.self, forKey: .initialProcessingPolicy)
+        phase = try c.decode(RecordingJobPhase.self, forKey: .phase)
+        failureStage = try c.decodeIfPresent(RecordingJobFailureStage.self, forKey: .failureStage)
+        statusMessage = try c.decodeIfPresent(String.self, forKey: .statusMessage)
+        attemptCount = try c.decode(Int.self, forKey: .attemptCount)
+        revision = try c.decode(Int.self, forKey: .revision)
+        transcriptText = try c.decodeIfPresent(String.self, forKey: .transcriptText)
+        automaticClipboardDeliveryAttemptedAt = try c.decodeIfPresent(Date.self, forKey: .automaticClipboardDeliveryAttemptedAt)
+        exportedNotePath = try c.decodeIfPresent(String.self, forKey: .exportedNotePath)
+        exportedAudioPath = try c.decodeIfPresent(String.self, forKey: .exportedAudioPath)
+        audioReferenceAttachedAt = try c.decodeIfPresent(Date.self, forKey: .audioReferenceAttachedAt)
+        completedAt = try c.decodeIfPresent(Date.self, forKey: .completedAt)
+        audioDeletionDate = try c.decodeIfPresent(Date.self, forKey: .audioDeletionDate)
+        audioDeletedAt = try c.decodeIfPresent(Date.self, forKey: .audioDeletedAt)
+
+        guard Self.safeFilename(audioFilename) else {
+            throw DecodingError.dataCorruptedError(forKey: .audioFilename, in: c, debugDescription: "Unsafe recording audio filename")
+        }
+        if schemaVersion == 1 {
+            artifacts = nil
+        } else {
+            guard let artifacts, !artifacts.isEmpty,
+                  Set(artifacts.map(\.role)).count == artifacts.count,
+                  Set(artifacts.map(\.filename)).count == artifacts.count,
+                  artifacts.allSatisfy({ Self.safeFilename($0.filename) }),
+                  artifacts.contains(where: { $0.filename == audioFilename }) else {
+                throw DecodingError.dataCorruptedError(forKey: .artifacts, in: c, debugDescription: "Malformed recording artifact bundle")
+            }
+        }
+    }
+
+    private static func safeFilename(_ filename: String) -> Bool {
+        !filename.isEmpty && filename != "." && filename != ".." && !filename.contains("/")
+            && !filename.contains("\\") && URL(fileURLWithPath: filename).lastPathComponent == filename
+    }
+}
+
+struct RecordingBundleEnqueueIntent: Codable, Equatable, Sendable {
+    static let currentSchemaVersion = 1
+
+    struct Source: Codable, Equatable, Sendable {
+        var role: RecordingArtifactRole
+        var sourcePath: String
+        var expectedByteCount: Int64
+        var filename: String
+        var originalFilename: String
+    }
+
+    var schemaVersion = currentSchemaVersion
+    var job: RecordingJob
+    var sources: [Source]
+    var removeSourcesAfterCommit: Bool
 }
 
 public enum RecordingJobStoreError: Error, Equatable, LocalizedError, Sendable {
@@ -530,6 +629,10 @@ public actor RecordingJobStore {
         rootDirectoryURL.appendingPathComponent("audio", isDirectory: true)
     }
 
+    private var bundleIntentsDirectoryURL: URL {
+        rootDirectoryURL.appendingPathComponent("bundle-intents", isDirectory: true)
+    }
+
     public init(
         rootDirectoryURL: URL,
         coordinator: any CaptureFileCoordinating = NSFileCoordinatorCaptureFileCoordinator.shared,
@@ -552,6 +655,98 @@ public actor RecordingJobStore {
     }
 
     @discardableResult
+    public func enqueueBundle(
+        sources: [(role: RecordingArtifactRole, url: URL)],
+        id: UUID = UUID(),
+        requestID: String? = nil,
+        draftRequestID: UUID? = nil,
+        liveSessionID: UUID? = nil,
+        captureSource: CaptureSource? = nil,
+        locationOutcome: CaptureLocationOutcome? = nil,
+        createdAt: Date = Date(),
+        duration: TimeInterval,
+        source: RecordingJobSource,
+        delivery: RecordingJobDelivery,
+        modelID: String,
+        fallbackModelID: String? = nil,
+        language: String,
+        configuration: RecordingQueueConfiguration,
+        removeSourcesAfterCommit: Bool = true
+    ) throws -> RecordingJob {
+        guard !sources.isEmpty, Set(sources.map(\.role)).count == sources.count else {
+            throw RecordingJobStoreError.sourceMissing
+        }
+        let job = try coordinator.coordinateWriting(at: rootDirectoryURL) { _ in
+            try ensureDirectories()
+            _ = recoverPendingBundleEnqueues()
+            if let existing = try loadItem(id: id) { return existing }
+            // A valid but temporarily unrecoverable transaction owns this ID
+            // and its deterministic destinations; never overwrite its journal.
+            if fileManager.fileExists(atPath: bundleIntentURL(id: id).path) {
+                throw RecordingJobStoreError.copyVerificationFailed
+            }
+
+            // Validate every source before publishing the durable transaction.
+            // A missing member must not leave a partial bundle or intent behind.
+            let entries: [RecordingBundleEnqueueIntent.Source] = try sources.map { source in
+                guard fileManager.fileExists(atPath: source.url.path) else { throw RecordingJobStoreError.sourceMissing }
+                let size = try fileSize(at: source.url)
+                guard size > 0 else { throw RecordingJobStoreError.sourceEmpty }
+                let ext = sanitizedExtension(source.url.pathExtension)
+                let filename = "\(id.uuidString.lowercased())-\(source.role.rawValue)\(ext.isEmpty ? "" : ".\(ext)")"
+                return .init(
+                    role: source.role,
+                    sourcePath: source.url.path,
+                    expectedByteCount: size,
+                    filename: filename,
+                    originalFilename: source.url.lastPathComponent
+                )
+            }
+            let artifacts = entries.map {
+                RecordingArtifact(role: $0.role, filename: $0.filename, originalFilename: $0.originalFilename)
+            }
+            guard let primary = artifacts.first(where: { $0.role == .playbackMix })
+                ?? artifacts.first(where: { $0.role == .meetingSystem })
+                ?? artifacts.first else {
+                throw RecordingJobStoreError.sourceMissing
+            }
+            let job = RecordingJob(
+                id: id, requestID: requestID, draftRequestID: draftRequestID, liveSessionID: liveSessionID,
+                captureSource: captureSource, locationOutcome: locationOutcome,
+                audioFilename: primary.filename, artifacts: artifacts, originalFilename: primary.originalFilename,
+                createdAt: createdAt, duration: duration, source: source, delivery: delivery,
+                modelID: modelID, fallbackModelID: fallbackModelID, language: language,
+                retentionPolicy: configuration.sourceAudioRetention, processingPolicy: configuration.processingPolicy,
+                statusMessage: queuedMessage(for: configuration.processingPolicy)
+            )
+            let intent = RecordingBundleEnqueueIntent(
+                job: job,
+                sources: entries,
+                removeSourcesAfterCommit: removeSourcesAfterCommit
+            )
+            let intentURL = bundleIntentURL(id: id)
+            do {
+                try encoder.encode(intent).write(to: intentURL, options: .atomic)
+                try materializeBundle(intent)
+                try persist(job)
+                finishBundleCommit(intent, intentURL: intentURL)
+                return job
+            } catch {
+                // A thrown in-process operation retains the previous rollback
+                // contract. A process exit does not execute this path, leaving
+                // the intent to be reconciled before generic orphan recovery.
+                for entry in entries {
+                    try? fileManager.removeItem(at: bundleTemporaryURL(filename: entry.filename))
+                    try? fileManager.removeItem(at: audioDirectoryURL.appendingPathComponent(entry.filename))
+                }
+                try? fileManager.removeItem(at: intentURL)
+                throw error
+            }
+        }
+        notifyChanged()
+        return job
+    }
+
     public func enqueue(
         sourceURL: URL,
         id: UUID = UUID(),
@@ -667,6 +862,7 @@ public actor RecordingJobStore {
         }
         let jobs = try coordinator.coordinateWriting(at: rootDirectoryURL) { _ in
             try ensureDirectories()
+            let pendingBundleArtifacts = recoverPendingBundleEnqueues()
             var jobs = try loadItems()
             var changed = false
 
@@ -682,7 +878,7 @@ public actor RecordingJobStore {
             }
 
             for index in jobs.indices {
-                let audioExists = fileManager.fileExists(atPath: audioURL(for: jobs[index]).path)
+                let audioExists = artifactURLs(for: jobs[index]).allSatisfy { fileManager.fileExists(atPath: $0.path) }
                 guard !audioExists, jobs[index].phase != .discarded else { continue }
                 if jobs[index].phase == .completed,
                    jobs[index].audioDeletedAt != nil
@@ -703,7 +899,8 @@ public actor RecordingJobStore {
                 changed = true
             }
 
-            let referenced = Set(jobs.map(\.audioFilename))
+            let referenced = Set(jobs.flatMap { $0.resolvedArtifacts.map(\.filename) })
+                .union(pendingBundleArtifacts)
             let audioURLs = try fileManager.contentsOfDirectory(
                 at: audioDirectoryURL,
                 includingPropertiesForKeys: [.fileSizeKey],
@@ -1331,9 +1528,9 @@ public actor RecordingJobStore {
             job.statusMessage = "Discarded"
             job.audioDeletionDate = Date()
         }
-        let url = audioURL(for: discarded)
+        let urls = artifactURLs(for: discarded)
         do {
-            if fileManager.fileExists(atPath: url.path) {
+            for url in urls where fileManager.fileExists(atPath: url.path) {
                 try fileManager.removeItem(at: url)
             }
             discarded = try mutate(id: id) { job in
@@ -1416,8 +1613,7 @@ public actor RecordingJobStore {
                   latest.audioDeletedAt == nil,
                   let deletionDate = latest.audioDeletionDate,
                   deletionDate <= now else { return latest }
-            let url = audioURL(for: latest)
-            if fileManager.fileExists(atPath: url.path) {
+            for url in artifactURLs(for: latest) where fileManager.fileExists(atPath: url.path) {
                 try fileManager.removeItem(at: url)
             }
             latest.audioDeletedAt = now
@@ -1442,9 +1638,10 @@ public actor RecordingJobStore {
                     throw RecordingJobStoreError.unsupportedSchemaVersion(job.schemaVersion)
                 }
                 guard job.audioFilename == URL(fileURLWithPath: job.audioFilename).lastPathComponent,
-                      !job.audioFilename.isEmpty else {
-                    continue
-                }
+                      !job.audioFilename.isEmpty,
+                      job.resolvedArtifacts.allSatisfy({ artifact in
+                          !artifact.filename.isEmpty && artifact.filename == URL(fileURLWithPath: artifact.filename).lastPathComponent
+                      }) else { continue }
                 jobs.append(job)
             } catch let DecodingError.dataCorrupted(context)
                 where context.debugDescription.hasPrefix("Unsupported recording job schema version ") {
@@ -1468,7 +1665,8 @@ public actor RecordingJobStore {
         let job = try decoder.decode(RecordingJob.self, from: Data(contentsOf: url))
         guard job.schemaVersion <= RecordingJob.currentSchemaVersion,
               job.audioFilename == URL(fileURLWithPath: job.audioFilename).lastPathComponent,
-              !job.audioFilename.isEmpty else {
+              !job.audioFilename.isEmpty,
+              job.resolvedArtifacts.allSatisfy({ !$0.filename.isEmpty && $0.filename == URL(fileURLWithPath: $0.filename).lastPathComponent }) else {
             return nil
         }
         return job
@@ -1481,11 +1679,115 @@ public actor RecordingJobStore {
     private func ensureDirectories() throws {
         try fileManager.createDirectory(at: itemsDirectoryURL, withIntermediateDirectories: true)
         try fileManager.createDirectory(at: audioDirectoryURL, withIntermediateDirectories: true)
+        try fileManager.createDirectory(at: bundleIntentsDirectoryURL, withIntermediateDirectories: true)
+    }
+
+    /// Completes bundle transactions before generic queue-orphan recovery can
+    /// reinterpret individual meeting members as unrelated schema-v1 jobs.
+    /// Failed but valid intents continue to claim their destination filenames.
+    private func recoverPendingBundleEnqueues() -> Set<String> {
+        guard let urls = try? fileManager.contentsOfDirectory(
+            at: bundleIntentsDirectoryURL,
+            includingPropertiesForKeys: nil,
+            options: [.skipsHiddenFiles]
+        ).filter({ $0.pathExtension == "json" }) else { return [] }
+        var claimed: Set<String> = []
+        for url in urls {
+            guard let data = try? Data(contentsOf: url),
+                  let intent = try? decoder.decode(RecordingBundleEnqueueIntent.self, from: data),
+                  isValidBundleIntent(intent, at: url) else { continue }
+            claimed.formUnion(intent.sources.map(\.filename))
+            do {
+                try materializeBundle(intent)
+                if try loadItem(id: intent.job.id) == nil { try persist(intent.job) }
+                finishBundleCommit(intent, intentURL: url)
+            } catch {
+                for source in intent.sources {
+                    try? fileManager.removeItem(at: bundleTemporaryURL(filename: source.filename))
+                }
+                // Preserve both the journal and its claimed final artifacts for
+                // a later retry; never downgrade them to generic v1 recovery.
+            }
+        }
+        return claimed
+    }
+
+    private func materializeBundle(_ intent: RecordingBundleEnqueueIntent) throws {
+        for source in intent.sources {
+            let destination = audioDirectoryURL.appendingPathComponent(source.filename)
+            if fileManager.fileExists(atPath: destination.path) {
+                guard isRegularNonSymlinkFile(destination),
+                      try fileSize(at: destination) == source.expectedByteCount else {
+                    throw RecordingJobStoreError.copyVerificationFailed
+                }
+                continue
+            }
+            let sourceURL = URL(fileURLWithPath: source.sourcePath)
+            guard isRegularNonSymlinkFile(sourceURL) else {
+                throw RecordingJobStoreError.sourceMissing
+            }
+            let temporary = bundleTemporaryURL(filename: source.filename)
+            try? fileManager.removeItem(at: temporary)
+            try fileManager.copyItem(at: sourceURL, to: temporary)
+            guard try fileSize(at: temporary) == source.expectedByteCount else {
+                throw RecordingJobStoreError.copyVerificationFailed
+            }
+            try fileManager.moveItem(at: temporary, to: destination)
+        }
+    }
+
+    private func finishBundleCommit(_ intent: RecordingBundleEnqueueIntent, intentURL: URL) {
+        if intent.removeSourcesAfterCommit {
+            for source in intent.sources {
+                let sourceURL = URL(fileURLWithPath: source.sourcePath)
+                let destination = audioDirectoryURL.appendingPathComponent(source.filename)
+                if sourceURL.standardizedFileURL != destination.standardizedFileURL {
+                    suppressAndRemoveExternalArtifact(sourceURL)
+                }
+            }
+        }
+        try? fileManager.removeItem(at: intentURL)
+    }
+
+    private func isValidBundleIntent(_ intent: RecordingBundleEnqueueIntent, at url: URL) -> Bool {
+        guard intent.schemaVersion == RecordingBundleEnqueueIntent.currentSchemaVersion,
+              intent.job.schemaVersion == RecordingJob.currentSchemaVersion,
+              url.lastPathComponent == "\(intent.job.id.uuidString.lowercased()).json",
+              intent.sources.count == intent.job.resolvedArtifacts.count,
+              !intent.sources.isEmpty,
+              Set(intent.sources.map(\.role)).count == intent.sources.count,
+              Set(intent.sources.map(\.filename)).count == intent.sources.count,
+              intent.sources.allSatisfy({ source in
+                  source.expectedByteCount > 0
+                      && !source.filename.isEmpty
+                      && source.filename == URL(fileURLWithPath: source.filename).lastPathComponent
+                      && intent.job.resolvedArtifacts.contains(where: {
+                          $0.role == source.role
+                              && $0.filename == source.filename
+                              && $0.originalFilename == source.originalFilename
+                      })
+              }) else { return false }
+        return intent.job.resolvedArtifacts.contains(where: { $0.filename == intent.job.audioFilename })
+    }
+
+    private func bundleIntentURL(id: UUID) -> URL {
+        bundleIntentsDirectoryURL.appendingPathComponent("\(id.uuidString.lowercased()).json")
+    }
+
+    private func bundleTemporaryURL(filename: String) -> URL {
+        audioDirectoryURL.appendingPathComponent(".\(filename).partial")
     }
 
     private func ensureAudioExists(for job: RecordingJob) throws {
-        guard fileManager.fileExists(atPath: audioURL(for: job).path) else {
+        guard artifactURLs(for: job).allSatisfy({ fileManager.fileExists(atPath: $0.path) }) else {
             throw RecordingJobStoreError.audioMissing(job.id)
+        }
+    }
+
+    public nonisolated func artifactURLs(for job: RecordingJob) -> [URL] {
+        job.resolvedArtifacts.map { artifact in
+            rootDirectoryURL.appendingPathComponent("audio", isDirectory: true)
+                .appendingPathComponent(URL(fileURLWithPath: artifact.filename).lastPathComponent)
         }
     }
 
@@ -1496,6 +1798,13 @@ public actor RecordingJobStore {
     private func fileSize(at url: URL) throws -> Int64 {
         let values = try url.resourceValues(forKeys: [.fileSizeKey])
         return Int64(values.fileSize ?? 0)
+    }
+
+    private func isRegularNonSymlinkFile(_ url: URL) -> Bool {
+        guard let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey]) else {
+            return false
+        }
+        return values.isRegularFile == true && values.isSymbolicLink != true
     }
 
     private func sanitizedExtension(_ ext: String) -> String {

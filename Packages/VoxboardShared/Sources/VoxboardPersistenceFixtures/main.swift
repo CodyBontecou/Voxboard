@@ -133,6 +133,54 @@ struct VoxboardPersistenceFixtures {
             transcriptText: "Synthetic transcript",
             exportedNotePath: "/synthetic/platform/path/Fixtures.md"
         )
+        var legacyJobObject = try JSONSerialization.jsonObject(
+            with: deterministicEncoded(job)
+        ) as! [String: Any]
+        legacyJobObject["schemaVersion"] = 1
+        legacyJobObject.removeValue(forKey: "artifacts")
+        let legacyJobData = try JSONSerialization.data(
+            withJSONObject: legacyJobObject,
+            options: [.prettyPrinted, .sortedKeys]
+        )
+        let meetingJob = RecordingJob(
+            id: deterministicUUID(9),
+            requestID: "fixture-meeting-v2",
+            liveSessionID: deterministicUUID(9),
+            captureSource: .mac,
+            audioFilename: "fixture-meeting-playback.wav",
+            artifacts: [
+                RecordingArtifact(
+                    role: .playbackMix,
+                    filename: "fixture-meeting-playback.wav",
+                    originalFilename: "meeting-mix.wav"
+                ),
+                RecordingArtifact(
+                    role: .meetingMicrophone,
+                    filename: "fixture-meeting-microphone.wav",
+                    originalFilename: "microphone-normalized.wav"
+                ),
+                RecordingArtifact(
+                    role: .meetingSystem,
+                    filename: "fixture-meeting-system.wav",
+                    originalFilename: "system-normalized.wav"
+                ),
+                RecordingArtifact(
+                    role: .meetingTimeline,
+                    filename: "fixture-meeting-timeline.json",
+                    originalFilename: "manifest.json"
+                ),
+            ],
+            originalFilename: "meeting-mix.wav",
+            createdAt: fixedDate,
+            duration: 42,
+            source: .macApp,
+            delivery: .clipboard,
+            modelID: "automatic",
+            fallbackModelID: "ggml-base",
+            language: "en",
+            retentionPolicy: .timed(SourceAudioRetentionPolicy.defaultTimedRetention),
+            processingPolicy: .manual
+        )
         let handoff = RecordingJobHandoffIntent(
             jobID: requestID,
             readiness: .ready,
@@ -197,14 +245,29 @@ struct VoxboardPersistenceFixtures {
             to: root,
             relativePath: "history/corrupt-input.json"
         )
-        try writeJSON(job, to: root, relativePath: "recording-jobs/job-v1.json", sorted: true)
+        try write(legacyJobData, to: root, relativePath: "recording-jobs/job-v1.json")
+        try writeJSON(meetingJob, to: root, relativePath: "recording-jobs/job-v2-meeting.json", sorted: true)
         try write(
-            Data(try replacingJSONValue(in: job, keyPath: ["phase"], with: "futurePhase").utf8),
+            Data(try replacingJSONValue(in: legacyJobObject, keyPath: ["phase"], with: "futurePhase").utf8),
             to: root,
             relativePath: "negative/recording-jobs/unknown-phase-enum.json"
         )
-        try generateRecordingJobRecoveryFixtures(at: root, baseJob: job)
-        try generateRecordingJobCheckpointFixtures(at: root, baseJob: job)
+        for (relativePath, keyPath, replacement) in [
+            ("negative/recording-jobs/v2-missing-artifacts.json", ["artifacts"], NSNull()),
+            ("negative/recording-jobs/v2-duplicate-role.json", ["artifacts", "1", "role"], "playbackMix"),
+            ("negative/recording-jobs/v2-unsafe-filename.json", ["artifacts", "1", "filename"], "../microphone.wav"),
+        ] as [(String, [String], Any)] {
+            try write(
+                Data(try replacingJSONValue(in: meetingJob, keyPath: keyPath, with: replacement).utf8),
+                to: root,
+                relativePath: relativePath
+            )
+        }
+        var legacyJob = job
+        legacyJob.schemaVersion = 1
+        legacyJob.artifacts = nil
+        try generateRecordingJobRecoveryFixtures(at: root, baseJob: legacyJob)
+        try generateRecordingJobCheckpointFixtures(at: root, baseJob: legacyJob)
         try writeJSON(handoff, to: root, relativePath: "recording-jobs/handoff-v1.json", sorted: true)
         let markerArtifactURL = root.appendingPathComponent("recording-jobs/delivered-source.m4a")
         try write(Data(repeating: 5, count: 16), to: root, relativePath: "recording-jobs/delivered-source.m4a")
@@ -431,7 +494,7 @@ struct VoxboardPersistenceFixtures {
         let unknownFieldFixtures: [String: String] = [
             "capture-library/unknown-field.json": try addingUnknownField(to: library),
             "drafts/unknown-field.json": try addingUnknownField(to: draft),
-            "recording-jobs/unknown-field.json": try addingUnknownField(to: job),
+            "recording-jobs/unknown-field.json": try addingUnknownField(toJSONObject: legacyJobObject),
             "keyboard-ipc/unknown-field.json": try addingUnknownField(
                 to: RecordingStatus(
                     requestId: requestID.uuidString.lowercased(),
@@ -444,9 +507,7 @@ struct VoxboardPersistenceFixtures {
             try write(Data(text.utf8), to: root, relativePath: "compatibility/\(relativePath)")
         }
 
-        var futureJobObject = try JSONSerialization.jsonObject(
-            with: deterministicEncoded(job)
-        ) as! [String: Any]
+        var futureJobObject = legacyJobObject
         futureJobObject["schemaVersion"] = 99
         let futureJobData = try JSONSerialization.data(
             withJSONObject: futureJobObject,
@@ -610,8 +671,29 @@ struct VoxboardPersistenceFixtures {
         )
         exercise("inbox/completion-receipt-v1.json")
         let job: RecordingJob = try decodeJSON(at: root, relativePath: "recording-jobs/job-v1.json")
-        guard job.schemaVersion == 1, job.phase == .failed, job.processingPolicy == .manual else { throw FixtureError.semanticMismatch("recording job") }
-        exercise("recording-jobs/job-v1.json")
+        guard job.schemaVersion == 1,
+              job.phase == .failed,
+              job.processingPolicy == .manual,
+              job.resolvedArtifacts == [
+                  RecordingArtifact(
+                      role: .primaryAudio,
+                      filename: "fixture.m4a",
+                      originalFilename: "watch-fixture.m4a"
+                  )
+              ] else { throw FixtureError.semanticMismatch("recording job v1") }
+        let meetingJob: RecordingJob = try decodeJSON(
+            at: root,
+            relativePath: "recording-jobs/job-v2-meeting.json"
+        )
+        guard meetingJob.schemaVersion == RecordingJob.currentSchemaVersion,
+              meetingJob.resolvedArtifacts.map(\.role) == [
+                  .playbackMix, .meetingMicrophone, .meetingSystem, .meetingTimeline
+              ],
+              Set(meetingJob.resolvedArtifacts.map(\.filename)).count == 4,
+              meetingJob.audioFilename == "fixture-meeting-playback.wav" else {
+            throw FixtureError.semanticMismatch("recording job v2 meeting bundle")
+        }
+        exercise("recording-jobs/job-v1.json", "recording-jobs/job-v2-meeting.json")
         try validateRecordingJobRecoveryFixtures(at: root)
         exercise(
             "recording-jobs/recovery/processing-with-audio.json",
@@ -874,6 +956,19 @@ struct VoxboardPersistenceFixtures {
             name: "unknown recording job phase"
         )
         exercise("negative/recording-jobs/unknown-phase-enum.json")
+        for (relativePath, name) in [
+            ("negative/recording-jobs/v2-missing-artifacts.json", "schema-v2 missing artifacts"),
+            ("negative/recording-jobs/v2-duplicate-role.json", "schema-v2 duplicate artifact role"),
+            ("negative/recording-jobs/v2-unsafe-filename.json", "schema-v2 unsafe artifact filename"),
+        ] {
+            try assertDecodeRejected(
+                RecordingJob.self,
+                at: root,
+                relativePath: relativePath,
+                name: name
+            )
+            exercise(relativePath)
+        }
         try validateFutureRecordingJobFixture(
             at: root,
             jobRelativePath: "negative/recording-jobs/future-job-version.json",
@@ -3171,7 +3266,16 @@ struct VoxboardPersistenceFixtures {
                 array[index] = try replacing(array[index], remaining: remaining.dropFirst())
                 return array
             }
-            guard var dictionary = current as? [String: Any], let child = dictionary[component] else {
+            guard var dictionary = current as? [String: Any] else {
+                throw FixtureError.semanticMismatch("JSON fixture key path \(keyPath.joined(separator: "."))")
+            }
+            if remaining.count == 1, replacement is NSNull {
+                guard dictionary.removeValue(forKey: component) != nil else {
+                    throw FixtureError.semanticMismatch("JSON fixture key path \(keyPath.joined(separator: "."))")
+                }
+                return dictionary
+            }
+            guard let child = dictionary[component] else {
                 throw FixtureError.semanticMismatch("JSON fixture key path \(keyPath.joined(separator: "."))")
             }
             dictionary[component] = try replacing(child, remaining: remaining.dropFirst())
@@ -3190,10 +3294,51 @@ struct VoxboardPersistenceFixtures {
         return text
     }
 
+    private static func replacingJSONValue(
+        in value: [String: Any],
+        keyPath: [String],
+        with replacement: Any
+    ) throws -> String {
+        func replacing(_ current: Any, remaining: ArraySlice<String>) throws -> Any {
+            guard let component = remaining.first else { return replacement }
+            if let index = Int(component), var array = current as? [Any], array.indices.contains(index) {
+                array[index] = try replacing(array[index], remaining: remaining.dropFirst())
+                return array
+            }
+            guard var dictionary = current as? [String: Any], let child = dictionary[component] else {
+                throw FixtureError.semanticMismatch("JSON fixture key path \(keyPath.joined(separator: "."))")
+            }
+            dictionary[component] = try replacing(child, remaining: remaining.dropFirst())
+            return dictionary
+        }
+        let replaced = try replacing(value, remaining: keyPath[...])
+        let encoded = try JSONSerialization.data(
+            withJSONObject: replaced,
+            options: [.prettyPrinted, .sortedKeys]
+        )
+        guard let text = String(data: encoded, encoding: .utf8) else {
+            throw FixtureError.semanticMismatch("JSON fixture replacement encoding")
+        }
+        return text
+    }
+
     private static func deterministicEncoded<T: Encodable>(_ value: T) throws -> Data {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]
         return try encoder.encode(value)
+    }
+
+    private static func addingUnknownField(toJSONObject value: [String: Any]) throws -> String {
+        var object = value
+        object["futureFixtureField"] = ["ignored": true]
+        let enriched = try JSONSerialization.data(
+            withJSONObject: object,
+            options: [.prettyPrinted, .sortedKeys]
+        )
+        guard let text = String(data: enriched, encoding: .utf8) else {
+            throw FixtureError.semanticMismatch("unknown field fixture encoding")
+        }
+        return text
     }
 
     private static func addingUnknownField<T: Encodable>(to value: T) throws -> String {
