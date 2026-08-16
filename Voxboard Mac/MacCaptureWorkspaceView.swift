@@ -20,6 +20,7 @@ struct MacCaptureWorkspaceView: View {
     let windowCoordinator: MacWindowCoordinator
     let openHistory: () -> Void
     let openSettings: () -> Void
+    let openModels: () -> Void
 
     @Environment(ModelManager.self) private var modelManager
     @Environment(UsageTracker.self) private var usageTracker
@@ -723,37 +724,63 @@ struct MacCaptureWorkspaceView: View {
     }
 
     private func errorBanner(_ message: String) -> some View {
-        HStack(alignment: .top, spacing: Geist.Spacing.three) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(Geist.error)
-            VStack(alignment: .leading, spacing: Geist.Spacing.one) {
-                Text(message)
-                    .font(Geist.caption())
-                if viewModel.failedInboxCount > 0 {
-                    Button("Retry queued captures") {
-                        Task { await viewModel.retryFailedInbox() }
+        VStack(alignment: .leading, spacing: Geist.Spacing.one) {
+            HStack(alignment: .top, spacing: Geist.Spacing.three) {
+                if shouldOpenModelsFromError {
+                    Button {
+                        recorder.lastError = nil
+                        openModels()
+                    } label: {
+                        HStack(alignment: .top, spacing: Geist.Spacing.three) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(Geist.error)
+                            Text(message)
+                                .font(Geist.caption())
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(Geist.caption())
+                                .foregroundStyle(Geist.muted)
+                        }
+                        .contentShape(Rectangle())
                     }
-                    .font(Geist.caption())
-                }
-                if viewModel.errorMessage == nil,
-                   let recoveryURL = recorder.lastRecoveryAudioURL {
-                    Button("Reveal preserved recording") {
-                        NSWorkspace.shared.activateFileViewerSelecting([recoveryURL])
-                    }
-                    .font(Geist.caption())
-                }
-            }
-            Spacer()
-            Button {
-                if viewModel.errorMessage != nil {
-                    viewModel.errorMessage = nil
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .help("Open Transcription Models")
+                    .accessibilityHint("Opens Transcription Models to download the selected model or choose an existing copy.")
+                    .accessibilityIdentifier("mac_error_open_models")
                 } else {
-                    recorder.lastError = nil
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(Geist.error)
+                    Text(message)
+                        .font(Geist.caption())
+                    Spacer()
                 }
-            } label: {
-                Image(systemName: "xmark")
+                Button {
+                    if viewModel.errorMessage != nil {
+                        viewModel.errorMessage = nil
+                    } else {
+                        recorder.lastError = nil
+                    }
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
+            if viewModel.failedInboxCount > 0 {
+                Button("Retry queued captures") {
+                    Task { await viewModel.retryFailedInbox() }
+                }
+                .font(Geist.caption())
+                .padding(.leading, 28)
+            }
+            if viewModel.errorMessage == nil,
+               let recoveryURL = recorder.lastRecoveryAudioURL {
+                Button("Reveal preserved recording") {
+                    NSWorkspace.shared.activateFileViewerSelecting([recoveryURL])
+                }
+                .font(Geist.caption())
+                .padding(.leading, 28)
+            }
         }
         .padding(Geist.Spacing.three)
         .foregroundStyle(Geist.text)
@@ -763,6 +790,17 @@ struct MacCaptureWorkspaceView: View {
                 .stroke(Geist.Palette.red400, lineWidth: 1)
         }
         .clipShape(RoundedRectangle(cornerRadius: Geist.Radius.small, style: .continuous))
+    }
+
+    private var shouldOpenModelsFromError: Bool {
+        guard viewModel.errorMessage == nil,
+              let message = recorder.lastError,
+              !modelManager.isAutomaticSelection else { return false }
+        guard let model = modelManager.selectedModel else {
+            return message == String(localized: "Select or download a transcription model first.")
+        }
+        return !modelManager.isModelDownloaded(model)
+            && message == String(localized: "Download \(model.name) or choose an existing copy before recording.")
     }
 
     private func revealInFinder(_ url: URL) {
