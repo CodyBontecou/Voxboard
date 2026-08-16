@@ -87,11 +87,12 @@ final class AppLanguagePreferenceTests: XCTestCase {
         XCTAssertEqual(standardDefaults.stringArray(forKey: "AppleLanguages"), ["en"])
     }
 
-    func test_selectingSystemClearsOverrideAndAppleLanguages() {
+    func test_selectingSystemStoresExplicitChoiceAndClearsAppleLanguages() {
         AppLanguagePreference.set(.german, defaults: sharedDefaults, standardDefaults: standardDefaults)
         AppLanguagePreference.set(.system, defaults: sharedDefaults, standardDefaults: standardDefaults)
 
-        XCTAssertNil(sharedDefaults.object(forKey: AppConstants.appLanguageOverrideKey))
+        XCTAssertEqual(sharedDefaults.string(forKey: AppConstants.appLanguageOverrideKey), "system")
+        XCTAssertEqual(AppLanguagePreference.current(defaults: sharedDefaults), .system)
         XCTAssertNil(storedAppleLanguages(in: standardDefaults, suiteName: standardSuiteName))
     }
 
@@ -104,7 +105,30 @@ final class AppLanguagePreferenceTests: XCTestCase {
         XCTAssertEqual(standardDefaults.stringArray(forKey: "AppleLanguages"), ["de"])
     }
 
-    func test_launchReconcileClearsStaleMirrorWhenOverrideRemoved() {
+    func test_launchReconcilePreservesAppleLanguagesWhenNoPreferenceExists() {
+        // The upgrade scenario: the user never chose an in-app language but
+        // already picked a per-app language in iOS Settings. Absence must not
+        // delete their OS-level override.
+        standardDefaults.set(["en"], forKey: "AppleLanguages")
+
+        AppLanguagePreference.applyAtLaunch(defaults: sharedDefaults, standardDefaults: standardDefaults)
+
+        XCTAssertEqual(standardDefaults.stringArray(forKey: "AppleLanguages"), ["en"])
+    }
+
+    func test_launchReconcilePreservesAppleLanguagesForUnreadablePreference() {
+        sharedDefaults.set("klingon", forKey: AppConstants.appLanguageOverrideKey)
+        standardDefaults.set(["en"], forKey: "AppleLanguages")
+
+        AppLanguagePreference.applyAtLaunch(defaults: sharedDefaults, standardDefaults: standardDefaults)
+
+        XCTAssertEqual(standardDefaults.stringArray(forKey: "AppleLanguages"), ["en"])
+    }
+
+    func test_launchReconcileClearsStaleMirrorForExplicitSystemSelection() {
+        // The user explicitly chose Use System Language in-app; a leftover
+        // mirror from a previous concrete choice must be cleared.
+        sharedDefaults.set("system", forKey: AppConstants.appLanguageOverrideKey)
         standardDefaults.set(["fr"], forKey: "AppleLanguages")
 
         AppLanguagePreference.applyAtLaunch(defaults: sharedDefaults, standardDefaults: standardDefaults)

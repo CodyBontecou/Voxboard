@@ -1973,7 +1973,7 @@
           "evidence": [
             "VoxboardTests/AppLanguagePreferenceTests.swift"
           ],
-          "rationale": "App Group defaults persist atomically through the system; launch reconciliation repairs a dropped AppleLanguages mirror and clears a stale mirror after the override is removed."
+          "rationale": "App Group defaults persist atomically through the system; launch reconciliation repairs a dropped AppleLanguages mirror for a stored selection, preserves an existing OS-level per-app override when no in-app preference exists, and clears a stale mirror after an explicit Use System Language selection."
         }
       }
     },

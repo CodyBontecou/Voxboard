@@ -92,6 +92,13 @@ public enum AppLanguage: String, CaseIterable, Sendable, Identifiable {
 /// iOS uses to resolve which `.lproj` the main bundle loads at launch.
 /// Because `Bundle.main` caches its resolved localization, a language change
 /// takes effect the next time the app opens.
+///
+/// An explicit "Use System Language" selection persists the `system`
+/// sentinel value; a user who never chose anything has no stored value at
+/// all. The distinction matters for existing users who already picked a
+/// per-app language in iOS Settings: with no in-app preference, launch
+/// reconciliation leaves their OS-level `AppleLanguages` override intact,
+/// and only an explicit in-app system selection clears it.
 public enum AppLanguagePreference {
     /// The `AppleLanguages` key resolved by the system at launch.
     private static let appleLanguagesKey = "AppleLanguages"
@@ -105,28 +112,36 @@ public enum AppLanguagePreference {
     }
 
     /// Persist the selection and mirror it into `AppleLanguages` so the next
-    /// launch resolves the matching localization.
+    /// launch resolves the matching localization. Selecting the system
+    /// language stores the `system` sentinel rather than removing the key,
+    /// so an explicit choice stays distinguishable from "never set".
     public static func set(
         _ language: AppLanguage,
         defaults: UserDefaults? = AppConstants.sharedDefaults,
         standardDefaults: UserDefaults = .standard
     ) {
-        if let code = language.languageCode {
-            defaults?.set(code, forKey: AppConstants.appLanguageOverrideKey)
-        } else {
-            defaults?.removeObject(forKey: AppConstants.appLanguageOverrideKey)
-        }
+        defaults?.set(language.rawValue, forKey: AppConstants.appLanguageOverrideKey)
         applyAppleLanguages(for: language, to: standardDefaults)
     }
 
     /// Reconcile `AppleLanguages` with the stored override early at launch,
     /// before any view resolves localized strings. Idempotent; also repairs
     /// drift if the standard defaults lost the override between sessions.
+    ///
+    /// With no stored preference — every existing user on upgrade — this
+    /// leaves `AppleLanguages` untouched, preserving a per-app language
+    /// selected through iOS Settings. Only an explicit in-app selection
+    /// (including "Use System Language") rewrites or clears the mirror.
+    /// An unreadable stored value is left alone as well: intent is unknown,
+    /// so destroying an existing override would be worse than drift.
     public static func applyAtLaunch(
         defaults: UserDefaults? = AppConstants.sharedDefaults,
         standardDefaults: UserDefaults = .standard
     ) {
-        applyAppleLanguages(for: current(defaults: defaults), to: standardDefaults)
+        guard let raw = defaults?.string(forKey: AppConstants.appLanguageOverrideKey),
+              let language = AppLanguage(rawValue: raw)
+        else { return }
+        applyAppleLanguages(for: language, to: standardDefaults)
     }
 
     /// Point `AppleLanguages` at the selected language, or clear the key so
