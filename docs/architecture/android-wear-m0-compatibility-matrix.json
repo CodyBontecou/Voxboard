@@ -1910,6 +1910,74 @@
       }
     },
     {
+      "id": "app-language-defaults",
+      "capabilityID": "cap.store.app-language",
+      "production": [
+        "Packages/VoxboardShared/Sources/VoxboardShared/AppLanguagePreference.swift:AppLanguagePreference",
+        "Voxboard/Views/AppLanguageSettingsView.swift:AppLanguageSettingsView"
+      ],
+      "dimensions": {
+        "old": {
+          "status": "notApplicable",
+          "evidence": [],
+          "rationale": "First shipped app language key version."
+        },
+        "missingFields": {
+          "status": "executed",
+          "evidence": [
+            "VoxboardTests/AppLanguagePreferenceTests.swift"
+          ],
+          "rationale": "An absent override resolves to Use System Language through production defaults reads."
+        },
+        "unknownFields": {
+          "status": "notApplicable",
+          "evidence": [],
+          "rationale": "A single scalar language-code string; there is no keyed container to hold unknown fields."
+        },
+        "malformed": {
+          "status": "executed",
+          "evidence": [
+            "VoxboardTests/AppLanguagePreferenceTests.swift"
+          ],
+          "rationale": "An unknown or invalid stored code falls back to Use System Language instead of crashing."
+        },
+        "futureVersion": {
+          "status": "notApplicable",
+          "evidence": [],
+          "rationale": "Plain string value with no envelope schema version."
+        },
+        "date": {
+          "status": "notApplicable",
+          "evidence": [],
+          "rationale": "No date fields are persisted."
+        },
+        "data": {
+          "status": "notApplicable",
+          "evidence": [],
+          "rationale": "No binary data is persisted; only a language code string."
+        },
+        "uuid": {
+          "status": "notApplicable",
+          "evidence": [],
+          "rationale": "No UUID fields are persisted."
+        },
+        "enum": {
+          "status": "executed",
+          "evidence": [
+            "VoxboardTests/AppLanguagePreferenceTests.swift"
+          ],
+          "rationale": "Raw language codes are validated against the localized catalog with regional variant matching."
+        },
+        "crashRecovery": {
+          "status": "executed",
+          "evidence": [
+            "VoxboardTests/AppLanguagePreferenceTests.swift"
+          ],
+          "rationale": "App Group defaults persist atomically through the system; launch reconciliation repairs a dropped AppleLanguages mirror for a stored selection, preserves an existing OS-level per-app override when no in-app preference exists, and clears a stale mirror after an explicit Use System Language selection."
+        }
+      }
+    },
+    {
       "id": "analytics-defaults",
       "capabilityID": "cap.store.analytics",
       "production": [

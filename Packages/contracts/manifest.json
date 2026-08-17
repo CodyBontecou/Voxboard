@@ -10,7 +10,7 @@
       "bytes": 2167,
       "category": "contractReadme",
       "path": "Packages/contracts/README.md",
-      "sha256": "7375b7994424f9c9538cfe2af1c1472e1327d204718eaf73b31a5a6e5edd85b3"
+      "sha256": "f348e6516f341a00adf96b245645d514df400c9291ac0f6d1b02c165261fdd12"
     },
     {
       "bytes": 1568,
@@ -661,10 +661,10 @@
       "sha256": "f27454d91f8b3a969994be8a4970165404979c3b4c65a3b23754926fa0a649b0"
     },
     {
-      "bytes": 262281,
+      "bytes": 263732,
       "category": "capabilityInventory",
       "path": "Packages/contracts/product-capabilities.json",
-      "sha256": "342baab4f9587bc73ad54d0b698ca24dce1c437b21a8bfe18f1c480046ee0452"
+      "sha256": "5a9c389134869163387dd15ae8dcd564b2a03ceffc0038370b7b5e63e9c42a40"
     },
     {
       "bytes": 751,
@@ -796,7 +796,7 @@
       "bytes": 44722,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate.py",
-      "sha256": "a0a557d21740cec942075a29749155988e41aa75758e7c2d54fa474cc2784233"
+      "sha256": "8921853381704c10e071d13b3047e348315073fc6b0ee9b9f9c64c33961a2d52"
     },
     {
       "bytes": 41189,
@@ -2907,7 +2907,7 @@
   "producer": {
     "name": "vox-contract-manifest-generator",
     "script": "Packages/contracts/scripts/validate.py",
-    "scriptSHA256": "a0a557d21740cec942075a29749155988e41aa75758e7c2d54fa474cc2784233"
+    "scriptSHA256": "8921853381704c10e071d13b3047e348315073fc6b0ee9b9f9c64c33961a2d52"
   },
   "producerRevision": "29ec869c8bda4d511af787af394658d0274b339b",
   "schemaVersion": 2

@@ -7956,6 +7956,44 @@
       "status": "inventoried"
     },
     {
+      "id": "cap.store.app-language",
+      "outcome": "In-app app language override persisted in the shared App Group with an AppleLanguages launch mirror",
+      "evidence": [
+        {
+          "path": "Packages/VoxboardShared/Sources/VoxboardShared/AppLanguagePreference.swift",
+          "symbol": "AppLanguagePreference"
+        },
+        {
+          "path": "Packages/VoxboardShared/Sources/VoxboardShared/AppConstants.swift",
+          "symbol": "appLanguageOverrideKey"
+        },
+        {
+          "path": "Voxboard/Views/AppLanguageSettingsView.swift",
+          "symbol": "AppLanguageSettingsView"
+        }
+      ],
+      "platforms": [
+        "iphone",
+        "ipad"
+      ],
+      "owner": "native",
+      "parity": "legacy-only",
+      "programScope": "legacy-codec",
+      "milestone": "M0/M1",
+      "dependencies": [
+        "dep.legacy-fixtures"
+      ],
+      "acceptance": [
+        {
+          "kind": "unit",
+          "status": "verified",
+          "evidencePath": "VoxboardTests/AppLanguagePreferenceTests.swift",
+          "assertion": "Catalog integrity, regional variant matching, unset and unknown-code fallback to Use System Language, persistence round trips, and AppleLanguages mirror repair and drift-clearing are executed through the production AppLanguagePreference APIs."
+        }
+      ],
+      "status": "verified"
+    },
+    {
       "id": "cap.store.analytics",
       "outcome": "Privacy-safe onboarding analytics install identity, queued events, experiment assignment, and completion markers",
       "evidence": [
@@ -8501,6 +8539,9 @@
         ],
         "pendingWidgetRecordFlowId": [
           "cap.store.live-state"
+        ],
+        "appLanguageOverride": [
+          "cap.store.app-language"
         ],
         "autoListenEnabled": [
           "cap.store.live-state"

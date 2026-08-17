@@ -14229,6 +14229,22 @@
         }
       }
     },
+    "App Language": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App-Sprache"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App Language"
+          }
+        }
+      }
+    },
     "App preferences, upgrade, about, and debug": {
       "comment": "Accessibility hint for the Settings tab",
       "extractionState": "manual",
@@ -37237,6 +37253,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "選擇此 capture 寫的位置 Markdown"
+          }
+        }
+      }
+    },
+    "Choose which language Vox.md uses": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legen Sie fest, welche Sprache Vox.md verwendet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose which language Vox.md uses"
           }
         }
       }
@@ -68212,6 +68244,22 @@
         }
       }
     },
+    "Follows your device language": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folgt der Gerätesprache"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follows your device language"
+          }
+        }
+      }
+    },
     "Follows your instruction on device for any Capture text when enabled.": {
       "localizations": {
         "ar": {
@@ -82412,6 +82460,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "語言"
+          }
+        }
+      }
+    },
+    "Language changes take effect the next time Vox.md is opened.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sprachänderungen werden angewendet, wenn Vox.md das nächste Mal geöffnet wird."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language changes take effect the next time Vox.md is opened."
           }
         }
       }
@@ -183862,6 +183926,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "使用預設目的地默認"
+          }
+        }
+      }
+    },
+    "Use System Language": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Systemsprache verwenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use System Language"
           }
         }
       }
