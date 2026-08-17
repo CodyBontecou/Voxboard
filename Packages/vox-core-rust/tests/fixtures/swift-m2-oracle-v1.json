@@ -641,9 +641,9 @@
         "sha256" : "dda9b75f64b106eb544de201f599122d75abc483c5b156bba6c05c0f956dbc3c"
       }
     ],
-    "sourceRevision" : "70da6e8fb78bb4c70d918e1b72358578be12d907",
+    "sourceRevision" : "afb690fe1195cdc5978771e7a0a912bfa74d637c",
     "swiftCompilerIdentity" : "Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101) Target: arm64-apple-macosx26.0",
-    "toolchainManifestSHA256" : "ac694f356268157d67051d88fefbfb19ec2acf2af464833756a32a3ad1ec864b",
+    "toolchainManifestSHA256" : "7c15fa0b9afa06ae93a6323c52d0a524c082bb09ebd04eb24c05e05843c0597a",
     "xcodeIdentity" : "Xcode 26.6 Build version 17F113"
   }
 }
