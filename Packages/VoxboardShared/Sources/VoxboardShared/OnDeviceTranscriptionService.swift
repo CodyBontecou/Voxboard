@@ -41,6 +41,9 @@ public actor OnDeviceTranscriptionService {
     private var cachedWhisperContext: WhisperContext?
     private var cachedParakeetContext: ParakeetContext?
     private var cachedLocalModelID: String?
+    /// Retains external security-scoped access for the full lifetime of the
+    /// cached inference context.
+    private var cachedModelAccess: InstalledModelAccess?
     #endif
 
     public init(
@@ -239,18 +242,25 @@ public actor OnDeviceTranscriptionService {
 
     private func prepareLocalModel(_ model: WhisperModelInfo) async throws {
         #if os(iOS) || os(macOS)
+        guard let modelAccess = model.installedModelAccess(
+            defaults: AppConstants.sharedDefaults
+        ) else {
+            throw OnDeviceTranscriptionError.modelUnavailable
+        }
+
         if cachedLocalModelID == model.id,
+           cachedModelAccess?.source == modelAccess.source,
+           cachedModelAccess?.url.standardizedFileURL == modelAccess.url.standardizedFileURL,
            cachedWhisperContext != nil || cachedParakeetContext != nil {
             return
         }
 
-        guard model.isDownloaded else { throw OnDeviceTranscriptionError.modelUnavailable }
         if model.engine.isParakeet {
-            guard let modelsDirectory = AppConstants.modelsDirectoryURL,
-                  let context = await ParakeetContext.load(
-                    modelsDirectory: modelsDirectory,
-                    engine: model.engine
-                  ) else {
+            guard let context = await ParakeetContext.load(
+                repositoryDirectory: modelAccess.url,
+                engine: model.engine,
+                allowsAutomaticRecovery: modelAccess.source == .appManaged
+            ) else {
                 throw OnDeviceTranscriptionError.modelLoadFailed
             }
             cachedParakeetContext = context
@@ -261,13 +271,16 @@ public actor OnDeviceTranscriptionService {
             #else
             let useGPU = false
             #endif
-            guard let modelURL = model.localURL,
-                  let context = WhisperContext(modelPath: modelURL.path, useGPU: useGPU) else {
+            guard let context = WhisperContext(
+                modelPath: modelAccess.url.path,
+                useGPU: useGPU
+            ) else {
                 throw OnDeviceTranscriptionError.modelLoadFailed
             }
             cachedWhisperContext = context
             cachedParakeetContext = nil
         }
+        cachedModelAccess = modelAccess
         cachedLocalModelID = model.id
         #else
         throw OnDeviceTranscriptionError.modelUnavailable

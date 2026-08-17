@@ -611,8 +611,8 @@ final class MacRecorder {
             lastError = String(localized: "Select or download a transcription model first.")
             return false
         }
-        guard model.isDownloaded else {
-            lastError = String(localized: "Download \(model.name) before recording.")
+        guard modelManager.isModelDownloaded(model) else {
+            lastError = String(localized: "Download \(model.name) or choose an existing copy before recording.")
             return false
         }
         return true
