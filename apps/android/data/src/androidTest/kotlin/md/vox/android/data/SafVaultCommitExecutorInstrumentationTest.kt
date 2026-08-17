@@ -22,9 +22,8 @@ class SafVaultCommitExecutorInstrumentationTest {
     private val requestID = "11111111-1111-4111-8111-111111111111"
     private val leaseToken = "22222222-2222-4222-8222-222222222222"
 
-    private fun requestBytes(): ByteArray = checkNotNull(
-        javaClass.classLoader!!.getResourceAsStream("contracts/v1/fixtures/capture-preparation-input/valid-android-m3-text-link.json"),
-    ).use { it.readBytes() }
+    private fun requestBytes(): ByteArray = InstrumentationRegistry.getInstrumentation().context.assets
+        .open("capture-preparation-input/valid-android-m3-text-link.json").use { it.readBytes() }
 
     @Test
     fun enqueueMaterializeCommitAndVerifyThroughRealProvider() {
@@ -32,10 +31,15 @@ class SafVaultCommitExecutorInstrumentationTest {
         instrumentation.uiAutomation.adoptShellPermissionIdentity()
 
         val context = instrumentation.targetContext
-        val vaultRoot = File(context.getExternalFilesDir(null), "vox-e2e-vault")
-        vaultRoot.mkdirs()
-        val relative = "Android/data/${context.packageName}/files/vox-e2e-vault"
-        val treeUri = android.net.Uri.parse("content://com.android.externalstorage.documents/tree/" + android.net.Uri.encode("primary:$relative"))
+        // SAF child-listing is restricted under Android/data on Android 11+, so the
+        // campaign vault lives under the public Download tree where provider listing,
+        // folder creation, and read-back are all exercised for real.
+        val vaultRoot = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "vox-e2e-vault")
+        vaultRoot.deleteRecursively()
+        File(context.noBackupFilesDir, "vox-captures/$requestID").deleteRecursively()
+        context.deleteDatabase("capture-index-v1.db")
+        check(vaultRoot.mkdirs()) { "vaultRootCreateFailed" }
+        val treeUri = android.net.Uri.parse("content://com.android.externalstorage.documents/tree/" + android.net.Uri.encode("primary:Download/vox-e2e-vault"))
         val destination = VaultDestination("33333333-3333-4333-8333-333333333333", treeUri.toString())
 
         val database = CaptureDatabase.create(context)
@@ -83,7 +87,7 @@ class SafVaultCommitExecutorInstrumentationTest {
             clock = { time++ },
         )
         val outcome = executor.execute(requestID, leaseToken)
-        assertTrue("commit failed: $outcome", (outcome as ExecutorOutcome.Ok).value is CommitOutcome.VerifiedCommitted)
+        assertTrue("commit failed: $outcome", outcome is ExecutorOutcome.Ok && outcome.value is CommitOutcome.VerifiedCommitted)
 
         // 5. Terminal state: COMPLETED journal with the deterministic receipt on disk.
         val snapshot = store.loadJournal(requestID)!!

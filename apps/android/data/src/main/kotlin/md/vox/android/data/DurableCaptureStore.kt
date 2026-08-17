@@ -62,6 +62,7 @@ interface DurableFileOps {
     fun <T> withPromotionLock(root: File, action: () -> T): T
     fun promoteDirectoryNoReplace(source: File, target: File)
     fun replaceFileAtomically(source: File, target: File)
+    fun moveFileNoReplaceAtomically(source: File, target: File)
     fun list(directory: File): List<File>
     fun exists(file: File): Boolean
     fun isDirectoryNoFollow(file: File): Boolean
@@ -132,6 +133,10 @@ class AndroidDurableFileOps : DurableFileOps {
     override fun replaceFileAtomically(source: File, target: File) {
         if (!isRegularFileNoFollow(source) || isSymlink(source) || !isRegularFileNoFollow(target) || isSymlink(target)) error("unsafeAtomicReplace")
         Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+    }
+    override fun moveFileNoReplaceAtomically(source: File, target: File) {
+        if (!isRegularFileNoFollow(source) || isSymlink(source) || exists(target)) error("unsafeAtomicCreate")
+        Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE)
     }
     override fun list(directory: File): List<File> = directory.listFiles()?.toList() ?: error("listFailed")
     override fun exists(file: File) = Files.exists(file.toPath(), LinkOption.NOFOLLOW_LINKS)
@@ -618,7 +623,7 @@ class DurableCapturePackageStore(
             val reopened = fileOps.readBounded(File(planDir, "artifact-plan.json"), CONTROL_LIMIT_BYTES)
             if (!reopened.contentEquals(planBytes) || PreparedPlanVerifier.verifiedPlanHash(reopened) != planHash) throw PackageCodecException("preparedPlanHash")
             fileOps.checkpoint("beforeStagedNoteMove")
-            fileOps.replaceFileAtomically(stagedNote, File(planDir, "note.bin"))
+            fileOps.moveFileNoReplaceAtomically(stagedNote, File(planDir, "note.bin"))
             fileOps.checkpoint("afterStagedNoteMove")
             fileOps.syncDirectory(planDir)
             fileOps.deleteOwnedTemporary(staging)

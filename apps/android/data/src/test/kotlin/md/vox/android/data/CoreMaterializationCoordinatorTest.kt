@@ -272,7 +272,8 @@ class CoreMaterializationCoordinatorTest {
         override fun syncDirectory(directory: File) { directory.canonicalFile.mkdirs() }
         override fun <T> withPromotionLock(root: File, action: () -> T): T = lock(root).withLock { action() }
         override fun promoteDirectoryNoReplace(source: File, target: File) { if (target.exists()) error("exists"); if (!source.renameTo(target)) error("renameFailed") }
-        override fun replaceFileAtomically(source: File, target: File) { Files.move(source.toPath(), target.toPath(), java.nio.file.StandardCopyOption.ATOMIC_MOVE) }
+        override fun replaceFileAtomically(source: File, target: File) { Files.move(source.toPath(), target.toPath(), java.nio.file.StandardCopyOption.ATOMIC_MOVE, java.nio.file.StandardCopyOption.REPLACE_EXISTING) }
+        override fun moveFileNoReplaceAtomically(source: File, target: File) { check(!Files.exists(target.toPath())) { "unsafeAtomicCreate" }; Files.move(source.toPath(), target.toPath(), java.nio.file.StandardCopyOption.ATOMIC_MOVE) }
         override fun list(directory: File): List<File> = directory.listFiles()?.toList() ?: error("listFailed")
         override fun exists(file: File) = Files.exists(file.toPath(), java.nio.file.LinkOption.NOFOLLOW_LINKS)
         override fun isDirectoryNoFollow(file: File) = Files.isDirectory(file.toPath(), java.nio.file.LinkOption.NOFOLLOW_LINKS)
