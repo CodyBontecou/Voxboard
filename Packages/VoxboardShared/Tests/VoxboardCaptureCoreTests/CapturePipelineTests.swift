@@ -57,6 +57,47 @@ final class CapturePipelineTests: XCTestCase {
         XCTAssertTrue(markdown.contains("Keep {date} literal"))
     }
 
+    func test_locationTokenInSuffixWrapsOnlyNewEntryAppendedToExistingNote() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let note = root.appendingPathComponent("Inbox.md")
+        try "Existing content with literal {location}".write(
+            to: note,
+            atomically: true,
+            encoding: .utf8
+        )
+        var destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        destination.entrySuffix = "\n📍 {location}"
+        let request = CaptureRequest(
+            id: UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE")!,
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("New entry")],
+            voxProfile: CapturePresetProfile(
+                id: "journal",
+                name: "Journal",
+                symbolName: "book",
+                locationPolicy: CapturePresetLocationPolicy(isEnabled: true)
+            ),
+            locationOutcome: .available(CaptureLocationSnapshot(
+                latitude: 21.3069,
+                longitude: -157.8583,
+                timestamp: Date(timeIntervalSince1970: 1_700_000_000),
+                source: .app,
+                precision: .exact
+            ))
+        )
+
+        _ = try await CapturePipeline().capture(request, destination: destination, rootURL: root)
+
+        let markdown = try String(contentsOf: note, encoding: .utf8)
+        XCTAssertTrue(markdown.contains("Existing content with literal {location}"))
+        XCTAssertTrue(markdown.contains(
+            "New entry\n📍 [Location](https://www.google.com/maps/search/?api=1&query=21.306900%2C-157.858300)"
+        ))
+        XCTAssertEqual(markdown.components(separatedBy: "[Location](").count - 1, 1)
+    }
+
     func test_vaultMarkdownTemplateUsesLatestFileAndLegacyExpressions() async throws {
         let root = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: root) }
@@ -74,6 +115,7 @@ final class CapturePipelineTests: XCTestCase {
         # Capture {date}
 
         First scaffold
+        {location}
         """.write(to: templateURL, atomically: true, encoding: .utf8)
         let destination = CaptureDestination(
             name: "Inbox",
@@ -87,7 +129,20 @@ final class CapturePipelineTests: XCTestCase {
             source: .app,
             destinationID: destination.id,
             payloads: [.text("Keep {date} literal")],
-            frontmatter: ["title": "A meeting", "tags": "[meeting]"]
+            frontmatter: ["title": "A meeting", "tags": "[meeting]"],
+            voxProfile: CapturePresetProfile(
+                id: "meeting",
+                name: "Meeting",
+                symbolName: "person.2",
+                locationPolicy: CapturePresetLocationPolicy(isEnabled: true)
+            ),
+            locationOutcome: .available(CaptureLocationSnapshot(
+                latitude: 51.5074,
+                longitude: -0.1278,
+                timestamp: Date(timeIntervalSince1970: 1_704_164_645),
+                source: .app,
+                precision: .exact
+            ))
         )
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -101,7 +156,9 @@ final class CapturePipelineTests: XCTestCase {
         XCTAssertTrue(markdown.contains("tags: [meeting]"))
         XCTAssertTrue(markdown.contains("title: \"A meeting\""))
         XCTAssertTrue(markdown.contains("created: 2024-01-02"))
-        XCTAssertTrue(markdown.contains("# Capture 2024-01-02\n\nFirst scaffold\n\nKeep {date} literal"))
+        XCTAssertTrue(markdown.contains(
+            "# Capture 2024-01-02\n\nFirst scaffold\n[Location](https://www.google.com/maps/search/?api=1&query=51.507400%2C-0.127800)\n\nKeep {date} literal"
+        ))
 
         try "Second scaffold".write(to: templateURL, atomically: true, encoding: .utf8)
         let secondRequest = CaptureRequest(

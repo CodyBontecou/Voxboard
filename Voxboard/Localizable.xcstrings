@@ -92580,144 +92580,144 @@
         }
       }
     },
-    "Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {timestamp}, {source}, {id8}.": {
+    "Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}.": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "متعددة Markdown و YAML الملفات المرتبطة بالإنترنت.Tokens: {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "متعددة Markdown و YAML الملفات المرتبطة بالإنترنت.Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "বহুলাইন Markdown এবং YAML ফ্রন্টম্যাটার সমর্থন করা হয়। টোকেন : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "বহুলাইন Markdown এবং YAML ফ্রন্টম্যাটার সমর্থন করা হয়। টোকেন : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multilinien Markdown und YAML Frontmatter wird unterstützt. Die Token: {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "Multilinien Markdown und YAML Frontmatter wird unterstützt. Die Token: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multilíneas Markdown y YAML Los frontales están respaldados. Los Tokens: {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "Multilíneas Markdown y YAML Los frontales están respaldados. Los Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "multilatérale Markdown et YAML Les fronts sont soutenus. Les tokens : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "multilatérale Markdown et YAML Les fronts sont soutenus. Les tokens : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "बहुल Markdown और YAML Frontmatter का समर्थन किया जाता है। टोकन : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "बहुल Markdown और YAML Frontmatter का समर्थन किया जाता है। टोकन : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multiliner Markdown dan YAML Frontmatter yang didukung. Token yang : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "Multiliner Markdown dan YAML Frontmatter yang didukung. Token yang : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multilinea Markdown e YAML Frontmatter è supportato. I token: {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "Multilinea Markdown e YAML Frontmatter è supportato. I token: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "多角 Markdown 和 YAML フロントマッサージがサポートされます。 トークン: {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "多角 Markdown 和 YAML フロントマッサージがサポートされます。 トークン: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "다중성 Markdown 그리고 YAML Frontmatter 지원이 가능합니다. 토큰 : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "다중성 Markdown 그리고 YAML Frontmatter 지원이 가능합니다. 토큰 : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multilijn Markdown en YAML Frontmatter wordt ondersteund. De tokens: {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "Multilijn Markdown en YAML Frontmatter wordt ondersteund. De tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wielostronny Markdown i YAML Fronty są wspierane. Tokeny : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "Wielostronny Markdown i YAML Fronty są wspierane. Tokeny : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multilíneas Markdown e YAML Os frontmater são apoiados. Tôquinas : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "Multilíneas Markdown e YAML Os frontmater são apoiados. Tôquinas : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "многолинейной Markdown и YAML Фронт поддерживается. Токены : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "многолинейной Markdown и YAML Фронт поддерживается. Токены : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "பல Markdown அ YAML Frontmatter உதவியுடன் டாக்டர் : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "பல Markdown அ YAML Frontmatter உதவியுடன் டாக்டர் : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "หลายสาย Markdown และ YAML Frontmatter ได้รับการสนับสนุน โตเก็น: {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "หลายสาย Markdown และ YAML Frontmatter ได้รับการสนับสนุน โตเก็น: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Çoklu Markdown ve YAML Frontmatter destekleniyor. Tokenler : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "Çoklu Markdown ve YAML Frontmatter destekleniyor. Tokenler : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "багатолінійний Markdown та YAML Фронт буде підтримуватися. Токени : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "багатолінійний Markdown та YAML Фронт буде підтримуватися. Токени : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "کئیہویں Markdown اور YAML Frontmatter کی حمایت کرتا ہے. ٹوکری : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "کئیہویں Markdown اور YAML Frontmatter کی حمایت کرتا ہے. ٹوکری : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "đa tuyến Markdown và YAML Frontmatter được hỗ trợ. Token : {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "đa tuyến Markdown và YAML Frontmatter được hỗ trợ. Token : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "多线 Markdown 和 YAML 前方支持。 代码: {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "多线 Markdown 和 YAML 前方支持。 代码: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "多線 Markdown 和 YAML 前方支持。 代碼: {date}, {time}, {timestamp}, {source}, {id8}."
+            "value": "多線 Markdown 和 YAML 前方支持。 代碼: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}."
           }
         }
       }
@@ -158216,144 +158216,144 @@
         }
       }
     },
-    "Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {timestamp}, {source}, and {id8}.": {
+    "Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, and {location}.": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يمكن للمصطلحات أن تحتوي على Multiline Markdown أو YAML الوسوم: تكنولوجيا تكنولوجيات تكنولوجية تكنولوجيت تكنولوجا تكنولوجيه {date}, {time}, {timestamp}, {source}و و {id8}."
+            "value": "يمكن للمصطلحات أن تحتوي على Multiline Markdown أو YAML الوسوم: تكنولوجيا تكنولوجيات تكنولوجية تكنولوجيت تكنولوجا تكنولوجيه {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}و و {id8}, {location}."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "টেমপ্লেটগুলি মাল্টিলাইন অন্তর্ভুক্ত করতে পারে Markdown বা YAML ফ্রন্টম্যাটর টোকেন অন্তর্ভুক্ত {date}, {time}, {timestamp}, {source}, এবং {id8}."
+            "value": "টেমপ্লেটগুলি মাল্টিলাইন অন্তর্ভুক্ত করতে পারে Markdown বা YAML ফ্রন্টম্যাটর টোকেন অন্তর্ভুক্ত {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, এবং {id8}, {location}."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Templates können Multiline enthalten Markdown oder YAML Frontmutter zu sein. Token beinhalten {date}, {time}, {timestamp}, {source}, und {id8}."
+            "value": "Templates können Multiline enthalten Markdown oder YAML Frontmutter zu sein. Token beinhalten {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, und {id8}, {location}."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {timestamp}, {source}, and {id8}."
+            "value": "Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, and {location}."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los templos pueden contener multilineas Markdown o YAML El frontón. Los tokens incluyen {date}, {time}, {timestamp}, {source}, y {id8}."
+            "value": "Los templos pueden contener multilineas Markdown o YAML El frontón. Los tokens incluyen {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, y {id8}, {location}."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les modèles peuvent contenir des multilines Markdown ou YAML Le fronton. Les tokens comprennent {date}, {time}, {timestamp}, {source}, et {id8}."
+            "value": "Les modèles peuvent contenir des multilines Markdown ou YAML Le fronton. Les tokens comprennent {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, et {id8}, {location}."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "मल्टीलिन में हो सकता है मल्टीलिन Markdown या YAML फ्रंटमेटर टोकन शामिल हैं {date}, {time}, {timestamp}, {source}, और {id8}."
+            "value": "मल्टीलिन में हो सकता है मल्टीलिन Markdown या YAML फ्रंटमेटर टोकन शामिल हैं {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, और {id8}, {location}."
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Template dapat berisi multiline Markdown atau YAML Front yang Token termasuk {date}, {time}, {timestamp}, {source}, dan {id8}."
+            "value": "Template dapat berisi multiline Markdown atau YAML Front yang Token termasuk {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, dan {id8}, {location}."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le schede possono contenere multilinei Markdown o YAML Il frontale. I token includono {date}, {time}, {timestamp}, {source}, e {id8}."
+            "value": "Le schede possono contenere multilinei Markdown o YAML Il frontale. I token includono {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, e {id8}, {location}."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "テンプレートは、Multilineを含むことができます。 Markdown か YAML フロントマッサージ トークンは含む。 {date}, {time}, {timestamp}, {source}, 和 {id8}."
+            "value": "テンプレートは、Multilineを含むことができます。 Markdown か YAML フロントマッサージ トークンは含む。 {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, 和 {id8}, {location}."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "템플릿은 다중 라인을 포함할 수 있습니다.Templates can contain multiline Markdown 또는 YAML 프론트모터 토큰은 포함 {date}, {time}, {timestamp}, {source}, 그리고 {id8}."
+            "value": "템플릿은 다중 라인을 포함할 수 있습니다.Templates can contain multiline Markdown 또는 YAML 프론트모터 토큰은 포함 {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, 그리고 {id8}, {location}."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Templates kunnen multiline bevatten Markdown of YAML De frontmatter. Tokens omvatten {date}, {time}, {timestamp}, {source}, en {id8}."
+            "value": "Templates kunnen multiline bevatten Markdown of YAML De frontmatter. Tokens omvatten {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, en {id8}, {location}."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wzory mogą zawierać wielokrotności Markdown lub YAML Fronty przednie. Tokeny obejmują {date}, {time}, {timestamp}, {source}, i {id8}."
+            "value": "Wzory mogą zawierać wielokrotności Markdown lub YAML Fronty przednie. Tokeny obejmują {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, i {id8}, {location}."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os templates podem conter multilíneas Markdown ou YAML A frente. Tokens incluem {date}, {time}, {timestamp}, {source}, e {id8}."
+            "value": "Os templates podem conter multilíneas Markdown ou YAML A frente. Tokens incluem {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, e {id8}, {location}."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Шаблоны могут содержать многолинейные Markdown или YAML фронтальный матерь Токены включают {date}, {time}, {timestamp}, {source}, и {id8}."
+            "value": "Шаблоны могут содержать многолинейные Markdown или YAML фронтальный матерь Токены включают {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, и {id8}, {location}."
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "பல வகைகள் உள்ளன Markdown அல்லது YAML Frontmatter அறையுலகம் டோனி அதாவது {date}, {time}, {timestamp}, {source}, அ {id8}."
+            "value": "பல வகைகள் உள்ளன Markdown அல்லது YAML Frontmatter அறையுலகம் டோனி அதாவது {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, அ {id8}, {location}."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "Templates สามารถมีหลายแถว Markdown หรือ YAML หน้าแรก Tokens รวมถึง {date}, {time}, {timestamp}, {source}, และ {id8}."
+            "value": "Templates สามารถมีหลายแถว Markdown หรือ YAML หน้าแรก Tokens รวมถึง {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, และ {id8}, {location}."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Şablonlar çoklu sayıda içerebilir Markdown veya YAML Öncelikler Tokenler dahil {date}, {time}, {timestamp}, {source}, ve {id8}."
+            "value": "Şablonlar çoklu sayıda içerebilir Markdown veya YAML Öncelikler Tokenler dahil {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, ve {id8}, {location}."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Шаблони можуть містити мультилінії Markdown або YAML фронту на фронт. Токени включають {date}, {time}, {timestamp}, {source}, та {id8}."
+            "value": "Шаблони можуть містити мультилінії Markdown або YAML фронту на фронт. Токени включають {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, та {id8}, {location}."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ٹیبلٹ بھی شامل کر سکتے ہیں multiline Markdown یا YAML frontmatter کے لئے ٹوکری شامل ہے {date}, {time}, {timestamp}, {source}, اور {id8}."
+            "value": "ٹیبلٹ بھی شامل کر سکتے ہیں multiline Markdown یا YAML frontmatter کے لئے ٹوکری شامل ہے {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, اور {id8}, {location}."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Templates có thể chứa multiline Markdown hoặc YAML Mặt trận Token bao gồm {date}, {time}, {timestamp}, {source}, và {id8}."
+            "value": "Templates có thể chứa multiline Markdown hoặc YAML Mặt trận Token bao gồm {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, và {id8}, {location}."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "模板可以包含多行 Markdown 或 YAML 前面人 图标包括 {date}, {time}, {timestamp}, {source}, 和 {id8}."
+            "value": "模板可以包含多行 Markdown 或 YAML 前面人 图标包括 {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, 和 {id8}, {location}."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "模板可以包含多行 Markdown 或 YAML 前面人 圖標包括 {date}, {time}, {timestamp}, {source}, 和 {id8}."
+            "value": "模板可以包含多行 Markdown 或 YAML 前面人 圖標包括 {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, 和 {id8}, {location}."
           }
         }
       }
@@ -170149,144 +170149,144 @@
         }
       }
     },
-    "Tokens: {date}, {time}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, and {id}.": {
+    "Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, and {location}.": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "تيمون : {date}, {time}, {timestamp}, {year}, {YR} (بعد عامين من الزمن) {month}, {day}, {week}, {source}, {id8}و و {id}."
+            "value": "تيمون : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (بعد عامين من الزمن) {month}, {day}, {week}, {source}, {id8}و و {id}, {location}."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "টোকেন : {date}, {time}, {timestamp}, {year}, {YR} (২০ বছর পর) {month}, {day}, {week}, {source}, {id8}, এবং {id}."
+            "value": "টোকেন : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (২০ বছর পর) {month}, {day}, {week}, {source}, {id8}, এবং {id}, {location}."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Token: {date}, {time}, {timestamp}, {year}, {YR} (zwei Jahre lang) {month}, {day}, {week}, {source}, {id8}, und {id}."
+            "value": "Die Token: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (zwei Jahre lang) {month}, {day}, {week}, {source}, {id8}, und {id}, {location}."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tokens: {date}, {time}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, and {id}."
+            "value": "Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, and {location}."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los Tokens: {date}, {time}, {timestamp}, {year}, {YR} (Día de 2 años) {month}, {day}, {week}, {source}, {id8}, y {id}."
+            "value": "Los Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (Día de 2 años) {month}, {day}, {week}, {source}, {id8}, y {id}, {location}."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les tokens : {date}, {time}, {timestamp}, {year}, {YR} (deux ans de plus) {month}, {day}, {week}, {source}, {id8}, et {id}."
+            "value": "Les tokens : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (deux ans de plus) {month}, {day}, {week}, {source}, {id8}, et {id}, {location}."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "टोकन : {date}, {time}, {timestamp}, {year}, {YR} (२ वर्ष की आयु) {month}, {day}, {week}, {source}, {id8}, और {id}."
+            "value": "टोकन : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (२ वर्ष की आयु) {month}, {day}, {week}, {source}, {id8}, और {id}, {location}."
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token yang : {date}, {time}, {timestamp}, {year}, {YR} (Dalam dua tahun terakhir) {month}, {day}, {week}, {source}, {id8}, dan {id}."
+            "value": "Token yang : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (Dalam dua tahun terakhir) {month}, {day}, {week}, {source}, {id8}, dan {id}, {location}."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "I token: {date}, {time}, {timestamp}, {year}, {YR} (il secondo anno di vita), {month}, {day}, {week}, {source}, {id8}, e {id}."
+            "value": "I token: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (il secondo anno di vita), {month}, {day}, {week}, {source}, {id8}, e {id}, {location}."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "トークン: {date}, {time}, {timestamp}, {year}, {YR} (平成2年) {month}, {day}, {week}, {source}, {id8}, 和 {id}."
+            "value": "トークン: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (平成2年) {month}, {day}, {week}, {source}, {id8}, 和 {id}, {location}."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "토큰 : {date}, {time}, {timestamp}, {year}, {YR} ( 2년간의 연속적인 연속적인 연속적인 연속적인 연속적인 연속적인 {month}, {day}, {week}, {source}, {id8}, 그리고 {id}."
+            "value": "토큰 : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} ( 2년간의 연속적인 연속적인 연속적인 연속적인 연속적인 연속적인 {month}, {day}, {week}, {source}, {id8}, 그리고 {id}, {location}."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De tokens: {date}, {time}, {timestamp}, {year}, {YR} (Twee jaar later) {month}, {day}, {week}, {source}, {id8}, en {id}."
+            "value": "De tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (Twee jaar later) {month}, {day}, {week}, {source}, {id8}, en {id}, {location}."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tokeny : {date}, {time}, {timestamp}, {year}, {YR} (w ciągu dwóch lat) {month}, {day}, {week}, {source}, {id8}, i {id}."
+            "value": "Tokeny : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (w ciągu dwóch lat) {month}, {day}, {week}, {source}, {id8}, i {id}, {location}."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tôquinas : {date}, {time}, {timestamp}, {year}, {YR} (dois anos de idade) {month}, {day}, {week}, {source}, {id8}, e {id}."
+            "value": "Tôquinas : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (dois anos de idade) {month}, {day}, {week}, {source}, {id8}, e {id}, {location}."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Токены : {date}, {time}, {timestamp}, {year}, {YR} (в два года) {month}, {day}, {week}, {source}, {id8}, и {id}."
+            "value": "Токены : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (в два года) {month}, {day}, {week}, {source}, {id8}, и {id}, {location}."
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "டாக்டர் : {date}, {time}, {timestamp}, {year}, {YR} (2 ஆண்டுகள் கழித்து) {month}, {day}, {week}, {source}, {id8}, அ {id}."
+            "value": "டாக்டர் : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2 ஆண்டுகள் கழித்து) {month}, {day}, {week}, {source}, {id8}, அ {id}, {location}."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "โตเก็น: {date}, {time}, {timestamp}, {year}, {YR} (2 หมายเลขปี) {month}, {day}, {week}, {source}, {id8}, และ {id}."
+            "value": "โตเก็น: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2 หมายเลขปี) {month}, {day}, {week}, {source}, {id8}, และ {id}, {location}."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tokenler : {date}, {time}, {timestamp}, {year}, {YR} ( 2 yıl önce ) {month}, {day}, {week}, {source}, {id8}, ve {id}."
+            "value": "Tokenler : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} ( 2 yıl önce ) {month}, {day}, {week}, {source}, {id8}, ve {id}, {location}."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Токени : {date}, {time}, {timestamp}, {year}, {YR} (наприклад, у два роки) {month}, {day}, {week}, {source}, {id8}, та {id}."
+            "value": "Токени : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (наприклад, у два роки) {month}, {day}, {week}, {source}, {id8}, та {id}, {location}."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ٹوکری : {date}, {time}, {timestamp}, {year}, {YR} (۲) سال کے لئے {month}, {day}, {week}, {source}, {id8}, اور {id}."
+            "value": "ٹوکری : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (۲) سال کے لئے {month}, {day}, {week}, {source}, {id8}, اور {id}, {location}."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Token : {date}, {time}, {timestamp}, {year}, {YR} (Từ 2 năm trở lên), {month}, {day}, {week}, {source}, {id8}, và {id}."
+            "value": "Token : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (Từ 2 năm trở lên), {month}, {day}, {week}, {source}, {id8}, và {id}, {location}."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "代码: {date}, {time}, {timestamp}, {year}, {YR} (二)年份, {month}, {day}, {week}, {source}, {id8}, 和 {id}."
+            "value": "代码: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (二)年份, {month}, {day}, {week}, {source}, {id8}, 和 {id}, {location}."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "代碼: {date}, {time}, {timestamp}, {year}, {YR} (二)年份, {month}, {day}, {week}, {source}, {id8}, 和 {id}."
+            "value": "代碼: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (二)年份, {month}, {day}, {week}, {source}, {id8}, 和 {id}, {location}."
           }
         }
       }
@@ -184656,144 +184656,144 @@
         }
       }
     },
-    "Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}.": {
+    "Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, {location}.": {
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "استخدام Multilin Markdown أو من يريد أن يُدعى له، YAML الـ Frontmatter Block. تكنولوجيا تكنولوجية متاحة: {date}, {time}, {timestamp}, {year}, {YR} (بعد عامين من الزمن) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "استخدام Multilin Markdown أو من يريد أن يُدعى له، YAML الـ Frontmatter Block. تكنولوجيا تكنولوجية متاحة: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (بعد عامين من الزمن) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "মাল্টিলাইন ব্যবহার Markdown অথবা নেতৃত্বে। YAML ফ্রন্টম্যাটার ব্লক উপলব্ধ টোকেন: {date}, {time}, {timestamp}, {year}, {YR} (২০ বছর পর) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "মাল্টিলাইন ব্যবহার Markdown অথবা নেতৃত্বে। YAML ফ্রন্টম্যাটার ব্লক উপলব্ধ টোকেন: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (২০ বছর পর) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multiplen verwenden Markdown Oder eine Führungskraft – YAML Frontmatter Blockierung Verfügbare Token: {date}, {time}, {timestamp}, {year}, {YR} (zwei Jahre lang) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Multiplen verwenden Markdown Oder eine Führungskraft – YAML Frontmatter Blockierung Verfügbare Token: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (zwei Jahre lang) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Utilización de multilíneas Markdown o un líder, YAML Bloqueo de frontmateria. Tokens disponibles: {date}, {time}, {timestamp}, {year}, {YR} (Día de 2 años) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Utilización de multilíneas Markdown o un líder, YAML Bloqueo de frontmateria. Tokens disponibles: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (Día de 2 años) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Utiliser le multilatéral Markdown ou un guide, YAML Bloc de front. Les tokens disponibles : {date}, {time}, {timestamp}, {year}, {YR} (deux ans de plus) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Utiliser le multilatéral Markdown ou un guide, YAML Bloc de front. Les tokens disponibles : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (deux ans de plus) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "बहुलता का उपयोग करें Markdown या फिर एक नेता YAML फ्रंटमेटर ब्लॉक उपलब्ध टोकन: {date}, {time}, {timestamp}, {year}, {YR} (२ वर्ष की आयु) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "बहुलता का उपयोग करें Markdown या फिर एक नेता YAML फ्रंटमेटर ब्लॉक उपलब्ध टोकन: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (२ वर्ष की आयु) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Menggunakan Multilin Markdown atau yang berkepala – YAML Blok frontmater Token yang tersedia: {date}, {time}, {timestamp}, {year}, {YR} (Dalam dua tahun terakhir) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Menggunakan Multilin Markdown atau yang berkepala – YAML Blok frontmater Token yang tersedia: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (Dalam dua tahun terakhir) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Utilizzare multilinea Markdown o di un leader – YAML Blocco di Frontmatter. Toccatoi disponibili: {date}, {time}, {timestamp}, {year}, {YR} (il secondo anno di vita), {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Utilizzare multilinea Markdown o di un leader – YAML Blocco di Frontmatter. Toccatoi disponibili: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (il secondo anno di vita), {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "多角化利用 Markdown あるいは、指導者として、 YAML フロントマッターブロック 利用可能なトークン: {date}, {time}, {timestamp}, {year}, {YR} (平成2年) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "多角化利用 Markdown あるいは、指導者として、 YAML フロントマッターブロック 利用可能なトークン: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (平成2年) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "다중 사용하기 Markdown 또는 지도자로 하여금 YAML 프론트 블록 이용 가능한 토큰: {date}, {time}, {timestamp}, {year}, {YR} ( 2년간의 연속적인 연속적인 연속적인 연속적인 연속적인 연속적인 {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "다중 사용하기 Markdown 또는 지도자로 하여금 YAML 프론트 블록 이용 가능한 토큰: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} ( 2년간의 연속적인 연속적인 연속적인 연속적인 연속적인 연속적인 {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gebruik multilijn Markdown Of een leidende - YAML Frontmatter blokken Beschikbare tokens: {date}, {time}, {timestamp}, {year}, {YR} (Twee jaar later) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Gebruik multilijn Markdown Of een leidende - YAML Frontmatter blokken Beschikbare tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (Twee jaar later) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Użyj multiliniowej Markdown lub prowadzący – YAML Blok frontmateryjny Dostępne tokeny : {date}, {time}, {timestamp}, {year}, {YR} (w ciągu dwóch lat) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Użyj multiliniowej Markdown lub prowadzący – YAML Blok frontmateryjny Dostępne tokeny : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (w ciągu dwóch lat) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Use a multinacional Markdown Ou um líder – YAML Bloco de frontmater. Tokens disponíveis: {date}, {time}, {timestamp}, {year}, {YR} (dois anos de idade) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Use a multinacional Markdown Ou um líder – YAML Bloco de frontmater. Tokens disponíveis: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (dois anos de idade) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Используйте мультипликатор Markdown или в качестве лидера — YAML Блок фронтального матрицы. Доступные токены : {date}, {time}, {timestamp}, {year}, {YR} (в два года) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Используйте мультипликатор Markdown или в качестве лидера — YAML Блок фронтального матрицы. Доступные токены : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (в два года) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "ta": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multiple பயன்பாடு Markdown அல்லது தலைவலிக்கு YAML Frontmatter Block க்கு கிடைத்த டாக்டர்கள் : {date}, {time}, {timestamp}, {year}, {YR} (2 ஆண்டுகள் கழித்து) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Multiple பயன்பாடு Markdown அல்லது தலைவலிக்கு YAML Frontmatter Block க்கு கிடைத்த டாக்டர்கள் : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2 ஆண்டுகள் கழித்து) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ใช้หลายสาย Markdown หรือเป็นผู้นํา - YAML บล็อกหน้า Tokens ที่มีอยู่: {date}, {time}, {timestamp}, {year}, {YR} (2 หมายเลขปี) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "ใช้หลายสาย Markdown หรือเป็นผู้นํา - YAML บล็อกหน้า Tokens ที่มีอยู่: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2 หมายเลขปี) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Çoklu kullanımı Markdown Ya da bir liderin, YAML Ön bloklar Kullanılabilir tokenler : {date}, {time}, {timestamp}, {year}, {YR} ( 2 yıl önce ) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Çoklu kullanımı Markdown Ya da bir liderin, YAML Ön bloklar Kullanılabilir tokenler : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} ( 2 yıl önce ) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Використовуйте мультилінії Markdown або лідерів – YAML Блок фронту Доступні токени : {date}, {time}, {timestamp}, {year}, {YR} (наприклад, у два роки) {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Використовуйте мультилінії Markdown або лідерів – YAML Блок фронту Доступні токени : {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (наприклад, у два роки) {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "Multilines کا استعمال کریں Markdown یا پھر ہدایت کی YAML Frontmatter بلاک دستیاب ٹوکری: {date}, {time}, {timestamp}, {year}, {YR} (۲) سال کے لئے {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Multilines کا استعمال کریں Markdown یا پھر ہدایت کی YAML Frontmatter بلاک دستیاب ٹوکری: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (۲) سال کے لئے {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sử dụng Multilin Markdown hay là một người dẫn đầu - YAML Frontmatter Block Token có sẵn: {date}, {time}, {timestamp}, {year}, {YR} (Từ 2 năm trở lên), {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "Sử dụng Multilin Markdown hay là một người dẫn đầu - YAML Frontmatter Block Token có sẵn: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (Từ 2 năm trở lên), {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用多线 Markdown 或引导者, YAML 前线块。 可用的代币: {date}, {time}, {timestamp}, {year}, {YR} (二)年份, {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "使用多线 Markdown 或引导者, YAML 前线块。 可用的代币: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (二)年份, {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用多線 Markdown 或引導者, YAML 前線塊。 可用的代幣: {date}, {time}, {timestamp}, {year}, {YR} (二)年份, {month}, {day}, {week}, {source}, {id8}, {id}."
+            "value": "使用多線 Markdown 或引導者, YAML 前線塊。 可用的代幣: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (二)年份, {month}, {day}, {week}, {source}, {id8}, {id}, {location}."
           }
         }
       }

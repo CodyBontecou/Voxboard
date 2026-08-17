@@ -107,6 +107,10 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
     /// multi-file Parakeet repositories. Whisper uses this for integrity checks;
     /// every model uses it for available-capacity preflight.
     public let downloadSizeBytes: Int64?
+    /// Trusted leading bytes for catalog Whisper binaries. This rejects a
+    /// different or obviously corrupt same-sized file without hashing gigabytes
+    /// every time the Models UI refreshes.
+    let trustedFileHeader: Data?
     /// Optional per-model details shown in the model picker UI.
     public let modelDescription: String?
     /// Informational URL. Whisper downloads use this directly; Parakeet downloads
@@ -133,6 +137,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
         fileName: String,
         sizeLabel: String,
         downloadSizeBytes: Int64? = nil,
+        trustedFileHeader: Data? = nil,
         modelDescription: String? = nil,
         downloadURL: URL,
         isBundled: Bool,
@@ -143,6 +148,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
         self.fileName = fileName
         self.sizeLabel = sizeLabel
         self.downloadSizeBytes = downloadSizeBytes
+        self.trustedFileHeader = trustedFileHeader
         self.modelDescription = modelDescription
         self.downloadURL = downloadURL
         self.isBundled = isBundled
@@ -152,26 +158,71 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
     // MARK: - Derived properties
 
     public var isDownloaded: Bool {
-        guard let modelsDir = AppConstants.modelsDirectoryURL else { return false }
-        return isDownloaded(in: modelsDir)
+        installedModelAccess(defaults: AppConstants.sharedDefaults) != nil
     }
 
-    /// Testable completeness check that does not depend on an App Group container.
+    /// Testable completeness check for an app-managed installation that does
+    /// not depend on an App Group container.
     public func isDownloaded(in modelsDirectory: URL) -> Bool {
+        isValidInstallation(at: appManagedURL(in: modelsDirectory))
+    }
+
+    /// Validates a user-selected model at its exact file or repository URL.
+    /// External Whisper filenames may differ, but their trusted byte count must
+    /// match the selected catalog model. Parakeet directories must contain the
+    /// complete compiled repository expected by FluidAudio.
+    public func isValidInstallation(at url: URL) -> Bool {
         if engine.isParakeet {
-            guard let folder = engine.parakeetRepoFolderName,
-                  let expectedArtifacts = engine.parakeetExpectedArtifactSizes else { return false }
-            let repoDirectory = modelsDirectory.appendingPathComponent(folder)
-            return expectedArtifacts.allSatisfy { relativePath, expectedByteCount in
-                Self.fileSize(at: repoDirectory.appendingPathComponent(relativePath))
-                    == expectedByteCount
+            guard let expectedArtifacts = engine.parakeetExpectedArtifactSizes,
+                  expectedArtifacts.allSatisfy({ relativePath, expectedByteCount in
+                      Self.fileSize(at: url.appendingPathComponent(relativePath))
+                          == expectedByteCount
+                  }) else {
+                return false
+            }
+            let jsonArtifacts = expectedArtifacts.keys.filter {
+                URL(fileURLWithPath: $0).pathExtension.lowercased() == "json"
+            }
+            return jsonArtifacts.allSatisfy {
+                Self.hasValidParakeetJSON(at: url.appendingPathComponent($0))
             }
         }
 
-        let modelURL = modelsDirectory.appendingPathComponent(fileName)
-        guard Self.hasNonemptyFile(at: modelURL) else { return false }
-        guard let expectedByteCount = downloadSizeBytes else { return true }
-        return Self.fileSize(at: modelURL) == expectedByteCount
+        guard Self.hasNonemptyFile(at: url) else { return false }
+        if let expectedByteCount = downloadSizeBytes,
+           Self.fileSize(at: url) != expectedByteCount {
+            return false
+        }
+        if let trustedFileHeader,
+           !Self.file(at: url, startsWith: trustedFileHeader) {
+            return false
+        }
+        return true
+    }
+
+    /// Resolves the preferred usable installation. A valid user-authorized
+    /// external location takes precedence over an app-managed copy so linking
+    /// a model actually avoids the duplicate installation.
+    func installedModelAccess(
+        defaults: UserDefaults?,
+        modelsDirectory: URL? = AppConstants.modelsDirectoryURL
+    ) -> InstalledModelAccess? {
+        #if os(macOS)
+        if let externalURL = ExternalModelBookmarkStore.resolveURL(
+            for: id,
+            defaults: defaults
+        ) {
+            let access = InstalledModelAccess(url: externalURL, source: .external)
+            if isValidInstallation(at: access.url) {
+                return access
+            }
+        }
+        #endif
+
+        guard let modelsDirectory else { return nil }
+        let appManagedURL = appManagedURL(in: modelsDirectory)
+        guard isValidInstallation(at: appManagedURL) else { return nil }
+        return InstalledModelAccess(url: appManagedURL, source: .appManaged)
     }
 
     /// Existing invalid paths must be removed before invoking FluidAudio 0.13.4,
@@ -184,8 +235,11 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
 
         for (relativePath, expectedByteCount) in expectedArtifacts {
             let artifactURL = repoDirectory.appendingPathComponent(relativePath)
-            guard FileManager.default.fileExists(atPath: artifactURL.path),
-                  Self.fileSize(at: artifactURL) != expectedByteCount else { continue }
+            guard FileManager.default.fileExists(atPath: artifactURL.path) else { continue }
+            let hasInvalidSize = Self.fileSize(at: artifactURL) != expectedByteCount
+            let isJSON = artifactURL.pathExtension.lowercased() == "json"
+            let hasInvalidJSON = isJSON && !Self.hasValidParakeetJSON(at: artifactURL)
+            guard hasInvalidSize || hasInvalidJSON else { continue }
             try FileManager.default.removeItem(at: artifactURL)
         }
     }
@@ -203,16 +257,44 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
         return (attributes[.size] as? NSNumber)?.int64Value
     }
 
-    /// For Whisper: path to the `.bin` file.
-    /// For Parakeet: path to the local FluidAudio repo directory (e.g. `…/parakeet-tdt-0.6b-v3`).
-    public var localURL: URL? {
-        guard let modelsDir = AppConstants.modelsDirectoryURL else { return nil }
-        if engine.isParakeet {
-            guard let folder = engine.parakeetRepoFolderName else { return nil }
-            return modelsDir.appendingPathComponent(folder)
-        } else {
-            return modelsDir.appendingPathComponent(fileName)
+    private static func file(at url: URL, startsWith prefix: Data) -> Bool {
+        guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
+        defer { try? handle.close() }
+        guard let leadingBytes = try? handle.read(upToCount: prefix.count) else { return false }
+        return leadingBytes == prefix
+    }
+
+    private static func hasValidParakeetJSON(at url: URL) -> Bool {
+        guard let data = try? Data(contentsOf: url),
+              let object = try? JSONSerialization.jsonObject(with: data) else {
+            return false
         }
+        if url.lastPathComponent == ModelEngine.parakeetVocabularyFile {
+            return (object as? [String: Any])?.isEmpty == false
+        }
+        if let dictionary = object as? [String: Any] {
+            return !dictionary.isEmpty
+        }
+        if let array = object as? [Any] {
+            return !array.isEmpty
+        }
+        return false
+    }
+
+    /// App-managed path for this model. External model locations must be used
+    /// through `installedModelAccess(defaults:)` so their security scope remains
+    /// active while the inference context reads them.
+    public var localURL: URL? {
+        guard let modelsDirectory = AppConstants.modelsDirectoryURL else { return nil }
+        return appManagedURL(in: modelsDirectory)
+    }
+
+    private func appManagedURL(in modelsDirectory: URL) -> URL {
+        if engine.isParakeet {
+            let folderName = engine.parakeetRepoFolderName ?? fileName
+            return modelsDirectory.appendingPathComponent(folderName, isDirectory: true)
+        }
+        return modelsDirectory.appendingPathComponent(fileName)
     }
 
     // MARK: - Model registry
@@ -225,6 +307,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
             fileName: "ggml-tiny.bin",
             sizeLabel: "75 MB",
             downloadSizeBytes: 77_691_713,
+            trustedFileHeader: Data(hexString: "6c6d676799ca0000dc050000800100000600000004000000c0010000800100000600000004000000500000000100000050000000c900000000000000a4accb3c")!,
             downloadURL: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin")!,
             isBundled: false
         ),
@@ -234,6 +317,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
             fileName: "ggml-base.bin",
             sizeLabel: "142 MB",
             downloadSizeBytes: 147_951_465,
+            trustedFileHeader: Data(hexString: "6c6d676799ca0000dc050000000200000800000006000000c0010000000200000800000006000000500000000100000050000000c900000000000000a4accb3c")!,
             downloadURL: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin")!,
             isBundled: false
         ),
@@ -243,6 +327,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
             fileName: "ggml-small.bin",
             sizeLabel: "466 MB",
             downloadSizeBytes: 487_601_967,
+            trustedFileHeader: Data(hexString: "6c6d676799ca0000dc050000000300000c0000000c000000c0010000000300000c0000000c000000500000000100000050000000c900000000000000a4accb3c")!,
             downloadURL: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin")!,
             isBundled: false
         ),
@@ -252,6 +337,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
             fileName: "ggml-medium.bin",
             sizeLabel: "1.5 GB",
             downloadSizeBytes: 1_533_763_059,
+            trustedFileHeader: Data(hexString: "6c6d676799ca0000dc050000000400001000000018000000c0010000000400001000000018000000500000000100000050000000c900000000000000a4accb3c")!,
             downloadURL: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin")!,
             isBundled: false
         ),
@@ -261,6 +347,7 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
             fileName: "ggml-large-v3-turbo.bin",
             sizeLabel: "1.6 GB",
             downloadSizeBytes: 1_624_555_275,
+            trustedFileHeader: Data(hexString: "6c6d67679aca0000dc050000000500001400000020000000c0010000000500001400000004000000800000000100000080000000c90000000000008043bc4a3c")!,
             downloadURL: URL(string: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin")!,
             isBundled: false
         ),
@@ -289,4 +376,20 @@ public struct WhisperModelInfo: Identifiable, Codable, Hashable, Sendable {
             engine: .parakeetV3
         ),
     ]
+}
+
+private extension Data {
+    init?(hexString: String) {
+        guard hexString.count.isMultiple(of: 2) else { return nil }
+        var bytes: [UInt8] = []
+        bytes.reserveCapacity(hexString.count / 2)
+        var index = hexString.startIndex
+        while index < hexString.endIndex {
+            let nextIndex = hexString.index(index, offsetBy: 2)
+            guard let byte = UInt8(hexString[index..<nextIndex], radix: 16) else { return nil }
+            bytes.append(byte)
+            index = nextIndex
+        }
+        self.init(bytes)
+    }
 }

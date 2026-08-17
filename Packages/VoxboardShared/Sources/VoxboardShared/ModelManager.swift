@@ -106,13 +106,76 @@ public final class ModelManager {
 
     public var downloadedModels: [WhisperModelInfo] {
         _ = installedModelsRevision
-        return WhisperModelInfo.availableModels.filter { $0.isDownloaded }
+        return WhisperModelInfo.availableModels.filter {
+            $0.installedModelAccess(defaults: settingsDefaults) != nil
+        }
     }
 
     public func isModelDownloaded(_ model: WhisperModelInfo) -> Bool {
         _ = installedModelsRevision
-        return model.isDownloaded
+        return model.installedModelAccess(defaults: settingsDefaults) != nil
     }
+
+    public func installationSource(for model: WhisperModelInfo) -> ModelInstallationSource? {
+        _ = installedModelsRevision
+        return model.installedModelAccess(defaults: settingsDefaults)?.source
+    }
+
+    #if os(macOS)
+    public func hasExternalModelReference(_ model: WhisperModelInfo) -> Bool {
+        ExternalModelBookmarkStore.hasBookmark(for: model.id, defaults: settingsDefaults)
+    }
+
+    /// Authorizes and selects a compatible model already stored elsewhere on
+    /// this Mac. The model remains in place; Vox.md persists only a
+    /// security-scoped bookmark.
+    @discardableResult
+    public func useExistingModel(_ model: WhisperModelInfo, at url: URL) -> Bool {
+        modelOperationError = nil
+        let selectedURL = url.standardizedFileURL
+        let didAccess = selectedURL.startAccessingSecurityScopedResource()
+        defer {
+            if didAccess { selectedURL.stopAccessingSecurityScopedResource() }
+        }
+
+        guard model.isValidInstallation(at: selectedURL) else {
+            let expectedItem = model.engine.isParakeet
+                ? "the compiled \(model.name) model folder"
+                : "a complete \(model.name) GGML .bin file"
+            modelOperationError = "That location is not \(expectedItem). Choose the existing model that matches this row."
+            return false
+        }
+
+        do {
+            try ExternalModelBookmarkStore.save(
+                url: selectedURL,
+                for: model.id,
+                defaults: settingsDefaults
+            )
+        } catch {
+            modelOperationError = "Could not remember the existing \(model.name) model: \(error.localizedDescription)"
+            return false
+        }
+
+        installedModelsRevision &+= 1
+        selectModel(model)
+        return true
+    }
+
+    /// Stops using an external model without deleting the user's file or
+    /// directory. An app-managed copy, when present, becomes active again.
+    @discardableResult
+    public func forgetExternalModel(_ model: WhisperModelInfo) -> Bool {
+        modelOperationError = nil
+        ExternalModelBookmarkStore.removeBookmark(for: model.id, defaults: settingsDefaults)
+        if selectedModelId == model.id,
+           model.installedModelAccess(defaults: settingsDefaults) == nil {
+            selectedModelId = AppConstants.defaultTranscriptionBackendID
+        }
+        installedModelsRevision &+= 1
+        return true
+    }
+    #endif
 
     public func downloadState(for modelID: String) -> ModelDownloadState? {
         downloadStates[modelID]
@@ -312,7 +375,8 @@ public final class ModelManager {
                 response: result.response,
                 stagingURL: result.fileURL,
                 destinationURL: destinationURL,
-                expectedByteCount: expectedByteCount
+                expectedByteCount: expectedByteCount,
+                expectedHeader: model.trustedFileHeader
             )
 
             print("[ModelManager] Downloaded \(model.name) successfully")
@@ -623,6 +687,13 @@ public final class ModelManager {
     @discardableResult
     public func deleteModel(_ model: WhisperModelInfo) -> Bool {
         modelOperationError = nil
+
+        #if os(macOS)
+        if installationSource(for: model) == .external {
+            return forgetExternalModel(model)
+        }
+        #endif
+
         guard let url = model.localURL else {
             modelOperationError = "The model storage location is unavailable."
             return false

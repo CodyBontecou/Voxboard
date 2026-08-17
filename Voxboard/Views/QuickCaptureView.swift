@@ -801,6 +801,13 @@ struct QuickCaptureView: View {
                             .font(Geist.caption())
                     }
                     .foregroundStyle(Geist.muted)
+
+                    if let reason = persistentRecorder.lastSpeakerDiarizationSkipReason {
+                        Label(reason.displayText, systemImage: "exclamationmark.triangle")
+                            .font(Geist.caption(.caption2))
+                            .foregroundStyle(Geist.error)
+                            .accessibilityIdentifier("speaker_diarization_skip_reason")
+                    }
                 }
             }
             .padding(Geist.Spacing.three)
@@ -2056,6 +2063,7 @@ struct QuickCaptureView: View {
             persistentRecorder.lastTranscriptionResult = nil
             _ = persistentRecorder.importAudioFile(
                 from: url,
+                flowId: selectedFlow.id,
                 completionMode: selectedRecordingCompletionMode,
                 draftRequestID: recordingMode == .draft ? viewModel.draft.requestID : nil
             )

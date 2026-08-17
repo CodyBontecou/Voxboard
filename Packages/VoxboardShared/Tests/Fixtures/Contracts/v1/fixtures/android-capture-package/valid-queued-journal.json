@@ -7,13 +7,14 @@
       "code": "enqueued",
       "fromState": null,
       "occurredAtEpochMillis": 1700000000000,
+      "planHash": null,
       "receiptID": null,
       "resumeState": null,
       "revision": 0,
       "state": "queued"
     }
   ],
-  "journalVersion": 1,
+  "journalVersion": 2,
   "packageVersion": 1,
   "requestByteCount": 1753,
   "requestContractVersion": 1,

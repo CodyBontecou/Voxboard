@@ -161,6 +161,9 @@ struct MacCaptureDestinationEditor: View {
                         Text("Suffix").font(.caption).foregroundStyle(.secondary)
                         TextEditor(text: $suffix).frame(minHeight: 60).disabled(templateID != nil)
                     }
+                    Text("Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, and {location}.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     TextField("Attachments Folder", text: $attachmentsFolder)
                 }
                 Section("Delivery") {

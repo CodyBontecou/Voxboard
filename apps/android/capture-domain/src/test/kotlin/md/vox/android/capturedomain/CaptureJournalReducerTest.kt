@@ -7,17 +7,30 @@ import org.junit.Test
 class CaptureJournalReducerTest {
     private val requestID = "11111111-1111-4111-8111-111111111111"
 
+    private val planHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
     @Test fun allStateCodePairsMatchTheGovernedGraph() {
         val resumes = mapOf(CaptureState.PREPARING to CaptureState.PREPARING, CaptureState.MATERIALIZED to CaptureState.MATERIALIZED, CaptureState.COMMITTING to CaptureState.COMMITTING, CaptureState.UNKNOWN_OUTCOME to CaptureState.COMMITTING)
         for (from in CaptureState.entries) for (to in CaptureState.entries) for (code in JournalCode.entries) {
             val priorResume = if (from == CaptureState.NEEDS_PERMISSION) CaptureState.MATERIALIZED else null
-            val prior = JournalSnapshot(requestID, 0, from, priorResume, listOf(seed(from, priorResume)))
+            val seedEvents = if (from == CaptureState.MATERIALIZED || from == CaptureState.COMMITTING || from == CaptureState.UNKNOWN_OUTCOME) {
+                materializedSeed(from)
+            } else listOf(seed(from, priorResume))
+            val prior = JournalSnapshot(requestID, 0, from, priorResume, seedEvents)
             val resume = if (to == CaptureState.NEEDS_PERMISSION) resumes[from] else null
             val receipt = if (to == CaptureState.COMPLETED) "22222222-2222-4222-8222-222222222222" else null
-            val result = CaptureJournalReducer.reduce(requestID, prior, JournalEvent(1, from, to, code, 2, resume, receipt))
+            val eventPlanHash = if (code == JournalCode.MATERIALIZED || code == JournalCode.COMMIT_STARTED) planHash else null
+            val result = CaptureJournalReducer.reduce(requestID, prior, JournalEvent(1, from, to, code, 2, resume, receipt, eventPlanHash))
             val expected = legal(from, to, code, priorResume)
             assertEquals("$from->$to/$code", expected, result is JournalReduction.Accepted)
         }
+    }
+
+    /** A MATERIALIZED/COMMITTING/UNKNOWN_OUTCOME prior carries a real materialized history with its plan hash. */
+    private fun materializedSeed(state: CaptureState): List<JournalEvent> = buildList {
+        add(JournalEvent(0, null, CaptureState.PREPARING, JournalCode.PREPARATION_STARTED, 1))
+        add(JournalEvent(1, CaptureState.PREPARING, CaptureState.MATERIALIZED, JournalCode.MATERIALIZED, 2, planHash = planHash))
+        if (state != CaptureState.MATERIALIZED) add(JournalEvent(2, CaptureState.MATERIALIZED, CaptureState.COMMITTING, JournalCode.COMMIT_STARTED, 3, planHash = planHash))
     }
 
     @Test fun initialAndFrontierBoundsFailClosed() {

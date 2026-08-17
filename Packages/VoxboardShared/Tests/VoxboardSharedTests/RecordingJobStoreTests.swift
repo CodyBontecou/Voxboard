@@ -3,6 +3,92 @@ import XCTest
 @testable import VoxboardShared
 
 final class RecordingJobStoreTests: XCTestCase {
+    func test_draftVoiceProcessingConfigurationPersistsAndPresetDeliveryDerivesImmutablePolicy() async throws {
+        let fixture = try makeFixture()
+        defer { fixture.cleanup() }
+        let source = try fixture.makeAudio(named: "draft-voice.wav")
+        let configuration = RecordingVoiceProcessingConfiguration(
+            presetID: "meeting",
+            speakerDiarizationEnabled: true
+        )
+        let job = try await fixture.store.enqueue(
+            sourceURL: source,
+            duration: 5,
+            source: .importedAudio,
+            delivery: .captureDraft(attachAudio: false),
+            voiceProcessingConfiguration: configuration,
+            modelID: "automatic",
+            language: "auto",
+            configuration: .default
+        )
+        let loadedJob = try await fixture.store.job(id: job.id)
+        let reloaded = try XCTUnwrap(loadedJob)
+        XCTAssertEqual(reloaded.delivery, .captureDraft(attachAudio: false))
+        XCTAssertEqual(reloaded.effectiveVoiceProcessingConfiguration, configuration)
+
+        var preset = CapturePreset(id: "preset", name: "Meeting", symbolName: "mic")
+        preset.speakerDiarizationEnabled = true
+        let presetJob = RecordingJob(
+            audioFilename: "preset.wav",
+            duration: 1,
+            source: .iOSApp,
+            delivery: .preset(preset),
+            modelID: "automatic",
+            language: "auto",
+            retentionPolicy: .deleteAfterSuccess,
+            processingPolicy: .manual
+        )
+        preset.speakerDiarizationEnabled = false
+        XCTAssertEqual(
+            presetJob.effectiveVoiceProcessingConfiguration,
+            RecordingVoiceProcessingConfiguration(
+                presetID: "preset",
+                speakerDiarizationEnabled: true
+            )
+        )
+    }
+
+    func test_legacyJobAndHandoffWithoutVoiceConfigurationDecodeAsNil() throws {
+        let handoff = RecordingJobHandoffIntent(
+            audioFilename: "legacy.wav",
+            duration: 1,
+            source: .importedAudio,
+            delivery: .captureDraft(attachAudio: false),
+            modelID: "automatic",
+            language: "auto",
+            configuration: .default
+        )
+        var handoffObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(handoff)) as? [String: Any]
+        )
+        handoffObject.removeValue(forKey: "voiceProcessingConfiguration")
+        let legacyHandoff = try JSONDecoder().decode(
+            RecordingJobHandoffIntent.self,
+            from: JSONSerialization.data(withJSONObject: handoffObject)
+        )
+        XCTAssertNil(legacyHandoff.voiceProcessingConfiguration)
+
+        let job = RecordingJob(
+            audioFilename: "legacy.wav",
+            duration: 1,
+            source: .importedAudio,
+            delivery: .captureDraft(attachAudio: false),
+            modelID: "automatic",
+            language: "auto",
+            retentionPolicy: .deleteAfterSuccess,
+            processingPolicy: .manual
+        )
+        var jobObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(job)) as? [String: Any]
+        )
+        jobObject.removeValue(forKey: "voiceProcessingConfiguration")
+        let legacyJob = try JSONDecoder().decode(
+            RecordingJob.self,
+            from: JSONSerialization.data(withJSONObject: jobObject)
+        )
+        XCTAssertNil(legacyJob.voiceProcessingConfiguration)
+    }
+
     func test_enqueuePersistsOriginBoundMetadataWithoutReacquisition() async throws {
         let fixture = try makeFixture()
         defer { fixture.cleanup() }
@@ -200,10 +286,17 @@ final class RecordingJobStoreTests: XCTestCase {
         XCTAssertEqual(explicitlyClaimed.id, manual.id)
     }
 
-    func test_deliveryCheckpointsSurviveFailureAndRetry() async throws {
+    func test_deliveryCheckpointsAndDraftVoicePolicySurviveFailureAndRetry() async throws {
         let fixture = try makeFixture()
         defer { fixture.cleanup() }
-        let job = try await fixture.enqueue()
+        let voiceConfiguration = RecordingVoiceProcessingConfiguration(
+            presetID: "meeting",
+            speakerDiarizationEnabled: true
+        )
+        let job = try await fixture.enqueue(
+            delivery: .captureDraft(attachAudio: false),
+            voiceProcessingConfiguration: voiceConfiguration
+        )
         _ = try await fixture.store.claim(id: job.id)
         _ = try await fixture.store.markExportedNote(id: job.id, path: "/tmp/note.md")
         _ = try await fixture.store.markExportedAudio(id: job.id, path: "/tmp/note.m4a")
@@ -219,6 +312,8 @@ final class RecordingJobStoreTests: XCTestCase {
         XCTAssertEqual(retried.exportedNotePath, "/tmp/note.md")
         XCTAssertEqual(retried.exportedAudioPath, "/tmp/note.m4a")
         XCTAssertNotNil(retried.automaticClipboardDeliveryAttemptedAt)
+        XCTAssertEqual(retried.delivery, .captureDraft(attachAudio: false))
+        XCTAssertEqual(retried.voiceProcessingConfiguration, voiceConfiguration)
     }
 
     func test_repairedAudioCheckpointInvalidatesPriorReferenceCheckpoint() async throws {
@@ -654,7 +749,10 @@ final class RecordingJobStoreTests: XCTestCase {
         let sessionID = UUID()
         let attemptedAt = Date(timeIntervalSince1970: 1_700_000_000)
         let outcome = CaptureLocationOutcome.unavailable(.timeout, attemptedAt: attemptedAt)
-        let preset = CapturePreset(id: "handoff-preset", name: "Handoff", symbolName: "mic")
+        let voiceConfiguration = RecordingVoiceProcessingConfiguration(
+            presetID: "handoff-preset",
+            speakerDiarizationEnabled: true
+        )
         let intent = RecordingJobHandoffIntent(
             jobID: jobID,
             audioFilename: sourceURL.lastPathComponent,
@@ -665,7 +763,8 @@ final class RecordingJobStoreTests: XCTestCase {
             locationOutcome: outcome,
             duration: 12,
             source: .importedAudio,
-            delivery: .preset(preset),
+            delivery: .captureDraft(attachAudio: false),
+            voiceProcessingConfiguration: voiceConfiguration,
             modelID: "automatic",
             fallbackModelID: "fallback",
             language: "fr",
@@ -687,7 +786,8 @@ final class RecordingJobStoreTests: XCTestCase {
         XCTAssertEqual(job.liveSessionID, sessionID)
         XCTAssertEqual(job.captureSource, .fileImport)
         XCTAssertEqual(job.locationOutcome, outcome)
-        XCTAssertEqual(job.delivery, .preset(preset))
+        XCTAssertEqual(job.delivery, .captureDraft(attachAudio: false))
+        XCTAssertEqual(job.voiceProcessingConfiguration, voiceConfiguration)
         XCTAssertEqual(job.modelID, "automatic")
         XCTAssertEqual(job.fallbackModelID, "fallback")
         XCTAssertEqual(job.language, "fr")
@@ -1082,7 +1182,9 @@ private struct RecordingJobStoreFixture {
     func enqueue(
         createdAt: Date = Date(),
         retention: SourceAudioRetentionPolicy = .deleteAfterSuccess,
-        processing: RecordingJobProcessingPolicy = .immediate
+        processing: RecordingJobProcessingPolicy = .immediate,
+        delivery: RecordingJobDelivery = .clipboard,
+        voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration? = nil
     ) async throws -> RecordingJob {
         let sourceURL = try makeAudio()
         return try await store.enqueue(
@@ -1090,7 +1192,8 @@ private struct RecordingJobStoreFixture {
             createdAt: createdAt,
             duration: 5,
             source: .macApp,
-            delivery: .clipboard,
+            delivery: delivery,
+            voiceProcessingConfiguration: voiceProcessingConfiguration,
             modelID: "ggml-base",
             language: "auto",
             configuration: RecordingQueueConfiguration(

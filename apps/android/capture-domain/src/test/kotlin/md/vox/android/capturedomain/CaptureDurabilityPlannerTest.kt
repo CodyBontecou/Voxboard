@@ -34,8 +34,8 @@ class CaptureDurabilityPlannerTest {
         var committing: JournalSnapshot? = null
         committing = reduce(committing, JournalEvent(0, null, CaptureState.QUEUED, JournalCode.ENQUEUED, 0))
         committing = reduce(committing, JournalEvent(1, CaptureState.QUEUED, CaptureState.PREPARING, JournalCode.PREPARATION_STARTED, 1))
-        committing = reduce(committing, JournalEvent(2, CaptureState.PREPARING, CaptureState.MATERIALIZED, JournalCode.MATERIALIZED, 2))
-        committing = reduce(committing, JournalEvent(3, CaptureState.MATERIALIZED, CaptureState.COMMITTING, JournalCode.COMMIT_STARTED, 3))
+        committing = reduce(committing, JournalEvent(2, CaptureState.PREPARING, CaptureState.MATERIALIZED, JournalCode.MATERIALIZED, 2, planHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
+        committing = reduce(committing, JournalEvent(3, CaptureState.MATERIALIZED, CaptureState.COMMITTING, JournalCode.COMMIT_STARTED, 3, planHash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
         val completed = reduce(committing, JournalEvent(4, CaptureState.COMMITTING, CaptureState.COMPLETED, JournalCode.VERIFIED_COMMITTED, 4, receiptID = first))
         assertEquals(OrphanReservationDisposition.RETAIN, OrphanReservationPlanner.classify(completed))
         val ambiguous = reduce(committing, JournalEvent(4, CaptureState.COMMITTING, CaptureState.UNKNOWN_OUTCOME, JournalCode.COMMIT_AMBIGUOUS, 4))

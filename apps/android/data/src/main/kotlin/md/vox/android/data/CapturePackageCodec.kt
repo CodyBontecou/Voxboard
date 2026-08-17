@@ -68,7 +68,7 @@ object CapturePackageCodec {
         if (replay != snapshot) fail("snapshotFrontierMismatch")
         return canonical(JsonObject(sortedMapOf(
             "assetManifestByteCount" to JsonPrimitive(assetBytes.size), "assetManifestSHA256" to JsonPrimitive(sha256(assetBytes)), "assetManifestVersion" to JsonPrimitive(1),
-            "events" to JsonArray(snapshot.events.map(::eventJson)), "journalVersion" to JsonPrimitive(1), "packageVersion" to JsonPrimitive(1),
+            "events" to JsonArray(snapshot.events.map(::eventJson)), "journalVersion" to JsonPrimitive(2), "packageVersion" to JsonPrimitive(1),
             "requestByteCount" to JsonPrimitive(requestBytes.size), "requestID" to JsonPrimitive(snapshot.requestID), "requestSHA256" to JsonPrimitive(sha256(requestBytes)), "requestContractVersion" to JsonPrimitive(1),
         )))
     }
@@ -76,7 +76,7 @@ object CapturePackageCodec {
     fun decodeJournal(bytes: ByteArray): DecodedJournal {
         val obj = parseCanonical(bytes)
         exactKeys(obj, setOf("assetManifestByteCount", "assetManifestSHA256", "assetManifestVersion", "events", "journalVersion", "packageVersion", "requestByteCount", "requestID", "requestSHA256", "requestContractVersion"))
-        if (integer(obj, "journalVersion") != 1L) fail("journalVersion")
+        if (integer(obj, "journalVersion") != 2L) fail("journalVersion")
         val binding = JournalBinding(integer(obj, "packageVersion").toInt(), integer(obj, "requestContractVersion").toInt(), integer(obj, "assetManifestVersion").toInt(), integer(obj, "requestByteCount"), string(obj, "requestSHA256"), integer(obj, "assetManifestByteCount"), string(obj, "assetManifestSHA256"))
         if (binding.packageVersion != 1 || binding.requestContractVersion != 1 || binding.assetManifestVersion != 1) fail("bindingVersion")
         if (binding.requestByteCount !in 1..CONTROL_LIMIT_BYTES.toLong() || binding.assetManifestByteCount !in 1..CONTROL_LIMIT_BYTES.toLong()) fail("bindingBounds")
@@ -187,14 +187,15 @@ object CapturePackageCodec {
         val maximum = if (allow32) 32 else 31; if (value.size > maximum) fail("pathBounds")
         value.forEach { raw -> val segment = (raw as? JsonPrimitive)?.takeIf { it.isString }?.content ?: fail("fieldType"); if (codePoints(segment) !in 1..255 || segment in setOf(".", "..") || segment.any { it == '/' || it == '\\' || it == '\u0000' }) fail("unsafePath") }
     }
-    private fun eventJson(event: JournalEvent) = JsonObject(sortedMapOf("code" to JsonPrimitive(event.code.wire()), "fromState" to (event.fromState?.let { JsonPrimitive(it.wire()) } ?: JsonNull), "occurredAtEpochMillis" to JsonPrimitive(event.occurredAtEpochMillis), "receiptID" to (event.receiptID?.let { JsonPrimitive(it) } ?: JsonNull), "resumeState" to (event.resumeState?.let { JsonPrimitive(it.wire()) } ?: JsonNull), "revision" to JsonPrimitive(event.revision), "state" to JsonPrimitive(event.state.wire())))
+    private fun eventJson(event: JournalEvent) = JsonObject(sortedMapOf("code" to JsonPrimitive(event.code.wire()), "fromState" to (event.fromState?.let { JsonPrimitive(it.wire()) } ?: JsonNull), "occurredAtEpochMillis" to JsonPrimitive(event.occurredAtEpochMillis), "planHash" to (event.planHash?.let { JsonPrimitive(it) } ?: JsonNull), "receiptID" to (event.receiptID?.let { JsonPrimitive(it) } ?: JsonNull), "resumeState" to (event.resumeState?.let { JsonPrimitive(it.wire()) } ?: JsonNull), "revision" to JsonPrimitive(event.revision), "state" to JsonPrimitive(event.state.wire())))
     private fun decodeEvent(obj: JsonObject): JournalEvent {
-        exactKeys(obj, setOf("code", "fromState", "occurredAtEpochMillis", "receiptID", "resumeState", "revision", "state"))
+        exactKeys(obj, setOf("code", "fromState", "occurredAtEpochMillis", "planHash", "receiptID", "resumeState", "revision", "state"))
         fun optionalState(key: String): CaptureState? = if (obj[key] is JsonNull) null else state(string(obj, key))
         fun optionalUUID(key: String): String? = if (obj[key] is JsonNull) null else string(obj, key).also(::requireUUID)
+        fun optionalSha(key: String): String? = if (obj[key] is JsonNull) null else string(obj, key).also(::requireSha)
         val revision = integer(obj, "revision")
         if (revision !in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) fail("revisionBounds")
-        return JournalEvent(revision.toInt(), optionalState("fromState"), state(string(obj, "state")), code(string(obj, "code")), integer(obj, "occurredAtEpochMillis"), optionalState("resumeState"), optionalUUID("receiptID"))
+        return JournalEvent(revision.toInt(), optionalState("fromState"), state(string(obj, "state")), code(string(obj, "code")), integer(obj, "occurredAtEpochMillis"), optionalState("resumeState"), optionalUUID("receiptID"), optionalSha("planHash"))
     }
     private fun exactKeys(obj: JsonObject, expected: Set<String>) { if (obj.keys != expected) fail("unknownOrMissingField") }
     private fun string(obj: JsonObject, key: String) = (obj[key] as? JsonPrimitive)?.takeIf { it.isString }?.content ?: fail("fieldType")
@@ -206,6 +207,58 @@ object CapturePackageCodec {
     private fun objectValue(obj: JsonObject, key: String) = obj[key] as? JsonObject ?: fail("fieldType")
     private fun requireUUID(value: String) { if (!UUID_PATTERN.matches(value)) fail("uuid") }
     private fun requireSha(value: String) { if (!SHA_PATTERN.matches(value)) fail("sha256") }
+
+    /** Canonical commit-attempt marker bytes (ADR-0023 §4). */
+    fun encodeMarker(marker: CommitMarker): ByteArray = canonical(JsonObject(sortedMapOf(
+            "candidateDisplayName" to JsonPrimitive(marker.candidateDisplayName),
+            "destinationID" to JsonPrimitive(marker.destinationID),
+            "markerState" to JsonPrimitive(marker.state.name.lowercase()),
+            "planHash" to JsonPrimitive(marker.planHash),
+            "recordedAtEpochMillis" to JsonPrimitive(marker.recordedAtEpochMillis),
+            "schemaVersion" to JsonPrimitive(1),
+        )))
+
+    fun decodeMarker(bytes: ByteArray): CommitMarker {
+        val obj = parseCanonical(bytes)
+        exactKeys(obj, setOf("candidateDisplayName", "destinationID", "markerState", "planHash", "recordedAtEpochMillis", "schemaVersion"))
+        if (integer(obj, "schemaVersion") != 1L) fail("markerSchemaVersion")
+        if (integer(obj, "recordedAtEpochMillis") < 0) fail("markerTimestamp")
+        val markerState = when (string(obj, "markerState")) {
+            "active" -> CommitMarker.MarkerState.ACTIVE
+            "cleared" -> CommitMarker.MarkerState.CLEARED
+            else -> return fail("markerState")
+        }
+        return try {
+            CommitMarker.validated(markerState, string(obj, "destinationID"), string(obj, "planHash"), string(obj, "candidateDisplayName"), integer(obj, "recordedAtEpochMillis"))
+        } catch (_: IllegalArgumentException) { fail("markerBounds") }
+    }
+
+    /** Canonical verified-commit receipt bytes (ADR-0023 §5). */
+    fun encodeReceipt(receipt: DeliveryReceipt): ByteArray = canonical(JsonObject(sortedMapOf(
+        "artifactID" to JsonPrimitive(receipt.artifactID),
+        "committedAtEpochMillis" to JsonPrimitive(receipt.committedAtEpochMillis),
+        "destinationID" to JsonPrimitive(receipt.destinationID),
+        "operationID" to JsonPrimitive(receipt.operationID),
+        "planHash" to JsonPrimitive(receipt.planHash),
+        "receiptID" to JsonPrimitive(receipt.receiptID),
+        "requestID" to JsonPrimitive(receipt.requestID),
+        "schemaVersion" to JsonPrimitive(1),
+        "verifiedLengthBytes" to JsonPrimitive(receipt.verifiedLengthBytes),
+        "verifiedSHA256" to JsonPrimitive(receipt.verifiedSHA256),
+    )))
+
+    fun decodeReceipt(bytes: ByteArray): DeliveryReceipt {
+        val obj = parseCanonical(bytes)
+        exactKeys(obj, setOf("artifactID", "committedAtEpochMillis", "destinationID", "operationID", "planHash", "receiptID", "requestID", "schemaVersion", "verifiedLengthBytes", "verifiedSHA256"))
+        if (integer(obj, "schemaVersion") != 1L) fail("receiptSchemaVersion")
+        return try {
+            DeliveryReceipt.validated(
+                string(obj, "receiptID"), string(obj, "requestID"), string(obj, "operationID"), string(obj, "artifactID"),
+                string(obj, "planHash"), string(obj, "destinationID"),
+                integer(obj, "verifiedLengthBytes"), string(obj, "verifiedSHA256"), integer(obj, "committedAtEpochMillis"),
+            )
+        } catch (_: IllegalArgumentException) { fail("receiptBounds") }
+    }
     private fun state(value: String) = CaptureState.entries.firstOrNull { it.wire() == value } ?: fail("state")
     private fun code(value: String) = JournalCode.entries.firstOrNull { it.wire() == value } ?: fail("code")
     private fun fail(code: String): Nothing = throw PackageCodecException(code)
