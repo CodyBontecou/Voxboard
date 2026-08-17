@@ -19,6 +19,12 @@ hyphenated. Arrays retain contract order and nullable values remain explicit.
   `{"kind":kind,"logicalPath":logicalPath,"operationID":operationID}`.
 - `preparedStreamID`: domain `vox.stream.v1`; preimage
   `{"artifactID":artifactID,"resultLength":resultLength,"resultSHA256":resultSHA256}`.
+- `receiptID`: domain `vox.receipt.v1`; preimage
+  `{"artifactID":artifactID,"operationID":operationID,"requestID":requestID}`.
+  Receipt IDs are derived by the native platform executor only (receipts are native-owned
+  per ADR-0018/ADR-0023 and never appear in plan JSON); the same derivation is authoritative
+  for the journal `verifiedCommitted` `receiptID` payload and the append-only
+  `receipts/<receipt-id>.json` package entry.
 
 `planHash` is lowercase SHA-256 of canonical plan JSON after replacing `planHash` with
 64 lowercase zeroes. It includes all final deterministic IDs, descriptors, warnings, and

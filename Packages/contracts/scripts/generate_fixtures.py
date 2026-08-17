@@ -182,11 +182,11 @@ dump('capture-preparation-input','valid-android-m3-text-link.json',m3)
 # Android package envelopes are all derived here from the exact governed request/assets bytes.
 assets={'assetCount':0,'assets':[],'requestID':U[0],'schemaVersion':1}
 request_bytes=canonical_bytes(m3); asset_bytes=canonical_bytes(assets)
-def je(revision,from_state,state,code,receipt=None,resume=None):
- return {'code':code,'fromState':from_state,'occurredAtEpochMillis':1700000000000+revision,'receiptID':receipt,'resumeState':resume,'revision':revision,'state':state}
+def je(revision,from_state,state,code,receipt=None,resume=None,plan_hash=None):
+ return {'code':code,'fromState':from_state,'occurredAtEpochMillis':1700000000000+revision,'planHash':plan_hash,'receiptID':receipt,'resumeState':resume,'revision':revision,'state':state}
 def journal(events):
- return {'assetManifestByteCount':len(asset_bytes),'assetManifestSHA256':hashlib.sha256(asset_bytes).hexdigest(),'assetManifestVersion':1,'events':events,'journalVersion':1,'packageVersion':1,'requestByteCount':len(request_bytes),'requestID':U[0],'requestSHA256':hashlib.sha256(request_bytes).hexdigest(),'requestContractVersion':1}
-valid_events=[je(0,None,'queued','enqueued'),je(1,'queued','preparing','preparationStarted'),je(2,'preparing','materialized','materialized'),je(3,'materialized','committing','commitStarted'),je(4,'committing','unknownOutcome','commitAmbiguous'),je(5,'unknownOutcome','completed','verifiedCommitted',U[6])]
+ return {'assetManifestByteCount':len(asset_bytes),'assetManifestSHA256':hashlib.sha256(asset_bytes).hexdigest(),'assetManifestVersion':1,'events':events,'journalVersion':2,'packageVersion':1,'requestByteCount':len(request_bytes),'requestID':U[0],'requestSHA256':hashlib.sha256(request_bytes).hexdigest(),'requestContractVersion':1}
+valid_events=[je(0,None,'queued','enqueued'),je(1,'queued','preparing','preparationStarted'),je(2,'preparing','materialized','materialized',plan_hash=H[0]),je(3,'materialized','committing','commitStarted',plan_hash=H[0]),je(4,'committing','unknownOutcome','commitAmbiguous'),je(5,'unknownOutcome','completed','verifiedCommitted',U[6])]
 dump('android-capture-package','valid-assets.json',assets)
 dump('android-capture-package','valid-queued-journal.json',journal(valid_events[:1]))
 dump('android-capture-package','valid-journal.json',journal(valid_events))
@@ -194,3 +194,8 @@ x=copy.deepcopy(assets);x['schemaVersion']=2;dump('android-capture-package','inv
 dump('android-capture-package','invalid-transition.json',journal([valid_events[0],je(1,'queued','completed','verifiedCommitted',U[6])]))
 dump('android-capture-package','invalid-terminal-successor.json',journal(valid_events+[je(6,'completed','discarded','userDiscarded')]))
 dump('android-capture-package','invalid-materialized-self-transition.json',journal(valid_events[:3]+[je(3,'materialized','materialized','materialized')]))
+dump('android-capture-package','invalid-planhash-missing.json',journal([je(0,None,'queued','enqueued'),je(1,'queued','preparing','preparationStarted'),je(2,'preparing','materialized','materialized'),je(3,'materialized','committing','commitStarted',plan_hash=H[0])]))
+dump('android-capture-package','invalid-planhash-mismatch.json',journal(valid_events[:2]+[je(2,'preparing','materialized','materialized',plan_hash=H[0]),je(3,'materialized','committing','commitStarted',plan_hash=H[1])]))
+dump('android-capture-package','invalid-planhash-unexpected.json',journal([je(0,None,'queued','enqueued',plan_hash=H[0])]))
+receipt={'artifactID':plan['artifacts'][1]['artifactID'],'operationID':plan['artifacts'][1]['operationID'],'receiptID':uuid5_bytes('vox.receipt.v1',{'artifactID':plan['artifacts'][1]['artifactID'],'operationID':plan['artifacts'][1]['operationID'],'requestID':U[0]}),'requestID':U[0],'schemaVersion':1}
+dump('artifact-plan','valid-receipt-derivation.json',receipt)

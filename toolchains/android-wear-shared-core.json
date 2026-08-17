@@ -346,27 +346,35 @@
     },
     {
       "path": "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/DurableCapture.kt",
-      "sha256": "2ab092445532df19b2f7229f8c02408ab63853587782ce518aa7632c334c8f78"
+      "sha256": "3dd4b1cadd209f7fca549d6f6908db8660e35f338e3160e705044ea2cd1b991f"
     },
     {
       "path": "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/CaptureDurability.kt",
-      "sha256": "dde110281950493a3c47b25009a1a2dc4620949eb47bb61631f5d6f5388a8e44"
+      "sha256": "832218cf89cc5539761a3d250f3a6568e50144bc439156c3a2a179aa4eeef893"
+    },
+    {
+      "path": "apps/android/capture-domain/src/main/kotlin/md/vox/android/capturedomain/CaptureDelivery.kt",
+      "sha256": "ad096217cbe064223c431b7653b4466ba8a4a389811d1c91ccd8b8f4c6425afe"
     },
     {
       "path": "apps/android/capture-domain/src/test/kotlin/md/vox/android/capturedomain/CaptureJournalReducerTest.kt",
-      "sha256": "55c5eb7638381fd6f12e8a408830d43864b405cb886db9cfaa33a6c9c2d1cfa8"
+      "sha256": "1e44b5df91a156440f2d8bd1e0c7c776f58112cc1478142de7d0eb963e210b47"
     },
     {
       "path": "apps/android/capture-domain/src/test/kotlin/md/vox/android/capturedomain/CaptureDurabilityPlannerTest.kt",
-      "sha256": "83432a7d6752bf30a2698fefe991c44086f27bfb2b1a31712e8fd32668350e7f"
+      "sha256": "9850b81550b7b99e210449f868c155ed4282639fad153fa844c5335bd21505c1"
+    },
+    {
+      "path": "apps/android/capture-domain/src/test/kotlin/md/vox/android/capturedomain/CaptureDeliveryTest.kt",
+      "sha256": "525ed0f4c2f1c6387c4589c184586021b2d6b8e08f4ad508f9e82ccdafcf5bac"
     },
     {
       "path": "apps/android/data/src/main/kotlin/md/vox/android/data/CapturePackageCodec.kt",
-      "sha256": "38a057ec3dd2b8c1e2325b2c74e60638fbbe287e2474bbe400d4190c903f7d12"
+      "sha256": "13b8252e44af25253f84e6be14a6213dc9854ccadb0198afb2ceb6c077630235"
     },
     {
       "path": "apps/android/data/src/main/kotlin/md/vox/android/data/DurableCaptureStore.kt",
-      "sha256": "6e85802bf62cac8b5f437ca4de9620b50272d1bd703ccc67024d051bdcda0e39"
+      "sha256": "3f52903894ad83a51c582d2d24755948bb75b2ce2eaa81907219e51616de581f"
     },
     {
       "path": "apps/android/data/src/main/java/md/vox/android/data/CaptureProjectionEntity.java",
@@ -421,12 +429,44 @@
       "sha256": "c98e81092fe794ac7a92add0621d423c66b4955248f5c157e14d3f8b8af1bf01"
     },
     {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/CoreMaterializationCoordinator.kt",
+      "sha256": "62e04eed1efb30cfdb2151d9c9451ec69f82abe80e6501f099975209ea3070ae"
+    },
+    {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/SafDocumentsGateway.kt",
+      "sha256": "6f5fb349ffdb7890c349af42cb188bdd2e651aa00036056b5a647e8d7280719b"
+    },
+    {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/SafVaultCommitExecutor.kt",
+      "sha256": "ae56546753b5d04287e2f20f8ea6a6d43ba6be8e8c6785077d9e914a0a3107fd"
+    },
+    {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/SafCandidateOccupancy.kt",
+      "sha256": "fe2f56feb340794384f69cf7317bd2561612848c763bc17752b1a7dc03095739"
+    },
+    {
+      "path": "apps/android/data/src/main/kotlin/md/vox/android/data/PreparedPlanVerifier.kt",
+      "sha256": "4722ce62cfbc16a022452623d07aa81877f7b94cb30d1642754269b8c574ff52"
+    },
+    {
       "path": "apps/android/data/src/test/kotlin/md/vox/android/data/CapturePackageFixtureConsumerTest.kt",
       "sha256": "e12dbba3eea03c17aecd6dc81afd98004ee9cbf6e46519ff12d68c391d873e36"
     },
     {
       "path": "apps/android/data/src/test/kotlin/md/vox/android/data/DurableCapturePackageStoreTest.kt",
       "sha256": "68e66a9ad2d28b6ae65648a7e480248fb1c655d89a66dace99f6084abb7f6abe"
+    },
+    {
+      "path": "apps/android/data/src/test/kotlin/md/vox/android/data/DurableCaptureStorePhase5Test.kt",
+      "sha256": "0ba71077f649df2e8d3045f00e23fca4a81fb13b94ce0c166c90fc849f1533fe"
+    },
+    {
+      "path": "apps/android/data/src/test/kotlin/md/vox/android/data/SafVaultCommitExecutorTest.kt",
+      "sha256": "062555749f7cda6f264b9ef8f3382715183d65571b05c3b9a508c7792d08983c"
+    },
+    {
+      "path": "apps/android/data/src/test/kotlin/md/vox/android/data/CoreMaterializationCoordinatorTest.kt",
+      "sha256": "6a03e9fd61e946e86fbcd4d0c2af85b020efa0e2b618dcfb1b98466bb3e80a46"
     },
     {
       "path": "apps/android/data/src/androidTest/kotlin/md/vox/android/data/CaptureDatabaseInstrumentationTest.kt",

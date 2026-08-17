@@ -189,6 +189,42 @@ same four ABIs and validates ELF class/machine.
 A compiled instrumentation consumer calls generated build-info, readiness, and prepare with
 governed fixture assets.
 
+## Phase 5 implementation (prepared artifacts + SAF executor; local evidence pending)
+
+ADR-0023 (`adr-0023-android-prepared-saf-executor.md`) was oracle-approved (re-review after
+an initial REJECT) before implementation. Implemented in this phase:
+
+- Journal v2 (android-capture-package schema, codec, reducer): `planHash` binding on
+  `materialized`/`commitStarted` events, fail-closed against v1; governed fixtures and
+  mutation tests extended.
+- Governed `vox.receipt.v1` derivation domain in artifact-plan/v1 with a deterministic
+  receipt-derivation vector fixture, semantic validator check, and Kotlin implementation
+  matching the contract vector on the JVM.
+- capture-domain delivery semantics: deterministic UUIDv5 derivations, commit-attempt
+  marker, content-free delivery receipt, observation-attempt identities, bounded
+  validation, and the coarse commit-outcome taxonomy.
+- data module: `CoreMaterializationCoordinator` (the only control composer and session
+  driver), `PreparedPlanVerifier` (shared artifact-plan/v1 hash+ID recomputation),
+  `SafDocumentsGateway` (the only ContentResolver/DocumentsContract code; 30s watchdog;
+  type-level marker-token gate on create), `SafVaultCommitExecutor` (ADR-0019 precondition
+  order, marker lifecycle, reconciliation-only restart, receipt-before-append), staged
+  drain promotion into plan-hash-named append-only directories, state-gated package
+  inventory, marker/receipt persistence with state preconditions, and lease/CAS-bound
+  executor appends including `PROVED_NOT_COMMITTED` marker clearing.
+- Backup exclusion covers the whole `noBackupFilesDir` domain root (path='.'), which
+  structurally includes the marker and receipts inside `vox-captures/`.
+- JVM tests: reducer planHash rules, contract receipt vector, store Phase 5 persistence
+  and inventory fail-closed paths, executor taxonomy (verified/stale/permission/ambiguous/
+  proved-not-committed/reconciliation incl. duplicate and transformed), and coordinator
+  control composition against a Rust-shaped strict fake.
+- Instrumentation: a full on-device E2E (enqueue → real native materialization → provider
+  commit → verified receipt → COMPLETED) is compiled against the real local
+  DocumentsProvider; it has NOT yet executed on a target. Only grant revalidation is
+  substituted under shell identity; persisted-grant UX and non-local provider campaigns
+  remain open.
+
+No provider result, process-death campaign, or M3 exit is claimed by this section.
+
 ## Phase 4.1 first target-executed evidence
 
 On 2026-08-15 the instrumentation suites were executed on a physical Pixel 7
