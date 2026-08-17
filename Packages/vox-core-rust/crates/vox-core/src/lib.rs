@@ -850,6 +850,11 @@ pub fn render_tokens(
         ("{source}", source.to_owned()),
         ("{id}", id.clone()),
         ("{id8}", id[..8].to_owned()),
+        // Admitted requests always carry `location_outcome: notRequested` (the
+        // Swift oracle renders an empty string when no usable location exists),
+        // so the portable core must also collapse the token to nothing to keep
+        // entry-prefix bytes identical to the oracle.
+        ("{location}", String::new()),
     ];
     Ok(replacements
         .into_iter()
@@ -2129,6 +2134,20 @@ mod tests {
                     .all(|value| !error.to_string().contains(value))
             );
         }
+    }
+
+    #[test]
+    fn token_rendering_collapses_location_token_to_empty() {
+        let value = "📍 {location}-{date}";
+        let rendered = render_tokens(
+            value,
+            1_700_000_000_000,
+            "America/Los_Angeles",
+            Uuid::nil(),
+            "app",
+        )
+        .unwrap();
+        assert_eq!(rendered, "📍 -2023-11-14");
     }
 
     #[test]
