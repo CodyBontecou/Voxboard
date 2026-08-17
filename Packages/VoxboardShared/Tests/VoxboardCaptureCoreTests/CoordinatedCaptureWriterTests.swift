@@ -98,6 +98,24 @@ final class CoordinatedCaptureWriterTests: XCTestCase {
         XCTAssertTrue(content.contains("<!-- vox-capture:"))
     }
 
+    func test_coordinatedWritePersistsExactlyOneFinalLFWhenRequested() async throws {
+        let folder = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let file = folder.appendingPathComponent("Inbox.md")
+        let writer = CoordinatedCaptureWriter(coordinator: ProcessLocalCaptureFileCoordinator.shared)
+        let capture = MarkdownCaptureMutation(
+            requestID: UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE")!,
+            entry: "Captured\n\n",
+            placement: .append,
+            finalNewline: true
+        )
+
+        _ = try await writer.write(capture, to: file)
+
+        let bytes = try Data(contentsOf: file)
+        XCTAssertEqual(String(decoding: bytes, as: UTF8.self), "Captured\n")
+    }
+
     func test_defaultRetryAddsContentAgainWithoutMetadata() async throws {
         let folder = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: folder) }

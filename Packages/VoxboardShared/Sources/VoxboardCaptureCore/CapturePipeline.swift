@@ -102,6 +102,7 @@ public actor CapturePipeline {
     private let writer: any CaptureMutationWriting
     private let fileManager: FileManager
     private let deliveryAccounting: any CaptureDeliveryAccounting
+    private let enginePolicy: CaptureCoreEnginePolicy
 
     public init(
         pathPlanner: CapturePathPlanner = CapturePathPlanner(),
@@ -110,7 +111,8 @@ public actor CapturePipeline {
         templateRenderer: CaptureEntryTemplateRenderer? = nil,
         writer: any CaptureMutationWriting = CoordinatedCaptureWriter(),
         fileManager: FileManager = .default,
-        deliveryAccounting: any CaptureDeliveryAccounting = UnmeteredCaptureDeliveryAccounting()
+        deliveryAccounting: any CaptureDeliveryAccounting = UnmeteredCaptureDeliveryAccounting(),
+        enginePolicy: CaptureCoreEnginePolicy = .legacy
     ) {
         self.pathPlanner = pathPlanner
         self.renderer = renderer
@@ -120,6 +122,7 @@ public actor CapturePipeline {
         self.writer = writer
         self.fileManager = fileManager
         self.deliveryAccounting = deliveryAccounting
+        self.enginePolicy = enginePolicy
     }
 
     public func capture(
@@ -129,6 +132,20 @@ public actor CapturePipeline {
         assetRootURL: URL? = nil
     ) async throws -> CaptureReceipt {
         try Self.validateLocationDecision(in: request)
+        // Resolve one immutable operation-scoped engine route before acquiring the
+        // process gate or crossing quota/filesystem/attachment/success boundaries.
+        switch try await enginePolicy.route(
+            request: request,
+            destination: destination,
+            calendar: pathPlanner.calendar
+        ) {
+        case .legacy:
+            break
+        case .rustCommitBarrier:
+            // M2 exposes Rust authority only to tests and deliberately has no native
+            // commit executor. Never fall back to Swift after Rust was selected.
+            throw CaptureCoreEngineError.rustCommitNotPromoted
+        }
         await CapturePipelineGate.shared.acquire()
 
         let reservation: CaptureDeliveryReservation

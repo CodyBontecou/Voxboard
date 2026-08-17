@@ -1,22 +1,34 @@
 {
   "files": [
     {
-      "bytes": 2488,
+      "bytes": 2891,
       "category": "contractWorkflow",
       "path": ".github/workflows/contracts-ci.yml",
-      "sha256": "581f96928b931c74db1c55f1fc9fc7ddebe72af030a5087dd823268d22856967"
+      "sha256": "03af9650a195419722fb21295fb530ebad3f3918ddbc79e7d7f440ccc6712215"
     },
     {
-      "bytes": 2085,
+      "bytes": 2167,
       "category": "contractReadme",
       "path": "Packages/contracts/README.md",
-      "sha256": "37f73871c34574de6c6b18153bab3b3b966e30c8bd335625f5a3321925618e76"
+      "sha256": "7375b7994424f9c9538cfe2af1c1472e1327d204718eaf73b31a5a6e5edd85b3"
     },
     {
-      "bytes": 948,
+      "bytes": 566,
+      "category": "contractSource",
+      "path": "Packages/contracts/android-capture-package/v1/contract.md",
+      "sha256": "a06941fd2a201f3ecf66d2f613b15e534b805e865b32ed1223242a3d7330d9c5"
+    },
+    {
+      "bytes": 5346,
+      "category": "contractSource",
+      "path": "Packages/contracts/android-capture-package/v1/schema.json",
+      "sha256": "1c49aa8b998bb6c331eecc7855f61a47c0cd9d1e5f81f419e82b11202056f2fa"
+    },
+    {
+      "bytes": 2282,
       "category": "contractSource",
       "path": "Packages/contracts/artifact-plan/v1/contract.md",
-      "sha256": "2abb47f23807e1e93ac83c8f6b5f771c53c1f83cb7d8b34809763eb1cf6a3b7d"
+      "sha256": "ee9a737d0552b811c6c80b7dbfd597805b72e53606cd40f34848de565cc91b00"
     },
     {
       "bytes": 11847,
@@ -49,34 +61,88 @@
       "sha256": "c19b1dd5fa31ac616b568d0c0494c664f131b51d77d42292b6cdf993900d14f3"
     },
     {
+      "bytes": 1871,
+      "category": "contractSource",
+      "path": "Packages/contracts/core-api/v1/contract.md",
+      "sha256": "b6ede0acf0f0d5221e0b6d6f3adade055480ee6cc5be2de5bcc98eb51366b9c3"
+    },
+    {
+      "bytes": 5634,
+      "category": "contractSource",
+      "path": "Packages/contracts/core-api/v1/schema.json",
+      "sha256": "2df6b246ae9177ba327300e161127abac4ad6123767ee387d5b9b6cdefc3ff88"
+    },
+    {
+      "bytes": 1305,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-materialized-self-transition.json",
+      "sha256": "5f4440dcaf02960459c68bf5a2ca355a518037ef1a2e384bcc7c929acf2a0ccf"
+    },
+    {
+      "bytes": 2021,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-terminal-successor.json",
+      "sha256": "7868a3c1c6b1b6dfd0b16efc6a784f07b9a6b1c87ae970d9a07a34da40cefbdd"
+    },
+    {
+      "bytes": 887,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-transition.json",
+      "sha256": "84df013041ea96358410f637f005490a1194d602c2d813dee157c3c3e5127cc3"
+    },
+    {
+      "bytes": 115,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-version.json",
+      "sha256": "954212511ad2e41cfb6913a324af6d965497fd3028b94dbe4a584b306d84c090"
+    },
+    {
+      "bytes": 115,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-assets.json",
+      "sha256": "a5839dbf338953dca7511e759a42ed97590cc661bfa9742f0bd86e5acaa8ddc9"
+    },
+    {
+      "bytes": 1799,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-journal.json",
+      "sha256": "d7e34aac8d9a46b759cda9e6361b233cbe716d0941468f61409b849ea08cab59"
+    },
+    {
+      "bytes": 630,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-queued-journal.json",
+      "sha256": "64fab7cd27078b5353ddfab010b70888d82eec08c9693c634733855c7957210a"
+    },
+    {
       "bytes": 2652,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-commit-order.json",
-      "sha256": "cf6de0a1ed0c4e842f5218f1c4300300e134f38a8f5d0e46aa8abbc13f6e0a9a"
+      "sha256": "7b3b112368bc47afc1d7f8df9287d8df11c5c6f9bdd7815f48ab03c08f32bcf4"
     },
     {
       "bytes": 2651,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
-      "sha256": "df09316419405b60c80112c62a7fd7b8e513190dc5a76ca41e4e2958546a32a4"
+      "sha256": "4c7e79a8b5c8b93fdbc797368a0676e4723f698aaf1c66b2ef52a03b368882fd"
     },
     {
       "bytes": 2654,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-marker-syntax.json",
-      "sha256": "0277b744d2406208d2954eb77c08b3e3d48838a6dddbc289f001e3899a2f3ee5"
+      "sha256": "1e603fdeaa0fbebc8e89055fad4a2e3a113f9a8e860bae8a062c9286ea56aba6"
     },
     {
       "bytes": 2646,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-tag-artifact-mismatch.json",
-      "sha256": "dca6c27ba07fa2bc88bf14ccca2dbe06c733a2de78af14f65c8fdb3295811b32"
+      "sha256": "2bb4cd6cad6214abd1ad36a41ddf03efd2fcb30ddb25c26a2a71646d5687f33e"
     },
     {
       "bytes": 2652,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/valid-complete.json",
-      "sha256": "25436267b66d51154e81303a8896e4b0e166f8c79576a2ff7fd300e2e85a08cc"
+      "sha256": "6601310b15141ddba1532e425738954a111e7a9b9d96666a9f878b90cd392375"
     },
     {
       "bytes": 4155,
@@ -133,10 +199,100 @@
       "sha256": "59e1745097c776ffbaaf246387f576181dc6415ba9a4ead3dafffd99223ba8dc"
     },
     {
+      "bytes": 1753,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/capture-preparation-input/valid-android-m3-text-link.json",
+      "sha256": "be9ed1a23b61a303c1f16daf223631ae1bc5aa11004959dcc37cf854f926d2e9"
+    },
+    {
       "bytes": 2275,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/capture-preparation-input/valid-complete.json",
       "sha256": "14fcb71e33e63cdd8a2869bc4ecbec6013201731da01dc98e67d70168c3773f0"
+    },
+    {
+      "bytes": 289,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-chunk-oversize.json",
+      "sha256": "09ba6d4f745cbd2a95106ec690fa1982e9cfa2389c426f493d721f3b39fa0c54"
+    },
+    {
+      "bytes": 556,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-descriptor-order.json",
+      "sha256": "02a5ab8fa531e9ea462889764aa813ce44588313d6825604651e5f5bd88a43b0"
+    },
+    {
+      "bytes": 594,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-duplicate-drained-artifact.json",
+      "sha256": "24ced087d5d7a143131805ad79a4b0d47c11c692bfda1bdd67662d4d3ca4a785"
+    },
+    {
+      "bytes": 112,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-incompatible-no-mismatch.json",
+      "sha256": "26cf85274e957a7a0a0e309e82c2b950fad4200996a86aebfedfc8e6b75946ef"
+    },
+    {
+      "bytes": 105,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-ready-not-permitted.json",
+      "sha256": "122f6c86285140c9aae6d19e22941439795184fd0539f40191638a56caf90589"
+    },
+    {
+      "bytes": 415,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-unknown-field.json",
+      "sha256": "92d748b541709d7ad6faf573d4ba797cb585cf0daf5f26364a826a16392f1cbc"
+    },
+    {
+      "bytes": 469,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/invalid-unsupported-profile.json",
+      "sha256": "185840f75d13702d859a45d450862655bf3dda28ae144d521d47350faf205193"
+    },
+    {
+      "bytes": 393,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-build-info.json",
+      "sha256": "fea110d808ad69558020326e43c89a4cf769979979efc0abf80152c82cbfb1df"
+    },
+    {
+      "bytes": 354,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-drained-hashes.json",
+      "sha256": "1318a034690b999f65379d2a51e6a925c7b122a9e8a98332b811695291cba13a"
+    },
+    {
+      "bytes": 556,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-expected-artifacts.json",
+      "sha256": "6a2bbb1312c2b5ece84ac31b894152b856ac6fc422cdefc39c913a1bae35c255"
+    },
+    {
+      "bytes": 469,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-expected-versions.json",
+      "sha256": "4f86d07109d4dd7be0ca211cd1b5a51901628f33c939fa5bbf55ffd9edc976a7"
+    },
+    {
+      "bytes": 284,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-prepared-chunk.json",
+      "sha256": "4d22fec0e9a68dae7f5f0808c3744a2045e0a8b06f654023b024d1d1c72d00da"
+    },
+    {
+      "bytes": 140,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-readiness-incompatible.json",
+      "sha256": "ec1dae760f5aecb151e054f965d49608d9cab0f30c2313c7172fcc6baa28b3ca"
+    },
+    {
+      "bytes": 104,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/core-api/valid-readiness-ready.json",
+      "sha256": "1a4b18c430e7eacaae31b54328777652bc534106092935ebdd06a37b5f8424de"
     },
     {
       "bytes": 1379,
@@ -484,7 +640,7 @@
       "bytes": 262281,
       "category": "capabilityInventory",
       "path": "Packages/contracts/product-capabilities.json",
-      "sha256": "0cd915cf7088ae99b47570c85b63f45f99838af2207e12becbf3291d1f417863"
+      "sha256": "342baab4f9587bc73ad54d0b698ca24dce1c437b21a8bfe18f1c480046ee0452"
     },
     {
       "bytes": 751,
@@ -499,40 +655,40 @@
       "sha256": "75af08d91becf9e99f04cc4f069dd125c247499d7ef57e8b55e3b007a75b52d8"
     },
     {
-      "bytes": 7593,
+      "bytes": 16542,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/aggregate.schema.json",
-      "sha256": "d0dae925a31c63f69584415b2431ad411c8f62518c4bcffcceded8c3b9d4de9e"
+      "sha256": "8c1a8a26aaf90e3280169b671c8c4266ad7a1e4cfec1158d5ef2d6e729326879"
     },
     {
-      "bytes": 785,
+      "bytes": 1489,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/approval-policy.schema.json",
-      "sha256": "d16ad559be374f16dcf7b2090b3bec671260c62b271c955e6d6200edc85a0cff"
+      "sha256": "c73d820fa3f55d2228df6354743257295cbb4f7cbb13ee4fa88e917b0ef71581"
     },
     {
-      "bytes": 4164,
+      "bytes": 4370,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/approval.schema.json",
-      "sha256": "6df225b863b01ef8b3108b228e81430ee60da840218abce4b45fde9866d60705"
+      "sha256": "ce3dda381da8d40fc8a22cae0aa07471895540fdc79959cfb06bb3bbc231bcfe"
     },
     {
-      "bytes": 1877,
+      "bytes": 3337,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/case-catalog.schema.json",
-      "sha256": "d76b09719c8a547e31ad13740fe7359d806817551ff4c96b9e8fb1f6da1d0f96"
+      "sha256": "ea3e08976de49082be1f554e638db31ad6efb96aa351fe1e82c92d16ed6a0661"
     },
     {
-      "bytes": 1117,
+      "bytes": 2265,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/case-evidence-requirements.schema.json",
-      "sha256": "afd9e1329f9330db8b195693d435d9cb3d18c23ba6e3a67027275f385b423071"
+      "sha256": "0d40f1c0ab3be1a20e8475ef9140ef78cebf10d46b827152c11ca8ded0ddd1ea"
     },
     {
-      "bytes": 9378,
+      "bytes": 12902,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/case-evidence.schema.json",
-      "sha256": "4ac477ef22244dd97d03c939151e024e8da1fd444180b221da4cba4b7446b296"
+      "sha256": "37fe7fb9aa8c1e058bc98b6d2fb0564391ccdce1ec2e1bba571460b4510da3a4"
     },
     {
       "bytes": 1985,
@@ -541,16 +697,40 @@
       "sha256": "18d045e5567805422ffe399e03a406cc820abd5a156cc81d6497cc79337ad05b"
     },
     {
-      "bytes": 1625,
+      "bytes": 1954,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/diagnostic-summary.schema.json",
-      "sha256": "8634007660fb842d4153e4e32bfce76b64050d62e9456d26b9f30604f94ee9d4"
+      "sha256": "37c7c9ba56fd30b75eab8fc5a3e85a5b0efea7c21a2e3c509cc41980cd65df1a"
     },
     {
-      "bytes": 5186,
+      "bytes": 8397,
+      "category": "validationSchema",
+      "path": "Packages/contracts/schemas/execution-provenance.schema.json",
+      "sha256": "2814be77e528c6e5c306fe57ad2caebce9d65906ed8c4364728d2e53e61f092d"
+    },
+    {
+      "bytes": 9417,
+      "category": "validationSchema",
+      "path": "Packages/contracts/schemas/materialization-run-set.schema.json",
+      "sha256": "0ca355d3e7d7cd510f571d8bac1d4f6bd40733f588351c3a51d397d8f722d42d"
+    },
+    {
+      "bytes": 3145,
+      "category": "validationSchema",
+      "path": "Packages/contracts/schemas/native-package-baseline.schema.json",
+      "sha256": "8f47446fae4fc2d2c2981daa1d0887894e9d829c53b3492c1988c1fbf71384a4"
+    },
+    {
+      "bytes": 9190,
+      "category": "validationSchema",
+      "path": "Packages/contracts/schemas/native-package-inspection.schema.json",
+      "sha256": "2d4455633cbacd587fe72d8620b012c00674e7c433321f5e08aa8a0026ed99f4"
+    },
+    {
+      "bytes": 5750,
       "category": "validationSchema",
       "path": "Packages/contracts/schemas/performance-gates.schema.json",
-      "sha256": "9f71608ab9e4e61c7b28cf23e66b71cb7565fb0fbeb1396cd71ba4aeeaecfe54"
+      "sha256": "17fc7ea0b092cc3db05d1292da2cc1f05d6750e465eee44f384b096412ea5caa"
     },
     {
       "bytes": 1585,
@@ -577,58 +757,88 @@
       "sha256": "019fc4b10d58c28957ebf47c9283238ebc78dad8f6b4f6c7dd41cbf6d4bbcd7b"
     },
     {
-      "bytes": 22078,
+      "bytes": 29746,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/generate_fixtures.py",
-      "sha256": "0d2381b5f189aca99d6730758b8f0d3b6711405cd0f4ddab4aedde60251382c5"
+      "sha256": "c401342bf02f3e886c3a6940085cfbbc7453579d9caa10b28fad5933fc6640e2"
     },
     {
-      "bytes": 34936,
+      "bytes": 12271,
+      "category": "validatorScript",
+      "path": "Packages/contracts/scripts/github_actions_oidc.py",
+      "sha256": "4dc48dcd39defed8639accb27ed3c2388da30dc9e4fb12b404411fd1317776ae"
+    },
+    {
+      "bytes": 43394,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate.py",
-      "sha256": "1a888a2847cb32761fb653b422f21ce71171f6e069d4ee3a77b74d9f22ce22d2"
+      "sha256": "6e40ea0676c186a7e445f03b677240ed60a4fa8575589c860d737ae98d502269"
     },
     {
-      "bytes": 29415,
+      "bytes": 40266,
+      "category": "validatorScript",
+      "path": "Packages/contracts/scripts/validate_toolchain.py",
+      "sha256": "c4271986694800891a46d104da9588deb98242554f036b739b865b28601ba632"
+    },
+    {
+      "bytes": 113342,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_validation_definitions.py",
-      "sha256": "fde8d1fec02eab8a92da8d632781a0d0b998daaaa70bd2006c254fba1f079683"
+      "sha256": "d81c312d360192094ac044a7e990cdca6cacd2d36500b1c0dc75e405f1d7d4f3"
     },
     {
-      "bytes": 14724,
+      "bytes": 7179,
+      "category": "validatorTest",
+      "path": "Packages/contracts/tests/test_android_artifact_validator.py",
+      "sha256": "220d7da0a0e45a418dfa31e476a280fe0a2d72a058a4b9afabb7f9f212d5f8f9"
+    },
+    {
+      "bytes": 6066,
+      "category": "validatorTest",
+      "path": "Packages/contracts/tests/test_github_actions_oidc.py",
+      "sha256": "47085c01d8e9b46ebe1820445d0e3a44764d4bac9b065ab967e93a776097862e"
+    },
+    {
+      "bytes": 4280,
+      "category": "validatorTest",
+      "path": "Packages/contracts/tests/test_m2_hosted_producer.py",
+      "sha256": "65e1532465e3cd82273e0012a40606ae89ce0aa064b4d20df4cb3d2e40739b13"
+    },
+    {
+      "bytes": 36180,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "01ea3d3d57ed80a485f29fe7f5886c40a9b5f35c55b34b751e439921ab543c1f"
+      "sha256": "4b24ac27611a8ebd42d5b805dc7a4a68358af053697072680133c2fa943dd933"
     },
     {
-      "bytes": 22246,
+      "bytes": 83338,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validation_definitions.py",
-      "sha256": "4289eb7f7c216b1ef1deaf4f0f8aa89ff7c23e43e9f9d26fbcab0ac084de1133"
+      "sha256": "02178dbb16cbee5720eb061a16112d4ba9997dcdcf4e9751b37feeb7fb5b7f89"
     },
     {
-      "bytes": 1728,
+      "bytes": 2641,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/aggregate-policy.json",
-      "sha256": "12a61b1e58723b43d372c610c600f96c0065161a2a2736701d325801ca6c3273"
+      "sha256": "6a28dee780416eb1c58df1dd7b9b68a1024340a329b5831079fdb960f22238d0"
     },
     {
-      "bytes": 640,
+      "bytes": 1293,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/approval-policy.json",
-      "sha256": "6e7c01cb0d4a99d05efcc0a1cc6c65f9dc4d6418024a7764d47f66805dd5512d"
+      "sha256": "06bba2f99b625d5fed917124389fc5c0c5cb3a35e0c0e3e33485aa995a8ab322"
     },
     {
-      "bytes": 12948,
+      "bytes": 23961,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/case-catalog.json",
-      "sha256": "ce2e23ae50065c30f81b8e0f488d22e285ce7bfc4d77e479d2e718f4358b6692"
+      "sha256": "c04215eb49038d15cf1bb88b7aa938f128b4b4f02a84674fb10861850519aaa5"
     },
     {
-      "bytes": 877,
+      "bytes": 2099,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/case-evidence-policy.json",
-      "sha256": "141c9ad3fcd867de3fd541511d5fe1a8b508026c3c12a0e386d4d0ed7cafdcdf"
+      "sha256": "f67e9c97c502c80bc4a3968ef31305ed2ebef8279f848a0c3c778a02b541ffff"
     },
     {
       "bytes": 2259,
@@ -637,10 +847,10 @@
       "sha256": "56f3ec7d9ebcbe3f041267a468c44eb9a13eed1997f934401596539469552f76"
     },
     {
-      "bytes": 11483,
+      "bytes": 11682,
       "category": "validationDefinition",
       "path": "Packages/contracts/validation/performance-gates.json",
-      "sha256": "35bf8e551ec431e462dd4b4a8f71e0bef9017138a6f65c13cb830d536da5dc09"
+      "sha256": "89308c29c76c9751f89fec6db8fea942c57581419960d681653e7f977a4c7eca"
     },
     {
       "bytes": 1410,
@@ -671,6 +881,24 @@
       "category": "contractSource",
       "path": "Packages/contracts/wearable-protocol/v1/trace.schema.json",
       "sha256": "e4ec1db8011c9c54d8a05fb18effdafd3023b464095ca24e615e5b6674b9a8d2"
+    },
+    {
+      "bytes": 1236,
+      "category": "toolchainEntryStub",
+      "path": "Packages/vox-core-rust/Cargo.toml",
+      "sha256": "d03737b6f025f4ee9331cbf3b2178e023652087d954e8f84204885a72ef71c26"
+    },
+    {
+      "bytes": 278,
+      "category": "toolchainEntryStub",
+      "path": "Packages/vox-core-rust/rust-toolchain.toml",
+      "sha256": "6a1f49af4d9af63384a21553941bf24d80ac79afdd60d99a4ce37d223892ac90"
+    },
+    {
+      "bytes": 175,
+      "category": "toolchainEntryStub",
+      "path": "Packages/vox-core-rust/uniffi.toml",
+      "sha256": "1bcdf4efc4d51e66d59512c5399d4c536637afb5686bdb26978c5a6d181bf9e1"
     },
     {
       "bytes": 4107,
@@ -769,37 +997,178 @@
       "sha256": "80a3d4f6a730deb3a3ee65cd112b55cc6c8d42cb62f1d8d53fbf019816136fa6"
     },
     {
-      "bytes": 3469,
+      "bytes": 2926,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0017-core-api-identities-readiness-packaging.md",
+      "sha256": "cf467fae1abd38fa2318f336ff3b01b0177014bfa71efbf8ac0e482b03ce9404"
+    },
+    {
+      "bytes": 6702,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0018-android-durable-package-journal-authority.md",
+      "sha256": "5cb2b1b497e7676d59debbcdd86280a91677b808b487011f35ce04f1744c7b7f"
+    },
+    {
+      "bytes": 6725,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0019-android-saf-commit-ambiguity-reconciliation.md",
+      "sha256": "fc3731530f915b855961ffbf821ce76b30dc7784f64765ba222b1b60a1ce8e15"
+    },
+    {
+      "bytes": 6347,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0020-android-capture-package-codec-v1.md",
+      "sha256": "4b8f02437806b7f36651e863bb440f5a8cbddc353dbf3634f4ee691db427d66b"
+    },
+    {
+      "bytes": 4750,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0021-android-journal-replacement-lease-quota-room-v2.md",
+      "sha256": "941779423628bf086f7fa0b939cdf3720a4d17452d602dc6568db7d6322ba524"
+    },
+    {
+      "bytes": 3855,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0022-android-lazy-uniffi-native-packaging.md",
+      "sha256": "1c6005314ebff7a50bc7d9f9674d685cd467cfd05d9131529736d335ebd79b68"
+    },
+    {
+      "bytes": 3806,
       "category": "acceptedDecision",
       "path": "docs/architecture/android-wear-m1-decisions.md",
-      "sha256": "d5d3dc6a3334a55a3aaab02c066eaa4cd491a751fea92a6da4c1200d9b7dbd0c"
+      "sha256": "16a73e83e467c821bd2293f93e21611350ed87d26aff658ce7b3896a624f7062"
     },
     {
-      "bytes": 5094,
+      "bytes": 4770,
       "category": "validationDocumentation",
       "path": "docs/validation/android-performance-gates.md",
-      "sha256": "326a28e331b0d68eb60718c3233efc7b60a0fd4587b50aa7bf363f596036892d"
+      "sha256": "4fd95217d6634d00bbd33efcf5daf76cc140c387b1d937eba0913b555fa4656e"
     },
     {
-      "bytes": 2097,
+      "bytes": 3771,
       "category": "validationDocumentation",
       "path": "docs/validation/android-wear-case-evidence-template.md",
-      "sha256": "7c1217d8a7c64b4b6e12c90a363b146abd10b59076f9338af640004965b8e0a6"
+      "sha256": "35f98ddbed1b51013305f7a91f57fd952114e675dcab031022c6dcffc2adb841"
     },
     {
-      "bytes": 8188,
+      "bytes": 6919,
       "category": "validationDocumentation",
       "path": "docs/validation/android-wear-validation-program.md",
-      "sha256": "2e24f793dba69ff8a42fdd1aaa2dba722ea7491d1005d81ba9dfe29f4df64156"
+      "sha256": "0e2a86baaa9b1b6500308ac2d6b9216f7f0b0ed1cb5300fb94aea6eee8a66917"
     },
     {
-      "bytes": 56891,
+      "bytes": 56956,
       "category": "contractGate",
       "path": "scripts/test-project-contracts.sh",
-      "sha256": "0aa99b1a57f64e7a71ae12b8c763d26fc2934e894556ec05963ad620baedc2a3"
+      "sha256": "ddd50cbdb85a52ce03c44167b07c2a0dbd27a730085316ddf9f74bc3eb052bc6"
+    },
+    {
+      "bytes": 19747,
+      "category": "toolchainDefinition",
+      "path": "toolchains/android-wear-shared-core.json",
+      "sha256": "fced80531db508455175d23e7a37735f5f4b1fb58e76d0165256c75c63d5e415"
+    },
+    {
+      "bytes": 10626,
+      "category": "toolchainDefinition",
+      "path": "toolchains/android-wear-shared-core.schema.json",
+      "sha256": "46800914af3b308bc2554200548d4b1f1a998d2067f72ac784570294fb0561c6"
     }
   ],
   "fixtureCases": [
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "package.illegalTransition",
+        "path": "$.events[3]"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-materialized-self-transition.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "package.terminalTransition",
+        "path": "$.events[6]"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-terminal-successor.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "package.illegalTransition",
+        "path": "$.events[1]"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-transition.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "schema.oneOf",
+        "path": "$"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-version.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-assets.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-journal.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/valid-queued-journal.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
     {
       "expect": "invalid",
       "expectedError": {
@@ -1005,7 +1374,200 @@
     {
       "expect": "valid",
       "family": "capture-preparation-input",
+      "path": "Packages/contracts/fixtures/capture-preparation-input/valid-android-m3-text-link.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "capture-preparation-input",
       "path": "Packages/contracts/fixtures/capture-preparation-input/valid-complete.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "schema.oneOf",
+        "path": "$"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-chunk-oversize.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "core.descriptorOrder",
+        "path": "$.artifacts"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-descriptor-order.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "core.duplicateDrainedArtifact",
+        "path": "$.artifacts"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-duplicate-drained-artifact.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "core.readinessCoherence",
+        "path": "$"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-incompatible-no-mismatch.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "core.readinessCoherence",
+        "path": "$"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-ready-not-permitted.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "schema.oneOf",
+        "path": "$"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-unknown-field.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "schema.oneOf",
+        "path": "$"
+      },
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/invalid-unsupported-profile.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-build-info.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-drained-hashes.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-expected-artifacts.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-expected-versions.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-prepared-chunk.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-readiness-incompatible.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "core-api",
+      "path": "Packages/contracts/fixtures/core-api/valid-readiness-ready.json",
       "producer": {
         "name": "vox-contract-fixture-generator",
         "revision": "m1-v1",
@@ -1785,6 +2347,17 @@
         "wearable-protocol/v1/schema.json",
         "wearable-protocol/v1/trace-contract.md",
         "wearable-protocol/v1/trace.schema.json",
+        "core-api/v1/contract.md",
+        "core-api/v1/schema.json",
+        "android-capture-package/v1/contract.md",
+        "android-capture-package/v1/schema.json",
+        "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-terminal-successor.json",
+        "fixtures/android-capture-package/invalid-transition.json",
+        "fixtures/android-capture-package/invalid-version.json",
+        "fixtures/android-capture-package/valid-assets.json",
+        "fixtures/android-capture-package/valid-journal.json",
+        "fixtures/android-capture-package/valid-queued-journal.json",
         "fixtures/artifact-plan/invalid-commit-order.json",
         "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
         "fixtures/artifact-plan/invalid-marker-syntax.json",
@@ -1799,7 +2372,22 @@
         "fixtures/capture-preparation-input/invalid-tag-payload-mismatch.json",
         "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
         "fixtures/capture-preparation-input/invalid-unsafe-path.json",
+        "fixtures/capture-preparation-input/valid-android-m3-text-link.json",
         "fixtures/capture-preparation-input/valid-complete.json",
+        "fixtures/core-api/invalid-chunk-oversize.json",
+        "fixtures/core-api/invalid-descriptor-order.json",
+        "fixtures/core-api/invalid-duplicate-drained-artifact.json",
+        "fixtures/core-api/invalid-incompatible-no-mismatch.json",
+        "fixtures/core-api/invalid-ready-not-permitted.json",
+        "fixtures/core-api/invalid-unknown-field.json",
+        "fixtures/core-api/invalid-unsupported-profile.json",
+        "fixtures/core-api/valid-build-info.json",
+        "fixtures/core-api/valid-drained-hashes.json",
+        "fixtures/core-api/valid-expected-artifacts.json",
+        "fixtures/core-api/valid-expected-versions.json",
+        "fixtures/core-api/valid-prepared-chunk.json",
+        "fixtures/core-api/valid-readiness-incompatible.json",
+        "fixtures/core-api/valid-readiness-ready.json",
         "fixtures/required-observations/invalid-duplicate-id.json",
         "fixtures/required-observations/invalid-tag-request-mismatch.json",
         "fixtures/required-observations/valid-all-kinds.json",
@@ -1860,9 +2448,9 @@
       ]
     },
     {
-      "consumer": null,
-      "evidence": null,
-      "lifecycle": "resourceOnlyPlanned",
+      "consumer": "vox-core m2_core::rust_contract_mirror_is_consumed",
+      "evidence": "Packages/vox-core-rust/crates/vox-core/tests/m2_core.rs",
+      "lifecycle": "required",
       "path": "Packages/vox-core-rust/tests/resources/contracts/v1",
       "sources": [
         "capture-preparation-input/v1/contract.md",
@@ -1877,6 +2465,17 @@
         "wearable-protocol/v1/schema.json",
         "wearable-protocol/v1/trace-contract.md",
         "wearable-protocol/v1/trace.schema.json",
+        "core-api/v1/contract.md",
+        "core-api/v1/schema.json",
+        "android-capture-package/v1/contract.md",
+        "android-capture-package/v1/schema.json",
+        "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-terminal-successor.json",
+        "fixtures/android-capture-package/invalid-transition.json",
+        "fixtures/android-capture-package/invalid-version.json",
+        "fixtures/android-capture-package/valid-assets.json",
+        "fixtures/android-capture-package/valid-journal.json",
+        "fixtures/android-capture-package/valid-queued-journal.json",
         "fixtures/artifact-plan/invalid-commit-order.json",
         "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
         "fixtures/artifact-plan/invalid-marker-syntax.json",
@@ -1891,7 +2490,22 @@
         "fixtures/capture-preparation-input/invalid-tag-payload-mismatch.json",
         "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
         "fixtures/capture-preparation-input/invalid-unsafe-path.json",
+        "fixtures/capture-preparation-input/valid-android-m3-text-link.json",
         "fixtures/capture-preparation-input/valid-complete.json",
+        "fixtures/core-api/invalid-chunk-oversize.json",
+        "fixtures/core-api/invalid-descriptor-order.json",
+        "fixtures/core-api/invalid-duplicate-drained-artifact.json",
+        "fixtures/core-api/invalid-incompatible-no-mismatch.json",
+        "fixtures/core-api/invalid-ready-not-permitted.json",
+        "fixtures/core-api/invalid-unknown-field.json",
+        "fixtures/core-api/invalid-unsupported-profile.json",
+        "fixtures/core-api/valid-build-info.json",
+        "fixtures/core-api/valid-drained-hashes.json",
+        "fixtures/core-api/valid-expected-artifacts.json",
+        "fixtures/core-api/valid-expected-versions.json",
+        "fixtures/core-api/valid-prepared-chunk.json",
+        "fixtures/core-api/valid-readiness-incompatible.json",
+        "fixtures/core-api/valid-readiness-ready.json",
         "fixtures/required-observations/invalid-duplicate-id.json",
         "fixtures/required-observations/invalid-tag-request-mismatch.json",
         "fixtures/required-observations/valid-all-kinds.json",
@@ -1969,6 +2583,17 @@
         "wearable-protocol/v1/schema.json",
         "wearable-protocol/v1/trace-contract.md",
         "wearable-protocol/v1/trace.schema.json",
+        "core-api/v1/contract.md",
+        "core-api/v1/schema.json",
+        "android-capture-package/v1/contract.md",
+        "android-capture-package/v1/schema.json",
+        "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-terminal-successor.json",
+        "fixtures/android-capture-package/invalid-transition.json",
+        "fixtures/android-capture-package/invalid-version.json",
+        "fixtures/android-capture-package/valid-assets.json",
+        "fixtures/android-capture-package/valid-journal.json",
+        "fixtures/android-capture-package/valid-queued-journal.json",
         "fixtures/artifact-plan/invalid-commit-order.json",
         "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
         "fixtures/artifact-plan/invalid-marker-syntax.json",
@@ -1983,7 +2608,140 @@
         "fixtures/capture-preparation-input/invalid-tag-payload-mismatch.json",
         "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
         "fixtures/capture-preparation-input/invalid-unsafe-path.json",
+        "fixtures/capture-preparation-input/valid-android-m3-text-link.json",
         "fixtures/capture-preparation-input/valid-complete.json",
+        "fixtures/core-api/invalid-chunk-oversize.json",
+        "fixtures/core-api/invalid-descriptor-order.json",
+        "fixtures/core-api/invalid-duplicate-drained-artifact.json",
+        "fixtures/core-api/invalid-incompatible-no-mismatch.json",
+        "fixtures/core-api/invalid-ready-not-permitted.json",
+        "fixtures/core-api/invalid-unknown-field.json",
+        "fixtures/core-api/invalid-unsupported-profile.json",
+        "fixtures/core-api/valid-build-info.json",
+        "fixtures/core-api/valid-drained-hashes.json",
+        "fixtures/core-api/valid-expected-artifacts.json",
+        "fixtures/core-api/valid-expected-versions.json",
+        "fixtures/core-api/valid-prepared-chunk.json",
+        "fixtures/core-api/valid-readiness-incompatible.json",
+        "fixtures/core-api/valid-readiness-ready.json",
+        "fixtures/required-observations/invalid-duplicate-id.json",
+        "fixtures/required-observations/invalid-tag-request-mismatch.json",
+        "fixtures/required-observations/valid-all-kinds.json",
+        "fixtures/wearable-protocol/invalid-deletion-threshold.json",
+        "fixtures/wearable-protocol/invalid-frontier-chunk-oversize.json",
+        "fixtures/wearable-protocol/invalid-kind-payload-cross-contamination.json",
+        "fixtures/wearable-protocol/invalid-recording-mode-policy.json",
+        "fixtures/wearable-protocol/valid-assetManifest.json",
+        "fixtures/wearable-protocol/valid-capabilityHello.json",
+        "fixtures/wearable-protocol/valid-discard.json",
+        "fixtures/wearable-protocol/valid-discarded.json",
+        "fixtures/wearable-protocol/valid-phoneIngested.json",
+        "fixtures/wearable-protocol/valid-presetInventory.json",
+        "fixtures/wearable-protocol/valid-presetSnapshot.json",
+        "fixtures/wearable-protocol/valid-reassign.json",
+        "fixtures/wearable-protocol/valid-reconciliationSummary.json",
+        "fixtures/wearable-protocol/valid-recordingMetadata.json",
+        "fixtures/wearable-protocol/valid-retry.json",
+        "fixtures/wearable-protocol/valid-sourceDeletionAuthorized.json",
+        "fixtures/wearable-protocol/valid-terminalFailure.json",
+        "fixtures/wearable-protocol/valid-transferFrontier.json",
+        "fixtures/wearable-protocol/valid-transferReceipt.json",
+        "fixtures/wearable-protocol/valid-unsupportedVersion.json",
+        "fixtures/wearable-protocol/valid-vaultCommitted.json",
+        "fixtures/wearable-protocol-trace/invalid-asset-replacement-after-ingest.json",
+        "fixtures/wearable-protocol-trace/invalid-cross-correlation-vault.json",
+        "fixtures/wearable-protocol-trace/invalid-cross-recording-ingest.json",
+        "fixtures/wearable-protocol-trace/invalid-delete-before-vault.json",
+        "fixtures/wearable-protocol-trace/invalid-delete-correlation.json",
+        "fixtures/wearable-protocol-trace/invalid-disposition.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-asset.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-exceeds-asset.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-progression.json",
+        "fixtures/wearable-protocol-trace/invalid-frontier-revision.json",
+        "fixtures/wearable-protocol-trace/invalid-frozen-policy-reassignment.json",
+        "fixtures/wearable-protocol-trace/invalid-future-retry.json",
+        "fixtures/wearable-protocol-trace/invalid-ingest-hash.json",
+        "fixtures/wearable-protocol-trace/invalid-message-id-collision.json",
+        "fixtures/wearable-protocol-trace/invalid-metadata-preset.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-duplicate-recording.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-last-revision.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-pending-correlation.json",
+        "fixtures/wearable-protocol-trace/invalid-reconciliation-recording-mismatch.json",
+        "fixtures/wearable-protocol-trace/invalid-recording-only-mode-policy.json",
+        "fixtures/wearable-protocol-trace/invalid-retired-installation-switchback.json",
+        "fixtures/wearable-protocol-trace/invalid-terminal-followup.json",
+        "fixtures/wearable-protocol-trace/invalid-transcript-recording-only-policy.json",
+        "fixtures/wearable-protocol-trace/invalid-unsupported-followup.json",
+        "fixtures/wearable-protocol-trace/invalid-vault-correlation.json",
+        "fixtures/wearable-protocol-trace/valid-duplicate-stale-noop.json",
+        "fixtures/wearable-protocol-trace/valid-explicit-discard.json",
+        "fixtures/wearable-protocol-trace/valid-negotiation-preset-reconciliation.json",
+        "fixtures/wearable-protocol-trace/valid-reassign-retry.json",
+        "fixtures/wearable-protocol-trace/valid-recording-only.json",
+        "fixtures/wearable-protocol-trace/valid-reinstall-reconciliation.json",
+        "fixtures/wearable-protocol-trace/valid-terminal-failure-retains-media.json",
+        "fixtures/wearable-protocol-trace/valid-transcript-ingest-commit-delete.json"
+      ]
+    },
+    {
+      "consumer": "CapturePackageFixtureConsumerTest.production_codec_consumes_governed_fixtures",
+      "evidence": "apps/android/data/src/test/kotlin/md/vox/android/data/CapturePackageFixtureConsumerTest.kt",
+      "lifecycle": "required",
+      "path": "apps/android/data/src/test/resources/contracts/v1",
+      "sources": [
+        "capture-preparation-input/v1/contract.md",
+        "capture-preparation-input/v1/schema.json",
+        "required-observations/v1/contract.md",
+        "required-observations/v1/schema.json",
+        "capture-materialization-input/v1/contract.md",
+        "capture-materialization-input/v1/schema.json",
+        "artifact-plan/v1/contract.md",
+        "artifact-plan/v1/schema.json",
+        "wearable-protocol/v1/contract.md",
+        "wearable-protocol/v1/schema.json",
+        "wearable-protocol/v1/trace-contract.md",
+        "wearable-protocol/v1/trace.schema.json",
+        "core-api/v1/contract.md",
+        "core-api/v1/schema.json",
+        "android-capture-package/v1/contract.md",
+        "android-capture-package/v1/schema.json",
+        "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-terminal-successor.json",
+        "fixtures/android-capture-package/invalid-transition.json",
+        "fixtures/android-capture-package/invalid-version.json",
+        "fixtures/android-capture-package/valid-assets.json",
+        "fixtures/android-capture-package/valid-journal.json",
+        "fixtures/android-capture-package/valid-queued-journal.json",
+        "fixtures/artifact-plan/invalid-commit-order.json",
+        "fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
+        "fixtures/artifact-plan/invalid-marker-syntax.json",
+        "fixtures/artifact-plan/invalid-tag-artifact-mismatch.json",
+        "fixtures/artifact-plan/valid-complete.json",
+        "fixtures/capture-materialization-input/invalid-control-oversize.json",
+        "fixtures/capture-materialization-input/invalid-present-template-null-stream.json",
+        "fixtures/capture-materialization-input/invalid-session-chunk-limit.json",
+        "fixtures/capture-materialization-input/invalid-tag-observation-mismatch.json",
+        "fixtures/capture-materialization-input/valid-complete.json",
+        "fixtures/capture-preparation-input/invalid-asset-oversize.json",
+        "fixtures/capture-preparation-input/invalid-tag-payload-mismatch.json",
+        "fixtures/capture-preparation-input/invalid-unknown-payload-field.json",
+        "fixtures/capture-preparation-input/invalid-unsafe-path.json",
+        "fixtures/capture-preparation-input/valid-android-m3-text-link.json",
+        "fixtures/capture-preparation-input/valid-complete.json",
+        "fixtures/core-api/invalid-chunk-oversize.json",
+        "fixtures/core-api/invalid-descriptor-order.json",
+        "fixtures/core-api/invalid-duplicate-drained-artifact.json",
+        "fixtures/core-api/invalid-incompatible-no-mismatch.json",
+        "fixtures/core-api/invalid-ready-not-permitted.json",
+        "fixtures/core-api/invalid-unknown-field.json",
+        "fixtures/core-api/invalid-unsupported-profile.json",
+        "fixtures/core-api/valid-build-info.json",
+        "fixtures/core-api/valid-drained-hashes.json",
+        "fixtures/core-api/valid-expected-artifacts.json",
+        "fixtures/core-api/valid-expected-versions.json",
+        "fixtures/core-api/valid-prepared-chunk.json",
+        "fixtures/core-api/valid-readiness-incompatible.json",
+        "fixtures/core-api/valid-readiness-ready.json",
         "fixtures/required-observations/invalid-duplicate-id.json",
         "fixtures/required-observations/invalid-tag-request-mismatch.json",
         "fixtures/required-observations/valid-all-kinds.json",
@@ -2047,7 +2805,7 @@
   "producer": {
     "name": "vox-contract-manifest-generator",
     "script": "Packages/contracts/scripts/validate.py",
-    "scriptSHA256": "1a888a2847cb32761fb653b422f21ce71171f6e069d4ee3a77b74d9f22ce22d2"
+    "scriptSHA256": "6e40ea0676c186a7e445f03b677240ed60a4fa8575589c860d737ae98d502269"
   },
   "producerRevision": "29ec869c8bda4d511af787af394658d0274b339b",
   "schemaVersion": 2

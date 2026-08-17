@@ -1,4 +1,4 @@
-# Android/Wear M1 accepted decisions
+# Android/Wear accepted architecture decisions
 
 Status: **Accepted**
 
@@ -26,11 +26,12 @@ implementation or physical-device evidence already exists.
 | [ADR-0014](adr-0014-offline-asr-baseline.md) | `PD-M1-OFFLINE-ASR-001` | App-owned offline ASR baseline and optional system adapter |
 | [ADR-0015](adr-0015-ime-visible-activity-fallback.md) | `PD-M1-IME-FALLBACK-001` | Visible-activity fallback for unreliable direct IME capture |
 | [ADR-0016](adr-0016-vox-owned-toolchain-pinning.md) | `PD-M1-TOOLCHAIN-PINNING-001` | Vox-owned exact toolchain pins and milestone entry gates |
+| [ADR-0017](adr-0017-core-api-identities-readiness-packaging.md) | `PD-M2-CORE-API-001`, `PD-M2-DETERMINISTIC-IDENTITY-001`, `PD-M2-READINESS-001`, `PD-M2-FIRST-PACKAGING-001` | Independent core API, deterministic identities, fail-closed M2 profile, and first-core packaging |
 
-The toolchain pin slots and mandatory update process are defined in
-[`android-wear-toolchain-baseline.md`](android-wear-toolchain-baseline.md). Exact
-Rust/Android selections are not yet established; M2/M3 remain blocked until their
-required committed pins exist.
+The exact M2 entry pins and mandatory update process are defined in
+[`android-wear-toolchain-baseline.md`](android-wear-toolchain-baseline.md) and
+`toolchains/android-wear-shared-core.json`. M2 implementation may begin from those
+validated pins; M3 remains blocked until its additional app-toolchain pins exist.
 
 ## Change control
 

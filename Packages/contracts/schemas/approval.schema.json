@@ -67,7 +67,7 @@
     },
     "nonPlaceholder": {
       "minLength": 2,
-      "pattern": "(?i)^(?!.*(?:tbd|todo|placeholder|dummy|changeme|example|n/a|not[-_ ]?set)).+$",
+      "pattern": "^(?!.*(?:[Tt][Bb][Dd]|[Tt][Oo][Dd][Oo]|[Uu][Nn][Kk][Nn][Oo][Ww][Nn]|[Pp][Ll][Aa][Cc][Ee][Hh][Oo][Ll][Dd][Ee][Rr]|[Dd][Uu][Mm][Mm][Yy]|[Cc][Hh][Aa][Nn][Gg][Ee][Mm][Ee]|[Ee][Xx][Aa][Mm][Pp][Ll][Ee]|[Nn]/[Aa]|[Nn][Oo][Tt][-_ ]?[Ss][Ee][Tt])).+$",
       "type": "string"
     },
     "sha256": {
@@ -94,6 +94,7 @@
                 "definition",
                 "campaign",
                 "releaseGate",
+                "packageBaselineAdoption",
                 "providerReplacement",
                 "lowTierEmulatorFallback"
               ]

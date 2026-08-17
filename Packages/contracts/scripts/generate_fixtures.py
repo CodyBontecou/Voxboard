@@ -127,3 +127,70 @@ negative('invalid-asset-replacement-after-ingest.json',x)
 x=frozen_prefix();changed=copy.deepcopy(x[1]);changed['envelope']['revision']=4;changed['envelope']['messageID']='ccccccc2-1111-4111-8111-111111111111';changed['envelope']['payload']['presetRevision']=8;changed['envelope']['payload']['portablePolicy']['destinationCapabilityReference']='synthetic-vault-2';changed_hash=__import__('hashlib').sha256((json.dumps(changed['envelope']['payload']['portablePolicy'],ensure_ascii=False,indent=2,sort_keys=True)+'\n').encode()).hexdigest();changed['envelope']['payload']['snapshotHash']=changed_hash
 inventory=copy.deepcopy(x[0]);inventory['envelope']['revision']=4;inventory['envelope']['messageID']='ccccccc3-1111-4111-8111-111111111111';inventory['envelope']['payload']['inventoryRevision']=8;inventory['envelope']['payload']['presets'][0].update(revision=8,snapshotHash=changed_hash)
 changed['envelope']['revision']=5;reassign_original=event('reassign',6,message_id='ccccccc4-1111-4111-8111-111111111111');reassign_original['envelope']['payload']['targetCapabilityReference']='synthetic-vault-capability';x += [inventory,changed,reassign_original];negative('invalid-frozen-policy-reassignment.json',x,'reassign',False)
+# Independently versioned core API records.
+core_versions={'artifactPlanVersion':1,'captureMaterializationInputVersion':1,'capturePreparationInputVersion':1,'coreAPIVersion':1,'profileID':'apple-parity-v1','profileVersion':1,'rendererRevision':'swift-legacy-m0','requiredObservationsVersion':1,'toolchainManifestSHA256':H[0]}
+core_records={
+ 'build-info':{'buildConfiguration':'release','coreAPIVersion':1,'coreVersion':'0.1.0-m2-foundation','kind':'buildInfo','sourceRevision':'603e45011a7a7a70363ea790fdc3af5dc54b9f79','supportedOperations':['newNoteTextLink'],'supportedProfileIDs':['apple-parity-v1'],'toolchainManifestSHA256':H[0]},
+ 'expected-versions':{'kind':'expectedVersions','operation':'newNoteTextLink','versions':core_versions},
+ 'readiness-ready':{'kind':'readinessResult','mismatchCodes':[],'sessionPermitted':True,'status':'ready'},
+ 'readiness-incompatible':{'kind':'readinessResult','mismatchCodes':['unsupportedProfile'],'sessionPermitted':False,'status':'incompatible'},
+ 'expected-artifacts':{'artifacts':[{'artifactID':U[4],'commitSequence':0,'kind':'note','length':25,'mediaType':'text/markdown; charset=utf-8','operationID':U[6],'receiptKind':'noteCommit','resultSHA256':H[3],'streamID':U[3]}],'kind':'expectedArtifactDescriptors','requestID':U[0]},
+ 'prepared-chunk':{'artifactID':U[4],'byteCount':25,'chunkSHA256':H[3],'eof':True,'kind':'preparedChunkMetadata','sequence':0,'streamID':U[3]},
+ 'drained-hashes':{'artifacts':[{'artifactID':U[4],'length':25,'resultSHA256':H[3],'streamID':U[3]}],'kind':'drainedArtifactHashes','requestID':U[0]}}
+for name,value in core_records.items(): dump('core-api',f'valid-{name}.json',value)
+x=copy.deepcopy(core_records['build-info']);x['unexpected']=True;dump('core-api','invalid-unknown-field.json',x)
+x=copy.deepcopy(core_records['expected-versions']);x['versions']['profileID']='unknown-profile';dump('core-api','invalid-unsupported-profile.json',x)
+x=copy.deepcopy(core_records['readiness-ready']);x['sessionPermitted']=False;dump('core-api','invalid-ready-not-permitted.json',x)
+x=copy.deepcopy(core_records['readiness-incompatible']);x['mismatchCodes']=[];dump('core-api','invalid-incompatible-no-mismatch.json',x)
+x=copy.deepcopy(core_records['expected-artifacts']);x['artifacts'][0]['commitSequence']=1;dump('core-api','invalid-descriptor-order.json',x)
+x=copy.deepcopy(core_records['prepared-chunk']);x['byteCount']=1048577;dump('core-api','invalid-chunk-oversize.json',x)
+x=copy.deepcopy(core_records['drained-hashes']);x['artifacts'].append(copy.deepcopy(x['artifacts'][0]));dump('core-api','invalid-duplicate-drained-artifact.json',x)
+# Freeze artifact-plan/v1 deterministic UUID and plan-hash derivations.
+import uuid,hashlib
+IDENTITY_NAMESPACE=uuid.UUID('8c7f8d7e-4f61-5d92-a94a-3b9e6cc8e415')
+def canonical_bytes(v): return (json.dumps(v,ensure_ascii=False,indent=2,sort_keys=True)+'\n').encode()
+def uuid5_bytes(domain,preimage):
+ raw=bytearray(hashlib.sha1(IDENTITY_NAMESPACE.bytes+domain.encode('ascii')+b'\0'+canonical_bytes(preimage)).digest()[:16]);raw[6]=(raw[6]&15)|80;raw[8]=(raw[8]&63)|128;return str(uuid.UUID(bytes=bytes(raw)))
+def derive_plan(v):
+ for a in v['artifacts']:
+  a['operationID']=uuid5_bytes('vox.operation.v1',{'commitSequence':a['commitSequence'],'operation':v['operation'],'requestID':v['requestID']})
+  a['artifactID']=uuid5_bytes('vox.artifact.v1',{'kind':a['kind'],'logicalPath':a['logicalPath'],'operationID':a['operationID']})
+  if a['kind']=='note': a['preparedStreamID']=uuid5_bytes('vox.stream.v1',{'artifactID':a['artifactID'],'resultLength':a['resultLength'],'resultSHA256':a['resultSHA256']})
+ v['planHash']='0'*64;v['planHash']=hashlib.sha256(canonical_bytes(v)).hexdigest();return v
+plan=derive_plan(plan);dump('artifact-plan','valid-complete.json',plan)
+x=copy.deepcopy(plan);x['artifacts'][0]['kind']='note';dump('artifact-plan','invalid-tag-artifact-mismatch.json',x)
+x=copy.deepcopy(plan);x['retryMarker']['syntax']='<!-- vox-operation:{lowercase-uuid} -->';dump('artifact-plan','invalid-marker-syntax.json',x)
+x=copy.deepcopy(plan);x['artifacts'][1]['commitSequence']=0;dump('artifact-plan','invalid-commit-order.json',x)
+x=copy.deepcopy(plan);x['preparedByteDelivery']['finalJSONDuplicatesBytes']=True;dump('artifact-plan','invalid-final-json-byte-duplication.json',x)
+
+# Exact M3 text/link input shared by Kotlin enqueue and the existing Rust core.
+m3_preset={
+ 'destinationPolicy':{'capabilityClass':'userVault','capabilityReference':'synthetic-vault-capability','expectedCaseSensitivity':'sensitive'},
+ 'id':'33333333-3333-4333-8333-333333333333',
+ 'metadataPolicy':{'finalNewline':True,'frontmatterMode':'none','lineEnding':'lf','orderedFields':[],'templatePolicy':'none'},
+ 'retryMarkerPolicy':'none','revision':1,
+ 'routePolicy':{'attachmentFolder':[],'collisionPolicy':'deterministicSuffix','extensionPolicy':'markdownDotMd','logicalFolder':['Inbox'],'noteNameTemplate':'capture-{id}.md'},
+ 'snapshotHash':'0'*64,'templateFreezePoint':'firstPreparation'}
+m3_preset['snapshotHash']=hashlib.sha256(canonical_bytes(m3_preset)).hexdigest()
+m3={'calendar':'gregorian','captureSource':'app','contractVersion':1,'createdAtEpochMilliseconds':1700000000000,
+ 'invocation':{'locationOutcome':'notRequested','originRecordingID':None,'sequence':1},'locale':'en-US','operation':'newNote',
+ 'payloads':[{'id':U[1],'kind':'text','text':'Synthetic capture text.'},{'id':U[3],'kind':'link','label':'Synthetic link','url':'https://example.invalid/synthetic'}],
+ 'pins':{'coreVersion':'0.1.0-alpha.1','modelProfileID':None,'modelRevision':None,'profileID':'apple-parity-v1','profileVersion':1,'rendererRevision':'swift-legacy-m0'},
+ 'preset':m3_preset,'requestID':U[0],'timezone':'America/Los_Angeles'}
+dump('capture-preparation-input','valid-android-m3-text-link.json',m3)
+
+# Android package envelopes are all derived here from the exact governed request/assets bytes.
+assets={'assetCount':0,'assets':[],'requestID':U[0],'schemaVersion':1}
+request_bytes=canonical_bytes(m3); asset_bytes=canonical_bytes(assets)
+def je(revision,from_state,state,code,receipt=None,resume=None):
+ return {'code':code,'fromState':from_state,'occurredAtEpochMillis':1700000000000+revision,'receiptID':receipt,'resumeState':resume,'revision':revision,'state':state}
+def journal(events):
+ return {'assetManifestByteCount':len(asset_bytes),'assetManifestSHA256':hashlib.sha256(asset_bytes).hexdigest(),'assetManifestVersion':1,'events':events,'journalVersion':1,'packageVersion':1,'requestByteCount':len(request_bytes),'requestID':U[0],'requestSHA256':hashlib.sha256(request_bytes).hexdigest(),'requestContractVersion':1}
+valid_events=[je(0,None,'queued','enqueued'),je(1,'queued','preparing','preparationStarted'),je(2,'preparing','materialized','materialized'),je(3,'materialized','committing','commitStarted'),je(4,'committing','unknownOutcome','commitAmbiguous'),je(5,'unknownOutcome','completed','verifiedCommitted',U[6])]
+dump('android-capture-package','valid-assets.json',assets)
+dump('android-capture-package','valid-queued-journal.json',journal(valid_events[:1]))
+dump('android-capture-package','valid-journal.json',journal(valid_events))
+x=copy.deepcopy(assets);x['schemaVersion']=2;dump('android-capture-package','invalid-version.json',x)
+dump('android-capture-package','invalid-transition.json',journal([valid_events[0],je(1,'queued','completed','verifiedCommitted',U[6])]))
+dump('android-capture-package','invalid-terminal-successor.json',journal(valid_events+[je(6,'completed','discarded','userDiscarded')]))
+dump('android-capture-package','invalid-materialized-self-transition.json',journal(valid_events[:3]+[je(3,'materialized','materialized','materialized')]))

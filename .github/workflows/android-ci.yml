@@ -1,0 +1,98 @@
+name: Android foundation CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-ci.yml'
+      - 'apps/android/**'
+      - 'Packages/contracts/**'
+      - 'Packages/vox-core-rust/**'
+      - 'toolchains/android-wear-shared-core*'
+      - 'scripts/test-project-contracts.sh'
+  pull_request:
+    paths:
+      - '.github/workflows/android-ci.yml'
+      - 'apps/android/**'
+      - 'Packages/contracts/**'
+      - 'Packages/vox-core-rust/**'
+      - 'toolchains/android-wear-shared-core*'
+      - 'scripts/test-project-contracts.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-foundation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # ubuntu-24.04 is an observed hosted base image, not a bit-pinned toolchain or evidence claim.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Configure controlled Android SDK root
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "ANDROID_HOME=$RUNNER_TEMP/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$RUNNER_TEMP/android-sdk" >> "$GITHUB_ENV"
+      - name: Select exact Temurin JDK
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          distribution: temurin
+          java-version: '17.0.20+8'
+      - name: Install exact governed Rust and Android targets
+        uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
+        with:
+          toolchain: 1.97.1
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android,i686-linux-android
+      - name: Install exact cargo-ndk
+        shell: bash
+        run: cargo +1.97.1 install cargo-ndk --version 4.1.2 --locked
+      - name: Install exact Android command-line tools and SDK packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/commandlinetools-linux-15859902_latest.zip"
+          extracted="$RUNNER_TEMP/android-command-line-tools-22.0"
+          curl --fail --location --proto '=https' --tlsv1.2 \
+            --output "$archive" \
+            'https://dl.google.com/android/repository/commandlinetools-linux-15859902_latest.zip'
+          printf '%s  %s\n' \
+            '4e4c464f145a7512b57d088ac6c278c03c9eea610886b35a5e0804e74eedf583' \
+            "$archive" | sha256sum --check --strict
+          rm -rf "$ANDROID_SDK_ROOT" "$extracted"
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/22.0" "$extracted"
+          unzip -q "$archive" -d "$extracted"
+          mv "$extracted/cmdline-tools/"* "$ANDROID_SDK_ROOT/cmdline-tools/22.0/"
+          sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/22.0/bin/sdkmanager"
+          test -x "$sdkmanager"
+          yes | "$sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses >/dev/null || true
+          "$sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" \
+            'platforms;android-37.0' \
+            'build-tools;36.0.0' \
+            'ndk;27.1.12297006'
+          ndk_path="$ANDROID_SDK_ROOT/ndk/27.1.12297006"
+          test -f "$ndk_path/source.properties"
+          echo "ANDROID_NDK_HOME=$ndk_path" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ndk_path" >> "$GITHUB_ENV"
+      - name: Validate wrapper, toolchain, contracts, and project gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./apps/android/gradlew -p apps/android help
+          python3 Packages/contracts/scripts/validate_toolchain.py
+          python3 Packages/contracts/scripts/validate.py
+          ./scripts/test-project-contracts.sh
+      - name: Test, lint, and assemble debug application
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./apps/android/gradlew -p apps/android --no-daemon test lint assembleDebug assembleDebugAndroidTest :app:validateDebugArtifacts

@@ -1,170 +1,10 @@
 {
   "$defs": {
-    "campaign": {
-      "additionalProperties": false,
-      "properties": {
-        "$schema": {
-          "const": "https://vox.md/contracts/schemas/aggregate.schema.json"
-        },
-        "approvalHashes": {
-          "items": {
-            "$ref": "#/$defs/hashRef"
-          },
-          "minItems": 3,
-          "type": "array",
-          "uniqueItems": true
-        },
-        "campaignID": {
-          "$ref": "#/$defs/nonPlaceholder"
-        },
-        "definitionAggregateSha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "definitionHashes": {
-          "items": {
-            "$ref": "#/$defs/hashRef"
-          },
-          "minItems": 7,
-          "type": "array",
-          "uniqueItems": true
-        },
-        "evidenceAggregateSha256": {
-          "$ref": "#/$defs/sha256"
-        },
-        "evidenceHashes": {
-          "items": {
-            "$ref": "#/$defs/hashRef"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        },
-        "failedInvariantIDs": {
-          "items": {
-            "pattern": "^INV-[A-Z0-9-]+$"
-          },
-          "type": "array",
-          "uniqueItems": true
-        },
-        "generatedAt": {
-          "format": "date-time",
-          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$",
-          "type": "string"
-        },
-        "requiredTupleCounts": {
-          "additionalProperties": false,
-          "properties": {
-            "blocked": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "failed": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "incomplete": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "passed": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "total": {
-              "minimum": 1,
-              "type": "integer"
-            }
-          },
-          "required": [
-            "total",
-            "passed",
-            "failed",
-            "blocked",
-            "incomplete"
-          ],
-          "type": "object"
-        },
-        "requiredTuples": {
-          "items": {
-            "additionalProperties": false,
-            "properties": {
-              "caseID": {
-                "pattern": "^(REC|SAF|WEAR|PERF)-[0-9]{3}$"
-              },
-              "deviceRoleID": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "evidenceID": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "providerID": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
-              "status": {
-                "enum": [
-                  "passed",
-                  "failed",
-                  "blocked",
-                  "incomplete"
-                ]
-              }
-            },
-            "required": [
-              "caseID",
-              "deviceRoleID",
-              "providerID",
-              "evidenceID",
-              "status"
-            ],
-            "type": "object"
-          },
-          "minItems": 1,
-          "type": "array",
-          "uniqueItems": true
-        },
-        "schemaVersion": {
-          "const": 1
-        },
-        "status": {
-          "enum": [
-            "passed",
-            "failed",
-            "blocked",
-            "incomplete"
-          ]
-        }
-      },
-      "required": [
-        "$schema",
-        "schemaVersion",
-        "campaignID",
-        "status",
-        "definitionAggregateSha256",
-        "evidenceAggregateSha256",
-        "definitionHashes",
-        "evidenceHashes",
-        "approvalHashes",
-        "requiredTuples",
-        "requiredTupleCounts",
-        "failedInvariantIDs",
-        "generatedAt"
-      ],
-      "type": "object"
-    },
     "hashRef": {
       "additionalProperties": false,
       "properties": {
         "id": {
-          "$ref": "#/$defs/nonPlaceholder"
+          "$ref": "#/$defs/safePath"
         },
         "sha256": {
           "$ref": "#/$defs/sha256"
@@ -178,10 +18,304 @@
     },
     "nonPlaceholder": {
       "minLength": 2,
-      "pattern": "(?i)^(?!.*(?:tbd|todo|unknown|placeholder|dummy|changeme|example|n/a|not[-_ ]?set)).+$",
+      "pattern": "^(?!.*(?:[Tt][Bb][Dd]|[Tt][Oo][Dd][Oo]|[Uu][Nn][Kk][Nn][Oo][Ww][Nn]|[Pp][Ll][Aa][Cc][Ee][Hh][Oo][Ll][Dd][Ee][Rr]|[Dd][Uu][Mm][Mm][Yy]|[Cc][Hh][Aa][Nn][Gg][Ee][Mm][Ee]|[Ee][Xx][Aa][Mm][Pp][Ll][Ee]|[Nn]/[Aa]|[Nn][Oo][Tt][-_ ]?[Ss][Ee][Tt])).+$",
       "type": "string"
     },
-    "policy": {
+    "qualification": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "level": {
+              "const": "repositoryObservation"
+            }
+          },
+          "required": [
+            "level"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "artifactArchivePath": {
+              "$ref": "#/$defs/safePath"
+            },
+            "artifactArchiveSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "eventName": {
+              "enum": [
+                "pull_request",
+                "push",
+                "workflow_dispatch"
+              ]
+            },
+            "level": {
+              "const": "hostedRun"
+            },
+            "oidcAudience": {
+              "const": "https://vox.md/m2-evidence/v1"
+            },
+            "oidcIssuer": {
+              "const": "https://token.actions.githubusercontent.com"
+            },
+            "orchestratorRepositoryPath": {
+              "const": "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh"
+            },
+            "orchestratorSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "ref": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^refs/(?:heads|tags|pull)/",
+              "type": "string"
+            },
+            "repository": {
+              "const": "CodyBontecou/vox.md"
+            },
+            "repositoryID": {
+              "const": "1153091883"
+            },
+            "repositoryOwner": {
+              "const": "CodyBontecou"
+            },
+            "repositoryOwnerID": {
+              "const": "20440899"
+            },
+            "repositoryVisibility": {
+              "const": "public"
+            },
+            "runAttempt": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "runID": {
+              "pattern": "^[1-9][0-9]{0,19}$",
+              "type": "string"
+            },
+            "runnerEnvironment": {
+              "const": "github-hosted"
+            },
+            "sourceRevision": {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": "string"
+            },
+            "workflowReference": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^CodyBontecou/vox[.]md/[.]github/workflows/core-rust-ci[.]yml@refs/",
+              "type": "string"
+            },
+            "workflowRepositoryPath": {
+              "$ref": "#/$defs/safePath"
+            },
+            "workflowRevision": {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": "string"
+            },
+            "workflowSha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "required": [
+            "level",
+            "runID",
+            "runAttempt",
+            "workflowRepositoryPath",
+            "workflowSha256",
+            "artifactArchivePath",
+            "artifactArchiveSha256",
+            "repository",
+            "repositoryID",
+            "repositoryOwner",
+            "repositoryOwnerID",
+            "repositoryVisibility",
+            "oidcIssuer",
+            "oidcAudience",
+            "sourceRevision",
+            "workflowRevision",
+            "workflowReference",
+            "ref",
+            "eventName",
+            "runnerEnvironment",
+            "orchestratorRepositoryPath",
+            "orchestratorSha256"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "artifactArchivePath": {
+              "$ref": "#/$defs/safePath"
+            },
+            "artifactArchiveSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "eventName": {
+              "enum": [
+                "pull_request",
+                "push",
+                "workflow_dispatch"
+              ]
+            },
+            "level": {
+              "const": "releaseGate"
+            },
+            "oidcAudience": {
+              "const": "https://vox.md/m2-evidence/v1"
+            },
+            "oidcIssuer": {
+              "const": "https://token.actions.githubusercontent.com"
+            },
+            "orchestratorRepositoryPath": {
+              "const": "Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh"
+            },
+            "orchestratorSha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "ref": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^refs/(?:heads|tags|pull)/",
+              "type": "string"
+            },
+            "repository": {
+              "const": "CodyBontecou/vox.md"
+            },
+            "repositoryID": {
+              "const": "1153091883"
+            },
+            "repositoryOwner": {
+              "const": "CodyBontecou"
+            },
+            "repositoryOwnerID": {
+              "const": "20440899"
+            },
+            "repositoryVisibility": {
+              "const": "public"
+            },
+            "runAttempt": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "runID": {
+              "pattern": "^[1-9][0-9]{0,19}$",
+              "type": "string"
+            },
+            "runnerEnvironment": {
+              "const": "github-hosted"
+            },
+            "sourceRevision": {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": "string"
+            },
+            "workflowReference": {
+              "maxLength": 512,
+              "minLength": 1,
+              "pattern": "^CodyBontecou/vox[.]md/[.]github/workflows/core-rust-ci[.]yml@refs/",
+              "type": "string"
+            },
+            "workflowRepositoryPath": {
+              "$ref": "#/$defs/safePath"
+            },
+            "workflowRevision": {
+              "pattern": "^[0-9a-f]{40}$",
+              "type": "string"
+            },
+            "workflowSha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          },
+          "required": [
+            "level",
+            "runID",
+            "runAttempt",
+            "workflowRepositoryPath",
+            "workflowSha256",
+            "artifactArchivePath",
+            "artifactArchiveSha256",
+            "repository",
+            "repositoryID",
+            "repositoryOwner",
+            "repositoryOwnerID",
+            "repositoryVisibility",
+            "oidcIssuer",
+            "oidcAudience",
+            "sourceRevision",
+            "workflowRevision",
+            "workflowReference",
+            "ref",
+            "eventName",
+            "runnerEnvironment",
+            "orchestratorRepositoryPath",
+            "orchestratorSha256"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "safePath": {
+      "maxLength": 512,
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*//)(?!.*[/]$)(?![A-Za-z][A-Za-z0-9+.-]*:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\x00-\\x1f\\x7f\\\\]).+$",
+      "type": "string"
+    },
+    "scope": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "claim": {
+              "const": "milestoneClosure"
+            },
+            "throughMilestone": {
+              "pattern": "^M(?:[0-9]|10)$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "claim",
+            "throughMilestone"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "caseIDs": {
+              "items": {
+                "pattern": "^(CORE|REC|SAF|WEAR|PERF)-[0-9]{3}$",
+                "type": "string"
+              },
+              "maxItems": 128,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "claim": {
+              "const": "caseExecution"
+            }
+          },
+          "required": [
+            "claim",
+            "caseIDs"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://vox.md/contracts/schemas/aggregate.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
       "additionalProperties": false,
       "properties": {
         "$schema": {
@@ -194,23 +328,35 @@
           "minLength": 1,
           "type": "string"
         },
-        "requiredApprovalKinds": {
-          "const": [
-            "definition",
-            "campaign",
-            "releaseGate"
-          ]
+        "qualificationRules": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 3,
+          "type": "array"
         },
         "requirements": {
           "items": {
             "minLength": 1,
             "type": "string"
           },
+          "maxItems": 32,
           "minItems": 1,
           "type": "array"
         },
         "schemaVersion": {
-          "const": 1
+          "const": 2
+        },
+        "scopeRules": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 2,
+          "type": "array"
         },
         "statusRules": {
           "additionalProperties": false,
@@ -253,8 +399,10 @@
           "properties": {
             "nonWaivableInvariantIDs": {
               "items": {
-                "pattern": "^INV-[A-Z0-9-]+$"
+                "pattern": "^INV-[A-Z0-9-]+$",
+                "type": "string"
               },
+              "maxItems": 32,
               "minItems": 1,
               "type": "array",
               "uniqueItems": true
@@ -288,26 +436,187 @@
         "statusVocabulary",
         "passingStatus",
         "requirements",
+        "scopeRules",
+        "qualificationRules",
         "statusRules",
-        "waiverPolicy",
-        "requiredApprovalKinds"
+        "waiverPolicy"
       ],
       "type": "object"
     },
-    "sha256": {
-      "pattern": "^[0-9a-f]{64}$",
-      "type": "string"
-    }
-  },
-  "$id": "https://vox.md/contracts/schemas/aggregate.schema.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "oneOf": [
     {
-      "$ref": "#/$defs/policy"
-    },
-    {
-      "$ref": "#/$defs/campaign"
+      "additionalProperties": false,
+      "properties": {
+        "$schema": {
+          "const": "https://vox.md/contracts/schemas/aggregate.schema.json"
+        },
+        "approvalHashes": {
+          "items": {
+            "$ref": "#/$defs/hashRef"
+          },
+          "maxItems": 32,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "campaignID": {
+          "$ref": "#/$defs/nonPlaceholder"
+        },
+        "definitionAggregateSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "definitionHashes": {
+          "items": {
+            "$ref": "#/$defs/hashRef"
+          },
+          "maxItems": 32,
+          "minItems": 7,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "evidenceAggregateSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "evidenceHashes": {
+          "items": {
+            "$ref": "#/$defs/hashRef"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "failedInvariantIDs": {
+          "items": {
+            "pattern": "^INV-[A-Z0-9-]+$",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "generatedAt": {
+          "format": "date-time",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?Z$",
+          "type": "string"
+        },
+        "qualification": {
+          "$ref": "#/$defs/qualification"
+        },
+        "requiredTupleCounts": {
+          "additionalProperties": false,
+          "properties": {
+            "blocked": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "failed": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "incomplete": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "passed": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "total": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "total",
+            "passed",
+            "failed",
+            "blocked",
+            "incomplete"
+          ],
+          "type": "object"
+        },
+        "requiredTuples": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "caseID": {
+                "pattern": "^(CORE|REC|SAF|WEAR|PERF)-[0-9]{3}$",
+                "type": "string"
+              },
+              "deviceRoleID": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "evidenceID": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "providerID": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "status": {
+                "enum": [
+                  "passed",
+                  "failed",
+                  "blocked",
+                  "incomplete"
+                ]
+              }
+            },
+            "required": [
+              "caseID",
+              "deviceRoleID",
+              "providerID",
+              "evidenceID",
+              "status"
+            ],
+            "type": "object"
+          },
+          "maxItems": 512,
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "schemaVersion": {
+          "const": 2
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed",
+            "blocked",
+            "incomplete"
+          ]
+        }
+      },
+      "required": [
+        "$schema",
+        "schemaVersion",
+        "campaignID",
+        "scope",
+        "qualification",
+        "status",
+        "definitionAggregateSha256",
+        "evidenceAggregateSha256",
+        "definitionHashes",
+        "evidenceHashes",
+        "approvalHashes",
+        "requiredTuples",
+        "requiredTupleCounts",
+        "failedInvariantIDs",
+        "generatedAt"
+      ],
+      "type": "object"
     }
   ],
-  "title": "Validation aggregate policy or computed campaign aggregate"
+  "title": "Validation aggregate policy or computed scoped campaign aggregate"
 }

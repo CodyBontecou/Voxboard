@@ -468,7 +468,7 @@
       ],
       "id": "cap.delivery.voice-meter",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M4",
       "outcome": "Voice transcript routed to Markdown consumes transcription allowance only",
       "platforms": [
         "iphone",
@@ -498,7 +498,7 @@
       ],
       "id": "cap.editor.add-files",
       "legacyParity": "native-equivalent",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "File action",
       "platforms": [
         "iphone",
@@ -558,7 +558,7 @@
       ],
       "id": "cap.editor.bold",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Selection-aware bold toggle",
       "platforms": [
         "iphone",
@@ -588,7 +588,7 @@
       ],
       "id": "cap.editor.bullet",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Bullet list formatting",
       "platforms": [
         "iphone",
@@ -618,7 +618,7 @@
       ],
       "id": "cap.editor.capitalize",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Word capitalization",
       "platforms": [
         "iphone",
@@ -648,7 +648,7 @@
       ],
       "id": "cap.editor.current-location",
       "legacyParity": "native-equivalent",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Independent coordinate-only Google Maps insertion",
       "platforms": [
         "iphone",
@@ -678,7 +678,7 @@
       ],
       "id": "cap.editor.date",
       "legacyParity": "native-equivalent",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Date insertion",
       "platforms": [
         "iphone",
@@ -708,7 +708,7 @@
       ],
       "id": "cap.editor.due-date",
       "legacyParity": "native-equivalent",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Due-date insertion",
       "platforms": [
         "iphone",
@@ -768,7 +768,7 @@
       ],
       "id": "cap.editor.format-menu",
       "legacyParity": "native-equivalent",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Markdown format menu",
       "platforms": [
         "iphone",
@@ -798,7 +798,7 @@
       ],
       "id": "cap.editor.hashtag",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Hashtag insertion",
       "platforms": [
         "iphone",
@@ -828,7 +828,7 @@
       ],
       "id": "cap.editor.heading",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Heading levels 1 through 6",
       "platforms": [
         "iphone",
@@ -858,7 +858,7 @@
       ],
       "id": "cap.editor.italic",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Selection-aware italic toggle",
       "platforms": [
         "iphone",
@@ -888,7 +888,7 @@
       ],
       "id": "cap.editor.lowercase",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Lowercase transformation",
       "platforms": [
         "iphone",
@@ -918,7 +918,7 @@
       ],
       "id": "cap.editor.markdown-link",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Markdown link insertion",
       "platforms": [
         "iphone",
@@ -948,7 +948,7 @@
       ],
       "id": "cap.editor.paste",
       "legacyParity": "native-equivalent",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Paste controls",
       "platforms": [
         "iphone",
@@ -978,7 +978,7 @@
       ],
       "id": "cap.editor.replace",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Selection replacement",
       "platforms": [
         "iphone",
@@ -1038,7 +1038,7 @@
       ],
       "id": "cap.editor.sentence-case",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Sentence-case transformation",
       "platforms": [
         "iphone",
@@ -1098,7 +1098,7 @@
       ],
       "id": "cap.editor.slugify",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Slug transformation",
       "platforms": [
         "iphone",
@@ -1128,7 +1128,7 @@
       ],
       "id": "cap.editor.task",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Task checkbox formatting",
       "platforms": [
         "iphone",
@@ -1158,7 +1158,7 @@
       ],
       "id": "cap.editor.timestamp",
       "legacyParity": "native-equivalent",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Timestamp insertion",
       "platforms": [
         "iphone",
@@ -1188,7 +1188,7 @@
       ],
       "id": "cap.editor.toolbar-order",
       "legacyParity": "native-equivalent",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Capture Bar order and hidden state persist",
       "platforms": [
         "iphone",
@@ -1218,7 +1218,7 @@
       ],
       "id": "cap.editor.undo",
       "legacyParity": "native-equivalent",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Undo action",
       "platforms": [
         "iphone",
@@ -1248,7 +1248,7 @@
       ],
       "id": "cap.editor.uppercase",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Uppercase transformation",
       "platforms": [
         "iphone",
@@ -1278,7 +1278,7 @@
       ],
       "id": "cap.editor.voice-confirm",
       "legacyParity": "native-equivalent",
-      "milestone": "M3",
+      "milestone": "M4",
       "outcome": "Voice-note confirmation preference",
       "platforms": [
         "iphone",
@@ -1308,7 +1308,7 @@
       ],
       "id": "cap.editor.wiki-link",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Wiki link insertion",
       "platforms": [
         "iphone",
@@ -2220,7 +2220,7 @@
       ],
       "id": "cap.format.entry-template",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Reusable entry template and one-shot override",
       "platforms": [
         "iphone",
@@ -2348,7 +2348,7 @@
       ],
       "id": "cap.format.prefix",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Destination entry prefix",
       "platforms": [
         "iphone",
@@ -2380,7 +2380,7 @@
       ],
       "id": "cap.format.retry-marker",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Invisible request marker for idempotent shared-note retry",
       "platforms": [
         "iphone",
@@ -2412,7 +2412,7 @@
       ],
       "id": "cap.format.static-frontmatter",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Static note frontmatter fields",
       "platforms": [
         "iphone",
@@ -2444,7 +2444,7 @@
       ],
       "id": "cap.format.suffix",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Destination entry suffix",
       "platforms": [
         "iphone",
@@ -5481,7 +5481,7 @@
       ],
       "id": "cap.quota.transcription",
       "legacyParity": "exact",
-      "milestone": "M3/M8",
+      "milestone": "M4/M8",
       "outcome": "15 free transcription minutes",
       "platforms": [
         "iphone",
@@ -5513,7 +5513,7 @@
       ],
       "id": "cap.quota.voice-one-meter",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M4",
       "outcome": "Voice Markdown capture consumes transcription allowance only",
       "platforms": [
         "iphone",
@@ -6518,7 +6518,7 @@
       ],
       "id": "cap.target.daily",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Daily rolling note",
       "platforms": [
         "iphone",
@@ -6584,7 +6584,7 @@
       ],
       "id": "cap.target.monthly",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Monthly rolling note",
       "platforms": [
         "iphone",
@@ -6650,7 +6650,7 @@
       ],
       "id": "cap.target.quarterly",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Quarterly rolling note",
       "platforms": [
         "iphone",
@@ -6683,7 +6683,7 @@
       ],
       "id": "cap.target.weekly",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Weekly rolling note",
       "platforms": [
         "iphone",
@@ -6716,7 +6716,7 @@
       ],
       "id": "cap.target.yearly",
       "legacyParity": "exact",
-      "milestone": "M3",
+      "milestone": "M5",
       "outcome": "Yearly rolling note",
       "platforms": [
         "iphone",
@@ -8448,7 +8448,7 @@
       ],
       "id": "cap.preset.audio-save-off",
       "legacyParity": "exact",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "outcome": "Preset does not copy source audio into destination artifacts",
       "platforms": [
         "iphone",
@@ -8482,7 +8482,7 @@
       ],
       "id": "cap.preset.audio-save-alongside",
       "legacyParity": "exact",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "outcome": "Preset copies source audio alongside the transcript note",
       "platforms": [
         "iphone",
@@ -8516,7 +8516,7 @@
       ],
       "id": "cap.preset.audio-save-attachments",
       "legacyParity": "exact",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "outcome": "Preset copies source audio into the configured attachments folder",
       "platforms": [
         "iphone",
@@ -8550,7 +8550,7 @@
       ],
       "id": "cap.preset.audio-reference-top",
       "legacyParity": "exact",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "outcome": "Preset places the audio reference at the top of the transcript",
       "platforms": [
         "iphone",
@@ -8584,7 +8584,7 @@
       ],
       "id": "cap.preset.audio-reference-bottom",
       "legacyParity": "exact",
-      "milestone": "M3/M7",
+      "milestone": "M5/M7",
       "outcome": "Preset places the audio reference at the bottom of the transcript",
       "platforms": [
         "iphone",
@@ -8684,6 +8684,6 @@
   "schemaVersion": 1,
   "source": {
     "path": "docs/architecture/android-wear-m0-capabilities.json",
-    "sha256": "b735e6aa8f145a4bb30eeb3acce1dd667766a7ac3ea1e4be7e3dd4fe66acadb9"
+    "sha256": "ee62cff7916b8359467edfba2e00d7308739d7a3836ec30c3f16e0d88660cf44"
   }
 }

@@ -1,0 +1,1752 @@
+{
+  "$id": "https://vox.md/contracts/wearable-protocol/v1/schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "capabilityHello"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "capabilities": {
+              "items": {
+                "maxLength": 64,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 64,
+              "minItems": 0,
+              "type": "array"
+            },
+            "supportedVersions": {
+              "items": {
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "maxItems": 16,
+              "minItems": 1,
+              "type": "array"
+            }
+          },
+          "required": [
+            "supportedVersions",
+            "capabilities"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "idempotent"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "unsupportedVersion"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "reasonCode": {
+              "const": "unsupportedProtocolVersion"
+            },
+            "receivedVersion": {
+              "maximum": 65535,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "supportedVersions": {
+              "items": {
+                "maximum": 65535,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "maxItems": 16,
+              "minItems": 1,
+              "type": "array"
+            }
+          },
+          "required": [
+            "receivedVersion",
+            "supportedVersions",
+            "reasonCode"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "terminal"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "presetInventory"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "inventoryRevision": {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "presets": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "presetID": {
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                    "type": "string"
+                  },
+                  "revision": {
+                    "maximum": 9223372036854775807,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "snapshotHash": {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "presetID",
+                  "revision",
+                  "snapshotHash"
+                ],
+                "type": "object"
+              },
+              "maxItems": 256,
+              "minItems": 0,
+              "type": "array"
+            }
+          },
+          "required": [
+            "inventoryRevision",
+            "presets"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "newerRevisionWins"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "presetSnapshot"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "portablePolicy": {
+              "additionalProperties": false,
+              "properties": {
+                "destinationCapabilityReference": {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "localASRPolicy": {
+                  "enum": [
+                    "requiredLocal",
+                    "optionalLocal",
+                    "disabled"
+                  ]
+                },
+                "locationPolicy": {
+                  "enum": [
+                    "excluded",
+                    "coordinateOnly",
+                    "exact",
+                    "city"
+                  ]
+                },
+                "metadataPolicy": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "finalNewline": {
+                      "type": "boolean"
+                    },
+                    "frontmatterMode": {
+                      "enum": [
+                        "none",
+                        "merge",
+                        "replace"
+                      ]
+                    },
+                    "lineEnding": {
+                      "enum": [
+                        "lf",
+                        "preserveExisting"
+                      ]
+                    },
+                    "orderedFields": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "name": {
+                            "maxLength": 128,
+                            "minLength": 1,
+                            "type": "string"
+                          },
+                          "value": {
+                            "maxLength": 8192,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "value"
+                        ],
+                        "type": "object"
+                      },
+                      "maxItems": 128,
+                      "minItems": 0,
+                      "type": "array"
+                    },
+                    "templatePolicy": {
+                      "enum": [
+                        "none",
+                        "frozenObservation"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "frontmatterMode",
+                    "orderedFields",
+                    "templatePolicy",
+                    "lineEnding",
+                    "finalNewline"
+                  ],
+                  "type": "object"
+                },
+                "operation": {
+                  "enum": [
+                    "newNote",
+                    "rollingNote",
+                    "existingNoteAppend",
+                    "existingNotePrepend",
+                    "existingNoteHeading"
+                  ]
+                },
+                "recordingOnlyFilenamePolicyReference": {
+                  "oneOf": [
+                    {
+                      "maxLength": 128,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "recordingOnlyFolderPolicyReference": {
+                  "oneOf": [
+                    {
+                      "maxLength": 128,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "routePolicy": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "attachmentFolder": {
+                      "items": {
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                        "type": "string"
+                      },
+                      "maxItems": 32,
+                      "type": "array"
+                    },
+                    "collisionPolicy": {
+                      "enum": [
+                        "fail",
+                        "reuseIfHashMatches",
+                        "deterministicSuffix"
+                      ]
+                    },
+                    "extensionPolicy": {
+                      "const": "markdownDotMd"
+                    },
+                    "logicalFolder": {
+                      "items": {
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                        "type": "string"
+                      },
+                      "maxItems": 32,
+                      "type": "array"
+                    },
+                    "noteNameTemplate": {
+                      "maxLength": 1024,
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "logicalFolder",
+                    "noteNameTemplate",
+                    "extensionPolicy",
+                    "collisionPolicy",
+                    "attachmentFolder"
+                  ],
+                  "type": "object"
+                }
+              },
+              "required": [
+                "operation",
+                "routePolicy",
+                "metadataPolicy",
+                "destinationCapabilityReference",
+                "localASRPolicy",
+                "locationPolicy",
+                "recordingOnlyFolderPolicyReference",
+                "recordingOnlyFilenamePolicyReference"
+              ],
+              "type": "object"
+            },
+            "presetID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "presetRevision": {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "schemaVersion": {
+              "const": 1
+            },
+            "snapshotHash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "presetID",
+            "presetRevision",
+            "schemaVersion",
+            "snapshotHash",
+            "portablePolicy"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "newerRevisionWins"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "recordingMetadata"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "createdAtEpochMilliseconds": {
+              "maximum": 4102444800000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "localASRPolicy": {
+              "enum": [
+                "requiredLocal",
+                "optionalLocal",
+                "disabled"
+              ]
+            },
+            "locationPolicy": {
+              "enum": [
+                "excluded",
+                "coordinateOnly",
+                "exact",
+                "city"
+              ]
+            },
+            "mode": {
+              "enum": [
+                "transcript",
+                "recordingOnly"
+              ]
+            },
+            "presetID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "presetRevision": {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "presetSnapshotHash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "recordingOnlyFilenamePolicyReference": {
+              "oneOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "recordingOnlyFolderPolicyReference": {
+              "oneOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "timezone": {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "mode",
+            "createdAtEpochMilliseconds",
+            "timezone",
+            "presetID",
+            "presetRevision",
+            "presetSnapshotHash",
+            "localASRPolicy",
+            "locationPolicy",
+            "recordingOnlyFolderPolicyReference",
+            "recordingOnlyFilenamePolicyReference"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "newerRevisionWins"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "assetManifest"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "assetID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "length": {
+              "maximum": 1073741824,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "mediaType": {
+              "maxLength": 127,
+              "minLength": 1,
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "transport": {
+              "enum": [
+                "dataAsset",
+                "channel"
+              ]
+            }
+          },
+          "required": [
+            "assetID",
+            "mediaType",
+            "length",
+            "sha256",
+            "transport"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "newerRevisionWins"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "transferFrontier"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "assetID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "assetLength": {
+              "maximum": 1073741824,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "assetSHA256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "chunkLength": {
+              "maximum": 1048576,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "chunkSequence": {
+              "maximum": 1073741824,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "durableOffset": {
+              "maximum": 1073741824,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "frontierRevision": {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "assetID",
+            "assetLength",
+            "assetSHA256",
+            "durableOffset",
+            "chunkSequence",
+            "chunkLength",
+            "frontierRevision"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "newerRevisionWins"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "reconciliationSummary"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "pendingActionCorrelationIDs": {
+              "items": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "maxItems": 256,
+              "minItems": 0,
+              "type": "array"
+            },
+            "recordings": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "lastRevision": {
+                    "maximum": 9223372036854775807,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "recordingID": {
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                    "type": "string"
+                  },
+                  "state": {
+                    "enum": [
+                      "localRecorded",
+                      "assetPublished",
+                      "phoneIngested",
+                      "vaultCommitted",
+                      "terminalFailure",
+                      "discarded"
+                    ]
+                  }
+                },
+                "required": [
+                  "recordingID",
+                  "lastRevision",
+                  "state"
+                ],
+                "type": "object"
+              },
+              "maxItems": 256,
+              "minItems": 0,
+              "type": "array"
+            }
+          },
+          "required": [
+            "recordings",
+            "pendingActionCorrelationIDs"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "newerRevisionWins"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "transferReceipt"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "assetID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "durableOffset": {
+              "maximum": 1073741824,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "frontierRevision": {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "transportReceiptID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "assetID",
+            "frontierRevision",
+            "durableOffset",
+            "transportReceiptID"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "idempotent"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "phoneIngested"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "assetLength": {
+              "maximum": 1073741824,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "assetSHA256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "durableReceiptID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "phonePackageHash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "assetLength",
+            "assetSHA256",
+            "phonePackageHash",
+            "durableReceiptID"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "idempotent"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "vaultCommitted"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "destinationReceiptID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "phoneIngestedCorrelationID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "verifiedArtifactHash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "verifiedArtifactLength": {
+              "maximum": 1073741824,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "verifiedArtifactLength",
+            "verifiedArtifactHash",
+            "destinationReceiptID",
+            "phoneIngestedCorrelationID"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "terminal"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "terminalFailure"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "failedMessageCorrelationID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "mediaRetained": {
+              "const": true
+            },
+            "reasonCode": {
+              "enum": [
+                "unsupportedMedia",
+                "permanentDestinationFailure",
+                "invalidFrozenPolicy"
+              ]
+            }
+          },
+          "required": [
+            "reasonCode",
+            "failedMessageCorrelationID",
+            "mediaRetained"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "terminal"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "discarded"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "actionReceiptID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "discardReason": {
+              "enum": [
+                "explicitUserDiscard",
+                "sourceAlreadyAbsent"
+              ]
+            },
+            "mediaDeletionPersisted": {
+              "const": true
+            }
+          },
+          "required": [
+            "discardReason",
+            "actionReceiptID",
+            "mediaDeletionPersisted"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "terminal"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "sourceDeletionAuthorized"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "authorizationThreshold": {
+              "const": "vaultCommitted"
+            },
+            "durableObservationReceiptID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "vaultCommitCorrelationID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "authorizationThreshold",
+            "vaultCommitCorrelationID",
+            "durableObservationReceiptID"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "terminal"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "reassign"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "actionID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "targetCapabilityReference": {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            "userConfirmed": {
+              "const": true
+            }
+          },
+          "required": [
+            "targetCapabilityReference",
+            "actionID",
+            "userConfirmed"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "idempotent"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "retry"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "actionID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "retryFromRevision": {
+              "maximum": 9223372036854775807,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "userInitiated": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "actionID",
+            "retryFromRevision",
+            "userInitiated"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "idempotent"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "correlationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "deviceID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "epoch": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "messageID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "messageKind": {
+          "const": "discard"
+        },
+        "payload": {
+          "additionalProperties": false,
+          "properties": {
+            "actionID": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "retentionOverride": {
+              "const": "explicitDiscard"
+            },
+            "userConfirmed": {
+              "const": true
+            }
+          },
+          "required": [
+            "actionID",
+            "userConfirmed",
+            "retentionOverride"
+          ],
+          "type": "object"
+        },
+        "protocolVersion": {
+          "const": 1
+        },
+        "recordingID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "replayRule": {
+          "const": "terminal"
+        },
+        "revision": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "senderInstallationID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "messageID",
+        "recordingID",
+        "senderInstallationID",
+        "deviceID",
+        "epoch",
+        "revision",
+        "correlationID",
+        "messageKind",
+        "replayRule",
+        "payload"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "wearable-protocol"
+}

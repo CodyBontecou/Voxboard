@@ -1,0 +1,649 @@
+{
+  "cases" : [
+    {
+      "expected" : {
+        "bytesBase64" : "LS0tCmNvdW50OiA3CnNvdXJjZTogInN5bnRoZXRpYyIKLS0tCgojIyBhcHAgMjAyMy1XNDYKRmlyc3QKCltBIFxbbGFiZWxcXSBcXCB2YWx1ZV0oaHR0cHM6Ly9leGFtcGxlLmludmFsaWQvYSUyOGIlMjkpCgpDYWZlzIEg8J+RqfCfj73igI3wn5K7Cgo8IS0tIHZveC1jYXB0dXJlOjExMTExMTExLTExMTEtNDExMS04MTExLTExMTExMTExMTExMSAtLT4K",
+        "logicalPath" : [
+          "Inbox",
+          "Unicode",
+          "2023-11-14-141320-11111111.md"
+        ],
+        "sha256" : "148dd4bc00b2a3e3ec5d1daac92e51bdf770ff4c630a677aa43cadbb36653f5b"
+      },
+      "id" : "m2-positive-unicode-template-frontmatter",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "## {source} {week}\n",
+        "entrySuffix" : "",
+        "finalNewline" : true,
+        "frontmatter" : [
+          {
+            "name" : "count",
+            "value" : "7"
+          },
+          {
+            "name" : "source",
+            "value" : "synthetic"
+          }
+        ],
+        "logicalFolder" : [
+          "Inbox",
+          "Unicode"
+        ],
+        "noteNameTemplate" : "{date}-{time}-{id8}",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "First"
+          },
+          {
+            "kind" : "link",
+            "label" : "A [label] \\ value",
+            "url" : "https://example.invalid/a(b)"
+          },
+          {
+            "kind" : "text",
+            "text" : "Café 👩🏽‍💻"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : true,
+        "source" : "app",
+        "timezone" : "America/Los_Angeles"
+      }
+    },
+    {
+      "expected" : {
+        "bytesBase64" : "W2h0dHBzOi8vZXhhbXBsZS5pbnZhbGlkLyVDMyVBOV0oaHR0cHM6Ly9leGFtcGxlLmludmFsaWQvJUMzJUE5KQ==",
+        "logicalPath" : [
+          "Inbox",
+          "capture-3.md"
+        ],
+        "sha256" : "82232e128210a219ea068bf376726783fbbb9b43c5e1052ec5917fb99fc0fa47"
+      },
+      "id" : "m2-positive-collision-link-no-final-lf",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1704067200000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "capture.md",
+        "occupiedPaths" : [
+          [
+            "Inbox",
+            "capture.md"
+          ],
+          [
+            "Inbox",
+            "capture-2.md"
+          ]
+        ],
+        "payloads" : [
+          {
+            "kind" : "link",
+            "label" : "",
+            "url" : "https://example.invalid/é"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "share",
+        "timezone" : "Asia/Kathmandu"
+      }
+    },
+    {
+      "expected" : {
+        "bytesBase64" : "LS0tCnRlbXBsYXRlOiB0cnVlCi0tLQoKe2RhdGV9IHJlbWFpbnMgbGl0ZXJhbAo=",
+        "logicalPath" : [
+          "Inbox",
+          "note.txt"
+        ],
+        "sha256" : "1cf00c631a295e550eafcd65377b02042e0d3284b6f0d222dad57cfb07a9ca15"
+      },
+      "id" : "m2-positive-template-frontmatter-literal-token",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "---\ntemplate: true\n---\n",
+        "entrySuffix" : "",
+        "finalNewline" : true,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "note.txt",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "{date} remains literal"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "app",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expected" : {
+        "bytesBase64" : "UHJlZml4CkFscGhhCkJldGEK",
+        "logicalPath" : [
+          "Inbox",
+          "line-endings.md"
+        ],
+        "sha256" : "c82bd913a941601fdea5b5f4c854ef568f689fda47454d1178170923ff4688bc"
+      },
+      "id" : "m2-positive-crlf-cr-boundaries",
+      "request" : {
+        "createdAtEpochMilliseconds" : 0,
+        "entryPrefix" : "Prefix\r\n",
+        "entrySuffix" : "",
+        "finalNewline" : true,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "line-endings",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "\r\nAlpha\rBeta\r\n"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "keyboard",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expected" : {
+        "bytesBase64" : "UHJlZml4woVJbnNpZGUM4oCpQWxwaGHigKhCZXRhwoVHYW1tYQ==",
+        "logicalPath" : [
+          "Inbox",
+          "foundation-newlines.md"
+        ],
+        "sha256" : "e5885fa3da41f95a634f587a80de033ab130bf27ed6880236759d17c7d6ae720"
+      },
+      "id" : "m2-positive-foundation-newline-boundaries",
+      "request" : {
+        "createdAtEpochMilliseconds" : 0,
+        "entryPrefix" : " \u000bPrefixInside\f ",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "foundation-newlines",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "\n\u000bAlpha BetaGamma\f \r"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "keyboard",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expected" : {
+        "bytesBase64" : "LS0tCnpldGE6ICJ0d28iCmFscGhhOiAib25lIgotLS0KCm9yZGVyZWQ=",
+        "logicalPath" : [
+          "Inbox",
+          "2100-11111111.md"
+        ],
+        "sha256" : "13dd5769097f59dba4a2f15dac96617953ea413fabb8775dda5c8b9e3a51f810"
+      },
+      "id" : "m2-positive-ordered-frontmatter",
+      "request" : {
+        "createdAtEpochMilliseconds" : 4102444800000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+          {
+            "name" : "zeta",
+            "value" : "two"
+          },
+          {
+            "name" : "alpha",
+            "value" : "one"
+          }
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "{year}-{id8}",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "ordered"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "widget",
+        "timezone" : "Pacific/Kiritimati"
+      }
+    },
+    {
+      "expected" : {
+        "bytesBase64" : "c3RhYmxl",
+        "logicalPath" : [
+          "Inbox",
+          "stable-3.md"
+        ],
+        "sha256" : "f379ccb92b9116442dc65bdc35648a85d3786b34779db7f704a901fa07b00cb6"
+      },
+      "id" : "m2-positive-occupancy-order-a",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "stable",
+        "occupiedPaths" : [
+          [
+            "Inbox",
+            "stable-2.md"
+          ],
+          [
+            "Inbox",
+            "stable.md"
+          ]
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "stable"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "app",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expected" : {
+        "bytesBase64" : "c3RhYmxl",
+        "logicalPath" : [
+          "Inbox",
+          "stable-3.md"
+        ],
+        "sha256" : "f379ccb92b9116442dc65bdc35648a85d3786b34779db7f704a901fa07b00cb6"
+      },
+      "id" : "m2-positive-occupancy-order-b",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "stable",
+        "occupiedPaths" : [
+          [
+            "Inbox",
+            "stable.md"
+          ],
+          [
+            "Inbox",
+            "stable-2.md"
+          ]
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "stable"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "app",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expectedError" : "invalidPath",
+      "id" : "m2-negative-parent-traversal",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          ".."
+        ],
+        "noteNameTemplate" : "escape",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "x"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "app",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expectedError" : "invalidPath",
+      "id" : "m2-negative-current-segment",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "."
+        ],
+        "noteNameTemplate" : "escape",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "x"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "app",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expectedError" : "invalidPath",
+      "id" : "m2-negative-backslash",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "bad\\segment"
+        ],
+        "noteNameTemplate" : "escape",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "x"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "app",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expectedError" : "invalidPath",
+      "id" : "m2-negative-absolute-path",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+
+        ],
+        "noteNameTemplate" : "/escape",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "text",
+            "text" : "x"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "app",
+        "timezone" : "UTC"
+      }
+    },
+    {
+      "expectedError" : "invalidRendering",
+      "id" : "m2-negative-unsafe-url",
+      "request" : {
+        "createdAtEpochMilliseconds" : 1700000000000,
+        "entryPrefix" : "",
+        "entrySuffix" : "",
+        "finalNewline" : false,
+        "frontmatter" : [
+
+        ],
+        "logicalFolder" : [
+          "Inbox"
+        ],
+        "noteNameTemplate" : "link",
+        "occupiedPaths" : [
+
+        ],
+        "payloads" : [
+          {
+            "kind" : "link",
+            "label" : "x",
+            "url" : "ftp://example.invalid/private"
+          }
+        ],
+        "requestID" : "11111111-1111-4111-8111-111111111111",
+        "retryMarker" : false,
+        "source" : "app",
+        "timezone" : "UTC"
+      }
+    }
+  ],
+  "corpusVersion" : 1,
+  "producer" : {
+    "name" : "VoxboardM2Oracle",
+    "oracleSourceSHA256" : "47f8cdaf187ca1aeaebda7effb05031ee529b7367d677224a02248751cef73b8",
+    "productionConsumers" : [
+      {
+        "name" : "ActivityStatsStore",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/ActivityStatsStore.swift",
+        "sha256" : "ef2080d4d4478ac75dff0d7e65d45365330b6832fee9658bc3c1e6935ff77975"
+      },
+      {
+        "name" : "CaptureAssetStager",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureAssetStager.swift",
+        "sha256" : "3eecfa3a7b55f65f731f04e06dbb74d82c86208cc4d7b9722f47aa81e8e090ee"
+      },
+      {
+        "name" : "CaptureAttachmentWriter",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureAttachmentWriter.swift",
+        "sha256" : "243df6574a529fc8bb3fd7d7b8fb7df4160991a5545381661f41eaf3591a466e"
+      },
+      {
+        "name" : "CaptureComposerTextEditor",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureComposerTextEditor.swift",
+        "sha256" : "b6af6b476789b580cc919f29ddaea4f0e7afa6c993f1f48085fe400064e23d07"
+      },
+      {
+        "name" : "CaptureCoreEnginePolicy",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureCoreEnginePolicy.swift",
+        "sha256" : "8bb6d34d9fe2925d50aab38f7206479e99da06acd460ea6d9d33151fb95aa574"
+      },
+      {
+        "name" : "CaptureDateTokenValues",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureDateTokenValues.swift",
+        "sha256" : "91650008c468b48dcffd391400313f645e88ea16e551cbfb91a37f70ced6538a"
+      },
+      {
+        "name" : "CaptureDeepLinkParser",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureDeepLinkParser.swift",
+        "sha256" : "44f48ab3602f50219f498963f3dd4e4b67e317eabcf8e9afedec985f925d7693"
+      },
+      {
+        "name" : "CaptureDraftStore",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureDraftStore.swift",
+        "sha256" : "76517b03ca2371db61eeca0ae4f3002f54f326169a74d8d915e7f2ce8bce47aa"
+      },
+      {
+        "name" : "CaptureEntryTemplateRenderer",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureEntryTemplateRenderer.swift",
+        "sha256" : "1a1df16ee74b5df14195f705de176dac42347acc3e7f335f12559e57d8be3be8"
+      },
+      {
+        "name" : "CaptureHistoryStore",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureHistoryStore.swift",
+        "sha256" : "2867ff1b5077036d19a1e38bee541a6d13e3d048af8aee42e9e0e65374c91d14"
+      },
+      {
+        "name" : "CaptureInbox",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureInbox.swift",
+        "sha256" : "fbc7af05343d33ca6918e899a1178c5dae5608295e525f0d8bfcd1d89b979c45"
+      },
+      {
+        "name" : "CaptureInputLimits",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureInputLimits.swift",
+        "sha256" : "e63edb318b164c499a51469f1381d8fa35304405fc0ebc16c0b3c3d77ff86d15"
+      },
+      {
+        "name" : "CaptureInsertionFormatter",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureInsertionFormatter.swift",
+        "sha256" : "e5e926258a6e3b4eb6d04f6f9ebefa027205f355e7611d0018ac7742528cc626"
+      },
+      {
+        "name" : "CaptureLibraryStore",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureLibraryStore.swift",
+        "sha256" : "1eac353f39ea3f9695163d1f35d8d8acd3560b57486120398033ea644785ec18"
+      },
+      {
+        "name" : "CaptureLocationMetadata",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureLocationMetadata.swift",
+        "sha256" : "28a9fbc7e7d76db8b77e74610ec8a99875cff169aebd52db088d7354d6c318f6"
+      },
+      {
+        "name" : "CaptureMarkdownRenderer",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureMarkdownRenderer.swift",
+        "sha256" : "beaaee2972e4f76322da83baeb88fd850108e37034e142bfda88c453d224ca37"
+      },
+      {
+        "name" : "CaptureModels",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureModels.swift",
+        "sha256" : "4b0309ef27996320e30d6d459090d6d266071ea97f6fe684d0a1d29876303cdd"
+      },
+      {
+        "name" : "CaptureOCRMarkdownFormatter",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureOCRMarkdownFormatter.swift",
+        "sha256" : "fd24df0bf01955e7a1f3893790ed5e0a3122a2d132562db22cbc30d868adc216"
+      },
+      {
+        "name" : "CapturePathPlanner",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CapturePathPlanner.swift",
+        "sha256" : "d9359cb6b5a829e5091f5305c214be8b7cd46ce1ec35e77f45e7220b9ca561bc"
+      },
+      {
+        "name" : "CapturePipeline",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CapturePipeline.swift",
+        "sha256" : "f16acdbd8384550b0bf9d820e49603fb4f283cfe6402e7504e93826c11343e09"
+      },
+      {
+        "name" : "CaptureVaultMarkdownTemplate",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureVaultMarkdownTemplate.swift",
+        "sha256" : "4edc0ee5a97083ced6abb406c11cb5c4b34f6a3237b69177b69d7401a80ced85"
+      },
+      {
+        "name" : "CaptureVoiceLifecycle",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureVoiceLifecycle.swift",
+        "sha256" : "371ba69241e327bbe434b610ffa4c6f741a4a65dd8441e9f782aa8820c4a9bc4"
+      },
+      {
+        "name" : "CaptureVox",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureVox.swift",
+        "sha256" : "efc9bfbce72fc0c91b48a5202ce44b833682f331076b93458a40562ee092d259"
+      },
+      {
+        "name" : "CaptureVoxRequestProcessor",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CaptureVoxRequestProcessor.swift",
+        "sha256" : "ca123db529d40f01a82a65679918af373211a21f4350851eb172b5f3561138c6"
+      },
+      {
+        "name" : "CoordinatedCaptureWriter",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/CoordinatedCaptureWriter.swift",
+        "sha256" : "e93cc902713819d6df1a78d93ffb9fcc04740f3c52cd55018df56760fe14359b"
+      },
+      {
+        "name" : "MarkdownDocumentEditor",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/MarkdownDocumentEditor.swift",
+        "sha256" : "04162550271c7c86e17bfed753b529f08f3fee433dbc535cdf5f61a539b2767f"
+      },
+      {
+        "name" : "SecureCaptureFileIO",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/SecureCaptureFileIO.swift",
+        "sha256" : "20d34945f5d55c4f6853766efe9dde1684cf4fb05f5aa191c2f436469ee4ac28"
+      },
+      {
+        "name" : "VoxboardCaptureCore",
+        "path" : "Packages/VoxboardShared/Sources/VoxboardCaptureCore/VoxboardCaptureCore.swift",
+        "sha256" : "dda9b75f64b106eb544de201f599122d75abc483c5b156bba6c05c0f956dbc3c"
+      }
+    ],
+    "sourceRevision" : "95f7bb24a04af7e2616310e94a013cb8e12b669b",
+    "swiftCompilerIdentity" : "Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101) Target: arm64-apple-macosx26.0",
+    "toolchainManifestSHA256" : "fced80531db508455175d23e7a37735f5f4b1fb58e76d0165256c75c63d5e415",
+    "xcodeIdentity" : "Xcode 26.6 Build version 17F113"
+  }
+}

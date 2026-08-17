@@ -1,0 +1,196 @@
+{
+  "$id": "https://vox.md/contracts/android-capture-package/v1/schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "additionalProperties": false,
+      "properties": {
+        "assetCount": {
+          "const": 0
+        },
+        "assets": {
+          "items": {},
+          "maxItems": 0,
+          "minItems": 0,
+          "type": "array"
+        },
+        "requestID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "schemaVersion": {
+          "const": 1
+        }
+      },
+      "required": [
+        "assetCount",
+        "assets",
+        "requestID",
+        "schemaVersion"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "assetManifestByteCount": {
+          "maximum": 1048576,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "assetManifestSHA256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "assetManifestVersion": {
+          "const": 1
+        },
+        "events": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "enum": [
+                  "enqueued",
+                  "preparationStarted",
+                  "materialized",
+                  "commitStarted",
+                  "retryableFailure",
+                  "provedNotCommitted",
+                  "permissionLost",
+                  "permissionRestored",
+                  "userActionRequired",
+                  "permanentFailure",
+                  "commitAmbiguous",
+                  "verifiedCommitted",
+                  "userDiscarded"
+                ]
+              },
+              "fromState": {
+                "oneOf": [
+                  {
+                    "enum": [
+                      "queued",
+                      "preparing",
+                      "materialized",
+                      "committing",
+                      "retryableFailure",
+                      "needsPermission",
+                      "needsUserAction",
+                      "unknownOutcome",
+                      "completed",
+                      "permanentFailure",
+                      "discarded"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "occurredAtEpochMillis": {
+                "maximum": 9223372036854775807,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "receiptID": {
+                "oneOf": [
+                  {
+                    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "resumeState": {
+                "oneOf": [
+                  {
+                    "enum": [
+                      "preparing",
+                      "materialized",
+                      "committing"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "revision": {
+                "maximum": 1023,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "state": {
+                "enum": [
+                  "queued",
+                  "preparing",
+                  "materialized",
+                  "committing",
+                  "retryableFailure",
+                  "needsPermission",
+                  "needsUserAction",
+                  "unknownOutcome",
+                  "completed",
+                  "permanentFailure",
+                  "discarded"
+                ]
+              }
+            },
+            "required": [
+              "code",
+              "fromState",
+              "occurredAtEpochMillis",
+              "receiptID",
+              "resumeState",
+              "revision",
+              "state"
+            ],
+            "type": "object"
+          },
+          "maxItems": 1024,
+          "minItems": 1,
+          "type": "array"
+        },
+        "journalVersion": {
+          "const": 1
+        },
+        "packageVersion": {
+          "const": 1
+        },
+        "requestByteCount": {
+          "maximum": 1048576,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "requestID": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+          "type": "string"
+        },
+        "requestSHA256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "requestContractVersion": {
+          "const": 1
+        }
+      },
+      "required": [
+        "assetManifestByteCount",
+        "assetManifestSHA256",
+        "assetManifestVersion",
+        "events",
+        "journalVersion",
+        "packageVersion",
+        "requestByteCount",
+        "requestID",
+        "requestSHA256",
+        "requestContractVersion"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "Android capture package v1 portable envelopes"
+}

@@ -1,0 +1,15 @@
+{
+  "kind": "expectedVersions",
+  "operation": "newNoteTextLink",
+  "versions": {
+    "artifactPlanVersion": 1,
+    "captureMaterializationInputVersion": 1,
+    "capturePreparationInputVersion": 1,
+    "coreAPIVersion": 1,
+    "profileID": "unknown-profile",
+    "profileVersion": 1,
+    "rendererRevision": "swift-legacy-m0",
+    "requiredObservationsVersion": 1,
+    "toolchainManifestSHA256": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}

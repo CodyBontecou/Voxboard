@@ -1,0 +1,8 @@
+[bindings.swift]
+module_name = "VoxCore"
+ffi_module_name = "VoxCoreFFI"
+
+[bindings.kotlin]
+package_name = "md.vox.core"
+cdylib_name = "vox_core_uniffi"
+android_cleaner = true

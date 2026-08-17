@@ -1,63 +1,64 @@
 # Android/Wear validation program
 
-Status: **M1 definition; no physical campaign evidence recorded**
+Status: **scoped evidence definitions; no real M2 or physical campaign recorded**
 
-These repository-owned definitions specify the device/provider matrix, cases, numerical gates, evidence records, approvals, and aggregate gate. They do not attest that hardware exists in a lab or that a case passed.
+Repository definitions specify targets, cases, gates, evidence, qualification, approvals, and aggregate computation. They do not attest hardware, execution, hosted runs, signatures, or approval.
 
-## Definition and evidence boundary
+## Scope
 
-Files under `Packages/contracts/validation/` ending in `*-matrix.json`, `case-catalog.json`, and `performance-gates.json` are reviewed definitions. Campaign records use `case-evidence.schema.json`, `approval.schema.json`, and `aggregate.schema.json`.
+Every required case declares its first milestone and immutable execution target. Aggregate scope is one of:
 
-Never prefill serial numbers, build fingerprints, installed provider versions, build signatures, timestamps, operator identities, or results. Those values must be observed during a named campaign. Synthetic fixtures are allowed, but their committed SHA-256 values must be copied into each evidence record.
+- `milestoneClosure`: derives every required case whose milestone is at or before `throughMilestone`; caller-supplied subsets are impossible.
+- `caseExecution`: derives only its explicit case IDs for a shard or rerun and makes no closure claim.
 
-## Gate rules
+An M2 closure contains `CORE-001` through `CORE-005`, build-host `PERF-003`, and artifact-build-host `PERF-008`. The CORE cases prevent performance-only evidence from claiming the implementation milestone: parity, fail-closed versions, binding drift, readiness-pin completeness, and side-effect-free Apple shadow execution each require their named production check, exact allowlisted producer provenance, and build-bound executable. An M3 closure also contains all M2 cases and every M3 case. Later physical requirements are not weakened or retargeted.
 
-- Required cases must have applicable evidence for every required device/provider role.
-- `passed` is the only passing case status and requires `actual=(passed, expectedOutcomeObserved)`, all invariants/checks passed, and all measurements within gates. `failed` maps to `(failed, expectedOutcomeNotObserved)` and requires an observed failed invariant, gate, or diagnostic check. `blocked`, `notRun`, and `notApplicable` map exactly to `executionBlocked`, `executionNotRun`, and `catalogNotApplicable`, respectively, with no invariant or measurement claims; none passes a required applicable case.
-- `notApplicable` requires a catalog applicability rule proving the combination is outside scope; operators cannot declare it ad hoc.
-- Non-waivable invariants cannot be waived or overridden by approval.
-- Waivers apply only to explicitly waivable non-safety requirements, have an owner, rationale, expiry, and approving identity, and never turn failed evidence into passed evidence.
-- Aggregate status is computed: `passed` only when definitions validate, all required applicable cases pass, performance samples meet gates, required approvals are approved, not future-dated, and unexpired, every non-waivable invariant is covered and evaluated, and evidence contains no placeholder campaign facts. The domain state `unknownOutcome` is valid; standalone `unknown` remains a rejected placeholder.
+## Qualification versus technical status
 
-## Hardware and provider identities
+Aggregate `status` reports selected technical coverage. `qualification.level` reports what independently verifiable context exists:
 
-The matrix names procurement targets and roles, not lab inventory. Exact serials and OS build fingerprints are campaign evidence.
+- `repositoryObservation`: canonical receipts and repository facts; no retained-artifact rehash; approvals must be empty.
+- `hostedRun`: exact checkout/workflow/run facts authenticated by a live GitHub Actions OIDC token (issuer `https://token.actions.githubusercontent.com`, audience `https://vox.md/m2-evidence/v1`, pinned repository/owner IDs, public visibility, source/workflow SHA and ref, event, run attempt, and GitHub-hosted runner), with a clean tracked checkout, hash-bound tracked orchestrator, and an exact external artifact inventory rehashed while retained; approvals may be empty. Forgeable `GITHUB_*` variables alone never qualify a run.
+- `releaseGate`: hosted evidence plus real, hash-bound definition, campaign, and release approvals that remain unexpired at validation time. The CLI currently fails closed because no authenticated approval verifier is configured; schema-shaped JSON alone cannot activate this level.
 
-Provider identity is exact by Android document-provider authority and package name. A UI label such as “Drive” is insufficient. Provider package version and signing-certificate SHA-256 are captured from the installed campaign device, not guessed in M1.
+Technical pass alone never implies hosted qualification, release approval, or milestone completion. Executed M2 repository observations also require `--repository-root`; no M2 provenance is accepted as a free-standing assertion. The M2 exit audit requires hosted M2 closure.
 
-## Storage pressure
+## Target identities
 
-Wear recording/transfer cases require free space of at least `max(1 GiB, 20% of total capacity)` before starting a normal run. Storage-pressure cases intentionally cross the separately stated frontier and must preserve the last durable copy.
+`buildHost` and `artifactBuildHost` evidence use a clean `sourceBuiltHost` build identity plus observed non-secret host OS, architecture, CPU count/model, and memory. They require no fake device serial or application signature. The seven M2 CORE/PERF cases use these targets.
 
-## Evidence layout
+Every physical-device case retains its device-role expansion, exact observed device/provider facts, and `signedApplication` identity with signed build ID and signature hash. Missing facts make evidence incomplete; they are never guessed.
 
-Write completed case evidence beneath:
+## Typed execution evidence
 
-`artifacts/validation/android-wear/<campaign-id>/<case-id>/<evidence-id>.json`
+Executed M2 evidence references canonical typed receipts:
 
-Write the computed aggregate beside it as `aggregate.json`. Human notes, logs, and screenshots are outside machine evidence and cannot satisfy a gate. For privacy-governed cases, every referenced fixture and artifact must be a canonical `.diagnostic.json` summary accepted by the strict allowlist schema; raw logs, screenshots, free text, captured content, and storage handles are structurally rejected.
+- `execution-provenance.schema.json`: source revision, toolchain, exact case-specific recipe and consumer tuple, retained executable identity, complete sorted tracked source inventory, the PERF-003 deterministic generator (explicitly absent for PERF-008), and hosted facts when applicable. The materialization inventory names `VoxboardM2MaterializationEvidence`, not the Swift parity-oracle executable.
+- `materialization-run-set.schema.json`: canonical control documents, seed-derived synthetic input bytes/chunks, terminal verified drains, exact 1/16/256 MiB coverage, twenty-sample 1 MiB latency, and dedicated 256 MiB unfiltered RSS.
+- `native-package-inspection.schema.json`: exact six ordered leaves, structured checks, absolute sizes/hashes, comparison mode, and retention.
 
-Use `docs/validation/android-wear-case-evidence-template.md` when conducting a campaign. Validate definitions with:
+CORE-001 through CORE-005 diagnostics are emitted by `execute-core` only after each governed production command succeeds. `finalize` consumes and byte-for-byte semantically checks those pre-existing diagnostics and cannot mint them. Each measurement has a derivation selector and source artifact. The validator derives all samples and the statistic. Hosted mode requires `--external-artifact-root`, an exact GitHub workflow reference and `m2-evidence` job, one unconditional canonical step invoking the tracked `run-m2-hosted-evidence.sh` orchestrator, retained executable bytes, and exact declared benchmark/package/archive files. Paths reject noncanonical spellings, absolute prefixes, URL schemes, control characters, backslashes, dot segments, traversal, and symlinks. JSON rejects duplicate names/non-finite numbers; JSON and tar input use explicit byte/member bounds, and tar extensions are forbidden.
+
+## Packaging
+
+The first core uses `initialCandidate`, has no baseline or growth measurement, and may technically pass six absolute gates. A future `approvedBaselineComparison` requires a separately governed real baseline registry and retains the exact <=10% maximum growth gate. Registry and adoption approval must be committed tracked files, hash-bound, unexpired, and accepted by an authenticated verifier that also validates the hosted source campaign/archive. The production CLI currently has no such verifier and rejects adoption files; tests inject an explicitly synthetic in-process verifier only to exercise downstream coherence. Once a registry is genuinely adopted, deletion and `initialCandidate` are forbidden.
+
+## Privacy and campaign layout
+
+Receipts contain only deterministic synthetic generator identity, numeric execution/resource metadata, sequences, and hashes—never note text, audio, transcript, user path, URI, coordinate, or provider handle. Privacy-governed physical cases retain canonical diagnostic-summary restrictions.
+
+A campaign contains only non-symlink `evidence/*.json`, `approvals/*.json`, `aggregate.json`, and exactly the `artifacts/` files declared by evidence references. Large native/benchmark artifacts remain outside Git and are supplied through an equally exact hosted external inventory; undeclared files and symlinks fail validation.
+
+## Validation
 
 ```sh
 python3 Packages/contracts/scripts/validate_validation_definitions.py
-python3 -m unittest discover -s Packages/contracts/tests -p 'test_validation_definitions.py'
+python3 Packages/contracts/scripts/validate_validation_definitions.py \
+  --campaign-dir <campaign> \
+  --qualification hostedRun \
+  --repository-root . \
+  --external-artifact-root <retained-artifacts>
+python3 -m unittest discover -s Packages/contracts/tests -p 'test_validation_definitions.py' -v
 ```
 
-## Large-screen and tuple expansion
-
-`REC-004` executes rotation, resize, split-screen, background/foreground, and state restoration on the required tablet role. `SAF-005` executes the provider picker and durable delivery across every required provider on that role. The validator expands each required case into the Cartesian product of its required device roles and catalog-approved provider applicability (`none`, `allRequired`, or `nonLocalRequired`). A required role without a case is a definition error. Operators cannot retarget evidence or invent N/A combinations.
-
-## Privacy-safe diagnostic summaries
-
-`INV-PRIVACY-DIAGNOSTICS` is a bounded structural guarantee, not semantic text detection. For every governed case, `actual` is an exact result-code object and every `fixtureHashes`/`artifacts` file must end in `.diagnostic.json`, be canonical UTF-8 JSON, and validate against `diagnostic-summary.schema.json`. That schema permits only version/format/kind/result enums, allowlisted check code/result/count triples, and role/SHA-256 references. It has no free-text, filename, path, URI, coordinate, content, payload, or storage-handle field. Arbitrary `.txt`, logs, any URI scheme, unlabeled text, unknown fields, binary bytes, and noncanonical JSON are rejected. This makes such content unrepresentable in accepted machine diagnostic summaries; it does not claim to inspect external human artifacts or infer the semantics of a malicious hash.
-
-## Packaging-growth baseline
-
-The baseline is the clean source build at planning parent `b50167aebb959e394908af3a5949f43fa88d6265`. Baseline and candidate must use the same pinned release toolchain, target scope, build configuration, feature set, stripping/symbol handling, archive container, and uncompressed-size procedure. The definition freezes the exact leaf set: Android `arm64-v8a`, `armeabi-v7a`, `x86_64`, and `x86`, plus Apple `xcframework-ios-device-arm64` and the combined `xcframework-ios-simulator-arm64-x86_64` library slice. Evidence carries exactly one ordered `packagingBaselines` entry for each scope. Each entry records its absolute gate ID, baseline and candidate revisions, toolchain ID, target scope, configuration, feature set, artifact ID, actual byte counts, and both artifact SHA-256 values. The validator reads every referenced file and binds its actual size/hash to the entry, binds each Android/per-slice absolute size measurement to candidate bytes, derives the XCFramework aggregate as the sum of its complete slice set, derives each scoped growth as `((candidateBytes - baselineBytes) / baselineBytes) * 100`, and requires `packaging-growth` samples to be the complete ordered scoped growth list with its maximum as the result. A measurement or approval without those identities, files, sizes, and hashes cannot satisfy `packaging-growth`.
-
-## Campaign validation
-
-The validator accepts `--campaign-dir <directory>`. The non-symlink campaign directory contains only non-symlink `evidence/*.json`, non-symlink `approvals/*.json`, `aggregate.json`, and an `artifacts/` tree referenced relative to the campaign root; unexpected entries and file types in machine directories are rejected. Audit timestamps are canonical UTC RFC 3339 values ending `Z`. Fixture refs require diagnostic `kind=fixture`; artifact refs require `kind=artifact`, with role-safe referenced hashes. It verifies referenced bytes, enforces each gate's declared sampling method and minimum sample count, computes nearest-rank p95 (`ceil(0.95*n)` in sorted samples), minimum/maximum gates, the normal Wear free-storage floor, required invariant coverage, approval intervals/hashes, packaging growth from attested byte counts, and aggregate tuple counts/status. Packaging candidate revision and artifact hashes must bind to the evidence commit and referenced artifacts. Privacy-governed machine evidence is structurally restricted to canonical diagnostic summaries and structured result codes; arbitrary free text is rejected rather than scanned heuristically. The checked-in aggregate is an assertion only: disagreement with the computed aggregate is rejected. Safety invariants are never waivable.
-
-Files under `Packages/contracts/fixtures/validation/` are explicitly synthetic schema and mutation fixtures. They are not physical-device results, inventory, signatures, or approvals.
+Fixtures under `Packages/contracts/fixtures/validation/` and dynamically built test campaigns are explicitly synthetic. They are not real measurements, identities, signatures, approvals, or hosted runs.

@@ -1,0 +1,15 @@
+{
+  "buildConfiguration": "release",
+  "coreAPIVersion": 1,
+  "coreVersion": "0.1.0-m2-foundation",
+  "kind": "buildInfo",
+  "sourceRevision": "603e45011a7a7a70363ea790fdc3af5dc54b9f79",
+  "supportedOperations": [
+    "newNoteTextLink"
+  ],
+  "supportedProfileIDs": [
+    "apple-parity-v1"
+  ],
+  "toolchainManifestSHA256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "unexpected": true
+}

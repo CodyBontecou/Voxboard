@@ -1,0 +1,113 @@
+name: Shared Rust core CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/core-rust-ci.yml'
+      - 'Packages/vox-core-rust/**'
+      - 'Packages/VoxboardShared/Package.swift'
+      - 'Packages/VoxboardShared/Sources/VoxboardCaptureCore/**'
+      - 'Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/**'
+      - 'Packages/VoxboardShared/Sources/VoxCoreFFI/**'
+      - 'Packages/VoxboardShared/Sources/VoxCoreGenerated/**'
+      - 'Packages/VoxboardShared/Sources/VoxCoreRust/**'
+      - 'Packages/VoxboardShared/Tests/VoxboardCaptureCoreTests/CaptureCoreEnginePolicyTests.swift'
+      - 'Packages/contracts/**'
+      - 'toolchains/android-wear-shared-core*'
+      - 'docs/architecture/android-wear-toolchain-baseline.md'
+  pull_request:
+    paths:
+      - '.github/workflows/core-rust-ci.yml'
+      - 'Packages/vox-core-rust/**'
+      - 'Packages/VoxboardShared/Package.swift'
+      - 'Packages/VoxboardShared/Sources/VoxboardCaptureCore/**'
+      - 'Packages/VoxboardShared/Sources/VoxboardM2MaterializationEvidence/**'
+      - 'Packages/VoxboardShared/Sources/VoxCoreFFI/**'
+      - 'Packages/VoxboardShared/Sources/VoxCoreGenerated/**'
+      - 'Packages/VoxboardShared/Sources/VoxCoreRust/**'
+      - 'Packages/VoxboardShared/Tests/VoxboardCaptureCoreTests/CaptureCoreEnginePolicyTests.swift'
+      - 'Packages/contracts/**'
+      - 'toolchains/android-wear-shared-core*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core-rust-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  portable-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
+        with:
+          toolchain: 1.97.1
+          components: rustfmt, clippy
+      - name: Validate exact toolchain governance
+        run: python3 Packages/contracts/scripts/validate_toolchain.py
+      - name: Format, test, lint, and binding drift
+        working-directory: Packages/vox-core-rust
+        run: |
+          cargo fmt --all -- --check
+          cargo test --workspace --locked
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          ./scripts/check-bindings.sh
+      - name: MSRV 1.87.0
+        uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772
+        with:
+          toolchain: 1.87.0
+      - name: Test runtime crates at MSRV
+        working-directory: Packages/vox-core-rust
+        run: cargo +1.87.0 test --locked -p vox-core -p vox-core-uniffi
+
+  m2-evidence:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: macos-26
+    timeout-minutes: 180
+    steps:
+      - name: Checkout exact source revision
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Select governed Xcode
+        uses: maxim-lobanov/setup-xcode@1242409711ff5721add51979e9e11e23ebb7e5a4 # v1
+        with:
+          xcode-version: '26.6'
+      - name: Install governed Rust and native targets
+        run: |
+          rustup toolchain install 1.97.1 --profile minimal
+          rustup component add --toolchain 1.97.1 rustfmt clippy
+          rustup target add --toolchain 1.97.1 aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
+          rustup target add --toolchain 1.97.1 aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+          cargo +1.97.1 install cargo-ndk --version 4.1.2 --locked
+      - name: Install governed Android NDK
+        run: |
+          sdkmanager="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$sdkmanager"
+          yes | "$sdkmanager" --licenses >/dev/null || true
+          "$sdkmanager" 'ndk;27.1.12297006'
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/27.1.12297006" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/27.1.12297006" >> "$GITHUB_ENV"
+      - name: Attest governed build tools
+        run: |
+          xcodebuild -version
+          swift --version
+          rustc +1.97.1 --version
+          cargo +1.97.1 ndk --version
+          python3 Packages/contracts/scripts/validate_toolchain.py
+      - name: Produce and validate M2 evidence
+        run: Packages/vox-core-rust/scripts/run-m2-hosted-evidence.sh
+      - name: Retain governed M2 evidence bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m2-evidence
+          path: ${{ env.M2_EVIDENCE_ROOT }}
+          retention-days: 30
+          compression-level: 0

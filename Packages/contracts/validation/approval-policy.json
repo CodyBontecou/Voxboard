@@ -1,14 +1,29 @@
 {
   "$schema": "../schemas/approval-policy.schema.json",
-  "schemaVersion": 1,
-  "policyID": "android-wear-approval-policy-v1",
+  "policyID": "android-wear-approval-policy-v2",
+  "qualificationRequirements": {
+    "hostedRun": [],
+    "releaseGate": [
+      "definition",
+      "campaign",
+      "releaseGate"
+    ],
+    "repositoryObservation": []
+  },
   "recordSchema": "../schemas/approval.schema.json",
-  "requiredKinds": ["definition", "campaign", "releaseGate"],
-  "statuses": ["approved", "rejected", "pending", "expired"],
   "rules": [
-    "Approvals reference the SHA-256 of the exact subject.",
-    "Approval identity and timestamps are observed campaign facts and are never prefilled in M1 definitions.",
-    "Expired, pending, or rejected approvals do not satisfy a gate.",
-    "No approval or waiver may override a non-waivable safety invariant."
+    "Repository observations and hosted technical runs require no fabricated approval records.",
+    "Release-gate qualification requires definition, campaign, and releaseGate approvals bound to exact aggregate hashes and accepted by an authenticated approver verifier; without that verifier releaseGate fails closed.",
+    "Approval identity and timestamps are observed campaign facts and are never prefilled in definitions.",
+    "Expired at validation time, pending, rejected, future-dated, or pre-evidence approvals do not satisfy a release gate.",
+    "No approval or waiver may override a non-waivable safety invariant.",
+    "Adopting an initial package set as a future baseline requires a separate real hash-bound approval, governed monotonic registry, authenticated verifier, and revalidated hosted source campaign/archive."
+  ],
+  "schemaVersion": 2,
+  "statuses": [
+    "approved",
+    "rejected",
+    "pending",
+    "expired"
   ]
 }

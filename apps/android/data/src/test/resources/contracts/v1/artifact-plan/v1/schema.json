@@ -1,0 +1,452 @@
+{
+  "$defs": {},
+  "$id": "https://vox.md/contracts/artifact-plan/v1/schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifacts": {
+      "items": {
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "artifactID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "commitSequence": {
+                "maximum": 128,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "equivalenceRule": {
+                "enum": [
+                  "exactBytes",
+                  "sameSourceAndResultHash"
+                ]
+              },
+              "expectedExistingPolicy": {
+                "enum": [
+                  "absent",
+                  "hashMatch",
+                  "any"
+                ]
+              },
+              "expectedExistingSHA256": {
+                "oneOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "journalFrontier": {
+                "const": "attachmentVerified"
+              },
+              "kind": {
+                "const": "attachment"
+              },
+              "logicalPath": {
+                "items": {
+                  "maxLength": 255,
+                  "minLength": 1,
+                  "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "mediaType": {
+                "maxLength": 127,
+                "minLength": 1,
+                "type": "string"
+              },
+              "operationID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "receiptKind": {
+                "const": "attachmentCommit"
+              },
+              "resultLength": {
+                "maximum": 1073741824,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "resultSHA256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "sourceID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "sourceLength": {
+                "maximum": 1073741824,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "sourceMediaType": {
+                "maxLength": 127,
+                "minLength": 1,
+                "type": "string"
+              },
+              "sourceSHA256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "kind",
+              "artifactID",
+              "operationID",
+              "logicalPath",
+              "mediaType",
+              "resultLength",
+              "resultSHA256",
+              "commitSequence",
+              "expectedExistingPolicy",
+              "expectedExistingSHA256",
+              "equivalenceRule",
+              "sourceID",
+              "sourceMediaType",
+              "sourceLength",
+              "sourceSHA256",
+              "journalFrontier",
+              "receiptKind"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "artifactID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "commitSequence": {
+                "maximum": 128,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "equivalenceRule": {
+                "enum": [
+                  "exactBytes",
+                  "sameSourceAndResultHash"
+                ]
+              },
+              "expectedExistingPolicy": {
+                "enum": [
+                  "absent",
+                  "hashMatch",
+                  "any"
+                ]
+              },
+              "expectedExistingSHA256": {
+                "oneOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "expectedOriginalSHA256": {
+                "oneOf": [
+                  {
+                    "pattern": "^[0-9a-f]{64}$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "journalFrontier": {
+                "const": "noteVerified"
+              },
+              "kind": {
+                "const": "note"
+              },
+              "logicalPath": {
+                "items": {
+                  "maxLength": 255,
+                  "minLength": 1,
+                  "pattern": "^(?!\\.{1,2}$)(?!.*[\\/\\x00]).+$",
+                  "type": "string"
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "mediaType": {
+                "maxLength": 127,
+                "minLength": 1,
+                "type": "string"
+              },
+              "operationID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "preparedStreamID": {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              "receiptKind": {
+                "const": "noteCommit"
+              },
+              "resultLength": {
+                "maximum": 1073741824,
+                "minimum": 0,
+                "type": "integer"
+              },
+              "resultSHA256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "writeMode": {
+                "enum": [
+                  "create",
+                  "replace",
+                  "append",
+                  "prepend",
+                  "insertHeading"
+                ]
+              }
+            },
+            "required": [
+              "kind",
+              "artifactID",
+              "operationID",
+              "logicalPath",
+              "mediaType",
+              "resultLength",
+              "resultSHA256",
+              "commitSequence",
+              "expectedExistingPolicy",
+              "expectedExistingSHA256",
+              "equivalenceRule",
+              "writeMode",
+              "expectedOriginalSHA256",
+              "preparedStreamID",
+              "journalFrontier",
+              "receiptKind"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "maxItems": 129,
+      "minItems": 1,
+      "type": "array"
+    },
+    "contractVersion": {
+      "const": 1
+    },
+    "diagnostics": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "materialized",
+              "existingNoteMutated",
+              "attachmentPlanned"
+            ]
+          },
+          "fieldPath": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "info",
+              "warning"
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "severity",
+          "fieldPath"
+        ],
+        "type": "object"
+      },
+      "maxItems": 64,
+      "minItems": 0,
+      "type": "array"
+    },
+    "operation": {
+      "enum": [
+        "newNote",
+        "rollingNote",
+        "existingNoteAppend",
+        "existingNotePrepend",
+        "existingNoteHeading"
+      ]
+    },
+    "pins": {
+      "additionalProperties": false,
+      "properties": {
+        "coreVersion": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "modelProfileID": {
+          "oneOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "modelRevision": {
+          "oneOf": [
+            {
+              "maxLength": 64,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "profileID": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        },
+        "profileVersion": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "rendererRevision": {
+          "maxLength": 64,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "coreVersion",
+        "rendererRevision",
+        "profileID",
+        "profileVersion",
+        "modelProfileID",
+        "modelRevision"
+      ],
+      "type": "object"
+    },
+    "planHash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "preparedByteDelivery": {
+      "additionalProperties": false,
+      "properties": {
+        "finalJSONDuplicatesBytes": {
+          "const": false
+        },
+        "maximumChunkBytes": {
+          "const": 1048576
+        },
+        "mode": {
+          "const": "drainedImmutableArtifacts"
+        }
+      },
+      "required": [
+        "mode",
+        "maximumChunkBytes",
+        "finalJSONDuplicatesBytes"
+      ],
+      "type": "object"
+    },
+    "requestID": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "type": "string"
+    },
+    "retryMarker": {
+      "additionalProperties": false,
+      "properties": {
+        "placement": {
+          "enum": [
+            "none",
+            "entrySuffixBeforeFinalNewline"
+          ]
+        },
+        "policy": {
+          "enum": [
+            "none",
+            "voxCaptureCommentV1"
+          ]
+        },
+        "syntax": {
+          "enum": [
+            "",
+            "<!-- vox-capture:{lowercase-uuid} -->"
+          ]
+        }
+      },
+      "required": [
+        "policy",
+        "syntax",
+        "placement"
+      ],
+      "type": "object"
+    },
+    "warnings": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "templateAbsent",
+              "collisionSuffixApplied",
+              "frontmatterNormalized"
+            ]
+          },
+          "fieldPath": {
+            "maxLength": 256,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "fieldPath"
+        ],
+        "type": "object"
+      },
+      "maxItems": 64,
+      "minItems": 0,
+      "type": "array"
+    }
+  },
+  "required": [
+    "contractVersion",
+    "requestID",
+    "pins",
+    "planHash",
+    "operation",
+    "retryMarker",
+    "preparedByteDelivery",
+    "artifacts",
+    "warnings",
+    "diagnostics"
+  ],
+  "title": "artifact-plan",
+  "type": "object"
+}

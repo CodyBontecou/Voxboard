@@ -1,0 +1,134 @@
+{
+  "$defs": {
+    "leaf": {
+      "additionalProperties": false,
+      "properties": {
+        "artifactID": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$",
+          "type": "string"
+        },
+        "artifactSha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "bytes": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "gateID": {
+          "enum": [
+            "android-core-arm64-uncompressed",
+            "android-core-armv7-uncompressed",
+            "android-core-x86_64-uncompressed",
+            "android-core-x86-uncompressed",
+            "apple-xcframework-per-slice"
+          ]
+        },
+        "sourceRevision": {
+          "$ref": "#/$defs/revision"
+        },
+        "targetScope": {
+          "enum": [
+            "arm64-v8a",
+            "armeabi-v7a",
+            "x86_64",
+            "x86",
+            "xcframework-ios-device-arm64",
+            "xcframework-ios-simulator-arm64-x86_64"
+          ]
+        }
+      },
+      "required": [
+        "gateID",
+        "targetScope",
+        "artifactID",
+        "sourceRevision",
+        "bytes",
+        "artifactSha256"
+      ],
+      "type": "object"
+    },
+    "revision": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    }
+  },
+  "$id": "https://vox.md/contracts/schemas/native-package-baseline.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "adoptionApprovalID": {
+      "minLength": 2,
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$",
+      "type": "string"
+    },
+    "buildConfiguration": {
+      "const": "release-stripped"
+    },
+    "definitionAggregateSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "featureSet": {
+      "const": "default-features"
+    },
+    "format": {
+      "const": "vox-m2-native-package-baseline-v1"
+    },
+    "hostedArtifactArchiveSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "hostedEvidenceAggregateSha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "hostedRunAttempt": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "hostedRunID": {
+      "pattern": "^[1-9][0-9]{0,19}$",
+      "type": "string"
+    },
+    "leaves": {
+      "items": {
+        "$ref": "#/$defs/leaf"
+      },
+      "maxItems": 6,
+      "minItems": 6,
+      "type": "array"
+    },
+    "registryID": {
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,127}$",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "sourceRevision": {
+      "$ref": "#/$defs/revision"
+    },
+    "toolchainManifestSha256": {
+      "$ref": "#/$defs/sha256"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "format",
+    "registryID",
+    "sourceRevision",
+    "toolchainManifestSha256",
+    "buildConfiguration",
+    "featureSet",
+    "hostedRunID",
+    "hostedRunAttempt",
+    "hostedEvidenceAggregateSha256",
+    "hostedArtifactArchiveSha256",
+    "definitionAggregateSha256",
+    "adoptionApprovalID",
+    "leaves"
+  ],
+  "title": "Governed approved M2 native package baseline registry",
+  "type": "object"
+}

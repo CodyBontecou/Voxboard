@@ -1,0 +1,8 @@
+{
+  "kind": "readinessResult",
+  "mismatchCodes": [
+    "unsupportedProfile"
+  ],
+  "sessionPermitted": false,
+  "status": "incompatible"
+}

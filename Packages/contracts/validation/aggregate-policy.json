@@ -1,28 +1,55 @@
 {
   "$schema": "../schemas/aggregate.schema.json",
-  "schemaVersion": 1,
-  "policyID": "android-wear-aggregate-policy-v1",
-  "statusVocabulary": ["passed", "failed", "blocked", "incomplete"],
   "passingStatus": "passed",
+  "policyID": "android-wear-aggregate-policy-v2",
+  "qualificationRules": [
+    "repositoryObservation computes technical coverage from canonical committed receipts but does not claim hosted artifact rehash or release approval.",
+    "hostedRun requires the exact active GitHub Actions workflow, run, checkout, workspace, runner identity, retained executable, and external artifact rehash.",
+    "releaseGate requires hosted evidence and real unexpired definition, campaign, and releaseGate approvals bound to exact hashes."
+  ],
   "requirements": [
     "All definition documents validate against their declared schemas and cross-references.",
-    "Every required applicable case/device/provider tuple has current passed evidence.",
-    "Every referenced performance gate has a conforming measurement.",
-    "Every non-waivable invariant is evaluated and passed.",
-    "Every required approval is approved, unexpired, and references the exact definition/evidence aggregate hashes.",
-    "No campaign identity field is absent, placeholder, or fabricated.",
-    "No evidence or attachment violates privacy-safe diagnostics rules."
+    "Every required tuple selected by aggregate scope has current evidence or remains explicitly incomplete.",
+    "Every M2 functional exit gate has its build-bound named production check and every executed performance measurement is derived from a typed receipt rather than a producer supplied numeric assertion.",
+    "Every non-waivable invariant selected by scope is evaluated and passed.",
+    "Qualification-specific approval and hosted-artifact requirements are satisfied without fabricated identity.",
+    "No evidence or attachment violates privacy-safe diagnostics, exact artifact inventory, or safe-path rules."
+  ],
+  "schemaVersion": 2,
+  "scopeRules": [
+    "milestoneClosure derives every required catalog case through the claimed milestone and forbids a caller-selected subset.",
+    "caseExecution derives only its explicit case IDs and cannot claim milestone or release closure."
   ],
   "statusRules": {
-    "passed": "All requirements are true and no required tuple is failed, blocked, notRun, or unauthorized notApplicable.",
-    "failed": "Any executed required case, numerical gate, or non-waivable invariant fails.",
-    "blocked": "Execution cannot proceed because required hardware, provider, permission, model, account, or approval is unavailable.",
-    "incomplete": "Required evidence or campaign identity is missing, stale, notRun, or awaiting review."
+    "blocked": "Execution cannot proceed because a selected required resource is unavailable.",
+    "failed": "Any executed selected case, numerical gate, or non-waivable invariant fails.",
+    "incomplete": "Selected evidence is missing, stale, notRun, or qualification-specific requirements are absent.",
+    "passed": "All selected technical requirements pass; this status alone does not imply hosted or release qualification."
   },
+  "statusVocabulary": [
+    "passed",
+    "failed",
+    "blocked",
+    "incomplete"
+  ],
   "waiverPolicy": {
-    "nonWaivableInvariantIDs": ["INV-LAST-DURABLE-COPY", "INV-NO-NETWORK-INFERENCE", "INV-NO-BLIND-RETRY", "INV-BOUND-CONTENT", "INV-PRIVACY-DIAGNOSTICS", "INV-WEAR-ACK-DELETE"],
-    "waiverCanProducePassedCase": false,
-    "requiredFields": ["requirementID", "rationale", "owner", "approvedBy", "approvedAt", "expiresAt"]
-  },
-  "requiredApprovalKinds": ["definition", "campaign", "releaseGate"]
+    "nonWaivableInvariantIDs": [
+      "INV-LAST-DURABLE-COPY",
+      "INV-NO-NETWORK-INFERENCE",
+      "INV-NO-BLIND-RETRY",
+      "INV-BOUND-CONTENT",
+      "INV-PRIVACY-DIAGNOSTICS",
+      "INV-SHADOW-NO-SIDE-EFFECTS",
+      "INV-WEAR-ACK-DELETE"
+    ],
+    "requiredFields": [
+      "requirementID",
+      "rationale",
+      "owner",
+      "approvedBy",
+      "approvedAt",
+      "expiresAt"
+    ],
+    "waiverCanProducePassedCase": false
+  }
 }

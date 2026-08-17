@@ -786,6 +786,19 @@ private struct MacCapturePresetEditor: View {
                     .foregroundStyle(.secondary)
             }
 
+            Section("Voice Processing") {
+                Toggle("Identify Speakers", isOn: $flow.speakerDiarizationEnabled)
+                    .accessibilityIdentifier("mac_preset_identify_speakers")
+                if flow.speakerDiarizationEnabled {
+                    Label("Speaker labels are added after transcription.", systemImage: "person.2.wave.2")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Text("Detects and labels multiple voices entirely on device. The speaker model downloads the first time this preset uses it. Identification is best-effort; if it cannot run, Vox.md keeps the normal transcript and shows why in History.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Voice Audio") {
                 Picker("Save Audio", selection: $flow.audioSaveMode) {
                     ForEach(CapturePresetAudioSaveMode.allCases) { mode in
@@ -1513,6 +1526,16 @@ struct MacHistoryView: View {
                         Text("\(relativeDate(transcript.date)) · \(transcript.modelUsed) · \(formatDurationShort(transcript.duration))")
                             .font(Geist.mono())
                             .foregroundStyle(Geist.muted)
+                        if transcript.speakerCount > 0 {
+                            Label("\(transcript.speakerCount) speaker\(transcript.speakerCount == 1 ? "" : "s")", systemImage: "person.2.wave.2")
+                                .font(Geist.caption())
+                                .foregroundStyle(Geist.muted)
+                        }
+                        if let reason = transcript.speakerDiarizationSkipReason {
+                            Label(reason.displayText, systemImage: "exclamationmark.triangle")
+                                .font(Geist.caption())
+                                .foregroundStyle(Geist.error)
+                        }
                     }
                     Spacer()
                     if let delivery {
@@ -1704,9 +1727,18 @@ private struct MacTranscriptDetailView: View {
                 if let category = transcript.category, !category.isEmpty {
                     Label(category, systemImage: "folder")
                 }
+                if transcript.speakerCount > 0 {
+                    Label("\(transcript.speakerCount) speaker\(transcript.speakerCount == 1 ? "" : "s")", systemImage: "person.2.wave.2")
+                }
             }
             .font(Geist.caption())
             .foregroundStyle(Geist.muted)
+
+            if let reason = transcript.speakerDiarizationSkipReason {
+                Label(reason.displayText, systemImage: "exclamationmark.triangle")
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.error)
+            }
 
             if let tags = transcript.tags, !tags.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {

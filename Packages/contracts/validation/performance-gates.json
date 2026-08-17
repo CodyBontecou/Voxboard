@@ -59,7 +59,7 @@
       "milestone": "M2",
       "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "samplingMethod": "Derive the unfiltered additional RSS from a dedicated completed 256 MiB production-path run: maximum resident sample minus the immediately pre-session baseline, floored at zero.",
       "statistic": "maximum",
       "unit": "bytes",
       "value": 67108864
@@ -70,7 +70,7 @@
       "milestone": "M2",
       "minimumSamples": 1,
       "operator": "lessThanOrEqual",
-      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
+      "samplingMethod": "Derive every ingress and drain chunk byte count from every completed gate-bound run in the typed materialization receipt; no governed chunk may be omitted.",
       "statistic": "maximum",
       "unit": "bytes",
       "value": 1048576
@@ -79,10 +79,15 @@
       "id": "materialization-max-aggregate",
       "metric": "acceptedAggregateInput",
       "milestone": "M2",
-      "minimumSamples": 1,
+      "minimumSamples": 3,
       "operator": "greaterThanOrEqual",
-      "samplingMethod": "Report every value from the complete bounded production-path run and derive the declared minimum or maximum without filtering.",
-      "statistic": "minimum",
+      "requiredSampleValues": [
+        1048576,
+        16777216,
+        268435456
+      ],
+      "samplingMethod": "Derive exact accepted stream-byte values from all aggregateCoverage runs bound by the typed materialization receipt; exact 1, 16, and 256 MiB coverage is mandatory.",
+      "statistic": "maximum",
       "unit": "bytes",
       "value": 268435456
     },
@@ -270,20 +275,18 @@
     }
   ],
   "packagingBaselinePolicy": {
-    "baselineRevision": "b50167aebb959e394908af3a5949f43fa88d6265",
-    "comparisonScope": "Each candidate artifact is compared only with the identically scoped baseline artifact; the maximum scoped growth is evaluated by packaging-growth.",
-    "growthFormula": "((candidateBytes - baselineBytes) / baselineBytes) * 100",
-    "id": "m2-pre-shared-core-packaging-baseline-v1",
-    "method": "Build the planning-parent revision and candidate revision from clean checkouts with the same pinned release toolchain, target matrix, features, stripping, symbols, archive container, and uncompressed-size procedure; record each source commit, toolchain identity, artifact identity, byte count, and artifact SHA-256.",
+    "futureGrowthRule": "The approved first M2 artifact set becomes the future identically scoped nonzero baseline. Later artifacts must pass both their absolute gate and packaging-growth at 10 percent.",
+    "growthAppliesWhen": "approvedBaselineComparison",
+    "id": "m2-first-core-packaging-baseline-v1",
+    "initializationMode": "absoluteFirstCoreThenApprovedBaseline",
+    "initializationRule": "The first M2 shared-core artifacts have no percentage baseline. Each of the six exact leaves must pass its absolute gate with nonzero bytes and SHA-256; no zero-byte or fabricated predecessor is permitted.",
     "milestone": "M2",
     "required": true,
     "requiredHashFields": [
-      "baselineArtifactSha256",
       "candidateArtifactSha256"
     ],
     "requiredIdentityFields": [
       "gateID",
-      "baselineRevision",
       "candidateRevision",
       "toolchainID",
       "targetScope",
@@ -292,13 +295,31 @@
       "artifactID"
     ],
     "requiredLeafScopes": [
-      {"gateID": "android-core-arm64-uncompressed", "targetScope": "arm64-v8a"},
-      {"gateID": "android-core-armv7-uncompressed", "targetScope": "armeabi-v7a"},
-      {"gateID": "android-core-x86_64-uncompressed", "targetScope": "x86_64"},
-      {"gateID": "android-core-x86-uncompressed", "targetScope": "x86"},
-      {"gateID": "apple-xcframework-per-slice", "targetScope": "xcframework-ios-device-arm64"},
-      {"gateID": "apple-xcframework-per-slice", "targetScope": "xcframework-ios-simulator-arm64-x86_64"}
+      {
+        "gateID": "android-core-arm64-uncompressed",
+        "targetScope": "arm64-v8a"
+      },
+      {
+        "gateID": "android-core-armv7-uncompressed",
+        "targetScope": "armeabi-v7a"
+      },
+      {
+        "gateID": "android-core-x86_64-uncompressed",
+        "targetScope": "x86_64"
+      },
+      {
+        "gateID": "android-core-x86-uncompressed",
+        "targetScope": "x86"
+      },
+      {
+        "gateID": "apple-xcframework-per-slice",
+        "targetScope": "xcframework-ios-device-arm64"
+      },
+      {
+        "gateID": "apple-xcframework-per-slice",
+        "targetScope": "xcframework-ios-simulator-arm64-x86_64"
+      }
     ]
   },
-  "schemaVersion": 1
+  "schemaVersion": 2
 }
