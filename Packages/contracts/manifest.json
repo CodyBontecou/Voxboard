@@ -13,28 +13,28 @@
       "sha256": "7375b7994424f9c9538cfe2af1c1472e1327d204718eaf73b31a5a6e5edd85b3"
     },
     {
-      "bytes": 566,
+      "bytes": 1568,
       "category": "contractSource",
       "path": "Packages/contracts/android-capture-package/v1/contract.md",
-      "sha256": "a06941fd2a201f3ecf66d2f613b15e534b805e865b32ed1223242a3d7330d9c5"
+      "sha256": "673f9b695448fa4c2d9bf601f957a3e62548bd369a7bfbb480b2eb4801c1828c"
     },
     {
-      "bytes": 5346,
+      "bytes": 4320,
       "category": "contractSource",
       "path": "Packages/contracts/android-capture-package/v1/schema.json",
-      "sha256": "1c49aa8b998bb6c331eecc7855f61a47c0cd9d1e5f81f419e82b11202056f2fa"
+      "sha256": "a0a133a30f412d4075ab1c0abde5586acf0f7a3abe6eb8ac868c16b0549f0656"
     },
     {
-      "bytes": 2282,
+      "bytes": 2717,
       "category": "contractSource",
       "path": "Packages/contracts/artifact-plan/v1/contract.md",
-      "sha256": "ee9a737d0552b811c6c80b7dbfd597805b72e53606cd40f34848de565cc91b00"
+      "sha256": "dbed837ceff3ce8194b11d52e3ab1ac12393cec3895646850a49ee3b197c2414"
     },
     {
-      "bytes": 11847,
+      "bytes": 10920,
       "category": "contractSource",
       "path": "Packages/contracts/artifact-plan/v1/schema.json",
-      "sha256": "315708b8752aa2ba6e52ac68d3d68732661ae4a5da7235de567adf690f4037be"
+      "sha256": "3d0edee824eea58d87b720a81935dd92a9e6c9f3640eef96949888a24aede955"
     },
     {
       "bytes": 992,
@@ -73,22 +73,40 @@
       "sha256": "2df6b246ae9177ba327300e161127abac4ad6123767ee387d5b9b6cdefc3ff88"
     },
     {
-      "bytes": 1305,
+      "bytes": 1463,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/android-capture-package/invalid-materialized-self-transition.json",
-      "sha256": "5f4440dcaf02960459c68bf5a2ca355a518037ef1a2e384bcc7c929acf2a0ccf"
+      "sha256": "b43ee70ae8cf5788fe45a283aa00c6eca89ddf72f0cbb208de2240ad2532d6d3"
     },
     {
-      "bytes": 2021,
+      "bytes": 1524,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-planhash-mismatch.json",
+      "sha256": "98f4393e27b0ae8aa9c3f7053b9a1abaf8e30c9947d3ba0d666f8022db4002db"
+    },
+    {
+      "bytes": 1462,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-planhash-missing.json",
+      "sha256": "ba9c8f873f023670b28719862c3ef6ac798eba8c8742bd548c0cdaf259bab823"
+    },
+    {
+      "bytes": 716,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-planhash-unexpected.json",
+      "sha256": "f474502be8da2982e1f596df54f77ad23eee3eff0637235a1e9486bb3bbc9f44"
+    },
+    {
+      "bytes": 2313,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/android-capture-package/invalid-terminal-successor.json",
-      "sha256": "7868a3c1c6b1b6dfd0b16efc6a784f07b9a6b1c87ae970d9a07a34da40cefbdd"
+      "sha256": "b5aeae92c2d3e30991f0574a8c6072e502f29ec86b3b74d938d0f99e990193e9"
     },
     {
-      "bytes": 887,
+      "bytes": 935,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/android-capture-package/invalid-transition.json",
-      "sha256": "84df013041ea96358410f637f005490a1194d602c2d813dee157c3c3e5127cc3"
+      "sha256": "d2bfad2cc300260bf4bc667c7e62b51ded2eca06e385284911c37998f9676ee0"
     },
     {
       "bytes": 115,
@@ -103,16 +121,16 @@
       "sha256": "a5839dbf338953dca7511e759a42ed97590cc661bfa9742f0bd86e5acaa8ddc9"
     },
     {
-      "bytes": 1799,
+      "bytes": 2067,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/android-capture-package/valid-journal.json",
-      "sha256": "d7e34aac8d9a46b759cda9e6361b233cbe716d0941468f61409b849ea08cab59"
+      "sha256": "46e0f6473ce88c59a6c3a804a393119891528c156dd7b6aa1c3236df3e1cd1d3"
     },
     {
-      "bytes": 630,
+      "bytes": 654,
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/android-capture-package/valid-queued-journal.json",
-      "sha256": "64fab7cd27078b5353ddfab010b70888d82eec08c9693c634733855c7957210a"
+      "sha256": "5463a0e833a0fd9a66bcabbb96655f54adc2380e40b68f71bc07757b3590bbc2"
     },
     {
       "bytes": 2652,
@@ -143,6 +161,12 @@
       "category": "contractFixture",
       "path": "Packages/contracts/fixtures/artifact-plan/valid-complete.json",
       "sha256": "6601310b15141ddba1532e425738954a111e7a9b9d96666a9f878b90cd392375"
+    },
+    {
+      "bytes": 248,
+      "category": "contractFixture",
+      "path": "Packages/contracts/fixtures/artifact-plan/valid-receipt-derivation.json",
+      "sha256": "0a5ec361bf1c33560a871d469b06c7a8300779285760bc61baf2e93f5f152cf7"
     },
     {
       "bytes": 4155,
@@ -757,10 +781,10 @@
       "sha256": "019fc4b10d58c28957ebf47c9283238ebc78dad8f6b4f6c7dd41cbf6d4bbcd7b"
     },
     {
-      "bytes": 29746,
+      "bytes": 30788,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/generate_fixtures.py",
-      "sha256": "c401342bf02f3e886c3a6940085cfbbc7453579d9caa10b28fad5933fc6640e2"
+      "sha256": "b2f5c613b24148b2140041b463966a70213908146deec90f074d4a0375ef59ba"
     },
     {
       "bytes": 12271,
@@ -769,16 +793,16 @@
       "sha256": "4dc48dcd39defed8639accb27ed3c2388da30dc9e4fb12b404411fd1317776ae"
     },
     {
-      "bytes": 43394,
+      "bytes": 44722,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate.py",
-      "sha256": "6e40ea0676c186a7e445f03b677240ed60a4fa8575589c860d737ae98d502269"
+      "sha256": "a0a557d21740cec942075a29749155988e41aa75758e7c2d54fa474cc2784233"
     },
     {
-      "bytes": 40266,
+      "bytes": 41189,
       "category": "validatorScript",
       "path": "Packages/contracts/scripts/validate_toolchain.py",
-      "sha256": "c4271986694800891a46d104da9588deb98242554f036b739b865b28601ba632"
+      "sha256": "e88248d89728992c117bb0062dcea9ddc94b419eb9a5d3eac39f748b0d766ff9"
     },
     {
       "bytes": 113342,
@@ -805,10 +829,10 @@
       "sha256": "65e1532465e3cd82273e0012a40606ae89ce0aa064b4d20df4cb3d2e40739b13"
     },
     {
-      "bytes": 36180,
+      "bytes": 36465,
       "category": "validatorTest",
       "path": "Packages/contracts/tests/test_validate.py",
-      "sha256": "4b24ac27611a8ebd42d5b805dc7a4a68358af053697072680133c2fa943dd933"
+      "sha256": "33b68b9c4aaada817a9ea965238ff2a83a4dbabd00aada7db45167a0de3c65a3"
     },
     {
       "bytes": 83338,
@@ -1033,6 +1057,12 @@
       "sha256": "1c6005314ebff7a50bc7d9f9674d685cd467cfd05d9131529736d335ebd79b68"
     },
     {
+      "bytes": 14764,
+      "category": "acceptedDecision",
+      "path": "docs/architecture/adr-0023-android-prepared-saf-executor.md",
+      "sha256": "0a6b56d63556c2fbac74293fbf5095222c99b989634ba8c3145ee4ae1425a877"
+    },
+    {
       "bytes": 3806,
       "category": "acceptedDecision",
       "path": "docs/architecture/android-wear-m1-decisions.md",
@@ -1063,10 +1093,10 @@
       "sha256": "ddd50cbdb85a52ce03c44167b07c2a0dbd27a730085316ddf9f74bc3eb052bc6"
     },
     {
-      "bytes": 19747,
+      "bytes": 21730,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "fced80531db508455175d23e7a37735f5f4b1fb58e76d0165256c75c63d5e415"
+      "sha256": "ac694f356268157d67051d88fefbfb19ec2acf2af464833756a32a3ad1ec864b"
     },
     {
       "bytes": 10626,
@@ -1084,6 +1114,51 @@
       },
       "family": "android-capture-package",
       "path": "Packages/contracts/fixtures/android-capture-package/invalid-materialized-self-transition.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "package.planHash",
+        "path": "$.events[3]"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-planhash-mismatch.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "package.planHash",
+        "path": "$.events[2]"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-planhash-missing.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "invalid",
+      "expectedError": {
+        "code": "package.planHash",
+        "path": "$.events[0]"
+      },
+      "family": "android-capture-package",
+      "path": "Packages/contracts/fixtures/android-capture-package/invalid-planhash-unexpected.json",
       "producer": {
         "name": "vox-contract-fixture-generator",
         "revision": "m1-v1",
@@ -1187,8 +1262,8 @@
     {
       "expect": "invalid",
       "expectedError": {
-        "code": "schema.const",
-        "path": "$.preparedByteDelivery.finalJSONDuplicatesBytes"
+        "code": "schema.oneOf",
+        "path": "$"
       },
       "family": "artifact-plan",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-final-json-byte-duplication.json",
@@ -1202,8 +1277,8 @@
     {
       "expect": "invalid",
       "expectedError": {
-        "code": "schema.enum",
-        "path": "$.retryMarker.syntax"
+        "code": "schema.oneOf",
+        "path": "$"
       },
       "family": "artifact-plan",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-marker-syntax.json",
@@ -1218,7 +1293,7 @@
       "expect": "invalid",
       "expectedError": {
         "code": "schema.oneOf",
-        "path": "$.artifacts[0]"
+        "path": "$"
       },
       "family": "artifact-plan",
       "path": "Packages/contracts/fixtures/artifact-plan/invalid-tag-artifact-mismatch.json",
@@ -1233,6 +1308,17 @@
       "expect": "valid",
       "family": "artifact-plan",
       "path": "Packages/contracts/fixtures/artifact-plan/valid-complete.json",
+      "producer": {
+        "name": "vox-contract-fixture-generator",
+        "revision": "m1-v1",
+        "source": "Packages/contracts/scripts/generate_fixtures.py"
+      },
+      "synthetic": true
+    },
+    {
+      "expect": "valid",
+      "family": "artifact-plan",
+      "path": "Packages/contracts/fixtures/artifact-plan/valid-receipt-derivation.json",
       "producer": {
         "name": "vox-contract-fixture-generator",
         "revision": "m1-v1",
@@ -2352,6 +2438,9 @@
         "android-capture-package/v1/contract.md",
         "android-capture-package/v1/schema.json",
         "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-planhash-mismatch.json",
+        "fixtures/android-capture-package/invalid-planhash-missing.json",
+        "fixtures/android-capture-package/invalid-planhash-unexpected.json",
         "fixtures/android-capture-package/invalid-terminal-successor.json",
         "fixtures/android-capture-package/invalid-transition.json",
         "fixtures/android-capture-package/invalid-version.json",
@@ -2363,6 +2452,7 @@
         "fixtures/artifact-plan/invalid-marker-syntax.json",
         "fixtures/artifact-plan/invalid-tag-artifact-mismatch.json",
         "fixtures/artifact-plan/valid-complete.json",
+        "fixtures/artifact-plan/valid-receipt-derivation.json",
         "fixtures/capture-materialization-input/invalid-control-oversize.json",
         "fixtures/capture-materialization-input/invalid-present-template-null-stream.json",
         "fixtures/capture-materialization-input/invalid-session-chunk-limit.json",
@@ -2470,6 +2560,9 @@
         "android-capture-package/v1/contract.md",
         "android-capture-package/v1/schema.json",
         "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-planhash-mismatch.json",
+        "fixtures/android-capture-package/invalid-planhash-missing.json",
+        "fixtures/android-capture-package/invalid-planhash-unexpected.json",
         "fixtures/android-capture-package/invalid-terminal-successor.json",
         "fixtures/android-capture-package/invalid-transition.json",
         "fixtures/android-capture-package/invalid-version.json",
@@ -2481,6 +2574,7 @@
         "fixtures/artifact-plan/invalid-marker-syntax.json",
         "fixtures/artifact-plan/invalid-tag-artifact-mismatch.json",
         "fixtures/artifact-plan/valid-complete.json",
+        "fixtures/artifact-plan/valid-receipt-derivation.json",
         "fixtures/capture-materialization-input/invalid-control-oversize.json",
         "fixtures/capture-materialization-input/invalid-present-template-null-stream.json",
         "fixtures/capture-materialization-input/invalid-session-chunk-limit.json",
@@ -2588,6 +2682,9 @@
         "android-capture-package/v1/contract.md",
         "android-capture-package/v1/schema.json",
         "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-planhash-mismatch.json",
+        "fixtures/android-capture-package/invalid-planhash-missing.json",
+        "fixtures/android-capture-package/invalid-planhash-unexpected.json",
         "fixtures/android-capture-package/invalid-terminal-successor.json",
         "fixtures/android-capture-package/invalid-transition.json",
         "fixtures/android-capture-package/invalid-version.json",
@@ -2599,6 +2696,7 @@
         "fixtures/artifact-plan/invalid-marker-syntax.json",
         "fixtures/artifact-plan/invalid-tag-artifact-mismatch.json",
         "fixtures/artifact-plan/valid-complete.json",
+        "fixtures/artifact-plan/valid-receipt-derivation.json",
         "fixtures/capture-materialization-input/invalid-control-oversize.json",
         "fixtures/capture-materialization-input/invalid-present-template-null-stream.json",
         "fixtures/capture-materialization-input/invalid-session-chunk-limit.json",
@@ -2706,6 +2804,9 @@
         "android-capture-package/v1/contract.md",
         "android-capture-package/v1/schema.json",
         "fixtures/android-capture-package/invalid-materialized-self-transition.json",
+        "fixtures/android-capture-package/invalid-planhash-mismatch.json",
+        "fixtures/android-capture-package/invalid-planhash-missing.json",
+        "fixtures/android-capture-package/invalid-planhash-unexpected.json",
         "fixtures/android-capture-package/invalid-terminal-successor.json",
         "fixtures/android-capture-package/invalid-transition.json",
         "fixtures/android-capture-package/invalid-version.json",
@@ -2717,6 +2818,7 @@
         "fixtures/artifact-plan/invalid-marker-syntax.json",
         "fixtures/artifact-plan/invalid-tag-artifact-mismatch.json",
         "fixtures/artifact-plan/valid-complete.json",
+        "fixtures/artifact-plan/valid-receipt-derivation.json",
         "fixtures/capture-materialization-input/invalid-control-oversize.json",
         "fixtures/capture-materialization-input/invalid-present-template-null-stream.json",
         "fixtures/capture-materialization-input/invalid-session-chunk-limit.json",
@@ -2805,7 +2907,7 @@
   "producer": {
     "name": "vox-contract-manifest-generator",
     "script": "Packages/contracts/scripts/validate.py",
-    "scriptSHA256": "6e40ea0676c186a7e445f03b677240ed60a4fa8575589c860d737ae98d502269"
+    "scriptSHA256": "a0a557d21740cec942075a29749155988e41aa75758e7c2d54fa474cc2784233"
   },
   "producerRevision": "29ec869c8bda4d511af787af394658d0274b339b",
   "schemaVersion": 2

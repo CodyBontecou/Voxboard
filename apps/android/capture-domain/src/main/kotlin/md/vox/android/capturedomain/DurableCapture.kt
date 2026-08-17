@@ -39,6 +39,11 @@ data class JournalEvent(
     val occurredAtEpochMillis: Long,
     val resumeState: CaptureState? = null,
     val receiptID: String? = null,
+    /**
+     * Journal v2 authoritative artifact-plan hash (ADR-0023 §1). Required on MATERIALIZED
+     * and COMMIT_STARTED (equal to the latest MATERIALIZED value); forbidden elsewhere.
+     */
+    val planHash: String? = null,
 )
 
 data class JournalSnapshot(
@@ -57,13 +62,15 @@ sealed interface JournalReduction {
 /** Pure reducer. It owns transition legality, not storage or scheduling. */
 object CaptureJournalReducer {
     private val terminal = setOf(CaptureState.COMPLETED, CaptureState.PERMANENT_FAILURE, CaptureState.DISCARDED)
+    private val PLAN_HASH_PATTERN = Regex("^[0-9a-f]{64}$")
 
     fun reduce(requestID: String, prior: JournalSnapshot?, event: JournalEvent): JournalReduction {
         if (event.revision !in 0..1023) return JournalReduction.Rejected("revisionOutOfBounds")
         if (event.occurredAtEpochMillis < 0) return JournalReduction.Rejected("timestampOutOfBounds")
         if (prior == null) {
             if (event.revision != 0 || event.fromState != null || event.state != CaptureState.QUEUED ||
-                event.code != JournalCode.ENQUEUED || event.resumeState != null || event.receiptID != null
+                event.code != JournalCode.ENQUEUED || event.resumeState != null || event.receiptID != null ||
+                event.planHash != null
             ) return JournalReduction.Rejected("invalidInitialEvent")
             return JournalReduction.Accepted(JournalSnapshot(requestID, 0, CaptureState.QUEUED, null, listOf(event)))
         }
@@ -79,6 +86,13 @@ object CaptureJournalReducer {
             (event.code != JournalCode.PERMISSION_RESTORED || event.state != prior.resumeState)
         ) return JournalReduction.Rejected("permissionResumeMismatch")
         if (!legal(prior.state, event.state, event.code)) return JournalReduction.Rejected("illegalTransition")
+        val planHashOk = when (event.code) {
+            JournalCode.MATERIALIZED -> event.planHash != null && event.planHash.matches(PLAN_HASH_PATTERN)
+            JournalCode.COMMIT_STARTED -> prior.state == CaptureState.MATERIALIZED &&
+                event.planHash == prior.events.lastOrNull { it.code == JournalCode.MATERIALIZED }?.planHash
+            else -> event.planHash == null
+        }
+        if (!planHashOk) return JournalReduction.Rejected("planHashBinding")
         if (event.state == CaptureState.COMPLETED) {
             if (event.code != JournalCode.VERIFIED_COMMITTED || event.receiptID == null) {
                 return JournalReduction.Rejected("missingReceipt")

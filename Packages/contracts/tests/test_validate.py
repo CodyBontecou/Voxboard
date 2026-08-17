@@ -34,6 +34,9 @@ class ContractValidatorTests(unittest.TestCase):
    self.assertEqual(workflow.count("- '"+trigger+"'"),2,trigger)
  def test_manifest_hash_mutation(self):
   self.mutate("Packages/contracts/manifest.json",lambda x:x["files"][0].update(sha256="f"*64)); self.rejected(self.run_validator(),"manifest.hash")
+ def test_receipt_derivation_vector_is_semantic(self):
+  rel="Packages/contracts/fixtures/artifact-plan/valid-receipt-derivation.json"
+  self.mutate(rel,lambda x:x.update(receiptID="00000000-0000-4000-8000-000000000000"),True); self.rejected(self.run_validator(),"receipt.derivation")
  def test_android_package_fixture_bindings_and_fixed_profile_are_semantic(self):
   rel="Packages/contracts/fixtures/android-capture-package/valid-queued-journal.json"
   self.mutate(rel,lambda x:x.update(requestSHA256="f"*64),True); self.rejected(self.run_validator(),"package.fixtureBinding")

@@ -26,6 +26,7 @@ public enum AppConstants: Sendable {
     public static let selectedModelKey = "selectedWhisperModel"
     public static let selectedLanguageKey = "selectedLanguage"
     public static let selectedFallbackModelKey = "selectedFallbackTranscriptionModel"
+    public static let externalModelBookmarkKeyPrefix = "externalTranscriptionModelBookmark.v1"
     public static let transcriptionSelectionMigrationKey = "transcriptionSelectionMigration.v1"
     public static let automaticBackendReadyKey = "automaticTranscriptionBackendReady"
     // Keep the existing raw keys so users retain their configured auto-stop behavior.

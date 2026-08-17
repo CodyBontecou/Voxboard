@@ -8,6 +8,12 @@ data class JournalMutationCommand(
     val expectedRevision: Int,
     val event: JournalEvent,
     val leaseToken: String? = null,
+    /**
+     * ADR-0023 §4 marker lifecycle: appending PROVED_NOT_COMMITTED clears the active
+     * commit marker atomically within this journaled mutation window. Any other event
+     * code with a non-null value is rejected as a command frontier error.
+     */
+    val clearCommitMarker: Boolean = false,
 )
 
 /** Only direct native user actions may mutate without an active worker fence. */

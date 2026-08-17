@@ -1,4 +1,5 @@
 #if os(iOS) || os(macOS)
+import CoreML
 import Foundation
 import FluidAudio
 
@@ -44,26 +45,48 @@ public final class ParakeetContext: @unchecked Sendable {
         modelsDirectory: URL,
         engine: ModelEngine
     ) async -> ParakeetContext? {
-        guard engine.isParakeet,
-              let folderName = engine.parakeetRepoFolderName else {
+        guard let folderName = engine.parakeetRepoFolderName else {
+            log.log("[ParakeetContext] ❌ Invalid engine: \(engine.rawValue)")
+            return nil
+        }
+        return await load(
+            repositoryDirectory: modelsDirectory.appendingPathComponent(folderName),
+            engine: engine,
+            allowsAutomaticRecovery: true
+        )
+    }
+
+    /// Loads from an exact Parakeet repository. External user-owned folders use
+    /// a read-only path that never invokes FluidAudio's cache recovery, because
+    /// that recovery deletes a failed repository before downloading a new copy.
+    static func load(
+        repositoryDirectory: URL,
+        engine: ModelEngine,
+        allowsAutomaticRecovery: Bool
+    ) async -> ParakeetContext? {
+        guard engine.isParakeet else {
             log.log("[ParakeetContext] ❌ Invalid engine: \(engine.rawValue)")
             return nil
         }
 
         let version: AsrModelVersion = (engine == .parakeetV2) ? .v2 : .v3
-        let repoDir = modelsDirectory.appendingPathComponent(folderName)
-
-        log.log("[ParakeetContext] Loading \(folderName)…")
+        log.log("[ParakeetContext] Loading \(repositoryDirectory.lastPathComponent)…")
         let startTime = CFAbsoluteTimeGetCurrent()
 
         do {
-            // AsrModels.load(from:) takes the repo directory; it derives the parent
-            // automatically and calls DownloadUtils.loadModels (which skips downloads
-            // when all .mlmodelc files are already present).
-            let models = try await AsrModels.load(
-                from: repoDir,
-                version: version
-            )
+            let models: AsrModels
+            if allowsAutomaticRecovery {
+                // App-managed caches retain FluidAudio's repair-and-redownload behavior.
+                models = try await AsrModels.load(
+                    from: repositoryDirectory,
+                    version: version
+                )
+            } else {
+                models = try loadExternalModels(
+                    from: repositoryDirectory,
+                    version: version
+                )
+            }
 
             let manager = AsrManager()
             try await manager.initialize(models: models)
@@ -75,6 +98,57 @@ public final class ParakeetContext: @unchecked Sendable {
             log.log("[ParakeetContext] ❌ Load failed: \(error)")
             return nil
         }
+    }
+
+    /// Constructs FluidAudio's model bundle directly from already-compiled
+    /// assets. This is intentionally non-repairing and therefore safe for a
+    /// security-scoped folder that Vox.md does not own.
+    private static func loadExternalModels(
+        from repositoryDirectory: URL,
+        version: AsrModelVersion
+    ) throws -> AsrModels {
+        let defaultConfiguration = AsrModels.defaultConfiguration()
+        let preprocessorConfiguration = MLModelConfiguration()
+        preprocessorConfiguration.computeUnits = .cpuOnly
+
+        let preprocessor = try MLModel(
+            contentsOf: repositoryDirectory.appendingPathComponent("Preprocessor.mlmodelc"),
+            configuration: preprocessorConfiguration
+        )
+        let encoder = try MLModel(
+            contentsOf: repositoryDirectory.appendingPathComponent("Encoder.mlmodelc"),
+            configuration: defaultConfiguration
+        )
+        let decoder = try MLModel(
+            contentsOf: repositoryDirectory.appendingPathComponent("Decoder.mlmodelc"),
+            configuration: defaultConfiguration
+        )
+        let joint = try MLModel(
+            contentsOf: repositoryDirectory.appendingPathComponent("JointDecision.mlmodelc"),
+            configuration: defaultConfiguration
+        )
+
+        let vocabularyURL = repositoryDirectory.appendingPathComponent(
+            ModelEngine.parakeetVocabularyFile
+        )
+        let data = try Data(contentsOf: vocabularyURL)
+        let rawVocabulary = try JSONDecoder().decode([String: String].self, from: data)
+        let vocabulary = Dictionary(uniqueKeysWithValues: rawVocabulary.compactMap { key, value in
+            Int(key).map { ($0, value) }
+        })
+        guard !vocabulary.isEmpty else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+
+        return AsrModels(
+            encoder: encoder,
+            preprocessor: preprocessor,
+            decoder: decoder,
+            joint: joint,
+            configuration: defaultConfiguration,
+            vocabulary: vocabulary,
+            version: version
+        )
     }
 
     // MARK: - Transcription
