@@ -95,7 +95,9 @@ public enum AudioFileConverter {
     /// Cheap container check that rejects obviously non-audio bytes without
     /// invoking any audio framework. Recognizes the leading signatures of
     /// every container `AVAudioFile` can open in this app's flows: MP4/M4A
-    /// (`ftyp` at offset 4), CAF, WAV/RIFF, AIFF/FORM, Ogg, and FLAC.
+    /// (`ftyp` at offset 4), CAF, WAV/RIFF, AIFF/FORM, Ogg, FLAC, ID3-tagged
+    /// streams, and bare MPEG audio (MP3 without an ID3 tag, matched via the
+    /// 11-bit sync word).
     static func hasAudioContainerHeader(_ url: URL) -> Bool {
         guard let handle = try? FileHandle(forReadingFrom: url) else { return false }
         defer { try? handle.close() }

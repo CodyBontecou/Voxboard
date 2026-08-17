@@ -366,7 +366,7 @@ private struct MacModelView: View {
                         .foregroundColor(Geist.text)
                         .buttonStyle(.plain)
                 }
-                if modelManager.installationSource(for: model) == .external {
+                if installationSource == .external {
                     Button("Stop Using") { modelManager.forgetExternalModel(model) }
                         .font(Geist.caption())
                         .foregroundColor(Geist.error)
