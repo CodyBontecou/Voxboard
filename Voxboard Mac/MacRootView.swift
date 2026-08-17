@@ -346,14 +346,17 @@ private struct MacModelView: View {
                 }
             }
             Spacer()
-            modelAction(model)
+            modelAction(model, installationSource: installationSource)
         }
         .padding(20)
         .background(Geist.bg)
     }
 
     @ViewBuilder
-    private func modelAction(_ model: WhisperModelInfo) -> some View {
+    private func modelAction(
+        _ model: WhisperModelInfo,
+        installationSource: ModelInstallationSource?
+    ) -> some View {
         if modelManager.isModelDownloaded(model) {
             HStack(spacing: 12) {
                 if modelManager.selectedModelId == model.id {
