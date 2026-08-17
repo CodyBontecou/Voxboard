@@ -166,9 +166,10 @@ def validate_android_capture_package(obj):
   if obj["assetCount"]!=0 or obj["assets"]!=[]: reject("package.assetsProfile","$","M3 assets must be exactly empty")
   return
  if "events" in obj:
-  terminal={"completed","permanentFailure","discarded"}; prior=None; resume=None
+  terminal={"completed","permanentFailure","discarded"}; prior=None; resume=None; last_materialized_plan=None
   for index,event in enumerate(obj["events"]):
    path=f"$.events[{index}]"; state=event["state"]; code=event["code"]
+   if obj["journalVersion"]!=2: reject("package.journalVersion",path,"journal v2 required")
    if index==0:
     if event["revision"]!=0 or event["fromState"] is not None or state!="queued" or code!="enqueued" or event["resumeState"] is not None or event["receiptID"] is not None: reject("package.initialEvent",path,"invalid initial frontier")
    else:
@@ -190,6 +191,11 @@ def validate_android_capture_package(obj):
    if state=="completed":
     if event["receiptID"] is None: reject("package.receipt",path,"completed requires receipt")
    elif event["receiptID"] is not None: reject("package.receipt",path,"receipt only allowed for completed")
+   if code in ("materialized","commitStarted"):
+    if event["planHash"] is None: reject("package.planHash",path,f"{code} requires planHash")
+    if code=="materialized": last_materialized_plan=event["planHash"]
+    elif event["planHash"]!=last_materialized_plan: reject("package.planHash",path,"commitStarted planHash must match the latest materialized planHash")
+   elif event["planHash"] is not None: reject("package.planHash",path,"planHash only allowed for materialized/commitStarted")
    resume=event["resumeState"] if state=="needsPermission" else resume
    prior=state
   return
@@ -205,6 +211,16 @@ def semantic(family,obj,context=None):
   for i,x in enumerate(obj["observations"]):
    if x["kind"]=="frozenTemplate" and ((x["status"]=="present") != (x["byteStreamID"] is not None)):
     reject("observation.presenceMismatch",f"$.observations[{i}].byteStreamID","stream presence must match status")
+ if family=="artifact-plan" and "receiptID" in obj:
+  if set(obj)!={"artifactID","operationID","receiptID","requestID","schemaVersion"} or obj["schemaVersion"]!=1: reject("receipt.vectorShape","$","receipt derivation vector shape")
+  pre='{"\n  "'
+  import uuid as _uuid, hashlib as _hashlib
+  _ns=_uuid.UUID("8c7f8d7e-4f61-5d92-a94a-3b9e6cc8e415")
+  _pre=canonical({"artifactID":obj["artifactID"],"operationID":obj["operationID"],"requestID":obj["requestID"]})
+  _h=_hashlib.sha1(_ns.bytes+b"vox.receipt.v1"+b"\x00"+_pre).digest()
+  _id=str(_uuid.UUID(bytes=_h[:16],version=5))
+  if obj["receiptID"]!=_id: reject("receipt.derivation","$.receiptID","receiptID does not match the vox.receipt.v1 derivation")
+  return
  if family=="artifact-plan":
   marker=obj["retryMarker"]
   expected="<!-- vox-capture:{lowercase-uuid} -->" if marker["policy"]=="voxCaptureCommentV1" else ""
@@ -400,7 +416,7 @@ def validate_capabilities(root,inventory,overlay):
  expected_inventory={"schemaVersion":1,"producerRevision":CLOSURE,"healthMdPrecedent":HEALTH,"source":{"path":"docs/architecture/android-wear-m0-capabilities.json","sha256":digest(m0_path)},"dependencyCatalog":copy.deepcopy(m0["dependencyCatalog"]),"capabilities":expected_caps}
  if inventory!=expected_inventory: reject("capability.conversionDrift","$","inventory must exactly equal deterministic M0 conversion, including acceptance and dependencies")
  old={x["id"]:x for x in m0["capabilities"]}; new={x["id"]:x for x in inventory["capabilities"]}
- if set(old)!=set(new) or len(new)!=270: reject("capability.oneToOne","$.capabilities","M0 IDs not retained")
+ if set(old)!=set(new) or len(new)!=271: reject("capability.oneToOne","$.capabilities","M0 IDs not retained")
  variances={x["capabilityID"]:x for x in overlay["variances"]}; decisions=accepted_decisions(root)
  if len(variances)!=len(overlay["variances"]): reject("variance.duplicate","$.variances","duplicate capability")
  for cid,o in old.items():
@@ -520,7 +536,7 @@ def validate(root):
    if (target/rel).read_bytes()!=(base/rel).read_bytes(): reject("mirror.bytes",f"$.mirrors.{path}/{rel}","bytes differ")
  if seen!=set(MIRRORS): reject("mirror.inventory","$.mirrors","destination missing")
  overlay=load(base/"scope-variances.json"); validate_capabilities(root,load(base/"product-capabilities.json"),overlay)
- print(f"Contracts validation passed: {len(records)} governed files, {len(cases)} fixtures, 270 owner-preserving capabilities, {len(MIRRORS)} resource mirrors.")
+ print(f"Contracts validation passed: {len(records)} governed files, {len(cases)} fixtures, 271 owner-preserving capabilities, {len(MIRRORS)} resource mirrors.")
 
 def main(argv=None):
  parser=argparse.ArgumentParser(); parser.add_argument("--root",type=Path); parser.add_argument("--regenerate-manifest",action="store_true"); args=parser.parse_args(argv); root=(args.root or Path(__file__).resolve().parents[3]).resolve()

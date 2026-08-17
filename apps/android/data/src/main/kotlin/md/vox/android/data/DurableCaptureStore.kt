@@ -13,6 +13,44 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 private val JOURNAL_TEMP_PATTERN = Regex("^\\.delivery-journal\\.[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\.tmp$")
+private val MARKER_TEMP_PATTERN = Regex("^\\.commit-attempt\\.[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\.tmp$")
+private val STAGING_TEMP_PATTERN = Regex("^\\.tmp-[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
+
+/**
+ * Type-level proof that a commit marker was durably persisted (ADR-0023 §3/§4,
+ * oracle obligation 3). Only [DurableCaptureStore.persistCommitMarker] constructs it;
+ * [SafDocumentsGateway.createDocument] requires it, making provider create unreachable
+ * without a durable marker at the type level, complementing source-scan governance.
+ */
+class DurableMarkerToken internal constructor(
+    val requestID: String,
+    val planHash: String,
+    val recordedAtEpochMillis: Long,
+)
+
+/** Streaming staged drain sink for prepared note bytes; verifies and finalizes on close. */
+class StagedNoteSink(
+    private val store: DurableCapturePackageStore,
+    private val requestID: String,
+    private val stagingUUID: String,
+    private val expectedLength: Long,
+    private val expectedSHA256: String,
+) {
+    private var closed = false
+
+    fun write(chunk: ByteArray) {
+        check(!closed) { "sinkClosed" }
+        store.writeStagedNoteChunk(requestID, stagingUUID, chunk)
+    }
+
+    /** Verifies exact length and SHA-256 of the staged bytes. */
+    fun verifyAndClose() {
+        check(!closed) { "sinkClosed" }
+        closed = true
+        store.verifyStagedNote(requestID, stagingUUID, expectedLength, expectedSHA256)
+    }
+}
+
 
 interface DurableFileOps {
     fun ensureDirectory(directory: File)
@@ -24,6 +62,7 @@ interface DurableFileOps {
     fun <T> withPromotionLock(root: File, action: () -> T): T
     fun promoteDirectoryNoReplace(source: File, target: File)
     fun replaceFileAtomically(source: File, target: File)
+    fun moveFileNoReplaceAtomically(source: File, target: File)
     fun list(directory: File): List<File>
     fun exists(file: File): Boolean
     fun isDirectoryNoFollow(file: File): Boolean
@@ -94,6 +133,10 @@ class AndroidDurableFileOps : DurableFileOps {
     override fun replaceFileAtomically(source: File, target: File) {
         if (!isRegularFileNoFollow(source) || isSymlink(source) || !isRegularFileNoFollow(target) || isSymlink(target)) error("unsafeAtomicReplace")
         Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+    }
+    override fun moveFileNoReplaceAtomically(source: File, target: File) {
+        if (!isRegularFileNoFollow(source) || isSymlink(source) || exists(target)) error("unsafeAtomicCreate")
+        Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE)
     }
     override fun list(directory: File): List<File> = directory.listFiles()?.toList() ?: error("listFailed")
     override fun exists(file: File) = Files.exists(file.toPath(), LinkOption.NOFOLLOW_LINKS)
@@ -190,6 +233,7 @@ class DurableCapturePackageStore(
         if (!UUID_PATTERN.matches(command.requestID) || command.expectedRevision !in 0..1022 ||
             command.event.revision != command.expectedRevision + 1
         ) return JournalMutationResult.ReducerRejected("commandFrontierMismatch")
+        if (command.clearCommitMarker && command.event.code != JournalCode.PROVED_NOT_COMMITTED) return JournalMutationResult.ReducerRejected("commandFrontierMismatch")
         val token = command.leaseToken
         if (command.event.code.requiresWorkerLease() && token == null) return JournalMutationResult.LeaseLost
         if (token != null) {
@@ -203,7 +247,15 @@ class DurableCapturePackageStore(
         var replacementAttempted = false
         var canonicalValidated = false
         return try {
-            removeOwnedJournalTemp(directory)
+            removeOwnedTemps(directory)
+            // A MATERIALIZED/COMMIT_STARTED claim is legal only when the authoritative
+            // plan-hash directory is already hash-verified on disk (ADR-0023 §1/§7).
+            if (command.event.code == JournalCode.MATERIALIZED || command.event.code == JournalCode.COMMIT_STARTED) {
+                val hash = command.event.planHash
+                if (hash == null || !fileOps.isRegularFileNoFollow(File(File(File(directory, "prepared"), hash), "note.bin"))) {
+                    return JournalMutationResult.ReducerRejected("preparedRequired")
+                }
+            }
             val prior = validatePackage(directory)
             canonicalValidated = true
             val current = prior.snapshot
@@ -227,6 +279,11 @@ class DurableCapturePackageStore(
             replacementAttempted = true
             fileOps.replaceFileAtomically(temporary, File(directory, "delivery-journal.json"))
             fileOps.checkpoint("afterJournalReplace")
+            if (command.clearCommitMarker) {
+                fileOps.checkpoint("beforeMarkerClear")
+                clearCommitMarkerLocked(directory)
+                fileOps.checkpoint("afterMarkerClear")
+            }
             val verified = validatePackage(directory)
             if (verified.snapshot != next) throw PackageCodecException("journalReplaceMismatch")
             fileOps.checkpoint("beforePackageDirectorySync")
@@ -273,7 +330,7 @@ class DurableCapturePackageStore(
             }
             entries.filter { UUID_PATTERN.matches(it.name) }.forEach { directory ->
                 presentPackageIDs += directory.name
-                val verified = try { fileOps.withPromotionLock(root) { removeOwnedJournalTemp(directory); validatePackage(directory) } } catch (error: Exception) { results += ReconciliationResult.CorruptPackage(directory.name, (error as? PackageCodecException)?.coarseCode ?: "invalidPackage"); return@forEach }
+                val verified = try { fileOps.withPromotionLock(root) { removeOwnedTemps(directory); validatePackage(directory) } } catch (error: Exception) { results += ReconciliationResult.CorruptPackage(directory.name, (error as? PackageCodecException)?.coarseCode ?: "invalidPackage"); return@forEach }
                 val write = try { index.insertOrRepair(verified.projection) } catch (_: Exception) { results += ReconciliationResult.IndexFailure(directory.name, "indexWriteFailed"); return@forEach }
                 results += when (write) {
                     IndexWriteResult.INSERTED, IndexWriteResult.REPAIRED_OLDER -> ReconciliationResult.IndexedPackage(directory.name)
@@ -300,7 +357,7 @@ class DurableCapturePackageStore(
     } catch (_: Exception) { EnqueueResult.DurabilityFailure(directory.name, "durabilityFailure") }
 
     private fun duplicateLocked(directory: File, requestBytes: ByteArray, assetsBytes: ByteArray): EnqueueResult {
-        val verified = try { removeOwnedJournalTemp(directory); validatePackage(directory) } catch (error: Exception) { return EnqueueResult.ExistingPackageCorrupt(directory.name, (error as? PackageCodecException)?.coarseCode ?: "invalidPackage") }
+        val verified = try { removeOwnedTemps(directory); validatePackage(directory) } catch (error: Exception) { return EnqueueResult.ExistingPackageCorrupt(directory.name, (error as? PackageCodecException)?.coarseCode ?: "invalidPackage") }
         if (!verified.requestBytes.contentEquals(requestBytes) || !verified.assetsBytes.contentEquals(assetsBytes)) return EnqueueResult.CorrelationConflict(directory.name)
         try { phase("beforeDuplicateCapturesParentSync", "afterDuplicateCapturesParentSync") { fileOps.syncDirectory(root) } } catch (_: Exception) { return EnqueueResult.DurabilityFailure(directory.name, "durabilityFailure") }
         val write = indexWrite(verified.projection) ?: return EnqueueResult.IndexFailure(directory.name, "indexWriteFailed")
@@ -335,28 +392,330 @@ class DurableCapturePackageStore(
         return try { fileOps.deleteOwnedTemporary(directory); ReconciliationResult.TemporaryPackageDeleted(directory.name) } catch (_: Exception) { ReconciliationResult.SuspiciousTemporaryPackage(directory.name, "temporaryDeleteFailed") }
     }
 
-    private fun removeOwnedJournalTemp(directory: File) {
+    private fun removeOwnedTemps(directory: File) {
         if (!fileOps.exists(directory)) return
-        val candidates = fileOps.list(directory).filter { JOURNAL_TEMP_PATTERN.matches(it.name) }
-        if (candidates.size > 1) throw PackageCodecException("journalTempInventory")
-        val temporary = candidates.singleOrNull() ?: return
-        if (fileOps.isSymlink(temporary) || !fileOps.isRegularFileNoFollow(temporary) || fileOps.length(temporary) !in 0..CONTROL_LIMIT_BYTES.toLong()) throw PackageCodecException("unsafeJournalTemp")
-        fileOps.checkpoint("beforeJournalTempDelete"); fileOps.deleteOwnedFile(temporary); fileOps.checkpoint("afterJournalTempDelete")
-        fileOps.syncDirectory(directory)
+        val entriesHere = fileOps.list(directory)
+        val journalTemps = entriesHere.filter { JOURNAL_TEMP_PATTERN.matches(it.name) }
+        if (journalTemps.size > 1) throw PackageCodecException("journalTempInventory")
+        val markerTemps = entriesHere.filter { MARKER_TEMP_PATTERN.matches(it.name) }
+        if (markerTemps.size > 1) throw PackageCodecException("markerTempInventory")
+        for (temporary in journalTemps + markerTemps) {
+            if (fileOps.isSymlink(temporary) || !fileOps.isRegularFileNoFollow(temporary) || fileOps.length(temporary) !in 0..CONTROL_LIMIT_BYTES.toLong()) throw PackageCodecException("unsafeJournalTemp")
+            fileOps.checkpoint("beforeJournalTempDelete"); fileOps.deleteOwnedFile(temporary); fileOps.checkpoint("afterJournalTempDelete")
+        }
+        // Provably-incomplete staged drains (crashed before promotion) are deleted here;
+        // a verified plan-hash directory is never touched (ADR-0023 §1 deletion rule).
+        val preparedRoot = entriesHere.firstOrNull { it.name == "prepared" }
+        if (preparedRoot != null && fileOps.isDirectoryNoFollow(preparedRoot) && !fileOps.isSymlink(preparedRoot)) {
+            for (staging in fileOps.list(preparedRoot).filter { STAGING_TEMP_PATTERN.matches(it.name) }) {
+                if (fileOps.isSymlink(staging) || !fileOps.isDirectoryNoFollow(staging)) throw PackageCodecException("preparedInventory")
+                val children = fileOps.list(staging)
+                if (children.any { it.name != "note.bin" || fileOps.isSymlink(it) || !fileOps.isRegularFileNoFollow(it) }) throw PackageCodecException("preparedInventory")
+                fileOps.checkpoint("beforeStagingCleanup"); fileOps.deleteOwnedTemporary(staging); fileOps.checkpoint("afterStagingCleanup")
+            }
+            fileOps.syncDirectory(preparedRoot)
+        }
+        if (journalTemps.isNotEmpty() || markerTemps.isNotEmpty()) fileOps.syncDirectory(directory)
     }
 
     private data class VerifiedPackage(val requestBytes: ByteArray, val assetsBytes: ByteArray, val snapshot: JournalSnapshot, val projection: CaptureIndexProjection)
+
+    /**
+     * State-gated package entry inventory (ADR-0023 §7). Base entries are always
+     * mandatory; observations/prepared/marker/receipts are gated by the journal's
+     * semantic state. Unknown entries, symlinks, and bound violations stay corrupt.
+     */
     private fun validatePackage(directory: File): VerifiedPackage {
         if (fileOps.isSymlink(directory) || !fileOps.isDirectoryNoFollow(directory) || !UUID_PATTERN.matches(directory.name)) throw PackageCodecException("packagePath")
         val entries = fileOps.list(directory)
-        if (entries.any(fileOps::isSymlink) || entries.map { it.name }.sorted() != listOf("assets.json", "delivery-journal.json", "request.json")) throw PackageCodecException("entryInventory")
-        val request = fileOps.readBounded(File(directory, "request.json"), CONTROL_LIMIT_BYTES); val assets = fileOps.readBounded(File(directory, "assets.json"), CONTROL_LIMIT_BYTES); val journal = fileOps.readBounded(File(directory, "delivery-journal.json"), CONTROL_LIMIT_BYTES)
+        if (entries.any(fileOps::isSymlink)) throw PackageCodecException("entryInventory")
+        val names = entries.map { it.name }.toSet()
+        for (required in listOf("assets.json", "delivery-journal.json", "request.json")) {
+            if (required !in names) throw PackageCodecException("entryInventory")
+        }
+        val request = fileOps.readBounded(File(directory, "request.json"), CONTROL_LIMIT_BYTES)
+        val assets = fileOps.readBounded(File(directory, "assets.json"), CONTROL_LIMIT_BYTES)
+        val journal = fileOps.readBounded(File(directory, "delivery-journal.json"), CONTROL_LIMIT_BYTES)
         if (request.size.toLong() + assets.size + journal.size > AGGREGATE_LIMIT_BYTES) throw PackageCodecException("aggregateBounds")
-        val admitted = CapturePackageCodec.decodeHistoricalRequest(request); val assetManifest = CapturePackageCodec.decodeAssets(assets); val decoded = CapturePackageCodec.decodeJournal(journal)
+        val admitted = CapturePackageCodec.decodeHistoricalRequest(request)
+        val assetManifest = CapturePackageCodec.decodeAssets(assets)
+        val decoded = CapturePackageCodec.decodeJournal(journal)
         CapturePackageCodec.verifyBinding(decoded, request, assets)
         val snapshot = decoded.snapshot
         if (admitted.requestID != directory.name || assetManifest.requestID != directory.name || snapshot.requestID != directory.name) throw PackageCodecException("correlation")
-        val attempts = snapshot.events.count { it.code == JournalCode.PREPARATION_STARTED }
-        return VerifiedPackage(request, assets, snapshot, CaptureIndexProjection(directory.name, decoded.binding.packageVersion, 1, snapshot.revision, snapshot.state, admitted.createdAtEpochMillis, snapshot.events.last().occurredAtEpochMillis, attempts))
+
+        // State-gated optional entries (ADR-0023 §7).
+        val extra = names - setOf("assets.json", "delivery-journal.json", "request.json")
+        val observationsDir = entries.firstOrNull { it.name == "observations" }
+        val preparedDir = entries.firstOrNull { it.name == "prepared" }
+        val receiptsDir = entries.firstOrNull { it.name == "receipts" }
+        val markerFile = entries.firstOrNull { it.name == "commit-attempt.json" }
+        val unexpected = extra - setOf("observations", "prepared", "receipts", "commit-attempt.json")
+        if (unexpected.isNotEmpty()) throw PackageCodecException("entryInventory")
+
+        val attempts = mutableMapOf<String, Int>()
+        if (observationsDir != null) {
+            if (!fileOps.isDirectoryNoFollow(observationsDir)) throw PackageCodecException("observationsEntry")
+            val files = fileOps.list(observationsDir)
+            if (files.size > MAX_OBSERVATION_ATTEMPTS || files.any { fileOps.isSymlink(it) || !fileOps.isRegularFileNoFollow(it) }) throw PackageCodecException("observationsInventory")
+            for (file in files) {
+                val attempt = ObservationAttempt.fromFileName(file.name) ?: throw PackageCodecException("observationsInventory")
+                if (fileOps.length(file) !in 1..CONTROL_LIMIT_BYTES.toLong()) throw PackageCodecException("observationsInventory")
+                attempts[attempt.requestID] = (attempts[attempt.requestID] ?: 0) + 1
+            }
+            if (attempts.keys != setOf(directory.name)) throw PackageCodecException("observationsInventory")
+        }
+        var preparedVerified = false
+        if (preparedDir != null) {
+            if (!fileOps.isDirectoryNoFollow(preparedDir)) throw PackageCodecException("preparedEntry")
+            val entriesInPrepared = fileOps.list(preparedDir)
+            // At most one provably-incomplete staging dir is tolerated (never counted as a
+            // plan); deletion happens in the mutation/reconciliation cleanup pass.
+            val stagingDirs = entriesInPrepared.filter { STAGING_TEMP_PATTERN.matches(it.name) }
+            if (stagingDirs.size > 1) throw PackageCodecException("preparedInventory")
+            stagingDirs.forEach { staging ->
+                if (fileOps.isSymlink(staging) || !fileOps.isDirectoryNoFollow(staging)) throw PackageCodecException("preparedInventory")
+                val children = fileOps.list(staging)
+                if (children.any { it.name != "note.bin" || fileOps.isSymlink(it) || !fileOps.isRegularFileNoFollow(it) }) throw PackageCodecException("preparedInventory")
+            }
+            val planDirs = entriesInPrepared.filter { !STAGING_TEMP_PATTERN.matches(it.name) }
+            if (planDirs.size > MAX_PREPARED_PLAN_DIRECTORIES || planDirs.any { fileOps.isSymlink(it) || !fileOps.isDirectoryNoFollow(it) }) throw PackageCodecException("preparedInventory")
+            for (planDir in planDirs) {
+                if (!SHA_PATTERN.matches(planDir.name)) throw PackageCodecException("preparedInventory")
+                val children = fileOps.list(planDir)
+                if (children.map { it.name }.sorted() != listOf("artifact-plan.json", "note.bin") || children.any { fileOps.isSymlink(it) || !fileOps.isRegularFileNoFollow(it) }) throw PackageCodecException("preparedInventory")
+                val planBytes = fileOps.readBounded(File(planDir, "artifact-plan.json"), CONTROL_LIMIT_BYTES)
+                if (PreparedPlanVerifier.verifiedPlanHash(planBytes) != planDir.name) throw PackageCodecException("preparedPlanHash")
+                if (fileOps.length(File(planDir, "note.bin")) !in 0..MAX_PREPARED_NOTE_BYTES) throw PackageCodecException("preparedNoteBounds")
+            }
+            preparedVerified = planDirs.isNotEmpty()
+        }
+        if (markerFile != null) {
+            if (!fileOps.isRegularFileNoFollow(markerFile) || fileOps.length(markerFile) !in 1..CONTROL_LIMIT_BYTES.toLong()) throw PackageCodecException("markerEntry")
+        }
+        if (receiptsDir != null) {
+            if (!fileOps.isDirectoryNoFollow(receiptsDir)) throw PackageCodecException("receiptsEntry")
+            val files = fileOps.list(receiptsDir)
+            if (files.size > MAX_RECEIPTS || files.any { fileOps.isSymlink(it) || !fileOps.isRegularFileNoFollow(it) || !UUID_PATTERN.matches(it.name.removeSuffix(".json")) || it.name.endsWith(".json").not() || fileOps.length(it) !in 1..CONTROL_LIMIT_BYTES.toLong() }) throw PackageCodecException("receiptsInventory")
+        }
+
+        val markerState = markerFile?.let {
+            try { CapturePackageCodec.decodeMarker(fileOps.readBounded(it, CONTROL_LIMIT_BYTES)).state } catch (_: Exception) { throw PackageCodecException("markerEntry") }
+        }
+        when (snapshot.state) {
+            CaptureState.QUEUED -> if (observationsDir != null || preparedDir != null || markerFile != null || receiptsDir != null) throw PackageCodecException("entryInventory")
+            CaptureState.PREPARING -> if (markerFile != null || receiptsDir != null) throw PackageCodecException("entryInventory")
+            CaptureState.RETRYABLE_FAILURE, CaptureState.NEEDS_USER_ACTION -> {
+                if (receiptsDir != null) throw PackageCodecException("entryInventory")
+                // Only a CLEARED marker (proof of non-commit already recorded) may exist here.
+                if (markerFile != null && markerState != CommitMarker.MarkerState.CLEARED) throw PackageCodecException("markerState")
+            }
+            CaptureState.MATERIALIZED -> if (!preparedVerified || markerFile != null || receiptsDir != null) throw PackageCodecException("preparedRequired")
+            CaptureState.COMMITTING, CaptureState.UNKNOWN_OUTCOME -> {
+                if (!preparedVerified) throw PackageCodecException("preparedRequired")
+                // receipts/ is optional here: the verified-receipt→journal-append replay window.
+            }
+            CaptureState.NEEDS_PERMISSION -> if (receiptsDir != null) throw PackageCodecException("entryInventory")
+            CaptureState.COMPLETED -> if (!preparedVerified || receiptsDir == null || receiptsDir.let { dir -> fileOps.list(dir).isEmpty() }) throw PackageCodecException("receiptsRequired")
+            CaptureState.PERMANENT_FAILURE, CaptureState.DISCARDED -> Unit
+        }
+        if (snapshot.state == CaptureState.MATERIALIZED || snapshot.state == CaptureState.COMMITTING || snapshot.state == CaptureState.UNKNOWN_OUTCOME || snapshot.state == CaptureState.COMPLETED) {
+            val planHash = snapshot.events.lastOrNull { it.code == JournalCode.MATERIALIZED }?.planHash ?: throw PackageCodecException("planHashBinding")
+            if (!SHA_PATTERN.matches(planHash)) throw PackageCodecException("planHashBinding")
+            if (preparedDir == null || fileOps.list(preparedDir).none { it.name == planHash }) throw PackageCodecException("planHashPreparedDirectory")
+        }
+        if (snapshot.state == CaptureState.COMPLETED) {
+            val receiptID = snapshot.events.last().receiptID ?: throw PackageCodecException("correlation")
+            if (receiptsDir == null || fileOps.list(receiptsDir).none { it.name == "$receiptID.json" }) throw PackageCodecException("receiptsRequired")
+        }
+
+        val attemptsCount = snapshot.events.count { it.code == JournalCode.PREPARATION_STARTED }
+        return VerifiedPackage(request, assets, snapshot, CaptureIndexProjection(directory.name, decoded.binding.packageVersion, 1, snapshot.revision, snapshot.state, admitted.createdAtEpochMillis, snapshot.events.last().occurredAtEpochMillis, attemptsCount))
     }
+
+    // ---- ADR-0023 Phase 5 persistence APIs (all under the package root lock) ----
+
+    /** Loads the current journal snapshot without mutation. */
+    fun loadJournal(requestID: String): JournalSnapshot? = try {
+        validatePackage(File(root, requestID)).snapshot
+    } catch (_: Exception) { null }
+
+    /** Loads the durable request envelope bytes. */
+    fun loadRequestBytes(requestID: String): ByteArray? = try {
+        validatePackage(File(root, requestID)).requestBytes
+    } catch (_: Exception) { null }
+
+    /** Persists the immutable per-attempt observation snapshot (ADR-0018 layout). */
+    fun persistObservationSnapshot(requestID: String, attempt: ObservationAttempt, bytes: ByteArray) {
+        if (attempt.requestID != requestID || bytes.isEmpty() || bytes.size > CONTROL_LIMIT_BYTES) throw PackageCodecException("observationBounds")
+        withRootMutationLock {
+            val directory = File(root, requestID)
+            val verified = validatePackage(directory)
+            if (verified.snapshot.state !in setOf(CaptureState.PREPARING, CaptureState.RETRYABLE_FAILURE)) throw PackageCodecException("observationState")
+            val observations = File(directory, "observations")
+            if (!fileOps.exists(observations)) { fileOps.createDirectory(observations); fileOps.syncDirectory(directory) }
+            val target = File(observations, attempt.fileName)
+            if (fileOps.exists(target)) throw PackageCodecException("observationAttemptExists")
+            fileOps.writeNewFileDurably(target, bytes) { phase -> fileOps.checkpoint("$phase:observation:${attempt.fileName}") }
+            fileOps.syncDirectory(observations)
+        }
+    }
+
+    /**
+     * Opens a same-parent staged drain under prepared/.tmp-<stagingUUID>/note.bin. The
+     * staged bytes are promoted into the plan-hash-named directory only after finalize
+     * returns the plan, so note.bin is written once at its final governed name.
+     */
+    fun openStagedNoteSink(requestID: String, stagingUUID: String, expectedLength: Long, expectedSHA256: String): StagedNoteSink {
+        if (!UUID_PATTERN.matches(stagingUUID) || !SHA_PATTERN.matches(expectedSHA256) || expectedLength !in 0..MAX_PREPARED_NOTE_BYTES) throw PackageCodecException("preparedNoteBounds")
+        withRootMutationLock {
+            val directory = File(root, requestID)
+            val verified = validatePackage(directory)
+            if (verified.snapshot.state !in setOf(CaptureState.PREPARING, CaptureState.RETRYABLE_FAILURE)) throw PackageCodecException("stagingState")
+            val preparedRoot = File(directory, "prepared")
+            if (!fileOps.exists(preparedRoot)) { fileOps.createDirectory(preparedRoot); fileOps.syncDirectory(directory) }
+            val staging = File(preparedRoot, ".tmp-$stagingUUID")
+            if (fileOps.exists(staging)) throw PackageCodecException("stagingExists")
+            fileOps.createDirectory(staging)
+            fileOps.syncDirectory(preparedRoot)
+        }
+        return StagedNoteSink(this, requestID, stagingUUID, expectedLength, expectedSHA256)
+    }
+
+    internal fun writeStagedNoteChunk(requestID: String, stagingUUID: String, chunk: ByteArray) {
+        withRootMutationLock {
+            val note = stagedNoteFile(requestID, stagingUUID)
+            val current = if (fileOps.exists(note)) fileOps.readBounded(note, MAX_PREPARED_NOTE_BYTES.toInt()) else ByteArray(0)
+            if (current.size.toLong() + chunk.size > MAX_PREPARED_NOTE_BYTES) throw PackageCodecException("preparedNoteBounds")
+            fileOps.writeFileDurably(note, current + chunk) { phase -> fileOps.checkpoint("$phase:stagedNote:$stagingUUID") }
+        }
+    }
+
+    internal fun verifyStagedNote(requestID: String, stagingUUID: String, expectedLength: Long, expectedSHA256: String) {
+        withRootMutationLock {
+            val note = stagedNoteFile(requestID, stagingUUID)
+            if (!fileOps.isRegularFileNoFollow(note)) throw PackageCodecException("preparedNoteMissing")
+            if (fileOps.length(note) != expectedLength) throw PackageCodecException("preparedNoteLength")
+            val bytes = fileOps.readBounded(note, MAX_PREPARED_NOTE_BYTES.toInt())
+            if (CapturePackageCodec.sha256(bytes) != expectedSHA256) throw PackageCodecException("preparedNoteHash")
+        }
+    }
+
+    /**
+     * Promotes staged note bytes into prepared/<plan-hash>/ (append-only): durably writes
+     * artifact-plan.json, atomically moves the staged note.bin, fsyncs, and removes the
+     * staging directory. Fails closed if the plan directory already exists.
+     */
+    fun promotePreparedArtifacts(requestID: String, planHash: String, planBytes: ByteArray, stagingUUID: String) {
+        if (!SHA_PATTERN.matches(planHash) || planBytes.isEmpty() || planBytes.size > CONTROL_LIMIT_BYTES || !UUID_PATTERN.matches(stagingUUID)) throw PackageCodecException("preparedPlanBounds")
+        withRootMutationLock {
+            val directory = File(root, requestID)
+            validatePackage(directory)
+            val preparedRoot = File(directory, "prepared")
+            val staging = File(preparedRoot, ".tmp-$stagingUUID")
+            val stagedNote = File(staging, "note.bin")
+            if (!fileOps.isRegularFileNoFollow(stagedNote)) throw PackageCodecException("stagedNoteMissing")
+            val planDir = File(preparedRoot, planHash)
+            if (fileOps.exists(planDir)) throw PackageCodecException("preparedPlanExists")
+            if (fileOps.list(preparedRoot).size >= MAX_PREPARED_PLAN_DIRECTORIES + 1) throw PackageCodecException("preparedInventory")
+            fileOps.createDirectory(planDir)
+            fileOps.writeNewFileDurably(File(planDir, "artifact-plan.json"), planBytes) { phase -> fileOps.checkpoint("$phase:plan:$planHash") }
+            val reopened = fileOps.readBounded(File(planDir, "artifact-plan.json"), CONTROL_LIMIT_BYTES)
+            if (!reopened.contentEquals(planBytes) || PreparedPlanVerifier.verifiedPlanHash(reopened) != planHash) throw PackageCodecException("preparedPlanHash")
+            fileOps.checkpoint("beforeStagedNoteMove")
+            fileOps.moveFileNoReplaceAtomically(stagedNote, File(planDir, "note.bin"))
+            fileOps.checkpoint("afterStagedNoteMove")
+            fileOps.syncDirectory(planDir)
+            fileOps.deleteOwnedTemporary(staging)
+            fileOps.syncDirectory(preparedRoot)
+        }
+    }
+
+    private fun stagedNoteFile(requestID: String, stagingUUID: String): File =
+        File(File(File(File(root, requestID), "prepared"), ".tmp-$stagingUUID"), "note.bin")
+
+    /** Verified persisted prepared artifacts for the authoritative plan hash. */
+    data class PreparedArtifacts(val planBytes: ByteArray, val noteBytes: ByteArray, val descriptor: PreparedPlanDescriptor)
+
+    /** Loads and verifies persisted prepared artifacts for the authoritative plan hash. */
+    fun loadPreparedArtifacts(requestID: String, planHash: String): PreparedArtifacts? = try {
+        val loaded = withRootMutationLock {
+            val planDir = File(File(File(root, requestID), "prepared"), planHash)
+            if (!fileOps.isDirectoryNoFollow(planDir)) return@withRootMutationLock null
+            val planBytes = fileOps.readBounded(File(planDir, "artifact-plan.json"), CONTROL_LIMIT_BYTES)
+            if (PreparedPlanVerifier.verifiedPlanHash(planBytes) != planHash) return@withRootMutationLock null
+            val note = File(planDir, "note.bin")
+            if (!fileOps.isRegularFileNoFollow(note)) return@withRootMutationLock null
+            val noteBytes = fileOps.readBounded(note, MAX_PREPARED_NOTE_BYTES.toInt())
+            Triple(planBytes, noteBytes, PreparedPlanDescriptor(planHash, noteBytes.size.toLong(), CapturePackageCodec.sha256(noteBytes)))
+        }
+        loaded?.let { (plan, noteBytes, descriptor) -> PreparedArtifacts(plan, noteBytes, descriptor) }
+    } catch (_: Exception) { null }
+
+    /** Durably persists the crash-window marker (new-file + fsync + parent fsync) and returns the type-level token. */
+    fun persistCommitMarker(requestID: String, marker: CommitMarker): DurableMarkerToken {
+        if (marker.state != CommitMarker.MarkerState.ACTIVE) throw PackageCodecException("markerState")
+        val bytes = CapturePackageCodec.encodeMarker(marker)
+        withRootMutationLock {
+            val directory = File(root, requestID)
+            val verified = validatePackage(directory)
+            if (verified.snapshot.state !in setOf(CaptureState.COMMITTING, CaptureState.UNKNOWN_OUTCOME, CaptureState.NEEDS_PERMISSION)) throw PackageCodecException("markerState")
+            val markerFile = File(directory, "commit-attempt.json")
+            if (fileOps.exists(markerFile)) {
+                val existing = CapturePackageCodec.decodeMarker(fileOps.readBounded(markerFile, CONTROL_LIMIT_BYTES))
+                if (existing.state == CommitMarker.MarkerState.ACTIVE) throw PackageCodecException("markerActiveExists")
+            }
+            fileOps.writeNewFileDurably(markerFile, bytes) { phase -> fileOps.checkpoint("$phase:marker") }
+            fileOps.syncDirectory(directory)
+        }
+        return DurableMarkerToken(requestID, marker.planHash, marker.recordedAtEpochMillis)
+    }
+
+    fun readCommitMarker(requestID: String): CommitMarker? = try {
+        val markerFile = File(File(root, requestID), "commit-attempt.json")
+        if (!fileOps.isRegularFileNoFollow(markerFile)) null
+        else CapturePackageCodec.decodeMarker(fileOps.readBounded(markerFile, CONTROL_LIMIT_BYTES))
+    } catch (_: Exception) { null }
+
+    /** Replaces the marker with a durable cleared state (temp → fsync → replace → dir fsync) under the root lock. */
+    private fun clearCommitMarkerLocked(directory: File) {
+        val markerFile = File(directory, "commit-attempt.json")
+        if (!fileOps.exists(markerFile)) return
+        val current = CapturePackageCodec.decodeMarker(fileOps.readBounded(markerFile, CONTROL_LIMIT_BYTES))
+        if (current.state == CommitMarker.MarkerState.CLEARED) return
+        val cleared = CommitMarker.validated(CommitMarker.MarkerState.CLEARED, current.destinationID, current.planHash, current.candidateDisplayName, current.recordedAtEpochMillis)
+        val bytes = CapturePackageCodec.encodeMarker(cleared)
+        val temporary = File(directory, ".commit-attempt.${UUID.randomUUID()}.tmp")
+        fileOps.writeNewFileDurably(temporary, bytes) { phase -> fileOps.checkpoint("$phase:markerClear") }
+        fileOps.replaceFileAtomically(temporary, markerFile)
+        fileOps.syncDirectory(directory)
+    }
+
+    /** Append-only verified receipt persistence (ADR-0023 §5). */
+    fun persistReceipt(requestID: String, receipt: DeliveryReceipt) {
+        if (receipt.requestID != requestID) throw PackageCodecException("receiptCorrelation")
+        val bytes = CapturePackageCodec.encodeReceipt(receipt)
+        withRootMutationLock {
+            val directory = File(root, requestID)
+            val verified = validatePackage(directory)
+            if (verified.snapshot.state !in setOf(CaptureState.COMMITTING, CaptureState.UNKNOWN_OUTCOME, CaptureState.COMPLETED)) throw PackageCodecException("receiptState")
+            val receipts = File(directory, "receipts")
+            if (!fileOps.exists(receipts)) { fileOps.createDirectory(receipts); fileOps.syncDirectory(directory) }
+            val target = File(receipts, "${receipt.receiptID}.json")
+            if (fileOps.exists(target)) {
+                val existing = CapturePackageCodec.decodeReceipt(fileOps.readBounded(target, CONTROL_LIMIT_BYTES))
+                if (existing != receipt) throw PackageCodecException("receiptConflict")
+                return@withRootMutationLock
+            }
+            if (fileOps.list(receipts).size >= MAX_RECEIPTS) throw PackageCodecException("receiptsInventory")
+            fileOps.writeNewFileDurably(target, bytes) { phase -> fileOps.checkpoint("$phase:receipt:${receipt.receiptID}") }
+            fileOps.syncDirectory(receipts)
+        }
+    }
+
+    fun loadReceipt(requestID: String, receiptID: String): DeliveryReceipt? = try {
+        val target = File(File(File(root, requestID), "receipts"), "$receiptID.json")
+        if (!fileOps.isRegularFileNoFollow(target)) null
+        else CapturePackageCodec.decodeReceipt(fileOps.readBounded(target, CONTROL_LIMIT_BYTES))
+    } catch (_: Exception) { null }
 }

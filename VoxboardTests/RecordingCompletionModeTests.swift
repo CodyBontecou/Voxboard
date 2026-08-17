@@ -99,6 +99,23 @@ final class RecordingCompletionModeTests: XCTestCase {
             lookup: { _ in live },
             fallback: { live }
         ))
+
+        let draftVoicePolicy = RecordingCompletionMode.voiceProcessingConfiguration(
+            for: .captureDraft(attachAudio: false),
+            selectedPreset: original
+        )
+        live.speakerDiarizationEnabled = true
+        XCTAssertEqual(
+            draftVoicePolicy,
+            RecordingVoiceProcessingConfiguration(
+                presetID: "custom",
+                speakerDiarizationEnabled: false
+            )
+        )
+        XCTAssertNil(RecordingCompletionMode.voiceProcessingConfiguration(
+            for: .keyboardTranscription,
+            selectedPreset: original
+        ))
     }
 
     func testSegmentHandoffSnapshotPreservesDraftSessionAndPresetIdentity() {
@@ -109,12 +126,18 @@ final class RecordingCompletionModeTests: XCTestCase {
         let snapshot = PersistentRecorder.handoffSnapshot(
             draftRequestID: draftID,
             liveSessionID: sessionID,
-            presetSnapshot: preset
+            presetSnapshot: preset,
+            voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration(
+                presetID: preset.id,
+                speakerDiarizationEnabled: true
+            )
         )
 
         XCTAssertEqual(snapshot.draftRequestID, draftID)
         XCTAssertEqual(snapshot.liveSessionID, sessionID)
         XCTAssertEqual(snapshot.presetSnapshot, preset)
+        XCTAssertEqual(snapshot.voiceProcessingConfiguration?.presetID, preset.id)
+        XCTAssertEqual(snapshot.voiceProcessingConfiguration?.speakerDiarizationEnabled, true)
     }
 
     func testNonKeyboardExternalCommandStillRunsItsPreset() {

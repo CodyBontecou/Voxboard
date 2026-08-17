@@ -322,6 +322,7 @@ class DurableCapturePackageStoreTest {
         }
         override fun promoteDirectoryNoReplace(source: File, target: File) { if (atomicUnsupported) throw AtomicMoveNotSupportedException(source.path, target.path, "injected"); if (exists(target)) throw FileAlreadyExistsException(target.path); Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE) }
         override fun replaceFileAtomically(source: File, target: File) { if (atomicUnsupported) throw AtomicMoveNotSupportedException(source.path, target.path, "injected"); if (!isRegularFileNoFollow(source) || !isRegularFileNoFollow(target) || isSymlink(source) || isSymlink(target)) error("unsafe"); Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING); if (moveThenThrow) error("move outcome injected") }
+        override fun moveFileNoReplaceAtomically(source: File, target: File) { if (atomicUnsupported) throw AtomicMoveNotSupportedException(source.path, target.path, "injected"); if (!isRegularFileNoFollow(source) || isSymlink(source) || exists(target)) error("unsafe"); Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE) }
         override fun list(directory: File) = directory.listFiles()?.toList() ?: error("list")
         override fun exists(file: File) = Files.exists(file.toPath(), LinkOption.NOFOLLOW_LINKS)
         override fun isDirectoryNoFollow(file: File) = Files.isDirectory(file.toPath(), LinkOption.NOFOLLOW_LINKS)

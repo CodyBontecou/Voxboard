@@ -223,6 +223,11 @@ struct HistoryView: View {
                         .font(Geist.caption(.caption2))
                         .foregroundStyle(Geist.muted)
                     }
+                    if let reason = transcript.speakerDiarizationSkipReason {
+                        Label(reason.displayText, systemImage: "exclamationmark.triangle")
+                            .font(Geist.caption(.caption2))
+                            .foregroundStyle(Geist.error)
+                    }
                 }
                 Spacer()
                 copyMenu(for: transcript)

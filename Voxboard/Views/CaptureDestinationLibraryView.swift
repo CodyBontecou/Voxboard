@@ -46,7 +46,7 @@ struct CaptureEntryTemplateLibraryView: View {
                     Label("Add Entry Template", systemImage: "doc.badge.plus")
                 }
             } footer: {
-                Text("Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, and {id8}.")
+                Text("Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, and {location}.")
             }
 
             if let errorMessage {
@@ -383,7 +383,7 @@ struct CaptureDestinationEditorView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
-                    Text("Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}.")
+                    Text("Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -750,7 +750,7 @@ struct CaptureEntryTemplateEditorView: View {
             } header: {
                 Text("Template")
             } footer: {
-                Text("Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}.")
+                Text("Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, {location}.")
             }
             if let errorMessage {
                 Section("Error") { Text(errorMessage).foregroundStyle(.red) }

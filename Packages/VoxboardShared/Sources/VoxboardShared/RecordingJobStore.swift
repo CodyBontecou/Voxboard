@@ -117,6 +117,9 @@ public struct RecordingJobHandoffIntent: Codable, Equatable, Sendable {
     public var duration: TimeInterval
     public var source: RecordingJobSource
     public var delivery: RecordingJobDelivery
+    /// Immutable voice-only policy captured at the recording/import boundary.
+    /// Kept separate from delivery so a draft does not inherit preset export or formatting.
+    public var voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration?
     public var modelID: String
     public var fallbackModelID: String?
     public var language: String
@@ -136,6 +139,7 @@ public struct RecordingJobHandoffIntent: Codable, Equatable, Sendable {
         duration: TimeInterval,
         source: RecordingJobSource,
         delivery: RecordingJobDelivery,
+        voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration? = nil,
         modelID: String,
         fallbackModelID: String? = nil,
         language: String,
@@ -162,6 +166,7 @@ public struct RecordingJobHandoffIntent: Codable, Equatable, Sendable {
         self.duration = duration
         self.source = source
         self.delivery = delivery
+        self.voiceProcessingConfiguration = voiceProcessingConfiguration
         self.modelID = modelID
         self.fallbackModelID = fallbackModelID
         self.language = language
@@ -227,6 +232,10 @@ public struct RecordingJobHandoffIntent: Codable, Equatable, Sendable {
         duration = try container.decode(TimeInterval.self, forKey: .duration)
         source = try container.decode(RecordingJobSource.self, forKey: .source)
         delivery = try container.decode(RecordingJobDelivery.self, forKey: .delivery)
+        voiceProcessingConfiguration = try container.decodeIfPresent(
+            RecordingVoiceProcessingConfiguration.self,
+            forKey: .voiceProcessingConfiguration
+        )
         modelID = try container.decode(String.self, forKey: .modelID)
         fallbackModelID = try container.decodeIfPresent(String.self, forKey: .fallbackModelID)
         language = try container.decode(String.self, forKey: .language)
@@ -377,6 +386,9 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
     public var duration: TimeInterval
     public var source: RecordingJobSource
     public var delivery: RecordingJobDelivery
+    /// Immutable voice-only policy for draft delivery. Preset delivery derives
+    /// the policy from its own immutable preset snapshot.
+    public var voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration?
     public var modelID: String
     public var fallbackModelID: String?
     public var language: String
@@ -412,6 +424,7 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
         duration: TimeInterval,
         source: RecordingJobSource,
         delivery: RecordingJobDelivery,
+        voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration? = nil,
         modelID: String,
         fallbackModelID: String? = nil,
         language: String,
@@ -447,6 +460,7 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
         self.duration = max(0, duration)
         self.source = source
         self.delivery = delivery
+        self.voiceProcessingConfiguration = voiceProcessingConfiguration
         self.modelID = modelID
         self.fallbackModelID = fallbackModelID
         self.language = language
@@ -478,7 +492,7 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
     private enum CodingKeys: String, CodingKey {
         case schemaVersion, id, requestID, draftRequestID, liveSessionID, captureSource, locationOutcome
         case audioFilename, artifacts, originalFilename, createdAt, updatedAt, duration, source, delivery
-        case modelID, fallbackModelID, language, retentionPolicy, processingPolicy, initialProcessingPolicy
+        case voiceProcessingConfiguration, modelID, fallbackModelID, language, retentionPolicy, processingPolicy, initialProcessingPolicy
         case phase, failureStage, statusMessage, attemptCount, revision, transcriptText
         case automaticClipboardDeliveryAttemptedAt, exportedNotePath, exportedAudioPath
         case audioReferenceAttachedAt, completedAt, audioDeletionDate, audioDeletedAt
@@ -508,6 +522,10 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
         fallbackModelID = try c.decodeIfPresent(String.self, forKey: .fallbackModelID)
         language = try c.decode(String.self, forKey: .language)
         retentionPolicy = try c.decode(SourceAudioRetentionPolicy.self, forKey: .retentionPolicy)
+        voiceProcessingConfiguration = try c.decodeIfPresent(
+            RecordingVoiceProcessingConfiguration.self,
+            forKey: .voiceProcessingConfiguration
+        )
         processingPolicy = try c.decode(RecordingJobProcessingPolicy.self, forKey: .processingPolicy)
         initialProcessingPolicy = try c.decodeIfPresent(RecordingJobProcessingPolicy.self, forKey: .initialProcessingPolicy)
         phase = try c.decode(RecordingJobPhase.self, forKey: .phase)
@@ -543,6 +561,13 @@ public struct RecordingJob: Codable, Equatable, Identifiable, Sendable {
     private static func safeFilename(_ filename: String) -> Bool {
         !filename.isEmpty && filename != "." && filename != ".." && !filename.contains("/")
             && !filename.contains("\\") && URL(fileURLWithPath: filename).lastPathComponent == filename
+    }
+
+    public var effectiveVoiceProcessingConfiguration: RecordingVoiceProcessingConfiguration? {
+        if case .preset(let preset) = delivery {
+            return RecordingVoiceProcessingConfiguration(preset: preset)
+        }
+        return voiceProcessingConfiguration
     }
 }
 
@@ -760,6 +785,7 @@ public actor RecordingJobStore {
         duration: TimeInterval,
         source: RecordingJobSource,
         delivery: RecordingJobDelivery,
+        voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration? = nil,
         modelID: String,
         fallbackModelID: String? = nil,
         language: String,
@@ -814,6 +840,7 @@ public actor RecordingJobStore {
                 duration: duration,
                 source: source,
                 delivery: delivery,
+                voiceProcessingConfiguration: voiceProcessingConfiguration,
                 modelID: modelID,
                 fallbackModelID: fallbackModelID,
                 language: language,
@@ -1106,6 +1133,7 @@ public actor RecordingJobStore {
                     duration: intent.duration,
                     source: intent.source,
                     delivery: intent.delivery,
+                    voiceProcessingConfiguration: intent.voiceProcessingConfiguration,
                     modelID: intent.modelID,
                     fallbackModelID: intent.fallbackModelID,
                     language: intent.language,

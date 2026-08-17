@@ -14,6 +14,7 @@ private struct WatchTranscriptionOutput: Sendable {
     let result: OnDeviceTranscriptionResult
     let text: String
     let speakerTurns: [TranscriptSpeakerTurn]?
+    let speakerDiarizationSkipReason: SpeakerDiarizationSkipReason?
 }
 
 @MainActor
@@ -523,7 +524,8 @@ final class WatchRecordingPipeline {
                 duration: item.duration ?? AudioFileConverter.duration(of: item.fileURL) ?? 0,
                 modelUsed: output.result.backendName,
                 language: output.result.language,
-                speakerTurns: output.speakerTurns
+                speakerTurns: output.speakerTurns,
+                speakerDiarizationSkipReason: output.speakerDiarizationSkipReason
             )
             let formatted = TranscriptFlowFormatter.apply(flow: flow, to: raw)
             transcriptStore.add(formatted)
@@ -888,36 +890,22 @@ final class WatchRecordingPipeline {
             )
             try Task.checkCancellation()
 
-            guard flow.speakerDiarizationEnabled else {
-                return WatchTranscriptionOutput(
-                    result: result,
-                    text: result.text,
-                    speakerTurns: nil
-                )
-            }
-            do {
-                let diarization = try await speakerDiarizationService.diarize(
-                    audioURL: convertedURL,
-                    transcriptText: result.text,
-                    transcriptionSegments: result.segments
-                )
-                return WatchTranscriptionOutput(
-                    result: result,
-                    text: diarization.renderedText,
-                    speakerTurns: diarization.turns
-                )
-            } catch is CancellationError {
-                throw CancellationError()
-            } catch {
+            let resolution = try await speakerDiarizationService.resolve(
+                audioURL: convertedURL,
+                transcription: result,
+                configuration: RecordingVoiceProcessingConfiguration(preset: flow)
+            )
+            if let reason = resolution.skipReason {
                 watchPipelineBackgroundLog.warning(
-                    "Watch speaker identification skipped recording=\(item.id, privacy: .public) error=\(error.localizedDescription, privacy: .private)"
-                )
-                return WatchTranscriptionOutput(
-                    result: result,
-                    text: result.text,
-                    speakerTurns: nil
+                    "Watch speaker identification skipped recording=\(item.id, privacy: .public) reason=\(reason.rawValue, privacy: .public)"
                 )
             }
+            return WatchTranscriptionOutput(
+                result: result,
+                text: resolution.text,
+                speakerTurns: resolution.turns,
+                speakerDiarizationSkipReason: resolution.skipReason
+            )
         } catch is CancellationError {
             throw CancellationError()
         } catch {

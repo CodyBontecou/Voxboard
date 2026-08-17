@@ -8,7 +8,7 @@ Every family has normative prose, strict JSON Schema, positive and isolated nega
 
 ADR-0013 lifecycle applies. Mirrors must remain byte-identical and cannot claim behavior merely from presence. The Rust mirror is `required` because `vox-core` executes it in `m2_core::rust_contract_mirror_is_consumed`; Swift and Kotlin mirrors remain `resourceOnlyPlanned`.
 
-`scope-variances.json` overlays no current rows and is validated against an exact strict schema. Only `unavailable` and `deferred` are valid overlay classifications; each requires an accepted decision ID, reason, user-visible behavior, `objectiveAmended: false`, and `parityStatus: blocking`. The base 270-row inventory always preserves M0 ownership.
+`scope-variances.json` overlays no current rows and is validated against an exact strict schema. Only `unavailable` and `deferred` are valid overlay classifications; each requires an accepted decision ID, reason, user-visible behavior, `objectiveAmended: false`, and `parityStatus: blocking`. The base 271-row inventory always preserves M0 ownership.
 
 ```sh
 python3 Packages/contracts/scripts/convert_capabilities.py --check

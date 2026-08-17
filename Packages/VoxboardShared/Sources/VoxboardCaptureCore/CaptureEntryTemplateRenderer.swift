@@ -27,9 +27,24 @@ public struct CaptureEntryTemplateRenderer: Sendable {
             "{source}": request.source.rawValue,
             "{id}": id,
             "{id8}": String(id.prefix(8)),
+            "{location}": locationMapLink(for: request),
         ]
         return replacements.reduce(template) { rendered, replacement in
             rendered.replacingOccurrences(of: replacement.key, with: replacement.value)
         }
+    }
+
+    private func locationMapLink(for request: CaptureRequest) -> String {
+        guard let policy = request.voxProfile?.locationPolicy,
+              policy.isEnabled,
+              case .available(let snapshot)? = request.locationOutcome else { return "" }
+        let usesCityPrecision = policy.precision == .city || snapshot.precision == .city
+        let effectivePrecision: CaptureLocationPrecision = usesCityPrecision ? .city : .exact
+        guard let formatted = try? CaptureLocationFormatter().format(
+            snapshot: snapshot,
+            requestID: request.id,
+            precision: effectivePrecision
+        ), let url = formatted[.googleMapsURL] else { return "" }
+        return "[Location](\(url))"
     }
 }

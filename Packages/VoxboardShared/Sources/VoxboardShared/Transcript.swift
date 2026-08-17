@@ -46,6 +46,9 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
     /// Present only when the user opted into local speaker identification and
     /// the best-effort diarization pass completed successfully.
     public let speakerTurns: [TranscriptSpeakerTurn]?
+    /// A durable, nonfatal explanation when opted-in speaker identification
+    /// preserved the valid raw transcript instead of adding labels.
+    public let speakerDiarizationSkipReason: SpeakerDiarizationSkipReason?
 
     // MARK: - On-device LLM enrichment (optional)
     //
@@ -81,6 +84,7 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
         modelUsed: String,
         language: String,
         speakerTurns: [TranscriptSpeakerTurn]? = nil,
+        speakerDiarizationSkipReason: SpeakerDiarizationSkipReason? = nil,
         title: String? = nil,
         tags: [String]? = nil,
         category: String? = nil,
@@ -93,6 +97,7 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
         self.modelUsed = modelUsed
         self.language = language
         self.speakerTurns = speakerTurns
+        self.speakerDiarizationSkipReason = speakerDiarizationSkipReason
         self.title = title
         self.tags = tags
         self.category = category
@@ -116,6 +121,7 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
             modelUsed: modelUsed,
             language: language,
             speakerTurns: text == self.text ? speakerTurns : nil,
+            speakerDiarizationSkipReason: text == self.text ? speakerDiarizationSkipReason : nil,
             title: title,
             tags: tags,
             category: category,
@@ -140,6 +146,7 @@ public struct Transcript: Identifiable, Codable, Equatable, Sendable {
             modelUsed: modelUsed,
             language: language,
             speakerTurns: speakerTurns,
+            speakerDiarizationSkipReason: speakerDiarizationSkipReason,
             title: title,
             tags: tags,
             category: category,

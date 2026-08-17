@@ -53,7 +53,7 @@ through `CapturePresetStore`, `RecordingQueuePreferences`, `UsageTracker`,
 through the same production consumers. App-hosted tests additionally load the
 committed toolbar bytes through `CaptureToolbarPreferences`, execute review and quote
 state, and Watch-target tests consume the committed preset/defaults corpus. The
-84-key inventory is broader than this main snapshot: completion/migration markers,
+85-key inventory is broader than this main snapshot: completion/migration markers,
 Watch controller state, transport failures, and executable absent/default/invalid
 cases also live in focused package, app-hosted, and Watch tests. Source-inventory
 completeness remains distinct from committed fixture completeness.
@@ -76,7 +76,7 @@ rejects omitted dimensions, unresolved production symbols, missing evidence, and
 unmapped persisted-store capabilities.
 
 The M0 requirement is a dimension audit, not a demand for nonsensical variants of
-every byte stream. All 290 cells (29 formats × 10 dimensions) are explicitly
+every byte stream. All 300 cells (30 formats × 10 dimensions) are explicitly
 classified. No cell remains `pending` or `external`. The keyboard uses the tested shared
 persist-before-insert/restart reducer, and Watch terminal replay executes the
 production save-before-delete queue/audio transition and durable reload. Applicable

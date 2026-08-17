@@ -9,7 +9,7 @@ android {
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    sourceSets.getByName("androidTest").assets.srcDirs("$projectDir/schemas", rootProject.projectDir.parentFile.parentFile.resolve("Packages/contracts/fixtures"))
 }
 
 kapt {

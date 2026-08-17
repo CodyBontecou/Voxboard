@@ -138,6 +138,33 @@ final class ModelDownloadSupportTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: destinationURL), installedData)
     }
 
+    func testFailedHeaderValidationPreservesExistingInstalledWhisperFile() throws {
+        let directory = try makeTemporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let stagingURL = directory.appendingPathComponent("staging.bin")
+        let destinationURL = directory.appendingPathComponent("installed.bin")
+        let installedData = Data("good".utf8)
+        try Data("nope".utf8).write(to: stagingURL)
+        try installedData.write(to: destinationURL)
+        let response = try XCTUnwrap(HTTPURLResponse(
+            url: URL(string: "https://example.test/model.bin")!,
+            statusCode: 200,
+            httpVersion: nil,
+            headerFields: nil
+        ))
+
+        XCTAssertThrowsError(try WhisperModelInstaller.validateAndInstall(
+            response: response,
+            stagingURL: stagingURL,
+            destinationURL: destinationURL,
+            expectedByteCount: 4,
+            expectedHeader: Data("good".utf8)
+        )) { error in
+            XCTAssertEqual(error as? WhisperModelDownloadValidationError, .contentMismatch)
+        }
+        XCTAssertEqual(try Data(contentsOf: destinationURL), installedData)
+    }
+
     func testWhisperInstalledCheckRequiresExactExpectedSize() throws {
         let directory = try makeTemporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -179,10 +206,12 @@ final class ModelDownloadSupportTests: XCTestCase {
 
         let expectedArtifacts = try XCTUnwrap(model.engine.parakeetExpectedArtifactSizes)
         for (relativePath, expectedByteCount) in expectedArtifacts {
-            try createSparseFile(
-                at: repoDirectory.appendingPathComponent(relativePath),
-                byteCount: expectedByteCount
-            )
+            let url = repoDirectory.appendingPathComponent(relativePath)
+            if URL(fileURLWithPath: relativePath).pathExtension.lowercased() == "json" {
+                try createValidJSONFile(at: url, byteCount: expectedByteCount)
+            } else {
+                try createSparseFile(at: url, byteCount: expectedByteCount)
+            }
         }
         XCTAssertTrue(model.isDownloaded(in: directory))
 
@@ -198,6 +227,18 @@ final class ModelDownloadSupportTests: XCTestCase {
             .allSatisfy { FileManager.default.fileExists(
                 atPath: repoDirectory.appendingPathComponent($0).path
             ) })
+
+        let metadataRelativePath = try XCTUnwrap(
+            expectedArtifacts.keys.first { $0.hasSuffix("metadata.json") }
+        )
+        let metadataURL = repoDirectory.appendingPathComponent(metadataRelativePath)
+        try createSparseFile(
+            at: metadataURL,
+            byteCount: try XCTUnwrap(expectedArtifacts[metadataRelativePath])
+        )
+        XCTAssertFalse(model.isDownloaded(in: directory))
+        try model.removeInvalidExistingParakeetArtifacts(in: directory)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: metadataURL.path))
     }
 
     func testCapacityPreflightIncludesProportionalHeadroom() {
@@ -285,6 +326,19 @@ final class ModelDownloadSupportTests: XCTestCase {
         XCTAssertFalse(progress.values.isEmpty)
         XCTAssertEqual(progress.values.last?.received, Int64(ModelDownloadStubURLProtocol.body.count))
         XCTAssertEqual(progress.values.last?.expected, Int64(ModelDownloadStubURLProtocol.body.count))
+    }
+
+    private func createValidJSONFile(at url: URL, byteCount: Int64) throws {
+        try FileManager.default.createDirectory(
+            at: url.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        let json = url.lastPathComponent == ModelEngine.parakeetVocabularyFile
+            ? "{\"0\":\"fixture\"}"
+            : "[{\"fixture\":true}]"
+        var data = Data(json.utf8)
+        data.append(Data(repeating: 0x20, count: Int(byteCount) - data.count))
+        try data.write(to: url)
     }
 
     private func createSparseFile(at url: URL, byteCount: Int64) throws {

@@ -26,6 +26,7 @@ public enum AppConstants: Sendable {
     public static let selectedModelKey = "selectedWhisperModel"
     public static let selectedLanguageKey = "selectedLanguage"
     public static let selectedFallbackModelKey = "selectedFallbackTranscriptionModel"
+    public static let externalModelBookmarkKeyPrefix = "externalTranscriptionModelBookmark.v1"
     public static let transcriptionSelectionMigrationKey = "transcriptionSelectionMigration.v1"
     public static let automaticBackendReadyKey = "automaticTranscriptionBackendReady"
     // Keep the existing raw keys so users retain their configured auto-stop behavior.
@@ -176,6 +177,10 @@ public enum AppConstants: Sendable {
 
     // Keyboard haptic feedback. Defaults to true when unset.
     public static let hapticsEnabledKey = "hapticsEnabled"
+
+    // In-app interface language override. Unset follows the device language;
+    // otherwise an AppLanguage code mirrored into AppleLanguages at launch.
+    public static let appLanguageOverrideKey = "appLanguageOverride"
 
     // Persistent keyboard-listening preference. One-shot recordings deliberately
     // leave this off so the app returns to an idle audio session when done.

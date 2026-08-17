@@ -45,6 +45,7 @@ struct MacRootView: View {
     let windowCoordinator: MacWindowCoordinator
     @State private var selection: MacDestination? = .capture
     @State private var windowToken = UUID().uuidString
+    @State private var showsModels = false
 
     #if DEBUG
     private static var localizationScreenshotStory: String? {
@@ -109,6 +110,10 @@ struct MacRootView: View {
                 coordinator: windowCoordinator
             )
         )
+        .sheet(isPresented: $showsModels) {
+            NavigationStack { MacModelView() }
+                .frame(minWidth: 760, minHeight: 620)
+        }
         .onAppear {
             windowCoordinator.configure(openWindow: openWindow)
             windowCoordinator.mainRootReady(token: windowToken)
@@ -136,7 +141,8 @@ struct MacRootView: View {
                 windowToken: windowToken,
                 windowCoordinator: windowCoordinator,
                 openHistory: { windowCoordinator.showHistory() },
-                openSettings: { selection = .settings }
+                openSettings: { selection = .settings },
+                openModels: { showsModels = true }
             )
         case .queue:
             RecordingQueueView(
@@ -202,7 +208,8 @@ struct MacLocalizationScreenshotRoot: View {
                 windowToken: windowToken,
                 windowCoordinator: windowCoordinator,
                 openHistory: {},
-                openSettings: {}
+                openSettings: {},
+                openModels: {}
             )
         }
     }
@@ -227,7 +234,7 @@ private struct MacModelView: View {
             Geist.surface.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 0) {
-                    pageHeader("Download and select the local speech model used by macOS recordings and imports. Whisper models run through whisper.cpp + Metal on this Mac.")
+                    pageHeader("Use a compatible model already stored on this Mac, or download a model into Vox.md. Whisper models run through whisper.cpp + Metal.")
                     modelSection("01", "Whisper Models", models: whisperModels)
                     modelSection("02", "Parakeet Models", models: parakeetModels)
                     languageSection
@@ -297,7 +304,8 @@ private struct MacModelView: View {
     }
 
     private func modelRow(_ model: WhisperModelInfo) -> some View {
-        HStack(spacing: 12) {
+        let installationSource = modelManager.installationSource(for: model)
+        return HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 5) {
                 HStack(spacing: 8) {
                     Text(model.name)
@@ -319,6 +327,14 @@ private struct MacModelView: View {
                             .padding(.vertical, 2)
                             .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
                     }
+                    if installationSource == .external {
+                        Text("Existing Install")
+                            .font(Geist.caption())
+                            .foregroundColor(Geist.muted)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .overlay(Rectangle().stroke(Geist.border, lineWidth: 1))
+                    }
                 }
                 Text(model.sizeLabel)
                     .font(Geist.caption())
@@ -330,14 +346,17 @@ private struct MacModelView: View {
                 }
             }
             Spacer()
-            modelAction(model)
+            modelAction(model, installationSource: installationSource)
         }
         .padding(20)
         .background(Geist.bg)
     }
 
     @ViewBuilder
-    private func modelAction(_ model: WhisperModelInfo) -> some View {
+    private func modelAction(
+        _ model: WhisperModelInfo,
+        installationSource: ModelInstallationSource?
+    ) -> some View {
         if modelManager.isModelDownloaded(model) {
             HStack(spacing: 12) {
                 if modelManager.selectedModelId == model.id {
@@ -345,15 +364,23 @@ private struct MacModelView: View {
                         .font(Geist.caption())
                         .foregroundColor(Geist.text)
                 } else {
-                    Button("Select Model") { modelManager.selectedModelId = model.id }
+                    Button("Select Model") { modelManager.selectModel(model) }
                         .font(Geist.caption())
                         .foregroundColor(Geist.text)
                         .buttonStyle(.plain)
                 }
-                Button("Delete") { modelManager.deleteModel(model) }
-                    .font(Geist.caption())
-                    .foregroundColor(Geist.error)
-                    .buttonStyle(.plain)
+                if installationSource == .external {
+                    Button("Stop Using") { modelManager.forgetExternalModel(model) }
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.error)
+                        .buttonStyle(.plain)
+                        .help("Stops using this model without deleting it from your Mac.")
+                } else {
+                    Button("Delete") { modelManager.deleteModel(model) }
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.error)
+                        .buttonStyle(.plain)
+                }
             }
         } else if let state = modelManager.downloadState(for: model.id) {
             HStack(spacing: 8) {
@@ -383,19 +410,56 @@ private struct MacModelView: View {
                     .disabled(state.isCancelling)
             }
         } else {
-            Button {
-                modelManager.startDownload(model)
-            } label: {
-                Text("↓ DOWNLOAD")
-                    .font(Geist.caption())
-                    .foregroundColor(Geist.text)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .contentShape(Rectangle())
-                    .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
+            HStack(spacing: 8) {
+                Button {
+                    chooseExistingModel(model)
+                } label: {
+                    Text("USE EXISTING…")
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.text)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .contentShape(Rectangle())
+                        .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+
+                Button {
+                    modelManager.startDownload(model)
+                } label: {
+                    Text("↓ DOWNLOAD")
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.text)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .contentShape(Rectangle())
+                        .overlay(Rectangle().stroke(Geist.borderHi, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
             }
-            .buttonStyle(.plain)
         }
+    }
+
+    private func chooseExistingModel(_ model: WhisperModelInfo) {
+        let panel = NSOpenPanel()
+        panel.title = String(localized: "Use Existing \(model.name) Model")
+        panel.prompt = String(localized: "Use Model")
+        panel.allowsMultipleSelection = false
+        panel.resolvesAliases = true
+
+        if model.engine.isParakeet {
+            panel.message = String(localized: "Choose the folder containing Preprocessor.mlmodelc, Encoder.mlmodelc, Decoder.mlmodelc, JointDecision.mlmodelc, and parakeet_vocab.json.")
+            panel.canChooseFiles = false
+            panel.canChooseDirectories = true
+        } else {
+            panel.message = String(localized: "Choose the existing GGML .bin file for \(model.name). Vox.md will use it in place without copying it.")
+            panel.canChooseFiles = true
+            panel.canChooseDirectories = false
+            panel.allowedContentTypes = [UTType(filenameExtension: "bin") ?? .data]
+        }
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        modelManager.useExistingModel(model, at: url)
     }
 
     private func downloadStatusText(_ state: ModelDownloadState) -> String {
@@ -782,6 +846,19 @@ private struct MacCapturePresetEditor: View {
                 }
                 .accessibilityIdentifier("mac_preset_location_reset_configuration")
                 Text("Location is requested once at Capture send or recording stop. Exact keeps the origin fix; City rounds coordinates and omits a point-of-interest label. Vox.md does not track location in the background.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Voice Processing") {
+                Toggle("Identify Speakers", isOn: $flow.speakerDiarizationEnabled)
+                    .accessibilityIdentifier("mac_preset_identify_speakers")
+                if flow.speakerDiarizationEnabled {
+                    Label("Speaker labels are added after transcription.", systemImage: "person.2.wave.2")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Text("Detects and labels multiple voices entirely on device. The speaker model downloads the first time this preset uses it. Identification is best-effort; if it cannot run, Vox.md keeps the normal transcript and shows why in History.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -1513,6 +1590,16 @@ struct MacHistoryView: View {
                         Text("\(relativeDate(transcript.date)) · \(transcript.modelUsed) · \(formatDurationShort(transcript.duration))")
                             .font(Geist.mono())
                             .foregroundStyle(Geist.muted)
+                        if transcript.speakerCount > 0 {
+                            Label("\(transcript.speakerCount) speaker\(transcript.speakerCount == 1 ? "" : "s")", systemImage: "person.2.wave.2")
+                                .font(Geist.caption())
+                                .foregroundStyle(Geist.muted)
+                        }
+                        if let reason = transcript.speakerDiarizationSkipReason {
+                            Label(reason.displayText, systemImage: "exclamationmark.triangle")
+                                .font(Geist.caption())
+                                .foregroundStyle(Geist.error)
+                        }
                     }
                     Spacer()
                     if let delivery {
@@ -1704,9 +1791,18 @@ private struct MacTranscriptDetailView: View {
                 if let category = transcript.category, !category.isEmpty {
                     Label(category, systemImage: "folder")
                 }
+                if transcript.speakerCount > 0 {
+                    Label("\(transcript.speakerCount) speaker\(transcript.speakerCount == 1 ? "" : "s")", systemImage: "person.2.wave.2")
+                }
             }
             .font(Geist.caption())
             .foregroundStyle(Geist.muted)
+
+            if let reason = transcript.speakerDiarizationSkipReason {
+                Label(reason.displayText, systemImage: "exclamationmark.triangle")
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.error)
+            }
 
             if let tags = transcript.tags, !tags.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {

@@ -8120,6 +8120,45 @@
     {
       "acceptance": [
         {
+          "assertion": "Catalog integrity, regional variant matching, unset and unknown-code fallback to Use System Language, persistence round trips, and AppleLanguages mirror repair and drift-clearing are executed through the production AppLanguagePreference APIs.",
+          "evidencePath": "VoxboardTests/AppLanguagePreferenceTests.swift",
+          "kind": "unit",
+          "mappingID": "cap.store.app-language.acceptance.1",
+          "status": "verified"
+        }
+      ],
+      "classification": "native",
+      "dependencies": [
+        "dep.legacy-fixtures"
+      ],
+      "evidence": [
+        {
+          "path": "Packages/VoxboardShared/Sources/VoxboardShared/AppLanguagePreference.swift",
+          "symbol": "AppLanguagePreference"
+        },
+        {
+          "path": "Packages/VoxboardShared/Sources/VoxboardShared/AppConstants.swift",
+          "symbol": "appLanguageOverrideKey"
+        },
+        {
+          "path": "Voxboard/Views/AppLanguageSettingsView.swift",
+          "symbol": "AppLanguageSettingsView"
+        }
+      ],
+      "id": "cap.store.app-language",
+      "legacyParity": "legacy-only",
+      "milestone": "M0/M1",
+      "outcome": "In-app app language override persisted in the shared App Group with an AppleLanguages launch mirror",
+      "platforms": [
+        "iphone",
+        "ipad"
+      ],
+      "programScope": "legacy-codec",
+      "status": "verified"
+    },
+    {
+      "acceptance": [
+        {
           "assertion": "Every applicable compatibility dimension is executed through production evidence or explicitly not applicable with rationale.",
           "evidencePath": "docs/architecture/android-wear-m0-compatibility-matrix.json",
           "kind": "fixture",
@@ -8684,6 +8723,6 @@
   "schemaVersion": 1,
   "source": {
     "path": "docs/architecture/android-wear-m0-capabilities.json",
-    "sha256": "ee62cff7916b8359467edfba2e00d7308739d7a3836ec30c3f16e0d88660cf44"
+    "sha256": "6fd631c304533e40f3975788fb7acce0135c3c1f5145c9c3cce16dd815cde1c2"
   }
 }

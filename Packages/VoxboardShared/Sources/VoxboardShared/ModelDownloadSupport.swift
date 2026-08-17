@@ -99,6 +99,7 @@ enum WhisperModelDownloadValidationError: LocalizedError, Equatable {
     case invalidResponse
     case httpStatus(Int)
     case sizeMismatch(expected: Int64, actual: Int64)
+    case contentMismatch
 
     var errorDescription: String? {
         switch self {
@@ -111,6 +112,11 @@ enum WhisperModelDownloadValidationError: LocalizedError, Equatable {
             let actualText = ByteCountFormatter.string(fromByteCount: actual, countStyle: .file)
             return String(
                 localized: "The downloaded model was incomplete (expected \(expectedText), received \(actualText)).",
+                bundle: .main
+            )
+        case .contentMismatch:
+            return String(
+                localized: "The downloaded file did not match the selected transcription model.",
                 bundle: .main
             )
         }
@@ -126,7 +132,8 @@ enum WhisperModelDownloadValidator {
     static func validate(
         response: URLResponse,
         fileURL: URL,
-        expectedByteCount: Int64
+        expectedByteCount: Int64,
+        expectedHeader: Data? = nil
     ) throws -> HTTPURLResponse {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw WhisperModelDownloadValidationError.invalidResponse
@@ -143,6 +150,16 @@ enum WhisperModelDownloadValidator {
                 actual: max(0, actualByteCount)
             )
         }
+        if let expectedHeader {
+            guard let handle = try? FileHandle(forReadingFrom: fileURL) else {
+                throw WhisperModelDownloadValidationError.contentMismatch
+            }
+            defer { try? handle.close() }
+            guard let leadingBytes = try? handle.read(upToCount: expectedHeader.count),
+                  leadingBytes == expectedHeader else {
+                throw WhisperModelDownloadValidationError.contentMismatch
+            }
+        }
         return httpResponse
     }
 }
@@ -155,12 +172,14 @@ enum WhisperModelInstaller {
         response: URLResponse,
         stagingURL: URL,
         destinationURL: URL,
-        expectedByteCount: Int64
+        expectedByteCount: Int64,
+        expectedHeader: Data? = nil
     ) throws {
         _ = try WhisperModelDownloadValidator.validate(
             response: response,
             fileURL: stagingURL,
-            expectedByteCount: expectedByteCount
+            expectedByteCount: expectedByteCount,
+            expectedHeader: expectedHeader
         )
 
         if FileManager.default.fileExists(atPath: destinationURL.path) {

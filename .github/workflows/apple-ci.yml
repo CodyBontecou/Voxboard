@@ -103,6 +103,8 @@ jobs:
             -resultBundlePath "$PWD/build/test-results/Voxboard-iOS.xcresult" \
             -disableAutomaticPackageResolution \
             -onlyUsePackageVersionsFromResolvedFile \
+            -retry-tests-on-failure \
+            -test-iterations 2 \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY='' \

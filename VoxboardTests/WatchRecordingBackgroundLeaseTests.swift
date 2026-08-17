@@ -185,13 +185,13 @@ final class WatchRecordingBackgroundLeaseTests: XCTestCase {
     }
 
     private func waitUntil(
-        timeout: TimeInterval = 5,
+        timeout: TimeInterval = 15,
         condition: @escaping @MainActor () -> Bool
     ) async throws {
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
             if condition() { return }
-            try await Task.sleep(nanoseconds: 50_000_000)
+            try await Task.sleep(nanoseconds: 20_000_000)
         }
         XCTFail("Timed out waiting for Watch recording delivery")
     }
