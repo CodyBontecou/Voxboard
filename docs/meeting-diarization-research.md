@@ -20,9 +20,10 @@ This follows the mobile approach in `~/dev/rescript`: diarization is a post-tran
 - The toggle is per Capture Preset and defaults to off for new and existing presets.
 - Processing and audio stay on device.
 - The speaker model downloads on first use.
-- Direct preset recordings, imported audio, and Watch transcript presets can use diarization.
-- Keyboard insertion, Capture draft dictation, and Watch **Recording Only** mode do not use diarization.
-- Audio over 120 MiB skips the speaker pass and keeps the normal transcript.
+- Direct preset recordings, imported audio, Capture draft voice recordings/imports, Watch transcript presets, and the native Mac app can use diarization.
+- Draft delivery remains draft-only: the selected preset contributes only its immutable voice-processing choice, not formatting, export, or destination behavior.
+- Keyboard insertion, transcription-only clipboard capture, and Watch **Recording Only** mode do not use diarization.
+- FluidAudio's URL-based diarization path streams through a disk-backed sample source. The earlier import normalization step is separate and is not claimed to be disk-backed.
 - History displays the detected speaker count. TXT/Markdown/Capture exports naturally include the rendered labels; JSON also includes structured turns and timestamps.
 - User edits to the raw transcript invalidate structured turns. Enrichment-only updates preserve them.
 
@@ -35,7 +36,7 @@ This follows the mobile approach in `~/dev/rescript`: diarization is a post-tran
 
 ## Limitations
 
-Speaker labels are anonymous and recording-local; Vox.md does not identify people by name or persist voice embeddings. Accuracy varies with background noise, overlapping speech, short utterances, and similar voices. If timestamps, model assets, storage, or inference are unavailable, Vox.md logs the failure and saves the plain transcript.
+Speaker labels are anonymous and recording-local; Vox.md does not identify people by name or persist voice embeddings. Accuracy varies with background noise, overlapping speech, short utterances, and similar voices. If timestamps, first-use model download/preparation, storage, or inference are unavailable, Vox.md saves the plain transcript and stores a visible nonfatal reason in History.
 
 ## Platform/legal note
 

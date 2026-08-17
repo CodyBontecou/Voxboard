@@ -70,6 +70,7 @@ final class MacRecorder {
     var recordingDuration: TimeInterval = 0
     var transcriptionProgress: TranscriptionProgress?
     var lastTranscriptionResult: String?
+    var lastSpeakerDiarizationSkipReason: SpeakerDiarizationSkipReason?
     var lastError: String?
     var lastExportURL: URL?
     var lastRecoveryAudioURL: URL?
@@ -83,8 +84,10 @@ final class MacRecorder {
     private let liveTranscriptInvalidationHandler: MacLiveTranscriptInvalidationHandler?
     private let pendingCaptureRetryHandler: MacPendingCaptureRetryHandler?
     private let transcriptionService: OnDeviceTranscriptionService
+    private let speakerDiarizationService: SpeakerDiarizationService
     private(set) var recordingQueue: RecordingJobQueue!
     private var activeCompletionMode: MacRecordingCompletionMode?
+    private var activeVoiceProcessingConfiguration: RecordingVoiceProcessingConfiguration?
     private var activeDraftRequestID: UUID?
     private var activeRecordingJobID: UUID?
     private var liveRecognitionRequest: SFSpeechAudioBufferRecognitionRequest?
@@ -99,6 +102,7 @@ final class MacRecorder {
         usageTracker: UsageTracker,
         transcriptEnricher: TranscriptEnricher? = nil,
         transcriptionService: OnDeviceTranscriptionService = OnDeviceTranscriptionService(),
+        speakerDiarizationService: SpeakerDiarizationService = SpeakerDiarizationService(),
         captureDraftEventHandler: MacCaptureDraftRecordingEventHandler? = nil,
         liveTranscriptInvalidationHandler: MacLiveTranscriptInvalidationHandler? = nil,
         pendingCaptureRetryHandler: MacPendingCaptureRetryHandler? = nil
@@ -107,6 +111,7 @@ final class MacRecorder {
         self.usageTracker = usageTracker
         self.transcriptEnricher = transcriptEnricher
         self.transcriptionService = transcriptionService
+        self.speakerDiarizationService = speakerDiarizationService
         self.captureDraftEventHandler = captureDraftEventHandler
         self.liveTranscriptInvalidationHandler = liveTranscriptInvalidationHandler
         self.pendingCaptureRetryHandler = pendingCaptureRetryHandler
@@ -144,9 +149,19 @@ final class MacRecorder {
 
         lastError = nil
         lastTranscriptionResult = nil
+        lastSpeakerDiarizationSkipReason = nil
         lastRecoveryAudioURL = nil
+        let selectedPreset = presetSnapshot(id: flowId)
+        let resolvedCompletionMode = completionMode ?? .runPreset(flow: selectedPreset)
         if recorder.startRecording() {
-            activeCompletionMode = completionMode ?? .runPreset(flow: presetSnapshot(id: flowId))
+            activeCompletionMode = resolvedCompletionMode
+            if case .captureDraft = resolvedCompletionMode {
+                activeVoiceProcessingConfiguration = RecordingVoiceProcessingConfiguration(
+                    preset: selectedPreset
+                )
+            } else {
+                activeVoiceProcessingConfiguration = nil
+            }
             activeDraftRequestID = draftRequestID
             let recordingJobID = UUID()
             activeRecordingJobID = recordingJobID
@@ -172,9 +187,11 @@ final class MacRecorder {
 
         let duration = max(recordingDuration, recorder.recordingDuration)
         let completionMode = activeCompletionMode ?? .runPreset(flow: presetSnapshot(id: flowId))
+        let voiceProcessingConfiguration = activeVoiceProcessingConfiguration
         let draftRequestID = activeDraftRequestID
         let recordingJobID = activeRecordingJobID ?? UUID()
         activeCompletionMode = nil
+        activeVoiceProcessingConfiguration = nil
         activeDraftRequestID = nil
         activeRecordingJobID = nil
         stopLivePreview()
@@ -213,6 +230,7 @@ final class MacRecorder {
             duration: duration,
             source: source,
             delivery: delivery,
+            voiceProcessingConfiguration: voiceProcessingConfiguration,
             modelID: modelID,
             fallbackModelID: fallbackModelID,
             language: language,
@@ -261,6 +279,7 @@ final class MacRecorder {
                     liveSessionID: recordingJobID,
                     captureSource: originSnapshot?.source,
                     locationOutcome: originSnapshot?.outcome,
+                    voiceProcessingConfiguration: voiceProcessingConfiguration,
                     queueConfiguration: configuration
                 )
             } catch {
@@ -293,6 +312,22 @@ final class MacRecorder {
             return
         }
 
+        let modelId = modelManager.selectedModelId
+        let fallbackModelId = modelManager.preferredFallbackModelID
+        let language = modelManager.selectedLanguage
+        let importFlow = presetSnapshot(id: flowId)
+        let completionMode = requestedCompletionMode ?? .runPreset(flow: importFlow)
+        let voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration? = {
+            guard case .captureDraft = completionMode else { return nil }
+            return RecordingVoiceProcessingConfiguration(preset: importFlow)
+        }()
+        let configuration = RecordingQueuePreferences.load()
+        let jobID = UUID()
+        lastTranscriptionResult = nil
+        lastSpeakerDiarizationSkipReason = nil
+        lastError = nil
+        lastRecoveryAudioURL = nil
+
         let didScope = url.startAccessingSecurityScopedResource()
         defer { if didScope { url.stopAccessingSecurityScopedResource() } }
 
@@ -318,13 +353,6 @@ final class MacRecorder {
             let wavURL = dir
                 .appendingPathComponent("mac_import_\(UUID().uuidString)")
                 .appendingPathExtension("wav")
-            let jobID = UUID()
-            let modelId = modelManager.selectedModelId
-            let fallbackModelId = modelManager.preferredFallbackModelID
-            let language = modelManager.selectedLanguage
-            let importFlow = presetSnapshot(id: flowId)
-            let completionMode = requestedCompletionMode ?? .runPreset(flow: importFlow)
-            let configuration = RecordingQueuePreferences.load()
             let stagedIntent = RecordingJobHandoffIntent(
                     jobID: jobID,
                     audioFilename: sourceCopy.lastPathComponent,
@@ -336,6 +364,7 @@ final class MacRecorder {
                     duration: 0,
                     source: .importedAudio,
                     delivery: completionMode.recordingJobDelivery,
+                    voiceProcessingConfiguration: voiceProcessingConfiguration,
                     modelID: modelId,
                     fallbackModelID: fallbackModelId,
                     language: language,
@@ -363,10 +392,6 @@ final class MacRecorder {
                     )) ?? false
                 }
             }()
-            lastTranscriptionResult = nil
-            lastError = nil
-            lastRecoveryAudioURL = nil
-
             Task.detached(priority: .userInitiated) { [weak self] in
                 guard let self else { return }
                 var activeOriginLocation = originLocation
@@ -432,6 +457,7 @@ final class MacRecorder {
                             jobID: jobID,
                             captureSource: originSnapshot?.source ?? .fileImport,
                             locationOutcome: originSnapshot?.outcome,
+                            voiceProcessingConfiguration: voiceProcessingConfiguration,
                             queueConfiguration: configuration
                         )
                     }
@@ -690,6 +716,7 @@ final class MacRecorder {
         liveSessionID: UUID? = nil,
         captureSource: CaptureSource? = nil,
         locationOutcome: CaptureLocationOutcome? = nil,
+        voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration? = nil,
         queueConfiguration: RecordingQueueConfiguration? = nil,
         finishCaptureHandoff: Bool = true
     ) {
@@ -713,6 +740,7 @@ final class MacRecorder {
                     duration: duration,
                     source: source,
                     delivery: completionMode.recordingJobDelivery,
+                    voiceProcessingConfiguration: voiceProcessingConfiguration,
                     modelID: modelId,
                     fallbackModelID: fallbackModelId,
                     language: language,
@@ -740,19 +768,20 @@ final class MacRecorder {
         isTranscribing = true
         lastError = nil
         lastTranscriptionResult = nil
+        lastSpeakerDiarizationSkipReason = nil
         defer {
             isTranscribing = false
             transcriptionProgress = nil
         }
 
-        var hasDurableDraftAudio = false
+        var hasDurableAudioCopy = false
         if case .captureDraft(let attachAudio) = completionMode, attachAudio {
-            hasDurableDraftAudio = await captureDraftEventHandler?(.audio(
+            hasDurableAudioCopy = await captureDraftEventHandler?(.audio(
                 audioURL,
                 draftRequestID: job.draftRequestID,
                 deliveryID: job.id
             )) ?? false
-            guard hasDurableDraftAudio else { throw MacRecordingHandoffError.audioStagingFailed }
+            guard hasDurableAudioCopy else { throw MacRecordingHandoffError.audioStagingFailed }
         }
 
         do {
@@ -768,19 +797,32 @@ final class MacRecorder {
                     }
                 }
             )
+            let speakerResolution = try await speakerDiarizationService.resolve(
+                audioURL: audioURL,
+                transcription: result,
+                configuration: completionMode == .transcriptionOnly
+                    ? nil
+                    : job.effectiveVoiceProcessingConfiguration
+            )
+            if let reason = speakerResolution.skipReason {
+                KeyboardDebugLog.shared.log("[MacRecorder] Speaker identification skipped: \(reason.rawValue)")
+            }
+            lastSpeakerDiarizationSkipReason = speakerResolution.skipReason
             if completionMode == .transcriptionOnly {
                 try await recordingQueue.recordTranscriptCheckpoint(
                     id: job.id,
-                    text: result.text
+                    text: speakerResolution.text
                 )
             }
             transcriptStore.add(Transcript(
                 id: job.id,
-                text: result.text,
+                text: speakerResolution.text,
                 date: Date(),
                 duration: job.duration,
                 modelUsed: result.backendName,
-                language: result.language
+                language: result.language,
+                speakerTurns: speakerResolution.turns,
+                speakerDiarizationSkipReason: speakerResolution.skipReason
             ))
             if let persistenceError = transcriptStore.lastPersistenceError {
                 throw persistenceError
@@ -796,10 +838,12 @@ final class MacRecorder {
                 try await recordingQueue.markAutomaticClipboardDeliveryAttempted(id: job.id)
             }
             try await finishSuccessfulTranscription(
-                text: result.text,
+                text: speakerResolution.text,
                 duration: job.duration,
                 modelName: result.backendName,
                 language: result.language,
+                speakerTurns: speakerResolution.turns,
+                speakerDiarizationSkipReason: speakerResolution.skipReason,
                 completionMode: completionMode,
                 audioURL: audioURL,
                 sourceAudioURL: audioURL,
@@ -817,7 +861,7 @@ final class MacRecorder {
             )
             return RecordingJobExecutionResult(
                 transcriptText: completionMode == .transcriptionOnly && !shouldCopyAutomatically
-                    ? result.text
+                    ? speakerResolution.text
                     : nil
             )
         } catch {
@@ -825,153 +869,10 @@ final class MacRecorder {
                 _ = await captureDraftEventHandler?(.cancelLiveTranscript(sessionID: job.liveSessionID))
             }
             lastTranscriptionResult = nil
+            lastSpeakerDiarizationSkipReason = nil
             lastRecoveryAudioURL = audioURL
             lastError = "\(error.localizedDescription) The recording was preserved in the queue."
             throw error
-        }
-    }
-
-    private func transcribe(
-        audioURL: URL,
-        modelId: String,
-        language: String,
-        duration: TimeInterval,
-        completionMode: MacRecordingCompletionMode,
-        sourceAudioURL: URL?,
-        originLocation: MacOriginLocationResolution?,
-        captureSource: CaptureSource = .mac,
-        captureProfile: CapturePresetProfile? = nil
-    ) {
-        let progressRequestID = UUID()
-        self.progressRequestID = progressRequestID
-        transcriptionProgress = nil
-        isTranscribing = true
-        lastError = nil
-        lastTranscriptionResult = nil
-
-        Task.detached(priority: .userInitiated) { [weak self] in
-            await self?.transcribeFromBackground(
-                audioURL: audioURL,
-                modelId: modelId,
-                language: language,
-                duration: duration,
-                completionMode: completionMode,
-                sourceAudioURL: sourceAudioURL,
-                progressRequestID: progressRequestID,
-                originLocation: originLocation,
-                captureSource: captureSource,
-                captureProfile: captureProfile
-            )
-        }
-    }
-
-    private nonisolated func transcribeFromBackground(
-        audioURL: URL,
-        modelId: String,
-        language: String,
-        duration: TimeInterval,
-        completionMode: MacRecordingCompletionMode,
-        sourceAudioURL: URL?,
-        progressRequestID: UUID,
-        originLocation: MacOriginLocationResolution?,
-        captureSource: CaptureSource,
-        captureProfile: CapturePresetProfile?
-    ) async {
-        var hasDurableAudioCopy = false
-        do {
-            // Resolve and durably journal the origin boundary before speech
-            // recognition can begin.
-            let originSnapshot = try await originLocation?.task.value
-            let locationOutcome = originSnapshot?.outcome
-            let resolvedCaptureSource = originSnapshot?.source ?? captureSource
-            if case .captureDraft = completionMode,
-               captureSource == .fileImport,
-               let captureProfile {
-                guard await captureDraftEventHandler?(.origin(
-                    source: resolvedCaptureSource,
-                    locationOutcome: locationOutcome,
-                    profileSnapshot: captureProfile
-                )) == true else {
-                    throw MacRecordingHandoffError.originMetadataPersistenceFailed
-                }
-                if let originLocation,
-                   let rootURL = AppConstants.captureDirectoryURL {
-                    try? await CaptureRecordingOriginStore(rootDirectoryURL: rootURL)
-                        .remove(recordingID: originLocation.recordingID)
-                }
-            }
-            if case .captureDraft(let attachAudio) = completionMode, attachAudio {
-                hasDurableAudioCopy = await captureDraftEventHandler?(
-                    .audio(
-                        sourceAudioURL ?? audioURL,
-                        draftRequestID: nil,
-                        deliveryID: UUID()
-                    )
-                ) ?? false
-                guard hasDurableAudioCopy else { throw MacRecordingHandoffError.audioStagingFailed }
-            }
-            let result = try await transcriptionService.transcribeResult(
-                audioURL: audioURL,
-                modelID: modelId,
-                fallbackModelID: AppConstants.sharedDefaults?.string(
-                    forKey: AppConstants.selectedFallbackModelKey
-                ),
-                language: language,
-                onProgress: { [weak self] progress in
-                    Task { @MainActor [weak self] in
-                        guard let self,
-                              self.progressRequestID == progressRequestID else { return }
-                        if let current = self.transcriptionProgress?.exactFractionCompleted {
-                            guard let incoming = progress.exactFractionCompleted,
-                                  incoming >= current else { return }
-                        }
-                        self.transcriptionProgress = progress
-                    }
-                }
-            )
-            await MainActor.run {
-                if self.progressRequestID == progressRequestID {
-                    self.progressRequestID = nil
-                    self.transcriptionProgress = nil
-                }
-            }
-            try await finishSuccessfulTranscription(
-                text: result.text,
-                duration: duration,
-                modelName: result.backendName,
-                language: result.language,
-                completionMode: completionMode,
-                audioURL: audioURL,
-                sourceAudioURL: sourceAudioURL,
-                locationOutcome: locationOutcome,
-                originRecordingID: originLocation?.recordingID,
-                captureSource: resolvedCaptureSource
-            )
-        } catch {
-            if case .captureDraft = completionMode,
-               captureSource == .fileImport,
-               !hasDurableAudioCopy,
-               let captureProfile {
-                _ = await captureDraftEventHandler?(.clearOrigin(profileID: captureProfile.id))
-            }
-            let discardsRecording: Bool
-            if case .transcriptionOnly = completionMode {
-                discardsRecording = true
-            } else {
-                discardsRecording = false
-            }
-            await MainActor.run {
-                if self.progressRequestID == progressRequestID {
-                    self.progressRequestID = nil
-                    self.transcriptionProgress = nil
-                }
-            }
-            await finishWithError(
-                error.localizedDescription,
-                cleanupURL: hasDurableAudioCopy || discardsRecording ? audioURL : nil,
-                recoveryURL: hasDurableAudioCopy || discardsRecording ? nil : audioURL,
-                completionMode: completionMode
-            )
         }
     }
 
@@ -980,6 +881,8 @@ final class MacRecorder {
         duration: TimeInterval,
         modelName: String,
         language: String,
+        speakerTurns: [TranscriptSpeakerTurn]? = nil,
+        speakerDiarizationSkipReason: SpeakerDiarizationSkipReason? = nil,
         completionMode: MacRecordingCompletionMode,
         audioURL: URL,
         sourceAudioURL: URL?,
@@ -1028,7 +931,9 @@ final class MacRecorder {
             date: Date(),
             duration: duration,
             modelUsed: modelName,
-            language: language
+            language: language,
+            speakerTurns: speakerTurns,
+            speakerDiarizationSkipReason: speakerDiarizationSkipReason
         )
 
         if case .captureDraft(let attachAudio) = completionMode {

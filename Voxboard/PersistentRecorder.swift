@@ -100,6 +100,21 @@ enum RecordingCompletionMode: Equatable, Sendable {
         guard let flowID = completionMode.flowID else { return nil }
         return lookup(flowID) ?? fallback()
     }
+
+    static func voiceProcessingConfiguration(
+        for completionMode: RecordingCompletionMode,
+        selectedPreset: CapturePreset?
+    ) -> RecordingVoiceProcessingConfiguration? {
+        switch completionMode {
+        case .keyboardTranscription:
+            return nil
+        case .captureDraft:
+            return selectedPreset.map(RecordingVoiceProcessingConfiguration.init(preset:))
+        case .runVox:
+            // Preset delivery derives from its immutable delivery snapshot.
+            return nil
+        }
+    }
 }
 
 enum CaptureDraftRecordingEvent: Sendable {
@@ -121,6 +136,7 @@ struct RecordingSegmentHandoffSnapshot: Equatable, Sendable {
     let draftRequestID: UUID?
     let liveSessionID: UUID?
     let presetSnapshot: CapturePreset?
+    let voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration?
 }
 
 /// Always-on audio recorder that captures microphone input into a circular buffer.
@@ -178,6 +194,7 @@ final class PersistentRecorder {
 
     /// Last transcription result from an in-app recording. Observable for UI display.
     var lastTranscriptionResult: String?
+    var lastSpeakerDiarizationSkipReason: SpeakerDiarizationSkipReason?
 
     /// Progressive Apple Speech text for the active in-app recording. Immediate
     /// Preset runs use this preview without adding their text to the Capture draft.
@@ -213,6 +230,7 @@ final class PersistentRecorder {
     private var segmentFlowId: String?
     private var segmentCompletionMode: RecordingCompletionMode?
     private var segmentPresetSnapshot: CapturePreset?
+    private var segmentVoiceProcessingConfiguration: RecordingVoiceProcessingConfiguration?
     private var segmentOrigin: RecordingCommand.Origin?
     private var transcribingCompletionMode: RecordingCompletionMode?
     private var transcribingCommandOrigin: RecordingCommand.Origin?
@@ -842,6 +860,7 @@ final class PersistentRecorder {
         }
 
         lastTranscriptionResult = nil
+        lastSpeakerDiarizationSkipReason = nil
         lastError = nil
 
         let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
@@ -869,6 +888,10 @@ final class PersistentRecorder {
             lookup: { CapturePresetStore.flow(id: $0) },
             fallback: { CapturePresetStore.selectedFlow() }
         )
+        segmentVoiceProcessingConfiguration = RecordingCompletionMode.voiceProcessingConfiguration(
+            for: resolvedCompletionMode,
+            selectedPreset: CapturePresetStore.flow(id: flowId) ?? CapturePresetStore.selectedFlow()
+        )
         segmentOrigin = command.origin
         segmentDraftRequestID = draftRequestID
 
@@ -895,6 +918,7 @@ final class PersistentRecorder {
     @discardableResult
     func importAudioFile(
         from url: URL,
+        flowId requestedFlowID: String? = nil,
         completionMode requestedCompletionMode: RecordingCompletionMode? = nil,
         draftRequestID: UUID? = nil
     ) -> Bool {
@@ -912,6 +936,38 @@ final class PersistentRecorder {
             return false
         }
 
+        let flowId = requestedFlowID ?? CapturePresetStore.selectedFlowId()
+        let importFlow = CapturePresetStore.flow(id: flowId) ?? CapturePresetStore.selectedFlow()
+        let completionMode = requestedCompletionMode ?? .runVox(flowID: importFlow.id)
+        let immediatePresetSnapshot = RecordingCompletionMode.presetSnapshot(
+            for: completionMode,
+            lookup: { CapturePresetStore.flow(id: $0) },
+            fallback: { importFlow }
+        )
+        let voiceProcessingConfiguration = RecordingCompletionMode.voiceProcessingConfiguration(
+            for: completionMode,
+            selectedPreset: importFlow
+        )
+        let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
+            ?? AppConstants.defaultTranscriptionBackendID
+        let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
+            ?? "auto"
+        let fallbackModelID = AppConstants.sharedDefaults?.string(
+            forKey: AppConstants.selectedFallbackModelKey
+        )
+        let queueConfiguration = RecordingQueuePreferences.load()
+        let requestId = "import-\(UUID().uuidString)"
+        let jobID = UUID()
+        let initialDelivery: RecordingJobDelivery = {
+            if case .runVox = completionMode, let immediatePresetSnapshot {
+                return .preset(immediatePresetSnapshot)
+            }
+            return completionMode.recordingJobDelivery
+        }()
+        lastTranscriptionResult = nil
+        lastSpeakerDiarizationSkipReason = nil
+        lastError = nil
+
         let didScope = url.startAccessingSecurityScopedResource()
         defer { if didScope { url.stopAccessingSecurityScopedResource() } }
 
@@ -927,30 +983,6 @@ final class PersistentRecorder {
             let wavURL = dir
                 .appendingPathComponent("import_\(UUID().uuidString)")
                 .appendingPathExtension("wav")
-            let modelId = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedModelKey)
-                ?? AppConstants.defaultTranscriptionBackendID
-            let language = AppConstants.sharedDefaults?.string(forKey: AppConstants.selectedLanguageKey)
-                ?? "auto"
-            let flowId = CapturePresetStore.selectedFlowId()
-            let importFlow = CapturePresetStore.flow(id: flowId) ?? CapturePresetStore.selectedFlow()
-            let completionMode = requestedCompletionMode ?? .runVox(flowID: flowId)
-            let immediatePresetSnapshot = RecordingCompletionMode.presetSnapshot(
-                for: completionMode,
-                lookup: { CapturePresetStore.flow(id: $0) },
-                fallback: { importFlow }
-            )
-            let requestId = "import-\(UUID().uuidString)"
-            let jobID = UUID()
-            let fallbackModelID = AppConstants.sharedDefaults?.string(
-                forKey: AppConstants.selectedFallbackModelKey
-            )
-            let queueConfiguration = RecordingQueuePreferences.load()
-            let initialDelivery: RecordingJobDelivery = {
-                if case .runVox = completionMode, let immediatePresetSnapshot {
-                    return .preset(immediatePresetSnapshot)
-                }
-                return completionMode.recordingJobDelivery
-            }()
             do {
                 try RecordingJobHandoffIntentStore(recordingsDirectoryURL: dir).save(
                     RecordingJobHandoffIntent(
@@ -965,6 +997,7 @@ final class PersistentRecorder {
                         duration: 0,
                         source: .importedAudio,
                         delivery: initialDelivery,
+                        voiceProcessingConfiguration: voiceProcessingConfiguration,
                         modelID: modelId,
                         fallbackModelID: fallbackModelID,
                         language: language,
@@ -999,9 +1032,6 @@ final class PersistentRecorder {
                     )) ?? false
                 }
             }()
-
-            lastTranscriptionResult = nil
-            lastError = nil
 
             Task.detached(priority: .userInitiated) { [weak self] in
                 do {
@@ -1066,6 +1096,7 @@ final class PersistentRecorder {
                             captureSource: originSnapshot?.source ?? .fileImport,
                             locationOutcome: originSnapshot?.outcome,
                             presetSnapshot: immediatePresetSnapshot,
+                            voiceProcessingConfiguration: voiceProcessingConfiguration,
                             queueConfiguration: queueConfiguration,
                             finishCaptureHandoff: true
                         )
@@ -1168,6 +1199,12 @@ final class PersistentRecorder {
                     fallback: { CapturePresetStore.selectedFlow() }
                 )
             }
+            self.segmentVoiceProcessingConfiguration = self.segmentCompletionMode.flatMap {
+                RecordingCompletionMode.voiceProcessingConfiguration(
+                    for: $0,
+                    selectedPreset: command.flowId.flatMap { CapturePresetStore.flow(id: $0) }
+                )
+            }
             self.segmentOrigin = command.origin
             self.segmentStartedAt = startedAt
             self.isSegmentActive = true
@@ -1248,6 +1285,12 @@ final class PersistentRecorder {
                 for: segmentCompletionMode,
                 lookup: { CapturePresetStore.flow(id: $0) },
                 fallback: { CapturePresetStore.selectedFlow() }
+            )
+        }
+        if segmentVoiceProcessingConfiguration == nil, let segmentCompletionMode {
+            segmentVoiceProcessingConfiguration = RecordingCompletionMode.voiceProcessingConfiguration(
+                for: segmentCompletionMode,
+                selectedPreset: command.flowId.flatMap { CapturePresetStore.flow(id: $0) }
             )
         }
         if segmentCompletionMode == .keyboardTranscription {
@@ -1556,10 +1599,12 @@ final class PersistentRecorder {
         let handoffSnapshot = Self.handoffSnapshot(
             draftRequestID: segmentDraftRequestID,
             liveSessionID: liveCaptureSessionID,
-            presetSnapshot: presetSnapshot
+            presetSnapshot: presetSnapshot,
+            voiceProcessingConfiguration: segmentVoiceProcessingConfiguration
         )
         let draftRequestID = handoffSnapshot.draftRequestID
         let captureSessionID = handoffSnapshot.liveSessionID
+        let voiceProcessingConfiguration = handoffSnapshot.voiceProcessingConfiguration
         // Start origin acquisition at the stop event, before audio extraction or
         // transcription. Legacy insertion-only keyboard and draft modes skip it.
         let originLocationTask = beginOriginLocationResolution(
@@ -1722,6 +1767,7 @@ final class PersistentRecorder {
                     duration: duration,
                     source: .iOSApp,
                     delivery: delivery,
+                    voiceProcessingConfiguration: voiceProcessingConfiguration,
                     modelID: modelId,
                     fallbackModelID: fallbackModelID,
                     language: language,
@@ -1773,6 +1819,7 @@ final class PersistentRecorder {
                     captureSource: originSnapshot?.source,
                     locationOutcome: originSnapshot?.outcome,
                     presetSnapshot: presetSnapshot,
+                    voiceProcessingConfiguration: voiceProcessingConfiguration,
                     queueConfiguration: queueConfiguration,
                     finishCaptureHandoff: true
                 )
@@ -1947,12 +1994,14 @@ final class PersistentRecorder {
     static func handoffSnapshot(
         draftRequestID: UUID?,
         liveSessionID: UUID?,
-        presetSnapshot: CapturePreset?
+        presetSnapshot: CapturePreset?,
+        voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration? = nil
     ) -> RecordingSegmentHandoffSnapshot {
         RecordingSegmentHandoffSnapshot(
             draftRequestID: draftRequestID,
             liveSessionID: liveSessionID,
-            presetSnapshot: presetSnapshot
+            presetSnapshot: presetSnapshot,
+            voiceProcessingConfiguration: voiceProcessingConfiguration
         )
     }
 
@@ -1965,6 +2014,7 @@ final class PersistentRecorder {
         segmentFlowId = nil
         segmentCompletionMode = nil
         segmentPresetSnapshot = nil
+        segmentVoiceProcessingConfiguration = nil
         segmentOrigin = nil
         segmentDraftRequestID = nil
         segmentDuration = 0
@@ -2073,6 +2123,7 @@ final class PersistentRecorder {
         captureSource: CaptureSource? = nil,
         locationOutcome: CaptureLocationOutcome? = nil,
         presetSnapshot: CapturePreset? = nil,
+        voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration? = nil,
         queueConfiguration: RecordingQueueConfiguration? = nil,
         finishCaptureHandoff: Bool = false
     ) {
@@ -2101,6 +2152,7 @@ final class PersistentRecorder {
                     duration: duration,
                     source: source,
                     delivery: delivery,
+                    voiceProcessingConfiguration: voiceProcessingConfiguration,
                     modelID: modelId,
                     fallbackModelID: fallbackModelId,
                     language: language,
@@ -2159,6 +2211,7 @@ final class PersistentRecorder {
         transcriptionProgress = nil
         lastPublishedTranscriptionPercent = nil
         lastError = nil
+        lastSpeakerDiarizationSkipReason = nil
         defer {
             isTranscribing = false
             transcribingCompletionMode = nil
@@ -2184,6 +2237,7 @@ final class PersistentRecorder {
                 sourceAudioURL: audioURL,
                 captureSource: job.captureSource,
                 selectedFlowOverride: flowSnapshot,
+                voiceProcessingConfiguration: job.effectiveVoiceProcessingConfiguration,
                 originLocationOutcomeOverride: job.locationOutcome,
                 draftRequestID: job.draftRequestID,
                 liveSessionID: job.liveSessionID,
@@ -2195,8 +2249,10 @@ final class PersistentRecorder {
                 audioReferenceAttachedAt: job.audioReferenceAttachedAt
             )
         } catch is CancellationError {
+            lastSpeakerDiarizationSkipReason = nil
             throw CancellationError()
         } catch {
+            lastSpeakerDiarizationSkipReason = nil
             lastError = "\(error.localizedDescription) The recording was preserved in the queue."
             throw error
         }
@@ -2340,6 +2396,7 @@ final class PersistentRecorder {
         captureProfile: CapturePresetProfile? = nil,
         presetSnapshot: CapturePreset? = nil,
         selectedFlowOverride: CapturePreset? = nil,
+        voiceProcessingConfiguration: RecordingVoiceProcessingConfiguration? = nil,
         originLocationOutcomeOverride: CaptureLocationOutcome? = nil,
         draftRequestID: UUID? = nil,
         liveSessionID: UUID? = nil,
@@ -2423,7 +2480,9 @@ final class PersistentRecorder {
             await removeOriginLocationSnapshot(requestID: requestId)
         }
 
-        let identifiesSpeakers = selectedFlow?.speakerDiarizationEnabled == true
+        let effectiveVoiceProcessingConfiguration = voiceProcessingConfiguration
+            ?? selectedFlow.map(RecordingVoiceProcessingConfiguration.init(preset:))
+        let identifiesSpeakers = effectiveVoiceProcessingConfiguration?.speakerDiarizationEnabled == true
         let progressHandler: TranscriptionProgressHandler = { [weak self] progress in
             Task { @MainActor [weak self] in
                 jobProgressHandler?(progress)
@@ -2507,32 +2566,31 @@ final class PersistentRecorder {
             self.stopAcceptingTranscriptionProgress(requestId: requestId)
         }
 
-        var resolvedText = result.text
-        var speakerTurns: [TranscriptSpeakerTurn]?
-        if identifiesSpeakers {
-            do {
-                let diarization = try await speakerDiarizationService.diarize(
-                    audioURL: audioURL,
-                    transcriptText: result.text,
-                    transcriptionSegments: result.segments
-                )
-                if !diarization.renderedText.isEmpty {
-                    resolvedText = diarization.renderedText
-                    speakerTurns = diarization.turns
-                    log.log("[PersistentRecorder] ✅ Identified \(Set(diarization.turns.map(\.speaker)).count) speakers")
-                }
-            } catch is CancellationError {
-                await cancelTranscription(
-                    requestId: requestId,
-                    audioURL: audioURL,
-                    cleanupWorkingAudio: cleanupWorkingAudio
-                )
-                throw CancellationError()
-            } catch {
-                // Match Rescript's mobile behavior: diarization is best-effort,
-                // while the timestamped transcription remains fully usable.
-                log.log("[PersistentRecorder] ⚠️ Speaker identification skipped: \(error.localizedDescription)")
-            }
+        let speakerResolution: SpeakerDiarizationResolution
+        do {
+            speakerResolution = try await speakerDiarizationService.resolve(
+                audioURL: audioURL,
+                transcription: result,
+                configuration: effectiveVoiceProcessingConfiguration
+            )
+        } catch is CancellationError {
+            await cancelTranscription(
+                requestId: requestId,
+                audioURL: audioURL,
+                cleanupWorkingAudio: cleanupWorkingAudio
+            )
+            throw CancellationError()
+        }
+        let resolvedText = speakerResolution.text
+        let speakerTurns = speakerResolution.turns
+        let speakerDiarizationSkipReason = speakerResolution.skipReason
+        if let speakerDiarizationSkipReason {
+            log.log("[PersistentRecorder] ⚠️ Speaker identification skipped: \(speakerDiarizationSkipReason.rawValue)")
+        } else if let speakerTurns {
+            log.log("[PersistentRecorder] ✅ Identified \(Set(speakerTurns.map(\.speaker)).count) speakers")
+        }
+        await MainActor.run {
+            self.lastSpeakerDiarizationSkipReason = speakerDiarizationSkipReason
         }
 
         let text: String? = resolvedText
@@ -2551,7 +2609,8 @@ final class PersistentRecorder {
                     duration: duration,
                     modelUsed: result.backendName,
                     language: result.language,
-                    speakerTurns: speakerTurns
+                    speakerTurns: speakerTurns,
+                    speakerDiarizationSkipReason: speakerDiarizationSkipReason
                 ))
                 if let persistenceError = self.transcriptStore.lastPersistenceError {
                     throw persistenceError
@@ -2617,7 +2676,8 @@ final class PersistentRecorder {
                     duration: duration,
                     modelUsed: result.backendName,
                     language: result.language,
-                    speakerTurns: speakerTurns
+                    speakerTurns: speakerTurns,
+                    speakerDiarizationSkipReason: speakerDiarizationSkipReason
                 )
                 let transcript = selectedFlow.map { TranscriptFlowFormatter.apply(flow: $0, to: rawTranscript) }
                     ?? rawTranscript
@@ -3008,6 +3068,7 @@ final class PersistentRecorder {
             self.stopAcceptingTranscriptionProgress(requestId: requestId)
             self.clearCaptureLiveTranscription(requestId: requestId)
             self.lastTranscriptionResult = nil
+            self.lastSpeakerDiarizationSkipReason = nil
             TranscriptionIPC.clearStatus()
         }
         if cleanupWorkingAudio {

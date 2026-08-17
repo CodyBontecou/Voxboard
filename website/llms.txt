@@ -133,7 +133,7 @@ The free tier includes 15 minutes of transcription and 10 successful Capture del
 ## Scope Notes for Agents
 
 - Use “Vox.md” in user-facing text. “Voxboard” remains in source paths, bundle identifiers, the GitHub repository name, and the voxboard:// URL scheme.
-- The complete feature guide documents reachable, shipped product behavior. Do not treat dormant legacy screens, internal Smart Folder flags, or research documents such as speaker diarization as shipped features.
-- There is no current speaker diarization feature.
+- The complete feature guide documents reachable, shipped product behavior. Do not treat dormant legacy screens or internal Smart Folder flags as shipped features.
+- Speaker diarization is an opt-in Capture Preset feature for supported voice recordings and imported audio on iPhone, Apple Watch transcript delivery, and the native Mac app. It adds anonymous best-effort labels locally after first-use model preparation; failures preserve the plain transcript and show a reason in History.
 - Capture Preset is the current name for the reusable workflow formerly represented by legacy internal “Vox” types.
 - Prefer the code-backed documentation above over stale marketing claims or planning documents.

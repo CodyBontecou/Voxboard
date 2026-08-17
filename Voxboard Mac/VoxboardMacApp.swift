@@ -49,6 +49,7 @@ struct VoxboardMacApp: App {
             transcriptStore: store,
             usageTracker: usage,
             transcriptEnricher: enricher,
+            speakerDiarizationService: SpeakerDiarizationService(),
             captureDraftEventHandler: { [weak quickCaptureViewModel] event in
                 guard let quickCaptureViewModel else { return false }
                 switch event {
@@ -1222,6 +1223,10 @@ private struct MacMenuBarMenu: View {
             } label: {
                 Label("Copy Last Transcript", systemImage: "doc.on.doc")
             }
+        }
+        if let reason = recorder.lastSpeakerDiarizationSkipReason {
+            Label(reason.displayText, systemImage: "exclamationmark.triangle")
+                .foregroundStyle(.orange)
         }
 
         if let exportURL = recorder.lastExportURL {
