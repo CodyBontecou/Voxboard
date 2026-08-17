@@ -142,6 +142,25 @@ let seeds: [Seed] = [
         expectedError: nil
     ),
     .init(
+        id: "m2-positive-location-token-collapses-empty",
+        request: .init(
+            requestID: fixedID,
+            createdAtEpochMilliseconds: 1_700_000_000_000,
+            timezone: "UTC",
+            source: "app",
+            payloads: [.init(kind: "text", text: "Body", url: nil, label: nil)],
+            logicalFolder: ["Inbox"],
+            noteNameTemplate: "location-token",
+            occupiedPaths: [],
+            entryPrefix: "📍 {location}\n",
+            entrySuffix: "",
+            frontmatter: [],
+            retryMarker: false,
+            finalNewline: true
+        ),
+        expectedError: nil
+    ),
+    .init(
         id: "m2-positive-crlf-cr-boundaries",
         request: .init(
             requestID: fixedID,
