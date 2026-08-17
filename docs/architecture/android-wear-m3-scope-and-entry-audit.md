@@ -217,11 +217,19 @@ an initial REJECT) before implementation. Implemented in this phase:
   and inventory fail-closed paths, executor taxonomy (verified/stale/permission/ambiguous/
   proved-not-committed/reconciliation incl. duplicate and transformed), and coordinator
   control composition against a Rust-shaped strict fake.
-- Instrumentation: a full on-device E2E (enqueue → real native materialization → provider
-  commit → verified receipt → COMPLETED) is compiled against the real local
-  DocumentsProvider; it has NOT yet executed on a target. Only grant revalidation is
-  substituted under shell identity; persisted-grant UX and non-local provider campaigns
-  remain open.
+- Instrumentation: the full on-device E2E (enqueue → real native materialization →
+  provider commit → verified receipt → COMPLETED) PASSED on the physical Pixel 7
+  (panther, Android 17) against the real local DocumentsProvider
+  (`com.android.externalstorage`) through the production coordinator, durable store, and
+  SAF executor. The provider holds the committed note at the planned logical path with
+  exact length/SHA-256 verified by independent read-back. Only grant revalidation is
+  substituted under shell identity (shell-adopted identity bypasses persisted-grant UX);
+  persisted-grant UX flows, two non-local provider campaigns, process-death injection
+  campaigns, backup/device-transfer extraction, and performance remain open. First-target
+  execution found and fixed two real defects: `replaceFileAtomically` guarded the target
+  into nonexistence (promotion of `note.bin` failed on-device only) and missing-folder
+  occupancy observations were treated as failures instead of empty occupancy; the E2E
+  vault also moved out of `Android/data`, where SAF child-listing is restricted.
 
 No provider result, process-death campaign, or M3 exit is claimed by this section.
 

@@ -102,7 +102,7 @@ open class AndroidSafDocumentsGateway(
     }
 
     override fun resolveFolder(destination: VaultDestination, segments: List<String>, createMissing: Boolean): SafFolderHandle? = try {
-        if (segments.isEmpty() || segments.any { it.isEmpty() || it.toByteArray(Charsets.UTF_8).size > 255 || '/' in it || '\u0000' in it }) return null
+        if (segments.any { it.isEmpty() || it.toByteArray(Charsets.UTF_8).size > 255 || '/' in it || '\u0000' in it }) return null
         val treeUri = Uri.parse(destination.treeUri)
         var current = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
         for (segment in segments) {

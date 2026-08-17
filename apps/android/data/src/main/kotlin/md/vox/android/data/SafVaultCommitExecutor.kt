@@ -70,10 +70,16 @@ internal class SafVaultCommitExecutor(
         // 4. Revalidate the persisted URI grant and destination identity.
         if (!gateway.revalidateGrant(destination)) return appendPermissionLost(requestID, leaseToken, snapshot)
 
-        // 5. Observe candidate occupancy against the plan's absent policy.
+        // 5. Observe candidate occupancy against the plan's absent policy. A folder that
+        // does not exist yet means zero occupancy (folders are created only at commit);
+        // an unreachable destination root is an honest observation failure.
         if (noteDescriptor.expectedExistingPolicy == "absent") {
             val folder = gateway.resolveFolder(destination, logicalPath.dropLast(1), createMissing = false)
-            val occupied = folder?.let { gateway.listChildDisplayNames(it) } ?: return ExecutorOutcome.err("occupancyObservation")
+            val occupied = when {
+                folder != null -> gateway.listChildDisplayNames(folder) ?: return ExecutorOutcome.err("occupancyObservation")
+                gateway.resolveFolder(destination, emptyList(), createMissing = false) == null -> return ExecutorOutcome.err("occupancyObservation")
+                else -> emptyList()
+            }
             if (candidateDisplayName in occupied) return ExecutorOutcome.ok(CommitOutcome.StaleOccupancy)
         }
 

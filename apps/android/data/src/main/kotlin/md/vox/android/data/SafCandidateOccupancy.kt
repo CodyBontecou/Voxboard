@@ -16,7 +16,14 @@ internal class SafCandidateOccupancy(
         if (candidates.isEmpty()) return emptyList()
         val folderSegments = candidates.first().dropLast(1)
         if (candidates.any { it.dropLast(1) != folderSegments || it.isEmpty() }) return null
-        val folder = gateway.resolveFolder(destination, folderSegments, createMissing = false) ?: return null
+        val folder = gateway.resolveFolder(destination, folderSegments, createMissing = false)
+            // A folder that does not exist yet means zero occupancy: folders are created
+            // only at commit. The destination root must still be reachable, or the
+            // observation is an honest failure rather than a fabricated empty set.
+            ?: run {
+                gateway.resolveFolder(destination, emptyList(), createMissing = false) ?: return null
+                return emptyList()
+            }
         val names = gateway.listChildDisplayNames(folder) ?: return null
         return candidates.filter { candidate -> candidate.last() in names }
     }

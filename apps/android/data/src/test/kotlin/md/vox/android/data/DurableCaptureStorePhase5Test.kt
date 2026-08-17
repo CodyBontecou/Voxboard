@@ -307,6 +307,10 @@ class DurableCaptureStorePhase5Test {
             if (target.exists()) error("exists"); if (!source.renameTo(target)) error("renameFailed")
         }
         override fun replaceFileAtomically(source: File, target: File) {
+            Files.move(source.toPath(), target.toPath(), java.nio.file.StandardCopyOption.ATOMIC_MOVE, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        }
+        override fun moveFileNoReplaceAtomically(source: File, target: File) {
+            check(!Files.exists(target.toPath())) { "unsafeAtomicCreate" }
             Files.move(source.toPath(), target.toPath(), java.nio.file.StandardCopyOption.ATOMIC_MOVE)
         }
         override fun list(directory: File): List<File> = directory.listFiles()?.toList() ?: error("listFailed")
