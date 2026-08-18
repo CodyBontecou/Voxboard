@@ -68,7 +68,7 @@ struct VoxboardApp: App {
 
         let speakerDiarizationService = SpeakerDiarizationService()
         let captureRequestProcessor = CapturePresetRequestProcessor(
-            textProcessor: enricher.map(EnrichedCapturePresetTextProcessor.init(enricher:))
+            textProcessor: enricher.map { EnrichedCapturePresetTextProcessor(enricher: $0) }
         )
         let captureViewModel = QuickCaptureViewModel(requestProcessor: captureRequestProcessor)
         _quickCaptureViewModel = State(initialValue: captureViewModel)
