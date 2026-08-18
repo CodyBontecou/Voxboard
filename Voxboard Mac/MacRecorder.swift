@@ -108,6 +108,9 @@ final class MacRecorder {
     private var isMeetingCaptureFinalizing = false
     private var activeCaptureLease: RecordingJobQueue.CaptureLease?
     private var meetingWasInterruptedDuringStart = false
+    /// Meeting staging directories currently being normalized or enqueued by
+    /// a recovery task; guards overlapping `resumeRecordingQueue()` calls.
+    private var inFlightMeetingRecoveryDirectories: Set<URL> = []
 
     init(
         transcriptStore: TranscriptStore,
@@ -708,7 +711,13 @@ final class MacRecorder {
             // it would otherwise look recoverable and its staging could be
             // normalized or cleaned while capture is still writing to it.
             if directory == activeSessionDirectory { continue }
+            // Overlapping `resumeRecordingQueue()` calls (launch, scene
+            // activation, queue finish) must not normalize the same session
+            // twice; dedup in-flight directories on the main actor.
+            guard !inFlightMeetingRecoveryDirectories.contains(directory) else { continue }
+            inFlightMeetingRecoveryDirectories.insert(directory)
             Task { @MainActor [weak self] in
+                defer { self?.inFlightMeetingRecoveryDirectories.remove(directory) }
                 guard let self,
                       self.meetingCapture.activeSession?.directoryURL != directory else { return }
                 await self.recoverMeetingSession(at: directory)
@@ -748,12 +757,12 @@ final class MacRecorder {
         guard manifest.isRecoverable else { return }
         if manifest.state == .preparing || manifest.state == .recording {
             manifest.state = .interrupted
-            if !manifest.warnings.contains("Recovered after Vox.md was interrupted.") { manifest.warnings.append("Recovered after Vox.md was interrupted.") }
+            if !manifest.warnings.contains(String(localized: "Recovered after Vox.md was interrupted.")) { manifest.warnings.append(String(localized: "Recovered after Vox.md was interrupted.")) }
         }
         do {
             try await normalizeAndEnqueueMeeting(manifest: &manifest, directory: directory, manifestURL: manifestURL, delivery: delivery, modelID: modelID, language: language)
         } catch {
-            lastError = "An interrupted meeting remains recoverable: \(error.localizedDescription)"
+            lastError = String(localized: "An interrupted meeting remains recoverable: \(error.localizedDescription)")
         }
     }
 
@@ -936,13 +945,16 @@ final class MacRecorder {
                 self.isMeetingCaptureFinalizing = false
             }
             guard let result = await meetingCapture.stop() else {
-                lastError = "The meeting recording could not be finalized. Any completed chunks remain in Recordings."
+                lastError = String(localized: "The meeting recording could not be finalized. Any completed chunks remain in Recordings.")
                 return
             }
             var manifest = result.manifest
-            if !manifest.warnings.isEmpty { lastError = "Incomplete meeting recording: \(manifest.warnings.joined(separator: " "))" }
+            if !manifest.warnings.isEmpty { lastError = String(localized: "Incomplete meeting recording: \(manifest.warnings.joined(separator: " "))") }
             guard !manifest.chunks.isEmpty else {
-                lastError = "No meeting audio was captured."
+                lastError = String(localized: "No meeting audio was captured.")
+                // Zero chunks means nothing is recoverable; drop the staging
+                // directory instead of leaking it (its manifest is terminal).
+                try? FileManager.default.removeItem(at: result.directoryURL)
                 return
             }
             do {
@@ -955,7 +967,7 @@ final class MacRecorder {
                     draftRequestID: draftRequestID
                 )
             } catch {
-                lastError = "The meeting was preserved but could not enter the processing queue: \(error.localizedDescription)"
+                lastError = String(localized: "The meeting was preserved but could not enter the processing queue: \(error.localizedDescription)")
             }
         }
     }
