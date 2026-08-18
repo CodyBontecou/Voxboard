@@ -38,7 +38,7 @@ struct VoxboardMacApp: App {
         }
 
         let captureRequestProcessor = CapturePresetRequestProcessor(
-            textProcessor: enricher.map(EnrichedCapturePresetTextProcessor.init(enricher:))
+            textProcessor: enricher.map { EnrichedCapturePresetTextProcessor(enricher: $0) }
         )
         let quickCaptureViewModel = QuickCaptureViewModel(
             defaultCaptureSource: .mac,
@@ -166,6 +166,15 @@ struct VoxboardMacApp: App {
                 quickCaptureViewModel: quickCaptureViewModel,
                 windowCoordinator: windowCoordinator
             )
+                .task {
+                    // Drain the shared capture inbox on a cadence while the Mac
+                    // app runs, so queued captures retry without waiting for the
+                    // next foreground activation (#11).
+                    while !Task.isCancelled {
+                        try? await Task.sleep(for: .seconds(300))
+                        await quickCaptureViewModel.processPendingInbox()
+                    }
+                }
                 .environment(modelManager)
                 .environment(transcriptStore)
                 .environment(usageTracker)

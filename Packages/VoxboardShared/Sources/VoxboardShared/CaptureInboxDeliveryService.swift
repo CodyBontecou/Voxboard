@@ -5,18 +5,53 @@ public struct CaptureInboxDeliveryResult: Sendable {
     public var receipts: [CaptureReceipt]
     public var failedRequestIDs: [UUID]
     public var quotaBlockedRequestIDs: [UUID]
+    /// Captures that need a user location decision before delivery. They stay
+    /// pending with their exact processed payload preserved — a decision is
+    /// not a delivery failure.
+    public var decisionsRequired: [CaptureInboxDecisionRequired]
+    /// Localized description of the most recent delivery failure, if any, for
+    /// surfacing a single actionable message.
+    public var latestFailureDescription: String?
     public var setupError: String?
 
     public init(
         receipts: [CaptureReceipt] = [],
         failedRequestIDs: [UUID] = [],
         quotaBlockedRequestIDs: [UUID] = [],
+        decisionsRequired: [CaptureInboxDecisionRequired] = [],
+        latestFailureDescription: String? = nil,
         setupError: String? = nil
     ) {
         self.receipts = receipts
         self.failedRequestIDs = failedRequestIDs
         self.quotaBlockedRequestIDs = quotaBlockedRequestIDs
+        self.decisionsRequired = decisionsRequired
+        self.latestFailureDescription = latestFailureDescription
         self.setupError = setupError
+    }
+}
+
+/// A pending capture that requires the user to decide how to handle an
+/// unavailable location before it can be delivered.
+public struct CaptureInboxDecisionRequired: Equatable, Sendable {
+    public let requestID: UUID
+    public let reason: CaptureLocationUnavailableReason?
+    public let source: CaptureSource
+    public let presetID: String?
+    public let presetName: String?
+
+    public init(
+        requestID: UUID,
+        reason: CaptureLocationUnavailableReason?,
+        source: CaptureSource,
+        presetID: String?,
+        presetName: String?
+    ) {
+        self.requestID = requestID
+        self.reason = reason
+        self.source = source
+        self.presetID = presetID
+        self.presetName = presetName
     }
 }
 
@@ -52,6 +87,8 @@ public enum CaptureInboxDeliveryService {
             _ = try await inbox.recoverStaleProcessing(olderThan: staleProcessingTimeout)
             _ = try await inbox.purgeCompleted(olderThan: completedRetention)
             _ = try await inbox.purgeOrphanedStaging(olderThan: 24 * 60 * 60)
+            _ = try await CaptureRecordingOriginStore(rootDirectoryURL: captureRootURL)
+                .purge(olderThan: 24 * 60 * 60)
 
             if let replacementID = validDefaultDestinationID(in: library) {
                 let rerouted = try await inbox.rerouteOrphanedRequests(
@@ -73,9 +110,12 @@ public enum CaptureInboxDeliveryService {
         var receipts: [CaptureReceipt] = []
         var failures: [UUID] = []
         var quotaBlocked: [UUID] = []
+        var decisionsRequired: [CaptureInboxDecisionRequired] = []
+        var latestFailureDescription: String?
         do {
             while let claimedRequest = try await inbox.claimNext(
                 excludingRequestIDs: Set(quotaBlocked)
+                    .union(decisionsRequired.map(\.requestID))
             ) {
                 var request = claimedRequest
                 do {
@@ -146,6 +186,20 @@ public enum CaptureInboxDeliveryService {
                     // scanning: later metered-voice requests still bypass the
                     // Capture quota and must not be starved by an older item.
                     continue
+                } catch CapturePipelineError.locationDecisionRequired(let reason) {
+                    // A user decision, not a delivery failure. Preserve the
+                    // exact processed request bytes and keep the capture
+                    // pending so the decision flow can resume it later.
+                    try? await inbox.replaceProcessingRequest(request)
+                    try? await inbox.returnToPending(requestID: request.id)
+                    decisionsRequired.append(CaptureInboxDecisionRequired(
+                        requestID: request.id,
+                        reason: reason,
+                        source: request.source,
+                        presetID: request.voxProfile?.id,
+                        presetName: request.voxProfile?.displayName
+                    ))
+                    continue
                 } catch {
                     let destinationName = library.destinations.first(where: {
                         $0.id == request.destinationID
@@ -168,6 +222,7 @@ public enum CaptureInboxDeliveryService {
                     }
                     try? await inbox.fail(requestID: request.id)
                     failures.append(request.id)
+                    latestFailureDescription = error.localizedDescription
                 }
             }
         } catch {
@@ -175,13 +230,17 @@ public enum CaptureInboxDeliveryService {
                 receipts: receipts,
                 failedRequestIDs: failures,
                 quotaBlockedRequestIDs: quotaBlocked,
+                decisionsRequired: decisionsRequired,
+                latestFailureDescription: latestFailureDescription,
                 setupError: error.localizedDescription
             )
         }
         return CaptureInboxDeliveryResult(
             receipts: receipts,
             failedRequestIDs: failures,
-            quotaBlockedRequestIDs: quotaBlocked
+            quotaBlockedRequestIDs: quotaBlocked,
+            decisionsRequired: decisionsRequired,
+            latestFailureDescription: latestFailureDescription
         )
     }
 
