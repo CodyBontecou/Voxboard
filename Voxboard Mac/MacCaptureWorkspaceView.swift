@@ -28,6 +28,12 @@ struct MacCaptureWorkspaceView: View {
     let openSettings: () -> Void
     let openModels: () -> Void
 
+    /// Fallback label while the capture coordinator has not resolved the
+    /// picked application's display name.
+    private var selectedMeetingApplicationFallback: String {
+        String(localized: "selected application")
+    }
+
     @Environment(ModelManager.self) private var modelManager
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(MacStoreManager.self) private var storeManager
@@ -504,7 +510,7 @@ struct MacCaptureWorkspaceView: View {
                 )
                     .font(Geist.label())
                 Text(recorder.isMeetingRecording
-                     ? "Capturing \(recorder.meetingCapture.selectedApplicationName ?? "selected application") with separate System and Mic audio."
+                     ? String(localized: "Capturing \(recorder.meetingCapture.selectedApplicationName ?? selectedMeetingApplicationFallback) with separate System and Mic audio.")
                      : recorder.isExporting
                      ? "The transcript is saved locally while its note and requested audio finish exporting."
                      : recordingMode == .draft
@@ -517,11 +523,11 @@ struct MacCaptureWorkspaceView: View {
             if recorder.isMeetingRecording {
                 VStack(alignment: .trailing, spacing: 4) {
                     HStack(spacing: 5) {
-                        Text("System · \(recorder.meetingCapture.systemStatus)").font(Geist.caption())
+                        Text(String(localized: "System · \(recorder.meetingCapture.systemStatus)")).font(Geist.caption())
                         ProgressView(value: Double(recorder.meetingCapture.systemLevel)).frame(width: 70)
                     }
                     HStack(spacing: 5) {
-                        Text("Mic · \(recorder.meetingCapture.microphoneStatus)").font(Geist.caption())
+                        Text(String(localized: "Mic · \(recorder.meetingCapture.microphoneStatus)")).font(Geist.caption())
                         ProgressView(value: Double(recorder.meetingCapture.microphoneLevel)).frame(width: 70)
                     }
                     if let warning = recorder.meetingCapture.warnings.last {
