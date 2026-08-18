@@ -30,7 +30,7 @@ private enum MacDestination: String, CaseIterable, Identifiable, Hashable {
     var symbol: String {
         switch self {
         case .capture: return "square.and.pencil"
-        case .queue: return "waveform.badge.clock"
+        case .queue: return "waveform.circle"
         case .history: return "clock.arrow.circlepath"
         case .settings: return "gearshape.fill"
         }
