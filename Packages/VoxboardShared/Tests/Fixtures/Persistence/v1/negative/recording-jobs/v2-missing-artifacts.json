@@ -1,0 +1,30 @@
+{
+  "attemptCount" : 0,
+  "audioFilename" : "fixture-meeting-playback.wav",
+  "captureSource" : "mac",
+  "createdAt" : 721692800,
+  "delivery" : {
+    "clipboard" : {
+
+    }
+  },
+  "duration" : 42,
+  "fallbackModelID" : "ggml-base",
+  "id" : "00000000-0000-0000-0000-000000000009",
+  "initialProcessingPolicy" : "manual",
+  "language" : "en",
+  "liveSessionID" : "00000000-0000-0000-0000-000000000009",
+  "modelID" : "automatic",
+  "originalFilename" : "meeting-mix.wav",
+  "phase" : "queued",
+  "processingPolicy" : "manual",
+  "requestID" : "fixture-meeting-v2",
+  "retentionPolicy" : {
+    "mode" : "timed",
+    "retentionInterval" : 604800
+  },
+  "revision" : 1,
+  "schemaVersion" : 2,
+  "source" : "macApp",
+  "updatedAt" : 721692800
+}

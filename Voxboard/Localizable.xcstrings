@@ -1996,6 +1996,118 @@
         }
       }
     },
+    "%@ audio chunk could not be finalized.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der %@-Audioabschnitt konnte nicht finalisiert werden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ audio chunk could not be finalized."
+          }
+        }
+      }
+    },
+    "%@ audio chunk recovery metadata could not be finalized.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wiederherstellungsmetadaten des %@-Audioabschnitts konnten nicht finalisiert werden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ audio chunk recovery metadata could not be finalized."
+          }
+        }
+      }
+    },
+    "%@ audio chunk recovery metadata could not be prepared: %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wiederherstellungsmetadaten des %@-Audioabschnitts konnten nicht vorbereitet werden: %@."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ audio chunk recovery metadata could not be prepared: %@."
+          }
+        }
+      }
+    },
+    "%@ audio could not be preserved: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-Audio konnte nicht gesichert werden: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ audio could not be preserved: %@"
+          }
+        }
+      }
+    },
+    "%@ audio could not start its next chunk: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-Audio konnte den nächsten Abschnitt nicht starten: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ audio could not start its next chunk: %@"
+          }
+        }
+      }
+    },
+    "%@ audio dropped because the writer could not keep up.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-Audio wurde verworfen, weil der Schreiber nicht mehr mithalten konnte."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ audio dropped because the writer could not keep up."
+          }
+        }
+      }
+    },
+    "%@ audio exceeded the bounded rollover buffer and was dropped.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-Audio hat den begrenzten Rollover-Puffer überschritten und wurde verworfen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ audio exceeded the bounded rollover buffer and was dropped."
+          }
+        }
+      }
+    },
     "%@ complete": {
       "localizations": {
         "ar": {
@@ -7404,6 +7516,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "擷取預設是一套可重複使用的完整工作流程，用來決定如何處理擷取內容，以及將內容傳送到哪裡。"
+          }
+        }
+      }
+    },
+    "A meeting capture is already active.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es ist bereits eine Besprechungsaufnahme aktiv."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A meeting capture is already active."
           }
         }
       }
@@ -14087,6 +14215,22 @@
         }
       }
     },
+    "An interrupted meeting remains recoverable: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eine unterbrochene Besprechung bleibt wiederherstellbar: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An interrupted meeting remains recoverable: %@"
+          }
+        }
+      }
+    },
     "App": {
       "localizations": {
         "ar": {
@@ -17351,6 +17495,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Apple Watch 現在,錄音器解釋了何時使用了免費轉錄時間,並提供了一個直接的路徑來解鎖無限的數據。 轉錄。"
+          }
+        }
+      }
+    },
+    "Application selection was cancelled.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die App-Auswahl wurde abgebrochen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application selection was cancelled."
           }
         }
       }
@@ -30279,6 +30439,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "捕捉"
+          }
+        }
+      }
+    },
+    "Capturing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme läuft"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturing"
+          }
+        }
+      }
+    },
+    "Capturing %@ with separate System and Mic audio.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufnahme von „%@“ mit separatem System- und Mikrofonaudio."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturing %@ with separate System and Mic audio."
           }
         }
       }
@@ -77161,6 +77353,22 @@
         }
       }
     },
+    "Incomplete meeting recording: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unvollständige Besprechungsaufnahme: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incomplete meeting recording: %@"
+          }
+        }
+      }
+    },
     "Indexing filenames on device…": {
       "localizations": {
         "ar": {
@@ -90804,6 +91012,38 @@
         }
       }
     },
+    "Meeting recovery metadata could not be updated: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Wiederherstellungsmetadaten der Besprechung konnten nicht aktualisiert werden: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting recovery metadata could not be updated: %@"
+          }
+        }
+      }
+    },
+    "Meeting storage is unavailable.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Besprechungsspeicher ist nicht verfügbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meeting storage is unavailable."
+          }
+        }
+      }
+    },
     "Menu Bar Only": {
       "localizations": {
         "ar": {
@@ -91374,6 +91614,38 @@
         }
       }
     },
+    "Mic · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikro · %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mic · %@"
+          }
+        }
+      }
+    },
+    "Microphone": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone"
+          }
+        }
+      }
+    },
     "Microphone access is required to attach a voice recording.": {
       "localizations": {
         "ar": {
@@ -91512,6 +91784,54 @@
           "stringUnit": {
             "state": "translated",
             "value": "需要麥克風接入才能附上語音錄製。"
+          }
+        }
+      }
+    },
+    "Microphone audio was not captured.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vom Mikrofon wurde kein Audio aufgezeichnet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone audio was not captured."
+          }
+        }
+      }
+    },
+    "Microphone capture stopped: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Mikrofonaufnahme wurde gestoppt: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone capture stopped: %@"
+          }
+        }
+      }
+    },
+    "Microphone capture was interrupted.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Mikrofonaufnahme wurde unterbrochen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone capture was interrupted."
           }
         }
       }
@@ -97061,6 +97381,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "沒有偶像的匹配"
+          }
+        }
+      }
+    },
+    "No meeting audio was captured.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es wurde kein Besprechungsaudio aufgezeichnet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No meeting audio was captured."
           }
         }
       }
@@ -125906,6 +126242,22 @@
         }
       }
     },
+    "Recovered after Vox.md was interrupted.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach einer Unterbrechung von Vox.md wiederhergestellt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovered after Vox.md was interrupted."
+          }
+        }
+      }
+    },
     "Recovered after an interrupted save. Choose a Preset to continue.": {
       "localizations": {
         "ar": {
@@ -141529,6 +141881,22 @@
         }
       }
     },
+    "Selected application": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ausgewählte Anwendung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected application"
+          }
+        }
+      }
+    },
     "Send": {
       "localizations": {
         "ar": {
@@ -155309,6 +155677,22 @@
         }
       }
     },
+    "Stopped": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestoppt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped"
+          }
+        }
+      }
+    },
     "Stops and permanently deletes this recording without syncing it to your iPhone.": {
       "localizations": {
         "ar": {
@@ -157866,6 +158250,22 @@
         }
       }
     },
+    "System": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System"
+          }
+        }
+      }
+    },
     "System Language follows your device language. Choose a language explicitly when the recording uses another language.": {
       "localizations": {
         "ar": {
@@ -158008,6 +158408,22 @@
         }
       }
     },
+    "System audio capture stopped: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Systemaudio-Aufnahme wurde gestoppt: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System audio capture stopped: %@"
+          }
+        }
+      }
+    },
     "System managed · No app model download": {
       "localizations": {
         "ar": {
@@ -158146,6 +158562,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "由系統管理 · 無需在 App 中下載模型"
+          }
+        }
+      }
+    },
+    "System · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System · %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System · %@"
           }
         }
       }
@@ -164117,6 +164549,54 @@
         }
       }
     },
+    "The meeting recording could not be finalized. Any completed chunks remain in Recordings.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Besprechungsaufnahme konnte nicht abgeschlossen werden. Fertiggestellte Abschnitte verbleiben in den Aufnahmen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The meeting recording could not be finalized. Any completed chunks remain in Recordings."
+          }
+        }
+      }
+    },
+    "The meeting was preserved but could not enter the processing queue: %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Besprechung wurde gesichert, konnte jedoch nicht in die Verarbeitungswarteschlange aufgenommen werden: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The meeting was preserved but could not enter the processing queue: %@"
+          }
+        }
+      }
+    },
+    "The microphone could not be started.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Mikrofon konnte nicht gestartet werden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The microphone could not be started."
+          }
+        }
+      }
+    },
     "The microphone could not start recording.": {
       "localizations": {
         "ar": {
@@ -167386,6 +167866,22 @@
         }
       }
     },
+    "The selected application produced no capturable audio.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die ausgewählte Anwendung hat kein erfassbares Audio ausgegeben."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected application produced no capturable audio."
+          }
+        }
+      }
+    },
     "The selected camera could not be configured.": {
       "localizations": {
         "ar": {
@@ -167524,6 +168020,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已選定的相機無法配置。"
+          }
+        }
+      }
+    },
+    "The selected microphone was disconnected.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das ausgewählte Mikrofon wurde getrennt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The selected microphone was disconnected."
           }
         }
       }
@@ -181015,6 +181527,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "九 個"
+          }
+        }
+      }
+    },
+    "Unknown AVFoundation error": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannter AVFoundation-Fehler"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown AVFoundation error"
           }
         }
       }
@@ -197500,6 +198028,22 @@
         }
       }
     },
+    "Waiting": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting"
+          }
+        }
+      }
+    },
     "Waiting for iPhone": {
       "localizations": {
         "ar": {
@@ -207301,6 +207845,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "錄音"
+          }
+        }
+      }
+    },
+    "selected application": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ausgewählte Anwendung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "selected application"
           }
         }
       }

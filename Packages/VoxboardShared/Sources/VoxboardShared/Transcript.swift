@@ -9,22 +9,30 @@ public struct TranscriptSpeakerTurn: Codable, Equatable, Sendable, Identifiable 
     public let text: String
     public let startTime: TimeInterval
     public let endTime: TimeInterval
+    /// Optional provenance added for multi-stem meeting recordings. Nil decodes
+    /// legacy anonymous diarization turns without changing their rendering.
+    public let role: TranscriptSpeakerRole?
+    public let displayLabel: String?
 
     public init(
         id: UUID = UUID(),
         speaker: Int,
         text: String,
         startTime: TimeInterval,
-        endTime: TimeInterval
+        endTime: TimeInterval,
+        role: TranscriptSpeakerRole? = nil,
+        displayLabel: String? = nil
     ) {
         self.id = id
         self.speaker = speaker
         self.text = text
         self.startTime = startTime
         self.endTime = endTime
+        self.role = role
+        self.displayLabel = displayLabel
     }
 
-    public var speakerLabel: String { "Speaker \(speaker + 1)" }
+    public var speakerLabel: String { displayLabel ?? "Speaker \(speaker + 1)" }
 }
 
 /// A single voice transcription record, persisted as JSON in the App Group container.

@@ -40,6 +40,9 @@ private enum RecordingQueueInterruption {
 @MainActor
 @Observable
 public final class RecordingJobQueue {
+    public struct CaptureLease: Hashable, Sendable {
+        fileprivate let id: UUID
+    }
     public private(set) var jobs: [RecordingJob] = []
     public private(set) var activeJobID: UUID?
     public private(set) var transcriptionProgress: TranscriptionProgress?
@@ -74,7 +77,9 @@ public final class RecordingJobQueue {
     private let processStartedAt = Date()
     private var processingTask: Task<Void, Never>?
     private var includesIdleWork = false
-    private var isCaptureActive = false
+    private var legacyCaptureActive = false
+    private var captureLeaseIDs: Set<UUID> = []
+    private var isCaptureActive: Bool { legacyCaptureActive || !captureLeaseIDs.isEmpty }
     private var isSystemSuspended = false
     private var needsDrainAfterCurrent = false
     private var pendingInterruption: RecordingQueueInterruption?
@@ -178,7 +183,7 @@ public final class RecordingJobQueue {
     /// work. Cancellable backends stop promptly; non-cancellable native calls
     /// are requeued as soon as they return.
     public func interruptForInteractiveWork() {
-        isCaptureActive = true
+        legacyCaptureActive = true
         if processingTask != nil {
             pendingInterruption = .interactive
             processingTask?.cancel()
@@ -198,8 +203,23 @@ public final class RecordingJobQueue {
     }
 
     public func setCaptureActive(_ active: Bool) {
-        isCaptureActive = active
-        if !active {
+        legacyCaptureActive = active
+        if !isCaptureActive {
+            scheduleDrain(includeIdle: includesIdleWork)
+        }
+    }
+
+    /// Acquires an owner-specific capture suspension. Overlapping recording,
+    /// import, and handoff work cannot clear one another's queue pause.
+    public func beginCaptureLease() -> CaptureLease {
+        let lease = CaptureLease(id: UUID())
+        captureLeaseIDs.insert(lease.id)
+        return lease
+    }
+
+    public func endCaptureLease(_ lease: CaptureLease) {
+        captureLeaseIDs.remove(lease.id)
+        if !isCaptureActive {
             scheduleDrain(includeIdle: includesIdleWork)
         }
     }
@@ -207,8 +227,42 @@ public final class RecordingJobQueue {
     /// Ends priority interactive work without treating it as a new system
     /// execution opportunity. A latched background expiration remains in force.
     public func finishInteractiveWork(includeIdle: Bool) {
-        isCaptureActive = false
-        scheduleDrain(includeIdle: includeIdle)
+        legacyCaptureActive = false
+        if !isCaptureActive { scheduleDrain(includeIdle: includeIdle) }
+    }
+
+    public func enqueueBundle(
+        sources: [(role: RecordingArtifactRole, url: URL)],
+        id: UUID = UUID(),
+        draftRequestID: UUID? = nil,
+        liveSessionID: UUID? = nil,
+        captureSource: CaptureSource? = nil,
+        duration: TimeInterval,
+        source: RecordingJobSource,
+        delivery: RecordingJobDelivery,
+        modelID: String,
+        fallbackModelID: String?,
+        language: String,
+        configuration: RecordingQueueConfiguration? = nil,
+        removeSourcesAfterCommit: Bool = true
+    ) async throws -> RecordingJob {
+        let resolved = configuration ?? RecordingQueuePreferences.load()
+        let job = try await store.enqueueBundle(
+            sources: sources, id: id, draftRequestID: draftRequestID, liveSessionID: liveSessionID,
+            captureSource: captureSource, duration: duration, source: source, delivery: delivery,
+            modelID: modelID, fallbackModelID: fallbackModelID, language: language, configuration: resolved,
+            removeSourcesAfterCommit: removeSourcesAfterCommit
+        )
+        await refresh()
+        if resolved.processingPolicy == .immediate { scheduleDrain(includeIdle: includesIdleWork) }
+        return job
+    }
+
+    public func artifactURL(for job: RecordingJob, role: RecordingArtifactRole) -> URL? {
+        guard job.audioDeletedAt == nil,
+              let artifact = job.resolvedArtifacts.first(where: { $0.role == role }) else { return nil }
+        let url = store.rootDirectoryURL.appendingPathComponent("audio", isDirectory: true).appendingPathComponent(artifact.filename)
+        return FileManager.default.fileExists(atPath: url.path) ? url : nil
     }
 
     public func enqueue(

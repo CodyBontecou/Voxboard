@@ -3,6 +3,12 @@ import SwiftUI
 import UniformTypeIdentifiers
 import VoxboardShared
 
+private enum MacCaptureInputMode: String, CaseIterable, Identifiable {
+    case microphone
+    case meeting
+    var id: Self { self }
+}
+
 private enum MacCaptureRecordingMode: String, CaseIterable, Identifiable {
     case draft
     case preset
@@ -22,6 +28,12 @@ struct MacCaptureWorkspaceView: View {
     let openSettings: () -> Void
     let openModels: () -> Void
 
+    /// Fallback label while the capture coordinator has not resolved the
+    /// picked application's display name.
+    private var selectedMeetingApplicationFallback: String {
+        String(localized: "selected application")
+    }
+
     @Environment(ModelManager.self) private var modelManager
     @Environment(UsageTracker.self) private var usageTracker
     @Environment(MacStoreManager.self) private var storeManager
@@ -32,6 +44,7 @@ struct MacCaptureWorkspaceView: View {
 
     @State private var flows = CapturePresetStore.loadFlows()
     @State private var showsRouteInspector = false
+    @State private var inputMode: MacCaptureInputMode = .microphone
     @State private var recordingMode: MacCaptureRecordingMode = .preset
     @State private var attachRecordingAudio = false
     @State private var showsLinkPrompt = false
@@ -496,7 +509,9 @@ struct MacCaptureWorkspaceView: View {
                             : "Finishing the Capture export"
                 )
                     .font(Geist.label())
-                Text(recorder.isExporting
+                Text(recorder.isMeetingRecording
+                     ? String(localized: "Capturing \(recorder.meetingCapture.selectedApplicationName ?? selectedMeetingApplicationFallback) with separate System and Mic audio.")
+                     : recorder.isExporting
                      ? "The transcript is saved locally while its note and requested audio finish exporting."
                      : recordingMode == .draft
                          ? "The on-device transcript will be added to this durable draft."
@@ -505,6 +520,23 @@ struct MacCaptureWorkspaceView: View {
                     .foregroundStyle(Geist.muted)
             }
             Spacer()
+            if recorder.isMeetingRecording {
+                VStack(alignment: .trailing, spacing: 4) {
+                    HStack(spacing: 5) {
+                        Text(String(localized: "System · \(recorder.meetingCapture.systemStatus)")).font(Geist.caption())
+                        ProgressView(value: Double(recorder.meetingCapture.systemLevel)).frame(width: 70)
+                    }
+                    HStack(spacing: 5) {
+                        Text(String(localized: "Mic · \(recorder.meetingCapture.microphoneStatus)")).font(Geist.caption())
+                        ProgressView(value: Double(recorder.meetingCapture.microphoneLevel)).frame(width: 70)
+                    }
+                    if let warning = recorder.meetingCapture.warnings.last {
+                        Text(warning).font(Geist.caption()).foregroundStyle(Geist.error).lineLimit(2)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("System and microphone recording levels")
+            }
             if recorder.isRecording {
                 Button {
                     recorder.stopAndTranscribe(modelManager: modelManager, flowId: selectedFlow.id)
@@ -556,6 +588,16 @@ struct MacCaptureWorkspaceView: View {
 
             Spacer()
 
+            Picker("Audio source", selection: $inputMode) {
+                Text("Microphone").tag(MacCaptureInputMode.microphone)
+                Text("Meeting").tag(MacCaptureInputMode.meeting)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(width: 190)
+            .disabled(recorder.isRecording)
+            .help("Meeting asks you to select an application and captures its audio plus your microphone")
+
             Picker("Recording result", selection: $recordingMode) {
                 Text("Add to Draft").tag(MacCaptureRecordingMode.draft)
                 Text("Send Immediately").tag(MacCaptureRecordingMode.preset)
@@ -583,7 +625,7 @@ struct MacCaptureWorkspaceView: View {
             } label: {
                 Label(
                     recorder.isRecording ? String(localized: "Stop") : String(localized: "Record"),
-                    systemImage: recorder.isRecording ? "stop.fill" : "mic"
+                    systemImage: recorder.isRecording ? "stop.fill" : (inputMode == .meeting ? "person.2.wave.2" : "mic")
                 )
             }
             .buttonStyle(GeistButtonStyle(
@@ -948,12 +990,21 @@ struct MacCaptureWorkspaceView: View {
                 recorder.lastError = String(localized: "Enable microphone access in System Settings to record audio.")
                 return
             }
-            recorder.startRecording(
-                modelManager: modelManager,
-                flowId: selectedFlow.id,
-                completionMode: selectedRecordingCompletionMode,
-                draftRequestID: recordingMode == .draft ? viewModel.draft.requestID : nil
-            )
+            if inputMode == .meeting {
+                await recorder.startMeetingRecording(
+                    modelManager: modelManager,
+                    flowId: selectedFlow.id,
+                    completionMode: selectedRecordingCompletionMode,
+                    draftRequestID: recordingMode == .draft ? viewModel.draft.requestID : nil
+                )
+            } else {
+                recorder.startRecording(
+                    modelManager: modelManager,
+                    flowId: selectedFlow.id,
+                    completionMode: selectedRecordingCompletionMode,
+                    draftRequestID: recordingMode == .draft ? viewModel.draft.requestID : nil
+                )
+            }
         }
     }
 

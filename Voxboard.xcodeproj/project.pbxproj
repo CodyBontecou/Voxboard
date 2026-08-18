@@ -36,6 +36,7 @@
 		9A88FFAAB233EA68275E8015 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B2716061A8670082BD64BD6 /* AppIntents.framework */; };
 		AC5100012FD00000AABB0001 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B2716061A8670082BD64BD6 /* AppIntents.framework */; };
 		9B15EF5409110CBDF04C40C5 /* MacRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C52E8DD3842F298B7583550 /* MacRecorder.swift */; };
+		AC22000130010000AABB0001 /* MacMeetingCaptureCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC22000230010000AABB0002 /* MacMeetingCaptureCoordinator.swift */; };
 		9FB3CC3FCE8835EF0A18652A /* WatchPhoneBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3C07AF00903494E63299712 /* WatchPhoneBridge.swift */; };
 		AA0000042F394000AABBCC04 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000022F394000AABBCC02 /* VoxboardShared */; };
 		AA0000052F394000AABBCC05 /* VoxboardShared in Frameworks */ = {isa = PBXBuildFile; productRef = AA0000032F394000AABBCC03 /* VoxboardShared */; };
@@ -194,6 +195,7 @@
 		858885847BF7D36167D58E66 /* Voxboard Watch WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Voxboard Watch WidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8CA2E8D9B126FE68EF96A0C1 /* MacStoreManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacStoreManager.swift; path = "Voxboard Mac/MacStoreManager.swift"; sourceTree = "<group>"; };
 		9C52E8DD3842F298B7583550 /* MacRecorder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacRecorder.swift; path = "Voxboard Mac/MacRecorder.swift"; sourceTree = "<group>"; };
+		AC22000230010000AABB0002 /* MacMeetingCaptureCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MacMeetingCaptureCoordinator.swift; path = "Voxboard Mac/MacMeetingCaptureCoordinator.swift"; sourceTree = "<group>"; };
 		AA7200012FA10000AABB0001 /* Geist-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Geist-Regular.ttf"; path = "Voxboard/Fonts/Geist-Regular.ttf"; sourceTree = SOURCE_ROOT; };
 		AA7200022FA10000AABB0002 /* Geist-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Geist-Medium.ttf"; path = "Voxboard/Fonts/Geist-Medium.ttf"; sourceTree = SOURCE_ROOT; };
 		AA7200032FA10000AABB0003 /* Geist-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Geist-SemiBold.ttf"; path = "Voxboard/Fonts/Geist-SemiBold.ttf"; sourceTree = SOURCE_ROOT; };
@@ -398,6 +400,7 @@
 				AB7000012FC10000AABB0001 /* MacKeyboardHintCenter.swift */,
 				39AB3B931CCF85C9706AD3C0 /* MacRootView.swift */,
 				9C52E8DD3842F298B7583550 /* MacRecorder.swift */,
+				AC22000230010000AABB0002 /* MacMeetingCaptureCoordinator.swift */,
 				8CA2E8D9B126FE68EF96A0C1 /* MacStoreManager.swift */,
 				1926268D6D235EA2E6308151 /* VoxboardMac.entitlements */,
 				B42D87F76743327017AE80B3 /* Assets.xcassets */,
@@ -956,6 +959,7 @@
 				AB7000022FC10000AABB0002 /* MacKeyboardHintCenter.swift in Sources */,
 				F714E206EA01CB59CAD495BC /* MacRootView.swift in Sources */,
 				9B15EF5409110CBDF04C40C5 /* MacRecorder.swift in Sources */,
+				AC22000130010000AABB0001 /* MacMeetingCaptureCoordinator.swift in Sources */,
 				643BAC287FB3B9EB19C8A1D8 /* MacStoreManager.swift in Sources */,
 				4C3693BE5FAD3AE5C0A78C74 /* GeistTheme.swift in Sources */,
 				AB2600022F901000AABB0002 /* FoundationModelsBackend.swift in Sources */,

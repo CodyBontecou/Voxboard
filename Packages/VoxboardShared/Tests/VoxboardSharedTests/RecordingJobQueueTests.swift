@@ -29,6 +29,26 @@ final class RecordingJobQueueTests: XCTestCase {
         XCTAssertEqual(snapshot.maximumConcurrentExecutions, 1)
     }
 
+    func test_overlappingCaptureLeasesDoNotResumeQueueUntilEveryOwnerFinishes() async throws {
+        let fixture = try QueueFixture()
+        defer { fixture.cleanup() }
+        var didStart = false
+        let queue = RecordingJobQueue(store: fixture.store) { _, _, _ in
+            didStart = true
+            return RecordingJobExecutionResult()
+        }
+        let first = queue.beginCaptureLease()
+        let second = queue.beginCaptureLease()
+        _ = try await fixture.enqueue(on: queue, policy: .immediate)
+
+        queue.endCaptureLease(first)
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertFalse(didStart)
+
+        queue.endCaptureLease(second)
+        try await waitUntil { didStart }
+    }
+
     func test_enqueueRemainsAvailableWhileEarlierJobProcesses() async throws {
         let fixture = try QueueFixture()
         defer { fixture.cleanup() }

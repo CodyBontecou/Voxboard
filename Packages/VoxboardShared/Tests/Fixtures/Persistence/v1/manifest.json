@@ -421,6 +421,21 @@
       "sha256" : "330e09a2469426dac84140295d5b4704d5984c05720539e578d65f9d57ebba32"
     },
     {
+      "byteCount" : 1339,
+      "path" : "negative\/recording-jobs\/v2-duplicate-role.json",
+      "sha256" : "dde339f62a234950249fcb435cc7f68e8124f3b5f92b4078c3f030d262472161"
+    },
+    {
+      "byteCount" : 740,
+      "path" : "negative\/recording-jobs\/v2-missing-artifacts.json",
+      "sha256" : "389f5b1b29b3b59cd4628523dbb7ec35917a2406d601ef3522e9e19f12eab803"
+    },
+    {
+      "byteCount" : 1333,
+      "path" : "negative\/recording-jobs\/v2-unsafe-filename.json",
+      "sha256" : "db7e6dc1adc07d80543f85e4b3f904982000534c8488520028b7049f3a7148f6"
+    },
+    {
       "byteCount" : 27,
       "path" : "negative\/recording-origin\/malformed.json",
       "sha256" : "f76402e71fc5c3b1b8696e11d29dd0d62cf121579b64391b1087ca3e77f50edd"
@@ -574,6 +589,11 @@
       "byteCount" : 3833,
       "path" : "recording-jobs\/job-v1.json",
       "sha256" : "c9cc0d1f9cf9f1494050a8cc8c96f09416ce6bd3c3848c150cea02741b9237c9"
+    },
+    {
+      "byteCount" : 1345,
+      "path" : "recording-jobs\/job-v2-meeting.json",
+      "sha256" : "a59543a974fc266b5957750fa5e257744c94500dde1fdf1dc0d6e4c43d4f9bd4"
     },
     {
       "byteCount" : 3844,
@@ -753,7 +773,7 @@
   ],
   "foundationWire" : "Default Foundation JSON: Date numeric seconds since 2001-01-01, Data base64, UUID string, raw enum string.",
   "generatorPath" : "Packages\/VoxboardShared\/Sources\/VoxboardPersistenceFixtures\/main.swift",
-  "generatorSHA256" : "7977a949ae4e5b9161af41b2f406f42dde9a308e064af4816ccc16882bd120e0",
+  "generatorSHA256" : "246af68424cb42363ddf504350066ec5fe83644045341ce849b8ac91c99a3319",
   "planningParentCommit" : "b50167aebb959e394908af3a5949f43fa88d6265",
   "privacy" : "Fixed synthetic values only; no user defaults, App Group, bookmarks, media library, location, microphone, or WCSession access.",
   "producer" : "VoxboardPersistenceFixtures using production package codecs; app-target Watch and toolbar fixtures are validated by VoxboardTests",
