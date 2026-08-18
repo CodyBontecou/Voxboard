@@ -73,6 +73,12 @@ public struct TranscriptEnricher: Sendable {
         "other",
     ]
 
+    /// Upper bound for a single enrichment pass. On-device model sessions
+    /// can stall indefinitely (resource pressure, mid-request unavailability)
+    /// and recording delivery awaits this pass before exporting — the note
+    /// must never hang behind the model (#11).
+    public static let defaultEnrichmentTimeout: TimeInterval = 120
+
     private let backend: LLMBackend
 
     public init(backend: LLMBackend) {
@@ -186,28 +192,41 @@ public struct TranscriptEnricher: Sendable {
 
     /// Run enrichment on a transcript and write the enriched copy back to the store.
     /// Never throws — any backend or parse failure is swallowed, and the record
-    /// is left as-is (per the agreed failure policy: fields stay nil). The caller
-    /// is responsible for deciding when to invoke this (e.g., only after a
-    /// foreground save, only when the feature is enabled).
-    public func enrichAndUpdate(transcript: Transcript, flow: CapturePreset? = nil, into store: TranscriptStore) async {
+    /// is left as-is (per the agreed failure policy: fields stay nil). A pass
+    /// that exceeds `timeout` is cancelled and degrades the same way: the raw
+    /// transcript is preserved and the caller's export proceeds, so delivery
+    /// never hangs behind a stalled model session (#11).
+    public func enrichAndUpdate(
+        transcript: Transcript,
+        flow: CapturePreset? = nil,
+        into store: TranscriptStore,
+        timeout: TimeInterval = TranscriptEnricher.defaultEnrichmentTimeout
+    ) async {
         let log = KeyboardDebugLog.shared
         let shortId = String(transcript.id.uuidString.prefix(8))
         log.log("[Enrichment] start id=\(shortId) flow=\(flow?.id ?? "none") chars=\(transcript.text.count)")
+        let enrichment: TranscriptEnrichment
         do {
-            let enrichment = try await enrich(rawText: transcript.text, flow: flow)
-            let updated = transcript.withEnrichment(
-                title: enrichment.title,
-                tags: enrichment.tags,
-                category: enrichment.category,
-                cleanedText: enrichment.cleanedText
-            )
-            await MainActor.run {
-                store.update(updated)
+            enrichment = try await withRunningTask(timeout: timeout) {
+                try await self.enrich(rawText: transcript.text, flow: flow)
             }
-            log.log("[Enrichment] ✅ id=\(shortId) title=\"\(enrichment.title)\" tags=\(enrichment.tags.count) category=\(enrichment.category)")
+        } catch is EnrichmentTimeoutError {
+            log.log("[Enrichment] ⏱ id=\(shortId) exceeded its \(Int(timeout))s deadline — keeping the raw transcript so delivery proceeds")
+            return
         } catch {
             log.log("[Enrichment] ❌ id=\(shortId) error=\(error)")
+            return
         }
+        let updated = transcript.withEnrichment(
+            title: enrichment.title,
+            tags: enrichment.tags,
+            category: enrichment.category,
+            cleanedText: enrichment.cleanedText
+        )
+        await MainActor.run {
+            store.update(updated)
+        }
+        log.log("[Enrichment] ✅ id=\(shortId) title=\"\(enrichment.title)\" tags=\(enrichment.tags.count) category=\(enrichment.category)")
     }
 
     // MARK: - Prompt

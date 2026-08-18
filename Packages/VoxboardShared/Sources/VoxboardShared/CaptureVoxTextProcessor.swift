@@ -54,7 +54,9 @@ public struct EnrichmentTimeoutError: Error, Sendable {}
 /// Races `operation` against a deadline. On timeout the underlying task is
 /// cancelled and `EnrichmentTimeoutError` is thrown. Errors thrown by the
 /// operation itself (including `CancellationError`) propagate unchanged.
-func withRunningTask<T: Sendable>(
+/// Shared by the typed-text processor and the app targets' export-time
+/// model calls so no on-device session can stall delivery indefinitely.
+public func withRunningTask<T: Sendable>(
     timeout: TimeInterval,
     operation: @escaping @Sendable () async throws -> T
 ) async throws -> T {

@@ -153,6 +153,12 @@ final class PersistentRecorder {
     static let modelSetupAnalyticsKey = "onboarding.analytics.model_setup_completed.v1"
     static let completionAnalyticsKey = "onboarding.analytics.completed.v1"
 
+    /// Deadline for the optional on-device model routing calls during export
+    /// (Smart Folders, Auto-Organize). Routing must never hang delivery behind
+    /// a stalled FoundationModels session; on timeout the export proceeds with
+    /// the configured folder (#11).
+    private static let exportRoutingTimeout: TimeInterval = 30
+
     static func claimOneShotAnalyticsMarker(
         _ key: String,
         defaults: UserDefaults
@@ -2828,10 +2834,14 @@ final class PersistentRecorder {
 
                         // 1. Legacy Smart Folders: route to a user-defined destination
                         // only when the selected flow does not already specify a folder.
+                        // Routing is best-effort and deadline-bounded: a stalled model
+                        // session must not hang the export behind it (#11).
                         if !flowHasExplicitExportFolder, AppConstants.smartFoldersEnabled {
                             let folders = AppConstants.loadSmartFolders()
                             if !folders.isEmpty,
-                               let idx = try? await router.routeToFolder(transcript: latest, folders: folders) {
+                               let idx = try? await withRunningTask(timeout: Self.exportRoutingTimeout, operation: {
+                                   try await router.routeToFolder(transcript: latest, folders: folders)
+                               }) {
                                 folderOverride = folders[idx].resolveURL()
                             }
                         }
@@ -2849,10 +2859,12 @@ final class PersistentRecorder {
                             }.map { $0.lastPathComponent }) ?? []
                             if needsScoping { baseURL.stopAccessingSecurityScopedResource() }
 
-                            autoOrganizeSubfolder = try? await router.generateFolderName(
-                                transcript: latest,
-                                existingFolders: existingFolders
-                            )
+                            autoOrganizeSubfolder = try? await withRunningTask(timeout: Self.exportRoutingTimeout, operation: {
+                                try await router.generateFolderName(
+                                    transcript: latest,
+                                    existingFolders: existingFolders
+                                )
+                            })
                         }
                     }
 
