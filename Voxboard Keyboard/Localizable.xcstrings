@@ -18,7 +18,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ Vollständig"
+            "value": "%@ abgeschlossen"
           }
         },
         "en": {
@@ -446,7 +446,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vollständiger Zugang ermöglicht"
+            "value": "Vollzugriff aktivieren"
           }
         },
         "en": {
@@ -590,7 +590,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limit erreicht — öffne Vox.md zum Entsperren"
+            "value": "Limit erreicht – Vox.md öffnen zum Freischalten"
           }
         },
         "en": {
@@ -1164,7 +1164,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "öffnen Vox.md"
+            "value": "Vox.md öffnen"
           }
         },
         "en": {
@@ -1306,7 +1306,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aufnahme fehlgeschlagen - versuchen Sie es erneut"
+            "value": "Aufnahme fehlgeschlagen – versuchen Sie es erneut"
           }
         },
         "en": {
@@ -1592,7 +1592,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transzendieren %@"
+            "value": "%@ wird transkribiert"
           }
         },
         "en": {
@@ -1734,7 +1734,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Translations..."
+            "value": "Wird transkribiert…"
           }
         },
         "en": {
@@ -2018,7 +2018,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transcription Fortschritte"
+            "value": "Transkriptionsfortschritt"
           }
         },
         "en": {
@@ -2162,7 +2162,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zeitüberschreitung bei der Transkription — versuche es erneut"
+            "value": "Zeitüberschreitung bei der Transkription – versuchen Sie es erneut"
           }
         },
         "en": {
@@ -2304,7 +2304,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vox.md die Aufnahme nicht gestartet wurde – öffnen Sie den Listening-Modus erneut und versuchen Sie es erneut"
+            "value": "Vox.md hat die Aufnahme nicht gestartet – öffnen Sie den Listening-Modus erneut und versuchen Sie es noch einmal"
           }
         },
         "en": {
