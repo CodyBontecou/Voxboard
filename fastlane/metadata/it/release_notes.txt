@@ -1,13 +1,14 @@
-Le registrazioni ora resistono a interruzioni e riavvii in una coda persistente, così le trascrizioni o le consegne non riuscite restano disponibili per un nuovo tentativo invece di scomparire.
+Vox.md per Mac ora registra le riunioni con audio di sistema e microfono su tracce separate e su iPhone puoi scegliere la lingua dell’app direttamente in Impostazioni.
 
 Novità
-• Scegli l’elaborazione immediata, durante l’inattività o manuale della coda; riprova o elabora le registrazioni salvate, copia il testo completato e condividi, mostra o elimina l’audio conservato.
-• Aggiungi facoltativamente la posizione a ogni Capture Preset, con precisione esatta o a livello di città, campi strutturati o YAML e senza tracciamento in background.
+• Registra le riunioni su Mac con una netta separazione tra ciò che senti e ciò che dici: ogni traccia viene conservata per la trascrizione.
+• Scegli la lingua dell’app in Impostazioni su iPhone e iPad, senza cambiare la lingua del dispositivo.
+• Aggiungi il nuovo token {location} ai modelli di voce per posizionare il luogo di registrazione esattamente dove vuoi.
 
 Miglioramenti
-• Visualizza percentuali di trascrizione affidabili e l’avanzamento per fasi dei download dei modelli, con installazione più sicura, controlli dello spazio e prevenzione della sospensione durante i download.
-• Usa Vox.md in 23 esperienze dell’app localizzate, tra cui impostazioni, permessi, paywall, errori, etichette di accessibilità, widget, Watch, tastiera, Share Extension e Mac.
-• I modelli di acquisizione ora usano l’ora di inizio del contenuto sostanziale e supportano i token {hour}, {minute} e {second}.
+• I modelli di trascrizione già presenti sul Mac vengono usati sul posto: niente più copie duplicate che occupano spazio su disco.
+• Le etichette dei parlanti restano coerenti in tutti i flussi di registrazione.
 
 Correzioni
-• I widget usano in modo affidabile il Capture Preset configurato e le attività vocali di Watch non aggiungono più intestazioni o involucri duplicati alla trascrizione.
+• Le registrazioni si completano sempre: l’elaborazione del testo e l’arricchimento vocale ora girano con scadenze rigorose invece di bloccarsi.
+• Tedesco più chiaro e coerente in tutta l’app.

@@ -1,13 +1,14 @@
-Dine optagelser overlever nu afbrydelser og genstarter i en robust kø, så mislykkede transskriptioner eller leveringer kan prøves igen i stedet for at forsvinde.
+Vox.md til Mac optager nu møder med systemlyd og mikrofon som separate spor, og på iPhone kan du vælge appens sprog direkte i Indstillinger.
 
 Nyt
-• Vælg øjeblikkelig eller manuel behandling af køen eller behandling, når systemet er inaktivt; prøv igen eller behandl gemte optagelser, kopiér færdig tekst, og del, vis eller slet bevaret lyd.
-• Føj valgfri lokalitet til hver Capture Preset med præcis placering eller placering på byniveau, strukturerede felter eller YAML og uden sporing i baggrunden.
+• Optag møder på Mac med klar adskillelse mellem det, du hører, og det, du siger — hvert spor bevares til transskription.
+• Vælg appens sprog i Indstillinger på iPhone og iPad, uden at ændre enhedens sprog.
+• Tilføj det nye {location}-token til postskabeloner for at placere optagelsesstedet lige præcis, hvor du vil have det.
 
 Forbedret
-• Se retvisende transskriptionsprocenter og faseopdelt status for modeldownloads med sikrere installation, lagerkontrol og forhindring af vågeblus under downloads.
-• Brug Vox.md i 23 lokaliserede appoplevelser, herunder indstillinger, tilladelser, betalingsvægge, fejl, tilgængelighedsmærkater, widgets, Watch, tastatur, Share Extension og Mac.
-• Skabeloner bruger nu tidspunktet, hvor det egentlige indhold begyndte, og understøtter tokens {hour}, {minute} og {second}.
+• Transskriptionsmodeller, der allerede findes på din Mac, bruges, hvor de er — ingen duplikerede kopier, der optager diskplads.
+• Talernavne forbliver konsistente i alle optageflows.
 
 Rettet
-• Widgets bruger pålideligt deres konfigurerede Capture Preset, og stemmeopgaver fra Watch tilføjer ikke længere dobbelte transskriptionsoverskrifter eller omslag.
+• Optagelser fuldføres altid: tekstbehandling og stemmeberigelse kører nu med strenge deadlines i stedet for at gå i stå.
+• Klarere og mere konsistent tysk i hele appen.

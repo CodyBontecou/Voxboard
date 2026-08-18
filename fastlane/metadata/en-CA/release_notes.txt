@@ -1,13 +1,14 @@
-Your recordings now survive interruptions and relaunches in a durable queue, so failed transcriptions or deliveries stay available to retry instead of disappearing.
+Vox.md for Mac now records meetings with system audio and your microphone kept as separate stems, and on iPhone you can pick the app's language right in Settings.
 
 New
-• Choose immediate, idle, or manual queue processing; retry or process saved recordings, copy completed text, and share, reveal, or delete retained audio.
-• Add opt-in location to each Capture Preset with exact or city-level precision, structured fields or YAML, and no background tracking.
+• Capture meetings on Mac with clear separation between what you hear and what you say — each stem is preserved for transcription.
+• Choose the app language in Settings on iPhone and iPad, without changing your device language.
+• Add the new {location} token to entry templates to place capture location exactly where you want it.
 
 Improved
-• See truthful transcription percentages and phased model-download progress, with safer installation, storage checks, and sleep prevention during downloads.
-• Use Vox.md across 23 localised app experiences, including settings, permissions, paywalls, errors, accessibility labels, widgets, Watch, keyboard, Share Extension, and Mac.
-• Capture templates now use when substantive content began and support {hour}, {minute}, and {second} tokens.
+• Transcription models already on your Mac are used in place — no more duplicate copies taking up disk space.
+• Speaker labels stay consistent across all capture flows.
 
 Fixed
-• Widgets reliably use their configured Capture Preset, and Watch voice tasks no longer add duplicate transcript headings or wrappers.
+• Captures always finish: text processing and voice enrichment now run under strict deadlines instead of stalling.
+• Clearer, more consistent German throughout the app.

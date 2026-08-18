@@ -1,13 +1,14 @@
-Les gravacions ara sobreviuen a les interrupcions i als reinicis en una cua duradora, de manera que les transcripcions o els lliuraments fallits continuen disponibles per tornar-ho a provar en lloc de desaparèixer.
+Vox.md per Mac ara enregistra reunions amb l’àudio del sistema i el micròfon en pistes separades, i a l’iPhone podeu triar l’idioma de l’app directament a Ajustos.
 
 Novetats
-• Trieu el processament immediat, en inactivitat o manual de la cua; torneu a provar o processeu gravacions desades, copieu el text completat i compartiu, mostreu o suprimiu l’àudio conservat.
-• Afegiu la ubicació de manera opcional a cada Capture Preset, amb precisió exacta o de ciutat, camps estructurats o YAML i sense seguiment en segon pla.
+• Enregistreu reunions al Mac amb una separació clara entre el que escolteu i el que dieu — cada pista es conserva per a la transcripció.
+• Trieu l’idioma de l’app a Ajustos de l’iPhone i l’iPad, sense canviar l’idioma del dispositiu.
+• Afegiu el nou token {location} a les plantilles d’entrada per situar la ubicació de captura exactament on vulgueu.
 
 Millores
-• Consulteu percentatges de transcripció fiables i el progrés per fases de la baixada de models, amb una instal·lació més segura, comprovacions d’emmagatzematge i prevenció del repòs durant les baixades.
-• Utilitzeu Vox.md en 23 experiències localitzades de l’app, com ara configuració, permisos, murs de pagament, errors, etiquetes d’accessibilitat, widgets, Watch, teclat, Share Extension i Mac.
-• Les plantilles de captura ara fan servir l’hora en què ha començat el contingut substancial i admeten els tokens {hour}, {minute} i {second}.
+• Els models de transcripció que ja teniu al Mac s’usen al seu lloc — sense més còpies duplicades que occupin espai al disc.
+• Les etiquetes de parlant es mantenen coherents en tots els fluxos de captura.
 
 Correccions
-• Els widgets utilitzen de manera fiable el Capture Preset configurat i les tasques de veu del Watch ja no afegeixen capçaleres ni contenidors de transcripció duplicats.
+• Les captures sempre es completen: el processament de text i l’enriquiment de veu ara s’executen amb terminis estrictes en lloc d’encallar-se.
+• Alemany més clar i coherent a tota l’app.

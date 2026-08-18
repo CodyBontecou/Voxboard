@@ -1,13 +1,14 @@
-Vaše nahrávky teraz prežijú prerušenia aj opätovné spustenie v trvalom rade, takže neúspešné prepisy alebo doručenia zostanú dostupné na zopakovanie a nezmiznú.
+Vox.md pre Mac teraz nahráva stretnutia so systémovým zvukom a mikrofónom ako oddelené stopy a na iPhone si môžete vybrať jazyk aplikácie priamo v Nastaveniach.
 
 Novinky
-• Vyberte okamžité, nečinné alebo ručné spracovanie radu; zopakujte alebo spracujte uložené nahrávky, skopírujte hotový text a zachovaný zvuk zdieľajte, zobrazte alebo odstráňte.
-• Voliteľne pridajte ku každému Capture Preset presnú polohu alebo polohu na úrovni mesta, štruktúrované polia alebo YAML, bez sledovania na pozadí.
+• Nahrávajte stretnutia na Macu s jasným oddelením medzi tým, čo počujete, a tým, čo hovoríte — každá stopa sa zachová na prepis.
+• Vyberte jazyk aplikácie v Nastaveniach na iPhone a iPade bez zmeny jazyka zariadenia.
+• Pridajte nový token {location} do šablón záznamov a umiestnite polohu nahrávania presne tam, kam chcete.
 
 Vylepšenia
-• Sledujte pravdivé percentá prepisu a fázový priebeh sťahovania modelov s bezpečnejšou inštaláciou, kontrolou úložiska a zabránením uspaniu počas sťahovania.
-• Používajte Vox.md v 23 lokalizovaných prostrediach aplikácie vrátane nastavení, povolení, platobných obrazoviek, chýb, štítkov prístupnosti, widgetov, Watch, klávesnice, Share Extension a Mac.
-• Šablóny zachytenia teraz používajú čas začiatku podstatného obsahu a podporujú tokeny {hour}, {minute} a {second}.
+• Modely prepisu, ktoré sú už na vašom Macu, sa používajú na mieste — žiadne duplicitné kópie, ktoré zaberajú miesto na disku.
+• Popisky hovoriacich zostávajú konzistentné vo všetkých nahrávacích tokoch.
 
 Opravy
-• Widgety spoľahlivo používajú nakonfigurovaný Capture Preset a hlasové úlohy Watch už nepridávajú duplicitné nadpisy ani obaly prepisu.
+• Nahrávky sa vždy dokončia: spracovanie textu a obohatenie hlasu bežia pod prísnymi termínmi namiesto zamrznutia.
+• Zrozumiteľnejšia a konzistentnejšia nemčina v celej aplikácii.

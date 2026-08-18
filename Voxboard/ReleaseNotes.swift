@@ -18,6 +18,41 @@ enum VoxboardReleaseNotes {
 
     private static let versionNotes: [VersionNotes] = [
         .init(
+            version: "2.2",
+            items: [
+                .list(
+                    title: "What’s new in Vox.md",
+                    rows: [
+                        .init(
+                            symbolSystemName: "waveform.and.mic",
+                            title: "Meeting capture with separate stems",
+                            description: "On Mac, record meetings with system audio and your microphone kept as distinct stems, so what you hear and what you say stay cleanly separated."
+                        ),
+                        .init(
+                            symbolSystemName: "globe",
+                            title: "Choose the app language",
+                            description: "Pick Vox.md’s language in Settings on iPhone and iPad — no need to change your whole device language to use the app your way."
+                        ),
+                        .init(
+                            symbolSystemName: "mappin.and.ellipse",
+                            title: "The {location} template token",
+                            description: "Entry templates can now place capture location precisely where you want it in your Markdown, alongside existing time tokens."
+                        ),
+                        .init(
+                            symbolSystemName: "internaldrive.fill",
+                            title: "Models without the copies",
+                            description: "On Mac, transcription models already on disk are used where they are — Vox.md no longer duplicates them, saving significant space."
+                        ),
+                        .init(
+                            symbolSystemName: "timer",
+                            title: "Capture that always finishes",
+                            description: "Text processing and voice enrichment now run under strict deadlines, so captures complete instead of stalling, with steadier speaker labels and sharper German throughout."
+                        )
+                    ]
+                )
+            ]
+        ),
+        .init(
             version: "2.1",
             items: [
                 .list(

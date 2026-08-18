@@ -1,13 +1,14 @@
-Nagrania są teraz zachowywane w trwałej kolejce mimo przerw i ponownego uruchomienia aplikacji, więc nieudane transkrypcje lub dostarczenia można ponowić zamiast je utracić.
+Vox.md na Maca nagrywa teraz spotkania z dźwiękiem systemu i mikrofonem jako osobne ścieżki, a na iPhonie możesz wybrać język aplikacji bezpośrednio w Ustawieniach.
 
 Nowości
-• Wybierz natychmiastowe przetwarzanie, przetwarzanie podczas bezczynności lub przetwarzanie ręczne kolejki; ponawiaj lub przetwarzaj zapisane nagrania, kopiuj ukończony tekst oraz udostępniaj, pokazuj lub usuwaj zachowany dźwięk.
-• Opcjonalnie dodaj do każdego Capture Preset dokładną lokalizację lub lokalizację na poziomie miasta, w polach strukturalnych albo YAML, bez śledzenia w tle.
+• Nagrywaj spotkania na Macu z wyraźnym rozdzieleniem tego, co słyszysz, i tego, co mówisz — każda ścieżka zostaje zachowana do transkrypcji.
+• Wybierz język aplikacji w Ustawieniach na iPhonie i iPadzie, nie zmieniając języka urządzenia.
+• Dodaj nowy token {location} do szablonów wpisów, aby umieścić lokalizację nagrania dokładnie tam, gdzie chcesz.
 
 Ulepszenia
-• Wyświetlaj wiarygodny procent transkrypcji i etapowy postęp pobierania modeli, z bezpieczniejszą instalacją, kontrolą pamięci i blokadą uśpienia podczas pobierania.
-• Korzystaj z Vox.md w 23 zlokalizowanych obszarach aplikacji, w tym ustawieniach, uprawnieniach, ekranach płatności, błędach, etykietach dostępności, widżetach, Watch, klawiaturze, Share Extension i Mac.
-• Szablony przechwytywania używają teraz czasu rozpoczęcia istotnej treści i obsługują tokeny {hour}, {minute} i {second}.
+• Modele transkrypcji już obecne na Twoim Macu są używane w miejscu — koniec z duplikatami zajmującymi miejsce na dysku.
+• Etykiety mówców pozostają spójne we wszystkich przepływach nagrywania.
 
 Poprawki
-• Widżety niezawodnie używają skonfigurowanego Capture Preset, a zadania głosowe Watch nie dodają już zduplikowanych nagłówków ani obudów transkrypcji.
+• Nagrania zawsze się kończą: przetwarzanie tekstu i wzbogacanie mowy działają teraz pod ścisłymi terminami, zamiast się zawieszać.
+• Jaśniejszy i bardziej spójny niemiecki w całej aplikacji.

@@ -1,13 +1,14 @@
-Uw opnamen blijven nu bij onderbrekingen en herstarts bewaard in een duurzame wachtrij. Mislukte transcripties of leveringen blijven daardoor beschikbaar om opnieuw te proberen, in plaats van te verdwijnen.
+Vox.md voor Mac neemt vergaderingen nu op met systeemaudio en je microfoon als aparte sporen, en op de iPhone kies je de taal van de app rechtstreeks in Instellingen.
 
 Nieuw
-• Kies directe verwerking, verwerking bij inactiviteit of handmatige verwerking van de wachtrij; probeer opgeslagen opnamen opnieuw of verwerk ze, kopieer voltooide tekst en deel, toon of verwijder bewaarde audio.
-• Voeg optioneel een exacte locatie of locatie op stadsniveau toe aan elke Capture Preset, als gestructureerde velden of YAML en zonder locatiebepaling op de achtergrond.
+• Neem vergaderingen op je Mac op met een duidelijke scheiding tussen wat je hoort en wat je zegt — elk spoor blijft bewaard voor transcriptie.
+• Kies de taal van de app in Instellingen op iPhone en iPad, zonder de taal van je apparaat te wijzigen.
+• Voeg het nieuwe {location}-token toe aan itemsjablonen om de opnamelocatie precies te plaatsen waar je wilt.
 
 Verbeterd
-• Bekijk betrouwbare transcriptiepercentages en gefaseerde voortgang van modeldownloads, met veiligere installatie, opslagcontroles en voorkoming van sluimerstand tijdens downloads.
-• Gebruik Vox.md in 23 gelokaliseerde app-ervaringen, waaronder instellingen, machtigingen, betaalmuren, fouten, toegankelijkheidslabels, widgets, Watch, toetsenbord, Share Extension en Mac.
-• Vastlegsjablonen gebruiken nu het tijdstip waarop de inhoud daadwerkelijk begon en ondersteunen de tokens {hour}, {minute} en {second}.
+• Transcribatiemodellen die al op je Mac staan, worden ter plekke gebruikt — geen dubbele kopieën meer die schijfruimte innemen.
+• Sprekerlabels blijven consistent in alle opnamestromen.
 
 Opgelost
-• Widgets gebruiken betrouwbaar de ingestelde Capture Preset en spraaktaken van Watch voegen geen dubbele transcriptiekoppen of omhulsels meer toe.
+• Opnamen worden nu altijd afgerond: tekstverwerking en spraakverrijking draaien onder strikte deadlines in plaats vast te lopen.
+• Duidelijker en consistenter Duits in de hele app.

@@ -1,13 +1,14 @@
-Ahora tus grabaciones sobreviven a interrupciones y reinicios en una cola persistente, para que las transcripciones o entregas fallidas sigan disponibles y puedas reintentarlas en lugar de perderlas.
+Vox.md para Mac ahora graba reuniones con el audio del sistema y el micrófono en pistas separadas, y en el iPhone elija el idioma de la app directamente en Ajustes.
 
 Novedades
-• Elige el procesamiento inmediato, cuando el dispositivo esté inactivo o manual de la cola; vuelve a intentar o procesa grabaciones guardadas, copia el texto terminado y comparte, muestra o elimina el audio conservado.
-• Agrega opcionalmente la ubicación a cada Capture Preset, con precisión exacta o por ciudad, campos estructurados o YAML y sin rastreo en segundo plano.
+• Grabe reuniones en Mac con una separación clara entre lo que oye y lo que dice; cada pista se conserva para la transcripción.
+• Elija el idioma de la app en Ajustes en iPhone y iPad, sin cambiar el idioma de su dispositivo.
+• Añada el nuevo token {location} a las plantillas de entrada para colocar la ubicación de captura exactamente donde quiera.
 
 Mejoras
-• Consulta porcentajes de transcripción reales y el avance por fases de la descarga de modelos, con instalación más segura, revisión de almacenamiento y prevención del reposo durante las descargas.
-• Usa Vox.md en 23 experiencias localizadas de la app, incluidos ajustes, permisos, pantallas de pago, errores, etiquetas de accesibilidad, widgets, Watch, teclado, Share Extension y Mac.
-• Las plantillas de captura ahora usan la hora en que comenzó el contenido sustancial y admiten los tokens {hour}, {minute} y {second}.
+• Los modelos de transcripción que ya están en su Mac se usan en su lugar: sin más copias duplicadas que ocupen espacio en el disco.
+• Las etiquetas de hablante se mantienen consistentes en todos los flujos de captura.
 
 Correcciones
-• Los widgets usan correctamente el Capture Preset configurado y las tareas de voz del Watch ya no agregan encabezados ni envolturas de transcripción duplicados.
+• Las capturas siempre terminan: el procesamiento de texto y el enriquecimiento de voz ahora se ejecutan con plazos estrictos en lugar de bloquearse.
+• Alemán más claro y consistente en toda la app.

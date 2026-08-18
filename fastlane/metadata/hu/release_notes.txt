@@ -1,13 +1,14 @@
-Felvételei mostantól megszakítások és újraindítások után is megmaradnak egy tartós várólistán, így a sikertelen átírások vagy kézbesítések nem tűnnek el, hanem újrapróbálhatók.
+A Macen futó Vox.md a rendszerhangot és a mikrofont külön sávként rögzíti az értekezleteken, iPhone-on pedig a Beállításokban választhatja meg az app nyelvét.
 
 Újdonságok
-• Válasszon azonnali, üresjárati vagy kézi várólista-feldolgozást; próbálja újra vagy dolgozza fel a mentett felvételeket, másolja a kész szöveget, és ossza meg, jelenítse meg vagy törölje a megtartott hangot.
-• Opcionálisan adjon minden Capture Preset elemhez pontos vagy városszintű helyet, strukturált mezőkben vagy YAML-formátumban, háttérbeli követés nélkül.
+• Rögzítsen értekezleteket a Macen a hallottak és elmondottak egyértelmű elkülönítésével — minden sáv megmarad az átíráshoz.
+• Válassza ki az app nyelvét az iPhone és iPad Beállításaiban, anélkül, hogy módosítaná a készülék nyelvét.
+• Adja hozzá az új {location} tokent a bejegyzéssablonokhoz, és a rögzítés helyét pontosan oda tegye, ahová szeretné.
 
 Továbbfejlesztések
-• Valós átírási százalékok és szakaszos modellletöltési állapot látható, biztonságosabb telepítéssel, tárhely-ellenőrzéssel és a letöltés alatti alvás megakadályozásával.
-• Használja a Vox.md 23 lokalizált alkalmazásélményét, beleértve a beállításokat, engedélyeket, fizetőfalakat, hibákat, akadálymentességi címkéket, widgeteket, Watch, billentyűzetet, Share Extension és Mac felületeket.
-• A rögzítési sablonok most a lényegi tartalom kezdetének idejét használják, és támogatják a {hour}, {minute} és {second} tokeneket.
+• A Macen már meglévő átírási modellek helyben kerülnek használatra — nincs többé lemezterületet foglaló duplikátum.
+• A beszélőcímkék minden rögzítési folyamatban következetesek maradnak.
 
 Javítások
-• A widgetek megbízhatóan a beállított Capture Preset elemet használják, a Watch hangfeladatai pedig már nem adnak hozzá ismétlődő átírási fejléceket vagy burkolóelemeket.
+• A rögzítések mindig befejeződnek: a szövegfeldolgozás és a hangdúsítás most szigorú határidővel fut, nem akad el.
+• Világosabb és következetesebb német nyelv az egész appban.

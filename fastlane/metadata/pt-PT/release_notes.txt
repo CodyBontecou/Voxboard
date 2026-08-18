@@ -1,13 +1,14 @@
-Agora as suas gravações sobrevivem a interrupções e reinícios numa fila persistente, para que transcrições ou entregas falhadas continuem disponíveis para nova tentativa em vez de desaparecerem.
+O Vox.md para Mac grava agora reuniões com o áudio do sistema e o microfone em pistas separadas, e no iPhone escolha o idioma da aplicação nas Definições.
 
 Novidades
-• Escolha o processamento imediato, em inatividade ou manual da fila; tente novamente ou processe gravações guardadas, copie o texto concluído e partilhe, revele ou elimine o áudio mantido.
-• Adicione localização opcional a cada Capture Preset, com precisão exata ou ao nível da cidade, campos estruturados ou YAML e sem seguimento em segundo plano.
+• Grave reuniões no Mac com uma separação clara entre o que ouve e o que diz — cada pista é preservada para transcrição.
+• Escolha o idioma da aplicação nas Definições do iPhone e do iPad, sem alterar o idioma do dispositivo.
+• Adicione o novo token {location} aos modelos de entrada para colocar a localização da captura exatamente onde quiser.
 
 Melhorias
-• Veja percentagens de transcrição fiáveis e o progresso faseado da descarga de modelos, com instalação mais segura, verificações de armazenamento e prevenção do repouso durante as descargas.
-• Use o Vox.md em 23 experiências localizadas da app, incluindo definições, permissões, ecrãs de pagamento, erros, etiquetas de acessibilidade, widgets, Watch, teclado, Share Extension e Mac.
-• Os modelos de captura agora usam a hora em que o conteúdo relevante começou e suportam os tokens {hour}, {minute} e {second}.
+• Os modelos de transcrição já presentes no seu Mac são utilizados no local — sem mais cópias duplicadas a ocupar espaço em disco.
+• As etiquetas de orador mantêm-se consistentes em todos os fluxos de captura.
 
 Correções
-• Os widgets usam de forma fiável o Capture Preset configurado e as tarefas de voz do Watch já não adicionam cabeçalhos ou invólucros duplicados à transcrição.
+• As capturas terminam sempre: o processamento de texto e o enriquecimento de voz agora correm com prazos rigorosos em vez de bloquear.
+• Alemão mais claro e consistente em toda a aplicação.

@@ -1,13 +1,14 @@
-Rakaman anda kini kekal selamat dalam baris gilir tahan lama walaupun terganggu atau aplikasi dilancarkan semula, supaya transkripsi atau penghantaran yang gagal boleh dicuba semula dan tidak hilang.
+Vox.md untuk Mac kini merakam mesyuarat dengan audio sistem dan mikrofon sebagai trek berasingan, dan pada iPhone anda boleh memilih bahasa aplikasi terus dalam Tetapan.
 
 Baharu
-• Pilih pemprosesan baris gilir segera, ketika melahu atau manual; cuba semula atau proses rakaman tersimpan, salin teks yang siap, serta kongsi, paparkan atau padam audio yang dikekalkan.
-• Tambahkan lokasi secara pilihan pada setiap Capture Preset dengan lokasi tepat atau lokasi pada peringkat bandar, medan berstruktur atau YAML, tanpa penjejakan latar belakang.
+• Rakam mesyuarat pada Mac dengan pemisahan jelas antara apa yang anda dengar dan apa yang anda ucap — setiap trek disimpan untuk transkripsi.
+• Pilih bahasa aplikasi dalam Tetapan pada iPhone dan iPad tanpa menukar bahasa peranti.
+• Tambah token {location} baharu pada templat entri untuk meletakkan lokasi rakaman tepat di mana anda mahu.
 
 Dipertingkat
-• Lihat peratus transkripsi yang tepat dan kemajuan muat turun model mengikut fasa, dengan pemasangan lebih selamat, semakan storan dan pencegahan tidur semasa muat turun.
-• Gunakan Vox.md dalam 23 pengalaman aplikasi disetempatkan, termasuk tetapan, kebenaran, skrin pembayaran, ralat, label kebolehcapaian, widget, Watch, papan kekunci, Share Extension dan Mac.
-• Templat tangkapan kini menggunakan masa kandungan substantif bermula dan menyokong token {hour}, {minute} dan {second}.
+• Model transkripsi yang sedia ada pada Mac anda digunakan di tempat asalnya — tiada lagi salinan pendua yang mengambil ruang cakera.
+• Label pembicara kekal konsisten merentas semua aliran rakaman.
 
 Dibaiki
-• Widget menggunakan Capture Preset yang dikonfigurasi dengan andal dan tugasan suara Watch tidak lagi menambah tajuk atau pembalut transkrip pendua.
+• Rakaman sentiasa selesai: pemprosesan teks dan pengayaan suara kini berjalan dengan tempoh ketat dan bukannya tersekat.
+• Bahasa Jerman yang lebih jelas dan konsisten di seluruh aplikasi.

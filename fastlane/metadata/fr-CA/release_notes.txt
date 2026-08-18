@@ -1,13 +1,14 @@
-Vos enregistrements résistent maintenant aux interruptions et aux relances grâce à une file d’attente durable. Les transcriptions ou livraisons échouées restent disponibles pour réessayer au lieu de disparaître.
+Vox.md pour Mac enregistre vos réunions avec l’audio système et votre micro sur des pistes séparées, et sur iPhone choisissez la langue de l’app dans Réglages.
 
 Nouveautés
-• Choisissez le traitement immédiat, en période d’inactivité ou manuel de la file; réessayez ou traitez les enregistrements sauvegardés, copiez le texte terminé, puis partagez, affichez ou supprimez l’audio conservé.
-• Ajoutez facultativement la localisation à chaque Capture Preset, avec une précision exacte ou au niveau de la ville, des champs structurés ou YAML, sans suivi en arrière-plan.
+• Enregistrez vos réunions sur Mac avec une séparation nette entre ce que vous entendez et ce que vous dites : chaque piste est conservée pour la transcription.
+• Choisissez la langue de l’app dans Réglages sur iPhone et iPad, sans changer la langue de votre appareil.
+• Ajoutez le nouveau jeton {location} aux modèles d’entrée pour placer le lieu de capture exactement où vous le souhaitez.
 
 Améliorations
-• Voyez des pourcentages de transcription fiables et la progression par étapes du téléchargement des modèles, avec installation plus sûre, vérification du stockage et prévention de la mise en veille.
-• Utilisez Vox.md dans 23 expériences localisées de l’app, notamment les réglages, autorisations, écrans payants, erreurs, étiquettes d’accessibilité, widgets, Watch, clavier, Share Extension et Mac.
-• Les modèles de capture utilisent maintenant l’heure de début du contenu substantiel et prennent en charge les jetons {hour}, {minute} et {second}.
+• Les modèles de transcription déjà présents sur votre Mac sont utilisés sur place : fini les copies en double qui occupent de l’espace disque.
+• Les étiquettes de locuteur restent cohérentes dans tous les flux de capture.
 
 Corrections
-• Les widgets utilisent correctement leur Capture Preset configuré et les tâches vocales Watch n’ajoutent plus d’en-têtes ni d’enveloppes de transcription en double.
+• Les captures se terminent toujours : le traitement du texte et l’enrichissement vocal s’exécutent désormais sous des délais stricts au lieu de se bloquer.
+• Un allemand plus clair et plus cohérent dans toute l’app.

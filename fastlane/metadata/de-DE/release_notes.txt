@@ -1,13 +1,14 @@
-Ihre Aufnahmen überstehen jetzt Unterbrechungen und Neustarts in einer dauerhaften Warteschlange. Fehlgeschlagene Transkriptionen oder Zustellungen bleiben so für einen erneuten Versuch verfügbar, statt zu verschwinden.
+Vox.md für Mac zeichnet Meetings jetzt mit Systemaudio und Mikrofon als getrennte Spuren auf, und auf dem iPhone wählen Sie die App-Sprache direkt in den Einstellungen.
 
 Neu
-• Wählen Sie die sofortige, automatische Verarbeitung bei Inaktivität oder die manuelle Verarbeitung der Warteschlange; versuchen Sie gespeicherte Aufnahmen erneut oder verarbeiten Sie sie, kopieren Sie fertigen Text und teilen Sie aufbewahrte Audiodateien, zeigen Sie sie in „Dateien“ an oder löschen Sie sie.
-• Ergänzen Sie jedes Capture Preset optional um einen Standort mit exakter oder auf Stadtebene begrenzter Genauigkeit, in strukturierten Feldern oder YAML und ohne Standortverfolgung im Hintergrund.
+• Nehmen Sie Meetings auf dem Mac auf – klar getrennt zwischen dem, was Sie hören, und dem, was Sie sagen; jede Spur bleibt für die Transkription erhalten.
+• Wählen Sie die App-Sprache in den Einstellungen auf iPhone und iPad, ohne die Gerätesprache zu ändern.
+• Ergänzen Sie Eintragsvorlagen um das neue Token {location}, um den Aufnahmeort exakt dort zu platzieren, wo Sie ihn möchten.
 
 Verbessert
-• Sehen Sie verlässliche Transkriptionsprozente und phasenweisen Modell-Downloadfortschritt – mit sichererer Installation, Speicherprüfung und Ruhezustandssperre während Downloads.
-• Nutzen Sie Vox.md in 23 lokalisierten App-Bereichen, darunter Einstellungen, Berechtigungen, Bezahlschranken, Fehler, Bedienungshilfen-Beschriftungen, Widgets, Watch, Tastatur, Share Extension und Mac.
-• Capture-Vorlagen verwenden jetzt den Zeitpunkt, an dem der wesentliche Inhalt begann, und unterstützen die Token {hour}, {minute} und {second}.
+• Transkriptionsmodelle, die bereits auf Ihrem Mac vorhanden sind, werden direkt an Ort und Stelle verwendet – keine doppelten Kopien mehr, die Speicherplatz belegen.
+• Sprecherbezeichnungen bleiben in allen Aufnahmeabläufen konsistent.
 
 Behoben
-• Widgets verwenden zuverlässig den konfigurierten Capture Preset, und Watch-Sprachaufgaben fügen keine doppelten Transkriptüberschriften oder -rahmen mehr hinzu.
+• Erfassungen schließen jetzt immer ab: Textverarbeitung und Sprachanreicherung laufen unter strikten Fristen, statt hängen zu bleiben.
+• Klareres, konsistenteres Deutsch in der gesamten App.
