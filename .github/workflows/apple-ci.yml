@@ -110,6 +110,24 @@ jobs:
             CODE_SIGN_IDENTITY='' \
             DEVELOPMENT_TEAM='' \
             2>&1 | tee build/logs/ios-tests.log
+      - name: Collect simulator crash reports
+        if: ${{ !cancelled() }}
+        run: |
+          mkdir -p build/logs/crash-reports
+          # Simulator host-app crashes land in the runner's DiagnosticReports.
+          # Capturing them (with symbolication via the .dSYM in DerivedData)
+          # turns the next malloc-abort flake into a readable backtrace (#22).
+          found=0
+          for dir in "$HOME/Library/Logs/DiagnosticReports" \
+                     "$RUNNER_TEMP/Voxboard-iOS-Tests/Logs/DiagnosticReports"; do
+            [ -d "$dir" ] || continue
+            while IFS= read -r -d '' ips; do
+              if [ "$(basename "$ips")" != "Retired" ] && find "$ips" -newermt '2 hours ago' | grep -q .; then
+                cp "$ips" build/logs/crash-reports/ && found=1
+              fi
+            done < <(find "$dir" -name '*.ips' -print0 2>/dev/null)
+          done
+          echo "crash-reports-collected=$found" >> "$GITHUB_OUTPUT"
       - name: Upload iOS diagnostics
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
@@ -117,6 +135,7 @@ jobs:
           name: voxboard-ios-test-diagnostics
           path: |
             build/logs/ios-tests.log
+            build/logs/crash-reports
             build/test-results/Voxboard-iOS.xcresult
           retention-days: 14
 
