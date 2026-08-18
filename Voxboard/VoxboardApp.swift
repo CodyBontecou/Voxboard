@@ -36,6 +36,9 @@ struct VoxboardApp: App {
         // override and the app's standard defaults (e.g. after an update).
         AppLanguagePreference.applyAtLaunch()
 
+        // BGTaskScheduler registration must complete before launch finishes.
+        CaptureInboxBackgroundDrain.register()
+
         if #available(iOS 18.0, *) {
             VoxboardShortcutsProvider.updateAppShortcutParameters()
         }
@@ -291,6 +294,11 @@ struct VoxboardApp: App {
                    !persistentRecorder.isListening {
                     persistentRecorder.startListening()
                 }
+            } else if phase == .background {
+                // Queue a capture-inbox drain so undelivered captures retry
+                // while the app is backgrounded instead of waiting for the
+                // next foreground (#11).
+                CaptureInboxBackgroundDrain.schedule()
             }
         }
     }

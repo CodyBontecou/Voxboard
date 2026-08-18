@@ -24,6 +24,11 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
+		<string>processing</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.bontecou.Voxboard.captureInboxDrain</string>
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Vox.md uses the microphone when you choose to transcribe speech or attach a voice recording to a local Markdown note.</string>

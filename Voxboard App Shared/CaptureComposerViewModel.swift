@@ -1338,44 +1338,27 @@ final class QuickCaptureViewModel {
     func processPendingInbox() async {
         guard let captureRootURL else { return }
         let inbox = CaptureInbox(rootDirectoryURL: captureRootURL)
-        do {
-            _ = try await inbox.recoverStaleProcessing(olderThan: 5 * 60)
-            try await recoverOrphanedInboxRequests(in: inbox)
-            _ = try await inbox.purgeCompleted(olderThan: 7 * 24 * 60 * 60)
-            _ = try await inbox.purgeOrphanedStaging(olderThan: 24 * 60 * 60)
-            _ = try await CaptureRecordingOriginStore(rootDirectoryURL: captureRootURL)
-                .purge(olderThan: 24 * 60 * 60)
-            var latestFailure: Error?
-            var blockedRequestIDs = Set<UUID>()
-            while let request = try await inbox.claimNext(
-                excludingRequestIDs: blockedRequestIDs
-            ) {
-                do {
-                    try await processClaimedInboxRequest(request, inbox: inbox)
-                } catch let error as CaptureDeliveryQuotaError {
-                    if case .limitReached = error {
-                        needsCaptureUnlock = true
-                    }
-                    // Keep this request pending, skip it for this drain, and
-                    // continue so a later metered-voice request is not starved.
-                    blockedRequestIDs.insert(request.id)
-                    continue
-                } catch CapturePipelineError.locationDecisionRequired {
-                    blockedRequestIDs.insert(request.id)
-                    continue
-                } catch {
-                    latestFailure = error
-                    // One broken destination must not block unrelated shared captures.
-                    continue
-                }
-            }
-            failedInboxCount = try await inbox.requestIDs(in: .failed).count
-            if let latestFailure {
-                errorMessage = String(localized: "A shared capture could not be delivered and is queued for retry. \(latestFailure.localizedDescription)")
-            }
-        } catch {
-            errorMessage = error.localizedDescription
-            failedInboxCount = (try? await inbox.requestIDs(in: .failed).count) ?? failedInboxCount
+        let result = await CaptureInboxDeliveryService.drain(
+            captureRootURL: captureRootURL,
+            defaults: AppConstants.sharedDefaults,
+            pipeline: pipeline,
+            requestProcessor: requestProcessor
+        )
+        if !result.quotaBlockedRequestIDs.isEmpty {
+            needsCaptureUnlock = true
+        }
+        if let decision = result.decisionsRequired.first {
+            inboxLocationDecision = CaptureInboxLocationDecision(
+                requestID: decision.requestID,
+                reason: decision.reason,
+                source: decision.source,
+                presetID: decision.presetID,
+                presetName: decision.presetName
+            )
+        }
+        failedInboxCount = (try? await inbox.requestIDs(in: .failed).count) ?? failedInboxCount
+        if let detail = result.latestFailureDescription ?? result.setupError {
+            errorMessage = String(localized: "A shared capture could not be delivered and is queued for retry. \(detail)")
         }
     }
 
