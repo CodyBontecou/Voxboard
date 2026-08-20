@@ -76,6 +76,28 @@ struct CaptureRoutePickerView: View {
                                 .textSelection(.enabled)
                         }
                     }
+
+                    if let locationHint = viewModel.entryLocationTokenHint {
+                        Section {
+                            Label(
+                                String(localized: "This entry formatting uses {location}, but \(locationHint.presetDisplayName) doesn’t attach location. The token will render empty."),
+                                systemImage: "location.slash"
+                            )
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            Button {
+                                Task { await viewModel.enableEntryLocationTokenForPreset() }
+                            } label: {
+                                Label(
+                                    String(localized: "Add Current Location to \(locationHint.presetDisplayName)"),
+                                    systemImage: "mappin.and.ellipse"
+                                )
+                            }
+                            .accessibilityIdentifier("capture_entry_location_token_enable")
+                        } footer: {
+                            Text("Turning this on asks for location permission the first time, then captures location when you send with this Preset.")
+                        }
+                    }
                 } else {
                     Section {
                         VStack(spacing: 14) {

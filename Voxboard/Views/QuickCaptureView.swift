@@ -1004,6 +1004,7 @@ struct QuickCaptureView: View {
                 GeistDivider()
             }
             routeSelectionRow
+            entryLocationTokenHintSection
             GeistDivider()
             captureActionBar
             GeistDivider()
@@ -1232,6 +1233,54 @@ struct QuickCaptureView: View {
                 ? "capture_finding_preset_location"
                 : "capture_active_preset_location"
         )
+    }
+
+    /// Keeps the optional hint behind a concrete type-erasure boundary. This
+    /// view is embedded in an already-large SwiftUI tree; adding another
+    /// `_ConditionalContent` layer caused on-device Swift metadata recursion
+    /// during launch in Debug builds.
+    private var entryLocationTokenHintSection: AnyView {
+        guard let hint = viewModel.entryLocationTokenHint else {
+            return AnyView(EmptyView())
+        }
+        return AnyView(
+            VStack(spacing: 0) {
+                entryLocationTokenHintBar(hint)
+                GeistDivider()
+            }
+        )
+    }
+
+    /// Non-blocking hint shown when the resolved entry formatting uses the
+    /// `{location}` token but the delivering Capture Preset has location off.
+    /// One tap enables the preset's location capture instead of sending a
+    /// capture whose token silently renders empty.
+    private func entryLocationTokenHintBar(
+        _ hint: QuickCaptureViewModel.EntryLocationTokenHint
+    ) -> some View {
+        HStack(spacing: Geist.Spacing.two) {
+            Label(
+                String(localized: "{location} will render empty — this Preset doesn’t attach location"),
+                systemImage: "location.slash"
+            )
+            .font(Geist.caption())
+            .foregroundStyle(Geist.muted)
+            .lineLimit(2)
+            Spacer(minLength: 4)
+            Button(String(localized: "Add Current Location")) {
+                Task { await viewModel.enableEntryLocationTokenForPreset() }
+            }
+            .font(Geist.caption())
+            .buttonStyle(.borderless)
+            .accessibilityLabel(
+                String(localized: "Add Current Location to \(hint.presetDisplayName)")
+            )
+        }
+        .padding(.horizontal, Geist.Spacing.three)
+        .frame(minHeight: Geist.ControlHeight.small)
+        .background(Geist.Palette.background200)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("capture_entry_location_token_hint")
     }
 
     private var routeSelectionRow: some View {

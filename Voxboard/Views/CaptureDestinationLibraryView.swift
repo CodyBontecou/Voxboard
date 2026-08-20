@@ -347,6 +347,9 @@ struct CaptureDestinationEditorView: View {
                     Text("Vox.md reads this file from your vault for every capture, so edits made in Obsidian apply automatically.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    Text("Vault templates support the same tokens, including {location}, which follows the delivering Capture Preset's location setting.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 } else {
                     Button("Choose Template from Vault…") {
                         isChoosingMarkdownTemplate = true
@@ -386,6 +389,12 @@ struct CaptureDestinationEditorView: View {
                     Text("Multiline Markdown and YAML frontmatter are supported. Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, {location}.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    if let locationSample = CaptureEntryLocationTokenSupport.renderedSample(
+                        prefix: entryPrefix,
+                        suffix: entrySuffix
+                    ) {
+                        CaptureEntryLocationTokenPreview(sample: locationSample)
+                    }
                 }
                 TextField("Attachments Folder", text: $attachmentsFolderName)
                     .textInputAutocapitalization(.never)
@@ -751,6 +760,16 @@ struct CaptureEntryTemplateEditorView: View {
                 Text("Template")
             } footer: {
                 Text("Use multiline Markdown or a leading --- YAML frontmatter block. Available tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, {location}.")
+            }
+            if let locationSample = CaptureEntryLocationTokenSupport.renderedSample(
+                prefix: entryPrefix,
+                suffix: entrySuffix
+            ) {
+                Section {
+                    CaptureEntryLocationTokenPreview(sample: locationSample)
+                } header: {
+                    Text("{location} token")
+                }
             }
             if let errorMessage {
                 Section("Error") { Text(errorMessage).foregroundStyle(.red) }

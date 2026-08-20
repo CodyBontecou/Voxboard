@@ -2,6 +2,15 @@ import XCTest
 @testable import VoxboardCaptureCore
 
 final class CaptureEntryTemplateRendererTests: XCTestCase {
+    func test_locationTokenSpellingAndDetectionStayAligned() {
+        XCTAssertEqual(CaptureEntryTemplateRenderer.locationToken, "{location}")
+        XCTAssertTrue(CaptureEntryTemplateRenderer.referencesLocation(in: "📍 {location}"))
+        XCTAssertTrue(CaptureEntryTemplateRenderer.referencesLocation(in: "{date} {location} {time}"))
+        XCTAssertFalse(CaptureEntryTemplateRenderer.referencesLocation(in: "{date} {time}"))
+        XCTAssertFalse(CaptureEntryTemplateRenderer.referencesLocation(in: "Loc:{location-ish}"))
+        XCTAssertFalse(CaptureEntryTemplateRenderer.referencesLocation(in: ""))
+    }
+
     func test_rendersLocalDateTimeSourceAndRequestTokens() {
         var calendar = Calendar(identifier: .gregorian)
         calendar.locale = Locale(identifier: "en_US_POSIX")

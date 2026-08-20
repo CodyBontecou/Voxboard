@@ -653,6 +653,28 @@ public enum CapturePresetStore {
         }
     }
 
+    /// Enables or disables origin-time location capture on one preset. Used by
+    /// capture surfaces that discover a `{location}` entry token whose value
+    /// depends on this opt-in, so the fix is one tap instead of a settings
+    /// hunt through the preset editor.
+    public static func setLocationEnabled(
+        _ enabled: Bool,
+        presetID: String,
+        defaults: UserDefaults? = AppConstants.sharedDefaults
+    ) {
+        guard let defaults else { return }
+        withPresetWriteLock(at: presetWriteLockURL) {
+            var flows = loadFlows(defaults: defaults, persistMigrations: false)
+            guard let index = flows.firstIndex(where: { $0.id == presetID }) else { return }
+            guard flows[index].locationPolicy.isEnabled != enabled else { return }
+            flows[index].locationPolicy.isEnabled = enabled
+            saveFlowsWithoutLock(
+                preservingMigratedRouteOwnership(in: flows, defaults: defaults),
+                defaults: defaults
+            )
+        }
+    }
+
     public static func saveFlows(
         _ flows: [CapturePreset],
         defaults: UserDefaults? = AppConstants.sharedDefaults

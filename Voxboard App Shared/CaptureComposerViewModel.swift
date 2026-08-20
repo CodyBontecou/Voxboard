@@ -143,6 +143,45 @@ final class QuickCaptureViewModel {
             && draft.hasCaptureContent
     }
 
+    struct EntryLocationTokenHint: Equatable {
+        let presetDisplayName: String
+    }
+
+    /// Non-blocking hint state: the resolved entry formatting references the
+    /// `{location}` token, but the preset that will deliver this capture has
+    /// location metadata disabled, so the token would render empty.
+    var entryLocationTokenHint: EntryLocationTokenHint? {
+        let profile = draft.voxProfileSnapshot ?? selectedVoxProfile
+        guard let profile,
+              CaptureEntryLocationTokenSupport.needsPresetOptIn(
+                library: CaptureLibraryEnvelope(
+                    destinations: destinations,
+                    defaultDestinationID: defaultDestinationID,
+                    entryTemplates: entryTemplates
+                ),
+                destinationID: effectiveDestinationID,
+                oneOffTemplateID: draft.entryTemplateID,
+                preset: profile
+              ) else { return nil }
+        return EntryLocationTokenHint(presetDisplayName: profile.displayName)
+    }
+
+    /// One-tap fix for `entryLocationTokenHint`: turns on origin-time location
+    /// capture for the delivering preset and refreshes composer routing. A
+    /// journaled preset snapshot without a location outcome is updated too, so
+    /// the very next Send resolves a location instead of silently collapsing
+    /// the token.
+    func enableEntryLocationTokenForPreset() async {
+        let profile = draft.voxProfileSnapshot ?? selectedVoxProfile
+        guard let presetID = profile?.id else { return }
+        CapturePresetStore.setLocationEnabled(true, presetID: presetID)
+        refreshVoxProfiles()
+        if draft.voxProfileSnapshot?.id == presetID, draft.locationOutcome == nil {
+            draft.voxProfileSnapshot?.locationPolicy.isEnabled = true
+            await saveDraftNow()
+        }
+    }
+
     func load() async {
         if hasLoaded { return }
         if let initialLoadTask {

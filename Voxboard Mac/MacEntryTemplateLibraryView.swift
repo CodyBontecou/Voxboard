@@ -171,6 +171,12 @@ private struct MacEntryTemplateEditor: View {
                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(Geist.border))
             Text("Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, and {location}.")
                 .font(Geist.caption()).foregroundStyle(Geist.muted)
+            if let locationSample = CaptureEntryLocationTokenSupport.renderedSample(
+                prefix: prefix,
+                suffix: suffix
+            ) {
+                CaptureEntryLocationTokenPreview(sample: locationSample)
+            }
             if let errorMessage {
                 Text(errorMessage).font(Geist.caption()).foregroundStyle(Geist.error)
             }

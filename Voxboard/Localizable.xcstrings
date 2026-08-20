@@ -9525,6 +9525,16 @@
         }
       }
     },
+    "Add Current Location to %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Current Location to %@"
+          }
+        }
+      }
+    },
     "Add Destination": {
       "localizations": {
         "ar": {
@@ -170029,6 +170039,16 @@
         }
       }
     },
+    "The {location} token inserts this map link only when the Capture Preset delivering the capture has Add Current Location enabled. Otherwise it renders empty.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The {location} token inserts this map link only when the Capture Preset delivering the capture has Add Current Location enabled. Otherwise it renders empty."
+          }
+        }
+      }
+    },
     "Theodore Roosevelt": {
       "localizations": {
         "ar": {
@@ -171729,6 +171749,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "此目的地將與可重複使用的模板保持鏈接。選擇自定義以編輯私人快照。"
+          }
+        }
+      }
+    },
+    "This entry formatting uses {location}, but %@ doesn’t attach location. The token will render empty.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry formatting uses {location}, but %@ doesn’t attach location. The token will render empty."
           }
         }
       }
@@ -179397,6 +179427,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "轉向鍵盤聽力"
+          }
+        }
+      }
+    },
+    "Turning this on asks for location permission the first time, then captures location when you send with this Preset.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turning this on asks for location permission the first time, then captures location when you send with this Preset."
           }
         }
       }
@@ -190212,6 +190252,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "瓦爾特寺廟"
+          }
+        }
+      }
+    },
+    "Vault templates support the same tokens, including {location}, which follows the delivering Capture Preset's location setting.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault templates support the same tokens, including {location}, which follows the delivering Capture Preset's location setting."
           }
         }
       }
@@ -208003,6 +208053,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "底下 %@"
+          }
+        }
+      }
+    },
+    "{location} token": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} token"
+          }
+        }
+      }
+    },
+    "{location} will render empty — this Preset doesn’t attach location": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} will render empty — this Preset doesn’t attach location"
           }
         }
       }

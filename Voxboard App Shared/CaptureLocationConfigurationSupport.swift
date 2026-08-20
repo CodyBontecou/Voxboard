@@ -10,6 +10,28 @@ struct CaptureLocationConfigurationPreviewError: Error {
 
 enum CaptureLocationConfigurationPreview {
     static let sampleRequestID = UUID(uuidString: "12345678-1234-1234-1234-1234567890ab")!
+    static let sampleTimestamp = Date(timeIntervalSince1970: 1_735_689_600)
+
+    /// Deterministic snapshot used by every configuration and token preview.
+    static func makeSampleSnapshot(
+        source: CaptureSource,
+        precision: CaptureLocationPrecision
+    ) -> CaptureLocationSnapshot {
+        CaptureLocationSnapshot(
+            latitude: 37.774929,
+            longitude: -122.419416,
+            horizontalAccuracy: 8.5,
+            timestamp: sampleTimestamp,
+            source: source,
+            precision: precision,
+            label: CaptureLocationLabel(
+                place: "Civic Center",
+                city: "San Francisco",
+                region: "California",
+                country: "United States"
+            )
+        )
+    }
 
     static func result(
         profile: CapturePresetProfile,
@@ -30,20 +52,7 @@ enum CaptureLocationConfigurationPreview {
         profile: CapturePresetProfile,
         source: CaptureSource
     ) throws -> String {
-        let snapshot = CaptureLocationSnapshot(
-            latitude: 37.774929,
-            longitude: -122.419416,
-            horizontalAccuracy: 8.5,
-            timestamp: Date(timeIntervalSince1970: 1_735_689_600),
-            source: source,
-            precision: profile.locationPolicy.precision,
-            label: CaptureLocationLabel(
-                place: "Civic Center",
-                city: "San Francisco",
-                region: "California",
-                country: "United States"
-            )
-        )
+        let snapshot = makeSampleSnapshot(source: source, precision: profile.locationPolicy.precision)
         let request = CaptureRequest(
             id: sampleRequestID,
             source: source,

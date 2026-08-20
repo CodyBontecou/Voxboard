@@ -143,6 +143,9 @@ struct MacCaptureDestinationEditor: View {
                         Text("Vox.md reads this file from your vault for every capture, so edits made in Obsidian apply automatically.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                        Text("Vault templates support the same tokens, including {location}, which follows the delivering Capture Preset's location setting.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     } else {
                         Button("Choose Template from Vault…") { chooseMarkdownTemplate() }
                             .disabled(rootBookmark.isEmpty)
@@ -160,6 +163,12 @@ struct MacCaptureDestinationEditor: View {
                         TextEditor(text: $prefix).frame(minHeight: 80).disabled(templateID != nil)
                         Text("Suffix").font(.caption).foregroundStyle(.secondary)
                         TextEditor(text: $suffix).frame(minHeight: 60).disabled(templateID != nil)
+                        if let locationSample = CaptureEntryLocationTokenSupport.renderedSample(
+                            prefix: prefix,
+                            suffix: suffix
+                        ) {
+                            CaptureEntryLocationTokenPreview(sample: locationSample)
+                        }
                     }
                     Text("Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, and {location}.")
                         .font(.caption)
