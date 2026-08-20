@@ -1,4 +1,6 @@
+import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 import VoxboardShared
 
 struct MacEntryTemplateLibraryView: View {
@@ -16,8 +18,13 @@ struct MacEntryTemplateLibraryView: View {
                         .font(Geist.caption()).foregroundStyle(Geist.muted)
                 }
                 Spacer()
-                Button("Add Template", systemImage: "plus") { isAdding = true }
-                    .buttonStyle(.borderedProminent)
+                HStack(spacing: Geist.Spacing.two) {
+                    Button("Import Markdown", systemImage: "square.and.arrow.down") {
+                        importTemplate()
+                    }
+                    Button("Add Template", systemImage: "plus") { isAdding = true }
+                        .buttonStyle(.borderedProminent)
+                }
             }
             .padding(Geist.Spacing.four)
             GeistDivider()
@@ -67,6 +74,56 @@ struct MacEntryTemplateLibraryView: View {
         .sheet(item: $templateToEdit) { template in
             MacEntryTemplateEditor(existing: template, onSave: save)
         }
+    }
+
+    private func importTemplate() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText]
+        panel.prompt = String(localized: "Import")
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        do {
+            templateToEdit = try importedTemplate(from: url)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func importedTemplate(from url: URL) throws -> CaptureEntryTemplate {
+        let didAccess = url.startAccessingSecurityScopedResource()
+        defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
+
+        let path = url.lastPathComponent
+        guard url.pathExtension.lowercased() == "md" else {
+            throw CaptureVaultMarkdownTemplateError.markdownFileRequired(path)
+        }
+        let data = try Data(contentsOf: url)
+        let characterLimit = CaptureInputLimits.maximumTextCharacters
+        guard data.count <= characterLimit * 4 else {
+            throw CaptureVaultMarkdownTemplateError.templateTooLarge(
+                path: path,
+                limit: characterLimit
+            )
+        }
+        guard let contents = String(data: data, encoding: .utf8) else {
+            throw CaptureVaultMarkdownTemplateError.invalidUTF8(path)
+        }
+        guard contents.count <= characterLimit else {
+            throw CaptureVaultMarkdownTemplateError.templateTooLarge(
+                path: path,
+                limit: characterLimit
+            )
+        }
+
+        let name = url.deletingPathExtension().lastPathComponent
+        return CaptureEntryTemplate(
+            name: name.isEmpty ? String(localized: "Imported Template") : name,
+            entryPrefix: contents
+        )
     }
 
     private func templateSummary(_ template: CaptureEntryTemplate) -> String {

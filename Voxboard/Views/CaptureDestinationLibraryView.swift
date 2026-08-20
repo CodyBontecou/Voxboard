@@ -6,6 +6,7 @@ struct CaptureEntryTemplateLibraryView: View {
     @State private var templates: [CaptureEntryTemplate] = []
     @State private var templateToEdit: CaptureEntryTemplate?
     @State private var isAdding = false
+    @State private var isImporting = false
     @State private var errorMessage: String?
 
     var body: some View {
@@ -45,6 +46,11 @@ struct CaptureEntryTemplateLibraryView: View {
                 } label: {
                     Label("Add Entry Template", systemImage: "doc.badge.plus")
                 }
+                Button {
+                    isImporting = true
+                } label: {
+                    Label("Import Markdown Template", systemImage: "square.and.arrow.down")
+                }
             } footer: {
                 Text("Templates can contain multiline Markdown or YAML frontmatter. Tokens include {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {source}, {id8}, and {location}.")
             }
@@ -71,6 +77,52 @@ struct CaptureEntryTemplateLibraryView: View {
                 }
             }
         }
+        .fileImporter(
+            isPresented: $isImporting,
+            allowedContentTypes: [.init(filenameExtension: "md") ?? .plainText],
+            allowsMultipleSelection: false
+        ) { result in
+            guard case .success(let urls) = result, let url = urls.first else { return }
+            do {
+                templateToEdit = try importedTemplate(from: url)
+                errorMessage = nil
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func importedTemplate(from url: URL) throws -> CaptureEntryTemplate {
+        let didAccess = url.startAccessingSecurityScopedResource()
+        defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
+
+        let path = url.lastPathComponent
+        guard url.pathExtension.lowercased() == "md" else {
+            throw CaptureVaultMarkdownTemplateError.markdownFileRequired(path)
+        }
+        let data = try Data(contentsOf: url)
+        let characterLimit = CaptureInputLimits.maximumTextCharacters
+        guard data.count <= characterLimit * 4 else {
+            throw CaptureVaultMarkdownTemplateError.templateTooLarge(
+                path: path,
+                limit: characterLimit
+            )
+        }
+        guard let contents = String(data: data, encoding: .utf8) else {
+            throw CaptureVaultMarkdownTemplateError.invalidUTF8(path)
+        }
+        guard contents.count <= characterLimit else {
+            throw CaptureVaultMarkdownTemplateError.templateTooLarge(
+                path: path,
+                limit: characterLimit
+            )
+        }
+
+        let name = url.deletingPathExtension().lastPathComponent
+        return CaptureEntryTemplate(
+            name: name.isEmpty ? String(localized: "Imported Template") : name,
+            entryPrefix: contents
+        )
     }
 
     private func store() throws -> CaptureLibraryStore {
