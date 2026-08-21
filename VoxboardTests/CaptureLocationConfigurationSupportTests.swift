@@ -15,6 +15,16 @@ final class CaptureLocationConfigurationSupportTests: XCTestCase {
         XCTAssertTrue(preview.contains("location.capture_city:: \"San Francisco\""))
     }
 
+    func testTokenOnlyProfileHasNoMetadataPreview() throws {
+        var profile = makeProfile(scope: .document)
+        profile.locationPolicy.metadataOutputEnabled = false
+
+        XCTAssertEqual(
+            try CaptureLocationConfigurationPreview.render(profile: profile, source: .app),
+            ""
+        )
+    }
+
     func testDocumentPreviewSurfacesStaticFrontmatterCollectionCollision() {
         var profile = makeProfile(scope: .document)
         profile.staticFrontmatter = ["locations": "already-used"]

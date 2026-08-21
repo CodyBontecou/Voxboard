@@ -1260,20 +1260,20 @@ struct QuickCaptureView: View {
     ) -> some View {
         HStack(spacing: Geist.Spacing.two) {
             Label(
-                String(localized: "{location} will render empty — this Preset doesn’t attach location"),
+                String(localized: "{location} needs Current Location for this Preset"),
                 systemImage: "location.slash"
             )
             .font(Geist.caption())
             .foregroundStyle(Geist.muted)
             .lineLimit(2)
             Spacer(minLength: 4)
-            Button(String(localized: "Add Current Location")) {
+            Button(String(localized: "Use Current Location")) {
                 Task { await viewModel.enableEntryLocationTokenForPreset() }
             }
             .font(Geist.caption())
             .buttonStyle(.borderless)
             .accessibilityLabel(
-                String(localized: "Add Current Location to \(hint.presetDisplayName)")
+                String(localized: "Use Current Location for \(hint.presetDisplayName)")
             )
         }
         .padding(.horizontal, Geist.Spacing.three)

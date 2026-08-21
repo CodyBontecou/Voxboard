@@ -101,7 +101,13 @@ public struct CapturePresetLocationPolicy: Codable, Equatable, Sendable {
         .coordinates, .place, .appleMapsURL, .timestamp, .source, .id,
     ]
 
+    /// Whether this preset acquires one origin-time location. This powers
+    /// `{location}` entry formatting independently of metadata output.
     public var isEnabled: Bool
+    /// Whether the acquired snapshot is also written as structured or advanced
+    /// metadata. Existing encoded enabled policies retain this output;
+    /// disabled and brand-new policies start false.
+    public var metadataOutputEnabled: Bool
     public var precision: CaptureLocationPrecision
     public var unavailableBehavior: CaptureLocationUnavailableBehavior
     public var outputMode: CaptureLocationOutputMode
@@ -111,6 +117,7 @@ public struct CapturePresetLocationPolicy: Codable, Equatable, Sendable {
 
     public init(
         isEnabled: Bool = false,
+        metadataOutputEnabled: Bool? = nil,
         precision: CaptureLocationPrecision = .exact,
         unavailableBehavior: CaptureLocationUnavailableBehavior = .ask,
         outputMode: CaptureLocationOutputMode = .structured,
@@ -119,6 +126,9 @@ public struct CapturePresetLocationPolicy: Codable, Equatable, Sendable {
         advancedTemplate: String = ""
     ) {
         self.isEnabled = isEnabled
+        // Explicitly constructed enabled policies historically implied
+        // metadata output. Default disabled policies remain metadata-free.
+        self.metadataOutputEnabled = metadataOutputEnabled ?? isEnabled
         self.precision = precision
         self.unavailableBehavior = unavailableBehavior
         self.outputMode = outputMode
@@ -131,7 +141,7 @@ public struct CapturePresetLocationPolicy: Codable, Equatable, Sendable {
     /// this on the pure Capture model lets lightweight clients (including the
     /// Watch app) apply the same label boundary without duplicating policy.
     public var requiresLabels: Bool {
-        guard isEnabled else { return false }
+        guard isEnabled, metadataOutputEnabled else { return false }
         switch outputMode {
         case .structured:
             return structuredFields.contains {
@@ -149,6 +159,7 @@ public struct CapturePresetLocationPolicy: Codable, Equatable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case isEnabled
+        case metadataOutputEnabled
         case precision
         case unavailableBehavior
         case outputMode
@@ -159,8 +170,16 @@ public struct CapturePresetLocationPolicy: Codable, Equatable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        let isEnabled = try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? false
         self.init(
-            isEnabled: try container.decodeIfPresent(Bool.self, forKey: .isEnabled) ?? false,
+            isEnabled: isEnabled,
+            // Before this field existed, an enabled location policy always
+            // wrote metadata. Preserve active behavior without turning on a
+            // new output for presets whose location policy was off.
+            metadataOutputEnabled: try container.decodeIfPresent(
+                Bool.self,
+                forKey: .metadataOutputEnabled
+            ) ?? isEnabled,
             precision: try container.decodeIfPresent(CaptureLocationPrecision.self, forKey: .precision) ?? .exact,
             unavailableBehavior: try container.decodeIfPresent(
                 CaptureLocationUnavailableBehavior.self,
@@ -845,7 +864,7 @@ public struct CaptureLocationMetadataRenderer: Sendable {
     public func render(request: CaptureRequest) throws -> CaptureLocationRenderedMetadata? {
         guard let profile = request.voxProfile else { return nil }
         let policy = profile.locationPolicy
-        guard policy.isEnabled else { return nil }
+        guard policy.isEnabled, policy.metadataOutputEnabled else { return nil }
         if policy.outputMode == .advancedTemplate, profile.metadataScope == .entry {
             throw CaptureLocationMetadataError.advancedTemplateRequiresDocumentScope
         }

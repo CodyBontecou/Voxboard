@@ -3,10 +3,9 @@ import SwiftUI
 import VoxboardShared
 
 /// Shared support for the `{location}` entry template token. The token renders
-/// a map link only when the delivering Capture Preset attaches location
-/// metadata; otherwise it collapses to an empty string. These helpers surface
-/// that dependency in editors and in the capture composer instead of letting
-/// the token fail silently.
+/// a map link when the delivering Capture Preset uses Current Location,
+/// independently of metadata output. These helpers surface that dependency in
+/// editors and in the capture composer instead of letting it fail silently.
 enum CaptureEntryLocationTokenSupport {
     /// True when either entry formatting field references `{location}`.
     static func referencesLocation(prefix: String, suffix: String) -> Bool {
@@ -15,7 +14,7 @@ enum CaptureEntryLocationTokenSupport {
     }
 
     /// True when a capture's effective entry formatting references `{location}`
-    /// while the preset that will deliver it has location metadata disabled.
+    /// while the preset that will deliver it has Current Location disabled.
     /// Mirrors the delivery-time template resolution exactly: the one-capture
     /// template override outranks the preset's template, and vault Markdown
     /// templates replace inline prefix/suffix entirely.
@@ -92,7 +91,7 @@ struct CaptureEntryLocationTokenPreview: View {
                 .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
-            Text("The {location} token inserts this map link only when the Capture Preset delivering the capture has Add Current Location enabled. Otherwise it renders empty.")
+            Text("The {location} token inserts this map link only when the Capture Preset delivering the capture uses Current Location. Location metadata is optional.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

@@ -149,7 +149,7 @@ final class QuickCaptureViewModel {
 
     /// Non-blocking hint state: the resolved entry formatting references the
     /// `{location}` token, but the preset that will deliver this capture has
-    /// location metadata disabled, so the token would render empty.
+    /// Current Location disabled, so the token would render empty.
     var entryLocationTokenHint: EntryLocationTokenHint? {
         let profile = draft.voxProfileSnapshot ?? selectedVoxProfile
         guard let profile,
@@ -167,17 +167,21 @@ final class QuickCaptureViewModel {
     }
 
     /// One-tap fix for `entryLocationTokenHint`: turns on origin-time location
-    /// capture for the delivering preset and refreshes composer routing. A
+    /// capture for the delivering preset without enabling metadata output. A
     /// journaled preset snapshot without a location outcome is updated too, so
-    /// the very next Send resolves a location instead of silently collapsing
-    /// the token.
+    /// the very next Send resolves the token without changing note metadata.
     func enableEntryLocationTokenForPreset() async {
         let profile = draft.voxProfileSnapshot ?? selectedVoxProfile
         guard let presetID = profile?.id else { return }
-        CapturePresetStore.setLocationEnabled(true, presetID: presetID)
+        CapturePresetStore.setLocationEnabled(
+            true,
+            metadataOutputEnabled: false,
+            presetID: presetID
+        )
         refreshVoxProfiles()
         if draft.voxProfileSnapshot?.id == presetID, draft.locationOutcome == nil {
             draft.voxProfileSnapshot?.locationPolicy.isEnabled = true
+            draft.voxProfileSnapshot?.locationPolicy.metadataOutputEnabled = false
             await saveDraftNow()
         }
     }

@@ -2,7 +2,41 @@ import XCTest
 @testable import VoxboardCaptureCore
 
 final class CaptureLocationMetadataTests: XCTestCase {
-    func testPolicyRequiresLabelsOnlyForConfiguredLabelFields() {
+    func testPolicyDefaultsAndLegacyMetadataOutputMigration() throws {
+        let newPolicy = CapturePresetLocationPolicy()
+        XCTAssertFalse(newPolicy.isEnabled)
+        XCTAssertFalse(newPolicy.metadataOutputEnabled)
+
+        let explicitlyEnabled = CapturePresetLocationPolicy(isEnabled: true)
+        XCTAssertTrue(explicitlyEnabled.metadataOutputEnabled)
+
+        let legacyDisabled = try JSONDecoder().decode(
+            CapturePresetLocationPolicy.self,
+            from: Data("{\"isEnabled\":false}".utf8)
+        )
+        XCTAssertFalse(legacyDisabled.isEnabled)
+        XCTAssertFalse(legacyDisabled.metadataOutputEnabled)
+        let legacyEnabled = try JSONDecoder().decode(
+            CapturePresetLocationPolicy.self,
+            from: Data("{\"isEnabled\":true}".utf8)
+        )
+        XCTAssertTrue(legacyEnabled.isEnabled)
+        XCTAssertTrue(legacyEnabled.metadataOutputEnabled)
+
+        let tokenOnly = CapturePresetLocationPolicy(
+            isEnabled: true,
+            metadataOutputEnabled: false
+        )
+        XCTAssertEqual(
+            try JSONDecoder().decode(
+                CapturePresetLocationPolicy.self,
+                from: JSONEncoder().encode(tokenOnly)
+            ),
+            tokenOnly
+        )
+    }
+
+    func testPolicyRequiresLabelsOnlyForConfiguredMetadataLabelFields() {
         var policy = CapturePresetLocationPolicy(
             isEnabled: true,
             structuredFields: [.coordinates, .timestamp]
@@ -11,6 +45,10 @@ final class CaptureLocationMetadataTests: XCTestCase {
 
         policy.structuredFields.append(.city)
         XCTAssertTrue(policy.requiresLabels)
+
+        policy.metadataOutputEnabled = false
+        XCTAssertFalse(policy.requiresLabels)
+        policy.metadataOutputEnabled = true
 
         policy.outputMode = .advancedTemplate
         policy.advancedTemplate = "position: {{coordinates}}"
@@ -384,12 +422,22 @@ final class CaptureLocationMetadataTests: XCTestCase {
         }
     }
 
-    func test_unavailableAndDisabledPoliciesDoNotRenderMetadata() throws {
+    func test_unavailableDisabledAndTokenOnlyPoliciesDoNotRenderMetadata() throws {
         var disabled = makeRequest(policy: CapturePresetLocationPolicy(isEnabled: false))
         XCTAssertNil(try CaptureLocationMetadataRenderer().render(request: disabled))
         disabled.voxProfile?.locationPolicy.isEnabled = true
         disabled.locationOutcome = .unavailable(.permissionDenied, attemptedAt: timestamp)
         XCTAssertNil(try CaptureLocationMetadataRenderer().render(request: disabled))
+
+        let tokenOnly = makeRequest(policy: CapturePresetLocationPolicy(
+            isEnabled: true,
+            metadataOutputEnabled: false
+        ))
+        XCTAssertNil(try CaptureLocationMetadataRenderer().render(request: tokenOnly))
+        XCTAssertTrue(
+            CaptureEntryTemplateRenderer().render("{location}", for: tokenOnly)
+                .contains("https://www.google.com/maps/search/")
+        )
     }
 
     func test_locationPolicyOutcomeAndSnapshotRoundTripWhileLegacyDefaultsDisabled() throws {
@@ -430,12 +478,14 @@ final class CaptureLocationMetadataTests: XCTestCase {
             from: Data("{\"structuredFields\":[\"city\",\"geoURI\"]}".utf8)
         )
         XCTAssertEqual(legacyPolicy.structuredFields, [.city, .geoURI])
+        XCTAssertFalse(legacyPolicy.metadataOutputEnabled)
 
         let legacyProfile = try JSONDecoder().decode(
             CapturePresetProfile.self,
             from: Data("{\"id\":\"legacy\",\"name\":\"Legacy\"}".utf8)
         )
         XCTAssertFalse(legacyProfile.locationPolicy.isEnabled)
+        XCTAssertFalse(legacyProfile.locationPolicy.metadataOutputEnabled)
         XCTAssertEqual(legacyProfile.locationPolicy.precision, .exact)
 
         let encoded = try JSONEncoder().encode(request)

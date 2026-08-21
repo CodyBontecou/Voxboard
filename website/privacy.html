@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy — Vox.md</title>
-  <meta name="description" content="How Vox.md handles local capture drafts, Markdown destinations, attachments, keyboard input, and on-device voice transcription.">
+  <meta name="description" content="How Vox.md handles local capture drafts, Markdown destinations, attachments, one-shot location, keyboard input, and on-device voice transcription.">
   <link rel="canonical" href="https://vox.isolated.tech/privacy.html">
   <link rel="alternate" type="text/plain" href="llms.txt" title="Vox.md documentation for language models">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Privacy Policy — Vox.md">
-  <meta property="og:description" content="Privacy details for quick capture, local Markdown files, attachments, system extensions, and on-device voice transcription.">
+  <meta property="og:description" content="Privacy details for quick capture, one-shot location, local Markdown files, attachments, system extensions, and on-device voice transcription.">
   <meta property="og:url" content="https://vox.isolated.tech/privacy.html">
   <meta name="twitter:card" content="summary">
   <link rel="icon" href="favicon.ico" sizes="any">
@@ -42,7 +42,7 @@
   <div class="container">
     <div class="page-eyebrow">Legal · Privacy</div>
     <h1 class="page-title">Privacy Policy</h1>
-    <p class="page-meta">Effective: February 9, 2026 · Last updated: July 29, 2026</p>
+    <p class="page-meta">Effective: February 9, 2026 · Last updated: August 21, 2026</p>
   </div>
 </section>
 
@@ -102,10 +102,11 @@
     </ul>
 
     <h2>Location Usage</h2>
-    <p>Vox.md has two explicit location features. The independent Current Location Capture Bar action requests one location and inserts a Google Maps link in your local draft. Separately, location metadata is off by default and can be enabled per Capture Preset across iOS/iPadOS, Share Sheet, Shortcuts and intents, voice and keyboard-driven preset recording, widgets and controls, Apple Watch captures routed to Markdown, and Mac. Watch Recording Only remains a raw audio Files export with no metadata surface and does not request location.</p>
-    <p>An enabled preset requests one origin-time location at Send, invocation, or recording stop, depending on the capture source. Exact is the default. City precision rounds latitude and longitude to two decimal places and removes point-of-interest labels before the result is retained; all metadata and provider links use the same privacy-adjusted coordinates. Vox.md does not monitor location continuously, run background location tracking, include location in analytics or logs, or send it to a Vox.md server.</p>
-    <p>If selected metadata needs place, city, region, or country, Vox.md uses Apple’s system reverse geocoder. This service is free and requires no API key, but may make a network request to Apple under Apple’s terms. Reverse-geocoding failure does not block Capture; coordinate-only metadata remains available. Vox.md can format links for Apple Maps, Google Maps, and OpenStreetMap without contacting those providers. Only opening a link discloses its exact or rounded coordinates to that provider.</p>
+    <p>Vox.md has two explicit location features. The independent Current Location Capture Bar action requests one location and inserts a Google Maps link in your local draft. Separately, Current Location is off by default and can be enabled per Capture Preset across iOS/iPadOS, Share Sheet, Shortcuts and intents, voice and keyboard-driven preset recording, widgets and controls, Apple Watch captures routed to Markdown, and Mac. A preset can use that one snapshot for a <code>{location}</code> entry-template link without writing additional metadata; Write Location Metadata is a separate opt-in. Watch Recording Only remains a raw audio Files export with no Markdown location surface and does not request location.</p>
+    <p>An enabled preset requests one origin-time location at Send, invocation, or recording stop, depending on the capture source. Exact is the default. City precision rounds latitude and longitude to two decimal places and removes point-of-interest labels before the result is retained; every derived field, template link, and provider link uses the same privacy-adjusted coordinates. Vox.md does not monitor location continuously, run background location tracking, include location in analytics or logs, or send it to a Vox.md server.</p>
+    <p>If enabled metadata needs place, city, region, or country, Vox.md uses Apple’s system reverse geocoder. Token-only Current Location skips this lookup. This service is free and requires no API key, but may make a network request to Apple under Apple’s terms. Reverse-geocoding failure does not block Capture; coordinate-only metadata remains available. Vox.md can format links for Apple Maps, Google Maps, and OpenStreetMap without contacting those providers. Only opening a link discloses its exact or rounded coordinates to that provider.</p>
     <p>If location is unavailable, interactive surfaces can retry, cancel, send once without location, or save Always Send Without Location for that preset; the saved behavior can be reset in preset settings. Unattended Ask requests preserve their origin-time unavailable result for a later decision and never acquire a newer location during retry. Pending and failed requests may retain the already privacy-adjusted result needed for local recovery. Any coordinates written into Markdown become part of the note you chose, and your selected file-sync provider may process that file under its own terms.</p>
+    <p>For configuration examples and capture-source behavior, see <a href="docs/location/">Current Location, <code>{location}</code>, and Metadata</a>.</p>
 
     <h2>Speech Models</h2>
     <p>Vox.md does not bundle speech model weights. Apple's supported language assets are managed by iOS. Optional Whisper, Parakeet, and voice-pause model downloads begin only after you choose them and are stored locally on your device. No account or personal information is required to prepare or download a model.</p>

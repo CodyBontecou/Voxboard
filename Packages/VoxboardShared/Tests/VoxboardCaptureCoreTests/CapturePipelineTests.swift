@@ -757,6 +757,47 @@ final class CapturePipelineTests: XCTestCase {
         XCTAssertEqual(markdown.components(separatedBy: "Visited").count - 1, 1)
     }
 
+    func test_tokenOnlyLocationRendersSuffixWithoutWritingMetadata() async throws {
+        let root = try temporaryFolder()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let noteURL = root.appendingPathComponent("Inbox.md")
+        try "---\ntitle: Keep\n---\n\nExisting".write(to: noteURL, atomically: true, encoding: .utf8)
+        var destination = destination(target: .existingNote(relativePath: "Inbox.md"))
+        destination.entrySuffix = " Loc:{location}"
+        let profile = CapturePresetProfile(
+            id: "token-only",
+            name: "Token Only",
+            symbolName: "location",
+            locationPolicy: CapturePresetLocationPolicy(
+                isEnabled: true,
+                metadataOutputEnabled: false
+            )
+        )
+        let request = CaptureRequest(
+            source: .app,
+            destinationID: destination.id,
+            payloads: [.text("Visited")],
+            voxProfile: profile,
+            locationOutcome: .available(CaptureLocationSnapshot(
+                latitude: 10.25,
+                longitude: -20.5,
+                timestamp: Date(timeIntervalSince1970: 1_700_000_000),
+                source: .app,
+                precision: .exact
+            ))
+        )
+
+        _ = try await CapturePipeline().capture(request, destination: destination, rootURL: root)
+
+        let markdown = try String(contentsOf: noteURL, encoding: .utf8)
+        XCTAssertTrue(markdown.contains(
+            "Visited Loc:[Location](https://www.google.com/maps/search/?api=1&query=10.250000%2C-20.500000)"
+        ))
+        XCTAssertTrue(markdown.contains("title: Keep"))
+        XCTAssertFalse(markdown.contains("locations:"))
+        XCTAssertFalse(markdown.contains("location.id::"))
+    }
+
     func test_entryScopedVoxMetadataStaysWithEachRollingNoteEntry() async throws {
         let root = try temporaryFolder()
         defer { try? FileManager.default.removeItem(at: root) }

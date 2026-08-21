@@ -2,7 +2,7 @@
 
 ## Objective
 
-Implement opt-in, per-preset location metadata across every Capture source while preserving origin-time semantics, exact retry snapshots, local-first privacy, existing Capture Bar behavior, and backward compatibility.
+Implement opt-in, per-preset origin-time location across every Capture source, with `{location}` entry formatting and location metadata as independent outputs, while preserving exact retry snapshots, local-first privacy, existing Capture Bar behavior, and backward compatibility.
 
 ## Product decisions
 
@@ -11,13 +11,14 @@ Implement opt-in, per-preset location metadata across every Capture source while
 3. When location is unavailable, ask where an interactive surface exists. The prompt may persist “Always send without location when unavailable” per preset. Unattended `.ask` requests retain an origin-time unavailable outcome and wait for a decision; they never reacquire a later location.
 4. Per-entry inline fields are supported. Document frontmatter can retain multiple locations using an idempotent YAML collection keyed by Capture request ID.
 5. Support both a structured field builder and an advanced YAML template. Advanced output is validated, bounded, and merged without replacing unrelated frontmatter.
-6. Reverse-geocoded labels, coordinates, and provider URLs are supported. Labels use Apple’s system reverse geocoder only, require no paid API/key, run only when configured, and fail softly to coordinate-only metadata.
+6. Reverse-geocoded labels, coordinates, and provider URLs are supported. Labels use Apple’s system reverse geocoder only, require no paid API/key, run only when configured metadata needs them, and fail softly to coordinate-only metadata.
+7. Location acquisition and metadata output are separate choices. `{location}` can use an opted-in snapshot without writing a frontmatter collection or inline fields; pre-existing enabled policies preserve their historical metadata behavior.
 
 ## Milestones and acceptance
 
 ### 1. Core schema and formatter
 
-- Add backward-compatible, Codable preset/profile policy with enabled state, precision, unavailable behavior, output mode, structured fields, collection key, and advanced template.
+- Add backward-compatible, Codable preset/profile policy with acquisition enabled state, independently enabled metadata output, precision, unavailable behavior, output mode, structured fields, collection key, and advanced template.
 - Add typed, Codable origin-time location outcome and privacy-adjusted snapshot.
 - Add deterministic, locale-independent formatter for coordinates, city precision, labels, Apple Maps, Google Maps, OpenStreetMap, RFC 5870 geo URI, accuracy, timestamp, source, and request ID.
 - Add key/template validation, duplicate/collision handling, bounded output, and safe optional-label behavior.
@@ -58,6 +59,7 @@ Implement opt-in, per-preset location metadata across every Capture source while
 - Document collection append is idempotent by Capture ID and preserves unrelated frontmatter/comments/order.
 - Inline output stays attached to the captured entry.
 - Existing explicit Capture Bar Current Location remains independent body-link insertion.
+- Preset settings expose `Use Current Location` separately from `Write Location Metadata`; token-driven one-tap enablement turns on acquisition without silently changing note metadata.
 
 ### 7. Privacy, docs, and validation
 
@@ -77,7 +79,7 @@ Implement opt-in, per-preset location metadata across every Capture source while
 
 ## Milestone 7 progress and evidence
 
-Implemented documentation and privacy copy now distinguishes the independent Capture Bar map-link action from opt-in per-preset metadata and covers every source, origin-time acquisition, Exact versus City, structured/advanced and frontmatter/inline output, unavailable decisions, recovery retention, reverse-geocoder and provider-link disclosure, scrubbing, and the no-background-tracking boundary.
+Implemented documentation and privacy copy now distinguishes the independent Capture Bar map-link action, opt-in per-preset origin-time acquisition, `{location}` template links, and separately opt-in metadata output. It covers every source, Exact versus City, structured/advanced and frontmatter/inline output, unavailable decisions, recovery retention, reverse-geocoder and provider-link disclosure, scrubbing, and the no-background-tracking boundary.
 
 Purpose copy is present in the iOS, Share Extension, Watch, and Mac Info.plists and each matching string catalog has real locale-specific values for all 23 locales already supported by those catalogs. The shared runtime catalog also contains the location configuration, prompt, validation, accessibility, and Watch status keys in all 23 locales. Project contracts require matching English Info.plist/catalog values, complete purpose-string locale coverage without English values mislabeled as translations, and the core documentation disclosures. No App Store privacy collection category was added because location is not collected by the developer or analytics.
 

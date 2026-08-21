@@ -23,6 +23,7 @@ final class CapturePresetTests: XCTestCase {
     func test_locationPolicyDefaultsDisabledAndRoundTripsIntoCaptureProfile() throws {
         var preset = CapturePresetStore.makeCustomFlow()
         XCTAssertFalse(preset.locationPolicy.isEnabled)
+        XCTAssertFalse(preset.locationPolicy.metadataOutputEnabled)
 
         preset.locationPolicy = CapturePresetLocationPolicy(
             isEnabled: true,
@@ -50,6 +51,33 @@ final class CapturePresetTests: XCTestCase {
         )
         XCTAssertFalse(legacy.locationPolicy.isEnabled)
         XCTAssertEqual(legacy.locationPolicy.structuredFields, CapturePresetLocationPolicy.defaultStructuredFields)
+    }
+
+    func test_templateTokenEnableCanLeaveMetadataOutputOff() throws {
+        let suite = "RecordingFlowLocationTokenTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        var preset = CapturePresetStore.makeCustomFlow()
+        // Simulate a persisted pre-decoupling policy. Missing encoded fields
+        // decode metadata output on for backward compatibility.
+        preset.locationPolicy = CapturePresetLocationPolicy(
+            isEnabled: false,
+            metadataOutputEnabled: true
+        )
+        CapturePresetStore.saveFlows([preset], defaults: defaults)
+
+        CapturePresetStore.setLocationEnabled(
+            true,
+            metadataOutputEnabled: false,
+            presetID: preset.id,
+            defaults: defaults
+        )
+
+        let loaded = try XCTUnwrap(
+            CapturePresetStore.loadFlows(defaults: defaults).first(where: { $0.id == preset.id })
+        )
+        XCTAssertTrue(loaded.locationPolicy.isEnabled)
+        XCTAssertFalse(loaded.locationPolicy.metadataOutputEnabled)
     }
 
     func test_alwaysSendWithoutLocationDecisionPersistsAndCanBeReset() throws {

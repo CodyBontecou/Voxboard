@@ -7,7 +7,7 @@ Canonical website: https://vox.isolated.tech/
 App Store: https://apps.apple.com/us/app/voxboard/id6758967337
 Source: https://github.com/CodyBontecou/Voxboard
 URL scheme: voxboard://
-Documentation updated: 2026-07-29
+Documentation updated: 2026-08-21
 
 ## Documentation
 
@@ -15,6 +15,7 @@ Documentation updated: 2026-07-29
 - [Getting Started](https://vox.isolated.tech/docs/#getting-started): Platforms, minimum versions, setup, permissions, and first capture.
 - [Quick Capture](https://vox.isolated.tech/docs/#quick-capture): Durable composer, capture types, Capture Bar, inline voice, and input limits.
 - [Capture Presets and Routes](https://vox.isolated.tech/docs/#presets): Processing modes, metadata, Markdown destinations, placement, templates, overrides, retry protection, and audio rules.
+- [Current Location, {location}, and Metadata](https://vox.isolated.tech/docs/location/): Per-preset acquisition, token-only links, optional metadata output, precision, capture-source timing, migration, privacy, and troubleshooting.
 - [Models and Transcription](https://vox.isolated.tech/docs/#models): Automatic Apple Speech, Whisper, Parakeet, languages, downloads, and pause detection.
 - [iOS Keyboard](https://vox.isolated.tech/docs/#keyboard): Full Access setup, dictation, live insertion, fallback behavior, haptics, and auto-stop.
 - [System Integrations](https://vox.isolated.tech/docs/#system-integrations): Share Extension, widgets, Lock Screen, Control Center, Live Activities, Shortcuts, and deep links.
@@ -38,10 +39,13 @@ Documentation updated: 2026-07-29
 - When Apple Intelligence is unavailable, Todo and Meeting Notes have deterministic formatters; Clean Prose and Custom Instruction preserve the original text.
 - Typed and mixed-media processing is opt-in per preset. Voice transcripts use the selected preset mode.
 - Static metadata can be note-level frontmatter or per-entry inline fields.
-- Per-preset location metadata is opt-in and off by default. It requests one origin-time location at Send for iOS/iPadOS, Share Sheet, Shortcuts, deep-link/composer, and Mac captures, or at recording stop for immediate voice, keyboard-driven preset recording, and Watch captures routed through normal Markdown delivery. Widgets and controls use invocation or recording stop. Watch Recording Only is a raw audio Files export with no metadata surface and skips location. There is no continuous or background location tracking.
-- Exact is the default location precision. City rounds both coordinates to two decimal places and omits point-of-interest labels; every derived field and provider link uses the same privacy-adjusted coordinates.
-- Location output supports renameable structured fields or validated advanced YAML. Structured fields can be document frontmatter or per-entry inline fields. Document frontmatter retains multiple locations in an idempotent collection keyed by Capture ID; advanced YAML cannot replace unrelated frontmatter.
-- Apple’s system reverse geocoder is used only for selected label fields. It is free and requires no API key, may use the network, and fails softly to coordinate-only metadata. Provider links disclose their exact or rounded coordinates to Apple, Google, or OpenStreetMap only when the user opens them.
+- Each Capture Preset has two independent location choices. Use Current Location is the explicit acquisition opt-in and powers `{location}`. Write Location Metadata is a separate output opt-in for frontmatter or inline fields. Operating-system permission is only a gate and never opts a preset in.
+- Both controls are off for new and previously disabled presets. Presets that already had location enabled before the controls were split keep metadata output enabled after migration, preserving their prior behavior.
+- A preset with Use Current Location enabled requests one origin-time location at Send for iOS/iPadOS, Share Sheet, deep-link/composer, Mac, and system actions that open the composer; during invocation for direct-enqueue text, link, and file intents; or at recording stop for shortcut/widget/control recordings, immediate voice, keyboard-driven preset recording, and Watch captures routed through normal Markdown delivery. Watch Recording Only is a raw audio Files export with no Markdown surface and skips location. There is no continuous or background location tracking.
+- Entry prefixes, suffixes, reusable Entry Templates, and vault Markdown templates can use `{location}` for a Google Maps Markdown link even when Write Location Metadata is off. When Current Location is off or unavailable, the token renders empty. The composer detects the token in resolved inline entry formatting and offers a one-tap fix that enables acquisition while leaving metadata output off; live vault template files are read only at delivery and require manual preset setup.
+- Exact is the default location precision. City rounds both coordinates to two decimal places and omits point-of-interest labels; every derived field, `{location}` link, and provider link uses the same privacy-adjusted coordinates.
+- Location metadata supports renameable structured fields or validated advanced YAML. Structured fields can be document frontmatter or per-entry inline fields. Document frontmatter retains multiple locations in an idempotent collection keyed by Capture ID; advanced YAML cannot replace unrelated frontmatter.
+- Apple’s system reverse geocoder is used only when metadata output is enabled and selected fields need labels. Token-only location skips reverse geocoding. The geocoder is free and requires no API key, may use the network, and fails softly to coordinate-only metadata. Provider links disclose their exact or rounded coordinates to Apple, Google, or OpenStreetMap only when the user opens them.
 - If location is unavailable, interactive surfaces can retry, cancel, send once without it, or persist Always Send Without Location per preset; preset settings expose a reset. An unattended Ask result is durable and never reacquires a later location.
 - Reusable Entry Templates, vault template files, prefix/suffix text, path tokens, attachment subfolders, and retry markers are supported.
 
@@ -56,7 +60,7 @@ Quick Capture accepts:
 - Multipage document scans with PDF generation, page images, and best-effort on-device OCR.
 - Up to 10 manually captured journal pages or selected journal photos with on-device OCR.
 - PencilKit sketches with editable drawing data and PNG preview.
-- An independent explicit one-shot Current Location Capture Bar action that inserts a Google Maps Markdown link; it does not enable preset location metadata.
+- An independent explicit one-shot Current Location Capture Bar action that inserts a Google Maps Markdown link; it does not change either per-preset location control.
 - Voice recordings and imported audio/video, transcribed locally.
 
 The configurable Capture Bar includes Add Media, Add Files, Scan Document, Extract Text, Undo, Format Markdown, Markdown Link, Set Due Date, Checklist, Bullet List, Paste, Internal Link, Sketch, Current Location, Insert Timestamp, Insert Date, and Change Text Case. Actions can be reordered or hidden.

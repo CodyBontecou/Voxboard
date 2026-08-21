@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Current Location, {location}, and Metadata — Vox.md Docs</title>
+  <meta name="description" content="Configure one-shot Current Location, the {location} Markdown token, optional frontmatter or inline location metadata, precision, privacy, and recovery in Vox.md Capture Presets.">
+  <link rel="canonical" href="https://vox.isolated.tech/docs/location/">
+  <link rel="alternate" type="text/plain" href="../../llms.txt" title="Vox.md documentation for language models">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Vox.md">
+  <meta property="og:title" content="Current Location, {location}, and Metadata — Vox.md Docs">
+  <meta property="og:description" content="Use a one-shot location in Markdown templates without automatically adding location metadata to your notes.">
+  <meta property="og:url" content="https://vox.isolated.tech/docs/location/">
+  <meta property="og:image" content="https://vox.isolated.tech/screenshots/00-capture-light.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Vox.md Current Location Guide">
+  <meta name="twitter:description" content="A complete guide to one-shot location, {location}, metadata output, precision, privacy, and migration.">
+  <meta name="twitter:image" content="https://vox.isolated.tech/screenshots/00-capture-light.png">
+
+  <link rel="icon" href="../../favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="../../favicon-192x192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Current Location, {location}, and Location Metadata in Vox.md",
+    "description": "A complete guide to per-preset Current Location acquisition, the {location} Markdown token, optional metadata output, privacy, migration, and troubleshooting.",
+    "dateModified": "2026-08-21",
+    "author": {
+      "@type": "Person",
+      "name": "Cody Bontecou"
+    },
+    "publisher": {
+      "@type": "Person",
+      "name": "Cody Bontecou"
+    },
+    "mainEntityOfPage": "https://vox.isolated.tech/docs/location/"
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Vox.md",
+        "item": "https://vox.isolated.tech/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Documentation",
+        "item": "https://vox.isolated.tech/docs/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Current Location",
+        "item": "https://vox.isolated.tech/docs/location/"
+      }
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="../../geist.css">
+</head>
+<body>
+
+<nav aria-label="Primary navigation">
+  <div class="nav-inner">
+    <a href="../../index.html" class="logo" aria-label="Vox.md home">
+      <img class="logo-mark" src="../../app-icon.png" alt="" width="32" height="32">
+      <span>Vox.md</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="../../index.html">Home</a></li>
+      <li><a href="../" aria-current="page">Docs</a></li>
+      <li><a href="../../blog/">Blog</a></li>
+      <li><a href="../../privacy.html">Privacy</a></li>
+      <li><a href="../../terms.html">Terms</a></li>
+    </ul>
+    <a href="https://apps.apple.com/us/app/voxboard/id6758967337" class="nav-cta" target="_blank" rel="noopener">Download Vox.md</a>
+  </div>
+</nav>
+
+<main>
+  <section class="page-hero docs-hero" aria-labelledby="location-guide-title">
+    <div class="container">
+      <div class="page-eyebrow">Documentation · Capture Presets</div>
+      <h1 class="page-title" id="location-guide-title">Current Location, <code>{location}</code>, and Metadata</h1>
+      <p class="docs-hero-copy">Use one origin-time location in entry formatting without automatically adding YAML or inline fields. Location acquisition and metadata output are separate, explicit choices on every Capture Preset.</p>
+      <div class="docs-meta-row" aria-label="Guide facts">
+        <span>Updated August 21, 2026</span>
+        <span>One-shot acquisition</span>
+        <span>No background tracking</span>
+        <a href="../">Complete Feature Guide</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="container docs-shell">
+    <aside class="docs-sidebar" aria-label="On this page">
+      <div class="docs-sidebar-title">On This Page</div>
+      <ol>
+        <li><a href="#overview">Two Independent Choices</a></li>
+        <li><a href="#setup">Set Up a Preset</a></li>
+        <li><a href="#configurations">Common Configurations</a></li>
+        <li><a href="#location-token"><code>{location}</code> Token</a></li>
+        <li><a href="#metadata-output">Metadata Output</a></li>
+        <li><a href="#precision">Precision &amp; Labels</a></li>
+        <li><a href="#capture-sources">Capture Sources</a></li>
+        <li><a href="#unavailable">Unavailable &amp; Recovery</a></li>
+        <li><a href="#migration">Existing Presets</a></li>
+        <li><a href="#privacy">Privacy &amp; Retention</a></li>
+        <li><a href="#troubleshooting">Troubleshooting</a></li>
+      </ol>
+    </aside>
+
+    <article class="docs-content">
+      <section class="docs-section" id="overview">
+        <div class="docs-section-label">01 / Overview</div>
+        <h2>Location Acquisition Does Not Imply Metadata Output</h2>
+        <p>Each Capture Preset has two separate location controls. <strong>Use Current Location</strong> decides whether the preset requests one origin-time location. <strong>Write Location Metadata</strong> decides whether that acquired snapshot is also written as frontmatter or inline fields.</p>
+
+        <div class="docs-table-wrap">
+          <table class="docs-table">
+            <thead><tr><th>Control</th><th>What it means</th><th>What it does not mean</th></tr></thead>
+            <tbody>
+              <tr><td>System location permission</td><td>Allows Vox.md to request location while the app or supported capture surface is in use.</td><td>It does not opt any Capture Preset into location.</td></tr>
+              <tr><td>Use Current Location</td><td>Requests one location for this preset and makes it available to <code>{location}</code>.</td><td>It does not automatically write YAML or inline metadata.</td></tr>
+              <tr><td>Write Location Metadata</td><td>Writes selected structured fields or validated advanced YAML from the acquired snapshot.</td><td>It does not control whether <code>{location}</code> can render.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="docs-callout">
+          <strong>The intent signal is the preset, not the permission</strong>
+          <p>Granting When In Use permission only opens the operating-system gate. Vox.md still requests location only for the independent Current Location Capture Bar action or a Capture Preset where you turned on Use Current Location.</p>
+        </div>
+      </section>
+
+      <section class="docs-section" id="setup">
+        <div class="docs-section-label">02 / Setup</div>
+        <h2>Set Up Current Location for One Capture Preset</h2>
+        <ol class="docs-steps">
+          <li><strong>Open Capture Presets.</strong><span>On iPhone or iPad, open Settings → Capture Presets. On Mac, open Settings and choose Capture Presets.</span></li>
+          <li><strong>Edit the preset.</strong><span>Choose the preset that should use its origin location. The setting belongs to that preset and does not affect the others.</span></li>
+          <li><strong>Open Location.</strong><span>Turn on <em>Use Current Location</em>. Keep <em>Write Location Metadata</em> off for token-only behavior.</span></li>
+          <li><strong>Choose precision.</strong><span>Use Exact for the origin fix or City for coordinates rounded to two decimal places with no point-of-interest label.</span></li>
+          <li><strong>Choose unavailable behavior.</strong><span>Ask, Send Without Location, or Cancel Capture determines what happens when the origin fix cannot be obtained.</span></li>
+          <li><strong>Add <code>{location}</code> if wanted.</strong><span>Place the token in an Entry Template, custom entry prefix or suffix, or a vault Markdown template.</span></li>
+        </ol>
+        <p>The first use may show the operating system’s location permission prompt. If permission was previously denied, enable location access for Vox.md in iOS, iPadOS, or macOS system settings.</p>
+      </section>
+
+      <section class="docs-section" id="configurations">
+        <div class="docs-section-label">03 / Common Configurations</div>
+        <h2>Choose the Smallest Location Surface You Need</h2>
+        <div class="docs-table-wrap">
+          <table class="docs-table">
+            <thead><tr><th>Desired result</th><th>Use Current Location</th><th>Write Location Metadata</th><th>Template</th></tr></thead>
+            <tbody>
+              <tr><td>No preset location</td><td>Off</td><td>Off</td><td>Do not use <code>{location}</code>, or it renders empty.</td></tr>
+              <tr><td>Clickable link only</td><td>On</td><td>Off</td><td>Add <code>{location}</code>. No location fields are written.</td></tr>
+              <tr><td>Metadata only</td><td>On</td><td>On</td><td>Omit <code>{location}</code>. Only the configured fields are written.</td></tr>
+              <tr><td>Link and metadata</td><td>On</td><td>On</td><td>Add <code>{location}</code> and configure the metadata fields.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Turning off Use Current Location prevents both token rendering and metadata output for that preset, even if previous metadata formatting choices remain configured for later use.</p>
+      </section>
+
+      <section class="docs-section" id="location-token">
+        <div class="docs-section-label">04 / Template Token</div>
+        <h2>Use <code>{location}</code> Without Changing Note Metadata</h2>
+        <p>When Use Current Location is on and the origin snapshot is available, <code>{location}</code> renders a validated Google Maps Markdown link:</p>
+        <pre class="docs-code-block"><code>[Location](https://www.google.com/maps/search/?api=1&amp;query=45.501235%2C-73.567890)</code></pre>
+        <p>The token works in reusable Entry Templates, custom entry prefixes and suffixes, and vault Markdown templates. It uses the same Exact or City coordinates selected for the preset.</p>
+
+        <h3 id="token-example">Token-only example</h3>
+        <p>For a suffix such as:</p>
+        <pre class="docs-code-block"><code>Captured from {location}</code></pre>
+        <p>Vox.md can produce:</p>
+        <pre class="docs-code-block"><code>Captured from [Location](https://www.google.com/maps/search/?api=1&amp;query=45.501235%2C-73.567890)</code></pre>
+        <p>With Write Location Metadata off, this link is the only location content added by the preset. No <code>locations:</code> collection and no <code>location.*::</code> fields are written.</p>
+
+        <h3 id="composer-fix">Composer one-tap fix</h3>
+        <p>If an effective entry prefix, suffix, or reusable Entry Template uses <code>{location}</code> while the selected preset has Current Location off, the composer explains that the token will render empty and offers <strong>Use Current Location for [Preset]</strong>. That action turns on Current Location for the preset while intentionally leaving Write Location Metadata off, so the next Send can resolve the token without changing note metadata. Live vault template files are read only during delivery, so their contents cannot trigger this composer hint; enable Current Location manually when a vault template uses the token.</p>
+
+        <div class="docs-callout docs-callout-neutral">
+          <strong>When the token is empty</strong>
+          <p><code>{location}</code> becomes an empty string when Current Location is off, location is unavailable, or the capture continues without location. Keep surrounding punctuation and labels in mind when designing optional template lines.</p>
+        </div>
+
+        <h3 id="capture-bar-location">Independent Capture Bar action</h3>
+        <p>The Quick Capture <strong>Current Location</strong> action directly inserts a one-shot Google Maps link into the current draft. It is independent of Capture Presets and does not change either Use Current Location or Write Location Metadata.</p>
+      </section>
+
+      <section class="docs-section" id="metadata-output">
+        <div class="docs-section-label">05 / Metadata Output</div>
+        <h2>Write Structured Fields Only When You Choose To</h2>
+        <p>Turn on Write Location Metadata when the note should receive machine-readable location fields in addition to, or instead of, the <code>{location}</code> link.</p>
+
+        <div class="docs-feature-grid">
+          <div><strong>Note Frontmatter</strong><p>Appends each location to a collection, named <code>locations</code> by default, keyed by Capture ID. Existing unrelated frontmatter is preserved.</p></div>
+          <div><strong>Inline Entry Fields</strong><p>Writes Dataview-style <code>location.key:: value</code> lines beside the captured entry. No frontmatter collection is added.</p></div>
+          <div><strong>Structured Fields</strong><p>Select and rename coordinates, latitude, longitude, place, city, region, country, provider links, geo URI, accuracy, timestamp, source, and ID.</p></div>
+          <div><strong>Advanced YAML</strong><p>Uses a validated, bounded YAML template for Note Frontmatter. Advanced YAML is not available for inline entry fields.</p></div>
+        </div>
+
+        <h3 id="frontmatter-example">Structured frontmatter example</h3>
+        <pre class="docs-code-block"><code>---
+title: Field Notes
+locations:
+  - id: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    coordinates: [45.501235, -73.567890]
+    place: "Café &amp; Main"
+    appleMapsURL: "https://maps.apple.com/?ll=45.501235%2C-73.567890&amp;q=Caf%C3%A9%20%26%20Main"
+    timestamp: "2023-11-14T22:13:20.000Z"
+    source: "app"
+---</code></pre>
+        <p>Rolling notes can retain multiple captures in the collection. Retry protection is built into the location merge: a retry with the same Capture ID cannot append the same location twice. If the chosen collection key already contains an incompatible user-authored value, Vox.md stops instead of overwriting it.</p>
+
+        <h3 id="inline-example">Inline entry example</h3>
+        <pre class="docs-code-block"><code>location.id:: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+location.coordinates:: [45.501235, -73.567890]
+location.place:: "Café &amp; Main"
+
+Captured text</code></pre>
+
+        <h3 id="advanced-yaml">Advanced YAML placeholders</h3>
+        <p>Advanced templates can use placeholders such as <code>{{coordinates}}</code>, <code>{{latitude}}</code>, <code>{{longitude}}</code>, <code>{{place}}</code>, <code>{{city}}</code>, <code>{{region}}</code>, <code>{{country}}</code>, <code>{{appleMapsURL}}</code>, <code>{{googleMapsURL}}</code>, <code>{{openStreetMapURL}}</code>, <code>{{geoURI}}</code>, <code>{{accuracy}}</code>, <code>{{timestamp}}</code>, <code>{{source}}</code>, and <code>{{id}}</code>. Preview the configuration in preset settings before saving.</p>
+      </section>
+
+      <section class="docs-section" id="precision">
+        <div class="docs-section-label">06 / Precision &amp; Labels</div>
+        <h2>Exact and City Use One Consistent Snapshot</h2>
+        <div class="docs-table-wrap">
+          <table class="docs-table">
+            <thead><tr><th>Precision</th><th>Coordinates</th><th>Labels</th><th>Links and fields</th></tr></thead>
+            <tbody>
+              <tr><td>Exact</td><td>Keeps the origin fix at six displayed decimal places.</td><td>Can include a point-of-interest label when a selected metadata field needs it.</td><td>Every derived value uses the Exact coordinates.</td></tr>
+              <tr><td>City</td><td>Rounds latitude and longitude to two decimal places before the snapshot is retained.</td><td>Removes point-of-interest labels; city, region, and country may remain.</td><td>Every provider URL, geo URI, token, and field uses the rounded coordinates.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Apple’s system reverse geocoder is used only when Write Location Metadata is on and a selected structured field or advanced placeholder needs place, city, region, or country. A token-only preset skips reverse geocoding. If label lookup fails, coordinate-based output remains available.</p>
+      </section>
+
+      <section class="docs-section" id="capture-sources">
+        <div class="docs-section-label">07 / Capture Sources</div>
+        <h2>The Snapshot Belongs to the Capture Origin</h2>
+        <p>Current Location is evaluated at the boundary where the capture originates. Retry and recovery reuse that durable result instead of silently acquiring a newer location.</p>
+        <div class="docs-table-wrap">
+          <table class="docs-table">
+            <thead><tr><th>Capture source</th><th>Acquisition boundary</th></tr></thead>
+            <tbody>
+              <tr><td>iPhone and iPad Quick Capture</td><td>Send</td></tr>
+              <tr><td>Share Sheet</td><td>Send in the share extension</td></tr>
+              <tr><td>Direct-enqueue text, link, and file intents</td><td>Intent invocation</td></tr>
+              <tr><td>Shortcuts, widgets, controls, and deep links that open Quick Capture</td><td>Send in the composer</td></tr>
+              <tr><td>Shortcut, widget, control, immediate voice, and keyboard-driven preset recording</td><td>Recording stop</td></tr>
+              <tr><td>Apple Watch normal Capture delivery</td><td>Recording stop on Watch; iPhone does not substitute its own location</td></tr>
+              <tr><td>Mac Capture</td><td>Send, or recording stop for immediate voice delivery</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Watch Recording Only</strong> exports raw M4A audio to Files without a Markdown surface, so it does not request location even when the preset otherwise uses Current Location.</p>
+      </section>
+
+      <section class="docs-section" id="unavailable">
+        <div class="docs-section-label">08 / Unavailable &amp; Recovery</div>
+        <h2>Choose How Each Preset Handles an Unavailable Fix</h2>
+        <ul>
+          <li><strong>Ask:</strong> interactive captures can retry, cancel, send once without location, or choose Always Send Without Location for that preset.</li>
+          <li><strong>Send Without Location:</strong> continues delivery without a token value or metadata output.</li>
+          <li><strong>Cancel Capture:</strong> stops delivery rather than creating a note without the requested origin location.</li>
+          <li><strong>Reset a saved choice:</strong> use Reset Location Unavailable Choice in the preset’s Location settings.</li>
+        </ul>
+        <p>An unattended Ask request stores its origin-time unavailable result for later review. Retrying a queued or failed capture never substitutes a later location. Pending work keeps only the privacy-adjusted snapshot or unavailable outcome needed for local recovery.</p>
+      </section>
+
+      <section class="docs-section" id="migration">
+        <div class="docs-section-label">09 / Existing Presets</div>
+        <h2>Upgrades Preserve Previous Metadata Behavior</h2>
+        <p>The split between acquisition and output is migration-safe:</p>
+        <ul>
+          <li><strong>New presets:</strong> Use Current Location and Write Location Metadata both start off.</li>
+          <li><strong>Previously enabled location presets:</strong> both controls remain on after upgrading, preserving the metadata those presets already wrote.</li>
+          <li><strong>Previously disabled location presets:</strong> both controls remain off; upgrading does not introduce a new metadata output.</li>
+        </ul>
+        <p>To convert an existing metadata-writing preset to token-only behavior, leave Use Current Location on and turn Write Location Metadata off. Existing Markdown is not rewritten or removed.</p>
+      </section>
+
+      <section class="docs-section" id="privacy">
+        <div class="docs-section-label">10 / Privacy &amp; Retention</div>
+        <h2>One Explicit Snapshot, Never Background Tracking</h2>
+        <ul>
+          <li>Vox.md does not continuously monitor location or run background location tracking.</li>
+          <li>Location is not sent to Vox.md servers, analytics, advertising systems, or third-party AI services.</li>
+          <li>Token and provider URLs are formatted locally. Apple Maps, Google Maps, or OpenStreetMap receives the coordinates only when you open its link.</li>
+          <li>Apple’s system reverse geocoder may make a network request only when selected metadata needs a place label. Token-only location skips this lookup.</li>
+          <li>After successful delivery, recoverable requests are reduced to content-free receipts, and completed Capture history does not retain coordinates, labels, provider URLs, or location templates.</li>
+          <li>If location metadata or a token link is written into Markdown, it becomes part of the file you chose. Your file-sync provider may process that file under its own terms.</li>
+        </ul>
+        <div class="docs-callout">
+          <strong>Permission can remain on while presets remain private</strong>
+          <p>You can leave system permission available for the independent Current Location action and still keep every Capture Preset’s Use Current Location setting off.</p>
+        </div>
+        <p>See the <a href="../../privacy.html">Privacy Policy</a> for complete data-handling and retention details.</p>
+      </section>
+
+      <section class="docs-section" id="troubleshooting">
+        <div class="docs-section-label">11 / Troubleshooting</div>
+        <h2>Fix Common Location and Template Issues</h2>
+        <div class="docs-troubleshooting">
+          <details>
+            <summary><code>{location}</code> renders empty</summary>
+            <p>Confirm that the effective Entry Template, prefix, suffix, or vault template uses the exact lowercase token <code>{location}</code>. Then turn on Use Current Location for the delivering preset. The composer’s one-tap fix can do this for detected inline entry formatting without enabling metadata; live vault template files require manual preset setup. If permission is denied or the fix is unavailable, review the preset’s unavailable behavior and system location settings.</p>
+          </details>
+          <details>
+            <summary>A link works, but no metadata appears</summary>
+            <p>This is expected for token-only configuration. Open the preset’s Location settings and turn on Write Location Metadata, then choose Note Frontmatter or Inline Entry Fields and select the desired fields.</p>
+          </details>
+          <details>
+            <summary>Metadata appears, but no link appears in the entry</summary>
+            <p>Metadata output does not insert a link automatically. Add <code>{location}</code> to the effective entry formatting or vault Markdown template.</p>
+          </details>
+          <details>
+            <summary>Place or city is missing</summary>
+            <p>Confirm that the label field is selected. Apple’s reverse geocoder can fail while coordinates remain available. City precision intentionally removes point-of-interest labels.</p>
+          </details>
+          <details>
+            <summary>Frontmatter delivery reports a collision</summary>
+            <p>The configured collection key, <code>locations</code> by default, must be a compatible location list. Rename the collection in preset settings or adjust the existing user-authored frontmatter. Vox.md will not overwrite an incompatible value.</p>
+          </details>
+          <details>
+            <summary>A retry has an older or unavailable location</summary>
+            <p>This is intentional. The request preserves the origin-time result so a later retry cannot silently claim a different capture location. Start a new capture when you need a new snapshot.</p>
+          </details>
+          <details>
+            <summary>Location permission is allowed, but the preset does not request it</summary>
+            <p>System permission is only a gate. Edit that Capture Preset and turn on Use Current Location. Permission alone never opts a preset in.</p>
+          </details>
+        </div>
+      </section>
+    </article>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <ul class="footer-links">
+        <li><a href="../../index.html">Home</a></li>
+        <li><a href="../">Docs</a></li>
+        <li><a href="../../blog/">Blog</a></li>
+        <li><a href="../../privacy.html">Privacy</a></li>
+        <li><a href="../../terms.html">Terms</a></li>
+      </ul>
+      <div class="footer-copy">© 2026 Vox.md · Local capture · User-controlled files.</div>
+    </div>
+  </div>
+</footer>
+<!-- Cloudflare Web Analytics -->
+<script>
+(function () {
+  var productionHosts = {
+    'instareply.isolated.tech': true,
+    'vox.isolated.tech': true,
+    'healthmd.isolated.tech': true,
+    'isome.isolated.tech': true,
+    'gitsyncmd.isolated.tech': true,
+    'timemd.isolated.tech': true,
+    'imghost.isolated.tech': true
+  };
+
+  if (!productionHosts[window.location.hostname]) {
+    return;
+  }
+
+  function loadCloudflareBeacon() {
+    if (document.querySelector('script[src="https://static.cloudflareinsights.com/beacon.min.js"]')) {
+      return;
+    }
+
+    var script = document.createElement('script');
+    script.defer = true;
+    script.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    script.setAttribute('data-cf-beacon', '{"token":"090f363070334cddad5c5cc1509b8807"}');
+    document.head.appendChild(script);
+  }
+
+  fetch('https://img-host.costream.workers.dev/analytics-gate', {
+    cache: 'no-store',
+    mode: 'cors',
+    credentials: 'omit'
+  })
+    .then(function (response) {
+      return response.ok ? response.json() : { track: false };
+    })
+    .then(function (gate) {
+      if (gate && gate.track) {
+        loadCloudflareBeacon();
+      }
+    })
+    .catch(function () {
+      // Fail closed so excluded IPs are not accidentally tracked.
+    });
+})();
+</script>
+<!-- End Cloudflare Web Analytics -->
+</body>
+</html>

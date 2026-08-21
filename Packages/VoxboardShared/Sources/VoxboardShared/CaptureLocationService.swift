@@ -26,7 +26,7 @@ public enum CaptureLocationError: Error, LocalizedError, Equatable, Sendable {
     public var errorDescription: String? {
         switch self {
         case .permissionDenied:
-            return String(localized: "Location access is off. Enable it in Settings to add location metadata.")
+            return String(localized: "Location access is off. Enable it in Settings to use Current Location.")
         case .restricted:
             return String(localized: "Location access is restricted on this device.")
         case .requestInProgress:

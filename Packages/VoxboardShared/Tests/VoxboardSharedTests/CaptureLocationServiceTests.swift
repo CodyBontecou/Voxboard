@@ -162,6 +162,33 @@ final class CaptureLocationServiceTests: XCTestCase {
         XCTAssertEqual(geocodeCount, 0)
     }
 
+    func test_tokenOnlyLocationSkipsReverseGeocoder() async throws {
+        let manager = FakeCaptureLocationManager(status: .authorized)
+        var geocodeCount = 0
+        let service = CaptureLocationService(
+            manager: manager,
+            timeout: .seconds(1),
+            reverseGeocodeLabel: { _ in
+                geocodeCount += 1
+                return CaptureLocationLabel(place: "Unused")
+            }
+        )
+        let policy = CapturePresetLocationPolicy(
+            isEnabled: true,
+            metadataOutputEnabled: false,
+            structuredFields: [.place, .city]
+        )
+        let task = Task { await service.resolveLocation(policy: policy, source: .app) }
+        await Task.yield()
+        manager.sendLocations([freshLocation(latitude: 1, longitude: 2)])
+
+        guard case .available(let snapshot) = await task.value else {
+            return XCTFail("Expected snapshot")
+        }
+        XCTAssertNil(snapshot.label)
+        XCTAssertEqual(geocodeCount, 0)
+    }
+
     func test_resolveCollectsAllApplePlacemarkFieldsOnlyWhenRequired() async throws {
         let manager = FakeCaptureLocationManager(status: .authorized)
         let service = CaptureLocationService(

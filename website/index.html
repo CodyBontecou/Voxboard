@@ -59,6 +59,7 @@
       "Write standard Markdown into Obsidian vaults or Files folders",
       "Create new notes, update rolling notes, or target existing notes",
       "Insert at the top, bottom, or beneath a chosen heading",
+      "Use one-shot Current Location in templates with optional metadata output",
       "Use widgets, Shortcuts, the share extension, or the keyboard",
       "Transcribe voice on device without audio uploads"
     ]
@@ -345,7 +346,7 @@
     <div class="section-header reveal rd1">
       <div class="section-label">04 / Capture Presets</div>
       <h2 class="section-title">One Preset for Intent and Destination</h2>
-      <p class="section-kicker">A Capture Preset remembers how to process and format a capture, plus the vault, note target, placement, attachments, retry behavior, and optional one-shot origin location metadata. Pick one and keep moving.</p>
+      <p class="section-kicker">A Capture Preset remembers how to process and format a capture, plus the vault, note target, placement, attachments, retry behavior, and optional one-shot Current Location. Template links and metadata output are separate choices.</p>
     </div>
     <div class="route-pipeline reveal rd2" aria-label="Example Markdown route">
       <div class="route-pipeline-step">
@@ -393,9 +394,9 @@
         <div class="destination-label">Keep repeated captures consistent without reformatting them.</div>
       </div>
       <div class="destination-card">
-        <div class="destination-name">Opt-In Location</div>
-        <div class="destination-meta">Exact · City · Structured YAML</div>
-        <div class="destination-label">Add one origin-time location to frontmatter or inline fields without background tracking.</div>
+        <div class="destination-name">Current Location</div>
+        <div class="destination-meta">{location} · Optional Metadata</div>
+        <div class="destination-label">Insert one origin-time map link without adding metadata, or separately opt into frontmatter and inline fields. <a href="docs/location/">Read the guide.</a></div>
       </div>
     </div>
   </div>
@@ -417,7 +418,8 @@
       <div class="spec-row"><div class="spec-key">Obsidian syntax</div><div class="spec-val">Wikilinks and embedded attachments</div></div>
       <div class="spec-row"><div class="spec-key">Entry formats</div><div class="spec-val">Reusable Markdown and YAML templates</div></div>
       <div class="spec-row"><div class="spec-key">System entry points</div><div class="spec-val">App, widgets, Shortcuts, share extension, keyboard, Apple Watch, and Mac</div></div>
-      <div class="spec-row"><div class="spec-key">Preset location</div><div class="spec-val">Opt-in one-shot origin metadata; Exact default or City rounding; no background tracking</div></div>
+      <div class="spec-row"><div class="spec-key">Preset Current Location</div><div class="spec-val">Opt-in one-shot origin snapshot; {location} works without metadata; no background tracking</div></div>
+      <div class="spec-row"><div class="spec-key">Location metadata</div><div class="spec-val">Separate opt-in for frontmatter or inline fields; Exact default or City rounding</div></div>
       <div class="spec-row"><div class="spec-key">Voice processing</div><div class="spec-val">On-device Apple Speech, Whisper, or Parakeet</div></div>
       <div class="spec-row"><div class="spec-key">Audio uploads</div><div class="spec-val">None for transcription</div></div>
       <div class="spec-row"><div class="spec-key">Account</div><div class="spec-val">Not required</div></div>
@@ -475,6 +477,10 @@
         <details>
           <summary>Does Vox.md upload my notes or audio?</summary>
           <p>No capture content is sent to Vox.md servers. Drafts and voice processing stay on the device, while completed files are written to the folder you selected. If that folder belongs to a sync provider, the provider handles it under its own terms.</p>
+        </details>
+        <details>
+          <summary>Can I use location in a template without adding metadata?</summary>
+          <p>Yes. Turn on Use Current Location for that Capture Preset, keep Write Location Metadata off, and add <code>{location}</code> to its entry formatting. Vox.md inserts a one-shot map link without adding frontmatter or inline location fields. <a href="docs/location/">Read the complete location guide.</a></p>
         </details>
         <details>
           <summary>Can I capture outside the app?</summary>

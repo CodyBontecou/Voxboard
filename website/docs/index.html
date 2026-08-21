@@ -31,7 +31,7 @@
     "@type": "TechArticle",
     "headline": "Vox.md Complete Feature Guide",
     "description": "Documentation for every shipped Vox.md capture, routing, transcription, keyboard, system integration, Apple Watch, and Mac feature.",
-    "dateModified": "2026-07-29",
+    "dateModified": "2026-08-21",
     "author": {
       "@type": "Person",
       "name": "Cody Bontecou"
@@ -92,7 +92,7 @@
       <h1 class="page-title" id="docs-title">Everything You Can Do With Vox.md</h1>
       <p class="docs-hero-copy">A complete guide to capture, presets, Markdown routing, the voice keyboard, local models, Apple system integrations, Apple Watch, Mac, history, settings, and privacy.</p>
       <div class="docs-meta-row" aria-label="Documentation facts">
-        <span>Updated July 29, 2026</span>
+        <span>Updated August 21, 2026</span>
         <span>iOS 17.6+</span>
         <span>macOS 14+</span>
         <span>watchOS 10+</span>
@@ -111,6 +111,7 @@
         <a class="docs-category-card" href="#getting-started"><span>01</span><strong>Getting Started</strong><small>Platforms, setup, permissions, and first capture</small></a>
         <a class="docs-category-card" href="#quick-capture"><span>02</span><strong>Quick Capture</strong><small>Composer, media, voice, Capture Bar, and drafts</small></a>
         <a class="docs-category-card" href="#presets"><span>03</span><strong>Capture Presets</strong><small>Processing, metadata, destinations, and templates</small></a>
+        <a class="docs-category-card" href="location/"><span>Guide</span><strong>Current Location &amp; <code>{location}</code></strong><small>Token-only links, optional metadata, precision, privacy, and migration</small></a>
         <a class="docs-category-card" href="#models"><span>04</span><strong>Models</strong><small>Automatic, Apple Speech, Whisper, and Parakeet</small></a>
         <a class="docs-category-card" href="#keyboard"><span>05</span><strong>Keyboard</strong><small>Setup, dictation, insertion, haptics, and auto-stop</small></a>
         <a class="docs-category-card" href="#system-integrations"><span>06</span><strong>System Integrations</strong><small>Widgets, Share Sheet, Shortcuts, and deep links</small></a>
@@ -128,6 +129,7 @@
         <li><a href="#getting-started">Getting Started</a></li>
         <li><a href="#quick-capture">Quick Capture</a></li>
         <li><a href="#presets">Capture Presets &amp; Routes</a></li>
+        <li><a href="location/">Current Location &amp; {location}</a></li>
         <li><a href="#models">Models &amp; Transcription</a></li>
         <li><a href="#keyboard">iOS Keyboard</a></li>
         <li><a href="#system-integrations">System Integrations</a></li>
@@ -209,7 +211,7 @@
           <div><strong>Document scans</strong><p>Scan pages with VisionKit. Vox.md preserves page images, creates a PDF, and includes best-effort on-device OCR.</p></div>
           <div><strong>Journal OCR</strong><p>Capture up to 10 manual-shutter journal pages or choose journal photos. Accurate Vision OCR uses automatic language detection.</p></div>
           <div><strong>Sketches</strong><p>Draw on a white PencilKit canvas with a black pen. Vox.md stores editable drawing data and a PNG preview.</p></div>
-          <div><strong>Current Location action</strong><p>Request one location and insert a validated Google Maps Markdown link in the draft. This independent Capture Bar action does not enable preset metadata.</p></div>
+          <div><strong>Current Location action</strong><p>Request one location and insert a validated Google Maps Markdown link in the draft. This independent Capture Bar action does not change either per-preset location control.</p></div>
           <div><strong>Voice and imported audio</strong><p>Record from the composer or import audio/video, transcribe locally, and add the result to the draft or send it immediately.</p></div>
         </div>
 
@@ -297,24 +299,31 @@
           <li>When available, on-device enrichment can add a title, tags, category, and cleaned text alongside static preset metadata.</li>
         </ul>
 
-        <h3 id="preset-location">Opt-in location metadata</h3>
-        <p>Location metadata is off by default and belongs to each Capture Preset. When enabled, Vox.md requests one location at the capture’s origin: at Send for iOS/iPadOS, Share Sheet, Shortcuts, deep-link/composer, and Mac captures, or when an immediate voice, keyboard-driven preset recording, or Apple Watch recording routed through normal Capture delivery stops. Widget and control paths use their invocation or recording-stop boundary. Watch Recording Only is a raw audio Files export with no Markdown metadata surface and does not request location. Vox.md never continuously monitors location and never runs background location tracking.</p>
+        <h3 id="preset-location">Opt-in location</h3>
+        <p>Current Location is off by default and belongs to each Capture Preset. When enabled, Vox.md requests one location at the capture’s origin: at Send for iOS/iPadOS, Share Sheet, deep-link/composer, Mac, and system actions that open the composer; during invocation for direct-enqueue text, link, and file intents; or when an immediate voice, keyboard-driven preset recording, widget/control recording, or Apple Watch recording routed through normal Capture delivery stops. Watch Recording Only is a raw audio Files export with no Markdown location surface and does not request location. Vox.md never continuously monitors location and never runs background location tracking.</p>
         <div class="docs-table-wrap">
           <table class="docs-table">
             <thead><tr><th>Setting</th><th>Behavior</th></tr></thead>
             <tbody>
-              <tr><td>Exact (default)</td><td>Keeps the privacy-adjusted origin fix and can include a point-of-interest label.</td></tr>
+              <tr><td>Use Current Location</td><td>Requests one origin-time location for this preset and powers <code>{location}</code>. It does not automatically write metadata.</td></tr>
+              <tr><td>Exact (default)</td><td>Keeps the privacy-adjusted origin fix and can include a point-of-interest label when selected metadata needs one.</td></tr>
               <tr><td>City</td><td>Rounds latitude and longitude to two decimal places and omits point-of-interest labels. All derived fields and links use those rounded coordinates.</td></tr>
+              <tr><td>Write Location Metadata</td><td>Separately opts into structured or advanced metadata in addition to any <code>{location}</code> entry-template link.</td></tr>
               <tr><td>Structured Fields</td><td>Select and rename coordinates, latitude, longitude, place, city, region, country, Apple Maps, Google Maps, OpenStreetMap, <code>geo:</code> URI, accuracy, timestamp, source, and Capture ID.</td></tr>
               <tr><td>Advanced YAML Template</td><td>Uses validated, bounded YAML for Note Frontmatter. It cannot replace unrelated frontmatter and is not available for inline entry fields.</td></tr>
             </tbody>
           </table>
         </div>
-        <p>At document scope, each result is appended to the configured frontmatter collection and keyed by Capture ID. One note can retain multiple locations, while an idempotent retry cannot append the same location twice. At entry scope, selected structured fields render as <code>key:: value</code> beside that captured entry.</p>
-        <p>Place, city, region, and country use Apple’s system reverse geocoder only when selected. The service is free and requires no API key, but may use a network connection; if lookup fails, Capture continues with coordinate-only metadata. Entry prefixes, suffixes, and vault Markdown templates can use <code>{location}</code> to insert a clickable Google Maps link from the preset’s available privacy-adjusted snapshot; the token is empty when no usable opted-in location is available. Creating a provider link does not contact Apple, Google, or OpenStreetMap. Opening one discloses the same exact or rounded coordinates stored in the link to that provider.</p>
+        <p>When Write Location Metadata is enabled, document scope appends each result to the configured frontmatter collection keyed by Capture ID. One note can retain multiple locations, while an idempotent retry cannot append the same location twice. Entry scope instead renders selected structured fields as <code>key:: value</code> beside that captured entry.</p>
+        <p>Place, city, region, and country use Apple’s system reverse geocoder only when enabled metadata fields need them. Token-only location skips reverse geocoding. The service is free and requires no API key, but may use a network connection; if lookup fails, Capture continues with coordinate-only metadata. Entry prefixes, suffixes, and vault Markdown templates can use <code>{location}</code> to insert a clickable Google Maps link from the preset’s available privacy-adjusted snapshot without enabling metadata output; the token is empty when Current Location is off or unavailable. Creating a provider link does not contact Apple, Google, or OpenStreetMap. Opening one discloses the same exact or rounded coordinates stored in the link to that provider.</p>
+        <p>New and previously disabled presets keep both controls off. Presets that already wrote location metadata keep both controls on after upgrading, preserving their existing output.</p>
+        <div class="docs-callout">
+          <strong>Complete Current Location guide</strong>
+          <p>See <a href="location/">Current Location, <code>{location}</code>, and Metadata</a> for setup patterns, examples, capture-source timing, migration behavior, privacy, and troubleshooting.</p>
+        </div>
         <div class="docs-callout docs-callout-neutral">
           <strong>Unavailable location</strong>
-          <p>Interactive surfaces can retry, cancel, send once without location, or choose <em>Always Send Without Location</em> for that preset. Reset that saved choice in the preset’s Location Metadata settings. An unattended <em>Ask</em> capture persists its unavailable origin-time outcome until you decide; retry and recovery never reacquire a later location.</p>
+          <p>Interactive surfaces can retry, cancel, send once without location, or choose <em>Always Send Without Location</em> for that preset. Reset that saved choice in the preset’s Location settings. An unattended <em>Ask</em> capture persists its unavailable origin-time outcome until you decide; retry and recovery never reacquire a later location.</p>
         </div>
 
         <h3 id="destinations">Markdown destinations</h3>
@@ -441,7 +450,7 @@
         <h2>Start a Capture From the Share Sheet, Home Screen, Lock Screen, or Shortcuts</h2>
 
         <h3 id="share-extension">Share Extension</h3>
-        <p>The iOS Share Sheet action is named <strong>Capture to Vox.md</strong>. It accepts text, HTTP/HTTPS URLs, images, files, and movies, up to the shared item and asset limits. Choose a Capture Preset and destination, add an optional note, then Send. If that preset opted into location metadata, Share requests its one origin-time location at this Send action. Content is staged in the private App Group, queued durably, and opened in Vox.md for delivery. If delivery needs the main app, use <strong>Open Vox.md</strong>.</p>
+        <p>The iOS Share Sheet action is named <strong>Capture to Vox.md</strong>. It accepts text, HTTP/HTTPS URLs, images, files, and movies, up to the shared item and asset limits. Choose a Capture Preset and destination, add an optional note, then Send. If that preset uses Current Location, Share requests its one origin-time location at this Send action whether or not metadata output is enabled. Content is staged in the private App Group, queued durably, and opened in Vox.md for delivery. If delivery needs the main app, use <strong>Open Vox.md</strong>.</p>
 
         <h3 id="widgets">Home Screen and Lock Screen widgets</h3>
         <div class="docs-feature-grid docs-feature-grid-three">
@@ -459,7 +468,7 @@
         </ul>
 
         <h3 id="shortcuts">Shortcuts and App Intents</h3>
-        <p>Capture Presets appear as selectable entities in Shortcuts and supported controls. An opted-in preset requests one location during the intent invocation when the process is authorized and capable. If an unattended <em>Ask</em> request cannot get location, its unavailable origin-time result is retained for a later decision rather than reacquired. Shipped intents include:</p>
+        <p>Capture Presets appear as selectable entities in Shortcuts and supported controls. With Use Current Location enabled, direct-enqueue text, link, and file intents request location during invocation; actions that open Quick Capture request it at Send; and recording actions request it when recording stops. Metadata output does not change this timing. If an unattended <em>Ask</em> request cannot get location, its unavailable origin-time result is retained for a later decision rather than reacquired. Shipped intents include:</p>
         <ul class="docs-columns">
           <li>Record with Vox.md</li>
           <li>Open Quick Capture</li>
@@ -501,7 +510,7 @@
           <li>Use Record, Stop, Cancel, Sync, and Refresh. Cancel explicitly deletes the local recording instead of syncing it.</li>
           <li>Recordings are journaled locally and recovered after interruptions or crashes.</li>
           <li>A recording remains on Watch until iPhone confirms delivery or discard.</li>
-          <li>For an opted-in preset routed through normal Capture delivery, Watch requests one Watch-origin location when recording stops and transfers that privacy-adjusted outcome with the preset snapshot. iPhone never substitutes its own location. Recording Only skips location because it exports raw audio without a Markdown metadata surface.</li>
+          <li>For a preset with Use Current Location enabled and routed through normal Capture delivery, Watch requests one Watch-origin location when recording stops and transfers that privacy-adjusted outcome with the preset snapshot. iPhone never substitutes its own location. Recording Only skips location because it exports raw audio without a Markdown surface.</li>
         </ul>
 
         <h3 id="watch-presets">Capture Presets on Watch</h3>
@@ -534,7 +543,7 @@
           <li>Import a scan or PDF, create a sketch with a mouse, trackpad, or connected tablet, and add links, wikilinks, due dates, and text transformations.</li>
           <li>Record with <strong>Add to Draft</strong> or <strong>Send Immediately</strong>; optionally retain Audio in draft mode.</li>
           <li>Import audio or video for local transcription.</li>
-          <li>Press Command-Return to Send Capture. An opted-in preset requests one Mac-origin location at Send or recording stop.</li>
+          <li>Press Command-Return to Send Capture. A preset with Use Current Location enabled requests one Mac-origin location at Send or recording stop, whether or not metadata output is enabled.</li>
           <li>A destination setup banner and route inspector expose the selected preset's resolved note and placement.</li>
         </ul>
 
@@ -642,8 +651,12 @@
             <p>Open Vox.md on iPhone, then open Watch Recordings. Refresh or retry, choose a valid preset when requested, and keep the app installed and available for background handoff. Force-quit blocks background delivery until reopen.</p>
           </details>
           <details>
+            <summary><code>{location}</code> renders empty</summary>
+            <p>Turn on Use Current Location for the delivering preset; for detected entry prefixes, suffixes, and reusable Entry Templates, the composer’s one-tap fix does this without enabling metadata. Live vault template files require manual preset setup. If permission is unavailable or the capture continues without location, the token intentionally renders empty. See the <a href="location/">complete location guide</a>.</p>
+          </details>
+          <details>
             <summary>Preset location is unavailable</summary>
-            <p>Use Retry only while you are still resolving the original interactive Send. You can instead cancel, send once without location, or always send without location for that preset. Reset a saved choice in the preset’s Location Metadata settings. A queued unattended request keeps its original unavailable result and will not fetch a newer location.</p>
+            <p>Use Retry only while you are still resolving the original interactive Send. You can instead cancel, send once without location, or always send without location for that preset. Reset a saved choice in the preset’s Location settings. A queued unattended request keeps its original unavailable result and will not fetch a newer location.</p>
           </details>
         </div>
         <div class="docs-callout docs-support-callout">

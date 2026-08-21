@@ -9525,16 +9525,6 @@
         }
       }
     },
-    "Add Current Location to %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add Current Location to %@"
-          }
-        }
-      }
-    },
     "Add Destination": {
       "localizations": {
         "ar": {
@@ -61736,6 +61726,148 @@
         }
       }
     },
+    "Entry formatting can use {location} without writing additional metadata.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry formatting can use {location} without writing additional metadata."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكن لتنسيق الإدخال استخدام {location} دون كتابة بيانات وصفية إضافية."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এন্ট্রি ফরম্যাটিং অতিরিক্ত মেটাডেটা না লিখেই {location} ব্যবহার করতে পারে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Eintragsformatierung kann {location} verwenden, ohne zusätzliche Metadaten zu schreiben."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El formato de entrada puede usar {location} sin escribir metadatos adicionales."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le formatage de l’entrée peut utiliser {location} sans écrire de métadonnées supplémentaires."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "एंट्री फ़ॉर्मैटिंग अतिरिक्त मेटाडेटा लिखे बिना {location} का उपयोग कर सकती है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pemformatan entri dapat menggunakan {location} tanpa menulis metadata tambahan."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La formattazione della voce può usare {location} senza scrivere metadati aggiuntivi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エントリの書式設定では、追加のメタデータを書き込まずに {location} を使用できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "항목 서식은 추가 메타데이터를 작성하지 않고 {location}을 사용할 수 있습니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoeropmaak kan {location} gebruiken zonder extra metagegevens te schrijven."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formatowanie wpisu może używać {location} bez zapisywania dodatkowych metadanych."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A formatação da entrada pode usar {location} sem gravar metadados adicionais."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Форматирование записи может использовать {location} без добавления дополнительных метаданных."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "கூடுதல் மெட்டாடேட்டாவை எழுதாமல் பதிவு வடிவமைப்பு {location} ஐப் பயன்படுத்தலாம்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การจัดรูปแบบรายการสามารถใช้ {location} ได้โดยไม่เขียนข้อมูลเมตาเพิ่มเติม"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Girdi biçimlendirmesi ek meta veri yazmadan {location} kullanabilir."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Форматування запису може використовувати {location} без додавання додаткових метаданих."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اندراج کی فارمیٹنگ اضافی میٹا ڈیٹا لکھے بغیر {location} استعمال کر سکتی ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Định dạng mục nhập có thể dùng {location} mà không ghi thêm siêu dữ liệu."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "条目格式可以使用 {location}，而无需写入其他元数据。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "項目格式可以使用 {location}，而無需寫入其他後設資料。"
+          }
+        }
+      }
+    },
     "Entry prefix": {
       "localizations": {
         "ar": {
@@ -88464,6 +88596,148 @@
         }
       }
     },
+    "Location access is off. Enable it in Settings to use Current Location.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location access is off. Enable it in Settings to use Current Location."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "الوصول إلى الموقع متوقف. فعّله في الإعدادات لاستخدام الموقع الحالي."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবস্থান অ্যাক্সেস বন্ধ আছে। বর্তমান অবস্থান ব্যবহার করতে সেটিংসে এটি চালু করুন।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Standortzugriff ist deaktiviert. Aktiviere ihn in den Einstellungen, um den aktuellen Standort zu verwenden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El acceso a la ubicación está desactivado. Actívalo en Ajustes para usar la ubicación actual."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’accès à la localisation est désactivé. Activez-le dans Réglages pour utiliser la localisation actuelle."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थान एक्सेस बंद है। वर्तमान स्थान का उपयोग करने के लिए इसे सेटिंग्स में चालू करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Akses lokasi nonaktif. Aktifkan di Pengaturan untuk menggunakan Lokasi Saat Ini."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’accesso alla posizione è disattivato. Attivalo in Impostazioni per usare la posizione corrente."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置情報へのアクセスがオフです。現在地を使用するには「設定」で有効にしてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "위치 접근이 꺼져 있습니다. 현재 위치를 사용하려면 설정에서 켜십시오."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locatietoegang is uitgeschakeld. Schakel deze in bij Instellingen om Huidige locatie te gebruiken."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dostęp do lokalizacji jest wyłączony. Włącz go w Ustawieniach, aby używać bieżącej lokalizacji."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O acesso à localização está desativado. Ative-o nos Ajustes para usar a localização atual."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к геопозиции отключен. Включите его в Настройках, чтобы использовать текущее местоположение."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இருப்பிட அணுகல் முடக்கப்பட்டுள்ளது. தற்போதைய இருப்பிடத்தைப் பயன்படுத்த அமைப்புகளில் அதை இயக்கவும்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ปิดการเข้าถึงตำแหน่งอยู่ เปิดใช้ในการตั้งค่าเพื่อใช้ตำแหน่งปัจจุบัน"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konum erişimi kapalı. Mevcut Konumu kullanmak için Ayarlar'da etkinleştirin."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ до геопозиції вимкнено. Увімкніть його в Параметрах, щоб використовувати поточне місцезнаходження."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مقام تک رسائی بند ہے۔ موجودہ مقام استعمال کرنے کے لیے اسے ترتیبات میں فعال کریں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quyền truy cập vị trí đang tắt. Hãy bật trong Cài đặt để sử dụng vị trí hiện tại."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置访问已关闭。请在“设置”中启用，以使用当前位置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置取用已關閉。請在「設定」中啟用，以使用目前位置。"
+          }
+        }
+      }
+    },
     "Location is requested once at Capture send or recording stop. Exact keeps the origin fix; City rounds coordinates and omits a point-of-interest label. Vox.md does not track location in the background.": {
       "extractionState": "manual",
       "localizations": {
@@ -97249,6 +97523,148 @@
           "stringUnit": {
             "state": "translated",
             "value": "無雙重麥克風狀態"
+          }
+        }
+      }
+    },
+    "No frontmatter collection or inline location fields will be written. The {location} template token still works.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No frontmatter collection or inline location fields will be written. The {location} template token still works."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لن تتم كتابة مجموعة frontmatter أو حقول موقع مضمنة. سيظل رمز القالب {location} يعمل."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো frontmatter সংগ্রহ বা ইনলাইন অবস্থান ফিল্ড লেখা হবে না। {location} টেমপ্লেট টোকেনটি তবুও কাজ করবে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es werden weder eine Frontmatter-Sammlung noch Inline-Standortfelder geschrieben. Das Vorlagen-Token {location} funktioniert weiterhin."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se escribirá ninguna colección de frontmatter ni campos de ubicación en línea. El token de plantilla {location} seguirá funcionando."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune collection frontmatter ni aucun champ de localisation intégré ne sera écrit. Le jeton de modèle {location} fonctionne toujours."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "कोई frontmatter संग्रह या इनलाइन स्थान फ़ील्ड नहीं लिखी जाएगी। {location} टेम्प्लेट टोकन फिर भी काम करेगा।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koleksi frontmatter atau bidang lokasi sebaris tidak akan ditulis. Token templat {location} tetap berfungsi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non verranno scritti né una raccolta frontmatter né campi di posizione in linea. Il token del modello {location} continuerà a funzionare."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "frontmatter コレクションやインラインの位置情報フィールドは書き込まれません。{location} テンプレートトークンは引き続き機能します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "frontmatter 컬렉션 또는 인라인 위치 필드를 작성하지 않습니다. {location} 템플릿 토큰은 계속 작동합니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er worden geen frontmatterverzameling of inline locatievelden geschreven. Het sjabloontoken {location} blijft werken."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie zostanie zapisana żadna kolekcja frontmatter ani wbudowane pola lokalizacji. Token szablonu {location} nadal działa."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma coleção de frontmatter nem campos de localização embutidos serão gravados. O token de modelo {location} continuará funcionando."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Коллекция frontmatter и встроенные поля местоположения записываться не будут. Токен шаблона {location} продолжит работать."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "frontmatter தொகுப்போ இன்லைன் இருப்பிடப் புலங்களோ எழுதப்படாது. {location} டெம்ப்ளேட் டோக்கன் தொடர்ந்து செயல்படும்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "จะไม่มีการเขียนคอลเลกชัน frontmatter หรือฟิลด์ตำแหน่งแบบอินไลน์ โทเค็นเทมเพลต {location} ยังคงใช้งานได้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiçbir frontmatter koleksiyonu veya satır içi konum alanı yazılmayacak. {location} şablon belirteci çalışmaya devam eder."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Колекція frontmatter та вбудовані поля місцезнаходження не записуватимуться. Токен шаблону {location} і далі працюватиме."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کوئی frontmatter مجموعہ یا اِن لائن مقام کی فیلڈز نہیں لکھی جائیں گی۔ {location} ٹیمپلیٹ ٹوکن پھر بھی کام کرے گا۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sẽ không ghi bộ sưu tập frontmatter hoặc trường vị trí nội tuyến. Token mẫu {location} vẫn hoạt động."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会写入 frontmatter 集合或内联位置字段。{location} 模板令牌仍然有效。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不會寫入 frontmatter 集合或行內位置欄位。{location} 範本代碼仍然有效。"
           }
         }
       }
@@ -111052,6 +111468,148 @@
         }
       }
     },
+    "Place, city, region, and country use Apple's system reverse geocoder only when selected and may make a network request.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Place, city, region, and country use Apple's system reverse geocoder only when selected and may make a network request."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تستخدم بيانات المكان والمدينة والمنطقة والبلد أداة الترميز الجغرافي العكسي للنظام من Apple فقط عند تحديدها، وقد تُجري طلب شبكة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "স্থান, শহর, অঞ্চল ও দেশ নির্বাচন করা হলেই শুধু Apple সিস্টেমের রিভার্স জিওকোডার ব্যবহার করে এবং নেটওয়ার্ক অনুরোধ করতে পারে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ort, Stadt, Region und Land verwenden nur bei Auswahl den systemeigenen Reverse-Geocoder von Apple und können eine Netzwerkanfrage auslösen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El lugar, la ciudad, la región y el país usan el geocodificador inverso del sistema Apple solo cuando se seleccionan y pueden realizar una solicitud de red."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le lieu, la ville, la région et le pays utilisent le géocodeur inversé du système Apple uniquement lorsqu’ils sont sélectionnés et peuvent effectuer une requête réseau."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थान, शहर, क्षेत्र और देश चुने जाने पर ही Apple के सिस्टम रिवर्स जियोकोडर का उपयोग करते हैं और नेटवर्क अनुरोध कर सकते हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tempat, kota, wilayah, dan negara hanya menggunakan geocoder balik sistem Apple saat dipilih dan mungkin membuat permintaan jaringan."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Luogo, città, regione e paese usano il geocodificatore inverso del sistema Apple solo quando sono selezionati e potrebbero effettuare una richiesta di rete."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地名、市区町村、地域、国は、選択時のみ Apple のシステム逆ジオコーダを使用し、ネットワークリクエストを行う場合があります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "장소, 도시, 지역 및 국가는 선택된 경우에만 Apple 시스템 역지오코더를 사용하며 네트워크 요청을 보낼 수 있습니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plaats, stad, regio en land gebruiken alleen bij selectie de systeemgeocoder voor omgekeerd zoeken van Apple en kunnen een netwerkverzoek uitvoeren."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dane miejsca, miasta, regionu i kraju korzystają z systemowego odwrotnego geokodera Apple tylko po wybraniu i mogą wysłać żądanie sieciowe."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local, cidade, região e país usam o geocodificador reverso do sistema Apple somente quando selecionados e podem fazer uma solicitação de rede."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Данные о месте, городе, регионе и стране используют системный обратный геокодер Apple только при выборе и могут отправить сетевой запрос."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இடம், நகரம், மண்டலம் மற்றும் நாடு ஆகியவை தேர்ந்தெடுக்கப்பட்டால் மட்டுமே Apple சிஸ்டத்தின் ரிவர்ஸ் ஜியோகோடரைப் பயன்படுத்தும்; நெட்வொர்க் கோரிக்கையையும் செய்யலாம்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ข้อมูลสถานที่ เมือง ภูมิภาค และประเทศจะใช้ตัวระบุพิกัดย้อนกลับของระบบ Apple เฉพาะเมื่อเลือก และอาจส่งคำขอผ่านเครือข่าย"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yer, şehir, bölge ve ülke yalnızca seçildiğinde Apple sisteminin ters coğrafi kodlayıcısını kullanır ve ağ isteğinde bulunabilir."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дані про місце, місто, регіон і країну використовують системний зворотний геокодер Apple лише після вибору та можуть надіслати мережевий запит."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جگہ، شہر، خطہ اور ملک صرف منتخب کیے جانے پر Apple کا سسٹم ریورس جیوکوڈر استعمال کرتے ہیں اور نیٹ ورک کی درخواست کر سکتے ہیں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Địa điểm, thành phố, vùng và quốc gia chỉ sử dụng bộ mã hóa địa lý ngược của hệ thống Apple khi được chọn và có thể gửi yêu cầu mạng."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点、城市、地区和国家仅在选中时使用 Apple 的系统反向地理编码器，并且可能会发出网络请求。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地點、城市、地區和國家僅在選取時使用 Apple 的系統反向地理編碼器，並且可能會發出網路要求。"
+          }
+        }
+      }
+    },
     "Place, city, region, and country use Apple's system reverse geocoder only when selected and may make a network request. Provider links disclose the privacy-adjusted coordinates to Apple, Google, or OpenStreetMap only when you open a link.": {
       "extractionState": "manual",
       "localizations": {
@@ -115595,6 +116153,148 @@
           "stringUnit": {
             "state": "translated",
             "value": "項目 / VOX"
+          }
+        }
+      }
+    },
+    "Provider links disclose the privacy-adjusted coordinates to Apple, Google, or OpenStreetMap only when you open a link.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider links disclose the privacy-adjusted coordinates to Apple, Google, or OpenStreetMap only when you open a link."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا تكشف روابط موفري الخدمة الإحداثيات المعدّلة لحماية الخصوصية إلى Apple أو Google أو OpenStreetMap إلا عند فتح رابط."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "প্রোভাইডার লিংক কেবল আপনি কোনো লিংক খুললেই গোপনীয়তার জন্য সমন্বয় করা স্থানাঙ্ক Apple, Google বা OpenStreetMap-কে জানায়।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anbieterlinks geben die für den Datenschutz angepassten Koordinaten nur beim Öffnen eines Links an Apple, Google oder OpenStreetMap weiter."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los enlaces de proveedores revelan las coordenadas ajustadas para proteger la privacidad a Apple, Google u OpenStreetMap solo cuando abres un enlace."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les liens des fournisseurs communiquent les coordonnées ajustées pour la confidentialité à Apple, Google ou OpenStreetMap uniquement lorsque vous ouvrez un lien."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "प्रोवाइडर लिंक केवल आपके लिंक खोलने पर गोपनीयता के लिए समायोजित निर्देशांक Apple, Google या OpenStreetMap को बताते हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tautan penyedia hanya mengungkapkan koordinat yang disesuaikan untuk privasi kepada Apple, Google, atau OpenStreetMap saat Anda membuka tautan."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I link dei fornitori comunicano le coordinate modificate per la privacy ad Apple, Google o OpenStreetMap solo quando apri un link."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プロバイダリンクは、リンクを開いた場合にのみ、プライバシーに配慮して調整された座標を Apple、Google、または OpenStreetMap に開示します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "제공자 링크는 링크를 열 때만 개인정보 보호를 위해 조정된 좌표를 Apple, Google 또는 OpenStreetMap에 공개합니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Providerlinks maken de voor privacy aangepaste coördinaten alleen bekend aan Apple, Google of OpenStreetMap wanneer je een link opent."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Łącza dostawców ujawniają współrzędne dostosowane pod kątem prywatności firmom Apple, Google lub OpenStreetMap tylko po otwarciu łącza."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os links dos provedores revelam as coordenadas ajustadas para privacidade à Apple, Google ou OpenStreetMap somente quando você abre um link."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ссылки на сервисы передают скорректированные для конфиденциальности координаты Apple, Google или OpenStreetMap только при открытии ссылки."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "வழங்குநர் இணைப்புகள், நீங்கள் ஓர் இணைப்பைத் திறக்கும்போது மட்டுமே தனியுரிமைக்காகச் சரிசெய்யப்பட்ட ஆயங்களை Apple, Google அல்லது OpenStreetMap-க்கு வெளிப்படுத்தும்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ลิงก์ผู้ให้บริการจะเปิดเผยพิกัดที่ปรับเพื่อความเป็นส่วนตัวแก่ Apple, Google หรือ OpenStreetMap เฉพาะเมื่อคุณเปิดลิงก์"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sağlayıcı bağlantıları, gizlilik için ayarlanmış koordinatları yalnızca bir bağlantıyı açtığınızda Apple, Google veya OpenStreetMap ile paylaşır."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Посилання постачальників передають скориговані для конфіденційності координати Apple, Google або OpenStreetMap лише після відкриття посилання."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "فراہم کنندہ کے لنکس رازداری کے لیے ایڈجسٹ کردہ محددات صرف لنک کھولنے پر Apple، Google یا OpenStreetMap کو ظاہر کرتے ہیں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liên kết của nhà cung cấp chỉ tiết lộ tọa độ đã điều chỉnh để bảo vệ quyền riêng tư cho Apple, Google hoặc OpenStreetMap khi bạn mở liên kết."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅当您打开链接时，提供商链接才会向 Apple、Google 或 OpenStreetMap 披露为保护隐私而调整过的坐标。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有在你開啟連結時，供應商連結才會向 Apple、Google 或 OpenStreetMap 揭露為保護隱私而調整過的座標。"
           }
         }
       }
@@ -170039,12 +170739,144 @@
         }
       }
     },
-    "The {location} token inserts this map link only when the Capture Preset delivering the capture has Add Current Location enabled. Otherwise it renders empty.": {
+    "The {location} token inserts this map link only when the Capture Preset delivering the capture uses Current Location. Location metadata is optional.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The {location} token inserts this map link only when the Capture Preset delivering the capture has Add Current Location enabled. Otherwise it renders empty."
+            "value": "The {location} token inserts this map link only when the Capture Preset delivering the capture uses Current Location. Location metadata is optional."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يُدرج رمز {location} رابط الخريطة هذا إلا عندما يستخدم إعداد الالتقاط المسبق الذي يسلّم الالتقاط الموقع الحالي. بيانات الموقع الوصفية اختيارية."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ক্যাপচারটি পৌঁছে দেওয়া ক্যাপচার প্রিসেট বর্তমান অবস্থান ব্যবহার করলেই শুধু {location} টোকেনটি এই ম্যাপ লিংক যোগ করে। অবস্থান মেটাডেটা ঐচ্ছিক।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Token {location} fügt diesen Kartenlink nur ein, wenn das Aufnahme-Preset, das die Aufnahme übermittelt, den aktuellen Standort verwendet. Standortmetadaten sind optional."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El token {location} inserta este enlace de mapa solo cuando el preajuste de captura que entrega la captura usa la ubicación actual. Los metadatos de ubicación son opcionales."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le jeton {location} insère ce lien de carte uniquement lorsque le préréglage de capture qui transmet la capture utilise la localisation actuelle. Les métadonnées de localisation sont facultatives."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} टोकन यह मैप लिंक तभी जोड़ता है, जब कैप्चर पहुँचाने वाला कैप्चर प्रीसेट वर्तमान स्थान का उपयोग करता है। स्थान मेटाडेटा वैकल्पिक है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token {location} hanya menyisipkan tautan peta ini saat Preset Pengambilan yang mengirimkan hasil pengambilan menggunakan Lokasi Saat Ini. Metadata lokasi bersifat opsional."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Il token {location} inserisce questo link alla mappa solo quando il preset di acquisizione che consegna l’acquisizione usa la posizione corrente. I metadati sulla posizione sono facoltativi."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} トークンは、キャプチャを配信するキャプチャプリセットで現在地を使用している場合にのみ、このマップリンクを挿入します。位置情報メタデータは任意です。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} 토큰은 캡처를 전달하는 캡처 프리셋이 현재 위치를 사용할 때만 이 지도 링크를 삽입합니다. 위치 메타데이터는 선택 사항입니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Het token {location} voegt deze kaartlink alleen in als de opnamevoorinstelling die de opname aflevert Huidige locatie gebruikt. Locatiemetagegevens zijn optioneel."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token {location} wstawia to łącze do mapy tylko wtedy, gdy preset przechwytywania dostarczający treść używa bieżącej lokalizacji. Metadane lokalizacji są opcjonalne."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O token {location} insere este link de mapa somente quando a predefinição de captura que entrega a captura usa a localização atual. Os metadados de localização são opcionais."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Токен {location} вставляет эту ссылку на карту, только если предустановка захвата, доставляющая запись, использует текущее местоположение. Метаданные местоположения необязательны."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} டோக்கன், பதிவை வழங்கும் பதிவு முன்னமைவு தற்போதைய இருப்பிடத்தைப் பயன்படுத்தினால் மட்டுமே இந்த வரைபட இணைப்பைச் செருகும். இருப்பிட மெட்டாடேட்டா விருப்பத்திற்குரியது."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "โทเค็น {location} จะแทรกลิงก์แผนที่นี้เฉพาะเมื่อค่าที่ตั้งไว้ล่วงหน้าสำหรับการบันทึกซึ่งส่งรายการที่บันทึกใช้ตำแหน่งปัจจุบัน ข้อมูลเมตาตำแหน่งไม่บังคับ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} belirteci bu harita bağlantısını yalnızca yakalamayı ileten Yakalama Ön Ayarı Mevcut Konum kullanıyorsa ekler. Konum meta verileri isteğe bağlıdır."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Токен {location} вставляє це посилання на карту, лише якщо пресет запису, що доставляє запис, використовує поточне місцезнаходження. Метадані місцезнаходження необов’язкові."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} ٹوکن نقشے کا یہ لنک صرف اس وقت شامل کرتا ہے جب کیپچر پہنچانے والا کیپچر پری سیٹ موجودہ مقام استعمال کرے۔ مقام کا میٹا ڈیٹا اختیاری ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token {location} chỉ chèn liên kết bản đồ này khi cấu hình chụp sẵn chuyển nội dung chụp sử dụng vị trí hiện tại. Siêu dữ liệu vị trí là tùy chọn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有在传送捕捉内容的捕捉预设使用当前位置时，{location} 令牌才会插入此地图链接。位置元数据可选。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只有在傳送擷取內容的擷取預設使用目前位置時，{location} 代碼才會插入此地圖連結。位置後設資料為選用項目。"
           }
         }
       }
@@ -171753,12 +172585,286 @@
         }
       }
     },
-    "This entry formatting uses {location}, but %@ doesn’t attach location. The token will render empty.": {
+    "This enables {location} without writing location metadata. The first use may ask for location permission.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This entry formatting uses {location}, but %@ doesn’t attach location. The token will render empty."
+            "value": "This enables {location} without writing location metadata. The first use may ask for location permission."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يؤدي هذا إلى تمكين {location} دون كتابة بيانات وصفية للموقع. قد يطلب الاستخدام الأول إذن الوصول إلى الموقع."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এটি অবস্থান মেটাডেটা না লিখে {location} চালু করে। প্রথমবার ব্যবহারের সময় অবস্থানের অনুমতি চাইতে পারে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dies aktiviert {location}, ohne Standortmetadaten zu schreiben. Bei der ersten Verwendung kann die Standortberechtigung angefordert werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esto activa {location} sin escribir metadatos de ubicación. El primer uso puede solicitar permiso de ubicación."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela active {location} sans écrire de métadonnées de localisation. La première utilisation peut demander l’autorisation d’accéder à la localisation."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह स्थान मेटाडेटा लिखे बिना {location} को सक्षम करता है। पहली बार उपयोग करने पर स्थान की अनुमति मांगी जा सकती है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ini mengaktifkan {location} tanpa menulis metadata lokasi. Penggunaan pertama mungkin meminta izin lokasi."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo abilita {location} senza scrivere metadati sulla posizione. Al primo utilizzo potrebbe essere richiesta l’autorizzazione per la posizione."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置情報メタデータを書き込まずに {location} を有効にします。初回使用時に位置情報の許可を求める場合があります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "위치 메타데이터를 작성하지 않고 {location}을 활성화합니다. 처음 사용할 때 위치 권한을 요청할 수 있습니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dit schakelt {location} in zonder locatiemetagegevens te schrijven. Bij het eerste gebruik kan om locatietoestemming worden gevraagd."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Włącza to {location} bez zapisywania metadanych lokalizacji. Przy pierwszym użyciu może pojawić się prośba o dostęp do lokalizacji."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso ativa {location} sem gravar metadados de localização. O primeiro uso pode solicitar permissão de localização."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Это включает {location} без записи метаданных местоположения. При первом использовании может быть запрошен доступ к геопозиции."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இது இருப்பிட மெட்டாடேட்டாவை எழுதாமல் {location} ஐ இயக்குகிறது. முதல் பயன்பாட்டில் இருப்பிட அனுமதி கேட்கப்படலாம்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การดำเนินการนี้เปิดใช้ {location} โดยไม่เขียนข้อมูลเมตาตำแหน่ง การใช้ครั้งแรกอาจขอสิทธิ์เข้าถึงตำแหน่ง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu, konum meta verisi yazmadan {location} özelliğini etkinleştirir. İlk kullanımda konum izni istenebilir."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Це вмикає {location} без запису метаданих місцезнаходження. Під час першого використання може з’явитися запит на доступ до геопозиції."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "یہ مقام کا میٹا ڈیٹا لکھے بغیر {location} فعال کرتا ہے۔ پہلی بار استعمال پر مقام کی اجازت طلب کی جا سکتی ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thao tác này bật {location} mà không ghi siêu dữ liệu vị trí. Lần sử dụng đầu tiên có thể yêu cầu quyền truy cập vị trí."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这样无需写入位置元数据即可启用 {location}。首次使用时可能会请求位置权限。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這樣無需寫入位置後設資料即可啟用 {location}。首次使用時可能會要求位置權限。"
+          }
+        }
+      }
+    },
+    "This entry formatting uses {location}, but %@ doesn’t use Current Location. The token will render empty.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This entry formatting uses {location}, but %@ doesn’t use Current Location. The token will render empty."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يستخدم تنسيق الإدخال هذا {location}، لكن %@ لا يستخدم الموقع الحالي. سيُعرض الرمز فارغًا."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই এন্ট্রি ফরম্যাটিং {location} ব্যবহার করে, কিন্তু %@ বর্তমান অবস্থান ব্যবহার করে না। টোকেনটি ফাঁকা দেখাবে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Eintragsformatierung verwendet {location}, aber %@ verwendet den aktuellen Standort nicht. Das Token wird leer dargestellt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este formato de entrada usa {location}, pero %@ no usa la ubicación actual. El token se mostrará vacío."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce formatage d’entrée utilise {location}, mais %@ n’utilise pas la localisation actuelle. Le jeton sera vide."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह एंट्री फ़ॉर्मैटिंग {location} का उपयोग करती है, लेकिन %@ वर्तमान स्थान का उपयोग नहीं करता। टोकन खाली दिखाई देगा।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pemformatan entri ini menggunakan {location}, tetapi %@ tidak menggunakan Lokasi Saat Ini. Token akan ditampilkan kosong."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa formattazione della voce usa {location}, ma %@ non usa la posizione corrente. Il token sarà visualizzato vuoto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このエントリの書式設定では {location} を使用していますが、%@では現在地を使用していません。トークンは空になります。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 항목 서식은 {location}을 사용하지만 %@에서는 현재 위치를 사용하지 않습니다. 토큰은 빈 값으로 표시됩니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze invoeropmaak gebruikt {location}, maar %@ gebruikt Huidige locatie niet. Het token wordt leeg weergegeven."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To formatowanie wpisu używa {location}, ale %@ nie używa bieżącej lokalizacji. Token będzie pusty."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta formatação de entrada usa {location}, mas %@ não usa a localização atual. O token será exibido vazio."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "В этом формате записи используется {location}, но %@ не использует текущее местоположение. Токен будет пустым."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இந்தப் பதிவு வடிவமைப்பு {location} ஐப் பயன்படுத்துகிறது, ஆனால் %@ தற்போதைய இருப்பிடத்தைப் பயன்படுத்தவில்லை. டோக்கன் காலியாகக் காட்டப்படும்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การจัดรูปแบบรายการนี้ใช้ {location} แต่ %@ ไม่ได้ใช้ตำแหน่งปัจจุบัน โทเค็นจะแสดงเป็นค่าว่าง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu girdi biçimlendirmesi {location} kullanıyor ancak %@ Mevcut Konum kullanmıyor. Belirteç boş görüntülenecek."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Це форматування запису використовує {location}, але %@ не використовує поточне місцезнаходження. Токен буде порожнім."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اندراج کی یہ فارمیٹنگ {location} استعمال کرتی ہے، لیکن %@ موجودہ مقام استعمال نہیں کرتا۔ ٹوکن خالی دکھائی دے گا۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Định dạng mục nhập này dùng {location}, nhưng %@ không dùng vị trí hiện tại. Token sẽ hiển thị trống."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此条目格式使用 {location}，但 %@ 不使用当前位置。该令牌将显示为空。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此項目格式使用 {location}，但 %@ 不使用目前位置。該代碼將顯示為空白。"
           }
         }
       }
@@ -179431,16 +180537,6 @@
         }
       }
     },
-    "Turning this on asks for location permission the first time, then captures location when you send with this Preset.": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Turning this on asks for location permission the first time, then captures location when you send with this Preset."
-          }
-        }
-      }
-    },
     "Turns captured tasks into `- [ ]` Markdown checklist items without inventing new tasks.": {
       "localizations": {
         "ar": {
@@ -185995,6 +187091,290 @@
         }
       }
     },
+    "Use Current Location": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Current Location"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استخدام الموقع الحالي"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "বর্তমান অবস্থান ব্যবহার করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuellen Standort verwenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar ubicación actual"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser la localisation actuelle"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "वर्तमान स्थान का उपयोग करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gunakan Lokasi Saat Ini"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa posizione corrente"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在地を使用"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 위치 사용"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huidige locatie gebruiken"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyj bieżącej lokalizacji"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar localização atual"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использовать текущее местоположение"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "தற்போதைய இருப்பிடத்தைப் பயன்படுத்து"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ใช้ตำแหน่งปัจจุบัน"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mevcut Konumu Kullan"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Використовувати поточне місцезнаходження"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "موجودہ مقام استعمال کریں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sử dụng vị trí hiện tại"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用当前位置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用目前位置"
+          }
+        }
+      }
+    },
+    "Use Current Location for %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use Current Location for %@"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "استخدام الموقع الحالي لـ %@"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-এর জন্য বর্তমান অবস্থান ব্যবহার করুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuellen Standort für %@ verwenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar ubicación actual para %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser la localisation actuelle pour %@"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ के लिए वर्तमान स्थान का उपयोग करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gunakan Lokasi Saat Ini untuk %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa posizione corrente per %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@で現在地を使用"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@에 현재 위치 사용"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Huidige locatie gebruiken voor %@"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Użyj bieżącej lokalizacji dla %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar localização atual para %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Использовать текущее местоположение для %@"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@-க்கு தற்போதைய இருப்பிடத்தைப் பயன்படுத்து"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ใช้ตำแหน่งปัจจุบันสำหรับ %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ İçin Mevcut Konumu Kullan"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Використовувати поточне місцезнаходження для %@"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ کے لیے موجودہ مقام استعمال کریں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sử dụng vị trí hiện tại cho %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "为 %@ 使用当前位置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "對 %@ 使用目前位置"
+          }
+        }
+      }
+    },
     "Use Existing %@ Model": {
       "localizations": {
         "en": {
@@ -190262,6 +191642,138 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vault templates support the same tokens, including {location}, which follows the delivering Capture Preset's location setting."
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تدعم قوالب Vault الرموز نفسها، بما فيها {location}، الذي يتبع إعداد الموقع في إعداد الالتقاط المسبق الذي يسلّم الالتقاط."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault টেমপ্লেট একই টোকেন সমর্থন করে, যার মধ্যে {location} রয়েছে; এটি ক্যাপচার পৌঁছে দেওয়া ক্যাপচার প্রিসেটের অবস্থান সেটিং অনুসরণ করে।"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault-Vorlagen unterstützen dieselben Tokens, einschließlich {location}, das der Standorteinstellung des übermittelnden Aufnahme-Presets folgt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las plantillas de Vault admiten los mismos tokens, incluido {location}, que sigue el ajuste de ubicación del preajuste de captura que realiza la entrega."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les modèles Vault prennent en charge les mêmes jetons, dont {location}, qui suit le réglage de localisation du préréglage de capture chargé de la transmission."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault टेम्प्लेट इन्हीं टोकन का समर्थन करते हैं, जिनमें {location} भी शामिल है; यह कैप्चर पहुँचाने वाले कैप्चर प्रीसेट की स्थान सेटिंग का पालन करता है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Templat Vault mendukung token yang sama, termasuk {location}, yang mengikuti pengaturan lokasi Preset Pengambilan yang mengirimkan hasil pengambilan."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I modelli Vault supportano gli stessi token, incluso {location}, che segue l’impostazione della posizione del preset di acquisizione che effettua la consegna."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault テンプレートは {location} を含む同じトークンに対応し、配信するキャプチャプリセットの位置情報設定に従います。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault 템플릿은 {location}을 포함한 동일한 토큰을 지원하고, 캡처를 전달하는 캡처 프리셋의 위치 설정을 따릅니다."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault-sjablonen ondersteunen dezelfde tokens, waaronder {location}, dat de locatie-instelling volgt van de opnamevoorinstelling die de opname aflevert."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Szablony Vault obsługują te same tokeny, w tym {location}, który korzysta z ustawienia lokalizacji presetu przechwytywania dostarczającego treść."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os modelos do Vault aceitam os mesmos tokens, incluindo {location}, que segue o ajuste de localização da predefinição de captura responsável pela entrega."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шаблоны Vault поддерживают те же токены, включая {location}, который использует настройку местоположения предустановки захвата, доставляющей запись."
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault டெம்ப்ளேட்கள் {location} உள்ளிட்ட அதே டோக்கன்களை ஆதரிக்கின்றன; இது பதிவை வழங்கும் பதிவு முன்னமைவின் இருப்பிட அமைப்பைப் பின்பற்றும்."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เทมเพลต Vault รองรับโทเค็นเดียวกัน รวมถึง {location} ซึ่งจะทำตามการตั้งค่าตำแหน่งของค่าที่ตั้งไว้ล่วงหน้าสำหรับการบันทึกที่ส่งรายการ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault şablonları {location} dahil aynı belirteçleri destekler ve yakalamayı ileten Yakalama Ön Ayarının konum ayarını izler."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Шаблони Vault підтримують ті самі токени, зокрема {location}, який використовує налаштування місцезнаходження пресета запису, що доставляє запис."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault ٹیمپلیٹس انہی ٹوکنز کو سپورٹ کرتے ہیں، بشمول {location}، جو کیپچر پہنچانے والے کیپچر پری سیٹ کی مقام کی ترتیب کے مطابق ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mẫu Vault hỗ trợ các token tương tự, bao gồm {location}; token này tuân theo cài đặt vị trí của cấu hình chụp sẵn chuyển nội dung chụp."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault 模板支持相同的令牌，包括 {location}；它会遵循传送捕捉内容的捕捉预设的位置设置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vault 範本支援相同的代碼，包括 {location}；它會依照傳送擷取內容的擷取預設之位置設定。"
           }
         }
       }
@@ -202781,6 +204293,148 @@
         }
       }
     },
+    "Write Location Metadata": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write Location Metadata"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "كتابة البيانات الوصفية للموقع"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অবস্থান মেটাডেটা লিখুন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standortmetadaten schreiben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribir metadatos de ubicación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écrire les métadonnées de localisation"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्थान मेटाडेटा लिखें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tulis Metadata Lokasi"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrivi metadati sulla posizione"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置情報メタデータを書き込む"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "위치 메타데이터 작성"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locatiemetagegevens schrijven"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zapisuj metadane lokalizacji"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gravar metadados de localização"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записывать метаданные местоположения"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இருப்பிட மெட்டாடேட்டாவை எழுது"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เขียนข้อมูลเมตาตำแหน่ง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Konum Meta Verilerini Yaz"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Записувати метадані місцезнаходження"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مقام کا میٹا ڈیٹا لکھیں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ghi siêu dữ liệu vị trí"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写入位置元数据"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "寫入位置後設資料"
+          }
+        }
+      }
+    },
     "Write my own": {
       "localizations": {
         "ar": {
@@ -208057,6 +209711,148 @@
         }
       }
     },
+    "{location} needs Current Location for this Preset": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} needs Current Location for this Preset"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يتطلب {location} استخدام الموقع الحالي لهذا الإعداد المسبق"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই প্রিসেটের জন্য {location}-এর বর্তমান অবস্থান প্রয়োজন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} benötigt für dieses Preset den aktuellen Standort"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} necesita la ubicación actual para este preajuste"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} nécessite la localisation actuelle pour ce préréglage"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस प्रीसेट के लिए {location} को वर्तमान स्थान चाहिए"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} memerlukan Lokasi Saat Ini untuk Preset ini"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} richiede la posizione corrente per questo preset"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このプリセットで {location} を使うには現在地が必要です"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 프리셋에서 {location}을 사용하려면 현재 위치가 필요합니다"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} vereist Huidige locatie voor deze voorinstelling"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} wymaga bieżącej lokalizacji dla tego presetu"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} precisa da localização atual para esta predefinição"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для {location} требуется текущее местоположение в этой предустановке"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "இந்த முன்னமைவுக்கு {location} பயன்படுத்த தற்போதைய இருப்பிடம் தேவை"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} ต้องใช้ตำแหน่งปัจจุบันสำหรับค่าที่ตั้งไว้ล่วงหน้านี้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location}, bu Ön Ayar için Mevcut Konum gerektirir"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для {location} потрібне поточне місцезнаходження в цьому пресеті"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس پری سیٹ میں {location} کے لیے موجودہ مقام درکار ہے"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} cần vị trí hiện tại cho cấu hình sẵn này"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此预设中的 {location} 需要使用当前位置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此預設中的 {location} 需要使用目前位置"
+          }
+        }
+      }
+    },
     "{location} token": {
       "localizations": {
         "en": {
@@ -208064,15 +209860,137 @@
             "state": "translated",
             "value": "{location} token"
           }
-        }
-      }
-    },
-    "{location} will render empty — this Preset doesn’t attach location": {
-      "localizations": {
-        "en": {
+        },
+        "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "{location} will render empty — this Preset doesn’t attach location"
+            "value": "رمز {location}"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} টোকেন"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location}-Token"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token {location}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeton {location}"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} टोकन"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token {location}"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token {location}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} トークン"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} 토큰"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location}-token"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token {location}"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token {location}"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Токен {location}"
+          }
+        },
+        "ta": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} டோக்கன்"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "โทเค็น {location}"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} belirteci"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Токен {location}"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} ٹوکن"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Token {location}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} 令牌"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{location} 代碼"
           }
         }
       }

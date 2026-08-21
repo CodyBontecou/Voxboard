@@ -1147,7 +1147,7 @@ section {
 
 .destinations-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin-top: 40px;
 }
@@ -1193,6 +1193,13 @@ section {
   color: var(--gray-900);
   font-size: 13px;
   line-height: 18px;
+}
+
+.destination-label a {
+  color: var(--secondary-900);
+  text-decoration: underline;
+  text-decoration-color: var(--secondary-400);
+  text-underline-offset: 3px;
 }
 
 .specs-table {
@@ -2446,6 +2453,7 @@ figcaption {
 .docs-content {
   min-width: 0;
   max-width: 860px;
+  padding: 0;
 }
 
 .docs-section {
@@ -2543,6 +2551,30 @@ figcaption {
   font-family: var(--font-mono);
   font-size: 0.84em;
   overflow-wrap: anywhere;
+}
+
+.docs-code-block {
+  overflow-x: auto;
+  margin: 20px 0 24px;
+  padding: 18px 20px;
+  border: 1px solid var(--gray-alpha-400);
+  border-radius: var(--radius-md);
+  background: var(--background-200);
+  color: var(--gray-1000);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 21px;
+  tab-size: 2;
+}
+
+.docs-code-block code {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: pre;
+  overflow-wrap: normal;
 }
 
 .docs-callout {
