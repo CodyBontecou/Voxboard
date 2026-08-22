@@ -398,7 +398,7 @@ struct MetaSettingsView: View {
                 Spacer()
                 Toggle("", isOn: $hapticsEnabled)
                     .labelsHidden()
-                    .tint(Geist.muted)
+                    .tint(Color.accentColor)
                     .onChange(of: hapticsEnabled) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.hapticsEnabledKey)
                     }
@@ -428,7 +428,7 @@ struct MetaSettingsView: View {
                 Spacer()
                 Toggle("", isOn: $liveActivityMonitorEnabled)
                     .labelsHidden()
-                    .tint(Geist.muted)
+                    .tint(Color.accentColor)
                     .onChange(of: liveActivityMonitorEnabled) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.liveActivityMonitorEnabledKey)
                         if val {
@@ -458,7 +458,7 @@ struct MetaSettingsView: View {
                 Spacer()
                 Toggle("", isOn: $lockScreenQuickRecordEnabled)
                     .labelsHidden()
-                    .tint(Geist.muted)
+                    .tint(Color.accentColor)
                     .onChange(of: lockScreenQuickRecordEnabled) { _, val in
                         AppConstants.sharedDefaults?.set(val, forKey: AppConstants.lockScreenQuickRecordEnabledKey)
                         WidgetCenter.shared.reloadTimelines(ofKind: "VoxboardRecordWidget")

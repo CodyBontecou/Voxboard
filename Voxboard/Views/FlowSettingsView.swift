@@ -78,7 +78,7 @@ struct CapturePresetSettingsView: View {
         }
         .navigationTitle("Capture Presets")
         .font(Geist.body())
-        .tint(Geist.Palette.gray1000)
+        .tint(Color.accentColor)
         .scrollContentBackground(.hidden)
         .background(Geist.Palette.background200)
         .task { await migrateRoutesAndReload() }
@@ -257,7 +257,7 @@ private struct CapturePresetEditorView: View {
                 }
             }
             Toggle("Enabled", isOn: $flow.isEnabled)
-                .tint(Geist.muted)
+                .tint(Color.accentColor)
         }
     }
 
@@ -332,7 +332,7 @@ private struct CapturePresetEditorView: View {
     private var voiceProcessingSection: some View {
         Section {
             Toggle("Identify Speakers", isOn: $flow.speakerDiarizationEnabled)
-                .tint(Geist.muted)
+                .tint(Color.accentColor)
 
             if flow.speakerDiarizationEnabled {
                 Label("Speaker labels are added after transcription.", systemImage: "person.2.wave.2")
@@ -350,7 +350,7 @@ private struct CapturePresetEditorView: View {
         Section {
             HStack(spacing: 12) {
                 Toggle("Apply to Capture Text", isOn: $flow.captureProcessingEnabled)
-                    .tint(Geist.muted)
+                    .tint(Color.accentColor)
 
                 Button {
                     isCaptureProcessingInfoPresented = true
@@ -461,7 +461,7 @@ private struct CapturePresetEditorView: View {
     private var locationMetadataSection: some View {
         Section {
             Toggle("Use Current Location", isOn: $flow.locationPolicy.isEnabled)
-                .tint(Geist.muted)
+                .tint(Color.accentColor)
                 .accessibilityIdentifier("preset_location_enabled")
 
             if flow.locationPolicy.isEnabled {
@@ -483,7 +483,7 @@ private struct CapturePresetEditorView: View {
                 .accessibilityIdentifier("preset_location_unavailable_behavior")
 
                 Toggle("Write Location Metadata", isOn: $flow.locationPolicy.metadataOutputEnabled)
-                    .tint(Geist.muted)
+                    .tint(Color.accentColor)
                     .accessibilityIdentifier("preset_location_metadata_output_enabled")
 
                 if flow.locationPolicy.metadataOutputEnabled {
@@ -528,7 +528,7 @@ private struct CapturePresetEditorView: View {
                         ForEach(CaptureLocationField.allCases, id: \.self) { field in
                             VStack(alignment: .leading, spacing: 8) {
                                 Toggle(field.configurationDisplayName, isOn: locationFieldSelection(field))
-                                    .tint(Geist.muted)
+                                    .tint(Color.accentColor)
                                 if flow.locationPolicy.structuredFields.contains(where: { $0.field == field }) {
                                     TextField("Output", text: locationOutputKey(field))
                                         .textInputAutocapitalization(.never)
@@ -642,7 +642,7 @@ private struct CapturePresetEditorView: View {
     private var fileExportSection: some View {
         Section {
             Toggle("Save Notes to Files", isOn: $flow.exportSettings.exportEnabled)
-                .tint(Geist.muted)
+                .tint(Color.accentColor)
                 .onChange(of: flow.exportSettings.exportEnabled) { _, _ in markPerFlow() }
 
             if flow.exportSettings.exportEnabled {
@@ -671,13 +671,13 @@ private struct CapturePresetEditorView: View {
 
                 if flow.exportSettings.format == .md {
                     Toggle("Obsidian Bases", isOn: $flow.exportSettings.mdObsidianEnabled)
-                        .tint(Geist.muted)
+                        .tint(Color.accentColor)
                         .onChange(of: flow.exportSettings.mdObsidianEnabled) { _, _ in markPerFlow() }
                 }
 
                 if flow.exportSettings.format == .yaml {
                     Toggle("Use .md Extension", isOn: $flow.exportSettings.yamlUsesMarkdownExtension)
-                        .tint(Geist.muted)
+                        .tint(Color.accentColor)
                         .onChange(of: flow.exportSettings.yamlUsesMarkdownExtension) { _, _ in markPerFlow() }
                     yamlPropertiesPicker
                 }
@@ -704,7 +704,7 @@ private struct CapturePresetEditorView: View {
                 }
 
                 Toggle("Use Markdown Template", isOn: $flow.exportSettings.markdownTemplateEnabled)
-                    .tint(Geist.muted)
+                    .tint(Color.accentColor)
                     .onChange(of: flow.exportSettings.markdownTemplateEnabled) { _, _ in markPerFlow() }
                 if flow.exportSettings.markdownTemplateEnabled {
                     Button {
@@ -770,7 +770,7 @@ private struct CapturePresetEditorView: View {
 
             if flow.audioSaveMode != .off {
                 Toggle("Embed Audio in Markdown", isOn: $flow.exportSettings.embedAudioInMarkdown)
-                    .tint(Geist.muted)
+                    .tint(Color.accentColor)
                     .disabled(!markdownAudioEmbedAvailable)
                     .onChange(of: flow.exportSettings.embedAudioInMarkdown) { _, _ in markPerFlow() }
 
@@ -836,7 +836,7 @@ private struct CapturePresetEditorView: View {
                     set: { enabled in toggleYAMLProperty(property, enabled: enabled) }
                 )
             )
-            .tint(Geist.muted)
+            .tint(Color.accentColor)
             .disabled(flow.exportSettings.yamlProperties.count == 1 && flow.exportSettings.yamlProperties.contains(property))
         }
     }
@@ -1084,7 +1084,7 @@ private struct CaptureTextProcessingInfoView: View {
             }
         }
         .font(Geist.body())
-        .tint(Geist.Palette.gray1000)
+        .tint(Color.accentColor)
     }
 
     private func infoRow(icon: String, title: String, detail: String) -> some View {
@@ -1152,7 +1152,7 @@ private struct FlowIconPickerView: View {
         .navigationTitle("Icon")
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText, prompt: "Search icons")
-        .tint(Geist.Palette.gray1000)
+        .tint(Color.accentColor)
     }
 
     private var filteredCategories: [FlowIconCategory] {

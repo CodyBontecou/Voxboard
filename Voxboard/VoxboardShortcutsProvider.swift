@@ -41,6 +41,15 @@ struct VoxboardShortcutsProvider: AppShortcutsProvider {
             systemImageName: "rectangle.inset.filled.and.person.filled"
         )
         AppShortcut(
+            intent: OpenCaptureScanIntent(),
+            phrases: [
+                "Scan a document with \(.applicationName)",
+                "Capture a scan with \(.applicationName)"
+            ],
+            shortTitle: "Capture Scan",
+            systemImageName: "doc.viewfinder"
+        )
+        AppShortcut(
             intent: CaptureTextIntent(),
             phrases: [
                 "Capture text with \(.applicationName)",

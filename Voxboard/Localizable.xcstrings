@@ -27460,6 +27460,17 @@
         }
       }
     },
+    "Capture a Scan": {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capture a Scan"
+          }
+        }
+      }
+    },
     "Capture a Screenshot": {
       "localizations": {
         "ar": {
@@ -104504,6 +104515,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "開放 iPhone"
+          }
+        }
+      }
+    },
+    "Opens Quick Capture and scans documents with the selected Capture Preset.": {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Quick Capture and scans documents with the selected Capture Preset."
           }
         }
       }

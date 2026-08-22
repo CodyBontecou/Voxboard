@@ -278,6 +278,28 @@ struct OpenCaptureScreenshotIntent: AppIntent {
 }
 
 @available(iOS 17.0, macOS 14.0, *)
+struct OpenCaptureScanIntent: AppIntent {
+    static let title: LocalizedStringResource = "Capture a Scan"
+    static let description = IntentDescription("Opens Quick Capture and scans documents with the selected Capture Preset.")
+    static var openAppWhenRun = true
+
+    @Parameter(title: "Preset")
+    var vox: CaptureVoxEntity?
+
+    init() {}
+
+    init(vox: CaptureVoxEntity?) {
+        self.vox = vox
+    }
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        CaptureIntentSupport.requestComposer(input: .scan, voxEntity: vox)
+        return .result()
+    }
+}
+
+@available(iOS 17.0, macOS 14.0, *)
 enum CaptureIntentSupport {
     static func requestComposer(
         input: CaptureRequestedInput? = nil,
