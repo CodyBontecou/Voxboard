@@ -51,3 +51,6 @@ scripts/app-store-images/node_modules/
 
 # Nested Gradle build state
 apps/android/**/.gradle/
+
+# wrangler local cache
+.wrangler/
