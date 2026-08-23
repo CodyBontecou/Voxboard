@@ -47,6 +47,7 @@ Entry format: `F-ID — Name (platform; status; docs)`
 - F-CP-07 — OCR "Extract Text" Append to Draft (iOS; shipped; website `#capture-bar`)
 - F-CP-08 — Send/Submit Pipeline: prepared-request reuse and rebasing (iOS/mac; shipped; website `#durable-drafts`)
 - F-CP-13 — Capture Bar / Toolbar Customization (iOS/mac; shipped; website `#capture-bar`)
+- F-CP-02 — Preset Selection & Destination Routing Resolution (iOS/mac; shipped; internal core)
 - F-CP-14 — Empty-Composer Inspiration Quotes: ZenQuotes, no draft content sent (iOS/mac; shipped; website privacy note)
 
 ## 2. Capture Presets & Routing
@@ -173,6 +174,7 @@ Entry format: `F-ID — Name (platform; status; docs)`
 - F-CP-17 — App Intents: Composer-Opening Intents: Open Quick Capture / Record a Capture / Screenshot / Scan (iOS/mac; shipped; website `#shortcuts`)
 - F-CP-18 — Mac App Shortcuts Provider (mac; shipped; readme)
 - F-KW-01 — Keyboard Activation & Setup: persistent-listening architecture, no audio in extension (iOS/keyboard; shipped; website `#keyboard-setup`)
+- F-IU-57 — Quick Record Widget / Pending-Launch Consumption: settings-gated widget entry (iOS/widget; gated on Quick Record setting; shipped; readme partial)
 - F-KW-02 — Full Access Requirement gating (iOS/keyboard; shipped; website `#keyboard-setup`)
 - F-KW-03 — Persistent Listening + IPC Segment Control: start/stop without app switching (iOS/keyboard; shipped; website `#keyboard-workflow`)
 - F-KW-04 — Listening-State Heartbeat Freshness & "Open Vox.md" Prompt (iOS/keyboard; shipped; website `#keyboard-workflow`)
@@ -228,7 +230,9 @@ Entry format: `F-ID — Name (platform; status; docs)`
 - F-WT-16 — Microphone Permission Handling (watch; shipped; internal)
 - F-WT-17 — Widget Snapshot Publication (watch; shipped; internal)
 - F-WT-18 — DEBUG Demo & Screenshot Modes (watch; **hidden**; internal)
-- F-WT-19/20/21 — Recording-Only context, background lease context, data-retention cross-cutting — see F-IC-11/12 and category 12 (watch/iOS; shipped)
+- F-WT-19 — Recording-Only context (phone-side) — see F-IC-11 (watch/iOS; shipped)
+- F-WT-20 — Background processing lease (phone-side context) — see F-IC-12 (watch/iOS; shipped)
+- F-WT-21 — Data retention & privacy cross-cutting — see category 12 (watch/iOS; shipped; website `#watch-queue`)
 
 ## 8. macOS Companion
 
@@ -276,6 +280,10 @@ Entry format: `F-ID — Name (platform; status; docs)`
 - F-IU-50 — Stats Screen: private activity totals, 7-day chart, source breakdown (iOS; shipped; website `#stats` + readme — gap closed 2026-08-22)
 - F-IU-55 — Error Banner & Queued-Capture Retry (iOS/mac; shipped; website `#history`)
 - F-IU-56 — File Export Toast (iOS; shipped; internal polish)
+- F-CP-10 — Shared Capture Inbox Drain & Inbox Location Decisions (iOS/mac; shipped; internal core)
+- F-CP-12 — Capture History Log: coarse delivery records, best-effort writes (iOS/mac; shipped; website `#history`)
+- F-CP-19 — Recording Queue Views: queue UI + preferences (iOS/mac; shipped; website `#history`)
+- F-IU-54 — Voice Note Session: legacy attach-audio composer flow (iOS; legacy — retained; readme partial)
 - F-IU-31 — Debug Log Viewer (iOS; shipped; website `#settings-map` Debug row)
 - *(Private Activity Stats: ledger stays on device, excludes content/filenames/destinations — anchored first-hand in ActivityStatsStore.swift)*
 - F-SH-09 — Keyboard Debug Log (iOS/keyboard; shipped; internal)

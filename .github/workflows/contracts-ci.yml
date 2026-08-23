@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/contracts-ci.yml'
+      - 'docs/featureset/**'
       - 'Packages/contracts/**'
       - 'Packages/VoxboardShared/Tests/Fixtures/Contracts/**'
       - 'Packages/vox-core-rust/tests/resources/contracts/**'
@@ -22,6 +23,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/contracts-ci.yml'
+      - 'docs/featureset/**'
       - 'Packages/contracts/**'
       - 'Packages/VoxboardShared/Tests/Fixtures/Contracts/**'
       - 'Packages/vox-core-rust/tests/resources/contracts/**'
@@ -46,6 +48,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  featureset-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Validate featureset inventories and registry coverage
+        run: python3 docs/featureset/scripts/check_inventory.py
   portable-contracts:
     runs-on: ubuntu-latest
     timeout-minutes: 15

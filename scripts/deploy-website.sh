@@ -1,6 +1,9 @@
 #!/bin/sh
 set -eu
 
+PATH="$HOME/.local/bin:$PATH"
+export PATH
+
 REPO_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 
 wrangler pages deploy "$REPO_ROOT/website" --project-name voxboard

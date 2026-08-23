@@ -25,6 +25,34 @@ REQUIRED_FIELDS = ("Surface", "Summary", "Details", "Constraints", "Evidence", "
 
 FEATURE_RE = re.compile(r"^### (F-([A-Z]{2})-(\d{2,}))\b", re.MULTILINE)
 FIELD_RE = re.compile(r"^- (\w+)(\s*\([^)]*\))?:", re.MULTILINE)
+REGISTRY_PATH = Path(__file__).resolve().parents[1] / "featureset.md"
+
+
+def inventory_feature_ids() -> set[str]:
+    """Every F-<LID>-<NN> id defined across all inventories."""
+    ids: set[str] = set()
+    for path in sorted(INVENTORY_DIR.glob("*.md")):
+        ids.update(m[0] for m in FEATURE_RE.findall(path.read_text(encoding="utf-8")))
+    return ids
+
+
+def registry_feature_ids() -> set[str]:
+    """Every F-<LID>-<NN> id referenced in the consolidated registry.
+
+    Accepts both explicit entries and range references like
+    `F-AP-01..06` (expanded) by scanning all F-IDs in the file text and
+    additionally expanding `..` ranges written as F-XX-01..06.
+    """
+    text = REGISTRY_PATH.read_text(encoding="utf-8")
+    ids = set(FEATURE_RE.findall(text) and [m[0] for m in FEATURE_RE.findall(text)])
+    for m in re.finditer(r"F-([A-Z]{2})-(\d+)\.\.(\d+)", text):
+        lid, lo, hi = m.group(1), int(m.group(2)), int(m.group(3))
+        for n in range(lo, hi + 1):
+            ids.add(f"F-{lid}-{n:02d}")
+    # Also collect bare inline ids (registry body uses `- F-XX-NN —` lines,
+    # but a few lines reference ids inside prose).
+    ids.update(re.findall(r"F-[A-Z]{2}-\d{2,}", text))
+    return ids
 
 
 def check_lane(path: Path) -> tuple[list[str], int]:
@@ -57,6 +85,22 @@ def check_lane(path: Path) -> tuple[list[str], int]:
     return problems, len(ids)
 
 
+def check_registry_coverage() -> list[str]:
+    """Every inventory feature id must appear in the consolidated registry."""
+    if not REGISTRY_PATH.exists():
+        return [f"registry missing: {REGISTRY_PATH}"]
+    inv = inventory_feature_ids()
+    reg = registry_feature_ids()
+    missing = sorted(inv - reg)
+    if missing:
+        return [
+            f"{len(missing)} inventory feature(s) missing from featureset.md: "
+            + ", ".join(missing[:25])
+            + (" …" if len(missing) > 25 else "")
+        ]
+    return []
+
+
 def main() -> int:
     lanes = sorted(INVENTORY_DIR.glob("*.md"))
     if not lanes:
@@ -78,6 +122,14 @@ def main() -> int:
         for problem in problems:
             print(f"      - {problem}")
             failed = True
+
+    if not filter_lane:
+        coverage_problems = check_registry_coverage()
+        for problem in coverage_problems:
+            print(f"FAIL  featureset.md  - {problem}")
+            failed = True
+        if not coverage_problems:
+            print(f"OK    featureset.md registry coverage")
 
     print(f"\nTotal features inventoried: {total_features}")
     return 1 if failed else 0

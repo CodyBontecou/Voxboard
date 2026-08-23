@@ -139,3 +139,11 @@ ships them; doc updates then reference registry IDs in PR descriptions.
 - The registry is the source of truth for "what is a shipped feature" disputes
   (e.g. dormant legacy screens are not shipped features — see website
   `llms.txt` scope notes, which this registry supersedes operationally).
+- **CI enforcement:** `docs/featureset/scripts/check_inventory.py` runs in the
+  contracts CI workflow on every change to `docs/featureset/**`. It fails the
+  build if any inventory violates the six-field contract or if any inventory
+  feature id is missing from `featureset.md`. `--lane <name>` skips the
+  coverage check for single-lane iteration.
+- **Contribution rule:** a PR that adds or changes a user-visible feature must
+  add or update its registry entry and its lane inventory section in the same
+  change; reviewers should treat a missing registry diff as incomplete.
