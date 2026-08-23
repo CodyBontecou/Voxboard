@@ -7,7 +7,7 @@ Canonical website: https://vox.isolated.tech/
 App Store: https://apps.apple.com/us/app/voxboard/id6758967337
 Source: https://github.com/CodyBontecou/Voxboard
 URL scheme: voxboard://
-Documentation updated: 2026-08-21
+Documentation updated: 2026-08-22
 
 ## Documentation
 
@@ -20,8 +20,8 @@ Documentation updated: 2026-08-21
 - [iOS Keyboard](https://vox.isolated.tech/docs/#keyboard): Full Access setup, dictation, live insertion, fallback behavior, haptics, and auto-stop.
 - [System Integrations](https://vox.isolated.tech/docs/#system-integrations): Share Extension, widgets, Lock Screen, Control Center, Live Activities, Shortcuts, and deep links.
 - [Apple Watch](https://vox.isolated.tech/docs/#apple-watch): Local recording, preset selection, iPhone queue, recording-only output, and complication.
-- [Mac Companion](https://vox.isolated.tech/docs/#mac): Capture workspace, audio import, menu bar, visibility, global keybinds, history, and models.
-- [History, Settings, Pricing, and Privacy](https://vox.isolated.tech/docs/#history-settings): Local history, recovery, settings map, free allowances, lifetime unlock, and data handling.
+- [Mac Companion](https://vox.isolated.tech/docs/#mac): Capture workspace, meeting capture with separate system and microphone stems, audio import, menu bar, visibility, global keybinds, history, and models.
+- [History, Settings, Pricing, and Privacy](https://vox.isolated.tech/docs/#history-settings): Local history, recovery, private activity stats, settings map, free allowances, lifetime unlock, and data handling.
 - [Troubleshooting](https://vox.isolated.tech/docs/#troubleshooting): Destination, keyboard, model, transcription, heading, and Watch queue issues.
 
 ## Product Facts

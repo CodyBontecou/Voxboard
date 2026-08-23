@@ -31,7 +31,7 @@
     "@type": "TechArticle",
     "headline": "Vox.md Complete Feature Guide",
     "description": "Documentation for every shipped Vox.md capture, routing, transcription, keyboard, system integration, Apple Watch, and Mac feature.",
-    "dateModified": "2026-08-21",
+    "dateModified": "2026-08-22",
     "author": {
       "@type": "Person",
       "name": "Cody Bontecou"
@@ -92,7 +92,7 @@
       <h1 class="page-title" id="docs-title">Everything You Can Do With Vox.md</h1>
       <p class="docs-hero-copy">A complete guide to capture, presets, Markdown routing, the voice keyboard, local models, Apple system integrations, Apple Watch, Mac, history, settings, and privacy.</p>
       <div class="docs-meta-row" aria-label="Documentation facts">
-        <span>Updated August 21, 2026</span>
+        <span>Updated August 22, 2026</span>
         <span>iOS 17.6+</span>
         <span>macOS 14+</span>
         <span>watchOS 10+</span>
@@ -116,8 +116,8 @@
         <a class="docs-category-card" href="#keyboard"><span>05</span><strong>Keyboard</strong><small>Setup, dictation, insertion, haptics, and auto-stop</small></a>
         <a class="docs-category-card" href="#system-integrations"><span>06</span><strong>System Integrations</strong><small>Widgets, Share Sheet, Shortcuts, and deep links</small></a>
         <a class="docs-category-card" href="#apple-watch"><span>07</span><strong>Apple Watch</strong><small>Recording, preset sync, queue, and complications</small></a>
-        <a class="docs-category-card" href="#mac"><span>08</span><strong>Mac</strong><small>Capture workspace, menu bar, and global keybinds</small></a>
-        <a class="docs-category-card" href="#history-settings"><span>09</span><strong>History &amp; Settings</strong><small>Recovery, privacy, limits, purchase, and support</small></a>
+        <a class="docs-category-card" href="#mac"><span>08</span><strong>Mac</strong><small>Meeting capture, workspace, menu bar, and global keybinds</small></a>
+        <a class="docs-category-card" href="#history-settings"><span>09</span><strong>History &amp; Settings</strong><small>Recovery, stats, privacy, limits, purchase, and support</small></a>
       </div>
     </div>
   </section>
@@ -214,6 +214,7 @@
           <div><strong>Current Location action</strong><p>Request one location and insert a validated Google Maps Markdown link in the draft. This independent Capture Bar action does not change either per-preset location control.</p></div>
           <div><strong>Voice and imported audio</strong><p>Record from the composer or import audio/video, transcribe locally, and add the result to the draft or send it immediately.</p></div>
         </div>
+        <p class="docs-note">Accessibility: OCR shows an “Extracting text on this device” progress banner, and VoiceOver announces OCR progress and completion, “Capture sent”, and “Transcript added to Capture” across capture flows.</p>
 
         <h3 id="capture-bar">Capture Bar</h3>
         <p>Settings → Capture Bar lets you reorder or hide actions. Every action is visible by default.</p>
@@ -547,6 +548,15 @@
           <li>A destination setup banner and route inspector expose the selected preset's resolved note and placement.</li>
         </ul>
 
+        <h3 id="mac-meeting">Meeting capture with separate stems</h3>
+        <p>Switch the input-mode picker from <strong>Microphone</strong> to <strong>Meeting</strong> to record what an application plays on your Mac and your own microphone as two cleanly separated audio stems. Vox.md uses ScreenCaptureKit in single-application mode, so you pick exactly one app and Vox.md itself is never captured.</p>
+        <ul>
+          <li>While recording, the status bar shows live system and microphone level meters, per-source status, and any capture warnings.</li>
+          <li>Both stems are written in durable chunks with a recovery manifest, so an interruption — a stopped stream, an unplugged microphone, or a forced quit — finalizes safely and the meeting can still be transcribed. Interrupted sessions are recovered automatically the next time the recording queue resumes.</li>
+          <li>After you stop, each stem is transcribed separately on device and the results are interleaved on a shared timeline: your microphone shows as <strong>You</strong>, and the application stem is labeled as a remote speaker. Optional speaker identification can further separate multiple remote voices.</li>
+          <li>A playback mix of both stems is kept as the recording's audio, and the finished transcript follows your Capture Preset, Add to Draft or Send Immediately, and clipboard settings like any other recording.</li>
+        </ul>
+
         <h3 id="mac-keybinds">Global keybinds</h3>
         <p>Settings → Global Keybinds can assign shortcuts to <strong>Transcribe to Clipboard</strong>, <strong>Selected Capture Preset</strong>, or any enabled preset. Shortcuts are off by default, require a non-modifier key plus Control, Option, or Command, may also include Shift, and reject conflicts. Press the active shortcut again to stop recording.</p>
         <div class="docs-callout docs-callout-neutral">
@@ -577,6 +587,13 @@
           <li>Delete one transcript or clear all local history. Clearing history does not delete Markdown notes or attachments already written to your destination.</li>
           <li>Retry queued captures and inspect coarse source, preset, destination, note path, attachment count, time, outcome, and failure category.</li>
           <li>Transcript editing includes Title, Tags, Category, Cleaned text, and Raw transcript.</li>
+        </ul>
+
+        <h3 id="stats">Private Activity Stats</h3>
+        <p>Open Settings → Activity → Stats for a lifetime overview of your usage: total recordings and captures, recorded duration, and attachment count, plus a last-seven-days chart and a breakdown of where captures came from (app, keyboard, Share Sheet, widgets, Shortcuts, Apple Watch, Mac, deep links, file import, and voice).</p>
+        <ul>
+          <li>Stats count delivered captures only; pull to refresh after new activity.</li>
+          <li>The ledger stays on your device and stores no captured content, filenames, or destinations.</li>
         </ul>
 
         <h3 id="settings-map">Settings map</h3>
