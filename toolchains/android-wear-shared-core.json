@@ -226,7 +226,7 @@
     },
     {
       "path": ".github/workflows/contracts-ci.yml",
-      "sha256": "03af9650a195419722fb21295fb530ebad3f3918ddbc79e7d7f440ccc6712215"
+      "sha256": "1ddae8997b4e6bc6c6dd96faf817e410ec70a77ccaa23e78e8960a574500e807"
     },
     {
       "path": "apps/android/build.gradle.kts",

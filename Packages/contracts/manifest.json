@@ -1,10 +1,10 @@
 {
   "files": [
     {
-      "bytes": 2891,
+      "bytes": 3269,
       "category": "contractWorkflow",
       "path": ".github/workflows/contracts-ci.yml",
-      "sha256": "03af9650a195419722fb21295fb530ebad3f3918ddbc79e7d7f440ccc6712215"
+      "sha256": "1ddae8997b4e6bc6c6dd96faf817e410ec70a77ccaa23e78e8960a574500e807"
     },
     {
       "bytes": 2167,
@@ -1096,7 +1096,7 @@
       "bytes": 21730,
       "category": "toolchainDefinition",
       "path": "toolchains/android-wear-shared-core.json",
-      "sha256": "7c15fa0b9afa06ae93a6323c52d0a524c082bb09ebd04eb24c05e05843c0597a"
+      "sha256": "d77f453d9a9623f05310fb89abcb0cb1f08776ab6fc5abe53381ddb9fab6afdb"
     },
     {
       "bytes": 10626,
