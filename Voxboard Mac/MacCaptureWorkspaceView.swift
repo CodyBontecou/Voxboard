@@ -16,6 +16,17 @@ private enum MacCaptureRecordingMode: String, CaseIterable, Identifiable {
     var id: Self { self }
 }
 
+private enum MacCaptureInspectorTool: String, Identifiable {
+    case route
+    case webLink
+    case internalLink
+    case camera
+    case sketch
+    case dueDate
+
+    var id: Self { self }
+}
+
 /// Capture-first Mac companion surface. It uses the same durable draft and
 /// delivery model as iOS while adapting input, editing, and window behavior to
 /// AppKit.
@@ -43,16 +54,12 @@ struct MacCaptureWorkspaceView: View {
     @Environment(\.timeZone) private var timeZone
 
     @State private var flows = CapturePresetStore.loadFlows()
-    @State private var showsRouteInspector = false
+    @State private var selectedInspectorTool: MacCaptureInspectorTool?
     @State private var inputMode: MacCaptureInputMode = .microphone
     @State private var recordingMode: MacCaptureRecordingMode = .preset
     @State private var attachRecordingAudio = false
-    @State private var showsLinkPrompt = false
-    @State private var showsCamera = false
-    @State private var showsSketch = false
-    @State private var showsInternalLinkPrompt = false
-    @State private var showsDueDate = false
     @State private var showsPaywall = false
+    @State private var showsInboxDiscardConfirmation = false
     @State private var linkText = ""
     @State private var internalLinkText = ""
     @State private var composerSelection = NSRange(location: 0, length: 0)
@@ -75,6 +82,14 @@ struct MacCaptureWorkspaceView: View {
 
                 if viewModel.selectedDestination == nil && !isLocalizationScreenshot {
                     destinationSetupBanner
+                    GeistDivider()
+                }
+
+                if viewModel.locationDecision != nil {
+                    locationDecisionBanner
+                    GeistDivider()
+                } else if viewModel.inboxLocationDecision != nil {
+                    inboxLocationDecisionBanner
                     GeistDivider()
                 }
 
@@ -121,22 +136,26 @@ struct MacCaptureWorkspaceView: View {
         .navigationTitle("Capture")
         .task {
             await viewModel.load()
+            guard !Task.isCancelled else { return }
+
+            // `load()` owns the only destructive draft restoration. Do not let
+            // coordinator-targeted actions consume or mutate that draft until
+            // this window has finished the cold-load barrier.
             reloadFlows()
-            consumeRequestedInput()
             transcriptStore.reload()
-            await loadInspirationQuoteIfNeeded()
             if viewModel.needsCaptureUnlock {
                 viewModel.needsCaptureUnlock = false
                 showsPaywall = !usageTracker.hasUnlocked
             }
+            windowCoordinator.captureWorkspaceReady(token: windowToken)
+            if selectedInspectorTool == nil {
+                DispatchQueue.main.async { composerController.focus() }
+            }
+
+            await loadInspirationQuoteIfNeeded()
         }
         .onAppear {
-            windowCoordinator.captureWorkspaceReady(token: windowToken)
             reloadFlows()
-            DispatchQueue.main.async { composerController.focus() }
-        }
-        .onChange(of: viewModel.requestedInput) { _, _ in
-            consumeRequestedInput()
         }
         .onChange(of: viewModel.draft.text) { _, _ in
             if !viewModel.hasLiveRecordedTranscriptPreview {
@@ -160,88 +179,43 @@ struct MacCaptureWorkspaceView: View {
             recorder.needsUnlock = false
             showsPaywall = true
         }
-        .sheet(isPresented: $showsRouteInspector, onDismiss: reloadFlows) {
-            MacCaptureRouteInspector(viewModel: viewModel)
-        }
-        .sheet(isPresented: $showsCamera) {
-            MacCameraCaptureView(onCapture: stageCameraImage)
-        }
-        .sheet(isPresented: $showsSketch) {
-            MacSketchEditor(onSave: stageSketch)
-        }
-        .sheet(isPresented: $showsDueDate) {
-            MacCaptureDueDateSheet(onInsert: insertDueDate)
+        .inspector(isPresented: inspectorPresentationBinding) {
+            captureInspector
+                .inspectorColumnWidth(min: 340, ideal: 440, max: 620)
         }
         .sheet(isPresented: $showsPaywall) {
             MacPaywallView(context: .captureLimit)
                 .environment(usageTracker)
                 .environment(storeManager)
         }
-        .alert("Capture Link", isPresented: $showsLinkPrompt) {
-            TextField("https://example.com", text: $linkText)
-            Button("Cancel", role: .cancel) { linkText = "" }
-            Button("Add") { addLink() }
-        } message: {
-            Text("The link remains in the durable Capture draft until it is sent.")
-        }
-        .alert("Internal Link", isPresented: $showsInternalLinkPrompt) {
-            TextField("Projects/Vox", text: $internalLinkText)
-            Button("Cancel", role: .cancel) { internalLinkText = "" }
-            Button("Insert") { insertInternalLink() }
-        } message: {
-            Text("Enter a note name or vault-relative path. Vox.md inserts an Obsidian wiki link.")
-        }
         .confirmationDialog(
-            "Location",
-            isPresented: Binding(
-                get: { viewModel.locationDecision != nil },
-                set: { if !$0 { Task { await viewModel.cancelUnavailableLocation() } } }
-            ),
+            "Discard queued Capture?",
+            isPresented: $showsInboxDiscardConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Retry") { Task { await viewModel.retryUnavailableLocation() } }
-            Button("Send Without Location") {
-                Task { await viewModel.sendWithoutUnavailableLocation(alwaysForPreset: false) }
-            }
-            Button("Always Send Without Location for This Preset") {
-                Task { await viewModel.sendWithoutUnavailableLocation(alwaysForPreset: true) }
-            }
-            Button("Cancel", role: .cancel) {
-                Task { await viewModel.cancelUnavailableLocation() }
-            }
-        } message: {
-            Text("Vox.md could not get an origin-time location. Your Capture draft is preserved.")
-        }
-        .confirmationDialog(
-            inboxLocationDecisionTitle,
-            isPresented: Binding(
-                get: { viewModel.inboxLocationDecision != nil },
-                set: { _ in }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button("Send Without Location") {
-                Task { await viewModel.sendInboxRequestWithoutLocation() }
-            }
-            Button("Always Send Without Location for This Preset") {
-                Task { await viewModel.sendInboxRequestWithoutLocation(alwaysForPreset: true) }
-            }
-            Button("Cancel and Discard Capture", role: .destructive) {
+            Button("Discard Capture", role: .destructive) {
                 Task { await viewModel.discardInboxLocationRequest() }
             }
+            Button("Keep Capture", role: .cancel) {}
         } message: {
-            Text(inboxLocationDecisionMessage)
+            Text("This permanently removes the queued Capture that could not resolve its required location.")
         }
         .onReceive(NotificationCenter.default.publisher(for: .macShowCapture)) { notification in
-            guard notification.object == nil || (notification.object as? String) == windowToken else { return }
-            DispatchQueue.main.async { composerController.focus() }
+            guard let targetToken = notification.object as? String,
+                  targetToken == windowToken else { return }
+            consumeRequestedInput()
+            if selectedInspectorTool == nil {
+                DispatchQueue.main.async { composerController.focus() }
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .macChooseCaptureFiles)) { notification in
-            guard notification.object == nil || (notification.object as? String) == windowToken else { return }
+            guard let targetToken = notification.object as? String,
+                  targetToken == windowToken else { return }
             chooseFiles()
         }
         .onReceive(NotificationCenter.default.publisher(for: .macClearCaptureDraft)) { notification in
-            guard notification.object == nil || (notification.object as? String) == windowToken else { return }
+            guard let targetToken = notification.object as? String,
+                  targetToken == windowToken else { return }
             Task {
                 await viewModel.clearDraft()
                 composerController.focus()
@@ -320,8 +294,7 @@ struct MacCaptureWorkspaceView: View {
             }
 
             Button {
-                composerController.dismissFocus()
-                showsRouteInspector = true
+                selectInspectorTool(.route)
             } label: {
                 HStack(spacing: Geist.Spacing.two) {
                     Image(systemName: viewModel.hasAnyRouteOverride ? "arrow.triangle.branch" : "tray.full")
@@ -383,8 +356,7 @@ struct MacCaptureWorkspaceView: View {
 
     private var destinationSetupBanner: some View {
         Button {
-            composerController.dismissFocus()
-            showsRouteInspector = true
+            selectInspectorTool(.route)
         } label: {
             HStack(spacing: Geist.Spacing.three) {
                 Image(systemName: "folder.badge.plus")
@@ -409,6 +381,73 @@ struct MacCaptureWorkspaceView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("mac_capture_destination_banner")
+    }
+
+    private var locationDecisionBanner: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            Label("Location Unavailable", systemImage: "location.slash.fill")
+                .font(Geist.label())
+            Text("Vox.md could not get an origin-time location. Your Capture draft is preserved and remains editable.")
+                .font(Geist.caption())
+                .foregroundStyle(Geist.muted)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: Geist.Spacing.two) { locationDecisionActions }
+                VStack(alignment: .leading, spacing: Geist.Spacing.two) { locationDecisionActions }
+            }
+        }
+        .padding(.horizontal, Geist.Spacing.four)
+        .padding(.vertical, Geist.Spacing.three)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Geist.Palette.amber100)
+        .accessibilityIdentifier("mac_capture_location_decision")
+    }
+
+    @ViewBuilder
+    private var locationDecisionActions: some View {
+        Button("Retry") {
+            Task { await viewModel.retryUnavailableLocation() }
+        }
+        Button("Send Without Location") {
+            Task { await viewModel.sendWithoutUnavailableLocation(alwaysForPreset: false) }
+        }
+        Button("Always Send Without for Preset") {
+            Task { await viewModel.sendWithoutUnavailableLocation(alwaysForPreset: true) }
+        }
+        Button("Cancel") {
+            Task { await viewModel.cancelUnavailableLocation() }
+        }
+    }
+
+    private var inboxLocationDecisionBanner: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+            Label(inboxLocationDecisionTitle, systemImage: "tray.full.fill")
+                .font(Geist.label())
+            Text(inboxLocationDecisionMessage)
+                .font(Geist.caption())
+                .foregroundStyle(Geist.muted)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: Geist.Spacing.two) { inboxLocationDecisionActions }
+                VStack(alignment: .leading, spacing: Geist.Spacing.two) { inboxLocationDecisionActions }
+            }
+        }
+        .padding(.horizontal, Geist.Spacing.four)
+        .padding(.vertical, Geist.Spacing.three)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Geist.Palette.amber100)
+        .accessibilityIdentifier("mac_capture_inbox_location_decision")
+    }
+
+    @ViewBuilder
+    private var inboxLocationDecisionActions: some View {
+        Button("Send Without Location") {
+            Task { await viewModel.sendInboxRequestWithoutLocation() }
+        }
+        Button("Always Send Without for Preset") {
+            Task { await viewModel.sendInboxRequestWithoutLocation(alwaysForPreset: true) }
+        }
+        Button("Discard Capture", role: .destructive) {
+            showsInboxDiscardConfirmation = true
+        }
     }
 
     private var composer: some View {
@@ -664,16 +703,16 @@ struct MacCaptureWorkspaceView: View {
             HStack(spacing: 2) {
                 Menu {
                     Button("Images or Screenshots…", systemImage: "photo") { chooseImages() }
-                    Button("Take Photo…", systemImage: "camera") { showsCamera = true }
+                    Button("Take Photo…", systemImage: "camera") { selectInspectorTool(.camera) }
                     Button("Import Scan or PDF…", systemImage: "doc.viewfinder") { chooseScan() }
-                    Button("Sketch…", systemImage: "pencil.tip") { showsSketch = true }
+                    Button("Sketch…", systemImage: "pencil.tip") { selectInspectorTool(.sketch) }
                     Button("Files…", systemImage: "paperclip") { chooseFiles() }
                     Button("Audio Attachment…", systemImage: "waveform") { chooseAudio() }
                     Button("Transcribe Audio or Video…", systemImage: "waveform.badge.plus") {
                         importAudioForTranscription()
                     }
                     Divider()
-                    Button("Web Link…", systemImage: "link") { showsLinkPrompt = true }
+                    Button("Web Link…", systemImage: "link") { selectInspectorTool(.webLink) }
                     Button("Paste", systemImage: "clipboard") { pasteIntoCapture() }
                 } label: {
                     toolbarLabel("Add attachment", icon: isProcessingAttachments ? "hourglass" : "plus")
@@ -700,10 +739,10 @@ struct MacCaptureWorkspaceView: View {
                     applyComposerCommand(.markdownLink())
                 }
                 toolbarButton("Internal link", text: "[[") {
-                    showsInternalLinkPrompt = true
+                    selectInspectorTool(.internalLink)
                 }
                 toolbarButton("Due date", icon: "alarm") {
-                    showsDueDate = true
+                    selectInspectorTool(.dueDate)
                 }
                 toolbarButton("Checklist", icon: "checkmark.square") {
                     applyComposerCommand(.taskCheckbox)
@@ -734,6 +773,101 @@ struct MacCaptureWorkspaceView: View {
         .frame(height: 48)
         .background(Geist.Palette.background100)
         .accessibilityLabel("Markdown and Capture tools")
+    }
+
+    private var inspectorPresentationBinding: Binding<Bool> {
+        Binding(
+            get: { selectedInspectorTool != nil },
+            set: { isPresented in
+                if !isPresented {
+                    dismissInspectorTool()
+                }
+            }
+        )
+    }
+
+    @ViewBuilder
+    private var captureInspector: some View {
+        switch selectedInspectorTool {
+        case .route:
+            MacCaptureRouteInspector(
+                viewModel: viewModel,
+                onClose: { dismissInspectorTool() }
+            )
+        case .webLink:
+            MacCaptureTextInspectorView(
+                title: "Capture Link",
+                detail: "The link remains in the durable Capture draft until it is sent.",
+                prompt: "https://example.com",
+                actionTitle: "Add to Capture",
+                text: $linkText,
+                onClose: {
+                    linkText = ""
+                    dismissInspectorTool()
+                },
+                onSubmit: addLink
+            )
+        case .internalLink:
+            MacCaptureTextInspectorView(
+                title: "Internal Link",
+                detail: "Enter a note name or vault-relative path. Vox.md inserts an Obsidian wiki link.",
+                prompt: "Projects/Vox",
+                actionTitle: "Insert Link",
+                text: $internalLinkText,
+                onClose: {
+                    internalLinkText = ""
+                    dismissInspectorTool()
+                },
+                onSubmit: insertInternalLink
+            )
+        case .camera:
+            MacCameraCaptureView(
+                onClose: { dismissInspectorTool() },
+                onCapture: { imageData in
+                    dismissInspectorTool(refocus: false)
+                    stageCameraImage(imageData)
+                }
+            )
+        case .sketch:
+            MacSketchEditor(
+                onClose: { dismissInspectorTool() },
+                onSave: { drawingData, previewData in
+                    dismissInspectorTool(refocus: false)
+                    stageSketch(drawingData, previewData)
+                }
+            )
+        case .dueDate:
+            MacCaptureDueDateInspectorView(
+                onClose: { dismissInspectorTool() },
+                onInsert: { date, includesTime in
+                    insertDueDate(date, includesTime)
+                    dismissInspectorTool()
+                }
+            )
+        case nil:
+            EmptyView()
+        }
+    }
+
+    private func selectInspectorTool(_ tool: MacCaptureInspectorTool) {
+        if selectedInspectorTool == .route, tool != .route {
+            Task { await viewModel.saveDraftNow() }
+            reloadFlows()
+        }
+        composerController.dismissFocus()
+        selectedInspectorTool = tool
+    }
+
+    private func dismissInspectorTool(refocus: Bool = true) {
+        guard let dismissedTool = selectedInspectorTool else { return }
+        selectedInspectorTool = nil
+        if dismissedTool == .route {
+            Task { await viewModel.saveDraftNow() }
+            reloadFlows()
+        }
+        if refocus {
+            DispatchQueue.main.async { composerController.focus() }
+        }
     }
 
     private func toolbarButton(
@@ -952,11 +1086,11 @@ struct MacCaptureWorkspaceView: View {
         viewModel.requestedInput = nil
         switch requestedInput {
         case .photos, .screenshots: chooseImages()
-        case .camera: showsCamera = true
+        case .camera: selectInspectorTool(.camera)
         case .files: chooseFiles()
         case .scan: chooseScan()
-        case .sketch: showsSketch = true
-        case .link: showsLinkPrompt = true
+        case .sketch: selectInspectorTool(.sketch)
+        case .link: selectInspectorTool(.webLink)
         case .voice: startRecording()
         }
     }
@@ -1224,19 +1358,25 @@ struct MacCaptureWorkspaceView: View {
 
     private func addLink() {
         let value = linkText.trimmingCharacters(in: .whitespacesAndNewlines)
-        linkText = ""
         guard let url = URL(string: value), ["http", "https"].contains(url.scheme?.lowercased() ?? "") else {
             viewModel.errorMessage = String(localized: "Enter a complete http:// or https:// link.")
             return
         }
-        Task { await viewModel.addURL(url) }
+        linkText = ""
+        dismissInspectorTool(refocus: false)
+        Task {
+            await viewModel.addURL(url)
+            composerController.focus()
+        }
     }
 
     private func insertInternalLink() {
         let value = internalLinkText
-        internalLinkText = ""
         do {
-            applyComposerCommand(.replaceSelection(with: try insertionFormatter.wikiLink(for: value)))
+            let link = try insertionFormatter.wikiLink(for: value)
+            internalLinkText = ""
+            dismissInspectorTool(refocus: false)
+            applyComposerCommand(.replaceSelection(with: link))
         } catch {
             viewModel.errorMessage = error.localizedDescription
         }
@@ -1292,10 +1432,18 @@ struct MacCaptureWorkspaceView: View {
     }
 }
 
-private struct MacCaptureRouteInspector: View {
+struct MacCaptureRouteInspector: View {
     @Bindable var viewModel: QuickCaptureViewModel
-    @Environment(\.dismiss) private var dismiss
+    var onClose: (() -> Void)?
     @State private var isEditingDestination = false
+
+    init(
+        viewModel: QuickCaptureViewModel,
+        onClose: (() -> Void)? = nil
+    ) {
+        self.viewModel = viewModel
+        self.onClose = onClose
+    }
 
     var body: some View {
         NavigationStack {
@@ -1367,22 +1515,22 @@ private struct MacCaptureRouteInspector: View {
             .formStyle(.grouped)
             .navigationTitle("Capture Route")
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        Task { await viewModel.saveDraftNow() }
-                        dismiss()
+                if let onClose {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button("Close", systemImage: "xmark", action: onClose)
                     }
                 }
             }
-        }
-        .frame(minWidth: 620, minHeight: 520)
-        .sheet(isPresented: $isEditingDestination) {
-            MacCaptureDestinationEditor(
-                existing: viewModel.selectedPresetDestination,
-                templates: viewModel.entryTemplates,
-                fixedName: viewModel.selectedVoxProfile?.displayName
-            ) { destination in
-                try await viewModel.saveSelectedPresetDestination(destination)
+            .navigationDestination(isPresented: $isEditingDestination) {
+                MacCaptureDestinationEditor(
+                    existing: viewModel.selectedPresetDestination,
+                    templates: viewModel.entryTemplates,
+                    fixedName: viewModel.selectedVoxProfile?.displayName,
+                    embeddedInNavigation: true,
+                    onClose: { isEditingDestination = false }
+                ) { destination in
+                    try await viewModel.saveSelectedPresetDestination(destination)
+                }
             }
         }
     }
@@ -1425,35 +1573,68 @@ private struct MacCaptureRouteInspector: View {
     }
 }
 
-private struct MacCaptureDueDateSheet: View {
-    @Environment(\.dismiss) private var dismiss
+private struct MacCaptureTextInspectorView: View {
+    let title: LocalizedStringKey
+    let detail: LocalizedStringKey
+    let prompt: LocalizedStringKey
+    let actionTitle: LocalizedStringKey
+    @Binding var text: String
+    let onClose: () -> Void
+    let onSubmit: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Geist.Spacing.four) {
+            HStack {
+                Text(title)
+                    .font(Geist.heading(.title2))
+                Spacer()
+                Button("Close", action: onClose)
+            }
+            Text(detail)
+                .font(Geist.caption())
+                .foregroundStyle(Geist.muted)
+            TextField(prompt, text: $text)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit(onSubmit)
+            Button(actionTitle, action: onSubmit)
+                .buttonStyle(.borderedProminent)
+                .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            Spacer()
+        }
+        .padding(Geist.Spacing.four)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(Geist.Palette.background100)
+    }
+}
+
+private struct MacCaptureDueDateInspectorView: View {
     @State private var date = Date()
     @State private var includesTime = false
+    let onClose: () -> Void
     let onInsert: (Date, Bool) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: Geist.Spacing.four) {
-            Text("Set Due Date")
-                .font(Geist.heading(.title2))
+            HStack {
+                Text("Set Due Date")
+                    .font(Geist.heading(.title2))
+                Spacer()
+                Button("Close", action: onClose)
+            }
             DatePicker(
                 "Due date",
                 selection: $date,
                 displayedComponents: includesTime ? [.date, .hourAndMinute] : [.date]
             )
             Toggle("Include time", isOn: $includesTime)
-            HStack {
-                Button("Cancel") { dismiss() }
-                    .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
-                Spacer()
-                Button("Insert") {
-                    onInsert(date, includesTime)
-                    dismiss()
-                }
-                .buttonStyle(GeistButtonStyle(variant: .primary, size: .small))
+            Button("Insert Due Date") {
+                onInsert(date, includesTime)
             }
+            .buttonStyle(.borderedProminent)
+            Spacer()
         }
-        .padding(Geist.Spacing.six)
-        .frame(width: 430)
+        .padding(Geist.Spacing.four)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Geist.Palette.background100)
     }
 }

@@ -1,40 +1,41 @@
 # Vox.md (Voxboard) Mac App — Feature Inventory
 
-Scope: every feature verifiable in `Voxboard Mac/` (13 Swift files, ~10,757 lines). Shared types referenced here (e.g. `QuickCaptureViewModel`, `CapturePresetStore`, `RecordingJobQueue`, `AppConstants`, `FoundationModelsBackend`) live in `VoxboardShared` and are cited as dependencies only.
+Scope: every feature verifiable in `Voxboard Mac/` (13 Swift files, ~11,617 lines). Shared types referenced here (e.g. `QuickCaptureViewModel`, `CapturePresetStore`, `RecordingJobQueue`, `AppConstants`, `FoundationModelsBackend`) live in `VoxboardShared` and are cited as dependencies only.
 
-Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Queue**, **History**, **Settings** (plus a separate **Capture History** window scene and a Settings scene).
+Main-window destinations in `MacRootView` are grouped as **Work** — Capture, Recording Queue, History — and **Configure** — Transcription Models, Capture Presets, Entry Templates. App preferences use the separate native Settings scene.
 
 ---
 
-### F-MC-01 Main Navigation Window (Capture / Recording Queue / History / Settings)
+### F-MC-01 Main Navigation Window (Work / Configure)
 - Surface: `VoxboardMacApp` `WindowGroup(id: "main")` → `MacRootView`
-- Summary: A `NavigationSplitView` app with a sidebar of four destinations and a detail pane. Handles window-scoped routing via notifications and a `MacWindowCoordinator`, plus a Models sheet.
+- Summary: A `NavigationSplitView` app with persistent Work and Configure sidebar sections. Each window owns an observable `MacNavigationState`; external commands route a typed `MacMainWindowRequest.navigate` through `MacWindowCoordinator`.
 - Details:
-  - Sidebar destinations: Capture (`square.and.pencil`), Recording Queue (`waveform.circle`), History (`clock.arrow.circlepath`), Settings (`gearshape.fill`); column width 150/180/220, min window 980×680.
-  - Detail routing: `MacCaptureWorkspaceView`, `RecordingQueueView` (retry with selected/fallback model, selected language, delivery override; recovery presets from `CapturePresetStore.loadFlows()`), `MacHistoryView`, `MacSettingsView`.
-  - `showsModels` sheet hosts `MacModelView` (760×620 min).
-  - Notifications `.macShowCapture` / `.macShowHistory` / `.macChooseCaptureFiles` / `.macClearCaptureDraft` with an optional window-token `object` for targeted delivery.
-  - DEBUG-only: `--localization-screenshot <story>` preselects destination or swaps detail for `MacModelView`/`MacCapturePresetSettingsView`; `MacLocalizationScreenshotRoot` renders full surfaces without vibrancy sidebar.
+  - Work destinations: Capture (`square.and.pencil`), Recording Queue (`waveform.circle`), History (`clock.arrow.circlepath`). Configure destinations: Transcription Models (`cpu`), Capture Presets (`slider.horizontal.3`), Entry Templates (`doc.badge.plus`). Column width 150/180/220, min window 980×680.
+  - Detail routing: `MacCaptureWorkspaceView`, `RecordingQueueView` (retry with selected/fallback model, selected language, delivery override; recovery presets from `CapturePresetStore.loadFlows()`), persistent `MacHistoryView` list/detail, `MacModelView`, `MacCapturePresetSettingsView`, and `MacEntryTemplateLibraryView`.
+  - Settings is not a main destination. Capture's gear control invokes SwiftUI's native `openSettings` action and the app retains one `Settings` scene.
+  - Capture model-error recovery selects `.models` in the same window; Models has no app-authored sheet presentation.
+  - `.macNavigate` carries a typed `MacNavigationRequest` with destination and window token. Capture focus/input delivery stays pending until the selected token's workspace finishes `await viewModel.load()` and destructive draft restoration; `.macShowCapture`, `.macChooseCaptureFiles`, and `.macClearCaptureDraft` require matching typed tokens and reject nil/untyped payloads.
+  - DEBUG-only: `--localization-screenshot <story>` preselects History, Models, or Capture Presets; Settings still swaps the detail for its dedicated screenshot story. `MacLocalizationScreenshotRoot` renders full surfaces without the vibrancy sidebar.
 - Constraints: screenshot story handling compiled only `#if DEBUG`.
-- Evidence: `Voxboard Mac/MacRootView.swift` (lines 10–160, `MacDestination`, `MacRootView.body`, `selectedDetail`); `Voxboard Mac/MacLocalizationScreenshotRoot` (lines ~160–205).
+- Evidence: `Voxboard Mac/MacRootView.swift` (`MacDestination`, `MacNavigationState`, `MacRootView.body`, `selectedDetail`); `Voxboard Mac/MacLocalizationScreenshotRoot`.
 - Status: shipped (screenshot harness: hidden/debug)
 
 ### F-MC-02 Transcription Model Selection & Download (Whisper / Parakeet / Apple Speech)
-- Surface: Settings → "Transcription Models" row; Models sheet; History detail metadata
-- Summary: `MacModelView` lists downloadable Whisper GGML models (whisper.cpp + Metal) and Parakeet Core ML models, plus language selection. Supports "Use Existing" installs in place, downloads with progress, select, delete, cancel, and per-model labels (Bundled / Core ML / Existing Install).
+- Surface: Main sidebar → Configure → Transcription Models; History detail metadata
+- Summary: The direct, nonmodal `MacModelView` destination lists downloadable Whisper GGML models (whisper.cpp + Metal) and Parakeet Core ML models, plus language selection near the top. Supports "Use Existing…" installs in place, downloads with progress, Select, Remove/Stop Using, Cancel, and per-model labels (Bundled / Core ML / Existing Install).
 - Details:
-  - Sections "01 Whisper Models", "02 Parakeet Models" filtered by `WhisperModelInfo.availableModels` and `engine.isParakeet`; "03 Language" picker bound to `modelManager.selectedLanguage` (`availableLanguages`).
+  - Sections "01 Language", "02 Whisper Models", and "03 Parakeet Models"; model groups filter `WhisperModelInfo.availableModels` by `engine.isParakeet`, and the language picker binds to `modelManager.selectedLanguage` (`availableLanguages`).
   - Download states: preparing, listingFiles ("Finding files…"), verifying, cancelling, transferring (per-file progress description or %); "Keep Vox.md open" hint; Cancel disabled while cancelling.
   - "Use Existing…" opens NSOpenPanel: Parakeet → folder containing Preprocessor/Encoder/Decoder/JointDecision `.mlmodelc` + `parakeet_vocab.json`; Whisper → single GGML `.bin`, used in place without copying. `Stop Using` (external) vs `Delete` for downloaded models.
-  - Model operation failure alert via `modelManager.modelOperationError`.
+  - Model operation failures render in a dismissible inline banner via `modelManager.modelOperationError`, preserving navigation and model controls.
   - Recording-time gating: `MacRecorder.validateSelectedModel` (MacRecorder.swift ~lines 630–645) — `automatic` backend allowed; otherwise model must be selected AND downloaded, with two distinct localized errors that the Capture error banner converts into a deep link to open Models (`shouldOpenModelsFromError`, MacCaptureWorkspaceView.swift).
 - Constraints: automatic selection maps to Apple Speech backend (shared code); Whisper/Parakeet require local model files.
 - Evidence: `Voxboard Mac/MacRootView.swift` `MacModelView` (~lines 205–425); `Voxboard Mac/MacRecorder.swift` `validateSelectedModel` (~630).
 - Status: shipped
 
 ### F-MC-03 Capture Preset (Vox) Library Management
-- Surface: Settings → "Capture Presets & Destinations" sheet (`MacCapturePresetSettingsView`); also Settings Global Keybinds reload
-- Summary: Two-pane preset editor: sidebar list of presets with add (custom) and delete, editor form covering identity, capture processing, destination, legacy export, metadata, location, speaker ID, and audio retention.
+- Surface: Main sidebar → Configure → Capture Presets (`MacCapturePresetSettingsView`)
+- Summary: Persistent two-pane preset editor: the preset collection remains visible beside the selected editor, with add (custom), delete, and an editor form covering identity, capture processing, destination, legacy export, metadata, location, speaker ID, and audio retention.
 - Details (editor sections, `MacCapturePresetEditor`, MacRootView.swift ~lines 470–1140):
   - **Identity**: name, icon picker (`MacFlowIconPickerView`, 50 curated SF Symbols in 5 categories with search), Enabled toggle, "Use as Capture Default" (disabled unless enabled; badge "Default for Capture").
   - **Capture Processing**: "Apply to Capture Text" toggle + info sheet `MacCaptureTextProcessingInfoView` (on-device Apple Intelligence, local fallback keeps original text); Mode picker (`none/clean/todoList/meetingNotes/custom` with per-mode help text); custom instruction TextEditor; "Empty Capture Prompt" text.
@@ -54,7 +55,7 @@ Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Que
 - Surface: Capture destination (default); menu-bar "Show Capture"; app shortcuts/deep links
 - Summary: The primary capture surface: durable Markdown draft composer (AppKit text view) with attachment strip, recording status bar, action bar, and Markdown toolbar. Shares the iOS durable-draft/delivery model via `QuickCaptureViewModel`.
 - Details:
-  - **Header**: status badge (Recording/Transcribing/Finishing Export/Draft Saved Locally); preset menu (enabled flows; disabled while recording); location pill ("Current Location On" / "Finding Location…") when preset location enabled; route button showing destination preview (or one-off note basename) opening `MacCaptureRouteInspector`; free-tier counter button ("N captures · N.N min" / "Unlock Capture") opening paywall; History and Settings icon buttons.
+  - **Header**: status badge (Recording/Transcribing/Finishing Export/Draft Saved Locally); preset menu (enabled flows; disabled while recording); location pill ("Current Location On" / "Finding Location…") when preset location enabled; route button showing destination preview (or one-off note basename) opening the per-window trailing `MacCaptureRouteInspector`; free-tier counter button ("N captures · N.N min" / "Unlock Capture") opening paywall; History and Settings icon buttons.
   - **Destination setup banner** (amber) when no destination configured and not in screenshot mode.
   - **Composer**: `MacMarkdownComposerTextView` (F-MC-12) filling space; drop destination for URLs with blue highlight + dashed overlay; empty-state prompt = preset capture prompt or a rotating `InspirationQuoteService` quote; hint "Type Markdown, dictate, paste, or drop files anywhere in this window."
   - **Attachment strip**: chips per payload (text/url/audio/retainedAudio/image/file/scannedDocument/sketch) with per-item remove; labels and icons per `payloadIcon`/`payloadLabel`.
@@ -64,26 +65,26 @@ Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Que
   - **Attachment ingestion** (`chooseImages`/`chooseScan`/`chooseFiles`/`chooseAudio`/`stageURLs`): NSOpenPanel per type; `CaptureInputBudget.reserveSharedItems` preflight; per-URL UTType detection; `viewModel.stageFile` with `embedAsImage`/`embedAsAudio` flags.
   - **Scan import**: images run through `MacDocumentScanProcessor` (F-MC-11) then `viewModel.stageScan(pageImages:pdfData:extractedText:)`; non-image PDFs staged as files.
   - **Paste** (`pasteIntoCapture`): pasteboard URLs → stage; PNG data → stage as pasted-image PNG; TIFF → converted PNG; http(s) string → `addURL`; other text → insert at selection.
-  - **Link prompts**: alert with https URL validation; internal-link alert producing an Obsidian wiki link via `CaptureInsertionFormatter.wikiLink`.
-  - **Due date sheet**: DatePicker (+ optional time) inserting a due-date token.
-  - **Location decision dialogs**: interactive Retry / Send Without Location / Always Send Without Location for This Preset / Cancel; inbox-drain variant with Discard option and preset-named title.
+  - **Inspector accessory tools**: one per-window `MacCaptureInspectorTool` selects Web Link, Internal Link, Camera, Sketch, or Due Date in the same trailing inspector. Link fields preserve complete http(s) validation and `CaptureInsertionFormatter.wikiLink` errors; the due-date DatePicker supports optional time. Camera/sketch stop or discard their local tool state when the inspector closes while staged draft content remains durable.
+  - **Inline location decisions**: prominent banners keep the Capture draft visible/editable while offering Retry / Send Without Location / Always Send Without for Preset / Cancel. The inbox-drain banner offers Send / Always Send / Discard; Discard alone requires a genuine destructive confirmation before deleting the queued Capture.
   - **Error banner**: red banner for viewModel/recorder errors; model errors become clickable "Open Transcription Models"; inline "Retry queued captures" when `failedInboxCount > 0`; "Reveal preserved recording" when `lastRecoveryAudioURL` set.
   - **Sent toast**: "Capture Sent" capsule for 2s after `viewModel.lastReceipt`, then re-focus composer.
-  - Lifecycle: draft autosave on text change (skipped while live transcript preview is active), save on disappear, `requestedInput` consumption (photos/screenshots/camera/files/scan/sketch/link/voice), notifications for show/chooseFiles/clearDraft, capture-workspace readiness registration with `MacWindowCoordinator`.
+  - Lifecycle: draft autosave on text change (skipped while live transcript preview is active), save on disappear, token-targeted `requestedInput` consumption (photos/screenshots/camera/files/scan/sketch/link/voice), notifications for show/chooseFiles/clearDraft, and capture-workspace readiness registration with `MacWindowCoordinator` only after the cold-load barrier.
 - Constraints: microphone permission required (`AudioRecorder.requestMicrophonePermission`) with localized error; free limit (15 min / 10 captures, from UsageTracker) gates recording/import and standard captures.
-- Evidence: `Voxboard Mac/MacCaptureWorkspaceView.swift` lines 1–1259 (`MacCaptureWorkspaceView`), 1260–1450 (`MacCaptureRouteInspector`, `MacCaptureDueDateSheet`).
+- Evidence: `Voxboard Mac/MacCaptureWorkspaceView.swift` (`MacCaptureWorkspaceView`, `MacCaptureInspectorTool`, inline location banners, inspector tool views).
 - Status: shipped
 
 ### F-MC-05 Capture Route Inspector (Per-Capture Route Overrides)
-- Surface: Capture header route button; sheet `MacCaptureRouteInspector`
-- Summary: One-off routing for the current capture: edit preset destination, choose per-capture placement, entry template, and a one-off target note; shows the resolved note preview.
+- Surface: Capture header route button; native trailing `.inspector` owned by the selected Capture window
+- Summary: Persistent, nonmodal one-off routing for the current Capture: edit the preset destination, choose per-capture placement, entry template, and one-off target note while the draft remains visible.
 - Details:
-  - Preset section: preset identity; Edit/Set Up destination via `MacCaptureDestinationEditor` (fixed name = preset).
+  - Preset section: preset identity; Edit/Set Up destination pushes `MacCaptureDestinationEditor` inside the inspector's `NavigationStack` rather than presenting a sheet. The editor retains validation, security-scoped bookmarks, native file/folder panels, async save, and destination identity; its Presets caller retains the prior 680×620 modal minimum.
   - "Only for this Capture": Placement picker (Preset Default / Top / Bottom mapping to prepend/append overrides), Entry Template picker (Preset Default or any library template, saved to draft), "Choose another Markdown note" NSOpenPanel (`.md`, starting in vault root → `viewModel.setOneOffNote`), "Use Preset Defaults" reset when overrides exist.
   - Resolved Note section: monospaced `viewModel.resolvedDestinationPreview`, text-selectable.
-  - Done persists draft immediately.
+  - Closing or switching away from Route calls `saveDraftNow`; normal override mutations continue to schedule durable draft saves. No Done/dismiss/modal frame remains.
+  - DEBUG-only story `07-capture-route-inspector` renders the real Capture and Route inspector side by side without entering the existing localization screenshot matrix.
 - Constraints: destination-dependent sections only when a destination exists.
-- Evidence: `Voxboard Mac/MacCaptureWorkspaceView.swift` `MacCaptureRouteInspector` (~lines 1260–1420).
+- Evidence: `Voxboard Mac/MacCaptureWorkspaceView.swift` `MacCaptureRouteInspector`; `Voxboard Mac/MacCaptureDestinationLibraryView.swift` `embeddedInNavigation` presentation.
 - Status: shipped
 
 ### F-MC-06 Temporary Transcription (Transcribe to Clipboard)
@@ -100,20 +101,20 @@ Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Que
 - Status: shipped
 
 ### F-MC-07 Global Keyboard Shortcuts (Hotkeys, any app)
-- Surface: Settings → "Global Keybinds"; Carbon hotkey registration; Capture menu; menu bar
+- Surface: Settings → Shortcuts; Carbon hotkey registration; Capture menu; menu bar
 - Summary: System-wide record start/stop hotkeys with three target types: Transcribe-to-Clipboard, Selected Capture Preset, and one binding per enabled Capture Preset. Carbon `RegisterEventHotKey` based.
 - Details:
   - Targets (`MacHotKeyTarget`): `.transcriptionOnly`, `.selectedPreset`, `.preset(id)`. Preset bindings ignored (beep) if preset no longer exists/enabled at press time (`configureGlobalHotKeys`, VoxboardMacApp.swift).
   - `MacHotKeyShortcut`: requires ⌃/⌥/⌘ (⇧ combinable); key naming table for Return/Tab/Space/Delete/Escape/Clear/Enter, F1–F16, arrows; display string ⌃⌥⇧⌘+KEY.
   - Persistence (`MacHotKeyStore`, shared defaults): `macGlobalHotKeyShortcut` (legacy single selected-preset binding retained for compatibility), `macTranscriptionOnlyHotKeyShortcut`, `macCapturePresetHotKeyShortcuts` (JSON dictionary). `configuredBindings()` and `conflictingTarget(for:excluding:activePresetIDs:)` (conflicts with disabled presets ignored).
-  - Recorder sheet `MacHotKeyRecorderSheet`: hidden `MacHotKeyCaptureNSView` (a `MacKeyboardHintSuppressingResponder`) captures keyDown/flagsChanged; Esc cancels; Shift-only warning; conflict validation inline and at save; Save/Clear/Cancel.
+  - Inline editor `MacHotKeyRecorderView`: replaces the shortcut list within the persistent Settings detail; hidden `MacHotKeyCaptureNSView` (a `MacKeyboardHintSuppressingResponder`) captures keyDown/flagsChanged; Esc and Back/Cancel return to the list; Shift-only warning; conflict validation inline and at save; Save/Clear.
   - Registration `MacGlobalHotKeyCenter.reloadRegistration()`: unregisters all, registers enabled bindings with signature `VOXH`; per-shortcut OSStatus error surfaced as `lastRegistrationError` in Settings; all activity logged to `KeyboardDebugLog`.
   - Press behavior (`handleGlobalHotKey`): toggle — if recording, stop+transcribe; else free-limit check (needsUnlock + show Capture), microphone permission check (error + show Capture), then `startRecording` with flow/completion; if start failed, reveal Capture window with the error.
-  - Menu equivalents: ⇧⌘C Show Capture, ⇧⌘H Show History, ⇧⌘R Start/Stop Recording, ⇧⌘A Add Files to Capture (VoxboardMacApp `CommandMenu("Capture")`).
+  - Menu equivalents: ⇧⌘C Show Capture, ⇧⌘H Show History in the preferred main window, ⇧⌘R Start/Stop Recording, ⇧⌘A Add Files to Capture (VoxboardMacApp `CommandMenu("Capture")`).
   - "Clear Capture Draft" menu item (disabled when draft empty). Vox.md menu: Reveal Data Folder; Visibility submenu mirroring all four modes.
   - `MacKeyboardHintCenter` never triggers while a hotkey-recorder first responder is active.
 - Constraints: hotkeys registered only while app runs; conflicting system shortcuts fail registration with an OSStatus message.
-- Evidence: `Voxboard Mac/VoxboardMacApp.swift` (`MacHotKeyTarget`, `MacHotKeyShortcut`, `MacHotKeyStore`, `MacGlobalHotKeyCenter`, `macHotKeyHandler`, CommandMenus, `configureGlobalHotKeys`, `handleGlobalHotKey` — roughly lines 140–330, 700–1010); `Voxboard Mac/MacRootView.swift` `hotKeySettings`/`MacHotKeyRecorderSheet` (~lines 1900–2550).
+- Evidence: `Voxboard Mac/VoxboardMacApp.swift` (`MacHotKeyTarget`, `MacHotKeyShortcut`, `MacHotKeyStore`, `MacGlobalHotKeyCenter`, `macHotKeyHandler`, CommandMenus, `configureGlobalHotKeys`, `handleGlobalHotKey` — roughly lines 140–330, 700–1010); `Voxboard Mac/MacRootView.swift` `MacSettingsView.hotKeySettings` / `MacHotKeyRecorderView`.
 - Status: shipped
 
 ### F-MC-08 Keyboard Hints (Control-B Vimium-style click labels)
@@ -142,10 +143,10 @@ Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Que
 - Status: shipped
 
 ### F-MC-10 App Visibility Modes (Dock / Menu Bar / Hidden)
-- Surface: Settings → Visibility; Vox.md menu → Visibility submenu; `MacAppVisibilityMode`
+- Surface: Settings → General → Visibility; Vox.md menu → Visibility submenu; `MacAppVisibilityMode`
 - Summary: Four user-selectable presence modes: Dock + Menu Bar, Menu Bar Only, Dock Only, Hidden.
 - Details:
-  - Modes map to `NSApplication.ActivationPolicy`: regular (dock modes) vs accessory (menu-bar-only, hidden); `apply()` / `applyImmediately()` switch policy async/synchronously; stored in shared defaults key `macAppVisibilityMode`; applied at launch (`applicationDidFinishLaunching`), on change, and on every window reveal (`showMain`/`showHistory` re-apply so an accessory app still comes forward).
+  - Modes map to `NSApplication.ActivationPolicy`: regular (dock modes) vs accessory (menu-bar-only, hidden); `apply()` / `applyImmediately()` switch policy async/synchronously; stored in shared defaults key `macAppVisibilityMode`; applied at launch (`applicationDidFinishLaunching`), on change, and on every main-window route (`showMain`) so an accessory app still comes forward.
   - Per-mode footnotes in Settings describing recovery (Spotlight/Finder/Launchpad for Hidden).
 - Evidence: `Voxboard Mac/VoxboardMacApp.swift` `MacAppVisibilityMode` (~lines 630–700); `Voxboard Mac/MacRootView.swift` `visibilitySettings`.
 - Constraints: none beyond platform minimums
@@ -155,9 +156,9 @@ Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Que
 - Surface: App lifecycle; `voxmd://` URLs; Dock reopen; quit flow
 - Summary: `MacWindowCoordinator` routes commands to the correct scene window; the app delegate handles URLs, activation, reopen, and a draft-flush-on-quit gate.
 - Details:
-  - Coordinator tracks main windows by token (registered via `MacSceneWindowRegistrar`/`WindowProbeView`), history window, pending requests; prefers key window then any visible/miniaturized; deminiaturizes and activates; falls back to `openWindow` + activate when none; `chooseFiles` waits for capture-workspace readiness (`.macChooseCaptureFiles` notification) — no timing heuristic.
-  - Deep links (`handleURL`): `voxmd://capture` / `voxmd://capture-request` (parsed by `CaptureDeepLinkParser` → `viewModel.handleDeepLink`) and `voxmd://listen`; window shown first, parse errors surfaced in viewModel. Scene `.handlesExternalEvents(matching: ["capture","capture-request","listen"])`.
-  - Cross-launch handoff: `consumePendingQuickCaptureOpenIfNeeded` reads shared-defaults pending-open flags (source, vox ID, requested input) written elsewhere (e.g. iOS/watch) and routes into Capture.
+  - Coordinator tracks main windows by token (registered via `MacSceneWindowRegistrar`/`WindowProbeView`) and pending typed navigation/file requests; prefers the key main window, then the frontmost ordered main window, then any visible/miniaturized main window; deminiaturizes and activates; falls back to `openWindow` + activate when none. Capture navigation and `chooseFiles` first select Capture, then remain pending until that token's workspace crosses its load barrier; one token-scoped focus event consumes shared requested input and file-panel delivery follows when requested — no timing heuristic.
+  - Deep links (`handleURL`): `voxmd://capture` / `voxmd://capture-request` (parsed by `CaptureDeepLinkParser` → `viewModel.handleDeepLink`) and `voxmd://listen`; capture actions finish the serialized load/mutation/durable-persist path before requesting targeted Capture routing, while parse errors are surfaced before Capture is shown. Scene `.handlesExternalEvents(matching: ["capture","capture-request","listen"])`.
+  - Cross-launch handoff: `consumePendingQuickCaptureOpenIfNeeded` reads shared-defaults pending-open flags (source, vox ID, requested input) written elsewhere (e.g. iOS/watch), applies them in that order, and only then routes the preferred main window into Capture.
   - `applicationShouldTerminate`: asynchronous reply; if recording or exporting, refuses quit with "Wait for the current recording or Capture export to finish before quitting." and reveals Capture; otherwise flushes the durable draft (`flushDraftForTermination`).
   - Reopen (Dock click with no windows) shows Capture; `applicationDidBecomeActive` resumes the recording queue and retries the failed inbox.
   - Periodic inbox drain: a `while` loop in the main window scene task sleeps 300s and calls `processPendingInbox()` so queued captures retry without foreground activation; also drained at launch and on unlock.
@@ -283,31 +284,31 @@ Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Que
 - Status: shipped
 
 ### F-MC-21 Entry Template Library
-- Surface: Settings → "Entry Templates" (`MacEntryTemplateLibraryView`)
-- Summary: Create/edit/delete reusable Markdown entry templates (name + prefix + suffix) stored in the shared capture library; import from a `.md` file.
+- Surface: Main sidebar → Configure → Entry Templates (`MacEntryTemplateLibraryView`)
+- Summary: Persistent list/detail editor for reusable Markdown entry templates (name + prefix + suffix) stored in the shared capture library; import from a `.md` file.
 - Details:
-  - List with per-template line-count summary, Edit/Delete; empty-state ContentUnavailableView.
-  - Import: `.md` only, UTF-8, size guards (bytes ≤ 4× limit, chars ≤ `maximumTextCharacters`), name from filename ("Imported Template" fallback), opens in editor for confirmation.
-  - Editor sheet: monospaced prefix/suffix editors, token help line, `{location}` sample preview; name required.
-  - Delete: removes template, and for destinations referencing it copies the removed prefix/suffix inline and clears `entryTemplateID` (no dangling references); also `CapturePresetStore.clearCaptureEntryTemplate`.
+  - The 280-point collection pane remains visible beside the selected inline editor; stored templates show a line-count summary and local unsaved add/import drafts show an Unsaved label.
+  - Add and Import select inline draft editors rather than sheets. Import retains the native NSOpenPanel and enforces `.md`, UTF-8, and size guards (bytes ≤ 4× limit, chars ≤ `maximumTextCharacters`), with the name derived from the filename ("Imported Template" fallback).
+  - Editor: monospaced prefix/suffix editors, token help line, `{location}` sample preview, required name, inline validation/save status, Save, and Discard Draft or Delete controls.
+  - Save preserves the draft/template UUID, updates shared storage, and keeps that template selected. Delete confirms destructively, then for destinations referencing it copies the removed prefix/suffix inline and clears `entryTemplateID` (no dangling references); it also calls `CapturePresetStore.clearCaptureEntryTemplate` and selects a coherent fallback.
 - Constraints: shared capture storage must be available.
-- Evidence: `Voxboard Mac/MacEntryTemplateLibraryView.swift` (entire file, 271 lines).
+- Evidence: `Voxboard Mac/MacEntryTemplateLibraryView.swift` (entire file, 401 lines).
 - Status: shipped
 
-### F-MC-22 History Browsing, Search, Detail, Delete, Reveal
-- Surface: History destination + "Capture History" window scene; unified list
-- Summary: Unified history merging local transcripts (with delivery outcome) and capture-delivery records, searchable, with detail sheet, copy, delete, clear-all, and Finder reveal.
+### F-MC-22 History Browsing, Search, Persistent Detail, Delete, Reveal
+- Surface: Main sidebar → Work → History; persistent collection and adjacent detail
+- Summary: A desktop list/detail destination merging local transcripts with capture-delivery records. Search, queued-capture recovery, and collection selection remain visible while transcript or capture-only metadata is inspected; details are embedded rather than sheet-presented.
 - Details:
-  - Merge: transcripts from `TranscriptStore` joined to `CaptureHistoryRecord` by request ID (delivery badge Delivered/Failed); capture-only records (no transcript) listed separately; sorted by date desc.
-  - Search: `.searchable` over `TranscriptSearch.matches` plus capture haystack (destination, preset, note path, source, outcome, failure category).
-  - "Needs Attention" section: `failedInboxCount > 0` → "Retry 1/N queued captures" button (`retryFailedInbox`).
-  - Transcript rows: title (or relative date), date · model · duration, speaker count, diarization skip reason, delivery badge, Open/Copy/Delete buttons, 6-line preview, tap/click and accessibility action open detail; capture rows show outcome icon, destination, note path, source, preset, attachment count, failure category, Reveal (when delivered with path) and Delete.
-  - Detail sheet: cleaned vs raw transcript sections (copy menu chooses), header metadata (duration, model, language, category, tags as #chips, speakers), text selection enabled.
-  - Clear All confirmation dialog: clears transcript content and capture delivery metadata explicitly **not** deleting exported Markdown notes or attachments.
-  - Reveal: resolves destination bookmark (stale → "Reauthorize the destination in Capture Presets"), validates contained file URL, activates Finder selection (`MacHistoryRevealError.destinationMissing/.permissionExpired`).
-  - Toolbar: Reload (store + records), Clear All (disabled when empty).
-- Evidence: `Voxboard Mac/MacRootView.swift` `MacHistoryView`, `MacTranscriptDetailView`, `MacUnifiedHistoryItem`, `MacHistoryRevealError` (~lines 1520–1790).
-- Constraints: none beyond platform minimums
+  - Merge: transcripts from `TranscriptStore` join `CaptureHistoryRecord` by request UUID (delivery status/path context); capture-only records are included separately and the result sorts newest-first. `MacUnifiedHistoryItem.id` is the shared UUID, so selection remains stable if a reload promotes a capture-only record to a transcript.
+  - Collection: keyboard-friendly `List(selection:)` with compact transcript and capture-only rows, `.searchable` over `TranscriptSearch.matches` plus the capture haystack (destination, preset, note path, source, outcome, failure category), item count, empty/search-empty states, and "Needs Attention" retry action (`retryFailedInbox`).
+  - Selection reconciliation: preserves a still-valid UUID across refreshes, chooses the first visible item after load/search, selects an adjacent fallback on delete, clears during Clear All, and renders explicit unselected/empty detail states.
+  - Transcript detail: inline header with Copy (Cleaned/Raw menu when distinct) and Delete; duration/model/language/category/tags/speaker metadata and diarization skip reason; selectable cleaned and raw text cards. A joined delivery card shows status, destination, created/delivered time, source, preset, note path, attachments, failure, and Reveal when valid.
+  - Capture-only detail: inline delivery status and the same privacy-limited delivery metadata, with Reveal for delivered note paths and Delete. No app-authored detail sheet or Done-to-dismiss affordance remains.
+  - Clear All uses a genuine destructive confirmation and clears transcript content plus Capture delivery metadata while explicitly **not** deleting exported Markdown notes or attachments. Reload refreshes both stores.
+  - Reveal preserves the secure path: resolve the destination bookmark, reject stale permission, validate a contained relative note URL, then activate Finder (`MacHistoryRevealError.destinationMissing/.permissionExpired`). Errors continue through `viewModel.errorMessage`.
+  - DEBUG story `02-history` injects nonpersistent transcript/delivered/capture-only fixtures into the existing screenshot harness so list and selected detail can be visually validated without modifying production history.
+- Evidence: `Voxboard Mac/MacRootView.swift` `MacHistoryView`, `MacTranscriptDetailView`, `MacCaptureHistoryDetailView`, `MacCaptureDeliveryMetadataView`, `MacHistoryScreenshotFixture`, `MacUnifiedHistoryItem`, `MacHistoryRevealError`.
+- Constraints: persisted history is privacy-limited; screenshot fixtures compile only in DEBUG.
 - Status: shipped
 
 ### F-MC-23 Recording Queue (Retry & Recovery)
@@ -323,34 +324,36 @@ Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Que
 - Status: shipped
 
 ### F-MC-24 StoreKit Purchases & Paywall (Individual / Family / Family Upgrade)
-- Surface: Settings "Vox.md Unlimited"; paywall sheets (settings + capture-limit contexts)
+- Surface: Settings → Access (embedded); Capture-limit paywall sheet
 - Summary: StoreKit 2 lifetime purchases: Individual Unlimited, Family Unlimited, and a discounted Family Upgrade for existing Individual owners; restore with diagnostics; transaction listener for refunds/reinstalls.
 - Details:
   - `MacStoreManager.start()`: closes pending iOS-only legacy paid-app migration as non-owner on Mac ("Mac access must be backed by a current StoreKit transaction"); installs `Transaction.updates` listener (verified → finish + resync; revocation handled), then `prepareForPurchases()` (sync entitlements + load products).
   - Purchase flow: pre-sync entitlements (resolves reinstall/refund/family-change before upgrade-eligibility), eligibility check against `usageTracker.purchaseOptions` (Family upgrade only for Individual owners), product availability check, purchase → verify → `applyVerifiedPurchase` → finish → resync; states pending/cancelled/unknown tracked via `OnboardingAnalyticsClient` with paywall context and quota state.
   - Restore: `AppStore.sync()` then entitlement resync; "No Vox.md Unlimited purchase was found." when nothing restored; `recordRestoreDiagnostics` builds a `PurchaseRestoreDiagnostics` (platform macOS, sync error type, requested/loaded product IDs, storefront country, per-product `Transaction.latest` observations incl. verified/revoked/upgraded/ownership/environment/verification error) logged to KeyboardDebugLog — this is the family-restore troubleshooting surface.
   - Entitlement sync: iterates `Transaction.currentEntitlements`, skips revoked/unrecognized, finishes verified transactions, reconciles `UsageTracker.reconcileStoreEntitlements`, sets `isEntitlementStateReady`.
-  - Paywall UI (`MacPaywallView`): access-level-dependent offers (free → Individual+Family cards; individual → Upgrade-to-Family card; family → unlocked badge), live prices ("PRICE UNAVAILABLE"/"CHECKING PRICE" fallbacks), usage line ("%.1f / 15 min transcription · %d / 10 captures"), Restore Purchases (disabled while restoring/purchasing), error text, Done.
-  - Settings summary row shows usage, "FROM price", and Upgrade/Family buttons with accessibility IDs (`settings.familyUpgradeButton`/`settings.lifetimeOptionsButton`); Settings re-runs `prepareForPurchases` on task because app-level StoreKit may finish after Settings opens ("existing owners always see the Family upgrade").
+  - Purchase UI (`MacPaywallView`): access-level-dependent offers (free → Individual+Family cards; individual → Upgrade-to-Family card; family → unlocked badge), live prices ("PRICE UNAVAILABLE"/"CHECKING PRICE" fallbacks), usage line ("%.1f / 15 min transcription · %d / 10 captures"), Restore Purchases (disabled while restoring/purchasing), and error text.
+  - Settings embeds the actual purchase/restore surface directly in Access with no app-authored sheet or Done control; the Capture-limit context retains its dismissible sheet. Both presentations re-run `prepareForPurchases`; purchases keep their StoreKit/analytics context.
 - Constraints: purchase gating enforced by `UsageTracker` limits (15 min / 10 captures free).
-- Evidence: `Voxboard Mac/MacStoreManager.swift` (entire file, 357 lines); `Voxboard Mac/MacRootView.swift` `MacSettingsView` unlimited section + `MacPaywallView` (~lines 1800–1900, 2620–2760).
+- Evidence: `Voxboard Mac/MacStoreManager.swift` (entire file, 357 lines); `Voxboard Mac/MacRootView.swift` `MacSettingsView.accessSettings`, `MacPaywallView`.
 - Status: shipped
 
-### F-MC-25 Settings Surface (Companion Info, Configuration, Keybinds, Visibility, About, Debug)
-- Surface: Settings destination / Settings scene
-- Summary: Six-section settings: Unlimited/paywall, Mac Companion info rows, Capture Configuration navigation, Global Keybinds, Visibility, About, Debug.
+### F-MC-25 Settings Surface (Access / General / Shortcuts / Diagnostics / About)
+- Surface: The one native SwiftUI `Settings` scene, opened from Capture with `openSettings`
+- Summary: A persistent `NavigationSplitView` category sidebar in the exact order Access, General, Shortcuts, Diagnostics, About. The Settings scene hosts it directly without a fake `NavigationStack`; Settings is not a main-window destination. Models, Capture Presets, and Entry Templates live only in the main Configure sidebar.
 - Details:
-  - "Mac Companion" rows: ON-DEVICE TRANSCRIPTION (LOCAL), APPLE INTELLIGENCE (status/detail per macOS 26 gating), FILE EXPORT (local app storage note), KEYBOARD + LOCK SCREEN (iOS-specific features marked "IOS").
-  - Configuration rows open sheets: Capture Presets & Destinations, Entry Templates, Transcription Models (keybind config reloads on presets-sheet dismiss).
-  - About: version+build string, "Voice and text stay on-device." (PRIVATE).
-  - Debug: "View Debug Log" sheet (`MacDebugLogView`) reading `KeyboardDebugLog.shared` with Clear/Copy/Done — surfaces hotkey registration events, recorder/exporter errors, restore diagnostics.
-- Evidence: `Voxboard Mac/MacRootView.swift` `MacSettingsView`, `MacDebugLogView` (~lines 1790–2100, 2770–2800).
-- Constraints: none beyond platform minimums
-- Status: shipped (Debug section: shipped but developer-facing)
+  - **Access**: embeds `MacPaywallView` nonmodally with actual entitlement, usage, Individual/Family/upgrade purchase, restore, live-price, progress, and error controls. Capture-limit purchase UI remains an allowed sheet.
+  - **General**: Mac Companion rows for on-device transcription, Apple Intelligence, file export, and iOS-only keyboard/lock-screen capabilities, followed by all four working visibility modes and their recovery footnote.
+  - **Shortcuts**: transcription-only, selected-preset, and enabled per-preset rows plus destination summaries and registration status. Set/Change opens `MacHotKeyRecorderView` inline in the Settings detail; conflict validation, Save, Clear, Back/Cancel, and Esc cancellation remain.
+  - **Diagnostics**: embeds `MacDebugLogView`; Refresh/Clear/Copy and Reveal Data Folder expose local hotkey, recorder/exporter, and purchase-restore diagnostics without a sheet or Done control.
+  - **About**: app identity, version/build, private on-device processing, and local-storage statements.
+  - DEBUG localization story 03 renders this real category sidebar and selected Access detail.
+- Evidence: `Voxboard Mac/VoxboardMacApp.swift` native `Settings` scene; `Voxboard Mac/MacRootView.swift` `MacSettingsDestination`, `MacSettingsView`, `MacHotKeyRecorderView`, `MacPaywallView`, `MacDebugLogView`.
+- Constraints: native StoreKit and OS dialogs remain system-managed
+- Status: shipped (Diagnostics is developer-facing)
 
 ### F-MC-26 Camera Capture (Photo into Capture)
-- Surface: Capture toolbar "Take Photo…"; requested input `.camera`
-- Summary: Sheet hosting an AVCaptureSession photo capture with preview, delivering JPEG data to the draft as "camera-photo.jpg".
+- Surface: Capture trailing inspector via toolbar "Take Photo…" or target-window requested input `.camera`
+- Summary: Flexible inspector tool hosting an AVCaptureSession photo preview, delivering JPEG data to the draft as "camera-photo.jpg" through explicit close/capture callbacks.
 - Details:
   - Device: default video device (built-in/external/Continuity Camera); `.photo` preset; JPEG `AVCapturePhotoSettings`; permission flow with "Open Camera Privacy Settings" deep link (`x-apple.systempreferences:...Privacy_Camera`) on denial.
   - States: configuring spinner, error states ("No camera is available. Connect a camera or enable Continuity Camera.", configuration failure, "did not return an image"), shutter disabled until ready; session start/stop on appear/disappear off-main.
@@ -359,10 +362,10 @@ Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Que
 - Status: shipped
 
 ### F-MC-27 Sketch Editor
-- Surface: Capture toolbar "Sketch…"; requested input `.sketch`
+- Surface: Capture trailing inspector via toolbar "Sketch…" or target-window requested input `.sketch`
 - Summary: Mouse/trackpad/tablet drawing canvas saved to the draft as both a JSON vector document (`sketch.voxsketch`, content type `application/vnd.voxmd.sketch+json`) and a 2× PNG preview.
 - Details:
-  - Stroke capture via DragGesture(minimumDistance: 0); single points render as 4pt dots; 4pt round black strokes on white; Clear/Cancel/Add to Capture (Add disabled with no strokes).
+  - Inspector-hosted stroke capture via DragGesture(minimumDistance: 0); single points render as 4pt dots; 4pt round black strokes on white; Clear/Close/Add to Capture (Add disabled with no strokes).
   - Document: `MacSketchDocument {canvasWidth, canvasHeight, strokes:[[x,y]]}` encoded JSON; PNG rendered via `ImageRenderer(scale: 2)`; staged via `viewModel.stageSketch(drawingData:previewData:altText:"Sketch created on Mac")`.
 - Evidence: `Voxboard Mac/MacSketchEditor.swift` (entire file, 146 lines).
 - Constraints: none beyond platform minimums
@@ -384,10 +387,10 @@ Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Que
 - Summary: Failed capture deliveries accumulate in a durable inbox drained at launch, every 5 minutes, on activation, and on unlock; export-folder permission loss triggers an in-flow NSOpenPanel re-authorization.
 - Details:
   - Drain triggers: main scene `.task` loop (300s), `applicationDidBecomeActive` (`retryFailedInbox`), `onAppear` (`processPendingInbox`), `usageTracker.hasUnlocked` transition, and after a queued-for-retry export (`pendingCaptureRetryHandler`).
-  - Visibility: History "Retry N queued captures" row; Capture error banner inline retry; inbox location decision dialog (Send Without / Always Without / Discard) for queued requests whose preset requires origin-time location.
+  - Visibility: History "Retry N queued captures" row; Capture error banner inline retry; inbox location decision banner (Send Without / Always Without / Discard) for queued requests whose preset requires origin-time location, with a destructive confirmation before Discard.
   - Permission recovery: `prepareFlowForFileExportIfNeeded` / `prepareGlobalExportFolderIfNeeded` (MacRecorder) resolve per-flow/global bookmarks; stale or missing → titled NSOpenPanel ("Vox.md needs permission to save notes for the X Capture Preset.") creating a fresh `.withSecurityScope` bookmark persisted only to the folder fields of the stored flow (concurrent Settings edits preserved). History Reveal reports stale bookmarks with "Reauthorize the destination in Capture Presets."
   - Destination editor also detects stale bookmarks at edit time (`folderPermissionExpired`).
-- Evidence: `Voxboard Mac/VoxboardMacApp.swift` (drain triggers); `Voxboard Mac/MacRecorder.swift` (permission recovery); `Voxboard Mac/MacRootView.swift` (`MacHistoryRevealError`); `Voxboard Mac/MacCaptureWorkspaceView.swift` (inbox location dialog).
+- Evidence: `Voxboard Mac/VoxboardMacApp.swift` (drain triggers); `Voxboard Mac/MacRecorder.swift` (permission recovery); `Voxboard Mac/MacRootView.swift` (`MacHistoryRevealError`); `Voxboard Mac/MacCaptureWorkspaceView.swift` (inline inbox location decision + destructive discard confirmation).
 - Constraints: none beyond platform minimums
 - Status: shipped
 
@@ -417,18 +420,18 @@ Workspaces (sidebar destinations in `MacRootView`): **Capture**, **Recording Que
 
 | File | Lines | Read | Notes |
 |---|---|---|---|
-| `Voxboard Mac/MacRootView.swift` | 2897 | ✅ full (1–2898, 3 reads) | Navigation, Models, Presets editor, History, Settings, Paywall, Hotkey UI, Debug |
+| `Voxboard Mac/MacRootView.swift` | 3419 | ✅ full | Navigation, Models, Presets editor, persistent History list/detail, category Settings, embedded Access/Diagnostics, Hotkey UI |
 | `Voxboard Mac/MacRecorder.swift` | 2100 | ✅ full (2 reads) | Recording, import, queue, meeting pipeline, export, location, hotkey errors |
-| `Voxboard Mac/MacCaptureWorkspaceView.swift` | 1465 | ✅ full (2 reads) | Capture workspace, route inspector, due date sheet |
-| `Voxboard Mac/VoxboardMacApp.swift` | 1349 | ✅ full (2 reads) | App scenes, menus, coordinator, delegate, visibility, hotkeys, menu bar |
+| `Voxboard Mac/MacCaptureWorkspaceView.swift` | 1646 | ✅ full (2 reads) | Capture workspace, trailing inspector tools, inline location decisions |
+| `Voxboard Mac/VoxboardMacApp.swift` | 1350 | ✅ full (2 reads) | App scenes, native Settings, menus, coordinator, delegate, visibility, hotkeys, menu bar |
 | `Voxboard Mac/MacMeetingCaptureCoordinator.swift` | 650 | ✅ full | Picker, dual stems, manifest, interruption, meters |
 | `Voxboard Mac/MacKeyboardHintCenter.swift` | 617 | ✅ full | Control-B hints |
-| `Voxboard Mac/MacCaptureDestinationLibraryView.swift` | 424 | ✅ full | Destination editor |
+| `Voxboard Mac/MacCaptureDestinationLibraryView.swift` | 447 | ✅ full | Destination editor (modal or inspector navigation) |
 | `Voxboard Mac/MacStoreManager.swift` | 357 | ✅ full | StoreKit 2 |
-| `Voxboard Mac/MacEntryTemplateLibraryView.swift` | 271 | ✅ full | Template library |
+| `Voxboard Mac/MacEntryTemplateLibraryView.swift` | 400 | ✅ full | Persistent template list/detail |
 | `Voxboard Mac/MacMarkdownComposerTextView.swift` | 210 | ✅ full | NSTextView composer |
-| `Voxboard Mac/MacCameraCaptureView.swift` | 199 | ✅ full | Camera |
-| `Voxboard Mac/MacSketchEditor.swift` | 146 | ✅ full | Sketch |
+| `Voxboard Mac/MacCameraCaptureView.swift` | 200 | ✅ full | Flexible inspector camera |
+| `Voxboard Mac/MacSketchEditor.swift` | 149 | ✅ full | Flexible inspector sketch |
 | `Voxboard Mac/MacDocumentScanProcessor.swift` | 72 | ✅ full | OCR/PDF |
 
 ## Uncertainties

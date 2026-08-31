@@ -26,6 +26,8 @@ struct MacCaptureDestinationEditor: View {
     let existing: CaptureDestination?
     let templates: [CaptureEntryTemplate]
     let fixedName: String?
+    let embeddedInNavigation: Bool
+    let onClose: (() -> Void)?
     let onSave: (CaptureDestination) async throws -> Void
 
     @State private var name: String
@@ -51,11 +53,15 @@ struct MacCaptureDestinationEditor: View {
         existing: CaptureDestination?,
         templates: [CaptureEntryTemplate],
         fixedName: String? = nil,
+        embeddedInNavigation: Bool = false,
+        onClose: (() -> Void)? = nil,
         onSave: @escaping (CaptureDestination) async throws -> Void
     ) {
         self.existing = existing
         self.templates = templates
         self.fixedName = fixedName
+        self.embeddedInNavigation = embeddedInNavigation
+        self.onClose = onClose
         self.onSave = onSave
         _name = State(initialValue: fixedName ?? existing?.name ?? "")
         _rootBookmark = State(initialValue: existing?.rootBookmark ?? Data())
@@ -88,9 +94,20 @@ struct MacCaptureDestinationEditor: View {
         _retryProtectionEnabled = State(initialValue: existing?.retryProtectionEnabled ?? false)
     }
 
+    @ViewBuilder
     var body: some View {
-        NavigationStack {
-            Form {
+        if embeddedInNavigation {
+            editorForm
+        } else {
+            NavigationStack {
+                editorForm
+            }
+            .frame(minWidth: 680, minHeight: 620)
+        }
+    }
+
+    private var editorForm: some View {
+        Form {
                 Section(fixedName == nil ? String(localized: "Identity") : String(localized: "Preset Destination")) {
                     if let fixedName {
                         LabeledContent("Preset", value: fixedName)
@@ -182,21 +199,19 @@ struct MacCaptureDestinationEditor: View {
                         .foregroundStyle(.secondary)
                 }
                 if let errorMessage { Text(errorMessage).foregroundStyle(.red) }
-            }
-            .formStyle(.grouped)
-            .navigationTitle(existing == nil
-                             ? String(localized: "Set Up Destination")
-                             : String(localized: "Edit Destination"))
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(isSaving ? String(localized: "Saving…") : String(localized: "Save")) {
-                        Task { await save() }
-                    }.disabled(isSaving)
-                }
+        }
+        .formStyle(.grouped)
+        .navigationTitle(existing == nil
+                         ? String(localized: "Set Up Destination")
+                         : String(localized: "Edit Destination"))
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: close) }
+            ToolbarItem(placement: .confirmationAction) {
+                Button(isSaving ? String(localized: "Saving…") : String(localized: "Save")) {
+                    Task { await save() }
+                }.disabled(isSaving)
             }
         }
-        .frame(minWidth: 680, minHeight: 620)
     }
 
     private func chooseExistingNote() {
@@ -396,10 +411,18 @@ struct MacCaptureDestinationEditor: View {
                 attachmentsFolderName: attachmentsFolder,
                 retryProtectionEnabled: retryProtectionEnabled
             ))
-            dismiss()
+            close()
         } catch {
             isSaving = false
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func close() {
+        if let onClose {
+            onClose()
+        } else {
+            dismiss()
         }
     }
 }

@@ -5,75 +5,148 @@ import VoxboardShared
 
 struct MacEntryTemplateLibraryView: View {
     @State private var templates: [CaptureEntryTemplate] = []
-    @State private var templateToEdit: CaptureEntryTemplate?
-    @State private var isAdding = false
+    @State private var drafts: [CaptureEntryTemplate] = []
+    @State private var selectedTemplateID: UUID?
+    @State private var pendingDeletion: CaptureEntryTemplate?
+    @State private var editorRevision = 0
     @State private var errorMessage: String?
 
     var body: some View {
+        HStack(spacing: 0) {
+            templateList
+                .frame(width: 280)
+            GeistDivider().frame(width: 1)
+            templateDetail
+        }
+        .background(Geist.surface)
+        .navigationTitle("Entry Templates")
+        .task { await load() }
+        .alert(
+            "Delete Entry Template?",
+            isPresented: Binding(
+                get: { pendingDeletion != nil },
+                set: { if !$0 { pendingDeletion = nil } }
+            )
+        ) {
+            Button("Cancel", role: .cancel) { pendingDeletion = nil }
+            Button("Delete", role: .destructive) {
+                guard let template = pendingDeletion else { return }
+                pendingDeletion = nil
+                Task { await delete(template.id) }
+            }
+        } message: {
+            Text("Destinations using this template will keep its current prefix and suffix as inline formatting.")
+        }
+    }
+
+    private var templateList: some View {
         VStack(spacing: 0) {
             HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Entry Templates").font(Geist.heading(.title2))
-                    Text("Reusable Markdown and YAML formatting for Capture Presets.")
-                        .font(Geist.caption()).foregroundStyle(Geist.muted)
-                }
+                Text("ENTRY TEMPLATES")
+                    .font(Geist.label())
+                    .foregroundColor(Geist.text)
                 Spacer()
-                HStack(spacing: Geist.Spacing.two) {
-                    Button("Import Markdown", systemImage: "square.and.arrow.down") {
-                        importTemplate()
-                    }
-                    Button("Add Template", systemImage: "plus") { isAdding = true }
-                        .buttonStyle(.borderedProminent)
+                Button {
+                    importTemplate()
+                } label: {
+                    Image(systemName: "square.and.arrow.down")
                 }
+                .buttonStyle(.plain)
+                .help("Import Markdown")
+                .accessibilityLabel("Import Markdown")
+                Button {
+                    addTemplate()
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .buttonStyle(.plain)
+                .help("Add Template")
+                .accessibilityLabel("Add Template")
             }
-            .padding(Geist.Spacing.four)
+            .padding(16)
             GeistDivider()
 
-            if templates.isEmpty {
-                ContentUnavailableView(
-                    "No Entry Templates",
-                    systemImage: "doc.badge.plus",
-                    description: Text("Create a template to reuse prefixes, frontmatter, and suffixes across Presets.")
-                )
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List {
-                    ForEach(templates) { template in
-                        HStack(spacing: Geist.Spacing.three) {
-                            Image(systemName: "doc.text")
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(template.name).font(Geist.label())
-                                Text(templateSummary(template))
-                                    .font(Geist.caption()).foregroundStyle(Geist.muted)
-                                    .lineLimit(1)
-                            }
-                            Spacer()
-                            Button("Edit") { templateToEdit = template }
-                            Button("Delete", role: .destructive) {
-                                Task { await delete(template.id) }
-                            }
-                        }
-                        .padding(.vertical, Geist.Spacing.two)
-                    }
+            List(selection: $selectedTemplateID) {
+                ForEach(drafts) { template in
+                    templateRow(template, isDraft: true)
+                        .tag(template.id)
+                }
+                ForEach(templates) { template in
+                    templateRow(template, isDraft: false)
+                        .tag(template.id)
                 }
             }
+            .listStyle(.sidebar)
 
             if let errorMessage {
                 GeistDivider()
                 Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
-                    .font(Geist.caption()).foregroundStyle(Geist.error)
-                    .padding(Geist.Spacing.three)
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.error)
+                    .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        .frame(minWidth: 700, minHeight: 520)
-        .task { await load() }
-        .sheet(isPresented: $isAdding) {
-            MacEntryTemplateEditor(existing: nil, onSave: save)
+        .background(Geist.surface)
+    }
+
+    @ViewBuilder
+    private var templateDetail: some View {
+        if let template = selectedTemplate {
+            let isDraft = drafts.contains(where: { $0.id == template.id })
+            MacEntryTemplateEditor(
+                template: template,
+                isDraft: isDraft,
+                onSave: save,
+                onDiscardDraft: {
+                    discardDraft(template.id)
+                },
+                onDelete: {
+                    pendingDeletion = template
+                }
+            )
+            .id(EditorIdentity(templateID: template.id, revision: editorRevision))
+        } else {
+            ContentUnavailableView(
+                templates.isEmpty ? "No Entry Templates" : "Select an Entry Template",
+                systemImage: "doc.badge.plus",
+                description: Text("Create or select a template to edit its reusable Markdown formatting.")
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .sheet(item: $templateToEdit) { template in
-            MacEntryTemplateEditor(existing: template, onSave: save)
+    }
+
+    private var selectedTemplate: CaptureEntryTemplate? {
+        guard let selectedTemplateID else { return nil }
+        return drafts.first(where: { $0.id == selectedTemplateID })
+            ?? templates.first(where: { $0.id == selectedTemplateID })
+    }
+
+    private func templateRow(_ template: CaptureEntryTemplate, isDraft: Bool) -> some View {
+        HStack(spacing: Geist.Spacing.three) {
+            Image(systemName: isDraft ? "doc.badge.plus" : "doc.text")
+            VStack(alignment: .leading, spacing: 2) {
+                Text(template.name.isEmpty ? String(localized: "New Template") : template.name)
+                    .font(Geist.label())
+                Text(isDraft ? String(localized: "Unsaved") : templateSummary(template))
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.muted)
+                    .lineLimit(1)
+            }
         }
+        .padding(.vertical, Geist.Spacing.two)
+    }
+
+    private func addTemplate() {
+        let template = CaptureEntryTemplate(name: "")
+        drafts.append(template)
+        selectedTemplateID = template.id
+        errorMessage = nil
+    }
+
+    private func discardDraft(_ id: UUID) {
+        drafts.removeAll { $0.id == id }
+        selectedTemplateID = templates.first?.id ?? drafts.first?.id
     }
 
     private func importTemplate() {
@@ -86,7 +159,9 @@ struct MacEntryTemplateLibraryView: View {
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
         do {
-            templateToEdit = try importedTemplate(from: url)
+            let template = try importedTemplate(from: url)
+            drafts.append(template)
+            selectedTemplateID = template.id
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -145,6 +220,14 @@ struct MacEntryTemplateLibraryView: View {
         do {
             let library = try await CapturePresetRouteLibrary.load(from: store())
             templates = library.entryTemplates
+            if let selectedTemplateID,
+               !drafts.contains(where: { $0.id == selectedTemplateID }),
+               !templates.contains(where: { $0.id == selectedTemplateID }) {
+                self.selectedTemplateID = nil
+            }
+            if selectedTemplateID == nil {
+                selectedTemplateID = drafts.first?.id ?? templates.first?.id
+            }
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -160,6 +243,8 @@ struct MacEntryTemplateLibraryView: View {
             }
         }
         templates = library.entryTemplates
+        drafts.removeAll { $0.id == template.id }
+        selectedTemplateID = template.id
         errorMessage = nil
     }
 
@@ -178,86 +263,130 @@ struct MacEntryTemplateLibraryView: View {
             }
             CapturePresetStore.clearCaptureEntryTemplate(id)
             templates = library.entryTemplates
+            selectedTemplateID = templates.first?.id ?? drafts.first?.id
+            editorRevision += 1
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
         }
     }
+
+    private struct EditorIdentity: Hashable {
+        let templateID: UUID
+        let revision: Int
+    }
 }
 
 private struct MacEntryTemplateEditor: View {
-    @Environment(\.dismiss) private var dismiss
-    let existing: CaptureEntryTemplate?
+    let template: CaptureEntryTemplate
+    let isDraft: Bool
     let onSave: (CaptureEntryTemplate) async throws -> Void
+    let onDiscardDraft: () -> Void
+    let onDelete: () -> Void
 
     @State private var name: String
     @State private var prefix: String
     @State private var suffix: String
     @State private var isSaving = false
+    @State private var statusMessage: String?
     @State private var errorMessage: String?
 
-    init(existing: CaptureEntryTemplate?, onSave: @escaping (CaptureEntryTemplate) async throws -> Void) {
-        self.existing = existing
+    init(
+        template: CaptureEntryTemplate,
+        isDraft: Bool,
+        onSave: @escaping (CaptureEntryTemplate) async throws -> Void,
+        onDiscardDraft: @escaping () -> Void,
+        onDelete: @escaping () -> Void
+    ) {
+        self.template = template
+        self.isDraft = isDraft
         self.onSave = onSave
-        _name = State(initialValue: existing?.name ?? "")
-        _prefix = State(initialValue: existing?.entryPrefix ?? "")
-        _suffix = State(initialValue: existing?.entrySuffix ?? "")
+        self.onDiscardDraft = onDiscardDraft
+        self.onDelete = onDelete
+        _name = State(initialValue: template.name)
+        _prefix = State(initialValue: template.entryPrefix)
+        _suffix = State(initialValue: template.entrySuffix)
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Geist.Spacing.four) {
-            HStack {
-                Text(existing == nil
-                     ? String(localized: "Add Entry Template")
-                     : String(localized: "Edit Entry Template"))
-                    .font(Geist.heading(.title2))
-                Spacer()
-                Button("Cancel") { dismiss() }
-                Button(isSaving ? String(localized: "Saving…") : String(localized: "Save")) {
-                    Task { await saveTemplate() }
-                }
+        ScrollView {
+            VStack(alignment: .leading, spacing: Geist.Spacing.four) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(isDraft ? String(localized: "New Entry Template") : template.name)
+                            .font(Geist.heading(.title2))
+                        Text("Reusable Markdown and YAML formatting for Capture Presets.")
+                            .font(Geist.caption())
+                            .foregroundStyle(Geist.muted)
+                    }
+                    Spacer()
+                    if isDraft {
+                        Button("Discard Draft", role: .destructive, action: onDiscardDraft)
+                    } else {
+                        Button("Delete", role: .destructive, action: onDelete)
+                    }
+                    Button(isSaving ? String(localized: "Saving…") : String(localized: "Save")) {
+                        Task { await saveTemplate() }
+                    }
                     .buttonStyle(.borderedProminent)
                     .disabled(isSaving)
+                }
+
+                TextField("Template Name", text: $name)
+                Text("Prefix").font(Geist.label())
+                TextEditor(text: $prefix)
+                    .font(.body.monospaced())
+                    .frame(minHeight: 220)
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Geist.border))
+                Text("Suffix").font(Geist.label())
+                TextEditor(text: $suffix)
+                    .font(.body.monospaced())
+                    .frame(minHeight: 140)
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Geist.border))
+                Text("Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, and {location}.")
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.muted)
+                if let locationSample = CaptureEntryLocationTokenSupport.renderedSample(
+                    prefix: prefix,
+                    suffix: suffix
+                ) {
+                    CaptureEntryLocationTokenPreview(sample: locationSample)
+                }
+                if let errorMessage {
+                    Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.error)
+                } else if let statusMessage {
+                    Label(statusMessage, systemImage: "checkmark.circle.fill")
+                        .font(Geist.caption())
+                        .foregroundStyle(Geist.muted)
+                }
             }
-            TextField("Template Name", text: $name)
-            Text("Prefix").font(Geist.label())
-            TextEditor(text: $prefix).font(.body.monospaced()).frame(minHeight: 180)
-                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Geist.border))
-            Text("Suffix").font(Geist.label())
-            TextEditor(text: $suffix).font(.body.monospaced()).frame(minHeight: 110)
-                .overlay(RoundedRectangle(cornerRadius: 6).stroke(Geist.border))
-            Text("Tokens: {date}, {time}, {hour}, {minute}, {second}, {timestamp}, {year}, {YR} (2-digit year), {month}, {day}, {week}, {source}, {id8}, {id}, and {location}.")
-                .font(Geist.caption()).foregroundStyle(Geist.muted)
-            if let locationSample = CaptureEntryLocationTokenSupport.renderedSample(
-                prefix: prefix,
-                suffix: suffix
-            ) {
-                CaptureEntryLocationTokenPreview(sample: locationSample)
-            }
-            if let errorMessage {
-                Text(errorMessage).font(Geist.caption()).foregroundStyle(Geist.error)
-            }
+            .padding(Geist.Spacing.six)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(Geist.Spacing.six)
-        .frame(minWidth: 650, minHeight: 600)
         .background(Geist.Palette.background100)
     }
 
     private func saveTemplate() async {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else {
+            statusMessage = nil
             errorMessage = String(localized: "Enter a template name.")
             return
         }
         isSaving = true
+        statusMessage = nil
+        errorMessage = nil
         do {
             try await onSave(CaptureEntryTemplate(
-                id: existing?.id ?? UUID(),
+                id: template.id,
                 name: trimmedName,
                 entryPrefix: prefix,
                 entrySuffix: suffix
             ))
-            dismiss()
+            isSaving = false
+            statusMessage = String(localized: "Saved")
         } catch {
             isSaving = false
             errorMessage = error.localizedDescription

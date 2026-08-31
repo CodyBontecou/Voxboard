@@ -196,13 +196,13 @@ struct VoxboardMacApp: App {
                             if recorder?.isRecording == true
                                 || recorder?.isExporting == true {
                                 recorder?.lastError = String(localized: "Wait for the current recording or Capture export to finish before quitting.")
-                                windowCoordinator?.showMain(.showCapture)
+                                windowCoordinator?.showMain(.navigate(.capture))
                                 return false
                             }
                             return await quickCaptureViewModel?.flushDraftForTermination() ?? false
                         },
                         reopen: { [weak windowCoordinator] in
-                            windowCoordinator?.showMain(.showCapture)
+                            windowCoordinator?.showMain(.navigate(.capture))
                         }
                     )
                     storeManager.start()
@@ -232,12 +232,12 @@ struct VoxboardMacApp: App {
         .commands {
             CommandMenu("Capture") {
                 Button("Show Capture") {
-                    windowCoordinator.showMain(.showCapture)
+                    windowCoordinator.showMain(.navigate(.capture))
                 }
                 .keyboardShortcut("c", modifiers: [.command, .shift])
 
                 Button("Show History") {
-                    windowCoordinator.showHistory()
+                    windowCoordinator.showMain(.navigate(.history))
                 }
                 .keyboardShortcut("h", modifiers: [.command, .shift])
 
@@ -292,22 +292,8 @@ struct VoxboardMacApp: App {
             }
         }
 
-        Window("Capture History", id: "history") {
-            NavigationStack {
-                MacHistoryView(viewModel: quickCaptureViewModel)
-            }
-            .background(MacSceneWindowRegistrar(kind: .history, coordinator: windowCoordinator))
-            .environment(transcriptStore)
-            .environment(usageTracker)
-            .environment(storeManager)
-            .frame(minWidth: 720, minHeight: 560)
-        }
-        .defaultSize(width: 860, height: 680)
-
         Settings {
-            NavigationStack {
-                MacSettingsView(recorder: recorder)
-            }
+            MacSettingsView(recorder: recorder)
             .environment(modelManager)
             .environment(transcriptStore)
             .environment(usageTracker)
@@ -345,15 +331,21 @@ struct VoxboardMacApp: App {
         guard url.scheme == AppConstants.urlScheme else { return }
         switch url.host {
         case "capture", "capture-request":
-            windowCoordinator.showMain(.showCapture)
             do {
                 let action = try CaptureDeepLinkParser().parse(url)
-                Task { await quickCaptureViewModel.handleDeepLink(action) }
+                Task { @MainActor in
+                    // Finish the serialized load/mutation/persist path before
+                    // the selected Capture window is allowed to consume the
+                    // requested input from the shared view model.
+                    await quickCaptureViewModel.handleDeepLink(action)
+                    windowCoordinator.showMain(.navigate(.capture))
+                }
             } catch {
                 quickCaptureViewModel.errorMessage = error.localizedDescription
+                windowCoordinator.showMain(.navigate(.capture))
             }
         case "listen":
-            windowCoordinator.showMain(.showCapture)
+            windowCoordinator.showMain(.navigate(.capture))
         default:
             break
         }
@@ -387,7 +379,7 @@ struct VoxboardMacApp: App {
             AppConstants.sharedDefaults?.removeObject(forKey: AppConstants.pendingQuickCaptureInputKey)
             quickCaptureViewModel.requestedInput = input
         }
-        windowCoordinator.showMain(.showCapture)
+        windowCoordinator.showMain(.navigate(.capture))
     }
 
     private func configureGlobalHotKeys() {
@@ -443,7 +435,7 @@ struct VoxboardMacApp: App {
 
         guard !usageTracker.isAtLimit else {
             recorder.needsUnlock = true
-            windowCoordinator.showMain(.showCapture)
+            windowCoordinator.showMain(.navigate(.capture))
             return
         }
 
@@ -451,7 +443,7 @@ struct VoxboardMacApp: App {
             let granted = await AudioRecorder.requestMicrophonePermission()
             guard granted else {
                 recorder.lastError = String(localized: "Could not access the microphone. Check macOS Privacy & Security settings.")
-                windowCoordinator.showMain(.showCapture)
+                windowCoordinator.showMain(.navigate(.capture))
                 return
             }
 
@@ -461,25 +453,23 @@ struct VoxboardMacApp: App {
                 completionMode: completionMode
             )
             if !recorder.isRecording, recorder.lastError != nil {
-                windowCoordinator.showMain(.showCapture)
+                windowCoordinator.showMain(.navigate(.capture))
             }
         }
     }
 }
 
 enum MacMainWindowRequest: Equatable {
-    case showCapture
+    case navigate(MacDestination)
     case chooseFiles
 }
 
 enum MacSceneWindowKind {
     case main(token: String)
-    case history
 }
 
-/// Routes commands to the intended SwiftUI scene instead of guessing from
-/// `NSApplication.windows`, where Settings, History, and sheets can all become
-/// main windows.
+/// Routes commands to the intended main SwiftUI window instead of guessing from
+/// `NSApplication.windows`, where Settings and sheets can become key windows.
 @MainActor
 final class MacWindowCoordinator {
     private final class WeakWindow {
@@ -489,7 +479,6 @@ final class MacWindowCoordinator {
 
     private var openWindowAction: OpenWindowAction?
     private var mainWindows: [String: WeakWindow] = [:]
-    private var historyWindow: WeakWindow?
     private var pendingUnassignedMainRequest: MacMainWindowRequest?
     private var pendingMainRequests: [String: MacMainWindowRequest] = [:]
     private var readyMainTokens = Set<String>()
@@ -511,8 +500,6 @@ final class MacWindowCoordinator {
                     route(request, to: token)
                 }
             }
-        case .history:
-            historyWindow = WeakWindow(window)
         }
     }
 
@@ -543,31 +530,23 @@ final class MacWindowCoordinator {
 
     func captureWorkspaceReady(token: String) {
         readyCaptureTokens.insert(token)
-        guard readyMainTokens.contains(token),
-              pendingMainRequests[token] == .chooseFiles else { return }
-        pendingMainRequests[token] = nil
-        NotificationCenter.default.post(name: .macChooseCaptureFiles, object: token)
+        deliverPendingCaptureRequestIfReady(to: token)
     }
 
     func captureWorkspaceNotReady(token: String) {
         readyCaptureTokens.remove(token)
     }
 
-    func showHistory() {
-        MacAppVisibilityMode.current.apply()
-        if let window = historyWindow?.value,
-           window.isVisible || window.isMiniaturized {
-            focus(window)
-        } else {
-            openWindowAction?(id: "history")
-            NSApplication.shared.activate(ignoringOtherApps: true)
-        }
-    }
-
     private func preferredMainWindow() -> (String, NSWindow)? {
         if let keyWindow = NSApplication.shared.keyWindow,
            let entry = mainWindows.first(where: { $0.value.value === keyWindow }) {
             return (entry.key, keyWindow)
+        }
+        for window in NSApplication.shared.orderedWindows {
+            if let entry = mainWindows.first(where: { $0.value.value === window }),
+               window.isVisible || window.isMiniaturized {
+                return (entry.key, window)
+            }
         }
         for (token, reference) in mainWindows {
             if let window = reference.value,
@@ -587,9 +566,6 @@ final class MacWindowCoordinator {
         readyMainTokens.formIntersection(liveTokens)
         readyCaptureTokens.formIntersection(liveTokens)
         pendingMainRequests = pendingMainRequests.filter { liveTokens.contains($0.key) }
-        if historyWindow?.value == nil {
-            historyWindow = nil
-        }
     }
 
     private func focus(_ window: NSWindow) {
@@ -604,18 +580,43 @@ final class MacWindowCoordinator {
         pendingMainRequests[token] = request
         guard readyMainTokens.contains(token) else { return }
 
-        NotificationCenter.default.post(name: .macShowCapture, object: token)
         switch request {
-        case .showCapture:
-            pendingMainRequests[token] = nil
-        case .chooseFiles:
-            // If Capture is already mounted, its receiver is ready now. When
-            // switching from another destination, workspace readiness will
-            // acknowledge the pending request without a timing heuristic.
-            if readyCaptureTokens.contains(token) {
+        case .navigate(let destination):
+            NotificationCenter.default.post(
+                name: .macNavigate,
+                object: MacNavigationRequest(windowToken: token, destination: destination)
+            )
+            if destination == .capture {
+                // Keep the request pending across a cold mount. The tokened
+                // focus/input event is delivered only after `load()` has crossed
+                // the Capture workspace's destructive-restoration barrier.
+                deliverPendingCaptureRequestIfReady(to: token)
+            } else {
                 pendingMainRequests[token] = nil
+            }
+        case .chooseFiles:
+            NotificationCenter.default.post(
+                name: .macNavigate,
+                object: MacNavigationRequest(windowToken: token, destination: .capture)
+            )
+            deliverPendingCaptureRequestIfReady(to: token)
+        }
+    }
+
+    private func deliverPendingCaptureRequestIfReady(to token: String) {
+        guard readyMainTokens.contains(token),
+              readyCaptureTokens.contains(token),
+              let request = pendingMainRequests[token] else { return }
+
+        switch request {
+        case .navigate(.capture), .chooseFiles:
+            pendingMainRequests[token] = nil
+            NotificationCenter.default.post(name: .macShowCapture, object: token)
+            if request == .chooseFiles {
                 NotificationCenter.default.post(name: .macChooseCaptureFiles, object: token)
             }
+        case .navigate:
+            break
         }
     }
 }
@@ -1257,14 +1258,14 @@ private struct MacMenuBarMenu: View {
         .disabled(recorder.isRecording)
 
         Button {
-            windowCoordinator.showMain(.showCapture)
+            windowCoordinator.showMain(.navigate(.capture))
         } label: {
             Label("Show Capture", systemImage: "square.and.pencil")
         }
         .keyboardShortcut("0")
 
         Button {
-            windowCoordinator.showHistory()
+            windowCoordinator.showMain(.navigate(.history))
         } label: {
             Label("Show History", systemImage: "clock.arrow.circlepath")
         }
@@ -1305,7 +1306,7 @@ private struct MacMenuBarMenu: View {
     private func beginRecording() {
         guard !usageTracker.isAtLimit else {
             recorder.needsUnlock = true
-            windowCoordinator.showMain(.showCapture)
+            windowCoordinator.showMain(.navigate(.capture))
             return
         }
 
@@ -1313,7 +1314,7 @@ private struct MacMenuBarMenu: View {
             let granted = await AudioRecorder.requestMicrophonePermission()
             guard granted else {
                 recorder.lastError = String(localized: "Could not access the microphone. Check macOS Privacy & Security settings.")
-                windowCoordinator.showMain(.showCapture)
+                windowCoordinator.showMain(.navigate(.capture))
                 return
             }
             recorder.startRecording(modelManager: modelManager, flowId: selectedFlowId)

@@ -20,7 +20,7 @@ private struct MacSketchDocument: Codable, Sendable {
 }
 
 struct MacSketchEditor: View {
-    @Environment(\.dismiss) private var dismiss
+    let onClose: () -> Void
     let onSave: (Data, Data) -> Void
 
     @State private var strokes: [[MacSketchPoint]] = []
@@ -29,25 +29,28 @@ struct MacSketchEditor: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+                HStack {
                     Text("Sketch")
                         .font(Geist.heading(.title2))
-                    Text("Draw with a mouse, trackpad, or connected tablet.")
-                        .font(Geist.caption())
-                        .foregroundStyle(Geist.muted)
+                    Spacer()
+                    Button("Close", action: onClose)
                 }
-                Spacer()
-                Button("Clear", role: .destructive) {
-                    strokes.removeAll()
-                    activeStroke.removeAll()
-                }
-                .disabled(strokes.isEmpty && activeStroke.isEmpty)
-                Button("Cancel") { dismiss() }
-                Button("Add to Capture") { save() }
-                    .buttonStyle(.borderedProminent)
+                Text("Draw with a mouse, trackpad, or connected tablet.")
+                    .font(Geist.caption())
+                    .foregroundStyle(Geist.muted)
+                HStack {
+                    Button("Clear", role: .destructive) {
+                        strokes.removeAll()
+                        activeStroke.removeAll()
+                    }
                     .disabled(strokes.isEmpty && activeStroke.isEmpty)
-                    .accessibilityIdentifier("mac_capture_sketch_add")
+                    Spacer()
+                    Button("Add to Capture") { save() }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(strokes.isEmpty && activeStroke.isEmpty)
+                        .accessibilityIdentifier("mac_capture_sketch_add")
+                }
             }
             .padding(Geist.Spacing.four)
             .background(Geist.Palette.background100)
@@ -74,7 +77,8 @@ struct MacSketchEditor: View {
             }
             .background(Color.white)
         }
-        .frame(minWidth: 760, minHeight: 520)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minHeight: 400)
     }
 
     @MainActor
@@ -105,7 +109,6 @@ struct MacSketchEditor: View {
               let png = bitmap.representation(using: .png, properties: [:]) else { return }
 
         onSave(drawingData, png)
-        dismiss()
     }
 }
 

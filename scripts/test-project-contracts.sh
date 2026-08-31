@@ -981,14 +981,224 @@ if not mac_editor.exists() or 'MacMarkdownComposerTextView.swift in Sources' not
     errors.append('native macOS Markdown composer is missing from the Mac target')
 for required in [
     'case capture = "Capture"',
+    'case models = "Transcription Models"',
+    'case presets = "Capture Presets"',
+    'case templates = "Entry Templates"',
+    'static let workDestinations: [MacDestination] = [.capture, .queue, .history]',
+    'static let configureDestinations: [MacDestination] = [.models, .presets, .templates]',
+    'MacNavigationState',
+    '@Observable',
+    '@State private var navigationState: MacNavigationState',
+    'openSettings: { openSettings() }',
+    'openModels: { navigationState.select(.models) }',
     'MacCaptureWorkspaceView(',
     'MacHistoryView(viewModel: quickCaptureViewModel)',
+    'case .models:\n            MacModelView()',
+    'case .presets:\n            MacCapturePresetSettingsView()',
+    'case .templates:\n            MacEntryTemplateLibraryView()',
 ]:
     if required not in mac_root:
         errors.append(f'macOS capture-first navigation is missing {required}')
-for removed_destination in ['case listen =', 'case model =', 'case presets =']:
+for removed_destination in [
+    'case listen =',
+    'case model =',
+    'case settings =',
+    'selection = .settings',
+    'showsModels',
+    'showModels',
+]:
     if removed_destination in mac_root:
         errors.append(f'legacy macOS primary navigation must be removed: {removed_destination}')
+model_view_start = mac_root.find('private struct MacModelView: View')
+model_view_end = mac_root.find('// MARK: - Capture Presets', model_view_start)
+model_view_source = mac_root[model_view_start:model_view_end]
+for required in [
+    '.navigationTitle("Transcription Models")',
+    'modelErrorBanner(error)',
+    'Button("Dismiss")',
+    'Button("Select")',
+    'Button("Remove")',
+    'Text("Use Existing…")',
+    'Text("Download")',
+]:
+    if required not in model_view_source:
+        errors.append(f'direct macOS Models destination is missing {required}')
+if '.alert(' in model_view_source:
+    errors.append('macOS model failures must remain inline instead of presenting an alert')
+language_index = model_view_source.find('languageSection')
+whisper_index = model_view_source.find('modelSection("02", "Whisper Models"')
+if model_view_start < 0 or model_view_end < 0 or not (0 <= language_index < whisper_index):
+    errors.append('macOS Models must keep Language visible before the model lists')
+if mac_root.count('case .models:\n            MacModelView()') != 1:
+    errors.append('macOS Models must have exactly one production selectedDetail destination')
+if 'case "04-models":\n            NavigationStack { MacModelView() }' not in mac_root:
+    errors.append('macOS Models localization story must keep rendering the direct model surface')
+if mac_root.count('MacModelView()') != 2:
+    errors.append('macOS Models must have only the production destination and DEBUG screenshot call sites, never a sheet')
+if mac_root.count('case .presets:\n            MacCapturePresetSettingsView()') != 1:
+    errors.append('macOS Capture Presets must have exactly one production selectedDetail destination')
+if 'case "05-presets":\n            NavigationStack { MacCapturePresetSettingsView() }' not in mac_root:
+    errors.append('macOS Capture Presets localization story must keep rendering the direct library surface')
+if mac_root.count('MacCapturePresetSettingsView()') != 2:
+    errors.append('macOS Capture Presets must have only the production destination and DEBUG screenshot call sites, never a sheet')
+if mac_root.count('case .templates:\n            MacEntryTemplateLibraryView()') != 1:
+    errors.append('macOS Entry Templates must have exactly one production selectedDetail destination')
+preset_view_start = mac_root.find('private struct MacCapturePresetSettingsView: View')
+preset_view_end = mac_root.find('private struct MacCapturePresetEditor: View', preset_view_start)
+preset_view_source = mac_root[preset_view_start:preset_view_end]
+for required in [
+    'HStack(spacing: 0)',
+    'List(selection: $selectedFlowId)',
+    '.frame(width: 260)',
+    'MacCapturePresetEditor(preset: $flows[index]',
+    'Text("Select a Capture Preset")',
+]:
+    if required not in preset_view_source:
+        errors.append(f'direct macOS Capture Presets list/detail is missing {required}')
+for removed in ['@Environment(\\.dismiss)', 'Button("Done")', '.sheet(', 'NavigationStack']:
+    if removed in preset_view_source:
+        errors.append(f'direct macOS Capture Presets must not retain modal library semantics: {removed}')
+settings_destination_start = mac_root.find('private enum MacSettingsDestination')
+settings_view_start = mac_root.find('struct MacSettingsView: View', settings_destination_start)
+settings_view_end = mac_root.find('private enum MacPaywallPresentation', settings_view_start)
+settings_destination_source = mac_root[settings_destination_start:settings_view_start]
+settings_view_source = mac_root[settings_view_start:settings_view_end]
+settings_cases = ['case access', 'case general', 'case shortcuts', 'case diagnostics', 'case about']
+settings_case_indexes = [settings_destination_source.find(case) for case in settings_cases]
+if any(index < 0 for index in settings_case_indexes) or settings_case_indexes != sorted(settings_case_indexes):
+    errors.append('macOS Settings category order must be Access, General, Shortcuts, Diagnostics, About')
+for required in [
+    'NavigationSplitView',
+    'List(selection: $selectedDestination)',
+    'ForEach(MacSettingsDestination.allCases)',
+    'case .access:',
+    'case .general:',
+    'case .shortcuts:',
+    'case .diagnostics:',
+    'case .about:',
+    'MacPaywallView(context: .settings, embeddedInSettings: true)',
+    'MacHotKeyRecorderView(',
+    'onCancel: { editingHotKeyTarget = nil }',
+    'MacDebugLogView()',
+    'mode.apply()',
+    'await reloadHotKeyConfiguration()',
+    'await storeManager.prepareForPurchases()',
+]:
+    if required not in settings_view_source:
+        errors.append(f'dedicated macOS Settings hierarchy is missing {required}')
+for removed in [
+    'showCapturePresets',
+    'showEntryTemplates',
+    'MacCapturePresetSettingsView()',
+    'MacEntryTemplateLibraryView()',
+    'showPaywall',
+    'showDebug',
+    '.sheet(',
+    'MacHotKeyRecorderSheet',
+]:
+    if removed in settings_view_source:
+        errors.append(f'macOS Settings must not retain duplicate or modal primary routing: {removed}')
+paywall_view_start = mac_root.find('struct MacPaywallView: View', settings_view_end)
+paywall_view_end = mac_root.find('private struct MacDebugLogView: View', paywall_view_start)
+paywall_view_source = mac_root[paywall_view_start:paywall_view_end]
+for required in [
+    'embeddedInSettings: Bool',
+    'presentation = embeddedInSettings ? .embeddedSettings : .modal',
+    'if presentation == .modal',
+    'await storeManager.restore()',
+    'await storeManager.purchase(product, context: context)',
+    'await storeManager.prepareForPurchases()',
+]:
+    if required not in paywall_view_source:
+        errors.append(f'macOS embedded Access purchase surface is missing {required}')
+hotkey_recorder_start = mac_root.find('private struct MacHotKeyRecorderView: View', settings_view_start)
+hotkey_recorder_end = mac_root.find('private struct MacHotKeyCaptureView', hotkey_recorder_start)
+hotkey_recorder_source = mac_root[hotkey_recorder_start:hotkey_recorder_end]
+for required in ['let onCancel: () -> Void', 'onCancel()', 'onSave(capturedShortcut)', 'conflictingBindingName']:
+    if required not in hotkey_recorder_source:
+        errors.append(f'inline macOS shortcut recorder is missing {required}')
+for removed in ['@Environment(\\.dismiss)', 'dismiss()', '.sheet(']:
+    if removed in hotkey_recorder_source:
+        errors.append(f'inline macOS shortcut recorder retains modal semantics: {removed}')
+debug_view_start = mac_root.find('private struct MacDebugLogView: View', paywall_view_start)
+debug_view_end = mac_root.find('private extension CapturePresetProcessingMode', debug_view_start)
+debug_view_source = mac_root[debug_view_start:debug_view_end]
+for required in ['Button("Clear")', 'Button("Refresh"', 'Button("Copy"', 'Reveal Data Folder', 'KeyboardDebugLog.shared.read()']:
+    if required not in debug_view_source:
+        errors.append(f'embedded macOS Diagnostics is missing {required}')
+for removed in ['@Environment(\\.dismiss)', 'Button("Done")', '.frame(width: 760', '.sheet(']:
+    if removed in debug_view_source:
+        errors.append(f'embedded macOS Diagnostics retains modal semantics: {removed}')
+if mac_app_source.count('Settings {') != 1:
+    errors.append('macOS must retain exactly one native SwiftUI Settings scene')
+settings_scene_start = mac_app_source.find('        Settings {')
+settings_scene_end = mac_app_source.find('        MenuBarExtra(', settings_scene_start)
+settings_scene_source = mac_app_source[settings_scene_start:settings_scene_end]
+if 'MacSettingsView(recorder: recorder)' not in settings_scene_source or 'NavigationStack' in settings_scene_source:
+    errors.append('the native macOS Settings scene must host MacSettingsView directly')
+mac_template_source = (root / 'Voxboard Mac/MacEntryTemplateLibraryView.swift').read_text()
+for required in [
+    'List(selection: $selectedTemplateID)',
+    'MacEntryTemplateEditor(',
+    'drafts.append(template)',
+    'selectedTemplateID = template.id',
+    'CapturePresetStore.clearCaptureEntryTemplate(id)',
+]:
+    if required not in mac_template_source:
+        errors.append(f'direct macOS Entry Templates list/detail is missing {required}')
+for removed in ['.sheet(', '@Environment(\\.dismiss)', 'templateToEdit', 'isAdding']:
+    if removed in mac_template_source:
+        errors.append(f'macOS Entry Templates must edit inline instead of in sheets: {removed}')
+history_view_start = mac_root.find('struct MacHistoryView: View')
+history_view_end = mac_root.find('private enum MacUnifiedHistoryItem', history_view_start)
+history_view_source = mac_root[history_view_start:history_view_end]
+for required in [
+    '@State private var selectedItemID: UUID?',
+    'List(selection: $selectedItemID)',
+    'private var historyDetail: some View',
+    'MacTranscriptDetailView(',
+    'MacCaptureHistoryDetailView(',
+    'MacCaptureDeliveryMetadataView',
+    'selectFallback(removing:',
+    'reconcileSelection(requiringVisibleItem:',
+    '.confirmationDialog(',
+    'await viewModel.retryFailedInbox()',
+    'await viewModel.clearHistory()',
+]:
+    if required not in history_view_source:
+        errors.append(f'persistent macOS History list/detail is missing {required}')
+for removed in ['selectedTranscript', '.sheet(', '@Environment(\\.dismiss)', 'Button("Done")']:
+    if removed in history_view_source:
+        errors.append(f'macOS History detail must remain embedded instead of modal: {removed}')
+transcript_detail_start = mac_root.find('private struct MacTranscriptDetailView: View')
+transcript_detail_end = mac_root.find('private struct MacCaptureHistoryDetailView: View', transcript_detail_start)
+transcript_detail_source = mac_root[transcript_detail_start:transcript_detail_end]
+for required in [
+    'let delivery: CaptureHistoryRecord?',
+    'Button("Copy Cleaned")',
+    'Button("Copy Raw")',
+    'transcriptSection(String(localized: "Raw Transcript")',
+    'MacCaptureDeliveryMetadataView(record: delivery',
+    'speakerDiarizationSkipReason',
+    'ForEach(tags, id: \\.self)',
+]:
+    if required not in transcript_detail_source:
+        errors.append(f'embedded macOS transcript detail is missing {required}')
+for removed in ['@Environment(\\.dismiss)', 'Button("Done")', '.sheet(']:
+    if removed in transcript_detail_source:
+        errors.append(f'embedded macOS transcript detail retains modal semantics: {removed}')
+history_item_start = mac_root.find('private enum MacUnifiedHistoryItem: Identifiable')
+history_item_end = mac_root.find('private enum MacHistoryRevealError', history_item_start)
+history_item_source = mac_root[history_item_start:history_item_end]
+for required in [
+    'var id: UUID',
+    'case .transcript(let transcript, _): transcript.id',
+    'case .capture(let record): record.requestID',
+]:
+    if required not in history_item_source:
+        errors.append(f'macOS History selection identity is not stable: {required}')
+if 'screenshotFixture: .localization' not in mac_root:
+    errors.append('macOS History localization story must render populated list/detail evidence')
 mac_workspace_source = mac_workspace.read_text() if mac_workspace.exists() else ''
 for required in [
     'mac_quick_capture_submit',
@@ -1009,6 +1219,116 @@ for required in [
     if required not in mac_workspace_source:
         errors.append(f'macOS Capture workspace is missing {required}')
 
+capture_load_index = mac_workspace_source.find('await viewModel.load()')
+capture_ready_index = mac_workspace_source.find(
+    'windowCoordinator.captureWorkspaceReady(token: windowToken)'
+)
+if capture_load_index < 0 or capture_ready_index < 0 or capture_load_index >= capture_ready_index:
+    errors.append('macOS Capture readiness must be announced only after the cold-load barrier')
+if 'guard !Task.isCancelled else { return }' not in mac_workspace_source[
+    capture_load_index:capture_ready_index
+]:
+    errors.append('a cancelled macOS Capture mount must not leave stale workspace readiness')
+if '.onChange(of: viewModel.requestedInput)' in mac_workspace_source:
+    errors.append('shared macOS requested input must not be consumed by every mounted Capture window')
+if 'notification.object == nil' in mac_workspace_source:
+    errors.append('macOS Capture notifications must reject nil broadcast payloads')
+if mac_workspace_source.count(
+    'guard let targetToken = notification.object as? String,'
+) < 3:
+    errors.append('macOS Capture notification handlers must require typed target-window tokens')
+show_capture_handler = mac_workspace_source.find(
+    '.onReceive(NotificationCenter.default.publisher(for: .macShowCapture))'
+)
+choose_files_handler = mac_workspace_source.find(
+    '.onReceive(NotificationCenter.default.publisher(for: .macChooseCaptureFiles))'
+)
+if (
+    show_capture_handler < 0
+    or choose_files_handler < 0
+    or 'consumeRequestedInput()' not in mac_workspace_source[
+        show_capture_handler:choose_files_handler
+    ]
+):
+    errors.append('only the token-targeted macOS Capture focus event may consume requested input')
+
+route_inspector_start = mac_workspace_source.find('struct MacCaptureRouteInspector: View')
+text_inspector_start = mac_workspace_source.find('private struct MacCaptureTextInspectorView: View')
+workspace_surface_source = mac_workspace_source[:route_inspector_start]
+route_inspector_source = mac_workspace_source[route_inspector_start:text_inspector_start]
+for required in [
+    'private enum MacCaptureInspectorTool',
+    'case route',
+    'case webLink',
+    'case internalLink',
+    'case camera',
+    'case sketch',
+    'case dueDate',
+    '.inspector(isPresented: inspectorPresentationBinding)',
+    'selectedInspectorTool: MacCaptureInspectorTool?',
+    'selectInspectorTool(.route)',
+    'selectInspectorTool(.webLink)',
+    'selectInspectorTool(.internalLink)',
+    'selectInspectorTool(.camera)',
+    'selectInspectorTool(.sketch)',
+    'selectInspectorTool(.dueDate)',
+    'MacCaptureTextInspectorView(',
+    'MacCameraCaptureView(',
+    'MacSketchEditor(',
+    'MacCaptureDueDateInspectorView(',
+]:
+    if required not in workspace_surface_source:
+        errors.append(f'macOS Capture trailing inspector/tool routing is missing {required}')
+for removed in [
+    'showsRouteInspector',
+    'showsLinkPrompt',
+    'showsCamera',
+    'showsSketch',
+    'showsInternalLinkPrompt',
+    'showsDueDate',
+    'MacCaptureDueDateSheet',
+    '.alert(',
+]:
+    if removed in workspace_surface_source:
+        errors.append(f'macOS Capture accessory tools must not retain primary modal state: {removed}')
+if workspace_surface_source.count('.sheet(') != 1 or '.sheet(isPresented: $showsPaywall)' not in workspace_surface_source:
+    errors.append('the StoreKit paywall must be the only app-authored sheet on the macOS Capture workspace')
+for required in [
+    'mac_capture_location_decision',
+    'mac_capture_inbox_location_decision',
+    'await viewModel.retryUnavailableLocation()',
+    'sendWithoutUnavailableLocation(alwaysForPreset: false)',
+    'sendWithoutUnavailableLocation(alwaysForPreset: true)',
+    'await viewModel.cancelUnavailableLocation()',
+    'await viewModel.sendInboxRequestWithoutLocation()',
+    'sendInboxRequestWithoutLocation(alwaysForPreset: true)',
+    'showsInboxDiscardConfirmation = true',
+    '"Discard queued Capture?"',
+    'await viewModel.discardInboxLocationRequest()',
+]:
+    if required not in workspace_surface_source:
+        errors.append(f'inline macOS Capture location decisions are missing {required}')
+for removed in ['.confirmationDialog(\n            "Location"', 'isPresented: Binding(\n                get: { viewModel.inboxLocationDecision != nil }']:
+    if removed in workspace_surface_source:
+        errors.append(f'macOS Capture location branching must be inline instead of a primary dialog: {removed}')
+for required in [
+    'NavigationStack',
+    '.navigationDestination(isPresented: $isEditingDestination)',
+    'embeddedInNavigation: true',
+    'onClose: { isEditingDestination = false }',
+    'viewModel.scheduleDraftSave()',
+    'viewModel.useVoxRouteDefaults()',
+    'chooseOneOffNote()',
+    'viewModel.resolvedDestinationPreview',
+]:
+    if required not in route_inspector_source:
+        errors.append(f'macOS Capture Route inspector hierarchy is missing {required}')
+for removed in ['@Environment(\\.dismiss)', '.sheet(', 'Button("Done")', '.frame(minWidth: 620']:
+    if removed in route_inspector_source:
+        errors.append(f'macOS Capture Route inspector retains modal semantics: {removed}')
+if 'case "07-capture-route-inspector"' not in mac_root or 'MacCaptureRouteInspector(viewModel: quickCaptureViewModel)' not in mac_root:
+    errors.append('DEBUG story 07 must render the real Capture Route inspector without changing stories 01-06')
+
 mac_routes = root / 'Voxboard Mac/MacCaptureDestinationLibraryView.swift'
 if not mac_routes.exists() or 'MacCaptureDestinationLibraryView.swift in Sources' not in project:
     errors.append('macOS capture-route management is missing from the Mac target')
@@ -1021,11 +1341,40 @@ for filename in [
     path = root / 'Voxboard Mac' / filename
     if not path.exists() or f'{filename} in Sources' not in project:
         errors.append(f'macOS native Capture input/settings adapter is missing: {filename}')
+mac_route_source = mac_routes.read_text() if mac_routes.exists() else ''
+for required in [
+    'let embeddedInNavigation: Bool',
+    'embeddedInNavigation: Bool = false',
+    'if embeddedInNavigation',
+    '.frame(minWidth: 680, minHeight: 620)',
+    'Button("Cancel", action: close)',
+]:
+    if required not in mac_route_source:
+        errors.append(f'macOS destination editor must preserve modal sizing while supporting inspector navigation: {required}')
+mac_camera_source = (root / 'Voxboard Mac/MacCameraCaptureView.swift').read_text()
+mac_sketch_source = (root / 'Voxboard Mac/MacSketchEditor.swift').read_text()
+for filename, source, required in [
+    ('MacCameraCaptureView.swift', mac_camera_source, ['let onClose: () -> Void', 'camera.capture(completion: onCapture)', 'mac_capture_camera_shutter']),
+    ('MacSketchEditor.swift', mac_sketch_source, ['let onClose: () -> Void', 'onSave(drawingData, png)', 'mac_capture_sketch_add']),
+]:
+    if '@Environment(\\.dismiss)' in source or 'dismiss()' in source:
+        errors.append(f'{filename} must close explicitly from the Capture inspector instead of dismissing a sheet')
+    for value in required:
+        if value not in source:
+            errors.append(f'{filename} inspector adapter is missing {value}')
+due_date_start = mac_workspace_source.find('private struct MacCaptureDueDateInspectorView: View')
+due_date_source = mac_workspace_source[due_date_start:]
+for required in ['let onClose: () -> Void', 'let onInsert: (Date, Bool) -> Void', 'Toggle("Include time"', 'Button("Insert Due Date")']:
+    if required not in due_date_source:
+        errors.append(f'macOS due-date inspector is missing {required}')
+if '@Environment(\\.dismiss)' in due_date_source or 'dismiss()' in due_date_source:
+    errors.append('macOS due-date tool must close explicitly from the Capture inspector')
 mac_app = (root / 'Voxboard Mac/VoxboardMacApp.swift').read_text()
 for required in [
     'quickCaptureViewModel',
     'await quickCaptureViewModel.processPendingInbox()',
-    'Window("Capture History", id: "history")',
+    'case navigate(MacDestination)',
+    'showMain(.navigate(.history))',
     'Settings {',
     'CommandMenu("Capture")',
     'MacWindowCoordinator',
@@ -1035,6 +1384,65 @@ for required in [
 ]:
     if required not in mac_app:
         errors.append(f'macOS durable Capture integration is missing {required}')
+if '@State private var navigationState' in mac_app:
+    errors.append('MacNavigationState must remain owned by each MacRootView, not the app scene')
+for required in [
+    'deliverPendingCaptureRequestIfReady(to: token)',
+    'case .navigate(.capture), .chooseFiles:',
+    'NotificationCenter.default.post(name: .macShowCapture, object: token)',
+]:
+    if required not in mac_app:
+        errors.append(f'macOS Capture routing is missing its readiness-gated delivery: {required}')
+if mac_app.count(
+    'NotificationCenter.default.post(name: .macShowCapture, object: token)'
+) != 1:
+    errors.append('macOS Capture focus must have one readiness-gated production sender')
+handle_url_start = mac_app.find('private func handleURL(_ url: URL)')
+handle_url_end = mac_app.find(
+    '@MainActor\n    private static func consumePendingQuickCaptureOpenIfNeeded',
+    handle_url_start,
+)
+handle_url_source = mac_app[handle_url_start:handle_url_end]
+capture_case_start = handle_url_source.find('case "capture", "capture-request":')
+capture_case_end = handle_url_source.find('} catch {', capture_case_start)
+capture_success_source = handle_url_source[capture_case_start:capture_case_end]
+deep_link_mutation_index = capture_success_source.find(
+    'await quickCaptureViewModel.handleDeepLink(action)'
+)
+deep_link_route_index = capture_success_source.find(
+    'windowCoordinator.showMain(.navigate(.capture))'
+)
+if (
+    handle_url_start < 0
+    or handle_url_end < 0
+    or capture_case_start < 0
+    or capture_case_end < 0
+    or deep_link_mutation_index < 0
+    or deep_link_route_index < deep_link_mutation_index
+):
+    errors.append('macOS deep links must finish mutation/persistence before targeted Capture delivery')
+startup_start = mac_app.find('private static func consumePendingQuickCaptureOpenIfNeeded')
+startup_end = mac_app.find('private func configureGlobalHotKeys()', startup_start)
+startup_source = mac_app[startup_start:startup_end]
+startup_source_index = startup_source.find('quickCaptureViewModel.requestCaptureSource(source)')
+startup_vox_index = startup_source.find('quickCaptureViewModel.requestVox(voxID)')
+startup_input_index = startup_source.find('quickCaptureViewModel.requestedInput = input')
+startup_route_index = startup_source.find('windowCoordinator.showMain(.navigate(.capture))')
+if not (
+    startup_start >= 0
+    and startup_end >= 0
+    and 0 <= startup_source_index < startup_vox_index < startup_input_index < startup_route_index
+):
+    errors.append('macOS startup handoff must apply source/Vox/input before targeted Capture delivery')
+for removed_history_window in [
+    'Window("Capture History", id: "history")',
+    'historyWindow',
+    'showHistory()',
+]:
+    if removed_history_window in mac_app:
+        errors.append(
+            f'macOS History must route through the main navigation state, found {removed_history_window}'
+        )
 mac_recorder = (root / 'Voxboard Mac/MacRecorder.swift').read_text()
 for required in [
     'OnDeviceTranscriptionService',

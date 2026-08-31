@@ -3,29 +3,29 @@ import Combine
 import SwiftUI
 
 struct MacCameraCaptureView: View {
-    @Environment(\.dismiss) private var dismiss
     @StateObject private var camera = MacCameraController()
+    let onClose: () -> Void
     let onCapture: (Data) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Geist.Spacing.three) {
+                HStack {
                     Text("Camera").font(Geist.heading(.title2))
-                    Text("Use a built-in, external, or Continuity Camera device.")
-                        .font(Geist.caption()).foregroundStyle(Geist.muted)
+                    Spacer()
+                    Button("Close", action: onClose)
                 }
-                Spacer()
-                Button("Cancel") { dismiss() }
-                Button("Take Photo") {
-                    camera.capture { data in
-                        onCapture(data)
-                        dismiss()
+                Text("Use a built-in, external, or Continuity Camera device.")
+                    .font(Geist.caption()).foregroundStyle(Geist.muted)
+                HStack {
+                    Spacer()
+                    Button("Take Photo") {
+                        camera.capture(completion: onCapture)
                     }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!camera.isReady)
+                    .accessibilityIdentifier("mac_capture_camera_shutter")
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(!camera.isReady)
-                .accessibilityIdentifier("mac_capture_camera_shutter")
             }
             .padding(Geist.Spacing.four)
             .background(Geist.Palette.background100)
@@ -49,7 +49,8 @@ struct MacCameraCaptureView: View {
                 }
             }
         }
-        .frame(minWidth: 760, minHeight: 560)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minHeight: 420)
         .onAppear { camera.start() }
         .onDisappear { camera.stop() }
     }
