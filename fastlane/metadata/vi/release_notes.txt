@@ -1,14 +1,6 @@
-Vox.md cho Mac hiện ghi âm các cuộc họp với âm thanh hệ thống và micrô thành các track riêng biệt, và trên iPhone bạn có thể chọn ngôn ngữ ứng dụng ngay trong Cài đặt.
+Tạm dừng bản ghi để tập hợp suy nghĩ, rồi tiếp tục đúng chỗ bạn dừng lại — trên iPhone, iPad và Mac. Một ghi chú duy nhất, không khoảng lặng, không tách file.
 
 Mới
-• Ghi âm cuộc họp trên Mac với sự tách biệt rõ ràng giữa những gì bạn nghe và những gì bạn nói — mỗi track được giữ lại để chuyển thành văn bản.
-• Chọn ngôn ngữ ứng dụng trong Cài đặt trên iPhone và iPad mà không cần đổi ngôn ngữ thiết bị.
-• Thêm token {location} mới vào mẫu mục để đặt vị trí ghi âm đúng nơi bạn muốn.
-
-Cải tiến
-• Các mô hình chuyển văn bản đã có trên Mac được dùng ngay tại chỗ — không còn bản sao trùng lặp chiếm dung lượng đĩa.
-• Nhãn người nói nhất quán trong mọi luồng ghi âm.
-
-Đã sửa
-• Bản ghi luôn hoàn tất: xử lý văn bản và làm giàu giọng nói giờ chạy với thời hạn nghiêm ngặt thay vì treo.
-• Tiếng Đức rõ ràng và nhất quán hơn trên toàn bộ ứng dụng.
+• Tạm dừng và tiếp tục bất kỳ bản ghi nào chỉ với một chạm — trên thanh Capture ở iPhone, thanh trạng thái ở Mac, đồng bộ với Apple Watch.
+• Thời gian và sự im lặng khi tạm dừng được loại bỏ tự động, nên ghi chú và bộ đếm thời gian chỉ chứa những gì bạn thực sự nói.
+• Khi tạm dừng, chuyển lời trực tiếp và tự động dừng đều chờ — khoảnh khắc im lặng không bao giờ cắt ngang ghi chú.

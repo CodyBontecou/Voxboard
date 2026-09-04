@@ -1,14 +1,6 @@
-Vox.md untuk Mac kini merakam mesyuarat dengan audio sistem dan mikrofon sebagai trek berasingan, dan pada iPhone anda boleh memilih bahasa aplikasi terus dalam Tetapan.
+Jeda rakaman untuk mengumpulkan fikiran anda, kemudian sambung tepat di tempat anda berhenti — pada iPhone, iPad dan Mac. Satu nota, tanpa keheningan kosong, tanpa fail berasingan.
 
 Baharu
-• Rakam mesyuarat pada Mac dengan pemisahan jelas antara apa yang anda dengar dan apa yang anda ucap — setiap trek disimpan untuk transkripsi.
-• Pilih bahasa aplikasi dalam Tetapan pada iPhone dan iPad tanpa menukar bahasa peranti.
-• Tambah token {location} baharu pada templat entri untuk meletakkan lokasi rakaman tepat di mana anda mahu.
-
-Dipertingkat
-• Model transkripsi yang sedia ada pada Mac anda digunakan di tempat asalnya — tiada lagi salinan pendua yang mengambil ruang cakera.
-• Label pembicara kekal konsisten merentas semua aliran rakaman.
-
-Dibaiki
-• Rakaman sentiasa selesai: pemprosesan teks dan pengayaan suara kini berjalan dengan tempoh ketat dan bukannya tersekat.
-• Bahasa Jerman yang lebih jelas dan konsisten di seluruh aplikasi.
+• Jeda dan sambung mana-mana rakaman dengan satu ketukan — pada bar Capture di iPhone, bar status di Mac, seiring dengan Apple Watch.
+• Masa jeda dan keheningan dibuang secara automatik, jadi nota dan pemasa nya hanya mengandungi apa yang anda sebenarnya katakan.
+• Semasa jeda, transkripsi langsung dan henti automatik ditangguhkan — sesaat senyap tidak sekali-kali memotong nota.

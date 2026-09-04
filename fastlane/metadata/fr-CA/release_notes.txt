@@ -1,14 +1,6 @@
-Vox.md pour Mac enregistre vos réunions avec l’audio système et votre micro sur des pistes séparées, et sur iPhone choisissez la langue de l’app dans Réglages.
+Mettez vos enregistrements en pause pour rassembler vos idées, puis reprenez exactement là où vous vous êtes arrêté — sur iPhone, iPad et Mac. Une seule note, sans temps mort, sans fichiers séparés.
 
 Nouveautés
-• Enregistrez vos réunions sur Mac avec une séparation nette entre ce que vous entendez et ce que vous dites : chaque piste est conservée pour la transcription.
-• Choisissez la langue de l’app dans Réglages sur iPhone et iPad, sans changer la langue de votre appareil.
-• Ajoutez le nouveau jeton {location} aux modèles d’entrée pour placer le lieu de capture exactement où vous le souhaitez.
-
-Améliorations
-• Les modèles de transcription déjà présents sur votre Mac sont utilisés sur place : fini les copies en double qui occupent de l’espace disque.
-• Les étiquettes de locuteur restent cohérentes dans tous les flux de capture.
-
-Corrections
-• Les captures se terminent toujours : le traitement du texte et l’enrichissement vocal s’exécutent désormais sous des délais stricts au lieu de se bloquer.
-• Un allemand plus clair et plus cohérent dans toute l’app.
+• Mettez n'importe quel enregistrement en pause et reprenez-le d'un simple geste — dans la barre de capture sur iPhone, dans la barre d'état sur Mac, comme sur Apple Watch.
+• Le temps et le silence en pause sont automatiquement retirés : votre note et son chronomètre ne contiennent que ce que vous avez réellement dit.
+• La pause suspend la transcription en direct et l'arrêt automatique : un moment de silence n'interrompt jamais une note.

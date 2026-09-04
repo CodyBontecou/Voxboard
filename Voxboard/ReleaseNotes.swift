@@ -18,7 +18,7 @@ enum VoxboardReleaseNotes {
 
     private static let versionNotes: [VersionNotes] = [
         .init(
-            version: "2.5",
+            version: "2.6",
             items: [
                 .list(
                     title: "What’s new in Vox.md",

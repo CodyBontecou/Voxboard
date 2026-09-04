@@ -1,14 +1,6 @@
-Vox.md voor Mac neemt vergaderingen nu op met systeemaudio en je microfoon als aparte sporen, en op de iPhone kies je de taal van de app rechtstreeks in Instellingen.
+Pauzeer opnames om je gedachten te ordenen en ga precies verder waar je was gebleven — op iPhone, iPad en Mac. Eén notitie, geen dode lucht, geen losse bestanden.
 
 Nieuw
-• Neem vergaderingen op je Mac op met een duidelijke scheiding tussen wat je hoort en wat je zegt — elk spoor blijft bewaard voor transcriptie.
-• Kies de taal van de app in Instellingen op iPhone en iPad, zonder de taal van je apparaat te wijzigen.
-• Voeg het nieuwe {location}-token toe aan itemsjablonen om de opnamelocatie precies te plaatsen waar je wilt.
-
-Verbeterd
-• Transcribatiemodellen die al op je Mac staan, worden ter plekke gebruikt — geen dubbele kopieën meer die schijfruimte innemen.
-• Sprekerlabels blijven consistent in alle opnamestromen.
-
-Opgelost
-• Opnamen worden nu altijd afgerond: tekstverwerking en spraakverrijking draaien onder strikte deadlines in plaats vast te lopen.
-• Duidelijker en consistenter Duits in de hele app.
+• Pauzeer en hervat elke opname met één tik — in de capturebalk op iPhone, in de statusbalk op Mac, en in lijn met de Apple Watch.
+• Gepauzeerde tijd en stilte worden automatisch verwijderd, zodat je notitie en de timer alleen bevatten wat je daadwerkelijk zei.
+• Tijdens de pauze staan live transcriptie en automatisch stoppen stil — een stil moment beëindigt nooit een notitie.

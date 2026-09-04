@@ -1,14 +1,6 @@
-Vox.md untuk Mac kini merekam rapat dengan audio sistem dan mikrofon pada trek terpisah, dan di iPhone Anda dapat memilih bahasa aplikasi langsung di Pengaturan.
+Jeda rekaman untuk mengumpulkan pikiran, lalu lanjutkan tepat dari titik Anda berhenti — di iPhone, iPad, dan Mac. Satu catatan, tanpa keheningan mati, tanpa file terpisah.
 
 Baru
-• Rekam rapat di Mac dengan pemisahan jelas antara yang Anda dengar dan yang Anda ucapkan — setiap trek disimpan untuk transkripsi.
-• Pilih bahasa aplikasi di Pengaturan pada iPhone dan iPad, tanpa mengubah bahasa perangkat.
-• Tambahkan token {location} baru ke templat entri untuk menempatkan lokasi rekaman tepat di posisi yang Anda inginkan.
-
-Peningkatan
-• Model transkripsi yang sudah ada di Mac Anda digunakan langsung di tempatnya — tidak ada lagi duplikat yang memakan ruang disk.
-• Label pembicara tetap konsisten di semua alur perekaman.
-
-Perbaikan
-• Perekaman selalu selesai: pemrosesan teks dan pengayaan suara kini berjalan dengan tenggat ketat, tidak lagi macet.
-• Bahasa Jerman yang lebih jelas dan konsisten di seluruh aplikasi.
+• Jeda dan lanjutkan rekaman apa pun dengan satu ketukan — di bilah Capture di iPhone, di bilah status di Mac, sejalan dengan Apple Watch.
+• Waktu dan keheningan saat jeda dihapus otomatis, sehingga catatan dan pewaktunya hanya memuat apa yang benar-benar Anda ucapkan.
+• Saat dijeda, transkripsi langsung dan penghentian otomatis menunggu — sejenak hening tak pernah memotong catatan.

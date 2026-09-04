@@ -1,14 +1,6 @@
-Vox.md för Mac spelar nu in möten med systemljud och mikrofon som separata spår, och på iPhone kan du välja appens språk direkt i Inställningar.
+Pausa inspelningar för att samla dina tankar och fortsätt precis där du slutade — på iPhone, iPad och Mac. En anteckning, utan tystnad, utan separata filer.
 
 Nytt
-• Spela in möten på Mac med tydlig åtskillnad mellan det du hör och det du säger — varje spår bevaras för transkribering.
-• Välj appens språk i Inställningar på iPhone och iPad, utan att ändra enhetens språk.
-• Lägg till den nya {location}-token i postmallar för att placera inspelningsplatsen precis där du vill.
-
-Förbättrat
-• Transkriberingsmodeller som redan finns på din Mac används på plats — inga dubblettkopior som tar upp diskutrymme.
-• Talaretiketter hålls konsekventa i alla inspelningsflöden.
-
-Åtgärdat
-• Inspelningar slutförs alltid: textbearbetning och röstberikning körs nu med strikta tidsgränser i stället för att fastna.
-• Tydligare och mer konsekvent tyska i hela appen.
+• Pausa och återuppta vilken inspelning som helst med ett tryck — i Capture-raden på iPhone, i statusraden på Mac och i linje med Apple Watch.
+• Pausad tid och tystnad tas bort automatiskt, så din anteckning och dess timer innehåller bara det du faktiskt sa.
+• Under pausen vilar live-transkribering och automatiskt stopp — en tyst stund avslutar aldrig en anteckning i förtid.

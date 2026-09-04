@@ -1,14 +1,6 @@
-Vox.md für Mac zeichnet Meetings jetzt mit Systemaudio und Mikrofon als getrennte Spuren auf, und auf dem iPhone wählen Sie die App-Sprache direkt in den Einstellungen.
+Pausieren Sie Aufnahmen, um Ihre Gedanken zu sammeln, und setzen Sie genau dort fort, wo Sie aufgehört haben – auf iPhone, iPad und Mac. Eine Notiz, ohne tote Luft, ohne separate Dateien.
 
 Neu
-• Nehmen Sie Meetings auf dem Mac auf – klar getrennt zwischen dem, was Sie hören, und dem, was Sie sagen; jede Spur bleibt für die Transkription erhalten.
-• Wählen Sie die App-Sprache in den Einstellungen auf iPhone und iPad, ohne die Gerätesprache zu ändern.
-• Ergänzen Sie Eintragsvorlagen um das neue Token {location}, um den Aufnahmeort exakt dort zu platzieren, wo Sie ihn möchten.
-
-Verbessert
-• Transkriptionsmodelle, die bereits auf Ihrem Mac vorhanden sind, werden direkt an Ort und Stelle verwendet – keine doppelten Kopien mehr, die Speicherplatz belegen.
-• Sprecherbezeichnungen bleiben in allen Aufnahmeabläufen konsistent.
-
-Behoben
-• Erfassungen schließen jetzt immer ab: Textverarbeitung und Sprachanreicherung laufen unter strikten Fristen, statt hängen zu bleiben.
-• Klareres, konsistenteres Deutsch in der gesamten App.
+• Pausieren und fortsetzen Sie jede Aufnahme mit einem Tipp – in der Capture-Leiste auf dem iPhone, in der Statusleiste auf dem Mac, passend zur Apple Watch.
+• Pausierte Zeit und Stille werden automatisch entfernt, sodass Ihre Notiz und ihr Timer nur enthalten, was Sie tatsächlich gesagt haben.
+• Beim Pausieren werden Live-Transkription und automatisches Stoppen ausgesetzt – ein stiller Moment beendet eine Notiz nie vorzeitig.

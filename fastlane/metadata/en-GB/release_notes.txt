@@ -1,14 +1,6 @@
-Vox.md for Mac now records meetings with system audio and your microphone kept as separate stems, and on iPhone you can pick the app's language right in Settings.
+Pause recordings to gather your thoughts, then pick up right where you left off — on iPhone, iPad, and Mac. One note, no dead air, no separate files.
 
 New
-• Capture meetings on Mac with clear separation between what you hear and what you say — each stem is preserved for transcription.
-• Choose the app language in Settings on iPhone and iPad, without changing your device language.
-• Add the new {location} token to entry templates to place capture location exactly where you want it.
-
-Improved
-• Transcription models already on your Mac are used in place — no more duplicate copies taking up disk space.
-• Speaker labels stay consistent across all capture flows.
-
-Fixed
-• Captures always finish: text processing and voice enrichment now run under strict deadlines instead of stalling.
-• Clearer, more consistent German throughout the app.
+• Pause and resume any recording with one tap — in the Capture Bar on iPhone, the status bar on Mac, and matching Apple Watch.
+• Paused time and silence are removed automatically, so your note and its timer contain only what you actually said.
+• Pausing holds live transcription and voice auto-stop, so a quiet moment never cuts a note short.

@@ -1,14 +1,6 @@
-A Macen futó Vox.md a rendszerhangot és a mikrofont külön sávként rögzíti az értekezleteken, iPhone-on pedig a Beállításokban választhatja meg az app nyelvét.
+Állítson szünetre a felvételeket, hogy összeszedje gondolatait, majd pontosan ott folytassa, ahol abbahagyta — iPhone-on, iPadon és Macen. Egy jegyzet, holttér nélkül, külön fájlok nélkül.
 
 Újdonságok
-• Rögzítsen értekezleteket a Macen a hallottak és elmondottak egyértelmű elkülönítésével — minden sáv megmarad az átíráshoz.
-• Válassza ki az app nyelvét az iPhone és iPad Beállításaiban, anélkül, hogy módosítaná a készülék nyelvét.
-• Adja hozzá az új {location} tokent a bejegyzéssablonokhoz, és a rögzítés helyét pontosan oda tegye, ahová szeretné.
-
-Továbbfejlesztések
-• A Macen már meglévő átírási modellek helyben kerülnek használatra — nincs többé lemezterületet foglaló duplikátum.
-• A beszélőcímkék minden rögzítési folyamatban következetesek maradnak.
-
-Javítások
-• A rögzítések mindig befejeződnek: a szövegfeldolgozás és a hangdúsítás most szigorú határidővel fut, nem akad el.
-• Világosabb és következetesebb német nyelv az egész appban.
+• Bármely felvételt egy koppintással szüneteltethet és folytathat — a Capture sávban iPhone-on, az állapotsorban Macen, az Apple Watchhoz illő módon.
+• A szünet ideje és csendje automatikusan eltávolításra kerül, így jegyzete és annak időmérője csak azt tartalmazza, amit ténylegesen mondott.
+• Szünet alatt az élő átírás és az automatikus leállítás várakozik — egy csendes pillanat sosem vágja el a jegyzetet.

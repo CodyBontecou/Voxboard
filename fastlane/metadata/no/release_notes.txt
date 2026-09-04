@@ -1,14 +1,6 @@
-Vox.md for Mac tar nå opp møter med systemlyd og mikrofon som separate spor, og på iPhone kan du velge appens språk direkte i Innstillinger.
+Sett opptak på pause for å samle tankene, og fortsett akkurat der du slapp — på iPhone, iPad og Mac. Étt notat, uten dødtid, uten egne filer.
 
 Nytt
-• Ta opp møter på Mac med tydelig skille mellom det du hører og det du sier — hvert spor bevares for transkribering.
-• Velg appens språk i Innstillinger på iPhone og iPad, uten å endre enhetens språk.
-• Legg til det nye {location}-tokenet i oppføringsmaler for å plassere opptaksstedet akkurat der du vil.
-
-Forbedret
-• Transkriberingsmodeller som allerede finnes på Macen din, brukes der de er — ikke flere dupliserte kopier som opptar diskplass.
-• Talenetiketter holder seg konsistente i alle opptaksflyter.
-
-Rettet
-• Opptak fullføres alltid: tekstbehandling og stemmeberikelse kjører nå med strenge frister i stedet for å henge seg opp.
-• Klarere og mer konsistent tysk i hele appen.
+• Sett ethvert opptak på pause og fortsett med ett trykk — i Capture-linjen på iPhone, i statuslinjen på Mac, i takt med Apple Watch.
+• Pausetid og stillhet fjernes automatisk, slik at notatet og timeren bare inneholder det du faktisk sa.
+• Under pausen venter direkteskriving og autostopp — et stille øyeblikk avslutter aldri et notat.

@@ -1,14 +1,6 @@
-Vox.md Macille nauhoittaa nyt kokoukset erillisinä järjestelmä- ja mikrofoniraitoina, ja iPhonen Asetuksista voit valita sovelluksen kielen suoraan.
+Keskeytä tallennukset ajatuksiesi kokoamiseksi ja jatka täsmälleen siitä, mihin jäit — iPhonessa, iPadissa ja Macissa. Yksi muistiinpano, ei kuollutta hiljaisuutta, ei erillisiä tiedostoja.
 
 Uutta
-• Nauhoita kokoukset Macillä niin, että kuulemasi ja sanomasi erottuvat selkeästi — jokainen raita säilytetään litterointia varten.
-• Valitse sovelluksen kieli iPhonen ja iPadin Asetuksista muuttamatta laitteen kieltä.
-• Lisää uusi {location}-merkintä merkintäpohjiin ja sijoita tallennuksen sijainti täsmälleen haluamaasi kohtaan.
-
-Parannettu
-• Macilla jo olevat litterointimallit otetaan käyttöön paikallaan — ei enää päällekkäisiä kopioita, jotka vievät levytilaa.
-• Puhujien nimet pysyvät yhdenmukaisina kaikissa tallennusvirroissa.
-
-Korjattu
-• Tallennukset valmistuvat aina: tekstin käsittely ja äänen rikastus toimivat nyt tiukoilla määräajoilla jumittumisen sijaan.
-• Selkeämpi ja yhdenmukaisempi saksan kieli koko sovelluksessa.
+• Keskeytä ja jatka mitä tahansa tallennusta yhdellä napautuksella — Capture-palkissa iPhonessa, tilapalkissa Macissa ja Apple Watchin tavoin.
+• Tauko ja hiljaisuus poistetaan automaattisesti, joten muistiinpanosi ja sen ajastin sisältävät vain sen, mitä oikeasti sanoit.
+• Tauon aikana suora litterointi ja automaattinen pysäytys odottavat — hiljainen hetki ei koskaan katkaise muistiinpanoa.

@@ -1,14 +1,6 @@
-Mac için Vox.md artık toplantıları sistem sesi ve mikrofonu ayrı kanallar olarak kaydediyor; iPhone’daysa uygulamanın dilini doğrudan Ayarlar’dan seçebilirsiniz.
+Düşüncelerinizi toplamak için kayıtları duraklatın ve tam kaldığınız yerden sürdürün — iPhone, iPad ve Mac'te. Tek bir not, ölü sessizlik yok, ayrı dosya yok.
 
 Yenilikler
-• Mac’te duyduklarınız ile söyledikleriniz arasında net ayrımla toplantı kaydedin; her kanal transkripsiyon için saklanır.
-• Cihaz dilini değiştirmeden iPhone ve iPad’de Ayarlar’dan uygulamanın dilini seçin.
-• Kayıt konumunu tam istediğiniz yere yerleştirmek için giriş şablonlarına yeni {location} kodunu ekleyin.
-
-İyileştirmeler
-• Mac’inizde zaten var olan transkripsiyon modelleri yerinde kullanılır; disk alanı kaplayan yinelenen kopyalar artık oluşmaz.
-• Tüm kayıt akışlarında konuşmacı etiketleri tutarlı kalır.
-
-Düzeltmeler
-• Kayıtlar her zaman tamamlanır: Metin işleme ve ses zenginleştirme artık takılmak yerine katı son tarihlerle çalışır.
-• Uygulamanın tamamında daha net ve tutarlı Almanca.
+• Herhangi bir kaydı tek dokunuşla duraklatın ve sürdürün — iPhone'da Yakalama çubuğunda, Mac'te durum çubuğunda, Apple Watch ile uyumlu biçimde.
+• Duraklatılan süre ve sessizlik otomatik olarak kaldırılır; notunuz ve zamanlayıcısı yalnızca gerçekte söylediklerinizi içerir.
+• Duraklatma sırasında canlı transkripsiyon ve otomatik durdurma bekler — sessiz bir an, bir notu asla erken kesmez.

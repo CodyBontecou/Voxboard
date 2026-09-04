@@ -1,14 +1,6 @@
-Vox.md pro Mac nyní nahrává schůzky se systémovým zvukem a mikrofonem jako oddělené stopy a na iPhonu si můžete vybrat jazyk aplikace přímo v Nastavení.
+Pozastavte nahrávání, abyste se soustředili na myšlenky, a pokračujte přesně tam, kde jste skončili — na iPhonu, iPadu i Macu. Jedna poznámka, bez mrtvého vzduchu, bez oddělených souborů.
 
 Novinky
-• Nahrávejte schůzky na Macu s jasným oddělením mezi tím, co slyšíte, a tím, co říkáte — každá stopa se zachová pro přepis.
-• Vyberte jazyk aplikace v Nastavení na iPhonu a iPadu, aniž byste měnili jazyk zařízení.
-• Přidejte nový token {location} do šablon záznamů a umístěte polohu záznamu přesně tam, kam chcete.
-
-Vylepšení
-• Modely přepisu, které už jsou na vašem Macu, se používají na místě — žádné duplicitní kopie, které zabírají místo na disku.
-• Popisky mluvčích zůstávají konzistentní napříč všemi režimy záznamu.
-
-Opravy
-• Záznamy se vždy dokončí: zpracování textu a obohacení řeči běží pod přísnými termíny, místo aby se zasekly.
-• Srozumitelnější a konzistentnější němčina v celé aplikaci.
+• Pozastavte a obnovte jakékoli nahrávání jedním klepnutím — na liště zachytávání na iPhonu, na stavové liště na Macu, stejně jako na Apple Watch.
+• Čas a ticho během pauzy se automaticky odstraní, takže poznámka i její časovač obsahují jen to, co jste skutečně řekli.
+• Během pauzy se pozastaví živý přepis i automatické zastavení — chvíle ticha nikdy poznámku nepřeruší.

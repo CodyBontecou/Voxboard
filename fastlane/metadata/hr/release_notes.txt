@@ -1,14 +1,6 @@
-Vox.md za Mac sada snima sastanke sa zvukom sustava i mikrofonom kao odvojene zapise, a na iPhonu jezik aplikacije možete odabrati izravno u Postavkama.
+Pauzirajte snimke da biste skupili misli, a zatim nastavite točno tamo gdje ste stali — na iPhoneu, iPadu i Macu. Jedna bilješka, bez mrtvog zraka, bez odvojenih datoteka.
 
 Novo
-• Snimajte sastanke na Macu s jasnom razdvojenosti između onoga što čujete i onoga što govorite — svaki se zapis čuva za transkripciju.
-• Odaberite jezik aplikacije u Postavkama na iPhoneu i iPadu, bez promjene jezika uređaja.
-• Dodajte novi token {location} u predloške unosa da mjesto snimanja smjestite točno gdje želite.
-
-Poboljšano
-• Modeli transkripcije koji su već na vašem Macu koriste se na mjestu — više nema dupliciranih kopija koje zauzimaju prostor na disku.
-• Oznake govornika ostaju dosljedne u svim tijekovima snimanja.
-
-Ispravljeno
-• Snimke se uvijek dovršavaju: obrada teksta i obogaćivanje glasa sada se izvode pod strogim rokovima umjesto da se zaglave.
-• Jasniji i dosljedniji njemački u cijeloj aplikaciji.
+• Pauzirajte i nastavite bilo koju snimku jednim dodirom — u traci snimanja na iPhoneu, u statusnoj traci na Macu, u skladu s Apple Watchom.
+• Vrijeme i tišina tijekom pauze automatski se uklanjaju, pa bilješka i njezin brojač vremena sadrže samo ono što ste stvarno rekli.
+• Tijekom pauze čekaju transkripcija u živo i automatsko zaustavljanje — trenutak tišine nikad ne prekida bilješku.

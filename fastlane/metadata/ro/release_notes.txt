@@ -1,14 +1,6 @@
-Vox.md pentru Mac înregistrează acum ședințele cu audio de sistem și microfonul pe piese separate, iar pe iPhone puteți alege limba aplicației direct din Setări.
+Puneți înregistrările pe pauză pentru a vă aduna gândurile și continuați exact de unde ați rămas — pe iPhone, iPad și Mac. O singură notă, fără tăceri, fără fișiere separate.
 
 Noutăți
-• Înregistrați ședințe pe Mac cu o separare clară între ce auziți și ce spuneți — fiecare piesă este păstrată pentru transcriere.
-• Alegeți limba aplicației din Setări pe iPhone și iPad, fără să schimbați limba dispozitivului.
-• Adăugați noul token {location} în șabloanele de înregistrări pentru a plasa locația capturii exact unde doriți.
-
-Îmbunătățiri
-• Modelele de transcriere deja existente pe Macul dvs. sunt folosite la locul lor — fără copii duplicate care ocupă spațiu pe disc.
-• Etichetele vorbitorilor rămân consecvente în toate fluxurile de captură.
-
-Remedieri
-• Capturile se finalizează întotdeauna: procesarea textului și îmbogățirea vocii rulează acum cu termene stricte, în loc să se blocheze.
-• Germană mai clară și mai consecventă în toată aplicația.
+• Puneți orice înregistrare pe pauză și reluați-o cu o singură atingere — în bara Capture pe iPhone, în bara de stare pe Mac, la fel ca pe Apple Watch.
+• Timpul și tăcerea de pe pauză sunt eliminate automat, deci nota și cronometrul ei conțin doar ce ați spus realmente.
+• În pauză, transcrierea în direct și oprirea automată așteaptă — un moment de liniște nu întrerupe niciodată o notă.
