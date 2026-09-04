@@ -390,6 +390,19 @@ LID = IC. Every feature below is verified in the root-level files of `Voxboard/`
 - Evidence: `VoxboardApp.swift` (full, 417 lines).
 - Status: shipped
 
+### F-IC-32 Pause / Resume In-App Recording
+- Surface: Capture Bar one-tap pause toggle; detailed recording controls Pause/Resume button; VoiceOver action on the voice button
+- Summary: `PersistentRecorder.pauseInAppSegment()` / `resumeInAppSegment()` / `toggleInAppSegmentPause()` let one in-app recording be paused to gather thoughts and resumed as a single note. Paused intervals are excluded from the durable segment journal, the reported duration, the live transcription feed, voice auto-stop, and the extracted WAV.
+- Details:
+  - Pause records the circular-buffer write index; resume closes a `(start, end)` paused sample range and shifts the duration time base so the clock only counts recorded time. The 9:45 safety stop stays armed (the listening buffer keeps filling during a pause).
+  - `extractSegmentSamples(from:startIndex:endIndex:pausedRanges:)` concatenates only non-paused spans — including when the segment start (pre-roll) lands inside a pause and when the recording is stopped while paused (open range closes at the extraction end index).
+  - `LiveSegmentTranscriptionCoordinator` and `VoiceAutoStopCoordinator` gained actor `pause()`/`resume()`; feeders suspend while paused and skip buffered audio on resume so ambient noise is neither transcribed nor able to trigger end-of-speech auto-stop. Stopping while paused resumes the live feed past the paused tail before `finish(through:)`.
+  - Journal writes are gated by a `segmentJournalLock`-guarded `journalPaused` flag so the real-time tap never records paused audio; audio-level IPC writes are suppressed while paused.
+  - `WatchRecordingController` publishes a `.paused` phase (existing Watch snapshot state) while the phone recording is paused.
+- Constraints: in-app app-owned segments only (keyboard-extension-origin segments cannot be paused); Live Activity keeps counting wall-clock while paused.
+- Evidence: `PersistentRecorder.swift` `pauseInAppSegment`/`resumeInAppSegment`/`extractSegmentSamples`/duration timer/`appendToSegmentJournal`; `LiveSegmentTranscriptionCoordinator.swift`; `VoiceAutoStopCoordinator.swift`; `WatchRecordingController.swift` phase mapping; `QuickCaptureView.swift` `voiceCapturePauseToggle` (AnyView-erased — see F-IC-31 sibling note on deep ViewBuilder types overflowing the Swift runtime metadata demangler on device) — `VoxboardTests/RecordingPauseResumeTests.swift`.
+- Status: shipped
+
 ---
 
 ## File-by-File Coverage Checklist

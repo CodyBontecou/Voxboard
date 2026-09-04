@@ -76,6 +76,7 @@ final class MacRecorder {
     #endif
 
     var isRecording = false
+    var isRecordingPaused = false
     var isMeetingRecording = false
     var isTranscribing = false
     var isExporting = false
@@ -224,6 +225,7 @@ final class MacRecorder {
         lastTranscriptionResult = nil
         lastSpeakerDiarizationSkipReason = nil
         lastRecoveryAudioURL = nil
+        isRecordingPaused = false
         let selectedPreset = presetSnapshot(id: flowId)
         let resolvedCompletionMode = completionMode ?? .runPreset(flow: selectedPreset)
         if recorder.startRecording() {
@@ -253,11 +255,38 @@ final class MacRecorder {
         }
     }
 
+    /// Pause the active microphone recording. Paused audio is excluded from
+    /// the durable journal and the reported duration; meeting capture does not
+    /// support pausing.
+    func pauseRecording() {
+        guard isRecording, !isMeetingRecording, !isRecordingPaused else { return }
+        recorder.pauseRecording()
+        isRecordingPaused = true
+    }
+
+    /// Resume a paused microphone recording, appending to the same file.
+    func resumeRecording() {
+        guard isRecordingPaused else { return }
+        recorder.resumeRecording()
+        isRecordingPaused = false
+    }
+
+    func toggleRecordingPause() {
+        if isRecordingPaused {
+            resumeRecording()
+        } else {
+            pauseRecording()
+        }
+    }
+
     func stopAndTranscribe(modelManager: ModelManager, flowId: String) {
         guard isRecording else { return }
         if isMeetingRecording {
             stopMeetingAndTranscribe(modelManager: modelManager, flowId: flowId)
             return
+        }
+        if isRecordingPaused {
+            resumeRecording()
         }
         stopDurationTimer()
         isRecording = false

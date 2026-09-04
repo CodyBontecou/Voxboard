@@ -247,6 +247,7 @@
         <h3 id="inline-voice">Inline voice controls</h3>
         <ul>
           <li>Tap the voice button to start or stop. Long-press for about 0.45 seconds to reveal detailed controls.</li>
+          <li>While recording, a <strong>Pause</strong> button appears next to the voice button — one tap pauses, one tap resumes. The final note stays one recording with paused audio and time excluded. Pausing also suspends the live transcript preview and voice auto-stop until you resume.</li>
           <li><strong>Add to Draft</strong> appends the finished transcript. <strong>Send Immediately</strong> runs the selected preset and its destination.</li>
           <li><strong>Send Immediately is selected by default</strong> in the iOS and Mac capture workspaces. Opening the iOS voice action through <code>voxboard://capture?action=voice</code> switches that recording to Add to Draft.</li>
           <li>The <strong>Audio</strong> option retains the source recording as part of a draft when requested.</li>
@@ -507,8 +508,8 @@
 
         <h3 id="watch-recording">Recording workflow</h3>
         <ul>
-          <li>The Watch app shows Ready, Recording, Syncing, Queued, Transcribing, Saving, Sent, and Needs attention states.</li>
-          <li>Use Record, Stop, Cancel, Sync, and Refresh. Cancel explicitly deletes the local recording instead of syncing it.</li>
+          <li>The Watch app shows Ready, Recording, Paused, Syncing, Queued, Transcribing, Saving, Sent, and Needs attention states.</li>
+          <li>Use Record, Pause/Resume, Stop, Cancel, Sync, and Refresh. Pause gathers your thoughts without splitting the note — paused time freezes the timer and is excluded from the recording. Cancel explicitly deletes the local recording instead of syncing it.</li>
           <li>Recordings are journaled locally and recovered after interruptions or crashes.</li>
           <li>A recording remains on Watch until iPhone confirms delivery or discard.</li>
           <li>For a preset with Use Current Location enabled and routed through normal Capture delivery, Watch requests one Watch-origin location when recording stops and transfers that privacy-adjusted outcome with the preset snapshot. iPhone never substitutes its own location. Recording Only skips location because it exports raw audio without a Markdown surface.</li>
@@ -543,6 +544,7 @@
           <li>Use camera input from built-in, external, or Continuity Camera devices.</li>
           <li>Import a scan or PDF, create a sketch with a mouse, trackpad, or connected tablet, and add links, wikilinks, due dates, and text transformations.</li>
           <li>Record with <strong>Add to Draft</strong> or <strong>Send Immediately</strong>; optionally retain Audio in draft mode.</li>
+          <li><strong>Pause</strong> and <strong>Resume</strong> a microphone recording from the status bar. Paused audio is excluded, so one finished note can be recorded in pieces. Meeting capture does not pause.</li>
           <li>Import audio or video for local transcription.</li>
           <li>Press Command-Return to Send Capture. A preset with Use Current Location enabled requests one Mac-origin location at Send or recording stop, whether or not metadata output is enabled.</li>
           <li>A destination setup banner and route inspector expose the selected preset's resolved note and placement.</li>

@@ -143,7 +143,9 @@ struct RecordingSegmentHandoffSnapshot: Equatable, Sendable {
 ///
 /// The keyboard extension controls transcription segments via IPC commands:
 /// - `startSegment`: marks the beginning of a transcription segment
-/// - `stopSegment`: extracts audio from the marked start to now, transcribes it
+/// - `pauseInAppSegment` / `resumeInAppSegment`: exclude a paused interval
+///   from the journal, live transcription, VAD, duration, and extraction
+/// - `stopSegment`: extracts the recorded ranges (pauses excluded), transcribes them
 ///
 /// The app only needs to be opened once to start listening. After that, the user
 /// never leaves their current app — everything is controlled from the keyboard.
@@ -241,11 +243,23 @@ final class PersistentRecorder {
     private var transcribingCompletionMode: RecordingCompletionMode?
     private var transcribingCommandOrigin: RecordingCommand.Origin?
     private var segmentDraftRequestID: UUID?
+    /// True while the active in-app segment is paused. Paused intervals are
+    /// excluded from the journal, the live transcription feed, the duration
+    /// clock, and the extracted audio so one note can be gathered in pieces.
+    var isSegmentPaused = false
+    private var segmentPauseStartIndex: Int64?
+    private var segmentPausedRanges: [(start: Int64, end: Int64)] = []
+    /// Recording time accumulated before the current pause; the duration
+    /// timer adds the running interval on top of this base.
+    private var segmentElapsedBeforePause: TimeInterval = 0
     private let segmentJournalLock = NSLock()
     private let segmentJournalWriteQueue = DispatchQueue(
         label: "bontecou.Voxboard.active-recording-journal",
         qos: .utility
     )
+    /// Journal gate for paused segments. Guarded by `segmentJournalLock` so
+    /// the real-time tap never journals paused audio.
+    private var journalPaused = false
     private var segmentJournalWriter: IncrementalWAVWriter?
     private var segmentStartedAt: TimeInterval = 0
     private var liveTranscriptionSetupTask: Task<LiveSegmentTranscriptionCoordinator?, Never>?
@@ -919,6 +933,77 @@ final class PersistentRecorder {
         handleStopSegment(command)
     }
 
+    /// Pause the active in-app recording segment. The listening engine keeps
+    /// running (pre-roll and keyboard listening stay intact), but paused audio
+    /// is excluded from the durable journal, live transcription, and the final
+    /// recording.
+    func pauseInAppSegment() {
+        guard isAppRecordingSegmentActive, !isSegmentPaused else { return }
+        let pauseStart = circularBuffer.totalSamplesWritten
+        segmentPauseStartIndex = pauseStart
+        segmentElapsedBeforePause += Date().timeIntervalSince1970 - segmentStartedAt
+        segmentJournalLock.withLock { journalPaused = true }
+        isSegmentPaused = true
+        segmentDuration = segmentElapsedBeforePause
+        TranscriptionIPC.clearAudioLevel()
+        setLiveConsumersPaused(true)
+        WatchRecordingController.shared.publishState()
+        log.log("[PersistentRecorder] ⏸ In-app segment paused at buffer index \(pauseStart) (recorded \(String(format: "%.1f", segmentElapsedBeforePause))s)")
+    }
+
+    /// Resume a paused in-app recording segment. Audio captured while paused
+    /// is skipped so the final note has no ambient gap.
+    func resumeInAppSegment() {
+        guard isAppRecordingSegmentActive, isSegmentPaused else { return }
+        let pauseStart = segmentPauseStartIndex
+        let resumeIndex = circularBuffer.totalSamplesWritten
+        if let pauseStart, resumeIndex > pauseStart {
+            segmentPausedRanges.append((pauseStart, resumeIndex))
+        }
+        segmentPauseStartIndex = nil
+        segmentStartedAt = Date().timeIntervalSince1970
+        segmentJournalLock.withLock { journalPaused = false }
+        isSegmentPaused = false
+        setLiveConsumersPaused(false)
+        WatchRecordingController.shared.publishState()
+        log.log("[PersistentRecorder] ▶️ In-app segment resumed at buffer index \(resumeIndex) (\(segmentPausedRanges.count) paused range(s) excluded)")
+    }
+
+    func toggleInAppSegmentPause() {
+        if isSegmentPaused {
+            resumeInAppSegment()
+        } else {
+            pauseInAppSegment()
+        }
+    }
+
+    /// Suspend or resume the live transcription and voice auto-stop feeders.
+    /// On resume both coordinators skip ahead past the paused audio so ambient
+    /// noise captured during the pause is neither transcribed nor mistaken
+    /// for end-of-speech.
+    private func setLiveConsumersPaused(_ paused: Bool) {
+        let liveTask = liveTranscriptionSetupTask
+        let autoStopTask = endOfSpeechSetupTask
+        guard liveTask != nil || autoStopTask != nil else { return }
+        Task { @MainActor [weak self] in
+            guard let self, self.isSegmentActive else { return }
+            if let coordinator = await liveTask?.value {
+                if paused {
+                    await coordinator.pause()
+                } else {
+                    await coordinator.resume()
+                }
+            }
+            if let coordinator = await autoStopTask?.value {
+                if paused {
+                    await coordinator.pause()
+                } else {
+                    await coordinator.resume()
+                }
+            }
+        }
+    }
+
     /// Import an existing audio file, normalize it to Whisper WAV, and run it
     /// through the same local transcription/history/export pipeline as live recordings.
     @discardableResult
@@ -1215,6 +1300,10 @@ final class PersistentRecorder {
             self.segmentStartedAt = startedAt
             self.isSegmentActive = true
             self.segmentDuration = 0
+            self.isSegmentPaused = false
+            self.segmentPauseStartIndex = nil
+            self.segmentPausedRanges = []
+            self.segmentElapsedBeforePause = 0
             if self.segmentCompletionMode == .keyboardTranscription {
                 self.recordingQueue.interruptForInteractiveWork()
             } else {
@@ -1305,6 +1394,10 @@ final class PersistentRecorder {
         segmentStartedAt = Date().timeIntervalSince1970
         isSegmentActive = true
         segmentDuration = 0
+        isSegmentPaused = false
+        segmentPauseStartIndex = nil
+        segmentPausedRanges = []
+        segmentElapsedBeforePause = 0
         if segmentCompletionMode == .keyboardTranscription {
             recordingQueue.interruptForInteractiveWork()
         } else {
@@ -1340,6 +1433,46 @@ final class PersistentRecorder {
         WatchRecordingController.shared.publishState()
 
         log.log("[PersistentRecorder] ✅ Segment started at buffer index \(segmentStartIndex) (pre-roll: \(preRollSamples) samples)")
+    }
+
+    /// Extract the segment's audio from the circular buffer, skipping every
+    /// paused range. With no pauses this is the original contiguous read.
+    private func extractSegmentSamples(endIndex: Int64) -> [Float]? {
+        Self.extractSegmentSamples(
+            from: circularBuffer,
+            startIndex: segmentStartIndex,
+            endIndex: endIndex,
+            pausedRanges: segmentPausedRanges
+        )
+    }
+
+    /// Internal (testable) core of paused-range extraction: concatenates the
+    /// non-paused spans between `startIndex` and `endIndex`.
+    static func extractSegmentSamples(
+        from buffer: CircularAudioBuffer,
+        startIndex: Int64,
+        endIndex: Int64,
+        pausedRanges: [(start: Int64, end: Int64)]
+    ) -> [Float]? {
+        guard !pausedRanges.isEmpty else {
+            return buffer.extract(from: startIndex, to: endIndex)
+        }
+        var samples: [Float] = []
+        var cursor = startIndex
+        for (pauseStart, pauseEnd) in pausedRanges {
+            if pauseStart > cursor {
+                guard let chunk = buffer.extract(from: cursor, to: pauseStart) else { return nil }
+                samples.append(contentsOf: chunk)
+            }
+            // Advance past the paused span — also when the segment start
+            // (pre-roll) landed inside the pause.
+            cursor = max(cursor, pauseEnd)
+        }
+        if cursor < endIndex {
+            guard let tail = buffer.extract(from: cursor, to: endIndex) else { return nil }
+            samples.append(contentsOf: tail)
+        }
+        return samples
     }
 
     private func startLiveTranscriptionIfSupported(
@@ -1641,9 +1774,23 @@ final class PersistentRecorder {
         cancelEndOfSpeechDetection()
         TranscriptionIPC.clearAudioLevel()
 
-        // Extract audio from the circular buffer
+        // Close any in-flight pause so the final extraction and the live
+        // transcription finish both exclude audio captured while paused.
         let endIndex = circularBuffer.totalSamplesWritten
-        guard let samples = circularBuffer.extract(from: segmentStartIndex, to: endIndex) else {
+        let pausedTailExclusionEnd: Int64?
+        if isSegmentPaused {
+            if let pauseStart = segmentPauseStartIndex, endIndex > pauseStart {
+                segmentPausedRanges.append((pauseStart, endIndex))
+            }
+            segmentPauseStartIndex = nil
+            isSegmentPaused = false
+            pausedTailExclusionEnd = endIndex
+        } else {
+            pausedTailExclusionEnd = nil
+        }
+
+        // Extract audio from the circular buffer, excluding paused ranges
+        guard let samples = extractSegmentSamples(endIndex: endIndex) else {
             // Two distinct failure modes land here. Distinguish them so the
             // log is actionable and we only self-heal when appropriate.
             if endIndex == segmentStartIndex {
@@ -1881,6 +2028,9 @@ final class PersistentRecorder {
             if let liveSetupTask,
                let coordinator = await liveSetupTask.value {
                 do {
+                    if let pausedTailExclusionEnd {
+                        await coordinator.resume(until: pausedTailExclusionEnd)
+                    }
                     let output = try await coordinator.finish(through: endIndex)
                     liveResult = OnDeviceTranscriptionResult(
                         text: output.text,
@@ -2024,6 +2174,11 @@ final class PersistentRecorder {
         segmentOrigin = nil
         segmentDraftRequestID = nil
         segmentDuration = 0
+        isSegmentPaused = false
+        segmentPauseStartIndex = nil
+        segmentPausedRanges = []
+        segmentElapsedBeforePause = 0
+        segmentJournalLock.withLock { journalPaused = false }
     }
 
     /// Cancel an active segment without transcribing.
@@ -2053,6 +2208,7 @@ final class PersistentRecorder {
         let oldWriter = segmentJournalLock.withLock { () -> IncrementalWAVWriter? in
             let oldWriter = segmentJournalWriter
             segmentJournalWriter = nil
+            journalPaused = false
             return oldWriter
         }
         if oldWriter != nil {
@@ -2078,7 +2234,7 @@ final class PersistentRecorder {
     private func appendToSegmentJournal(_ samples: UnsafeBufferPointer<Float>) {
         let ownedSamples = Array(samples)
         segmentJournalLock.withLock {
-            guard let writer = segmentJournalWriter else { return }
+            guard let writer = segmentJournalWriter, !journalPaused else { return }
             segmentJournalWriteQueue.async {
                 do {
                     try writer.append(samples: ownedSamples)
@@ -3289,7 +3445,7 @@ final class PersistentRecorder {
     /// Called from the audio tap callback — must be fast.
     private func writeAudioLevelIfNeeded(_ samples: UnsafePointer<Float>, frameCount: Int) {
         // Only write levels when a segment is actively recording
-        guard isSegmentActive else { return }
+        guard isSegmentActive, !isSegmentPaused else { return }
 
         let now = CACurrentMediaTime()
         guard now - lastLevelWriteTime >= levelWriteInterval else { return }
@@ -3317,7 +3473,11 @@ final class PersistentRecorder {
         durationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self, let startedAt = Optional(self.segmentStartedAt), self.isSegmentActive else { return }
-                self.segmentDuration = Date().timeIntervalSince1970 - startedAt
+                // Paused intervals are excluded: freeze at the accumulated
+                // recording time until the segment resumes.
+                self.segmentDuration = self.isSegmentPaused
+                    ? self.segmentElapsedBeforePause
+                    : self.segmentElapsedBeforePause + Date().timeIntervalSince1970 - startedAt
             }
         }
 

@@ -295,7 +295,9 @@ final class WatchRecordingController: NSObject {
         }
 
         let phase: WatchRecordingPhase
-        if recorder?.isSegmentActive == true {
+        if recorder?.isSegmentActive == true, recorder?.isSegmentPaused == true {
+            phase = .paused
+        } else if recorder?.isSegmentActive == true {
             phase = .recording
         } else if activeJob?.phase == .transcribing || recorder?.isTranscribing == true {
             phase = .transcribing
@@ -760,6 +762,7 @@ nonisolated enum WatchRecordingPhase: String {
     case idle
     case listening
     case recording
+    case paused
     case syncing
     case transcribing
     case delivering

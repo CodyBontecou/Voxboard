@@ -12,7 +12,13 @@ private let log = KeyboardDebugLog.shared
 @Observable
 public final class AudioRecorder: NSObject, @unchecked Sendable {
     public var isRecording = false
+    /// True while a recording is paused. Paused capture keeps the audio engine
+    /// and input tap alive but discards incoming buffers, so resumed audio
+    /// appends to the same journal without a gap of ambient noise.
+    public private(set) var isPaused = false
     public var recordingDuration: TimeInterval = 0
+
+    private var pausedAt: Date?
 
     private var audioEngine: AVAudioEngine?
     /// Optional real-time observer used by platform live-transcription previews.
@@ -135,6 +141,9 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
         let bufferSize: AVAudioFrameCount = 4096
         inputNode.installTap(onBus: 0, bufferSize: bufferSize, format: hwFormat) { [weak self] buffer, _ in
             guard let self else { return }
+            // Paused capture discards buffers before any handler, journal write,
+            // or frame accounting so the file and duration exclude the pause.
+            guard !self.bufferLock.withLock({ self.isPaused }) else { return }
             self.audioBufferHandler?(buffer)
             self.durableCaptureLock.withLock {
                 do {
@@ -169,6 +178,9 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
 
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let self, let start = self.startTime else { return }
+            // The duration freezes while paused; `resumeRecording` shifts the
+            // time base so elapsed time excludes the paused interval.
+            guard !self.bufferLock.withLock({ self.isPaused }) else { return }
             self.recordingDuration = Date().timeIntervalSince(start)
         }
 
@@ -181,6 +193,11 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
             log.log("[AudioRecorder] ⚠️ stopRecording called but no engine")
             return nil
         }
+
+        bufferLock.lock()
+        pausedAt = nil
+        isPaused = false
+        bufferLock.unlock()
 
         // Stop engine and remove tap
         engine.inputNode.removeTap(onBus: 0)
@@ -243,6 +260,32 @@ public final class AudioRecorder: NSObject, @unchecked Sendable {
         #endif
 
         return success ? url : nil
+    }
+
+    // MARK: - Pause / Resume
+
+    /// Pause the active recording. Incoming buffers are discarded instead of
+    /// journaled, and the reported duration freezes at the recorded total.
+    public func pauseRecording() {
+        guard isRecording, !isPaused else { return }
+        bufferLock.lock()
+        pausedAt = Date()
+        isPaused = true
+        bufferLock.unlock()
+    }
+
+    /// Resume a paused recording. The wall-clock time base shifts forward by
+    /// the pause length so `recordingDuration` excludes the paused interval.
+    public func resumeRecording() {
+        guard isPaused else { return }
+        bufferLock.lock()
+        let pausedInterval = pausedAt.map { Date().timeIntervalSince($0) } ?? 0
+        pausedAt = nil
+        isPaused = false
+        if let start = startTime {
+            startTime = start.addingTimeInterval(pausedInterval)
+        }
+        bufferLock.unlock()
     }
 
     // MARK: - WAV Writing

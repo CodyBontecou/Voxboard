@@ -537,12 +537,16 @@ struct MacCaptureWorkspaceView: View {
 
     private var recordingStatusBar: some View {
         HStack(spacing: Geist.Spacing.three) {
-            Image(systemName: recorder.isRecording ? "record.circle.fill" : "waveform.badge.magnifyingglass")
-                .foregroundStyle(recorder.isRecording ? Geist.error : Geist.focus)
+            Image(systemName: recorder.isRecording
+                  ? (recorder.isRecordingPaused ? "pause.circle.fill" : "record.circle.fill")
+                  : "waveform.badge.magnifyingglass")
+                .foregroundStyle(recorder.isRecording && !recorder.isRecordingPaused ? Geist.error : Geist.focus)
             VStack(alignment: .leading, spacing: 2) {
                 Text(
                     recorder.isRecording
-                        ? "Recording \(formatDuration(recorder.recordingDuration))"
+                        ? recorder.isRecordingPaused
+                            ? "Paused \(formatDuration(recorder.recordingDuration))"
+                            : "Recording \(formatDuration(recorder.recordingDuration))"
                         : recorder.isTranscribing
                             ? "Transcribing on this Mac"
                             : "Finishing the Capture export"
@@ -577,6 +581,21 @@ struct MacCaptureWorkspaceView: View {
                 .accessibilityLabel("System and microphone recording levels")
             }
             if recorder.isRecording {
+                if !recorder.isMeetingRecording {
+                    Button {
+                        recorder.toggleRecordingPause()
+                    } label: {
+                        Label(
+                            recorder.isRecordingPaused
+                                ? String(localized: "Resume")
+                                : String(localized: "Pause"),
+                            systemImage: recorder.isRecordingPaused ? "play.fill" : "pause.fill"
+                        )
+                    }
+                    .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+                    .fixedSize()
+                    .accessibilityIdentifier("mac_capture_recording_pause")
+                }
                 Button {
                     recorder.stopAndTranscribe(modelManager: modelManager, flowId: selectedFlow.id)
                 } label: {

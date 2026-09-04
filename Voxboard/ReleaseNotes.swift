@@ -18,6 +18,21 @@ enum VoxboardReleaseNotes {
 
     private static let versionNotes: [VersionNotes] = [
         .init(
+            version: "2.5",
+            items: [
+                .list(
+                    title: "What’s new in Vox.md",
+                    rows: [
+                        .init(
+                            symbolSystemName: "pause.circle.fill",
+                            title: "Pause and resume recordings",
+                            description: "Take a moment to gather your thoughts — iPhone and Mac recordings can now be paused and resumed as one note, with paused audio and time excluded, just like on Apple Watch."
+                        )
+                    ]
+                )
+            ]
+        ),
+        .init(
             version: "2.2",
             items: [
                 .list(

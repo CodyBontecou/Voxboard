@@ -414,6 +414,17 @@ Main-window destinations in `MacRootView` are grouped as **Work** — Capture, R
 - Constraints: none beyond platform minimums
 - Status: shipped (App Shortcuts proper: not present in scope)
 
+### F-MC-32 Pause / Resume Microphone Recording
+- Surface: Capture workspace recording status bar Pause/Resume button (hidden for meeting capture)
+- Summary: `MacRecorder.pauseRecording()` / `resumeRecording()` / `toggleRecordingPause()` pause a live microphone recording and resume appending to the same file. Paused audio is excluded from the durable CAF journal, the live Speech preview feed, and the reported duration, so one finished note can be recorded in pieces.
+- Details:
+  - Backed by shared `AudioRecorder.pauseRecording()`/`resumeRecording()`: the input tap discards buffers while paused (journal writes, frame accounting, and the `audioBufferHandler` live-preview feed are gated under the recorder's lock), and the wall-clock time base shifts forward by the pause length on resume so `recordingDuration` excludes it.
+  - `isRecordingPaused` is observable for the workspace status bar ("Paused MM:SS", pause ⇄ play icon); stop-while-paused resumes first so finalization state is clean.
+  - Meeting capture (`MacMeetingCaptureCoordinator`, chunk-based ScreenCaptureKit) intentionally does not support pausing — the UI hides the toggle for meeting recordings.
+- Constraints: not available during meeting capture.
+- Evidence: `Voxboard Mac/MacRecorder.swift`; `Voxboard Mac/MacCaptureWorkspaceView.swift` `recordingStatusBar`; `Packages/VoxboardShared/Sources/VoxboardShared/AudioRecorder.swift` pause/resume + tap gating.
+- Status: shipped
+
 ---
 
 ## File-by-file coverage checklist

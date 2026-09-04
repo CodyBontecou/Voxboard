@@ -622,26 +622,48 @@ struct QuickCaptureView: View {
         .accessibilityIdentifier("capture_live_transcription")
     }
 
+    /// One-tap pause/resume toggle shown in the Capture Bar next to the mic
+    /// button while a recording is active, so pausing never requires the
+    /// long-press detail sheet. `AnyView` keeps this getter's contribution to
+    /// the parent's generic type flat (see the crash note on
+    /// activeVoiceCaptureButtonLabel).
+    private var voiceCapturePauseToggle: AnyView {
+        AnyView(
+            Group {
+                if persistentRecorder.isAppRecordingSegmentActive {
+                    Button {
+                        persistentRecorder.toggleInAppSegmentPause()
+                    } label: {
+                        Image(systemName: persistentRecorder.isSegmentPaused ? "play.fill" : "pause.fill")
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundStyle(
+                                persistentRecorder.isSegmentPaused
+                                    ? Geist.Palette.blue700
+                                    : Geist.text
+                            )
+                            .frame(width: 36, height: 36)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .transition(.scale.combined(with: .opacity))
+                    .accessibilityLabel(
+                        persistentRecorder.isSegmentPaused
+                            ? String(localized: "Resume recording")
+                            : String(localized: "Pause recording")
+                    )
+                    .accessibilityIdentifier("capture_recording_pause_compact")
+                }
+            }
+            .animation(.easeInOut(duration: 0.18), value: persistentRecorder.isSegmentPaused)
+        )
+    }
+
     private var voiceCaptureButton: some View {
         Group {
             if persistentRecorder.isAppRecordingSegmentActive {
-                HStack(spacing: Geist.Spacing.two) {
-                    Text(formatRecordingDuration(persistentRecorder.segmentDuration))
-                        .font(Geist.caption(.caption2))
-                        .foregroundStyle(Geist.muted)
-                        .monospacedDigit()
-
-                    CaptureRecordingWaveform(levels: recordingAudioLevels)
-
-                    Image(systemName: "stop.fill")
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundStyle(Geist.error)
-                }
-                .fixedSize(horizontal: true, vertical: false)
+                activeVoiceCaptureButtonLabel
             } else {
-                Image(systemName: "mic")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundStyle(Geist.text)
+                idleVoiceCaptureButtonLabel
             }
         }
         .frame(minWidth: 36, minHeight: 36)
@@ -655,11 +677,46 @@ struct QuickCaptureView: View {
         .accessibilityAction(named: "Show detailed recording controls") {
             presentVoiceCaptureDetails()
         }
+        .accessibilityAction(named: persistentRecorder.isSegmentPaused ? String(localized: "Resume") : String(localized: "Pause")) {
+            persistentRecorder.toggleInAppSegmentPause()
+        }
         .accessibilityIdentifier("capture_voice_recording")
         .opacity(isProcessingMedia ? 0.35 : 1)
         .task(id: persistentRecorder.isAppRecordingSegmentActive) {
             await updateRecordingAudioLevels()
         }
+    }
+
+    /// Kept small via `AnyView` erasure: this button's rendered type is
+    /// instantiated from a mangled name at first render, and the un-erased
+    /// nested ViewBuilder type overflowed the Swift runtime demangler's
+    /// stack on device (SIGSEGV at launch). Note that plain computed-property
+    /// extraction does NOT help — opaque `some View` underlying types expand
+    /// recursively at the use site — only type erasure caps the depth.
+    private var activeVoiceCaptureButtonLabel: AnyView {
+        AnyView(
+            HStack(spacing: Geist.Spacing.two) {
+                Text(formatRecordingDuration(persistentRecorder.segmentDuration))
+                    .font(Geist.caption(.caption2))
+                    .foregroundStyle(Geist.muted)
+                    .monospacedDigit()
+
+                CaptureRecordingWaveform(levels: recordingAudioLevels)
+
+                Image(systemName: "stop.fill")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(Geist.error)
+            }
+            .fixedSize(horizontal: true, vertical: false)
+        )
+    }
+
+    private var idleVoiceCaptureButtonLabel: AnyView {
+        AnyView(
+            Image(systemName: "mic")
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(Geist.text)
+        )
     }
 
     private var voiceCaptureGesture: some Gesture {
@@ -699,6 +756,7 @@ struct QuickCaptureView: View {
                 }
 
                 Spacer(minLength: Geist.Spacing.two)
+                voiceCapturePauseButton
                 recordingPrimaryButton
 
                 Button {
@@ -815,6 +873,27 @@ struct QuickCaptureView: View {
         .background(Geist.Palette.background200)
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .accessibilityIdentifier("capture_recording_details")
+    }
+
+    /// Extracted from the details row to keep the parent getter's SwiftUI
+    /// generic type small (deep ViewBuilder nesting overflows the Swift
+    /// runtime's metadata demangler on device — see voiceCaptureButton).
+    @ViewBuilder
+    private var voiceCapturePauseButton: some View {
+        if persistentRecorder.isAppRecordingSegmentActive {
+            Button {
+                persistentRecorder.toggleInAppSegmentPause()
+            } label: {
+                Label(
+                    persistentRecorder.isSegmentPaused
+                        ? String(localized: "Resume")
+                        : String(localized: "Pause"),
+                    systemImage: persistentRecorder.isSegmentPaused ? "play.fill" : "pause.fill"
+                )
+            }
+            .buttonStyle(GeistButtonStyle(variant: .secondary, size: .small))
+            .accessibilityIdentifier("capture_recording_pause")
+        }
     }
 
     @ViewBuilder
@@ -1393,6 +1472,8 @@ struct QuickCaptureView: View {
             .disabled(!viewModel.canSubmit || captureSubmissionIsBlocked)
             .opacity(viewModel.canSubmit && !captureSubmissionIsBlocked ? 1 : 0.35)
             .accessibilityIdentifier("quick_capture_submit")
+
+            voiceCapturePauseToggle
 
             voiceCaptureButton
 
@@ -1974,7 +2055,9 @@ struct QuickCaptureView: View {
 
     private var recordingDetailsTitle: String {
         if persistentRecorder.isAppRecordingSegmentActive {
-            return String(localized: "Recording \(formatRecordingDuration(persistentRecorder.segmentDuration))")
+            return persistentRecorder.isSegmentPaused
+                ? String(localized: "Paused \(formatRecordingDuration(persistentRecorder.segmentDuration))")
+                : String(localized: "Recording \(formatRecordingDuration(persistentRecorder.segmentDuration))")
         }
         if persistentRecorder.isAppRecordingTranscribing {
             if let percent = persistentRecorder.transcriptionProgress?.formattedWholePercentCompleted {
@@ -1988,7 +2071,9 @@ struct QuickCaptureView: View {
 
     private var recordingDetailsSubtitle: String {
         if persistentRecorder.isAppRecordingSegmentActive {
-            return String(localized: "Composer remains available while you record")
+            return persistentRecorder.isSegmentPaused
+                ? String(localized: "Paused audio is excluded — resume to keep recording this note")
+                : String(localized: "Composer remains available while you record")
         }
         if persistentRecorder.isAppRecordingTranscribing {
             return lastStartedRecordingMode == .draft
@@ -2004,14 +2089,18 @@ struct QuickCaptureView: View {
     }
 
     private var recordingDetailsIcon: String {
-        if persistentRecorder.isAppRecordingSegmentActive { return "record.circle.fill" }
+        if persistentRecorder.isAppRecordingSegmentActive {
+            return persistentRecorder.isSegmentPaused ? "pause.circle.fill" : "record.circle.fill"
+        }
         if persistentRecorder.isAppRecordingTranscribing { return "waveform.badge.magnifyingglass" }
         if persistentRecorder.isListening { return "headphones.circle.fill" }
         return "waveform.circle"
     }
 
     private var recordingDetailsColor: Color {
-        if persistentRecorder.isAppRecordingSegmentActive { return Geist.error }
+        if persistentRecorder.isAppRecordingSegmentActive {
+            return persistentRecorder.isSegmentPaused ? Geist.Palette.blue700 : Geist.error
+        }
         if persistentRecorder.isAppRecordingTranscribing || persistentRecorder.isListening {
             return Geist.Palette.blue700
         }
@@ -2020,7 +2109,9 @@ struct QuickCaptureView: View {
 
     private var recordingStatusTitle: String {
         if persistentRecorder.isAppRecordingSegmentActive {
-            return String(localized: "Stop voice recording, \(formatRecordingDuration(persistentRecorder.segmentDuration))")
+            return persistentRecorder.isSegmentPaused
+                ? String(localized: "Paused, \(formatRecordingDuration(persistentRecorder.segmentDuration)) recorded. Tap to stop, or use Resume to continue.")
+                : String(localized: "Stop voice recording, \(formatRecordingDuration(persistentRecorder.segmentDuration))")
         }
         if persistentRecorder.isAppRecordingTranscribing {
             if let percent = persistentRecorder.transcriptionProgress?.formattedWholePercentCompleted {

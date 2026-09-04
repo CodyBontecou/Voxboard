@@ -41,6 +41,10 @@ actor LiveSegmentTranscriptionCoordinator {
     private var feederTask: Task<Void, Never>?
     private var feedFailure: LiveSegmentCoordinatorError?
     private var isFinished = false
+    /// Suspends feeding while the recorder is paused. On resume the cursor
+    /// jumps to the buffer's write head so paused ambient audio is never fed
+    /// to the Speech session.
+    private var isPaused = false
 
     init(
         session: any SystemLiveTranscriptionSession,
@@ -56,6 +60,22 @@ actor LiveSegmentTranscriptionCoordinator {
         self.sampleRate = sampleRate
         self.progress = progress
         self.chunkSize = chunkSize
+    }
+
+    /// Stop feeding audio while the recorder is paused.
+    func pause() {
+        isPaused = true
+    }
+
+    /// Resume feeding after a pause, skipping every sample captured while
+    /// paused so the transcript and final audio stay gap-free. Pass `until` to
+    /// skip through a specific buffer index (used when a paused recording is
+    /// stopped, so the suspended tail is never transcribed).
+    func resume(until skipThrough: Int64? = nil) {
+        guard isPaused else { return }
+        isPaused = false
+        let skipTarget = skipThrough ?? circularBuffer.totalSamplesWritten
+        cursor = max(cursor, skipTarget)
     }
 
     func hasPublishedFinalizedText() async -> Bool {
@@ -102,6 +122,10 @@ actor LiveSegmentTranscriptionCoordinator {
 
     private func feedLoop() async {
         while !Task.isCancelled, !isFinished {
+            guard !isPaused else {
+                try? await Task.sleep(for: .milliseconds(80))
+                continue
+            }
             do {
                 try await drain(through: nil)
             } catch is CancellationError {

@@ -29,6 +29,10 @@ actor VoiceAutoStopCoordinator {
     private var speechStartSample: Int?
     private var feederTask: Task<Void, Never>?
     private var isFinished = false
+    /// Suspends VAD while the recorder is paused. Paused silence must not
+    /// trigger end-of-speech auto-stop; on resume the cursor skips ahead so
+    /// paused ambient audio is never processed.
+    private var isPaused = false
 
     init(
         requestID: String,
@@ -55,6 +59,20 @@ actor VoiceAutoStopCoordinator {
         feederTask = Task { [weak self] in
             await self?.feedLoop()
         }
+    }
+
+    /// Stop processing audio while the recorder is paused.
+    func pause() {
+        isPaused = true
+    }
+
+    /// Resume after a pause, skipping every sample captured while paused so
+    /// ambient noise during the pause cannot be mistaken for speech or its
+    /// ending.
+    func resume() {
+        guard isPaused else { return }
+        isPaused = false
+        cursor = max(cursor, circularBuffer.totalSamplesWritten)
     }
 
     func cancel() async {
@@ -95,6 +113,10 @@ actor VoiceAutoStopCoordinator {
 
     private func feedLoop() async {
         while !Task.isCancelled, !isFinished {
+            guard !isPaused else {
+                try? await Task.sleep(for: .milliseconds(80))
+                continue
+            }
             do {
                 try await processAvailableAudio()
             } catch is CancellationError {
