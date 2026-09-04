@@ -1033,101 +1033,101 @@
 
 /* Begin XCBuildConfiguration section */
 		340AC23AE55129D57C3BC903 /* Release */ = {
-	buildSettings = {
-		"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME" = AccentColor;
-		"ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME" = WidgetBackground;
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Watch Widget/VoxboardWatchWidget.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Watch Widget/Info.plist";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Vox.md";
-		"INFOPLIST_KEY_NSHumanReadableCopyright" = "";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/Frameworks",
-			"@executable_path/../../Frameworks",
-		);
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard.watchkitapp.Widget";
-		"PRODUCT_NAME" = "$(TARGET_NAME)";
-		SDKROOT = watchos;
-		"SKIP_INSTALL" = YES;
-		"STRING_CATALOG_GENERATE_SYMBOLS" = YES;
-		"SWIFT_EMIT_LOC_STRINGS" = YES;
-		"SWIFT_VERSION" = "5.0";
-		"TARGETED_DEVICE_FAMILY" = 4;
-		"VALIDATE_PRODUCT" = YES;
-		"WATCHOS_DEPLOYMENT_TARGET" = "10.0";
-	};
-	isa = XCBuildConfiguration;
-	name = Release;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch Widget/VoxboardWatchWidget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Watch Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Vox.md;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 		622B4C8E2F78B09700FDC4CA /* Debug */ = {
-	buildSettings = {
-		"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME" = AccentColor;
-		"ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME" = WidgetBackground;
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Widget/VoxboardWidget.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Widget/Info.plist";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Vox.md Widget";
-		"INFOPLIST_KEY_NSHumanReadableCopyright" = "";
-		"IPHONEOS_DEPLOYMENT_TARGET" = "17.6";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/Frameworks",
-			"@executable_path/../../Frameworks",
-		);
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard.Voxboard-Widget";
-		"PRODUCT_NAME" = "$(TARGET_NAME)";
-		"SKIP_INSTALL" = YES;
-		"STRING_CATALOG_GENERATE_SYMBOLS" = YES;
-		"SWIFT_APPROACHABLE_CONCURRENCY" = YES;
-		"SWIFT_EMIT_LOC_STRINGS" = YES;
-		"SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY" = YES;
-		"SWIFT_VERSION" = "5.0";
-		"TARGETED_DEVICE_FAMILY" = "1,2";
-	};
-	isa = XCBuildConfiguration;
-	name = Debug;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Widget/VoxboardWidget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Vox.md Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		622B4C8F2F78B09700FDC4CA /* Release */ = {
-	buildSettings = {
-		"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME" = AccentColor;
-		"ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME" = WidgetBackground;
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Widget/VoxboardWidget.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Widget/Info.plist";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Vox.md Widget";
-		"INFOPLIST_KEY_NSHumanReadableCopyright" = "";
-		"IPHONEOS_DEPLOYMENT_TARGET" = "17.6";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/Frameworks",
-			"@executable_path/../../Frameworks",
-		);
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard.Voxboard-Widget";
-		"PRODUCT_NAME" = "$(TARGET_NAME)";
-		"SKIP_INSTALL" = YES;
-		"STRING_CATALOG_GENERATE_SYMBOLS" = YES;
-		"SWIFT_APPROACHABLE_CONCURRENCY" = YES;
-		"SWIFT_EMIT_LOC_STRINGS" = YES;
-		"SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY" = YES;
-		"SWIFT_VERSION" = "5.0";
-		"TARGETED_DEVICE_FAMILY" = "1,2";
-	};
-	isa = XCBuildConfiguration;
-	name = Release;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Widget/VoxboardWidget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Vox.md Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		62C951832F392ADC001F79DF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1322,268 +1322,268 @@
 	name = Release;
 };
 		62C9522C2F393361001F79DF /* Debug */ = {
-	buildSettings = {
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Keyboard/Info.plist";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Vox.md";
-		"INFOPLIST_KEY_NSHumanReadableCopyright" = "";
-		"IPHONEOS_DEPLOYMENT_TARGET" = "17.6";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/Frameworks",
-			"@executable_path/../../Frameworks",
-		);
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard.Voxboard-Keyboard";
-		"PRODUCT_NAME" = "$(TARGET_NAME)";
-		"SKIP_INSTALL" = YES;
-		"STRING_CATALOG_GENERATE_SYMBOLS" = YES;
-		"SWIFT_APPROACHABLE_CONCURRENCY" = YES;
-		"SWIFT_EMIT_LOC_STRINGS" = YES;
-		"SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY" = YES;
-		"SWIFT_VERSION" = "5.0";
-		"TARGETED_DEVICE_FAMILY" = "1,2";
-	};
-	isa = XCBuildConfiguration;
-	name = Debug;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Keyboard/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Vox.md;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Keyboard";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		62C9522D2F393361001F79DF /* Release */ = {
-	buildSettings = {
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Keyboard/Info.plist";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Vox.md";
-		"INFOPLIST_KEY_NSHumanReadableCopyright" = "";
-		"IPHONEOS_DEPLOYMENT_TARGET" = "17.6";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/Frameworks",
-			"@executable_path/../../Frameworks",
-		);
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard.Voxboard-Keyboard";
-		"PRODUCT_NAME" = "$(TARGET_NAME)";
-		"SKIP_INSTALL" = YES;
-		"STRING_CATALOG_GENERATE_SYMBOLS" = YES;
-		"SWIFT_APPROACHABLE_CONCURRENCY" = YES;
-		"SWIFT_EMIT_LOC_STRINGS" = YES;
-		"SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY" = YES;
-		"SWIFT_VERSION" = "5.0";
-		"TARGETED_DEVICE_FAMILY" = "1,2";
-	};
-	isa = XCBuildConfiguration;
-	name = Release;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Keyboard/VoxboardKeyboard.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Keyboard/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Vox.md;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "bontecou.Voxboard.Voxboard-Keyboard";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		6392940EB81E09E4DF2B5762 /* Debug */ = {
-	buildSettings = {
-		"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME" = AccentColor;
-		"ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME" = WidgetBackground;
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Watch Widget/VoxboardWatchWidget.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Watch Widget/Info.plist";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Vox.md";
-		"INFOPLIST_KEY_NSHumanReadableCopyright" = "";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/Frameworks",
-			"@executable_path/../../Frameworks",
-		);
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard.watchkitapp.Widget";
-		"PRODUCT_NAME" = "$(TARGET_NAME)";
-		SDKROOT = watchos;
-		"SKIP_INSTALL" = YES;
-		"STRING_CATALOG_GENERATE_SYMBOLS" = YES;
-		"SWIFT_EMIT_LOC_STRINGS" = YES;
-		"SWIFT_VERSION" = "5.0";
-		"TARGETED_DEVICE_FAMILY" = 4;
-		"WATCHOS_DEPLOYMENT_TARGET" = "10.0";
-	};
-	isa = XCBuildConfiguration;
-	name = Debug;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch Widget/VoxboardWatchWidget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Watch Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Vox.md;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp.Widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
 		676BEA7B1F1FA9DCDF69EF69 /* Debug */ = {
-	buildSettings = {
-		"ASSETCATALOG_COMPILER_APPICON_NAME" = AppIcon;
-		"ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS" = YES;
-		"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME" = AccentColor;
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Mac/VoxboardMac.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"COMBINE_HIDPI_IMAGES" = YES;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"ENABLE_HARDENED_RUNTIME" = YES;
-		"ENABLE_PREVIEWS" = YES;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Mac/Info.plist";
-		"INFOPLIST_KEY_ATSApplicationFontsPath" = ".";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Vox.md";
-		"INFOPLIST_KEY_CFBundleName" = "Vox.md";
-		"INFOPLIST_KEY_ITSAppUsesNonExemptEncryption" = NO;
-		"INFOPLIST_KEY_LSApplicationCategoryType" = "public.app-category.productivity";
-		"INFOPLIST_KEY_NSCameraUsageDescription" = "Vox.md uses the camera to add photos to Capture drafts.";
-		"INFOPLIST_KEY_NSHumanReadableCopyright" = "";
-		"INFOPLIST_KEY_NSMicrophoneUsageDescription" = "Vox.md records microphone audio locally so it can transcribe speech on this Mac.";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/../Frameworks",
-		);
-		"MACOSX_DEPLOYMENT_TARGET" = "14.0";
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard";
-		"PRODUCT_NAME" = "Vox.md";
-		SDKROOT = macosx;
-		"STRING_CATALOG_GENERATE_SYMBOLS" = YES;
-		"SWIFT_APPROACHABLE_CONCURRENCY" = YES;
-		"SWIFT_DEFAULT_ACTOR_ISOLATION" = MainActor;
-		"SWIFT_EMIT_LOC_STRINGS" = YES;
-		"SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY" = YES;
-		"SWIFT_VERSION" = "5.0";
-	};
-	isa = XCBuildConfiguration;
-	name = Debug;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Mac/VoxboardMac.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Mac/Info.plist";
+				INFOPLIST_KEY_ATSApplicationFontsPath = .;
+				INFOPLIST_KEY_CFBundleDisplayName = Vox.md;
+				INFOPLIST_KEY_CFBundleName = Vox.md;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Vox.md uses the camera to add photos to Capture drafts.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Vox.md records microphone audio locally so it can transcribe speech on this Mac.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
+				PRODUCT_NAME = Vox.md;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
 		750FCA8DEE2C70EFEC3F0A7D /* Release */ = {
-	buildSettings = {
-		"ASSETCATALOG_COMPILER_APPICON_NAME" = AppIcon;
-		"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME" = AccentColor;
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Watch/VoxboardWatch.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Watch/Info.plist";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Vox.md";
-		"INFOPLIST_KEY_NSHumanReadableCopyright" = "";
-		"INFOPLIST_KEY_UISupportedInterfaceOrientations" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-		"INFOPLIST_KEY_WKCompanionAppBundleIdentifier" = "bontecou.Voxboard";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/Frameworks",
-		);
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard.watchkitapp";
-		"PRODUCT_NAME" = "$(TARGET_NAME)";
-		SDKROOT = watchos;
-		"SKIP_INSTALL" = YES;
-		"STRING_CATALOG_GENERATE_SYMBOLS" = YES;
-		"SWIFT_EMIT_LOC_STRINGS" = YES;
-		"SWIFT_VERSION" = "5.0";
-		"TARGETED_DEVICE_FAMILY" = 4;
-		"VALIDATE_PRODUCT" = YES;
-		"WATCHOS_DEPLOYMENT_TARGET" = "10.0";
-	};
-	isa = XCBuildConfiguration;
-	name = Release;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch/VoxboardWatch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Watch/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Vox.md;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = bontecou.Voxboard;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 		8FCF66A232DA8B6B108CC645 /* Release */ = {
-	buildSettings = {
-		"ASSETCATALOG_COMPILER_APPICON_NAME" = AppIcon;
-		"ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS" = YES;
-		"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME" = AccentColor;
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Mac/VoxboardMac.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"COMBINE_HIDPI_IMAGES" = YES;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"ENABLE_HARDENED_RUNTIME" = YES;
-		"ENABLE_PREVIEWS" = YES;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Mac/Info.plist";
-		"INFOPLIST_KEY_ATSApplicationFontsPath" = ".";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Vox.md";
-		"INFOPLIST_KEY_CFBundleName" = "Vox.md";
-		"INFOPLIST_KEY_ITSAppUsesNonExemptEncryption" = NO;
-		"INFOPLIST_KEY_LSApplicationCategoryType" = "public.app-category.productivity";
-		"INFOPLIST_KEY_NSCameraUsageDescription" = "Vox.md uses the camera to add photos to Capture drafts.";
-		"INFOPLIST_KEY_NSHumanReadableCopyright" = "";
-		"INFOPLIST_KEY_NSMicrophoneUsageDescription" = "Vox.md records microphone audio locally so it can transcribe speech on this Mac.";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/../Frameworks",
-		);
-		"MACOSX_DEPLOYMENT_TARGET" = "14.0";
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard";
-		"PRODUCT_NAME" = "Vox.md";
-		SDKROOT = macosx;
-		"STRING_CATALOG_GENERATE_SYMBOLS" = YES;
-		"SWIFT_APPROACHABLE_CONCURRENCY" = YES;
-		"SWIFT_DEFAULT_ACTOR_ISOLATION" = MainActor;
-		"SWIFT_EMIT_LOC_STRINGS" = YES;
-		"SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY" = YES;
-		"SWIFT_VERSION" = "5.0";
-	};
-	isa = XCBuildConfiguration;
-	name = Release;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Mac/VoxboardMac.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Mac/Info.plist";
+				INFOPLIST_KEY_ATSApplicationFontsPath = .;
+				INFOPLIST_KEY_CFBundleDisplayName = Vox.md;
+				INFOPLIST_KEY_CFBundleName = Vox.md;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Vox.md uses the camera to add photos to Capture drafts.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Vox.md records microphone audio locally so it can transcribe speech on this Mac.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard;
+				PRODUCT_NAME = Vox.md;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		939DDF7E8E2B8F07846C1FAB /* Debug */ = {
-	buildSettings = {
-		"APPLICATION_EXTENSION_API_ONLY" = YES;
-		"CLANG_ENABLE_OBJC_WEAK" = NO;
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Share Extension/VoxboardShare.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Share Extension/Info.plist";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Capture to Vox.md";
-		"IPHONEOS_DEPLOYMENT_TARGET" = "17.6";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/Frameworks",
-			"@executable_path/../../Frameworks",
-		);
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard.ShareExtension";
-		"PRODUCT_NAME" = "$(TARGET_NAME)";
-		SDKROOT = iphoneos;
-		"SKIP_INSTALL" = YES;
-		"SWIFT_VERSION" = "5.0";
-		"TARGETED_DEVICE_FAMILY" = "1,2";
-	};
-	isa = XCBuildConfiguration;
-	name = Debug;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Share Extension/VoxboardShare.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Share Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Capture to Vox.md";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.ShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		95C41485907AFD84F62E38DB /* Release */ = {
-	buildSettings = {
-		"APPLICATION_EXTENSION_API_ONLY" = YES;
-		"CLANG_ENABLE_OBJC_WEAK" = NO;
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Share Extension/VoxboardShare.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Share Extension/Info.plist";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Capture to Vox.md";
-		"IPHONEOS_DEPLOYMENT_TARGET" = "17.6";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/Frameworks",
-			"@executable_path/../../Frameworks",
-		);
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard.ShareExtension";
-		"PRODUCT_NAME" = "$(TARGET_NAME)";
-		SDKROOT = iphoneos;
-		"SKIP_INSTALL" = YES;
-		"SWIFT_VERSION" = "5.0";
-		"TARGETED_DEVICE_FAMILY" = "1,2";
-		"VALIDATE_PRODUCT" = YES;
-	};
-	isa = XCBuildConfiguration;
-	name = Release;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Share Extension/VoxboardShare.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Share Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Capture to Vox.md";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.ShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		ABF000082FD30000AABB0008 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1655,37 +1655,37 @@
 			name = Release;
 		};
 		E6C9F0C68E9EA69156AB523A /* Debug */ = {
-	buildSettings = {
-		"ASSETCATALOG_COMPILER_APPICON_NAME" = AppIcon;
-		"ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME" = AccentColor;
-		"CODE_SIGN_ENTITLEMENTS" = "Voxboard Watch/VoxboardWatch.entitlements";
-		"CODE_SIGN_STYLE" = Automatic;
-		"CURRENT_PROJECT_VERSION" = 48;
-		"DEVELOPMENT_TEAM" = 67KC823C9A;
-		"GENERATE_INFOPLIST_FILE" = YES;
-		"INFOPLIST_FILE" = "Voxboard Watch/Info.plist";
-		"INFOPLIST_KEY_CFBundleDisplayName" = "Vox.md";
-		"INFOPLIST_KEY_NSHumanReadableCopyright" = "";
-		"INFOPLIST_KEY_UISupportedInterfaceOrientations" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-		"INFOPLIST_KEY_WKCompanionAppBundleIdentifier" = "bontecou.Voxboard";
-		"LD_RUNPATH_SEARCH_PATHS" = (
-			"$(inherited)",
-			"@executable_path/Frameworks",
-		);
-		"MARKETING_VERSION" = "2.6";
-		"PRODUCT_BUNDLE_IDENTIFIER" = "bontecou.Voxboard.watchkitapp";
-		"PRODUCT_NAME" = "$(TARGET_NAME)";
-		SDKROOT = watchos;
-		"SKIP_INSTALL" = YES;
-		"STRING_CATALOG_GENERATE_SYMBOLS" = YES;
-		"SWIFT_EMIT_LOC_STRINGS" = YES;
-		"SWIFT_VERSION" = "5.0";
-		"TARGETED_DEVICE_FAMILY" = 4;
-		"WATCHOS_DEPLOYMENT_TARGET" = "10.0";
-	};
-	isa = XCBuildConfiguration;
-	name = Debug;
-};
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Voxboard Watch/VoxboardWatch.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 48;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Voxboard Watch/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Vox.md;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = bontecou.Voxboard;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 2.6;
+				PRODUCT_BUNDLE_IDENTIFIER = bontecou.Voxboard.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
