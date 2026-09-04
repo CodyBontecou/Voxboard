@@ -18,16 +18,11 @@ enum VoxboardReleaseNotes {
 
     private static let versionNotes: [VersionNotes] = [
         .init(
-            version: "2.6",
+            version: "2.7",
             items: [
                 .list(
                     title: "What’s new in Vox.md",
                     rows: [
-                        .init(
-                            symbolSystemName: "pause.circle.fill",
-                            title: "Pause and resume recordings",
-                            description: "Take a moment to gather your thoughts — iPhone and Mac recordings can now be paused and resumed as one note, with paused audio and time excluded, just like on Apple Watch."
-                        ),
                         .init(
                             symbolSystemName: "wand.and.stars",
                             title: "Precise control over Apple Intelligence",
@@ -37,6 +32,21 @@ enum VoxboardReleaseNotes {
                             symbolSystemName: "text.badge.checkmark",
                             title: "Cleaner AI-cleaned text",
                             description: "Apple Intelligence no longer leaves stray quotation marks or braces around processed notes."
+                        )
+                    ]
+                )
+            ]
+        ),
+        .init(
+            version: "2.6",
+            items: [
+                .list(
+                    title: "What’s new in Vox.md",
+                    rows: [
+                        .init(
+                            symbolSystemName: "pause.circle.fill",
+                            title: "Pause and resume recordings",
+                            description: "Take a moment to gather your thoughts — iPhone and Mac recordings can now be paused and resumed as one note, with paused audio and time excluded, just like on Apple Watch."
                         )
                     ]
                 )
