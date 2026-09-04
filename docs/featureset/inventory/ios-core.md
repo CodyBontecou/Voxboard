@@ -95,7 +95,7 @@ LID = IC. Every feature below is verified in the root-level files of `Voxboard/`
   - Export routing (iOS 26+, `FoundationModelsBackend.isAvailable`): Smart Folders routing skipped when the flow has an explicit export folder; Auto-Organize subfolder generation fallback; both deadline-bounded by `exportRoutingTimeout = 30` s (`withRunningTask(timeout:)`) so a stalled model session never blocks delivery.
   - Precise capture export via `ConfiguredTranscriptCaptureDestinationExporter` (destination IDs, `.queuedForRetry`, `.locationUnavailableCancelled` handling); legacy `TranscriptFileExporter.exportConfigured` path with `folderURLOverride`/`autoOrganizeSubfolder`; `.disabled` export + requested audio → failure event.
   - Audio attachment via `CheckpointedAudioDelivery.deliver` with note/audio/audio-reference transaction directories and queue checkpoints (`markExportedNote`, `markExportedAudio`, `markAudioReferenceAttached`); retained audio removed only when safely deliverable.
-  - AI enrichment: if `transcriptEnricher` and `flow.usesAIEnrichment`, `enrichAndUpdate` runs before export so enriched title/tags land in the exported file.
+  - AI enrichment: if `transcriptEnricher` and `flow.usesAIEnrichment` (toggle on + mode ≠ Keep Original), `enrichAndUpdate` runs before export so enriched title/tags land in the exported file.
   - Empty text → "No speech detected" response and origin snapshot removal; origin/location persistence failure aborts with "Shared capture storage is unavailable." while preserving audio.
   - `ReviewPromptManager.recordSuccessfulTranscription` called after save; onboarding-completed analytics one-shot.
 - Constraints: paywall (`transcriptionLimitReached`); entitlement state affects queue resumption (see F-IC-24).

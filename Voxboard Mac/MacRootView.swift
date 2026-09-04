@@ -716,7 +716,7 @@ private struct MacCapturePresetEditor: View {
 
             Section("Capture Processing") {
                 HStack(spacing: 10) {
-                    Toggle("Apply to Capture Text", isOn: $flow.captureProcessingEnabled)
+                    Toggle("Use Apple Intelligence", isOn: $flow.captureProcessingEnabled)
                     Button {
                         isCaptureProcessingInfoPresented = true
                     } label: {
@@ -724,12 +724,19 @@ private struct MacCapturePresetEditor: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
-                    .help("About Apply to Capture Text")
-                    .accessibilityLabel("About Apply to Capture Text")
+                    .help("About Apple Intelligence Processing")
+                    .accessibilityLabel("About Apple Intelligence Processing")
                 }
                 Picker("Mode", selection: $flow.postProcessingMode) {
                     ForEach(CapturePresetProcessingMode.allCases) { mode in
                         Text(mode.displayName).tag(mode)
+                    }
+                }
+                if flow.captureProcessingEnabled {
+                    Picker("Apply To", selection: $flow.captureProcessingScope) {
+                        ForEach(CapturePresetProcessingScope.allCases) { scope in
+                            Text(scope.displayName).tag(scope)
+                        }
                     }
                 }
                 if flow.postProcessingMode == .custom {
@@ -743,6 +750,28 @@ private struct MacCapturePresetEditor: View {
                         set: { flow.capturePrompt = $0 }
                     )
                 )
+                if flow.postProcessingMode != .none {
+                    if flow.captureProcessingEnabled {
+                        switch flow.captureProcessingScope {
+                        case .both:
+                            Label("Voice transcriptions and typed Capture text are processed on device using this mode.", systemImage: "waveform")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        case .voiceOnly:
+                            Label("Only voice transcriptions are processed; typed Capture text stays exactly as captured.", systemImage: "waveform")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        case .textOnly:
+                            Label("Only typed Capture text is processed; voice transcriptions stay exactly as captured.", systemImage: "waveform")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        Label("Apple Intelligence is off — turn it on above to apply this mode to voice transcriptions and Capture text.", systemImage: "waveform")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
                 Text(flow.postProcessingMode.helpText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -1240,14 +1269,19 @@ private struct MacCaptureTextProcessingInfoView: View {
                 Image(systemName: "wand.and.stars")
                     .font(.system(size: 30, weight: .medium))
                     .accessibilityHidden(true)
-                Text("Apply to Capture Text")
+                Text("Apple Intelligence Processing")
                     .font(.title2.weight(.semibold))
                 Spacer()
             }
 
-            Text("When this setting is on, Vox.md uses on-device Apple Intelligence to edit captured text using the selected mode before updating your Markdown file.")
+            Text("When this setting is on, Vox.md uses on-device Apple Intelligence to edit captured text using the selected mode and the “Apply To” scope you choose — voice transcriptions, typed Capture text, or both — before updating your Markdown file.")
 
             VStack(alignment: .leading, spacing: 14) {
+                infoRow(
+                    icon: "slider.horizontal.3",
+                    title: "Applies where you choose",
+                    detail: "Process voice transcriptions, typed Capture text, or both via “Apply To.”"
+                )
                 infoRow(
                     icon: "checkmark.circle",
                     title: "Follows the selected mode",
@@ -1265,7 +1299,7 @@ private struct MacCaptureTextProcessingInfoView: View {
                 )
             }
 
-            Text("This switch applies to typed and mixed-media Capture text. Voice recordings continue to use the preset’s selected mode.")
+            Text("Turn it off to keep all captured text exactly as captured. Keep Original mode does the same while the switch stays on for future use.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

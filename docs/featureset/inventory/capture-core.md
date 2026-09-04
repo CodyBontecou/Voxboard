@@ -39,7 +39,9 @@ LID: CC. Package: `Packages/VoxboardShared/Sources/VoxboardCaptureCore/` (framew
   - `metadataScope`: `.document` ("Note Frontmatter") or `.entry` ("Inline Entry Fields"); default `.document`
   - `postProcessingMode`: `.none` ("Keep Original"), `.clean` ("Clean Prose"), `.todoList` ("Todo Checklist"), `.meetingNotes` ("Meeting Notes"), `.custom` ("Custom Instruction"); default `.clean`
   - `customPostProcessingInstruction: String` (default "")
-  - `captureProcessingEnabled: Bool` (default false — processing typed/mixed Markdown is opt-in even though voice uses its mode)
+  - `captureProcessingEnabled: Bool` (master Apple Intelligence gate; defaults off for decoded, built-in, and newly created presets)
+  - `captureProcessingScope: CapturePresetProcessingScope` (`.both`/`.voiceOnly`/`.textOnly` — which modalities the mode applies to when the gate is on; missing legacy values decode `.both`; the one-time `capturePresetProcessingGateMigrationVersion` migration preserves actual legacy behavior: toggle-on→gate on + `.both`, toggle-off with an active mode→gate on + `.voiceOnly` because voice processing was previously implicit, Keep Original→untouched; fresh installs skip migration and remain off)
+  - Processor enforces scope per payload: `.text`/`.scannedDocument` need `appliesToTypedText`, `.audio` needs `appliesToVoice`
   - `capturePrompt: String` (local empty-state prompt shown when the preset is active)
   - `captureDestinationID: UUID?` (owned destination inherited by captures using the preset)
   - Legacy folded-into-route fields: `captureEntryTemplateID: UUID?`, `capturePlacementOverride: CapturePlacement?`

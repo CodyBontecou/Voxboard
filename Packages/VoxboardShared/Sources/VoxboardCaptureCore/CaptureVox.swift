@@ -19,9 +19,13 @@ public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
     public var metadataScope: CapturePresetMetadataScope
     public var postProcessingMode: CapturePresetProcessingMode
     public var customPostProcessingInstruction: String
-    /// Existing presets remain capture-safe: processing typed or mixed
-    /// Markdown is opt-in even though voice recordings use their mode.
+    /// Unified Apple Intelligence gate: when true (and the mode isn't Keep
+    /// Original), captured text is processed on device using the selected
+    /// mode, limited to the modalities selected by `captureProcessingScope`.
     public var captureProcessingEnabled: Bool
+    /// Which modalities the selected processing mode applies to when the
+    /// master gate is on. Missing legacy values decode as `.both`.
+    public var captureProcessingScope: CapturePresetProcessingScope
     /// Optional local empty-state prompt shown when this preset is active.
     public var capturePrompt: String
     /// The owned destination inherited by captures using this preset.
@@ -42,6 +46,7 @@ public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
         postProcessingMode: CapturePresetProcessingMode = .clean,
         customPostProcessingInstruction: String = "",
         captureProcessingEnabled: Bool = false,
+        captureProcessingScope: CapturePresetProcessingScope = .both,
         capturePrompt: String = "",
         captureDestinationID: UUID? = nil,
         captureEntryTemplateID: UUID? = nil,
@@ -58,6 +63,7 @@ public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
         self.postProcessingMode = postProcessingMode
         self.customPostProcessingInstruction = customPostProcessingInstruction
         self.captureProcessingEnabled = captureProcessingEnabled
+        self.captureProcessingScope = captureProcessingScope
         self.capturePrompt = capturePrompt
         self.captureDestinationID = captureDestinationID
         self.captureEntryTemplateID = captureEntryTemplateID
@@ -114,6 +120,7 @@ public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
         case postProcessingMode
         case customPostProcessingInstruction
         case captureProcessingEnabled
+        case captureProcessingScope
         case capturePrompt
         case captureDestinationID
         case captureEntryTemplateID
@@ -135,6 +142,7 @@ public struct CapturePresetProfile: Identifiable, Codable, Equatable, Sendable {
             postProcessingMode: try container.decodeIfPresent(CapturePresetProcessingMode.self, forKey: .postProcessingMode) ?? .clean,
             customPostProcessingInstruction: try container.decodeIfPresent(String.self, forKey: .customPostProcessingInstruction) ?? "",
             captureProcessingEnabled: try container.decodeIfPresent(Bool.self, forKey: .captureProcessingEnabled) ?? false,
+            captureProcessingScope: try container.decodeIfPresent(CapturePresetProcessingScope.self, forKey: .captureProcessingScope) ?? .both,
             capturePrompt: try container.decodeIfPresent(String.self, forKey: .capturePrompt) ?? "",
             captureDestinationID: try container.decodeIfPresent(UUID.self, forKey: .captureDestinationID),
             captureEntryTemplateID: try container.decodeIfPresent(UUID.self, forKey: .captureEntryTemplateID),
@@ -173,6 +181,33 @@ public enum CapturePresetProcessingMode: String, Codable, CaseIterable, Sendable
         case .todoList: return String(localized: "Todo Checklist", bundle: .main)
         case .meetingNotes: return String(localized: "Meeting Notes", bundle: .main)
         case .custom: return String(localized: "Custom Instruction", bundle: .main)
+        }
+    }
+}
+
+/// Which capture modalities the selected processing mode applies to when the
+/// "Use Apple Intelligence" master gate is on. `.both` is the default; legacy
+/// records missing the field decode as `.both` and the preset-store migration
+/// refines legacy installs to their exact prior behavior.
+public enum CapturePresetProcessingScope: String, Codable, CaseIterable, Sendable, Identifiable {
+    case both
+    case voiceOnly
+    case textOnly
+
+    public var id: String { rawValue }
+
+    /// True when voice transcriptions (recording pipelines and capture-draft
+    /// audio payloads) should be processed.
+    public var appliesToVoice: Bool { self != .textOnly }
+
+    /// True when typed or OCR-extracted Capture text should be processed.
+    public var appliesToTypedText: Bool { self != .voiceOnly }
+
+    public var displayName: String {
+        switch self {
+        case .both: return String(localized: "Voice & Text", bundle: .main)
+        case .voiceOnly: return String(localized: "Voice Only", bundle: .main)
+        case .textOnly: return String(localized: "Text Only", bundle: .main)
         }
     }
 }

@@ -192,7 +192,7 @@ final class FoundationModelsBackend: LLMBackend {
 @available(iOS 26, macOS 26, *)
 @Generable
 private struct GeneratedEnrichment {
-    @Guide(description: "A short descriptive title, at most 6 words")
+    @Guide(description: "A short descriptive title, at most 6 words, without surrounding quotation marks")
     let title: String
 
     @Guide(description: "0 to 5 lowercase single-word tags describing the content (no spaces; hyphens allowed for compound words like app-dev)")
@@ -201,7 +201,7 @@ private struct GeneratedEnrichment {
     @Guide(description: "The single best category for this captured text")
     let category: GeneratedCategory
 
-    @Guide(description: "The captured text cleaned up while preserving meaning and existing Markdown structure")
+    @Guide(description: "The captured text cleaned up while preserving meaning and existing Markdown structure. Return plain text only — never wrap it in quotes, braces, code fences, or JSON syntax")
     let cleanedText: String
 }
 

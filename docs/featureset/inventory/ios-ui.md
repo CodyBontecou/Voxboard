@@ -354,7 +354,7 @@ LID: IU. Baseline inventory of every user-visible feature found in `Voxboard/Vie
 
 ### F-IU-36 Preset: Capture Processing (AI post-processing)
 - Surface: Preset editor "Capture Processing" section
-- Summary: "Apply to Capture Text" opt-in toggle (with info sheet `CaptureTextProcessingInfoView` explaining on-device Apple Intelligence, mode adherence, and fallbacks), Mode picker (none/clean/todoList/meetingNotes/custom with per-mode help title+text), custom instruction TextEditor (min 90 pt), and "Empty Capture Prompt" text field (2-4 lines, e.g., "What do you want to remember?").
+- Summary: "Use Apple Intelligence" master toggle gating on-device processing, "Apply To" scope picker (`both/voiceOnly/textOnly` → Voice & Text / Voice Only / Text Only, shown when toggled on), scope-aware caption under the Mode picker, Mode picker (none/clean/todoList/meetingNotes/custom with per-mode help title+text), custom instruction TextEditor (min 90 pt), and "Empty Capture Prompt" text field (2-4 lines, e.g., "What do you want to remember?").
 - Details: info sheet at `.medium/.large` detents with drag indicator (FlowSettingsView.swift:305-366, 827-880); footer: voice always uses selected mode; typed text opt-in; deterministic/original fallback when AI unavailable
 - Constraints: on-device Apple Intelligence availability
 - Evidence: `Voxboard/Views/FlowSettingsView.swift` (lines 305-366, 827-880, 1245-1284)

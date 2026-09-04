@@ -27,6 +27,16 @@ enum VoxboardReleaseNotes {
                             symbolSystemName: "pause.circle.fill",
                             title: "Pause and resume recordings",
                             description: "Take a moment to gather your thoughts — iPhone and Mac recordings can now be paused and resumed as one note, with paused audio and time excluded, just like on Apple Watch."
+                        ),
+                        .init(
+                            symbolSystemName: "wand.and.stars",
+                            title: "Precise control over Apple Intelligence",
+                            description: "Apple Intelligence starts turned off for new presets. Existing presets keep their current behavior, while “Apply To” lets you choose voice transcriptions, typed text, or both."
+                        ),
+                        .init(
+                            symbolSystemName: "text.badge.checkmark",
+                            title: "Cleaner AI-cleaned text",
+                            description: "Apple Intelligence no longer leaves stray quotation marks or braces around processed notes."
                         )
                     ]
                 )

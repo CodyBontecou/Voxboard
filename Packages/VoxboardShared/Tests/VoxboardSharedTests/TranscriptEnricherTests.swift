@@ -405,6 +405,101 @@ final class TranscriptEnricherTests: XCTestCase {
             XCTAssertNil(backend.lastNativeInput, "backend should not be called on empty input")
         }
     }
+
+    func test_enrich_fallsBackToPromptPathWhenNativePathThrows() async throws {
+        // A transient native session error must degrade to the string path
+        // instead of aborting enrichment entirely.
+        let backend = FakeLLMBackend(
+            nativeError: FakeLLMError.boom,
+            response: #"""
+            {"title": "Recovered", "tags": [], "category": "note", "cleanedText": "x"}
+            """#
+        )
+        let enricher = TranscriptEnricher(backend: backend)
+
+        let result = try await enricher.enrich(rawText: "raw input")
+
+        XCTAssertEqual(result.title, "Recovered")
+        XCTAssertNotNil(backend.lastPrompt, "a throwing native path must fall through to complete(prompt:)")
+    }
+
+    // MARK: - JSON-syntax echo artifacts (wrapper quotes, stray braces)
+
+    func test_strippingJSONEchoArtifacts_removesWrapperQuotesAndStrayBraces() {
+        let cases: [(input: String, expected: String)] = [
+            // Wrapper quotes echoed from the JSON string value.
+            ("\"hello world\"", "hello world"),
+            ("\"\"double wrapped\"\"", "double wrapped"),
+            // Smart quotes.
+            ("\u{201C}smart quoted\u{201D}", "smart quoted"),
+            // Trailing brace echoed from the object wrapper.
+            ("plain text }", "plain text"),
+            ("plain text }}", "plain text"),
+            // Wrapper quotes AND trailing brace together.
+            ("\"quoted and braced\"}", "quoted and braced"),
+            // Triple-quote fence echo.
+            ("\"\"\"fenced\"\"\"", "fenced"),
+        ]
+        for testCase in cases {
+            XCTAssertEqual(
+                TranscriptEnricher.strippingJSONEchoArtifacts(testCase.input),
+                testCase.expected,
+                "failed for input: \(testCase.input)"
+            )
+        }
+    }
+
+    func test_strippingJSONEchoArtifacts_preservesLegitimateText() {
+        let cases = [
+            // Balanced braces (code, LaTeX) are never touched.
+            "func main() { print(1) }",
+            "\\frac{a}{b} stays",
+            // Quotes that do not wrap the whole value.
+            "He said \"hello\" loudly",
+            // Wrapper-only values are left alone so stripping cannot empty text.
+            "\"\"",
+            "}",
+            // Plain text is untouched.
+            "already clean",
+        ]
+        for input in cases {
+            XCTAssertEqual(TranscriptEnricher.strippingJSONEchoArtifacts(input), input)
+        }
+    }
+
+    func test_enrich_sanitizesNativePathArtifacts() async throws {
+        // Apple Intelligence guided generation can echo JSON syntax into the
+        // string values even though the outer structure is well-formed.
+        let native = TranscriptEnrichment(
+            title: "\"Quoted Title\"",
+            tags: ["notes}", "\"work\""],
+            category: "note",
+            cleanedText: "\"Buy milk and eggs.\"}"
+        )
+        let backend = FakeLLMBackend(nativeResponse: native)
+        let enricher = TranscriptEnricher(backend: backend)
+
+        let result = try await enricher.enrich(rawText: "buy milk and eggs")
+
+        XCTAssertEqual(result.title, "Quoted Title")
+        XCTAssertEqual(result.cleanedText, "Buy milk and eggs.")
+        XCTAssertEqual(result.tags, ["notes", "work"])
+    }
+
+    func test_enrich_sanitizesPromptPathArtifacts() async throws {
+        // The string path decodes cleanedText values that may carry the JSON
+        // string quotes and the object's closing brace.
+        let backend = FakeLLMBackend(response: #"""
+        {"title": "\"Grocery Run\"", "tags": ["\"shopping\""], "category": "task", "cleanedText": "\"Milk, eggs, bread.\"}"}
+        """#)
+        let enricher = TranscriptEnricher(backend: backend)
+
+        let result = try await enricher.enrich(rawText: "milk eggs bread")
+
+        XCTAssertEqual(result.title, "Grocery Run")
+        XCTAssertEqual(result.cleanedText, "Milk, eggs, bread.")
+        XCTAssertEqual(result.tags, ["shopping"])
+    }
 }
 
 // MARK: - Fakes
@@ -413,6 +508,7 @@ private final class FakeLLMBackend: LLMBackend, @unchecked Sendable {
     private let response: String?
     private let error: Error?
     private let nativeResponse: TranscriptEnrichment?
+    private let nativeError: Error?
     private(set) var lastPrompt: String?
     private(set) var lastNativeInput: String?
 
@@ -421,6 +517,7 @@ private final class FakeLLMBackend: LLMBackend, @unchecked Sendable {
         self.response = response
         self.error = nil
         self.nativeResponse = nil
+        self.nativeError = nil
     }
 
     /// String-path only, throws from complete(prompt:).
@@ -428,6 +525,7 @@ private final class FakeLLMBackend: LLMBackend, @unchecked Sendable {
         self.response = nil
         self.error = error
         self.nativeResponse = nil
+        self.nativeError = nil
     }
 
     /// Native path returns the given enrichment. If `response` is provided,
@@ -436,6 +534,15 @@ private final class FakeLLMBackend: LLMBackend, @unchecked Sendable {
         self.response = response
         self.error = nil
         self.nativeResponse = nativeResponse
+        self.nativeError = nil
+    }
+
+    /// Native path throws; string path works via `response`.
+    init(nativeError: Error, response: String? = nil) {
+        self.response = response
+        self.error = nil
+        self.nativeResponse = nil
+        self.nativeError = nativeError
     }
 
     func complete(prompt: String) async throws -> String {
@@ -446,6 +553,7 @@ private final class FakeLLMBackend: LLMBackend, @unchecked Sendable {
 
     func enrichNative(rawText: String) async throws -> TranscriptEnrichment? {
         lastNativeInput = rawText
+        if let nativeError { throw nativeError }
         return nativeResponse
     }
 }

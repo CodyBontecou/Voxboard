@@ -348,7 +348,7 @@ Package: `Packages/VoxboardShared/Sources/VoxboardShared/` (+ `Analytics/`). All
   - One-time owned-route migration converts many-to-many workflow/destination bindings into one owned Markdown route per preset with deterministic (FNV-1a) clone UUIDs, replay-safe; orphaned destinations promoted to presets only during initial migration; retired route/preset ID lists prevent resurrection; `clearCaptureDestination`/`clearCaptureEntryTemplate` prune stale references; `retirePreset` marks both IDs.
   - Legacy voice-export Markdown template carried into the destination as a vault-relative template path when contained in the destination root (symlink-verified).
   - Selection helpers: `selectedFlowId/selectedFlow/selectNextFlow` (cycles enabled presets).
-  - `usesAIEnrichment` = any mode except "Keep Original" (`.none`).
+  - `usesAIEnrichment` = `captureProcessingEnabled` && `captureProcessingScope.appliesToVoice` && mode ≠ "Keep Original" (`.none`) — Apple Intelligence defaults off for fresh/new presets; the "Use Apple Intelligence" toggle + "Apply To" scope gate voice. The one-time migration preserves existing workflows: old toggle-on presets become `.both`, while old toggle-off presets with an active mode become enabled `.voiceOnly` because voice processing was previously implicit.
   - Watch settings: recording folder bookmark/name + filename template; watchOutputMode transcript|recordingOnly.
   - Typealiases `RecordingFlow`, `RecordingFlowStore` retained for source compatibility.
 - Constraints: needs shared defaults for persistence; migration writes coordinated with the route library load (`CapturePresetRouteLibrary.load`).
@@ -455,12 +455,14 @@ Package: `Packages/VoxboardShared/Sources/VoxboardShared/` (+ `Analytics/`). All
 
 ### F-SH-39 On-device LLM enrichment (TranscriptEnricher)
 - Surface: post-transcription enrichment, Capture preset processing
-- Summary: `TranscriptEnricher` produces title/tags/category/cleanedText via an injectable `LLMBackend` (native structured generation preferred; JSON prompt fallback), with a fixed category taxonomy, tag normalization, preset defaults, and a never-throwing `enrichAndUpdate` path.
+- Summary: `TranscriptEnricher` produces title/tags/category/cleanedText via an injectable `LLMBackend` (native structured generation preferred; JSON prompt fallback on nil *or thrown* native errors), with a fixed category taxonomy, tag normalization, JSON-echo artifact sanitization, preset defaults, and a never-throwing `enrichAndUpdate` path.
 - Details:
   - Categories: note, idea, task, meeting, journal, message, reminder, other (out-of-list → "other").
   - Tag contract: lowercase, whitespace-split, hyphens preserved, deduped, capped at 5.
   - Prompt path used when the preset has a workflow instruction (todoList/meetingNotes/custom) or text contains `Speaker N:` labels (labels preserved verbatim); prompt embeds workflow name, static tag/category preferences, and a "return only JSON" contract.
   - `parse` extracts the first balanced JSON object (tolerating fences/prose); both paths normalized.
+  - JSON-echo sanitization (`strippingJSONEchoArtifacts`): the on-device model sometimes mirrors its JSON into string values, delivering cleaned text wrapped in quotes or ending with a stray `}`. Title/cleanedText have whole-value wrappers (`"""`, `"`, smart quotes) and unbalanced stray braces stripped (balanced `{...}` pairs are preserved so code/LaTeX survive); tags drop brace/quote characters. Applied in `normalize`, so both native and prompt paths are covered.
+  - Native-path resilience: a throwing `enrichNative` degrades to the prompt path (logged) instead of aborting enrichment, so transient session errors don't cost a capture its title/tags.
   - Preset defaults: merge static tags; "other" category upgraded to preset static category; todoList mode reformats cleaned text via `TranscriptFlowFormatter`.
   - `enrichAndUpdate` swallows all errors/timeouts (120 s default) leaving the record untouched; every outcome logged with short transcript ID.
 - Constraints: LLM backend injected from app target (FoundationModels); keyboard links the package but not the backend.

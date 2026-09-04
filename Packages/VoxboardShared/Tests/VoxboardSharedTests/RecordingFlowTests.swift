@@ -15,8 +15,10 @@ final class CapturePresetTests: XCTestCase {
         XCTAssertEqual(flows.first?.symbolName, CapturePresetStore.defaultSymbolName)
         XCTAssertEqual(flows.first?.kind, .general)
         XCTAssertEqual(flows.first?.captureProcessingEnabled, false)
+        XCTAssertEqual(flows.first?.captureProcessingScope, .both)
         XCTAssertEqual(flows.first?.speakerDiarizationEnabled, false)
         XCTAssertFalse(CapturePresetStore.makeCustomFlow().captureProcessingEnabled)
+        XCTAssertEqual(CapturePresetStore.makeCustomFlow().captureProcessingScope, .both)
         XCTAssertFalse(CapturePresetStore.makeCustomFlow().speakerDiarizationEnabled)
     }
 
@@ -151,15 +153,154 @@ final class CapturePresetTests: XCTestCase {
         XCTAssertFalse(legacy.speakerDiarizationEnabled)
     }
 
-    func test_usesAIEnrichment_isControlledByPostProcessingMode() {
+    func test_usesAIEnrichment_requiresToggleVoiceScopeAndNonKeepOriginalMode() {
         var flow = CapturePresetStore.defaultFlow
-        XCTAssertTrue(flow.usesAIEnrichment)
+        XCTAssertFalse(flow.usesAIEnrichment, "Apple Intelligence defaults off")
 
+        // Scope must include voice.
+        flow.captureProcessingEnabled = true
+        flow.captureProcessingScope = .textOnly
+        XCTAssertFalse(flow.usesAIEnrichment)
+
+        // Keep Original remains the per-mode opt-out even when toggled on.
+        flow.captureProcessingScope = .voiceOnly
         flow.postProcessingMode = .none
         XCTAssertFalse(flow.usesAIEnrichment)
 
         flow.postProcessingMode = .todoList
         XCTAssertTrue(flow.usesAIEnrichment)
+
+        flow.captureProcessingScope = .both
+        XCTAssertTrue(flow.usesAIEnrichment)
+    }
+
+    // MARK: - Unified Apple Intelligence gate migration
+
+    private func makeDefaults() throws -> UserDefaults {
+        let suite = "CapturePresetProcessingGateTests.\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        return defaults
+    }
+
+    func test_processingGateMigration_preservesEveryLegacyWorkflow() throws {
+        let defaults = try makeDefaults()
+        // Legacy shape A: toggle off (the old default) — voice still ran, so
+        // preserve it as an enabled Voice Only workflow.
+        var voiceOnly = CapturePresetStore.makeCustomFlow()
+        voiceOnly.captureProcessingEnabled = false
+        voiceOnly.postProcessingMode = .clean
+        // Legacy shape B: toggle on — both modalities ran.
+        var both = CapturePresetStore.makeCustomFlow()
+        both.captureProcessingEnabled = true
+        both.postProcessingMode = .clean
+        // Legacy shape C: Keep Original — nothing ran.
+        var keepOriginal = CapturePresetStore.makeCustomFlow()
+        keepOriginal.captureProcessingEnabled = false
+        keepOriginal.postProcessingMode = .none
+        CapturePresetStore.saveFlows([voiceOnly, both, keepOriginal], defaults: defaults)
+
+        let loaded = CapturePresetStore.loadFlows(defaults: defaults)
+
+        let migratedVoiceOnly = loaded.first(where: { $0.id == voiceOnly.id })
+        XCTAssertEqual(migratedVoiceOnly?.captureProcessingEnabled, true, "existing voice enrichment must stay enabled")
+        XCTAssertEqual(migratedVoiceOnly?.captureProcessingScope, .voiceOnly, "typed text must stay unprocessed")
+
+        let migratedBoth = loaded.first(where: { $0.id == both.id })
+        XCTAssertEqual(migratedBoth?.captureProcessingEnabled, true)
+        XCTAssertEqual(migratedBoth?.captureProcessingScope, .both)
+
+        let migratedKeepOriginal = loaded.first(where: { $0.id == keepOriginal.id })
+        XCTAssertEqual(migratedKeepOriginal?.captureProcessingEnabled, false, "Keep Original presets must stay untouched")
+        XCTAssertEqual(migratedKeepOriginal?.captureProcessingScope, .both)
+
+        XCTAssertEqual(
+            defaults.integer(forKey: CapturePresetStore.processingGateMigrationVersionKey),
+            CapturePresetStore.currentProcessingGateMigrationVersion
+        )
+    }
+
+    func test_processingGateMigration_runsAtMostOnce() throws {
+        let defaults = try makeDefaults()
+        var preset = CapturePresetStore.makeCustomFlow()
+        preset.captureProcessingEnabled = false
+        preset.postProcessingMode = .clean
+        CapturePresetStore.saveFlows([preset], defaults: defaults)
+
+        _ = CapturePresetStore.loadFlows(defaults: defaults)
+
+        // A user's later explicit scope/opt-in must survive every later load.
+        preset.captureProcessingEnabled = true
+        preset.captureProcessingScope = .textOnly
+        CapturePresetStore.saveFlows([preset], defaults: defaults)
+        let reloaded = CapturePresetStore.loadFlows(defaults: defaults)
+        let reloadedPreset = reloaded.first(where: { $0.id == preset.id })
+
+        XCTAssertEqual(reloadedPreset?.captureProcessingEnabled, true)
+        XCTAssertEqual(
+            reloadedPreset?.captureProcessingScope,
+            .textOnly,
+            "the migration must never overwrite a later explicit user choice"
+        )
+    }
+
+    func test_processingGateMigration_freshInstallsStampTheMarkerImmediately() throws {
+        let defaults = try makeDefaults()
+
+        let loaded = CapturePresetStore.loadFlows(defaults: defaults)
+
+        XCTAssertEqual(loaded.map(\.id), CapturePresetStore.defaultFlows.map(\.id))
+        XCTAssertEqual(
+            defaults.integer(forKey: CapturePresetStore.processingGateMigrationVersionKey),
+            CapturePresetStore.currentProcessingGateMigrationVersion,
+            "fresh installs must never run the legacy opt-in migration later"
+        )
+    }
+
+    func test_processingGateMigration_nonPersistingLoadDoesNotStampMarker() throws {
+        let defaults = try makeDefaults()
+        var preset = CapturePresetStore.makeCustomFlow()
+        preset.captureProcessingEnabled = false
+        preset.postProcessingMode = .meetingNotes
+        CapturePresetStore.saveFlows([preset], defaults: defaults)
+
+        _ = CapturePresetStore.loadFlows(defaults: defaults, persistMigrations: false)
+
+        XCTAssertEqual(
+            defaults.integer(forKey: CapturePresetStore.processingGateMigrationVersionKey),
+            0,
+            "the marker must only be stamped alongside a persisting load"
+        )
+        let migrated = CapturePresetStore.loadFlows(defaults: defaults, persistMigrations: false)
+            .first(where: { $0.id == preset.id })
+        XCTAssertEqual(
+            migrated?.captureProcessingEnabled,
+            true,
+            "non-persisting reads must still preserve legacy voice enrichment"
+        )
+        XCTAssertEqual(migrated?.captureProcessingScope, .voiceOnly)
+    }
+
+    func test_captureProcessingScope_roundTripsAndMissingKeyDecodesAsBoth() throws {
+        var preset = CapturePresetStore.makeCustomFlow()
+        preset.captureProcessingScope = .voiceOnly
+
+        let decoded = try JSONDecoder().decode(
+            CapturePreset.self,
+            from: JSONEncoder().encode(preset)
+        )
+        XCTAssertEqual(decoded.captureProcessingScope, .voiceOnly)
+        XCTAssertEqual(decoded.captureProfile.captureProcessingScope, .voiceOnly)
+
+        var legacyObject = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: JSONEncoder().encode(preset)) as? [String: Any]
+        )
+        legacyObject.removeValue(forKey: "captureProcessingScope")
+        let legacy = try JSONDecoder().decode(
+            CapturePreset.self,
+            from: JSONSerialization.data(withJSONObject: legacyObject)
+        )
+        XCTAssertEqual(legacy.captureProcessingScope, .both)
     }
 
     func test_watchOutputDefaultsToTranscriptForExistingPresets() throws {

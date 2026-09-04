@@ -22,10 +22,14 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
     /// Opt-in for a second, fully on-device pass that labels anonymous
     /// speakers in voice recordings. Existing presets decode as disabled.
     public var speakerDiarizationEnabled: Bool
-    /// Opt-in for applying this preset’s processing mode to typed and
-    /// multimodal Capture text. Existing records decode as false to avoid
-    /// rewriting Markdown.
+    /// Master on/off for on-device Apple Intelligence processing of this
+    /// preset's captures.
     public var captureProcessingEnabled: Bool
+    /// Which modalities (voice, typed text, or both) the processing mode
+    /// applies to when the master gate is on. Existing records decode as
+    /// `.both`; the preset-store migration refines legacy installs to their
+    /// exact prior behavior.
+    public var captureProcessingScope: CapturePresetProcessingScope
     /// Optional local prompt shown in an empty Capture composer.
     public var capturePrompt: String
     /// Controls whether Apple Watch recordings are transcribed or delivered as
@@ -57,6 +61,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         customPostProcessingInstruction: String = "",
         speakerDiarizationEnabled: Bool = false,
         captureProcessingEnabled: Bool = false,
+        captureProcessingScope: CapturePresetProcessingScope = .both,
         capturePrompt: String = "",
         watchOutputMode: CapturePresetWatchOutputMode = .transcript,
         watchRecordingSettings: CapturePresetWatchRecordingSettings = CapturePresetWatchRecordingSettings(),
@@ -80,6 +85,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         self.customPostProcessingInstruction = customPostProcessingInstruction
         self.speakerDiarizationEnabled = speakerDiarizationEnabled
         self.captureProcessingEnabled = captureProcessingEnabled
+        self.captureProcessingScope = captureProcessingScope
         self.capturePrompt = capturePrompt
         self.watchOutputMode = watchOutputMode
         self.watchRecordingSettings = watchRecordingSettings
@@ -136,6 +142,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
             postProcessingMode: postProcessingMode,
             customPostProcessingInstruction: customPostProcessingInstruction,
             captureProcessingEnabled: captureProcessingEnabled,
+            captureProcessingScope: captureProcessingScope,
             capturePrompt: capturePrompt,
             captureDestinationID: captureDestinationID,
             captureEntryTemplateID: captureEntryTemplateID,
@@ -152,11 +159,12 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
     public var staticCategory: String? { captureProfile.staticCategory }
 
     /// Whether this preset should run on-device AI enrichment after transcription.
-    /// Keep Original is the explicit per-preset opt-out; every other mode uses
-    /// Apple Intelligence when it is available so the app no longer needs a
-    /// separate global enrichment toggle.
+    /// Requires the "Use Apple Intelligence" master gate, a scope that includes
+    /// voice, and a mode other than Keep Original (`.none`).
     public var usesAIEnrichment: Bool {
-        postProcessingMode != .none
+        captureProcessingEnabled
+            && captureProcessingScope.appliesToVoice
+            && postProcessingMode != .none
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -174,6 +182,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         case customPostProcessingInstruction
         case speakerDiarizationEnabled
         case captureProcessingEnabled
+        case captureProcessingScope
         case capturePrompt
         case watchOutputMode
         case watchRecordingSettings
@@ -204,6 +213,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
             customPostProcessingInstruction: try container.decodeIfPresent(String.self, forKey: .customPostProcessingInstruction) ?? "",
             speakerDiarizationEnabled: try container.decodeIfPresent(Bool.self, forKey: .speakerDiarizationEnabled) ?? false,
             captureProcessingEnabled: try container.decodeIfPresent(Bool.self, forKey: .captureProcessingEnabled) ?? false,
+            captureProcessingScope: try container.decodeIfPresent(CapturePresetProcessingScope.self, forKey: .captureProcessingScope) ?? .both,
             capturePrompt: try container.decodeIfPresent(String.self, forKey: .capturePrompt) ?? "",
             watchOutputMode: try container.decodeIfPresent(CapturePresetWatchOutputMode.self, forKey: .watchOutputMode) ?? .transcript,
             watchRecordingSettings: try container.decodeIfPresent(CapturePresetWatchRecordingSettings.self, forKey: .watchRecordingSettings)
@@ -232,6 +242,7 @@ public struct CapturePreset: Identifiable, Codable, Equatable, Sendable {
         try container.encode(customPostProcessingInstruction, forKey: .customPostProcessingInstruction)
         try container.encode(speakerDiarizationEnabled, forKey: .speakerDiarizationEnabled)
         try container.encode(captureProcessingEnabled, forKey: .captureProcessingEnabled)
+        try container.encode(captureProcessingScope, forKey: .captureProcessingScope)
         try container.encode(capturePrompt, forKey: .capturePrompt)
         try container.encode(watchOutputMode, forKey: .watchOutputMode)
         try container.encode(watchRecordingSettings, forKey: .watchRecordingSettings)
@@ -480,6 +491,11 @@ public enum CapturePresetStore {
     private static let deprecatedBuiltInFlowIds: Set<String> = ["dream", "todo", "meeting"]
     private static let legacyDefaultSymbolName = "text.alignleft"
 
+    /// One-time migration marker for the unified Apple Intelligence gate.
+    /// See `migrateProcessingGate(_:defaults:)`.
+    public static let processingGateMigrationVersionKey = "capturePresetProcessingGateMigrationVersion"
+    public static let currentProcessingGateMigrationVersion = 1
+
     public static var defaultFlow: CapturePreset {
         CapturePreset(
             id: generalId,
@@ -530,6 +546,13 @@ public enum CapturePresetStore {
             }
             if persistMigrations {
                 saveFlows(flows, defaults: defaults)
+                // Fresh installs ship with the unified gate semantics already
+                // in effect — stamp the marker so the legacy opt-in migration
+                // can never run against values the user sets from here on.
+                defaults.set(
+                    currentProcessingGateMigrationVersion,
+                    forKey: processingGateMigrationVersionKey
+                )
             }
             return flows
         }
@@ -566,10 +589,48 @@ public enum CapturePresetStore {
 
         migrateFileExportSettingsToFlows(&migrated, defaults: defaults)
 
+        // Preserve existing workflows exactly: the legacy toggle controlled
+        // typed text while voice enrichment was implicit. Existing toggle-off
+        // presets with an active mode therefore become enabled for Voice Only;
+        // fresh installs are handled above and remain fully off by default.
+        let processingGateMigrationPending =
+            defaults.integer(forKey: processingGateMigrationVersionKey)
+                < currentProcessingGateMigrationVersion
+        if processingGateMigrationPending {
+            migrateProcessingGate(&migrated)
+        }
+
         if persistMigrations, migrated != stored {
             saveFlows(migrated, defaults: defaults)
         }
+        if persistMigrations, processingGateMigrationPending {
+            // Stamped only alongside persisting loads so a user's later
+            // opt-out is never re-migrated, while non-persisting reads simply
+            // re-derive the same result until a persisting load lands.
+            defaults.set(
+                currentProcessingGateMigrationVersion,
+                forKey: processingGateMigrationVersionKey
+            )
+        }
         return migrated
+    }
+
+    /// Legacy semantics: "Apply to Capture Text" gated typed text only while
+    /// voice enrichment was implicit. Preserve every existing workflow:
+    /// - legacy toggle on + mode ≠ Keep Original → gate on + `.both`
+    /// - legacy toggle off + mode ≠ Keep Original → gate on + `.voiceOnly`
+    /// - mode == Keep Original → untouched
+    /// Fresh installs stamp the migration marker before returning and default
+    /// fully off. Runs at most once per install (version-keyed).
+    private static func migrateProcessingGate(_ flows: inout [CapturePreset]) {
+        for index in flows.indices where flows[index].postProcessingMode != .none {
+            if flows[index].captureProcessingEnabled {
+                flows[index].captureProcessingScope = .both
+            } else {
+                flows[index].captureProcessingEnabled = true
+                flows[index].captureProcessingScope = .voiceOnly
+            }
+        }
     }
 
     private static func migrateFileExportSettingsToFlows(_ flows: inout [CapturePreset], defaults: UserDefaults) {

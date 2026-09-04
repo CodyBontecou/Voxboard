@@ -319,6 +319,60 @@ final class CaptureVoxTests: XCTestCase {
         XCTAssertEqual(text, "- [ ] Buy milk\n- [ ] Email sam")
         XCTAssertEqual(processed.voxProcessingState, .applied)
     }
+
+    func test_processorRespectsProcessingScopePerPayload() async throws {
+        let audio = try CaptureAssetReference(
+            relativePath: "recording.m4a",
+            originalFilename: "recording.m4a",
+            contentTypeIdentifier: "public.audio"
+        )
+        func makeRequest(scope: CapturePresetProcessingScope) -> CaptureRequest {
+            let profile = CapturePresetProfile(
+                id: "scoped",
+                name: "Scoped",
+                symbolName: "waveform",
+                postProcessingMode: .clean,
+                captureProcessingEnabled: true,
+                captureProcessingScope: scope
+            )
+            return CaptureRequest(
+                source: .app,
+                destinationID: UUID(),
+                payloads: [
+                    .text("typed"),
+                    .audio(audio, transcript: "spoken"),
+                ],
+                frontmatter: [:],
+                voxProfile: profile,
+                voxProcessingState: .pending
+            )
+        }
+
+        // Voice Only: the transcript is processed, typed text is untouched,
+        // and no AI metadata is generated from the skipped typed payload.
+        let voiceOnly = await CapturePresetRequestProcessor(
+            textProcessor: StubCaptureTextProcessor()
+        ).process(makeRequest(scope: .voiceOnly))
+        guard case .text(let typed) = voiceOnly.payloads[0],
+              case .audio(_, let spoken) = voiceOnly.payloads[1] else {
+            return XCTFail("Expected text and audio payloads")
+        }
+        XCTAssertEqual(typed, "typed", "voice-only scope must not rewrite typed text")
+        XCTAssertEqual(spoken, "PROCESSED: spoken")
+        XCTAssertEqual(voiceOnly.voxProcessingState, .applied)
+
+        // Text Only: the mirror image.
+        let textOnly = await CapturePresetRequestProcessor(
+            textProcessor: StubCaptureTextProcessor()
+        ).process(makeRequest(scope: .textOnly))
+        guard case .text(let typedAgain) = textOnly.payloads[0],
+              case .audio(_, let spokenAgain) = textOnly.payloads[1] else {
+            return XCTFail("Expected text and audio payloads")
+        }
+        XCTAssertEqual(typedAgain, "PROCESSED: typed")
+        XCTAssertEqual(spokenAgain, "spoken", "text-only scope must not rewrite transcripts")
+        XCTAssertEqual(textOnly.voxProcessingState, .applied)
+    }
 }
 
 private struct StubCaptureTextProcessor: CapturePresetTextProcessing {

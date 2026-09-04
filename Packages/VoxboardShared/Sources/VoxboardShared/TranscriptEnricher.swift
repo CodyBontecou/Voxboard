@@ -101,10 +101,18 @@ public struct TranscriptEnricher: Sendable {
         // Prefer native structured generation for plain cleanup. Workflow-
         // specific formatting and diarized transcripts use the prompt path so
         // speaker labels and the selected instruction remain explicit.
+        // A *throwing* native backend degrades to the prompt path rather than
+        // aborting enrichment: a transient session error should not cost the
+        // capture its title/tags when the string path might still succeed.
         if !Self.requiresPromptDrivenFormatting(profile),
-           !Self.containsSpeakerLabels(trimmed),
-           let native = try await backend.enrichNative(rawText: trimmed) {
-            return Self.applyVoxDefaults(Self.normalize(native), profile: profile)
+           !Self.containsSpeakerLabels(trimmed) {
+            do {
+                if let native = try await backend.enrichNative(rawText: trimmed) {
+                    return Self.applyVoxDefaults(Self.normalize(native), profile: profile)
+                }
+            } catch {
+                KeyboardDebugLog.shared.log("[Enrichment] native generation failed (\(error)); falling back to prompt path")
+            }
         }
 
         let prompt = Self.buildPrompt(rawText: trimmed, profile: profile)
@@ -119,11 +127,71 @@ public struct TranscriptEnricher: Sendable {
     private static func normalize(_ enrichment: TranscriptEnrichment) -> TranscriptEnrichment {
         let category = allowedCategories.contains(enrichment.category) ? enrichment.category : "other"
         return TranscriptEnrichment(
-            title: enrichment.title,
+            title: strippingJSONEchoArtifacts(enrichment.title),
             tags: normalizeTags(enrichment.tags),
             category: category,
-            cleanedText: enrichment.cleanedText
+            cleanedText: strippingJSONEchoArtifacts(enrichment.cleanedText)
         )
+    }
+
+    /// Strips JSON-syntax echo artifacts from model-generated text.
+    ///
+    /// The on-device model occasionally mirrors the JSON it was asked (or
+    /// guided) to produce into the string values themselves: the cleaned text
+    /// arrives wrapped in quotation marks, or ends with the object's closing
+    /// brace. The rules are deliberately conservative so legitimate text
+    /// survives: wrappers are only removed when they clearly wrap the whole
+    /// value, and braces only when unbalanced (balanced `{...}` pairs, as in
+    /// code or LaTeX, are left untouched).
+    static func strippingJSONEchoArtifacts(_ text: String) -> String {
+        var result = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !result.isEmpty else { return text }
+
+        // Whole-value wrappers: triple quotes, straight quotes, smart quotes.
+        // A value that is nothing but the wrapper pair ("" or “”) is left alone
+        // so stripping can never empty the text.
+        let wrappers: [(open: String, close: String)] = [
+            ("\"\"\"", "\"\"\""),
+            ("\"", "\""),
+            ("\u{201C}", "\u{201D}"),
+        ]
+
+        // Phases interleave: stripping a stray brace can expose a wrapper
+        // ("\"text\"}") and vice versa, so the whole sequence repeats until
+        // stable rather than running each phase once.
+        var didStrip = true
+        while didStrip {
+            didStrip = false
+
+            for wrapper in wrappers where result.count > wrapper.open.count + wrapper.close.count {
+                guard result.hasPrefix(wrapper.open), result.hasSuffix(wrapper.close) else { continue }
+                let stripped = String(
+                    result.dropFirst(wrapper.open.count).dropLast(wrapper.close.count)
+                ).trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !stripped.isEmpty else { continue }
+                result = stripped
+                didStrip = true
+            }
+
+            // Stray braces echoed from the JSON object wrapper — stripped only
+            // while unbalanced and only while something would remain.
+            if result.hasSuffix("}"), !result.dropLast().contains("{") {
+                let stripped = String(result.dropLast()).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !stripped.isEmpty {
+                    result = stripped
+                    didStrip = true
+                }
+            }
+            if result.hasPrefix("{"), !result.dropFirst().contains("}") {
+                let stripped = String(result.dropFirst()).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !stripped.isEmpty {
+                    result = stripped
+                    didStrip = true
+                }
+            }
+        }
+
+        return result
     }
 
     private static func containsSpeakerLabels(_ text: String) -> Bool {
@@ -181,7 +249,11 @@ public struct TranscriptEnricher: Sendable {
         for tag in raw {
             let words = tag.split(whereSeparator: { $0.isWhitespace })
             for word in words {
-                let lower = word.lowercased()
+                // Tags are lowercase single words by contract; drop any
+                // brace/quote characters echoed from the JSON wrapper.
+                let lower = word
+                    .filter { !"{}\"\u{201C}\u{201D}".contains($0) }
+                    .lowercased()
                 guard !lower.isEmpty, seen.insert(lower).inserted else { continue }
                 out.append(lower)
                 if out.count == 5 { return out }
@@ -245,9 +317,10 @@ public struct TranscriptEnricher: Sendable {
         let speakerInstruction = containsSpeakerLabels(rawText)
             ? " Preserve every anonymous `Speaker N:` label and keep each statement with its original speaker."
             : ""
+        let noSyntaxEchoLine = " Return only the plain text itself — never wrap it in quotation marks, braces, code fences, or JSON syntax."
         let cleanedTextInstruction = flowInstruction.map {
-            "For \"cleanedText\": \($0) Preserve the author's meaning and do not add information that was not in the original.\(speakerInstruction)"
-        } ?? "For \"cleanedText\": improve casing and punctuation while preserving meaning and existing Markdown structure; do not add information that was not in the original.\(speakerInstruction)"
+            "For \"cleanedText\": \($0) Preserve the author's meaning and do not add information that was not in the original.\(speakerInstruction)\(noSyntaxEchoLine)"
+        } ?? "For \"cleanedText\": improve casing and punctuation while preserving meaning and existing Markdown structure; do not add information that was not in the original.\(speakerInstruction)\(noSyntaxEchoLine)"
 
         return """
         You are organizing text for a private, local-first capture app. The text may \

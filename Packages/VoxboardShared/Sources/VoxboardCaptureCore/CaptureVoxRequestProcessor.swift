@@ -51,6 +51,7 @@ public struct CapturePresetRequestProcessor: Sendable {
         for index in resolved.payloads.indices {
             switch resolved.payloads[index] {
             case .text(let text):
+                guard profile.captureProcessingScope.appliesToTypedText else { continue }
                 let result = await processText(text, profile: profile)
                 resolved.payloads[index] = .text(result.text)
                 mergeMetadata(
@@ -61,7 +62,9 @@ public struct CapturePresetRequestProcessor: Sendable {
                 )
 
             case .audio(let asset, let transcript):
-                guard let transcript, !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                guard profile.captureProcessingScope.appliesToVoice,
+                      let transcript,
+                      !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                     continue
                 }
                 let result = await processText(transcript, profile: profile)
@@ -74,7 +77,8 @@ public struct CapturePresetRequestProcessor: Sendable {
                 )
 
             case .scannedDocument(let pages, let pdf, let extractedText):
-                guard let extractedText,
+                guard profile.captureProcessingScope.appliesToTypedText,
+                      let extractedText,
                       !extractedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                     continue
                 }
