@@ -280,10 +280,11 @@ LID: IU. Baseline inventory of every user-visible feature found in `Voxboard/Vie
 
 ### F-IU-29 Settings screen (MetaSettingsView)
 - Surface: Pushed Settings destination
-- Summary: Sectioned settings: Vox.md Unlimited (access status, price, Family upgrade), Activity (Stats), Recording Queue, Customization (Models / Capture Presets / Capture Bar / App Language), Keyboard (Haptic Feedback), Lock Screen (Live Activity Monitor, Lock Screen Record Button), About (engine/privacy/version/Apple Intelligence status), Feedback (Discord, Send Feedback), Debug (View Debug Log).
+- Summary: Sectioned settings: Vox.md Unlimited (access status, price, Family upgrade), Activity (Stats), Recording Queue, Customization (Models / Capture Presets / Capture Bar / App Language), Keyboard (Haptic Feedback), Lock Screen (Live Activity Monitor, Shortcut Recording Live Activity, Lock Screen Record Button), About (engine/privacy/version/Apple Intelligence status), Feedback (Discord, Send Feedback), Debug (View Debug Log).
 - Details:
   - Upgrade row shows free usage "x.x / 15 min · N / 10 captures used", "From <price>" / "Checking price…", Purchased/Family badge (MetaSettingsView.swift:99-165)
   - Live Activity toggle starts/ends `LiveActivityController` when listening (275-297)
+  - Shortcut Recording Live Activity toggle persists `shortcutRecordingLiveActivityEnabled` and ends a shortcut-presented card when disabled; a separate presentation reason from the monitor card (ToggleVoxboardRecordingIntent.swift, LiveActivityController.swift)
   - Lock Screen Record toggle reloads the `VoxboardRecordWidget` timelines and iOS 18+ `VoxboardRecordControl` (299-323)
   - About rows: default transcription (Apple Speech), optional whisper.cpp, optional Parakeet (FluidAudio CoreML), on-device processing, privacy, version (build); Apple Intelligence row only on iOS 26+ (327-360)
   - Send Feedback uses MFMailCompose when possible, else mailto URL with diagnostics payload (361-460)

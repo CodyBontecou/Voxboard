@@ -77,6 +77,12 @@ struct OpenVoxboardRecordIntent: AppIntent {
     static let description: IntentDescription = "Opens Vox.md and starts recording with the selected Capture Preset."
     static var openAppWhenRun: Bool = true
 
+    /// Chained fallbacks from background intents (such as the iOS 26 recording
+    /// toggle) rely on this bringing the app forward; declaring it explicitly
+    /// keeps that contract under the unified intents model.
+    @available(iOS 26.0, *)
+    static var supportedModes: IntentModes { .foreground(.immediate) }
+
     @Parameter(title: "Preset", description: "The Capture Preset to use for this recording.")
     var vox: VoxEntity?
 

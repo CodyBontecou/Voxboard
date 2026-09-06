@@ -21,6 +21,7 @@ struct MetaSettingsView: View {
 #endif
     @State private var hapticsEnabled: Bool = AppConstants.hapticsEnabled
     @State private var liveActivityMonitorEnabled: Bool = AppConstants.liveActivityMonitorEnabled
+    @State private var shortcutRecordingLiveActivityEnabled: Bool = AppConstants.shortcutRecordingLiveActivityEnabled
     @State private var lockScreenQuickRecordEnabled: Bool = AppConstants.lockScreenQuickRecordEnabled
 
     var body: some View {
@@ -437,6 +438,32 @@ struct MetaSettingsView: View {
                             }
                         } else {
                             LiveActivityController.shared.end()
+                        }
+                    }
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(Geist.bg)
+
+            GeistDivider()
+
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Shortcut Recording Live Activity")
+                        .font(Geist.label())
+                        .foregroundColor(Geist.text)
+                    Text("Show a Live Activity while recording is toggled from the Toggle Recording shortcut, Apple Pencil squeeze, or Action Button without opening Vox.md. Required for in-place recording on iOS 26 — when off, the shortcut opens the app instead.")
+                        .font(Geist.caption())
+                        .foregroundColor(Geist.muted)
+                }
+                Spacer()
+                Toggle("", isOn: $shortcutRecordingLiveActivityEnabled)
+                    .labelsHidden()
+                    .tint(Color.accentColor)
+                    .onChange(of: shortcutRecordingLiveActivityEnabled) { _, val in
+                        AppConstants.sharedDefaults?.set(val, forKey: AppConstants.shortcutRecordingLiveActivityEnabledKey)
+                        if !val {
+                            LiveActivityController.shared.endShortcutRecordingActivityIfNeeded()
                         }
                     }
             }

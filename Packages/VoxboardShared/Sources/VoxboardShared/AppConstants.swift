@@ -189,6 +189,11 @@ public enum AppConstants: Sendable {
     // Lock Screen / Dynamic Island controls. Both default to true when unset.
     public static let liveActivityMonitorEnabledKey = "liveActivityMonitorEnabled"
     public static let lockScreenQuickRecordEnabledKey = "lockScreenQuickRecordEnabled"
+
+    // Live Activity for recordings toggled in place from App Intents
+    // (Shortcuts, Apple Pencil squeeze, Action Button). Defaults to true.
+    public static let shortcutRecordingLiveActivityEnabledKey = "shortcutRecordingLiveActivityEnabled"
+
     public static let pendingWidgetRecordKey = "pendingWidgetRecord"
     public static let pendingWidgetRecordFlowIdKey = "pendingWidgetRecordFlowId"
 
@@ -218,6 +223,10 @@ public enum AppConstants: Sendable {
 
     public static var liveActivityMonitorEnabled: Bool {
         boolOrDefault(liveActivityMonitorEnabledKey, default: true)
+    }
+
+    public static var shortcutRecordingLiveActivityEnabled: Bool {
+        boolOrDefault(shortcutRecordingLiveActivityEnabledKey, default: true)
     }
 
     public static var lockScreenQuickRecordEnabled: Bool {

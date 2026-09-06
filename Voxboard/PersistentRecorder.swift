@@ -155,6 +155,13 @@ final class PersistentRecorder {
     static let modelSetupAnalyticsKey = "onboarding.analytics.model_setup_completed.v1"
     static let completionAnalyticsKey = "onboarding.analytics.completed.v1"
 
+    /// The recorder instance owned by the running app scene. App Intents such
+    /// as the recording toggle (Shortcuts, Apple Pencil squeeze, Action Button)
+    /// perform inside the app process and use this reference to start or stop
+    /// a segment in place — without activating the scene. Weak so a replaced
+    /// instance from a scene rebuild never leaks through this handle.
+    static weak var active: PersistentRecorder?
+
     /// Deadline for the optional on-device model routing calls during export
     /// (Smart Folders, Auto-Organize). Routing must never hang delivery behind
     /// a stalled FoundationModels session; on timeout the export proceeds with
@@ -374,6 +381,7 @@ final class PersistentRecorder {
         self.voiceActivityDetectionService = voiceActivityDetectionService
         self.captureDraftEventHandler = captureDraftEventHandler
         self.transcriptEnricher = transcriptEnricher
+        Self.active = self
         ensureRecordingsDirectory()
 
         let queueRoot = AppConstants.recordingJobsDirectoryURL
@@ -414,6 +422,9 @@ final class PersistentRecorder {
     }
 
     deinit {
+        if Self.active === self {
+            Self.active = nil
+        }
         stopListening()
         unregisterCommandObserver()
     }
@@ -531,6 +542,10 @@ final class PersistentRecorder {
         } catch {
             log.log("[PersistentRecorder] ❌ Engine start failed: \(error)")
             inputNode.removeTap(onBus: 0)
+            // A background launch that cannot start input can leave the session
+            // half-activated; deactivate so a later foreground attempt starts
+            // from a clean state instead of surfacing a stale Microphone error.
+            try? session.setActive(false, options: [.notifyOthersOnDeactivation])
             lastError = String(localized: "Microphone error")
             return false
         }
@@ -1876,7 +1891,17 @@ final class PersistentRecorder {
             let duration = TimeInterval(durationSec)
 
             if shouldAutoStopListeningAfterCurrentRecording {
-                stopListening()
+                if UIApplication.shared.applicationState == .active {
+                    stopListening()
+                } else {
+                    // Backgrounded one-shot (recording toggled from a shortcut
+                    // or hardware trigger): keep the audio session active so
+                    // iOS cannot suspend the process while the queued job
+                    // transcribes and delivers — a suspended process strands
+                    // the Live Activity in "Working" until the app is opened.
+                    // executeQueuedJob tears the session down when done.
+                    shouldEndLiveActivityAfterCurrentTranscription = true
+                }
             } else {
                 LiveActivityController.shared.update(
                     isSegmentActive: false,
@@ -2004,15 +2029,31 @@ final class PersistentRecorder {
         // recordings may be stopped from the Lock Screen/Dynamic Island while the
         // app is backgrounded, and transcription still needs time to finish.
         var bgTask: UIBackgroundTaskIdentifier = .invalid
-        bgTask = UIApplication.shared.beginBackgroundTask {
+        bgTask = UIApplication.shared.beginBackgroundTask { [weak self] in
             log.log("[PersistentRecorder] ⚠️ Background task expired")
+            // Safety net when the session was kept alive through transcription:
+            // tear it down rather than leaving the microphone running.
+            if let self,
+               self.shouldAutoStopListeningAfterCurrentRecording,
+               !self.isSegmentActive {
+                self.stopListening()
+            }
             UIApplication.shared.endBackgroundTask(bgTask)
             bgTask = .invalid
         }
 
         if shouldAutoStopListeningAfterCurrentRecording {
             shouldEndLiveActivityAfterCurrentTranscription = true
-            stopListening(endLiveActivity: false)
+            // Backgrounded one-shots (recording toggled from a shortcut or
+            // hardware trigger) keep the audio session active through
+            // transcription: a suspendable process freezes mid-processing and
+            // strands the Live Activity in a "Working" state until the app is
+            // reopened. The completion and error paths stop listening, and the
+            // task-expiry handler above is the safety net. Foreground stops
+            // keep the early teardown so system haptics recover immediately.
+            if UIApplication.shared.applicationState == .active {
+                stopListening(endLiveActivity: false)
+            }
         }
 
         // Transcribe
@@ -2385,6 +2426,11 @@ final class PersistentRecorder {
             }
             finishLiveActivityAfterTranscription()
             WatchRecordingController.shared.publishState()
+            // A backgrounded one-shot that kept its audio session alive for
+            // this transcription ends its microphone lease here.
+            if shouldAutoStopListeningAfterCurrentRecording, !isSegmentActive {
+                stopListening()
+            }
         }
 
         do {
